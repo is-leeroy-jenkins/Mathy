@@ -1,7 +1,6 @@
 # 🧠 Mathy-Py
 
-**Modular Machine Learning Framework for Data Scientists, Analysts, and Researchers**  
-Created by [Terry D. Eppler](mailto:terryeppler@gmail.com)
+
 
 
 ## 📦 Overview
@@ -80,7 +79,7 @@ ___
 | LinearRegression          | Ordinary least squares linear regression.                                  |
 | RidgeRegression           | Linear regression with L2 regularization to prevent overfitting.           |
 | LassoRegression           | Linear regression with L1 regularization for feature selection.            |
-| ElasticNet                | Combines L1 and L2 penalties for balanced regularization.                  |
+| [ElasticNet](https://github.com/is-leeroy-jenkins/Mathy/blob/main/Models.py#L3784)            | Combines L1 and L2 penalties for balanced regularization.                  |
 | SGDRegressor              | Stochastic Gradient Descent optimizer for large-scale linear regression.   |
 | DecisionTreeRegressor     | Tree-based model for piecewise constant regression.                        |
 | RandomForestRegressor     | Ensemble of decision trees using bootstrap aggregation.                    |
