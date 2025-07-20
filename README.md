@@ -12,7 +12,7 @@ and classification/regression models with custom wrappers, error handling, and d
 Mathy targets professionals in data science and analytics who require reusable, robust, and 
 interpretable tools for building intelligent models—especially within government and research domains.
 
----
+
 
 ## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
@@ -62,7 +62,7 @@ mathy/
 
 ## 📦 Dependencies
 
-####### Mathy requires Python 3.9+ and the following libraries:
+###### Mathy requires Python 3.9+ and the following libraries:
 
 - `numpy`
 - `pandas`
