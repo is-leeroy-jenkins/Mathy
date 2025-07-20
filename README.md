@@ -1,9 +1,9 @@
-# 🧠 Mathy
+# 🧠 Mathy-Py
 
 **Modular Machine Learning Framework for Data Scientists, Analysts, and Researchers**  
 Created by [Terry D. Eppler](mailto:terryeppler@gmail.com)
 
----
+
 
 ## 📦 Overview
 
@@ -13,8 +13,7 @@ and classification/regression models with custom wrappers, error handling, and d
 
 Mathy targets professionals in data science and analytics who require reusable, robust, and 
 interpretable tools for building intelligent models—especially within government and research domains.
-
--
+---
 
 ## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
