@@ -85,7 +85,7 @@ pip install -r requirements.txt
 ## ⚡ Quickstart
 
 #### 1. **Load and Split Data**  
-######   Load a dataset and define the target column.
+- Load a dataset and define the target column.
 
 ```
 python
