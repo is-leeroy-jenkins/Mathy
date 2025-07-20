@@ -17,17 +17,17 @@ interpretable tools for building intelligent models—especially within governme
 ## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
 - **`models.py`**: Wrappers for common classifiers/regressors such as:
-  - Perceptron, Ridge, SGD, MLP (Multilayer Perceptron)
-  - Decision Trees, KNN, Logistic Regression, SVMs, Ensemble Methods
+- Perceptron, Ridge, SGD, MLP (Multilayer Perceptron)
+- Decision Trees, KNN, Logistic Regression, SVMs, Ensemble Methods
 - **`clusters.py`**: Unified interface for clustering techniques including:
-  - `KMeans`, `DBSCAN`, `Agglomerative`, and other sklearn-based clustering algorithms
+- `KMeans`, `DBSCAN`, `Agglomerative`, and other sklearn-based clustering algorithms
 - **`processors.py`**: Scalers and transformers for preprocessing:
-  - `StandardScaler`, `MinMaxScaler`, `RobustScaler`, `Normalizer`, `OneHotEncoder`
+- `StandardScaler`, `MinMaxScaler`, `RobustScaler`, `Normalizer`, `OneHotEncoder`
 
 ## 🧠 Machine Learning
 - Supports both classification and regression models.
 - Model analysis using:
-  - Accuracy, Precision, Recall, F1 Score, ROC AUC, R², MAE, MSE, RMSE, etc.
+- Accuracy, Precision, Recall, F1 Score, ROC AUC, R², MAE, MSE, RMSE, etc.
 - Seamless training, scoring, prediction (`train`, `score`, `project`, `analyze`)
 
 ## 📊 Clustering & Visualization
@@ -62,7 +62,7 @@ mathy/
 
 ## 📦 Dependencies
 
-Mathy requires Python 3.9+ and the following libraries:
+####### Mathy requires Python 3.9+ and the following libraries:
 
 - `numpy`
 - `pandas`
@@ -71,7 +71,6 @@ Mathy requires Python 3.9+ and the following libraries:
 - `pydantic`
 - `boogr` (custom error handler module)
 
----
 
 - To install all dependencies:
 
