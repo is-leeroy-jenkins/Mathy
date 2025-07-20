@@ -87,12 +87,13 @@ pip install -r requirements.txt
 1. **Load and Split Data**  
    Load a dataset and define the target column.
 
-   ```python
-   from data import Dataset
-   import pandas as pd
+```python
+from data import Dataset
+import pandas as pd
 
-   df = pd.read_csv("data.csv")
-   dataset = Dataset(df, target="Label")
+df = pd.read_csv("data.csv")
+dataset = Dataset(df, target="Label")
+```
 
 2. **Preprocessing**
 
