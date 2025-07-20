@@ -11,8 +11,6 @@ and classification/regression models with custom wrappers, error handling, and d
 machine-learning workflows. Mathy targets professionals in data science and analytics who require reusable, robust, and 
 interpretable tools for building intelligent models—especially within government and research domains.
 
-
-
 ## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
 - **`models.py`**: Wrappers for common classifiers/regressors such as:
