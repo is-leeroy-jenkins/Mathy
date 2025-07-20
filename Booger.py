@@ -10,7 +10,7 @@
   ******************************************************************************************
   <copyright file="Booger.py" company="Terry D. Eppler">
 
-	     boogr
+	     Mathy Booger
 
      Permission is hereby granted, free of charge, to any person obtaining a copy
      of this software and associated documentation files (the “Software”),
@@ -40,17 +40,15 @@
   </summary>
   ******************************************************************************************
   '''
-import base64
-from enum import Enum
+from __future__ import annotations
+import traceback
 import FreeSimpleGUI as sg
-import fitz
-import io
-import os
-from PIL import Image, ImageTk, ImageSequence
-from sys import exit, exc_info
-from Minion import *
+from sys import exc_info
+from pydantic import BaseModel
+from typing import List
 
-class Dark( ):
+
+class Dark( BaseModel ):
 	'''
 
         Constructor:
@@ -62,6 +60,11 @@ class Dark( ):
 		Class representing the theme
 
     '''
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
 
 	def __init__( self ):
 		sg.theme( 'DarkGrey15' )
@@ -83,8 +86,8 @@ class Dark( ):
 		self.theme_font = ('Roboto', 11)
 		self.scrollbar_color = '#755600'
 		self.form_size = (400, 200)
-		sg.set_global_icon( icon = self.icon_path )
-		sg.set_options( font = self.theme_font )
+		sg.set_global_icon( icon=self.icon_path )
+		sg.set_options( font=self.theme_font )
 		sg.user_settings_save( 'Boo', r'/\resources\theme' )
 
 
@@ -126,9 +129,10 @@ class Error( Exception ):
 
     '''
 
-	def __init__( self, error: Exception, heading: str = None, cause: str = None,
-	              method: str = None, module: str = None ):
+	def __init__( self, error: Exception, heading: str=None, cause: str=None,
+	              method: str=None, module: str=None ):
 		super( ).__init__( )
+		self.exception = error
 		self.heading = heading
 		self.cause = cause
 		self.method = method
@@ -174,9 +178,7 @@ class Error( Exception ):
 			List[ str ] | None
 
 		'''
-		return [ 'message', 'cause',
-		         'method', 'module', 'scaler',
-		         'stack_trace', 'info' ]
+		return [ 'message', 'cause',  'method', 'module', 'scaler', 'stack_trace', 'info' ]
 
 
 
@@ -191,12 +193,12 @@ class ErrorDialog( Dark ):
     '''
 
 	# Fields
-	error: Exception = None
-	heading: str = None
-	module: str = None
-	info: str = None
-	cause: str = None
-	method: str = None
+	error: Exception=None
+	heading: str=None
+	module: str=None
+	info: str=None
+	cause: str=None
+	method: str=None
 
 	def __init__( self, error: Error ):
 		super( ).__init__( )
@@ -204,7 +206,7 @@ class ErrorDialog( Dark ):
 		sg.theme_input_text_color( '#FFFFFF' )
 		sg.theme_element_text_color( '#69B1EF' )
 		sg.theme_text_color( '#69B1EF' )
-		self.theme_background = sg.theme_background_color( )
+		self.theme_background=sg.theme_background_color( )
 		self.theme_textcolor = sg.theme_text_color( )
 		self.element_forecolor = sg.theme_element_text_color( )
 		self.element_backcolor = sg.theme_background_color( )
@@ -246,8 +248,7 @@ class ErrorDialog( Dark ):
 			str | None
 
 		'''
-		if isinstance( self.info, str ):
-			return self.info
+		return self.info
 
 
 	def __dir__( self ) -> List[ str ] | None:
@@ -299,18 +300,18 @@ class ErrorDialog( Dark ):
 		_font = ('Roboto', 10)
 		_padsz = (3, 3)
 		_layout = [ [ sg.Text( ) ],
-		            [ sg.Text( f'{_msg}', size = (100, 1), key = '-MSG-', text_color = _red,
-			            font = _font ) ],
-		            [ sg.Text( size = (150, 1) ) ],
-		            [ sg.Multiline( f'{_info}', key = '-INFO-', size = (80, 7), pad = _padsz ) ],
+		            [ sg.Text( f'{_msg}', size=(100, 1), key='-MSG-', text_color=_red,
+			            font=_font ) ],
+		            [ sg.Text( size=(150, 1) ) ],
+		            [ sg.Multiline( f'{_info}', key='-INFO-', size=(80, 7), pad=_padsz ) ],
 		            [ sg.Text( ) ],
-		            [ sg.Text( size = (20, 1) ), sg.Cancel( size = (15, 1), key = '-CANCEL-' ),
-		              sg.Text( size = (10, 1) ), sg.Ok( size = (15, 1), key = '-OK-' ) ] ]
+		            [ sg.Text( size=(20, 1) ), sg.Cancel( size=(15, 1), key='-CANCEL-' ),
+		              sg.Text( size=(10, 1) ), sg.Ok( size=(15, 1), key='-OK-' ) ] ]
 
 		_window = sg.Window( r' Mathy', _layout,
-			icon = self.icon_path,
-			font = self.theme_font,
-			size = self.form_size )
+			icon=self.icon_path,
+			font=self.theme_font,
+			size=self.form_size )
 
 		while True:
 			_event, _values = _window.read( )

@@ -10,9 +10,7 @@
 ******************************************************************************************
 <copyright file="Data.py" company="Terry D. Eppler">
 
-     Boo is a df analysis tool integrating various Generative AI, Text-Processing, and
-     Machine-Learning algorithms for federal analysts.
-     Copyright ©  2022  Terry Eppler
+     Mathy Data
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),
@@ -48,12 +46,15 @@ import numpy as np
 from typing import Optional, List, Dict
 from pandas.core.common import random_state
 from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
 from Static import Scaler
+from sklearn.metrics import silhouette_score
+from sklearn.base import BaseEstimator
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Tuple
 
 
-class Model( ):
+class Model( BaseModel ):
 	"""
 
 		Purpose:
@@ -150,7 +151,7 @@ class Model( ):
 		raise NotImplementedError
 
 
-class Metric( ):
+class Metric( BaseModel ):
 	"""
 
 		Purpose:
@@ -160,13 +161,18 @@ class Metric( ):
 
 	"""
 
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
 	def __init__( self ):
 		self.pipeline = None
 		self.transformed_data = [ ]
 		self.transformed_values = [ ]
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -239,6 +245,24 @@ class Dataset( Metric ):
 		-----------
 		Utility class for preparing machine rate datasets from a pandas DataFrame.
 
+		Members:
+		------------
+		dataframe: pd.DataFrame
+		data: np.ndarray
+		rows: int
+		columns: int
+		target: str
+		test_size: float
+		random_state: int
+		features: list
+		target_values
+		numeric_columns
+		text_columns: list
+		training_data: pd.DataFrame
+		training_values
+		testing_data
+		testing_values
+
 	"""
 
 	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
@@ -266,16 +290,16 @@ class Dataset( Metric ):
 		self.random_state = rando
 		self.features = [ column for column in df.columns ]
 		self.target_values = [ value for value in df[ 1:, target ] ]
-		self.numeric_columns = df.select_dtypes( include = [ 'number' ] ).columns.tolist( )
-		self.text_columns = df.select_dtypes( include = [ 'object', 'category' ] ).columns.tolist( )
+		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = \
-		train_test_split( df[ 1:, : ], target, test_size = size, random_state = rando )[ 0 ]
+		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 0 ]
 		self.testing_data = \
-		train_test_split( df[ 1:, : ], target, test_size = size, random_state = rando )[ 1 ]
+		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 1 ]
 		self.training_values = \
-		train_test_split( df[ 1:, : ], target, test_size = size, random_state = rando )[ 2 ]
+		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 2 ]
 		self.testing_values = \
-		train_test_split( df[ 1:, : ], target, test_size = size, random_state = rando )[ 3 ]
+		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 3 ]
 		self.transtuple = [ ]
 
 
@@ -289,8 +313,7 @@ class Dataset( Metric ):
 		'''
 		return [ 'dataframe', 'rows', 'columns', 'target', 'split_data',
 		         'features', 'test_size', 'rando', 'df', 'scale_data',
-		         'numeric_columns', 'text_columns', 'scaler', 'transtuple'
-		                                                      'create_testing_data',
+		         'numeric_columns', 'text_columns', 'scaler', 'transtuple', 'create_testing_data',
 		         'calculate_statistics', 'create_training_data',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
 		         'testing_values', 'transform_columns' ]
@@ -326,7 +349,7 @@ class Dataset( Metric ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'Dataset'
-			exception.method = 'scale_data( )'
+			exception.method = 'transform_columns( self, name: str, encoder: object, columns: List[ str ] )'
 			error = ErrorDialog( exception )
 			error.show( )
 

@@ -60,6 +60,48 @@ mathy/
 ├── README.md         # This file
 ```
 
+## 📊 Classification Models
+
+| Classifier              | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| PerceptronClassifier    | Linear classifier based on the perceptron algorithm for binary classification. |
+| RidgeClassifier         | Linear classifier using L2 regularization to prevent overfitting.           |
+| SGDClassifier           | Stochastic Gradient Descent for efficient training of linear classifiers.  |
+| LogisticRegression      | Probabilistic linear classifier suitable for binary and multi-class tasks. |
+| KNeighborsClassifier    | Instance-based learner using proximity (k-nearest neighbors).               |
+| DecisionTreeClassifier  | Tree-based model that splits data based on feature thresholds.             |
+| RandomForestClassifier  | Ensemble method combining multiple decision trees via bagging.             |
+| GradientBoostingClassifier | Boosted ensemble that reduces bias via stage-wise optimization.         |
+| MLPClassifier           | Feedforward neural network (multi-layer perceptron) for non-linear learning. |
+
+___
+
+## 📈 Regression Models
+
+| Regressor               | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| LinearRegression        | Ordinary least squares linear regression.                                  |
+| RidgeRegression         | Linear regression with L2 regularization to prevent overfitting.           |
+| LassoRegression         | Linear regression with L1 regularization for feature selection.            |
+| ElasticNet              | Combines L1 and L2 penalties for balanced regularization.                  |
+| SGDRegressor            | Stochastic Gradient Descent optimizer for large-scale linear regression.   |
+| DecisionTreeRegressor   | Tree-based model for piecewise constant regression.                        |
+| RandomForestRegressor   | Ensemble of decision trees using bootstrap aggregation.                    |
+| GradientBoostingRegressor | Boosted ensemble for reducing bias in regression tasks.                 |
+| MLPRegressor            | Multi-layer perceptron for capturing complex non-linear relationships.     |
+
+___
+
+## 🔍 Clustering Models
+
+| Clustering Algorithm       | Description                                                                 |
+|----------------------------|-----------------------------------------------------------------------------|
+| KMeansClustering           | Partitions data into k clusters by minimizing within-cluster variance.     |
+| DBSCANClustering           | Density-Based Spatial Clustering for detecting arbitrary-shaped clusters.  |
+| AgglomerativeClustering    | Hierarchical clustering using a bottom-up merging strategy.                |
+
+___
+
 ## 📦 Dependencies
 
 ###### Mathy requires Python 3.9+ and the following libraries:

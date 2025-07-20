@@ -10,7 +10,7 @@
 ******************************************************************************************
 <copyright file="Clusters.py" company="Terry D. Eppler">
 
-     Boo
+     Mathy Clusters
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),
