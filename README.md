@@ -6,7 +6,7 @@ Created by [Terry D. Eppler](mailto:terryeppler@gmail.com)
 
 ## 📦 Overview
 
-**Mathy** is a powerful and extensible Python library designed to streamline machine learning workflows. 
+**Mathy** is a Python library wraps sklearn functionality to streamline machine learning workflows. 
 It provides a clean abstraction over clustering algorithms, preprocessing tools, 
 and classification/regression models with custom wrappers, error handling, and diagnostic tools. 
 Mathy targets professionals in data science and analytics who require reusable, robust, and 
