@@ -84,10 +84,11 @@ pip install -r requirements.txt
 
 ## ⚡ Quickstart
 
-1. **Load and Split Data**  
-   Load a dataset and define the target column.
+#### 1. **Load and Split Data**  
+######   Load a dataset and define the target column.
 
-```python
+```
+python
 from data import Dataset
 import pandas as pd
 
@@ -95,30 +96,32 @@ df = pd.read_csv("data.csv")
 dataset = Dataset(df, target="Label")
 ```
 
-2. **Preprocessing**
+#### 2. **Preprocessing**
 
-``` from processors import StandardScaler
+``` 
+from processors import StandardScaler
 scaler = StandardScaler()
 X_train = scaler.fit_transform(dataset.training_data)
 y_train = dataset.training_values
 ```
 
-3. **Train and Evaluate Model**
+#### 3. **Train and Evaluate Model**
 
-``` from models import PerceptronClassifier
+``` 
+from models import PerceptronClassifier
 model = PerceptronClassifier()
 model.train(X_train, y_train)
 print(model.score(X_train, y_train))
 print(model.analyze(X_train, y_train))
 ```
 
-## 🧠 Customization & Extension
+#### 🧠 Customization & Extension
 
--  **🔧 Create Your Model**  
-   Subclass `Model` to wrap your own algorithm with `train`, `project`, `score`, and `analyze`.
+#### **🔧 Create Your Model**
+- Subclass `Model` to wrap your own algorithm with `train`, `project`, `score`, and `analyze`.
 
-- **⚙️ Add New Preprocessors**  
-   Inherit from `Metric` to define custom scalers, encoders, or feature engineering.
+#### **⚙️ Add New Preprocessors**  
+- Inherit from `Metric` to define custom scalers, encoders, or feature engineering.
 
-- **🧪 Plug-in Your Evaluators**  
-   Override `analyze` methods to return custom performance metrics for specialized use cases.
+#### **🧪 Plug-in Your Evaluators**  
+- Override `analyze` methods to return custom performance metrics for specialized use cases.
