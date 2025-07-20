@@ -113,11 +113,11 @@ print(model.analyze(X_train, y_train))
 
 ## 🧠 Customization & Extension
 
-1. **🔧 Create Your Model**  
+-  **🔧 Create Your Model**  
    Subclass `Model` to wrap your own algorithm with `train`, `project`, `score`, and `analyze`.
 
-2. **⚙️ Add New Preprocessors**  
+- **⚙️ Add New Preprocessors**  
    Inherit from `Metric` to define custom scalers, encoders, or feature engineering.
 
-3. **🧪 Plug-in Your Evaluators**  
+- **🧪 Plug-in Your Evaluators**  
    Override `analyze` methods to return custom performance metrics for specialized use cases.
