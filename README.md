@@ -74,17 +74,17 @@ ___
 
 ## 📈 Regression Models
 
-| Name                      | Description                                                                 |
-|---------------------------|-----------------------------------------------------------------------------|
-| LinearRegression          | Ordinary least squares linear regression.                                  |
-| RidgeRegression           | Linear regression with L2 regularization to prevent overfitting.           |
-| LassoRegression           | Linear regression with L1 regularization for feature selection.            |
-| [ElasticNet](https://github.com/is-leeroy-jenkins/Mathy/blob/main/Models.py#L3784)            | Combines L1 and L2 penalties for balanced regularization.                  |
-| SGDRegressor              | Stochastic Gradient Descent optimizer for large-scale linear regression.   |
-| DecisionTreeRegressor     | Tree-based model for piecewise constant regression.                        |
-| RandomForestRegressor     | Ensemble of decision trees using bootstrap aggregation.                    |
+| Name                      | Description                                                             |
+|---------------------------|-------------------------------------------------------------------------|
+| LinearRegression          | Ordinary least squares linear regression.                               |
+| RidgeRegression           | Linear regression with L2 regularization to prevent overfitting.        |
+| LassoRegression           | Linear regression with L1 regularization for feature selection.         |
+| ElasticNet                | Combines L1 and L2 penalties for balanced regularization.               |
+| SGDRegressor              | Stochastic Gradient Descent optimizer for large-scale linear regression. |
+| DecisionTreeRegressor     | Tree-based model for piecewise constant regression.                     |
+| RandomForestRegressor     | Ensemble of decision trees using bootstrap aggregation.                 |
 | GradientBoostingRegressor | Boosted ensemble for reducing bias in regression tasks.                 |
-| MLPRegressor              | Multi-layer perceptron for capturing complex non-linear relationships.     |
+| MLPRegressor              | Multi-layer perceptron for capturing complex non-linear relationships.  |
 
 ___
 
