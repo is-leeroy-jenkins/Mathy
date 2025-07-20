@@ -7,15 +7,16 @@ Created by [Terry D. Eppler](mailto:terryeppler@gmail.com)
 
 ## 📦 Overview
 
-**Mathy** is a powerful and extensible Python library designed to streamline machine learning workflows. It provides a clean abstraction over clustering algorithms, preprocessing tools, and classification/regression models with custom wrappers, error handling, and diagnostic tools.
+**Mathy** is a powerful and extensible Python library designed to streamline machine learning workflows. 
+It provides a clean abstraction over clustering algorithms, preprocessing tools, 
+and classification/regression models with custom wrappers, error handling, and diagnostic tools.
 
-Mathy targets professionals in data science and analytics who require reusable, robust, and interpretable tools for building intelligent models—especially within government and research domains.
+Mathy targets professionals in data science and analytics who require reusable, robust, and 
+interpretable tools for building intelligent models—especially within government and research domains.
 
 -
 
-## 🚀 Features
-
-#### 🧰 Core Modules
+## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
 - **`models.py`**: Wrappers for common classifiers/regressors such as:
   - Perceptron, Ridge, SGD, MLP (Multilayer Perceptron)
@@ -25,31 +26,31 @@ Mathy targets professionals in data science and analytics who require reusable, 
 - **`processors.py`**: Scalers and transformers for preprocessing:
   - `StandardScaler`, `MinMaxScaler`, `RobustScaler`, `Normalizer`, `OneHotEncoder`
 
-#### 🧠 Machine Learning
+## 🧠 Machine Learning
 - Supports both classification and regression models.
 - Model analysis using:
   - Accuracy, Precision, Recall, F1 Score, ROC AUC, R², MAE, MSE, RMSE, etc.
 - Seamless training, scoring, prediction (`train`, `score`, `project`, `analyze`)
 
-#### 📊 Clustering & Visualization
+## 📊 Clustering & Visualization
 - Integrated support for:
   - KMeans: Centroid-based partitioning
   - DBSCAN: Density-based clustering
   - Agglomerative: Hierarchical linkage models
 - 2D cluster visualizations using Matplotlib
 
-#### 🛠️ Data Preprocessing
+## 🛠️ Data Preprocessing
 - Scaling and normalization strategies
 - Missing value imputation
 - Transformation pipelines for numerical and categorical data
 
-#### 💡 Design Principles
+## 💡 Design Principles
 - Abstract base classes for extensibility
 - Pydantic validation and type hinting
 - Custom error handling via `boogr` for GUI/CLI debugging
 - Adherence to clean architecture and SOLID principles
 
-#### 📁 Project Structure
+## 📁 Project Structure
 
 ```plaintext
 mathy/
@@ -61,7 +62,7 @@ mathy/
 ├── README.md         # This file
 ```
 
-#### 📦 Dependencies
+## 📦 Dependencies
 
 Mathy requires Python 3.9+ and the following libraries:
 
@@ -81,7 +82,7 @@ bash
 pip install -r requirements.txt
 ```
 
-#### ⚡ Quickstart
+## ⚡ Quickstart
 
 1. **Load and Split Data**  
    Load a dataset and define the target column.
@@ -110,7 +111,7 @@ print(model.score(X_train, y_train))
 print(model.analyze(X_train, y_train))
 ```
 
-#### 🧠 Customization & Extension
+## 🧠 Customization & Extension
 
 1. **🔧 Create Your Model**  
    Subclass `Model` to wrap your own algorithm with `train`, `project`, `score`, and `analyze`.
