@@ -1,7 +1,8 @@
 ###### Mathy-Py
-[](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/Mathy.png)
 
-
+<p align="center">
+  <img src="hhttps://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/Mathy.png">
+</p>
 
 
 ## 🧠 Overview
