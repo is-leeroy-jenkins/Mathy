@@ -1,8 +1,6 @@
 ###### Mathy-Py
 
-<p align="center">
-  <img src="https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/github/fourier.gif">
-</p>
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/github/fourier.gif)
 
 
 ## 🧠 Overview
