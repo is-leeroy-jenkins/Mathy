@@ -1,9 +1,10 @@
-# 🧠 Mathy-Py
+###### Mathy-Py
+[]()
 
 
 
 
-## 📦 Overview
+## 🧠 Overview
 
 **Mathy** is a clean abstraction over clustering algorithms, preprocessing tools, 
 and classification/regression models with custom wrappers, error handling, and diagnostic tools for 
