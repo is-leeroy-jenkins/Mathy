@@ -45,7 +45,7 @@ interpretable tools for building intelligent models—especially within governme
 - Pydantic validation and type hinting
 - Custom error handling via `boogr` for GUI/CLI debugging
 - Adherence to clean architecture and SOLID principles
-
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/github/fourier.gif)
 ## 📁 Project Structure
 
 ```plaintext
