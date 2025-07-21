@@ -39,9 +39,7 @@ interpretable tools for building intelligent models—especially within governme
 - Scaling and normalization strategies
 - Missing value imputation
 - Transformation pipelines for numerical and categorical data
-___
 
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/github/fourier.gif)
 ## 📁 Project Structure
 
 ```plaintext
