@@ -1,7 +1,7 @@
 ###### Mathy-Py
 
 <p align="center">
-  <img src="https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/Mathy.png">
+  <img src="https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/fourier.gif">
 </p>
 
 
