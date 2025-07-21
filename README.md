@@ -57,6 +57,9 @@ mathy/
 ```
 
 ## 📊 Classification Models
+> Classification models are used to assign data samples into discrete categories or classes. These
+> models are foundational for tasks such as spam detection, disease diagnosis, and image recognition.
+> Below is a list of supported classifiers in Mathy:
 
 | Name                       | Description                                                                 |
 |----------------------------|-----------------------------------------------------------------------------|
@@ -73,6 +76,9 @@ mathy/
 ___
 
 ## 📈 Regression Models
+> Regression models predict continuous numerical outcomes and are crucial in applications like
+> forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
+> models, listed below:
 
 | Name                      | Description                                                             |
 |---------------------------|-------------------------------------------------------------------------|
@@ -89,6 +95,9 @@ ___
 ___
 
 ## 🔍 Clustering Models
+> Clustering is an unsupervised technique used to discover natural groupings in data without labeled
+> outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
+> irregular cluster shapes:
 
 | Name                    | Description                                                                 |
 |-------------------------|-----------------------------------------------------------------------------|
@@ -99,6 +108,8 @@ ___
 ___
 
 ## ⚙️ Preprocessors
+> Preprocessing transforms raw input data into a format suitable for modeling. Mathy includes a
+> robust suite of feature scaling, normalization, encoding, and imputation tools, detailed below:
 
 | Processor         | Description                                                                 |
 |------------------|-----------------------------------------------------------------------------|
