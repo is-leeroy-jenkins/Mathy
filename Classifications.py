@@ -42,54 +42,130 @@
 '''
 from __future__ import annotations
 
-from argparse import ArgumentError
+from typing import Dict
+from typing import Optional, List, Tuple
 
-import numpy as np
 import matplotlib.pyplot as plt
-from Booger import Error, ErrorDialog
-from Data import Metric, Model
-from typing import Optional, List, Dict
-
-from pandas.core.common import random_state
-from sklearn import tree
-from sklearn.compose import ColumnTransformer
-from sklearn.metrics import (silhouette_score, accuracy_score, confusion_matrix,
-                             ConfusionMatrixDisplay, precision_score, f1_score, roc_auc_score,
-                             matthews_corrcoef, recall_score, classification_report)
-from sklearn.base import BaseEstimator
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.linear_model import (
-	LinearRegression, LogisticRegression, RidgeClassifier, Ridge, Lasso, ElasticNet,
-	BayesianRidge, SGDClassifier, SGDRegressor, Perceptron,
-)
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from pydantic import BaseModel
+from sklearn.base import ClassifierMixin
 from sklearn.ensemble import (
 	RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier,
-	BaggingClassifier, VotingClassifier, StackingClassifier,
-	RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor,
-	BaggingRegressor, VotingRegressor, StackingRegressor)
+	BaggingClassifier, VotingClassifier, StackingClassifier)
+from sklearn.linear_model import (
+	RidgeClassifier, SGDClassifier, Perceptron,
+)
+from sklearn.metrics import (accuracy_score, confusion_matrix,
+                             ConfusionMatrixDisplay, precision_score, f1_score, roc_auc_score,
+                             matthews_corrcoef, recall_score, classification_report)
 from sklearn.metrics import (
 	r2_score, mean_squared_error, mean_absolute_error,
 	explained_variance_score, median_absolute_error
 )
-from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import (StandardScaler, MinMaxScaler)
 from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.neural_network import MLPRegressor, MLPClassifier
-from sklearn.preprocessing import (StandardScaler, MinMaxScaler, RobustScaler, Normalizer,
-                                   OneHotEncoder, OrdinalEncoder)
+from sklearn.tree import DecisionTreeClassifier
 
-from sklearn.model_selection import train_test_split
-from sklearn.base import ClassifierMixin
-from sklearn.metrics import silhouette_score
-from sklearn.cluster import (KMeans, MiniBatchKMeans, DBSCAN, MeanShift,
-                             SpectralClustering, AgglomerativeClustering,
-                             Birch, OPTICS)
-from Static import Scaler
-import pandas as pd
-import seaborn as sns
-from pydantic import BaseModel, Field, validator
-from typing import Optional, List, Tuple
+from Booger import Error, ErrorDialog
+
+class Model( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Abstract base class that defines the interface for all linerar_model wrappers.
+
+	"""
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+		self.pipeline = None
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the linerar_model to the training df.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+				y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+			Returns:
+			--------
+				None
+
+		"""
+		raise NotImplementedError
+
+	def project( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Generate predictions from  the trained linerar_model.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+
+			Returns:
+			-----------
+				np.ndarray: Predicted target_values or class labels.
+
+		"""
+		raise NotImplementedError
+
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+		"""
+
+			Purpose:
+			---------
+			Compute the core metric (e.g., R²) of the model on test df.
+
+			Parameters:
+			-----------
+				X (pd.DataFrame): Feature matrix.
+				y (np.ndarray): True target target_values.
+
+			Returns:
+			-----------
+				float: Score value (e.g., R² for regressors).
+
+		"""
+		raise NotImplementedError
+
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+		"""
+
+			Purpose:
+			---------
+			Evaluate the model using multiple performance metrics.
+
+			Parameters:
+			-----------
+				X (pd.DataFrame): Feature matrix.
+				y (np.ndarray): Ground truth target_values.
+
+			Returns:
+			-----------
+				dict: Dictionary containing multiple evaluation metrics.
+
+		"""
+		raise NotImplementedError
+
 
 class PerceptronClassifier( Model ):
 	"""
