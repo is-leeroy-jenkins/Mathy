@@ -40,11 +40,98 @@
 </summary>
 ******************************************************************************************
 '''
-from Data import Metric
+from __future__ import annotations
+
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
 import sklearn.preprocessing as skp
+from pydantic import BaseModel
+
+
+class Metric( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
+	    `fit_transform` methods.
+
+	"""
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+		self.pipeline = None
+		self.transformed_data = [ ]
+		self.transformed_values = [ ]
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor to the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+		"""
+		raise NotImplementedError
+
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transforms the text df using the fitted preprocessor.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		raise NotImplementedError
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor and then transforms the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			self.fit( X, y )
+			return self.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Metric'
+			exception.method = ('fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray '
+			                    ']=None'
+			                    ') -> np.ndarray')
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class StandardScaler( Metric ):
@@ -63,7 +150,8 @@ class StandardScaler( Metric ):
 		super( ).__init__( )
 		self.standard_scaler = skp.StandardScaler( )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object:
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 
@@ -145,7 +233,7 @@ class MinMaxScaler( Metric ):
 		self.minmax_scaler = skp.MinMaxScaler( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -167,6 +255,7 @@ class MinMaxScaler( Metric ):
 				raise Exception( 'The argument "X" is required!' )
 			else:
 				self.minmax_scaler.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -256,6 +345,7 @@ class RobustScaler( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -301,6 +391,7 @@ class NormalScaler( Metric ):
 		super( ).__init__( )
 		self.normal_scaler = skp.Normalizer( norm = norm )
 
+
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
 
@@ -332,6 +423,7 @@ class NormalScaler( Metric ):
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""

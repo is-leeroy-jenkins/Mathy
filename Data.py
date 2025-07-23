@@ -92,7 +92,7 @@ class Metric( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
