@@ -1,7 +1,7 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Processors.py
+  Filename:                Scalers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
@@ -10,7 +10,7 @@
 ******************************************************************************************
 <copyright file="Processors.py" company="Terry D. Eppler">
 
-     Mathy Processors
+     Mathy Scalers
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Processors.py
+	Scalers.py
 </summary>
 ******************************************************************************************
 '''
@@ -44,8 +44,7 @@ from Data import Metric
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
-import sklearn.preprocessing as sk
-from sklearn.impute import SimpleImputer, KNNImputer
+import sklearn.preprocessing as skp
 
 
 class StandardScaler( Metric ):
@@ -53,14 +52,16 @@ class StandardScaler( Metric ):
 
 		Purpose:
 		--------
-		Standardizes features by removing the mean and scaling to unit variance.
+		Standardize features by removing the mean and scaling to unit variance. The standard score
+		of a sample x is calculated as: z = (x - u) / s where u is the mean of the training
+		samples or zero if with_mean=False, and s is the standard deviation of the training
+		samples or one if with_std=False.
 
 	"""
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.standard_scaler = sk.StandardScaler( )
-
+		self.standard_scaler = skp.StandardScaler( )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object:
 		"""
@@ -94,7 +95,6 @@ class StandardScaler( Metric ):
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -132,13 +132,15 @@ class MinMaxScaler( Metric ):
 
 		Purpose:
 		---------
-		Scales features to a given range (default is [0, 1]).
+		Transforms features by scaling each feature to a given range. This estimator scales and
+		translates each feature individually such that it is in the given range on the
+		training set, e.g. between zero and one.
 
 	"""
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.minmax_scaler = sk.MinMaxScaler( )
+		self.minmax_scaler = skp.MinMaxScaler( )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
 		"""
@@ -170,7 +172,6 @@ class MinMaxScaler( Metric ):
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -208,14 +209,16 @@ class RobustScaler( Metric ):
 
 		Purpose:
 		--------
-		Scales features using statistics that are robust to outliers.
+		This Scaler wraps the RobustScaler and removes the median and scales
+		the data according to the quantile range (defaults to IQR: Interquartile Range).
+		The IQR is the range between the 1st quartile (25th quantile)
+		and the 3rd quartile (75th quantile).
 
 	"""
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.robust_scaler = sk.RobustScaler( )
-
+		self.robust_scaler = skp.RobustScaler( )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
 		"""
@@ -249,7 +252,6 @@ class RobustScaler( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -280,19 +282,20 @@ class RobustScaler( Metric ):
 			error.show( )
 
 
-class Normalizer( Metric ):
+class NormalScaler( Metric ):
 	"""
 
 		Purpose:
 		---------
-		Scales text vectors individually to unit norm.
+		Normalize samples individually to unit norm. Each sample (i.e. each row of the data matrix)
+		with at least one non zero component is rescaled independently of other samples
+		so that its norm (l1 or l2) equals one.
 
 	"""
 
-	def __init__( self, norm: str='l2' ) -> None:
+	def __init__( self, norm: str = 'l2' ) -> None:
 		super( ).__init__( )
-		self.normal_scaler = sk.Normalizer( norm=norm )
-
+		self.normal_scaler = skp.Normalizer( norm = norm )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
 		"""
@@ -326,7 +329,6 @@ class Normalizer( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -356,309 +358,3 @@ class Normalizer( Metric ):
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-
-
-class OneHotEncoder( Metric ):
-	"""
-
-		Purpose:
-		---------
-		Encodes categorical features as a one-hot numeric array.
-
-	"""
-
-	def __init__( self, unknown: str = 'ignore' ) -> None:
-		super( ).__init__( )
-		self.hot_encoder = sk.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
-
-
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
-		"""
-
-
-			Purpose:
-			---------
-			Fits the hot_encoder to the categorical df.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Categorical text df.
-			y (Optional[np.ndarray]): Ignored.
-
-			Returns:
-			--------
-			self
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.hot_encoder.fit( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'OneHotEncoder'
-			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
-			                    'Pipeline')
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-
-			Purpose:
-			---------
-			Transforms the text
-			df into a one-hot encoded format.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Categorical text df.
-
-			Returns:
-			-----------
-			np.ndarray: One-hot encoded matrix.
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.hot_encoder.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'OneHotEncoder'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-class OrdinalEncoder( Metric ):
-	"""
-
-
-			Purpose:
-			---------
-			Encodes categorical features as ordinal integers.
-
-	"""
-
-	def __init__( self ) -> None:
-		super( ).__init__( )
-		self.ordinal_encoder = sk.OrdinalEncoder( )
-
-
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
-		"""
-
-			Purpose:
-			________
-			Fits the ordial encoder to the categorical df.
-
-			Parameters:
-			_____
-			X (np.ndarray): Categorical text df.
-			y (Optional[np.ndarray]): Ignored.
-
-			Returns:
-			--------
-			self
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.ordinal_encoder.fit( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'OrdinalEncoder'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Transforms the text df into ordinal-encoded format.
-
-
-			Parameters:
-			-----------
-			X (np.ndarray): Categorical text df.
-
-			Returns:
-			-----------
-			np.ndarray: Ordinal-encoded matrix.
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.ordinal_encoder.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'OrdinalEncoder'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-class MeanImputer( Metric ):
-	"""
-
-		Purpose:
-		-----------
-		Fills missing target_values using the average.
-
-	"""
-
-	def __init__( self, strat: str='mean' ) -> None:
-		super( ).__init__( )
-		self.mean_imputer = SimpleImputer( strategy=strat )
-
-
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
-		"""
-
-
-			Purpose:
-			---------
-			Fits the simple_imputer to the df.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Input df with missing target_values.
-			y (Optional[np.ndarray]): Ignored.
-
-			Returns:
-			--------
-			Pipeline
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.mean_imputer.fit( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'MeanImputer'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-
-			Purpose:
-			---------
-			Transforms the text
-			df by filling in missing target_values.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Input df with missing target_values.
-
-			Returns:
-			-----------
-			np.ndarray: Imputed df.
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.mean_imputer.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'MeanImputer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-class NearestImputer( Metric ):
-	"""
-
-		Purpose:
-		---------
-		Fills missing target_values using k-nearest neighbors.
-
-	"""
-
-	def __init__( self ) -> None:
-		super( ).__init__( )
-		self.knn_imputer = KNNImputer( )
-
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
-		"""
-
-			Purpose:
-			________
-			Fits the simple_imputer to the df.
-
-			Parameters:
-			_____
-			X (np.ndarray): Input df with missing target_values.
-			y (Optional[np.ndarray]): Ignored.
-
-			Returns:
-			--------
-			self
-
-		"""
-		try:
-			self.knn_imputer.fit( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
-			exception.method = 'fit( self, X: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			_________
-
-			Transforms the text df by imputing missing target_values.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Input df
-
-			Returns:
-			-----------
-			np.ndarray: Imputed df.
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.knn_imputer.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
-			exception.method = ''
-			error = ErrorDialog( exception )
-			error.show( )
-
