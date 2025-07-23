@@ -152,6 +152,7 @@ class NearestNeighborImputer( Metric ):
 		super( ).__init__( )
 		self.knn_imputer = sk.KNNImputer( )
 
+
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
 		"""
 
@@ -178,6 +179,7 @@ class NearestNeighborImputer( Metric ):
 			exception.method = 'fit( self, X: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -208,6 +210,7 @@ class NearestNeighborImputer( Metric ):
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
