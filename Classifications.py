@@ -190,6 +190,16 @@ class PerceptronClassifier( Model ):
 			constant learning rate.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, reg: float=0.0001, max: int=1000, mix: bool=True ) -> None:
 		"""
@@ -209,13 +219,13 @@ class PerceptronClassifier( Model ):
 		self.perceptron_classifier: Perceptron = Perceptron( alpha = reg, max_iter = max,
 			shuffle = mix )
 		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.accuracy: float=0.0
+		self.mean_absolute_error: float=0.0
+		self.mean_squared_error: float=0.0
+		self.r_mean_squared_error: float=0.0
+		self.r2_score: float=0.0
+		self.explained_variance_score: float=0.0
+		self.median_absolute_error: float=0.0
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -353,7 +363,7 @@ class PerceptronClassifier( Model ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
+					squared=False )
 				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.median_absolute_error = median_absolute_error( y, self.prediction,
@@ -434,6 +444,16 @@ class MultilayerClassification( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, hidden: tuple=(100,), activation='relu', solver='adam',
 	              alpha = 0.0001, learning: str='constant', rando: int=42 ) -> None:
@@ -448,14 +468,14 @@ class MultilayerClassification( Model ):
 			activation = activation, solver = solver, alpha = alpha, learning_rate = learning,
 			random_state = 42 )
 		self.pipeline: Pipeline = Pipeline( steps = list( hidden ) )
-		self.accuracy: float = 0.0
+		self.accuracy: float=0.0
 		self.prediction: np.array = None
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.mean_absolute_error: float=0.0
+		self.mean_squared_error: float=0.0
+		self.r_mean_squared_error: float=0.0
+		self.r2_score: float=0.0
+		self.explained_variance_score: float=0.0
+		self.median_absolute_error: float=0.0
 
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
@@ -665,6 +685,16 @@ class RidgeClassification( Model ):
 		distinct computational performance profiles.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, alpha: float = 1.0, solver: str = 'auto', max: int = 1000,
 	              rando: int = 42 ) -> None:
@@ -691,13 +721,13 @@ class RidgeClassification( Model ):
 		self.ridge_classifier: RidgeClassifier = RidgeClassifier( alpha = self.alpha,
 			solver = self.solver, max_iter = self.max_iter, random_state = self.random_state )
 		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.accuracy: float=0.0
+		self.mean_absolute_error: float=0.0
+		self.mean_squared_error: float=0.0
+		self.r_mean_squared_error: float=0.0
+		self.r2_score: float=0.0
+		self.explained_variance_score: float=0.0
+		self.median_absolute_error: float=0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -911,6 +941,16 @@ class StochasticDescentClassification( Model ):
 		 models and achieve online feature selection.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, loss: str = 'hinge', max: int = 5, reg: str = 'l2' ) -> None:
 		"""
@@ -933,13 +973,13 @@ class StochasticDescentClassification( Model ):
 		self.stochastic_classifier: SGDClassifier = SGDClassifier( loss = self.loss,
 			max_iter = self.max_iter, penalty = self.regularization )
 		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.accuracy: float=0.0
+		self.mean_absolute_error: float=0.0
+		self.mean_squared_error: float=0.0
+		self.r_mean_squared_error: float=0.0
+		self.r2_score: float=0.0
+		self.explained_variance_score: float=0.0
+		self.median_absolute_error: float=0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1166,14 +1206,14 @@ class NearestNeighborClassification( Model ):
 		self.neighbor_classifier: KNeighborsClassifier = KNeighborsClassifier(
 			n_neighbors=num )
 		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.score: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.accuracy: float=0.0
+		self.score: float=0.0
+		self.mean_absolute_error: float=0.0
+		self.mean_squared_error: float=0.0
+		self.r_mean_squared_error: float=0.0
+		self.r2_score: float=0.0
+		self.explained_variance_score: float=0.0
+		self.median_absolute_error: float=0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1382,6 +1422,17 @@ class DecisionTreeClassification( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
+
 
 	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
 		"""
@@ -1393,22 +1444,20 @@ class DecisionTreeClassification( Model ):
 
 		"""
 		super( ).__init__( )
-		self.criterion: str = criterion
-		self.splitter: str = splitter
-		self.max_depth: int = depth
+		self.criterion = criterion
+		self.splitter = splitter
+		self.max_depth = depth
 		self.random_state = rando
-		self.dt_classifier: DecisionTreeClassifier = DecisionTreeClassifier(
-			criterion = self.criterion,
-			splitter = self.splitter, max_depth = self.max_depth )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.score: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.dt_classifier = DecisionTreeClassifier( criterion=self.criterion,
+			splitter=self.splitter, max_depth=self.max_depth )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1626,8 +1675,22 @@ class RandomForestClassification( Model ):
 		The variance reduction is often significant hence yielding an overall better model.
 
 	"""
+	n_estimators: int
+	criterion: str=None
+	random_forest_classifier: RandomForestClassifier=None
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, est: int = 10, crit: str = 'gini', max: int = 3, rando: int = 42 ) -> None:
+
+	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -1636,20 +1699,20 @@ class RandomForestClassification( Model ):
 
 		"""
 		super( ).__init__( )
-		self.n_estimators: int = est
-		self.criterion: str = crit
-		self.max_depth: int = max
-		self.random_state: int = rando
+		self.n_estimators = est
+		self.criterion = crit
+		self.max_depth = max
+		self.random_state = rando
 		self.random_forest_classifier: RandomForestClassifier=RandomForestClassifier(
-			n_estimators = est, criterion = crit, random_state = rando )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+			n_estimators=self.n_estimators, criterion=crit, random_state=rando )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1776,20 +1839,20 @@ class RandomForestClassification( Model ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
+					squared=False )
 				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
+					squared=False )
 				return \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.r_mean_squared_error,
-							'R2': self.r2_score,
-							'Explained Variance': self.explained_variance_score,
-							'Median Absolute Error': self.median_absolute_error,
-					}
+				{
+					'MAE': self.mean_absolute_error,
+					'MSE': self.mean_squared_error,
+					'RMSE': self.r_mean_squared_error,
+					'R2': self.r2_score,
+					'Explained Variance': self.explained_variance_score,
+					'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1824,7 +1887,7 @@ class RandomForestClassification( Model ):
 			else:
 				self.prediction = self.random_forest_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm )
+				ConfusionMatrixDisplay( confusion_matrix=cm )
 				plt.title( 'Random Forest Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -1854,9 +1917,19 @@ class GradientBoostingClassification( Model ):
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, lss: str = 'deviance', rate: int = 0.1,
-	              est: int = 100, max: int = 3, rando: int = 42 ) -> None:
+	def __init__( self, lss: str='deviance', rate: int=0.1,
+	              est: int=100, max: int=3, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -1873,22 +1946,21 @@ class GradientBoostingClassification( Model ):
 
 		"""
 		super( ).__init__( )
-		self.loss: str = lss
-		self.learning_rate: float = rate
-		self.n_estimators: int = est
-		self.max_depth: int = max
-		self.random_state: int = rando
-		self.gradient_boost_classifier = GradientBoostingClassifier( loss = lss,
-			learning_rate = rate,
-			n_estimators = est, max_depth = max, random_state = rando )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.loss = lss
+		self.learning_rate = rate
+		self.n_estimators = est
+		self.max_depth = max
+		self.random_state = rando
+		self.gradient_boost_classifier = GradientBoostingClassifier( loss=lss,
+			learning_rate=rate, n_estimators=est, max_depth=max, random_state=rando )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2043,8 +2115,19 @@ class AdaBoostClassification( Model ):
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
+	X_scaled: Optional[ pd.DataFrame ]
 
-	def __init__( self, est: int = 100, max: int = 3 ) -> None:
+	def __init__( self, est: int=100, max: int=3 ) -> None:
 		"""
 
 			Initialize the Random Forest Classifier.
@@ -2052,17 +2135,19 @@ class AdaBoostClassification( Model ):
 		"""
 		super( ).__init__( )
 		self.scaler_type = 'AdaBoostClassifier'
-		self.max_depth: int = max
-		self.n_estimators: int = est
-		self.ada_boost_classifier: AdaBoostClassifier = AdaBoostClassifier( n_estimators = est )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.max_depth = max
+		self.n_estimators = est
+		self.ada_boost_classifier = AdaBoostClassifier( n_estimators=est )
+		self.X_scaled = None
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def scale( self ) -> None:
 		"""
@@ -2077,10 +2162,10 @@ class AdaBoostClassification( Model ):
 			return
 
 		scaler = \
-			{
-					'standard': StandardScaler( ),
-					'minmax': MinMaxScaler( )
-			}.get( self.scaler_type )
+		{
+			'standard': StandardScaler( ),
+			'minmax': MinMaxScaler( )
+		}.get( self.scaler_type )
 
 		if scaler is None:
 			raise ValueError( 'Scaler must be standard or minmax.' )
@@ -2091,6 +2176,7 @@ class AdaBoostClassification( Model ):
 
 		# Combine scaled numeric with untouched categorical
 		self.X_scaled = pd.concat( [ scaled_df, self.X[ self.categorical_features ] ], axis = 1 )
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2124,6 +2210,7 @@ class AdaBoostClassification( Model ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -2177,7 +2264,7 @@ class AdaBoostClassification( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.ada_boost_classifier.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
+				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
@@ -2209,20 +2296,22 @@ class AdaBoostClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared = False )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							'MAE': self.mean_absolute_error,
+							'MSE': self.mean_squared_error,
+							'RMSE': self.r_mean_squared_error,
+							'R2': self.r2_score,
+							'Explained Variance': self.explained_variance_score,
+							'Median Absolute Error': self.median_absolute_error,
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -2287,28 +2376,38 @@ class BaggingClassification( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, base: object = None, num: int = 10, max: int = 1, rando: int = 42 ) -> None:
+	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
 
 			Initialize the BaggingClassification.
 
 		"""
 		super( ).__init__( )
-		self.base_estimator: object = base
-		self.n_estimators: int = num
-		self.max_features: int = max
-		self.random_state: int = rando
-		self.bagging_classifier: BaggingClassifier = BaggingClassifier( n_estimators = num,
-			max_features = self.max, random_state = rando )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.base_estimator = base
+		self.n_estimators = num
+		self.max_features = max
+		self.random_state = rando
+		self.bagging_classifier = BaggingClassifier( n_estimators=num,
+			max_features=self.max_features, random_state=rando )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2427,20 +2526,22 @@ class BaggingClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					square=False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared=False )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							'MAE': self.mean_absolute_error,
+							'MSE': self.mean_squared_error,
+							'RMSE': self.r_mean_squared_error,
+							'R2': self.r2_score,
+							'Explained Variance': self.explained_variance_score,
+							'Median Absolute Error': self.median_absolute_error,
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -2477,7 +2578,7 @@ class BaggingClassification( Model ):
 			else:
 				self.prediction = self.bagging_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Bagging Classifier Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -2501,6 +2602,16 @@ class VotingClassification( Model ):
 		performing model in order to balance out their individual weaknesses.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, estimators: List[ (str, object) ], vote = 'hard' ) -> None:
 		"""
@@ -2513,14 +2624,14 @@ class VotingClassification( Model ):
 		self.voting: str = vote
 		self.voting_classifier: VotingClassifier = VotingClassifier( estimators = estimators,
 			voting = vote )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2638,21 +2749,23 @@ class VotingClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared = False )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2661,6 +2774,7 @@ class VotingClassification( Model ):
 			                    'float ]')
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2686,7 +2800,7 @@ class VotingClassification( Model ):
 			else:
 				self.prediction = self.voting_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Voting Classifer Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -2712,6 +2826,16 @@ class StackClassification( Model ):
 		estimators using cross_val_predict.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
 	              final: Optional[ ClassifierMixin ] = None ) -> None:
@@ -2723,16 +2847,17 @@ class StackClassification( Model ):
 		super( ).__init__( )
 		self.estimators: List[ Tuple[ str, ClassifierMixin ] ] = est
 		self.final_estimator: ClassifierMixin = final
-		self.stacking_classifier: StackingClassifier = StackingClassifier( estimators = est,
-			final_estimator = final )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.stacking_classifier: StackingClassifier = StackingClassifier( estimators=est,
+			final_estimator=final )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2767,6 +2892,7 @@ class StackClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -2796,6 +2922,7 @@ class StackClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -2819,7 +2946,8 @@ class StackClassification( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.stacking_classifier.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2898,7 +3026,7 @@ class StackClassification( Model ):
 			else:
 				self.prediction = self.stacking_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm ) 
 				plt.title( 'Stacking Classifer Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -2914,97 +3042,132 @@ class StackClassification( Model ):
 class SupportVectorClassification:
 	"""
 
-		Wrapper for sklearn's Support Vector Classification (SVC).
+		Support Vector Classification (SVC).
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, kernel: str = 'rbf', C: float = 1.0 ) -> None:
+	def __init__( self, kernel: str='rbf', C: float=1.0 ) -> None:
 		"""
-		Initialize the SVC model.
-
-		:param kernel: Kernel type to be used in the algorithm.
-		:type kernel: str
-		:param C: Regularization parameter.
-		:type C: float
+		
+			Purpose:
+			---------			
+			Initialize the SVC model.
+	
+			:param kernel: Kernel type to be used in the algorithm.
+			:type kernel: str
+			:param C: Regularization parameter.
+			:type C: float
+			
 		"""
 		self.svc_model = SVC( kernel=kernel, C=C )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
-		Fit the SVC model to the data.
-
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y: Target labels.
-		:type y: np.ndarray
+		
+			Purpose:
+			---------
+			Fit the SVC model to the data.
+	
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y: Target labels.
+			:type y: np.ndarray
 		"""
 		self.svc_model.fit( X, y )
 
 
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
-		Predict class labels for the input features.
-
-		:param X: Input features.
-		:type X: np.ndarray
-		:return: Predicted class labels.
-		:rtype: np.ndarray
+			
+			Purpose:
+			--------
+			Predict class labels for the input features.
+	
+			:param X: Input features.
+			:type X: np.ndarray
+			:return: Predicted class labels.
+			:rtype: np.ndarray
+			
 		"""
 		return self.svc_model.predict( X )
 
 
 	def score( self, X: np.ndarray, y_true: np.ndarray ) -> float:
 		"""
-		Evaluate the model using accuracy score.
-
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y_true: True labels.
-		:type y_true: np.ndarray
-		:return: Accuracy score.
-		:rtype: float
+		
+			Purpose:
+			---------
+			Evaluate the model using accuracy score.
+	
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y_true: True labels.
+			:type y_true: np.ndarray
+			:return: Accuracy score.
+			:rtype: float
+			
 		"""
-		y_pred = self.svc_model.predict( X )
-		return accuracy_score( y_true, y_pred )
+		self.prediction = self.svc_model.predict( X )
+		return accuracy_score( y_true, self.prediction )
+
 
 	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> str:
 		"""
-		Generate classification report.
-
-		:param self:
-		:type self:
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y_true: True labels.
-		:type y_true: np.ndarray
-		:return: Classification report.
-		:rtype: str
+		
+			Purpose:
+			----------
+			Generate classification report.
+	
+			:param self:
+			:type self:
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y_true: True labels.
+			:type y_true: np.ndarray
+			:return: Classification report.
+			:rtype: str
+			
 		"""
-		y_pred = self.svc_model.predict( X )
-		return classification_report( y_true, y_pred )
+		self.prediction = self.svc_model.predict( X )
+		return classification_report( y_true, self.prediction )
+
 
 	def create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None:
 		"""
-		Generate and display a confusion matrix.
-
-		:param self:
-		:type self:
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y_true: True labels.
-		:type y_true: np.ndarray
+		
+			Purpose:
+			---------
+			Generate and display a confusion matrix.
+	
+			:param self:
+			:type self:
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y_true: True labels.
+			:type y_true: np.ndarray
+			
 		"""
-		y_pred = self.svc_model.predict( X )
-		cm = confusion_matrix( y_true, y_pred )
+		self.prediction = self.svc_model.predict( X )
+		cm = confusion_matrix( y_true, self.prediction )
 		sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
 		plt.xlabel( "Predicted" )
 		plt.ylabel( "Actual" )
