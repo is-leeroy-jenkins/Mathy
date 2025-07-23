@@ -56,11 +56,11 @@ class OneHotEncoder( Metric ):
 
 	"""
 
-	def __init__( self, unknown: str = 'ignore' ) -> None:
+	def __init__( self, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
-		self.hot_encoder = sk.OneHotEncoder( sparse_output = False, handle_unknown = unknown )
+		self.hot_encoder = sk.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
 
 
@@ -138,7 +138,7 @@ class OrdinalEncoder( Metric ):
 		super( ).__init__( )
 		self.ordinal_encoder = sk.OrdinalEncoder( )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
 
 			Purpose:
@@ -199,6 +199,7 @@ class OrdinalEncoder( Metric ):
 			error.show( )
 
 
+
 class LabelEncoder:
 	"""
 	Wrapper for LabelEncoder.
@@ -220,3 +221,57 @@ class LabelEncoder:
 		:rtype: np.ndarray
 		"""
 		return self.label_encoder.fit_transform( labels )
+
+
+class PolynomialFeatures( Metric ):
+	"""
+    Wrapper for PolynomialFeatures.
+    """
+
+	def __init__( self, degree: int=2 ) -> None:
+		"""
+		Initialize PolynomialFeatures.
+
+		:param degree: Degree of polynomial terms.
+		:type degree: int
+		"""
+		super( ).__init__( )
+		self.polynomial_features = sk.PolynomialFeatures( degree=degree )
+
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+		"""
+		Fit polynomial transformer to data.
+
+		:param y:
+		:type y:
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		"""
+		self.polynomial_features.fit( X )
+
+
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Transform data into polynomial features.
+
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		:return: Transformed feature matrix.
+		:rtype: np.ndarray
+		"""
+		return self.polynomial_features.transform( X )
+
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+		"""
+		Fit and transform data using polynomial expansion.
+
+		:param y:
+		:type y:
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		:return: Transformed feature matrix.
+		:rtype: np.ndarray
+		"""
+		return self.polynomial_features.fit_transform( X )
