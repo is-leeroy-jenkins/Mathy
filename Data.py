@@ -138,6 +138,54 @@ class Metric( BaseModel ):
 			error.show( )
 
 
+class VarianceThreshold( Metric ):
+	"""
+	Wrapper for VarianceThreshold feature selector.
+	"""
+
+	def __init__( self, threshold: float = 0.0 ) -> None:
+		"""
+		Initialize VarianceThreshold.
+
+		:param threshold: Features with variance below this are removed.
+		:type threshold: float
+		"""
+		self.selector = VarianceThreshold( threshold = threshold )
+
+	def fit( self, X: np.ndarray ) -> None:
+		"""
+		Fit the variance threshold model.
+
+		:param X: Input feature matrix.
+		:type X: np.ndarray
+		"""
+		self.selector.fit( X )
+
+
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Apply variance threshold selection.
+
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		:return: Reduced feature matrix.
+		:rtype: np.ndarray
+		"""
+		return self.selector.transform( X )
+
+
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Fit and transform the data using variance thresholding.
+
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		:return: Reduced feature matrix.
+		:rtype: np.ndarray
+		"""
+		return self.selector.fit_transform( X )
+
+
 class CorrelationAnalysis( Metric ):
 	"""
 	Wrapper for Canonical Correlation Analysis (CCA).

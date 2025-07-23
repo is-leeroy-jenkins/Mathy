@@ -198,9 +198,7 @@ class OrdinalEncoder( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
-
-class LabelEncoder:
+class LabelEncoder( Metric ):
 	"""
 	Wrapper for LabelEncoder.
 	"""
@@ -209,15 +207,41 @@ class LabelEncoder:
 		"""
 		Initialize LabelEncoder.
 		"""
+		super( ).__init__( )
 		self.label_encoder = sk.LabelEncoder( )
 
-	def fit_transform( self, labels: list[ str ] ) -> np.ndarray:
-		"""
-		Fit and transform string labels to integers.
 
-		:param labels: List of string labels.
+	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> None:
+		"""
+		Fit the label encoder to the data.
+
+		:param y:
+		:type y:
+		:param labels: List of labels.
 		:type labels: list[str]
-		:return: Encoded integer labels.
+		"""
+		self.label_encoder.fit( labels )
+
+	def transform( self, labels: list[ str ] ) -> np.ndarray:
+		"""
+		Transform labels to encoded form.
+
+		:param labels: List of labels.
+		:type labels: list[str]
+		:return: Encoded labels.
+		:rtype: np.ndarray
+		"""
+		return self.label_encoder.transform( labels )
+
+	def fit_transform( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+		"""
+		Fit and transform the label data.
+
+		:param y:
+		:type y:
+		:param labels: List of labels.
+		:type labels: list[str]
+		:return: Encoded labels.
 		:rtype: np.ndarray
 		"""
 		return self.label_encoder.fit_transform( labels )
