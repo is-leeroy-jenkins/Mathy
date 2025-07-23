@@ -233,12 +233,12 @@ class OrdinalEncoder( Metric ):
 
 class LabelEncoder( Metric ):
 	"""
-	Wrapper for LabelEncoder.
+		Wrapper for LabelEncoder.
 	"""
 
 	def __init__( self ) -> None:
 		"""
-		Initialize LabelEncoder.
+			Initialize LabelEncoder.
 		"""
 		super( ).__init__( )
 		self.label_encoder = sk.LabelEncoder( )
