@@ -404,6 +404,7 @@ class PerceptronClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class MultilayerClassification( Model ):
 	"""
 
@@ -661,6 +662,7 @@ class MultilayerClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class RidgeClassification( Model ):
 	"""
 
@@ -898,6 +900,7 @@ class RidgeClassification( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class StochasticDescentClassification( Model ):
 	"""
@@ -1139,6 +1142,7 @@ class StochasticDescentClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class NearestNeighborClassification( Model ):
 	"""
 
@@ -1374,6 +1378,7 @@ class NearestNeighborClassification( Model ):
 			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class DecisionTreeClassification( Model ):
 	'''
@@ -1614,6 +1619,7 @@ class DecisionTreeClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class RandomForestClassification( Model ):
 	"""
 
@@ -1843,6 +1849,7 @@ class RandomForestClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class GradientBoostingClassification( Model ):
 	"""
 
@@ -2003,6 +2010,7 @@ class GradientBoostingClassification( Model ):
 		plt.title( "Gradient Boosting Classifier Confusion Matrix" )
 		plt.grid( False )
 		plt.show( )
+
 
 class AdaBoostClassification( Model ):
 	"""
@@ -2240,6 +2248,7 @@ class AdaBoostClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class BaggingClassification( Model ):
 	"""
 
@@ -2458,6 +2467,7 @@ class BaggingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class VotingClassification( Model ):
 	"""
 
@@ -2583,7 +2593,7 @@ class VotingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Evaluate the Lasso model
@@ -2665,6 +2675,7 @@ class VotingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class StackClassification( Model ):
 	"""
 
@@ -2732,7 +2743,7 @@ class StackClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Predict class labels
