@@ -204,10 +204,10 @@ class IterativeImputer( Metric ):
 		"""
 		Initialize the IterativeImputer.
 
-		:param max_iter: Maximum number of imputation iterations.
-		:type max_iter: int
-		:param random_state: Random seed.
-		:type random_state: int
+		:param max: Maximum number of imputation iterations.
+		:type max: int
+		:param rando: Random seed.
+		:type rando: int
 		"""
 		super( ).__init__( )
 		self.iterative_imputer = sk.IterativeImputer( max_iter=max, random_state=rando )
