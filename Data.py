@@ -74,8 +74,7 @@ class Metric( BaseModel ):
 		self.transformed_data = [ ]
 		self.transformed_values = [ ]
 
-
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -89,7 +88,6 @@ class Metric( BaseModel ):
 
 		"""
 		raise NotImplementedError
-
 
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -109,8 +107,7 @@ class Metric( BaseModel ):
 		"""
 		raise NotImplementedError
 
-
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -139,6 +136,112 @@ class Metric( BaseModel ):
 			                    ') -> np.ndarray')
 			error = ErrorDialog( exception )
 			error.show( )
+
+
+class CorrelationAnalysis( Metric ):
+	"""
+	Wrapper for Canonical Correlation Analysis (CCA).
+	"""
+
+	def __init__( self, n_components: int = 2 ) -> None:
+		"""
+		Initialize CCA.
+
+		:param n_components: Number of components.
+		:type n_components: int
+		"""
+		super( ).__init__( )
+		self.correlation_analysis = CCA( n_components = n_components )
+
+
+	def fit( self, X: np.ndarray, Y: np.ndarray ) -> None:
+		"""
+		Fit the CCA model to X and Y.
+
+		:param X: Feature matrix X.
+		:type X: np.ndarray
+		:param Y: Feature matrix Y.
+		:type Y: np.ndarray
+		"""
+		self.correlation_analysis.fit( X, Y )
+
+
+	def transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray ]:
+		"""
+		Apply the CCA transformation.
+
+		:param X: Feature matrix X.
+		:type X: np.ndarray
+		:param Y: Feature matrix Y.
+		:type Y: np.ndarray
+		:return: Transformed tuple (X_c, Y_c).
+		:rtype: tuple[np.ndarray, np.ndarray]
+		"""
+		return self.correlation_analysis.transform( X, Y )
+
+
+	def fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray ]:
+		"""
+		Fit and transform with CCA.
+
+		:param X: Feature matrix X.
+		:type X: np.ndarray
+		:param Y: Feature matrix Y.
+		:type Y: np.ndarray
+		:return: Transformed tuple (X_c, Y_c).
+		:rtype: tuple[np.ndarray, np.ndarray]
+		"""
+		return self.correlation_analysis.fit( X, Y ).transform( X, Y )
+
+
+class ComponentAnalysis( Metric ):
+	"""
+	Wrapper for Principal Component Analysis (PCA).
+	"""
+
+	def __init__( self, n_components: int ) -> None:
+		"""
+		Initialize PCA.
+
+		:param n_components: Number of components.
+		:type n_components: int
+		"""
+		super( ).__init__( )
+		self.component_analysis = PCA( n_components = n_components )
+
+
+	def fit( self, X: np.ndarray ) -> None:
+		"""
+		Fit PCA to the input data.
+
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		"""
+		self.component_analysis.fit( X )
+
+
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Apply PCA transformation.
+
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		:return: Transformed matrix.
+		:rtype: np.ndarray
+		"""
+		return self.component_analysis.transform( X )
+
+
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Fit PCA and transform input data.
+
+		:param X: Feature matrix.
+		:type X: np.ndarray
+		:return: Transformed matrix.
+		:rtype: np.ndarray
+		"""
+		return self.component_analysis.fit_transform( X )
 
 
 class Dataset( Metric ):

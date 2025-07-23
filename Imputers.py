@@ -44,7 +44,7 @@ from Data import Metric
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
-from sklearn.impute import sk
+import sklearn.impute as sk
 
 
 class MeanImputer( Metric ):
@@ -194,12 +194,12 @@ class NearestNeighborImputer( Metric ):
 			error.show( )
 
 
-class SimpleImputerWrapper:
+class SimpleImputerWrapper( Metric ):
 	"""
 	Wrapper for sklearn's SimpleImputer.
 	"""
 
-	def __init__( self, strategy: str = 'mean', fill_value: float = 0.0 ) -> None:
+	def __init__( self, strategy: str='mean', fill_value: float=0.0 ) -> None:
 		"""
 		Initialize the SimpleImputer.
 
@@ -208,12 +208,16 @@ class SimpleImputerWrapper:
 		:param fill_value: Value to use when strategy is 'constant'.
 		:type fill_value: float
 		"""
-		self.simple_imputer = sk.SimpleImputer( strategy = strategy, fill_value = fill_value )
+		super( ).__init__( )
+		self.simple_imputer = sk.SimpleImputer( strategy=strategy, fill_value=fill_value )
 
-	def fit( self, X: np.ndarray ) -> None:
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 		Fit the imputer to the data.
 
+		:param y:
+		:type y:
 		:param X: Input array with missing values.
 		:type X: np.ndarray
 		"""
@@ -232,10 +236,12 @@ class SimpleImputerWrapper:
 		return self.simple_imputer.transform( X )
 
 
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
 		Fit the imputer and transform the data.
 
+		:param y:
+		:type y:
 		:param X: Input array with missing values.
 		:type X: np.ndarray
 		:return: Transformed data with imputed values.
@@ -244,7 +250,7 @@ class SimpleImputerWrapper:
 		return self.simple_imputer.fit_transform( X )
 
 
-class IterativeImputer:
+class IterativeImputer( Metric ):
 	"""
 	A strategy for imputing missing values by modeling each feature with
 	missing values as a function of other features in a round-robin fashion.
@@ -259,13 +265,16 @@ class IterativeImputer:
 		:param random_state: Random seed.
 		:type random_state: int
 		"""
+		super( ).__init__( )
 		self.iterative_imputer = sk.IterativeImputer( max_iter = max_iter, random_state = random_state )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 		Fit the iterative imputer to the data.
 
+		:param y:
+		:type y:
 		:param X: Input array with missing values.
 		:type X: np.ndarray
 		"""
@@ -284,13 +293,71 @@ class IterativeImputer:
 		return self.iterative_imputer.transform( X )
 
 
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
 		Fit the iterative imputer and transform the data.
 
+		:param y:
+		:type y:
 		:param X: Input array with missing values.
 		:type X: np.ndarray
 		:return: Transformed data with imputed values.
 		:rtype: np.ndarray
 		"""
 		return self.iterative_imputer.fit_transform( X )
+
+
+class SimpleImputer( Metric ):
+	"""
+	Wrapper for sklearn's SimpleImputer.
+	"""
+
+	def __init__( self, strategy: str='mean', fill_value: float=0.0 ) -> None:
+		"""
+		Initialize the SimpleImputer.
+
+		:param strategy: The imputation strategy ('mean', 'median', 'most_frequent', or 'constant').
+		:type strategy: str
+		:param fill_value: Value to use when strategy is 'constant'.
+		:type fill_value: float
+		"""
+		super( ).__init__( )
+		self.simple_imputer = sk.SimpleImputer( strategy=strategy, fill_value=fill_value )
+
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+		"""
+		Fit the imputer to the data.
+
+		:param y:
+		:type y:
+		:param X: Input array with missing values.
+		:type X: np.ndarray
+		"""
+		self.simple_imputer.fit( X )
+
+
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Transform data by imputing missing values.
+
+		:param X: Data to transform.
+		:type X: np.ndarray
+		:return: Transformed data with imputed values.
+		:rtype: np.ndarray
+		"""
+		return self.simple_imputer.transform( X )
+
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+		"""
+		Fit the imputer and transform the data.
+
+		:param y:
+		:type y:
+		:param X: Input array with missing values.
+		:type X: np.ndarray
+		:return: Transformed data with imputed values.
+		:rtype: np.ndarray
+		"""
+		return self.simple_imputer.fit_transform( X )
