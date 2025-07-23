@@ -43,10 +43,12 @@
 from argparse import ArgumentError
 import pandas as pd
 import numpy as np
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union, Sequence
 from pandas.core.common import random_state
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
+from sklearn.decomposition import PCA
+from sklearn.feature_selection import VarianceThreshold
 from Static import Scaler
 from sklearn.metrics import silhouette_score
 from sklearn.base import BaseEstimator
@@ -70,11 +72,12 @@ class Metric( BaseModel ):
 		allow_mutation = True
 
 	def __init__( self ):
+		super( ).__init__( )
 		self.pipeline = None
 		self.transformed_data = [ ]
 		self.transformed_values = [ ]
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -107,7 +110,7 @@ class Metric( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -143,14 +146,16 @@ class VarianceThreshold( Metric ):
 	Wrapper for VarianceThreshold feature selector.
 	"""
 
-	def __init__( self, threshold: float = 0.0 ) -> None:
+	def __init__( self, thresh: float=0.0 ) -> None:
 		"""
 		Initialize VarianceThreshold.
 
 		:param threshold: Features with variance below this are removed.
 		:type threshold: float
 		"""
-		self.selector = VarianceThreshold( threshold = threshold )
+		super( ).__init__( )
+		self.selector = VarianceThreshold( threshold=thresh )
+
 
 	def fit( self, X: np.ndarray ) -> None:
 		"""
@@ -191,15 +196,15 @@ class CorrelationAnalysis( Metric ):
 	Wrapper for Canonical Correlation Analysis (CCA).
 	"""
 
-	def __init__( self, n_components: int = 2 ) -> None:
+	def __init__( self, n: int=2 ) -> None:
 		"""
 		Initialize CCA.
 
-		:param n_components: Number of components.
-		:type n_components: int
+		:param n: Number of components.
+		:type n: int
 		"""
 		super( ).__init__( )
-		self.correlation_analysis = CCA( n_components = n_components )
+		self.correlation_analysis = CCA( n_components=n )
 
 
 	def fit( self, X: np.ndarray, Y: np.ndarray ) -> None:
@@ -247,7 +252,7 @@ class ComponentAnalysis( Metric ):
 	Wrapper for Principal Component Analysis (PCA).
 	"""
 
-	def __init__( self, n_components: int ) -> None:
+	def __init__( self, num: int ) -> None:
 		"""
 		Initialize PCA.
 
@@ -255,7 +260,7 @@ class ComponentAnalysis( Metric ):
 		:type n_components: int
 		"""
 		super( ).__init__( )
-		self.component_analysis = PCA( n_components = n_components )
+		self.component_analysis = PCA( n_components=num )
 
 
 	def fit( self, X: np.ndarray ) -> None:

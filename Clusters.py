@@ -55,7 +55,7 @@ from sklearn.cluster import (KMeans, DBSCAN, MeanShift, AffinityPropagation,
 from sklearn.metrics import silhouette_score
 
 
-class Model( BaseModel ):
+class Cluster( BaseModel ):
 	"""
 
 		Purpose:
@@ -73,7 +73,8 @@ class Model( BaseModel ):
 		super( ).__init__( )
 		self.pipeline = None
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -92,7 +93,8 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -110,7 +112,8 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -129,7 +132,8 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict | None:
 		"""
 
 			Purpose:
@@ -148,80 +152,6 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-
-class Cluster( Model ):
-	"""
-
-        Purpose:
-        ---------
-		Abstract base class for clustering models, including methods
-		for fitting, predicting, evaluating, and visualization.
-
-	"""
-
-	def fit( self, X: np.ndarray ) -> None:
-		"""
-
-	        Purpose:
-	        ---------
-			Fit the clustering model to the data.
-
-			Parameters:
-			----------
-			X: The input data of shape (n_samples, n_features).
-
-		"""
-		raise NotImplementedError( )
-
-	def predict( self, X: np.ndarray ) -> np.ndarray:
-		"""
-
-	        Purpose:
-	        ---------
-			Predict the cluster labels for the input data.
-
-			Parameters:
-			----------
-			X: Input features to cluster.
-
-			Returns:
-			---------
-			np.ndarray
-
-		"""
-		raise NotImplementedError( )
-
-	def evaluate( self, X: np.ndarray ) -> float:
-		"""
-
-	        Purpose:
-	        ---------
-			Evaluate clustering performance using silhouette score.
-
-			Parameters:
-			----------
-			X: Input features to cluster.
-
-			Returns:
-			---------
-			float
-
-		"""
-		raise NotImplementedError( )
-
-	def visualize_clusters( self, X: np.ndarray ) -> None:
-		"""
-
-	        Purpose:
-	        ---------
-			Visualize clusters using a 2D scatter plot.
-
-			Parameters:
-			----------
-			X: Input data of shape (n_samples, 2).
-
-		"""
-		raise NotImplementedError( )
 
 
 class KMeansClustering( Cluster ):
@@ -246,7 +176,7 @@ class KMeansClustering( Cluster ):
 
 	"""
 
-	def __init__( self, num: int = 8, rando: int = 42 ) -> None:
+	def __init__( self, num: int=8, rando: int=42 ) -> None:
 		"""
 			Purpose:
 			---------
@@ -260,10 +190,10 @@ class KMeansClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = KMeans( n_clusters=num, random_state=rando )
+		self.kmeans_cluster = KMeans( n_clusters=num, random_state=rando )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -276,7 +206,7 @@ class KMeansClustering( Cluster ):
 
 		"""
 		try:
-			self.model.fit( X )
+			self.kmeans_cluster.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -286,7 +216,7 @@ class KMeansClustering( Cluster ):
 			error.show( )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -303,7 +233,7 @@ class KMeansClustering( Cluster ):
 
 		"""
 		try:
-			return self.model.predict( X )
+			return self.kmeans_cluster.predict( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -313,7 +243,7 @@ class KMeansClustering( Cluster ):
 			error.show( )
 
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -331,7 +261,7 @@ class KMeansClustering( Cluster ):
 
 		"""
 		try:
-			labels = self.model.predict( X )
+			labels = self.kmeans_cluster.predict( X )
 			return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -342,7 +272,7 @@ class KMeansClustering( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -359,7 +289,7 @@ class KMeansClustering( Cluster ):
 				raise Exception( 'The input arguement "X" is required.' )
 			else:
 				labels = self.model.predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'viridis' )
+				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
 				plt.title( "KMeans Cluster" )
 				plt.show( )
 		except Exception as e:
@@ -405,7 +335,7 @@ class DbscanClustering( Cluster ):
 		self.model = DBSCAN( eps=eps, min_samples=min )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -431,7 +361,7 @@ class DbscanClustering( Cluster ):
 			error.show( )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -461,7 +391,7 @@ class DbscanClustering( Cluster ):
 			error.show( )
 
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
 		"""
 
 			Purpose:
@@ -493,7 +423,7 @@ class DbscanClustering( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -564,7 +494,8 @@ class AgglomerativeClusteringModel( Cluster ):
 		super( ).__init__( )
 		self.model = AgglomerativeClustering( n_clusters=num )
 
-	def fit( self, X: np.ndarray ) -> None:
+
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -589,7 +520,8 @@ class AgglomerativeClusteringModel( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -619,7 +551,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			error.show( )
 
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
 		"""
 
 			Purpose:
@@ -650,7 +582,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -714,7 +646,8 @@ class SpectralClusteringModel( Cluster ):
 		super( ).__init__( )
 		self.model = SpectralClustering( n_clusters=num )
 
-	def fit( self, X: np.ndarray ) -> None:
+
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -739,7 +672,8 @@ class SpectralClusteringModel( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -769,7 +703,8 @@ class SpectralClusteringModel( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
 		"""
 
 			Purpose:
@@ -800,7 +735,7 @@ class SpectralClusteringModel( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -862,7 +797,7 @@ class MeanShiftClustering( Cluster ):
 		self.model = MeanShift( )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -888,7 +823,7 @@ class MeanShiftClustering( Cluster ):
 			error.show( )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -917,7 +852,8 @@ class MeanShiftClustering( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
 		"""
 
 			Purpose:
@@ -948,7 +884,7 @@ class MeanShiftClustering( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -1004,7 +940,7 @@ class AffinityPropagationClustering( Cluster ):
 		self.model = AffinityPropagation( )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -1030,7 +966,7 @@ class AffinityPropagationClustering( Cluster ):
 			error.show( )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1060,7 +996,7 @@ class AffinityPropagationClustering( Cluster ):
 			error.show( )
 
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
 		"""
 
 			Purpose:
@@ -1091,7 +1027,7 @@ class AffinityPropagationClustering( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -1161,7 +1097,7 @@ class BirchClustering( Cluster ):
 		self.model = Birch( n_clusters=n_clusters )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -1187,7 +1123,7 @@ class BirchClustering( Cluster ):
 			error.show( )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1217,7 +1153,7 @@ class BirchClustering( Cluster ):
 			error.show( )
 
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
 		"""
 
 			Purpose:
@@ -1248,7 +1184,7 @@ class BirchClustering( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -1311,7 +1247,8 @@ class OpticsClustering( Cluster ):
 		super( ).__init__( )
 		self.model = OPTICS( min_samples=min )
 
-	def fit( self, X: np.ndarray ) -> None:
+
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:
@@ -1337,7 +1274,7 @@ class OpticsClustering( Cluster ):
 			error.show( )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1367,7 +1304,7 @@ class OpticsClustering( Cluster ):
 			error.show( )
 
 
-	def evaluate( self, X: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -1399,7 +1336,7 @@ class OpticsClustering( Cluster ):
 			error.show( )
 
 
-	def visualize_clusters( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
 
 			Purpose:

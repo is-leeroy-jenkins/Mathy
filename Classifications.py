@@ -73,6 +73,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from Booger import Error, ErrorDialog
 
+
 class Model( BaseModel ):
 	"""
 
@@ -90,6 +91,7 @@ class Model( BaseModel ):
 	def __init__( self ):
 		super( ).__init__( )
 		self.pipeline = None
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -110,6 +112,7 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
@@ -128,7 +131,8 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
 			Purpose:
@@ -146,6 +150,7 @@ class Model( BaseModel ):
 
 		"""
 		raise NotImplementedError
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
 		"""
@@ -186,7 +191,7 @@ class PerceptronClassifier( Model ):
 
 	"""
 
-	def __init__( self, reg: float = 0.0001, max: int = 1000, mix: bool = True ) -> None:
+	def __init__( self, reg: float=0.0001, max: int=1000, mix: bool=True ) -> None:
 		"""
 
 			Purpose:
@@ -204,13 +209,14 @@ class PerceptronClassifier( Model ):
 		self.perceptron_classifier: Perceptron = Perceptron( alpha = reg, max_iter = max,
 			shuffle = mix )
 		self.prediction: np.array = None
+		self.accuracy: float = 0.0
 		self.mean_absolute_error: float = 0.0
 		self.mean_squared_error: float = 0.0
 		self.r_mean_squared_error: float = 0.0
 		self.r2_score: float = 0.0
 		self.explained_variance_score: float = 0.0
 		self.median_absolute_error: float = 0.0
-		self.accuracy: float = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -245,6 +251,7 @@ class PerceptronClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -274,6 +281,7 @@ class PerceptronClassifier( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -309,6 +317,7 @@ class PerceptronClassifier( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
@@ -350,14 +359,14 @@ class PerceptronClassifier( Model ):
 				self.median_absolute_error = median_absolute_error( y, self.prediction,
 					squared = False )
 				return \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.r_mean_squared_error,
-							'R2': self.r2_score,
-							'Explained Variance': self.explained_variance_score,
-							'Median Absolute Error': self.median_absolute_error,
-					}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -365,6 +374,7 @@ class PerceptronClassifier( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -425,9 +435,8 @@ class MultilayerClassification( Model ):
 
 	"""
 
-	def __init__( self, hidden: tuple = (100,), activation = 'relu', solver = 'adam',
-	              alpha = 0.0001,
-	              learning: str = 'constant', rando: int = 42 ) -> None:
+	def __init__( self, hidden: tuple=(100,), activation='relu', solver='adam',
+	              alpha = 0.0001, learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activation
@@ -439,14 +448,15 @@ class MultilayerClassification( Model ):
 			activation = activation, solver = solver, alpha = alpha, learning_rate = learning,
 			random_state = 42 )
 		self.pipeline: Pipeline = Pipeline( steps = list( hidden ) )
-		self.prediction: np.array = None
 		self.accuracy: float = 0.0
+		self.prediction: np.array = None
 		self.mean_absolute_error: float = 0.0
 		self.mean_squared_error: float = 0.0
 		self.r_mean_squared_error: float = 0.0
 		self.r2_score: float = 0.0
 		self.explained_variance_score: float = 0.0
 		self.median_absolute_error: float = 0.0
+
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
 		"""
@@ -479,6 +489,7 @@ class MultilayerClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -510,38 +521,6 @@ class MultilayerClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
-		"""
-
-
-			Purpose:
-			-----------
-			Fits and transforms all pipeline steps on the text df.
-
-			Parameters:
-			-----------
-				X (np.ndarray): Input feature matrix.
-				y (Optional[np.ndarray]): Optional target array.
-
-			Returns:
-			-----------
-				np.ndarray: Transformed feature matrix.
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.multilayer_classifier.fit_transform( X, y )
-				return self.prediction
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
-			exception.method = ('fit_transform( self, X: np.ndarray, y: '
-			                    'Optional[ np.ndarray ]=None ) -> np.ndarray')
-			error = ErrorDialog( exception )
-			error.show( )
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -577,6 +556,7 @@ class MultilayerClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
@@ -601,21 +581,23 @@ class MultilayerClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared = False )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -623,6 +605,7 @@ class MultilayerClassification( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -709,11 +692,12 @@ class RidgeClassification( Model ):
 			solver = self.solver, max_iter = self.max_iter, random_state = self.random_state )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -749,7 +733,7 @@ class RidgeClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 
@@ -770,7 +754,7 @@ class RidgeClassification( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.prediction = self.ridge_regressor.predict( X )
+				self.prediction = self.ridge_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -804,7 +788,7 @@ class RidgeClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.ridge_regressor.predict( X )
+				self.prediction = self.ridge_classifier.predict( X )
 				return r2_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
@@ -838,21 +822,23 @@ class RidgeClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared = False )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -890,7 +876,7 @@ class RidgeClassification( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Ridge Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -947,6 +933,7 @@ class StochasticDescentClassification( Model ):
 		self.stochastic_classifier: SGDClassifier = SGDClassifier( loss = self.loss,
 			max_iter = self.max_iter, penalty = self.regularization )
 		self.prediction: np.array = None
+		self.accuracy: float = 0.0
 		self.mean_absolute_error: float = 0.0
 		self.mean_squared_error: float = 0.0
 		self.r_mean_squared_error: float = 0.0
@@ -1040,6 +1027,7 @@ class StochasticDescentClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.stochastic_classifier.predict( X )
 				return r2_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
@@ -1086,16 +1074,16 @@ class StochasticDescentClassification( Model ):
 				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
+					squared=False )
 				return \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.r_mean_squared_error,
-							'R2': self.r2_score,
-							'Explained Variance': self.explained_variance_score,
-							'Median Absolute Error': self.median_absolute_error,
-					}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1130,14 +1118,14 @@ class StochasticDescentClassification( Model ):
 			else:
 				self.prediction = self.stochastic_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Random Forest Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'StochasticDescentClassification'
 			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1159,7 +1147,7 @@ class NearestNeighborClassification( Model ):
 
 	"""
 
-	def __init__( self, num: int = 5 ) -> None:
+	def __init__( self, num: int=5 ) -> None:
 		"""
 
 
@@ -1171,14 +1159,14 @@ class NearestNeighborClassification( Model ):
 			-----------
 				linerar_model (KNeighborsClassifier): Internal non-parametric classifier.
 					Parameters:
-						n_neighbors (int): Number of neighbors to use. Default is 5.
+						num (int): Number of neighbors to use. Default is 5.
 
 		"""
 		super( ).__init__( )
-		self.n_neighbors: int = num
 		self.neighbor_classifier: KNeighborsClassifier = KNeighborsClassifier(
-			n_neighbors = self.n_neighbors )
+			n_neighbors=num )
 		self.prediction: np.array = None
+		self.accuracy: float = 0.0
 		self.score: float = 0.0
 		self.mean_absolute_error: float = 0.0
 		self.mean_squared_error: float = 0.0
@@ -1275,7 +1263,7 @@ class NearestNeighborClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				return accuracy_score( y, self.neighbor_classifier.predict( X ) )
+				return r2_score( y, self.neighbor_classifier.predict( X ) )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1367,14 +1355,14 @@ class NearestNeighborClassification( Model ):
 			else:
 				self.prediction = self.neighbor_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Random Forest Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'NearestNeighbotClassification'
 			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1395,19 +1383,13 @@ class DecisionTreeClassification( Model ):
 
 	'''
 
-	def __init__( self, criterion = 'gini', splitter = 'best', depth = 3, rando: int = 42 ) -> None:
+	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
 		"""
 
 
 			Purpose:
 			-----------
 			Initialize the KNeighborsClassifier linerar_model.
-
-			Attributes:
-			-----------
-				linerar_model (KNeighborsClassifier): Internal non-parametric classifier.
-					Parameters:
-						n_neighbors (int): Number of neighbors to use. Default is 5.
 
 		"""
 		super( ).__init__( )
@@ -1419,6 +1401,7 @@ class DecisionTreeClassification( Model ):
 			criterion = self.criterion,
 			splitter = self.splitter, max_depth = self.max_depth )
 		self.prediction: np.array = None
+		self.accuracy: float = 0.0
 		self.score: float = 0.0
 		self.mean_absolute_error: float = 0.0
 		self.mean_squared_error: float = 0.0
@@ -1524,6 +1507,7 @@ class DecisionTreeClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
@@ -1565,14 +1549,14 @@ class DecisionTreeClassification( Model ):
 				self.median_absolute_error = median_absolute_error( y, self.prediction,
 					squared = False )
 				return \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.r_mean_squared_error,
-							'R2': self.r2_score,
-							'Explained Variance': self.explained_variance_score,
-							'Median Absolute Error': self.median_absolute_error,
-					}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1580,6 +1564,7 @@ class DecisionTreeClassification( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -1607,7 +1592,7 @@ class DecisionTreeClassification( Model ):
 			else:
 				self.prediction = self.dt_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Random Forest Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -1655,16 +1640,16 @@ class RandomForestClassification( Model ):
 		self.criterion: str = crit
 		self.max_depth: int = max
 		self.random_state: int = rando
-		self.random_forest_classifier: RandomForestClassifier = RandomForestClassifier(
-			n_estimators = est,
-			criterion = crit, random_state = rando )
+		self.random_forest_classifier: RandomForestClassifier=RandomForestClassifier(
+			n_estimators = est, criterion = crit, random_state = rando )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1788,20 +1773,22 @@ class RandomForestClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared = False )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							'MAE': self.mean_absolute_error,
+							'MSE': self.mean_squared_error,
+							'RMSE': self.r_mean_squared_error,
+							'R2': self.r2_score,
+							'Explained Variance': self.explained_variance_score,
+							'Median Absolute Error': self.median_absolute_error,
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -1837,7 +1824,7 @@ class RandomForestClassification( Model ):
 			else:
 				self.prediction = self.random_forest_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Random Forest Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -1896,11 +1883,11 @@ class GradientBoostingClassification( Model ):
 			n_estimators = est, max_depth = max, random_state = rando )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
 		self.median_absolute_error: float = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -1959,11 +1946,23 @@ class GradientBoostingClassification( Model ):
 				float: Accuracy accuracy.
 
 		"""
-		self.prediction = self.gradient_boost_classifier.predict( X )
-		self.accuracy = accuracy_score( y, self.prediction )
-		return self.accuracy
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.prediction = self.random_forest_classifier.predict( X )
+				return r2_score( y, self.prediction )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'GradientBoostingClassification'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -1980,16 +1979,37 @@ class GradientBoostingClassification( Model ):
 				Dict[str, float]: Evaluation scores.
 
 		"""
-		self.prediction = self.gradient_boost_classifier.predict( X )
-		return \
-			{
-					"Accuracy": accuracy_score( y, self.prediction ),
-					"Precision": precision_score( y, self.prediction, average = 'binary' ),
-					"Recall": recall_score( y, self.prediction, average = 'binary' ),
-					"F1 Score": f1_score( y, self.prediction, average = 'binary' ),
-					"ROC AUC": roc_auc_score( y, self.prediction ),
-					"Matthews Corrcoef": matthews_corrcoef( y, self.prediction )
-			}
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.median_absolute_error = median_absolute_error( y, self.prediction,
+					squared = False )
+				return \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'GradientBoostingClassification'
+			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
+			                    'float ]')
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2037,11 +2057,12 @@ class AdaBoostClassification( Model ):
 		self.ada_boost_classifier: AdaBoostClassifier = AdaBoostClassifier( n_estimators = est )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 	def scale( self ) -> None:
 		"""
@@ -2282,11 +2303,12 @@ class BaggingClassification( Model ):
 			max_features = self.max, random_state = rando )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2493,11 +2515,12 @@ class VotingClassification( Model ):
 			voting = vote )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2532,7 +2555,7 @@ class VotingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Predict class labels
@@ -2704,11 +2727,12 @@ class StackClassification( Model ):
 			final_estimator = final )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2906,14 +2930,15 @@ class SupportVectorClassification:
 		self.svc_model = SVC( kernel=kernel, C=C )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.mean_absolute_error: float = 0.0
+		self.mean_squared_error: float = 0.0
+		self.r_mean_squared_error: float = 0.0
+		self.r2_score: float = 0.0
+		self.explained_variance_score: float = 0.0
+		self.median_absolute_error: float = 0.0
 
 
-	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 		Fit the SVC model to the data.
 
@@ -2925,7 +2950,7 @@ class SupportVectorClassification:
 		self.svc_model.fit( X, y )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
 		Predict class labels for the input features.
 
@@ -2937,7 +2962,7 @@ class SupportVectorClassification:
 		return self.svc_model.predict( X )
 
 
-	def evaluate( self, X: np.ndarray, y_true: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y_true: np.ndarray ) -> float:
 		"""
 		Evaluate the model using accuracy score.
 
@@ -2964,7 +2989,7 @@ class SupportVectorClassification:
 		:return: Classification report.
 		:rtype: str
 		"""
-		y_pred = self.predict( X )
+		y_pred = self.svc_model.predict( X )
 		return classification_report( y_true, y_pred )
 
 	def create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None:
@@ -2978,7 +3003,7 @@ class SupportVectorClassification:
 		:param y_true: True labels.
 		:type y_true: np.ndarray
 		"""
-		y_pred = self.predict( X )
+		y_pred = self.svc_model.predict( X )
 		cm = confusion_matrix( y_true, y_pred )
 		sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
 		plt.xlabel( "Predicted" )

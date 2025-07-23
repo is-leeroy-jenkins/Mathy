@@ -407,7 +407,7 @@ class MultilayerRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'MLP: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -630,7 +630,7 @@ class LinearRegressor( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Linear Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -872,7 +872,7 @@ class RidgeRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Ridge Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -904,29 +904,20 @@ class LassoRegression( Model ):
 
 	"""
 
-	def __init__( self, alph: float = 1.0, max: int = 500, rando: int = 42,
-	              mix = 'random' ) -> None:
+	def __init__( self, alph: float=1.0, max: int=500, rando: int=42 ) -> None:
 		"""
 
 
 			Purpose:
 			-----------
 			Initialize the LassoRegression linerar_model.
-
-			Attributes:
-			-----------
-				linerar_model (Lasso): Internal LassoRegression regression linerar_model.
-					Parameters:
-						alpha (float): Regularization strength. Default is 1.0.
-						max_iter (int): Maximum number of iterations. Default is 1000.
-
 		"""
 		super( ).__init__( )
 		self.alpha: float = alph
 		self.max_iter: int = max
 		self.random_state: int = rando
 		self.lasso_regressor: Lasso = Lasso( alpha = self.alpha, max_iter = self.max_iter,
-			random_state = self.random_state )
+			random_state=self.random_state )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
 		self.precision: float = 0.0
@@ -968,7 +959,7 @@ class LassoRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1033,7 +1024,7 @@ class LassoRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
 
@@ -1106,7 +1097,7 @@ class LassoRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Lasso Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -1202,7 +1193,7 @@ class ElasticNetRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 
@@ -1265,7 +1256,7 @@ class ElasticNetRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
 
@@ -1337,7 +1328,7 @@ class ElasticNetRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'ElasticNet Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -1429,7 +1420,7 @@ class LogisticRegressor( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1666,7 +1657,7 @@ class BayesianRidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1902,7 +1893,7 @@ class StochasticDescentRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2125,7 +2116,7 @@ class NearestNeighborRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2188,7 +2179,7 @@ class NearestNeighborRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -2263,7 +2254,7 @@ class NearestNeighborRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Nearest-Neighbor Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -2357,7 +2348,7 @@ class DecisionTreeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2420,7 +2411,7 @@ class DecisionTreeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -2495,7 +2486,7 @@ class DecisionTreeRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Decision Tree Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -2593,7 +2584,7 @@ class RandomForestRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2730,7 +2721,7 @@ class RandomForestRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Random Forest Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -2807,7 +2798,7 @@ class GradientBoostingRegression( Model ):
 		self.gradient_boost_regressor.fit( X, y )
 		return self
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2846,7 +2837,7 @@ class GradientBoostingRegression( Model ):
 		self.prediction = self.gradient_boost_regressor.predict( X )
 		return r2_score( y, self.prediction )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -2874,6 +2865,7 @@ class GradientBoostingRegression( Model ):
 					'Median Absolute Error': median_absolute_error( y, self.prediction )
 			}
 
+
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
@@ -2889,12 +2881,13 @@ class GradientBoostingRegression( Model ):
 		"""
 		self.prediction = self.gradient_boost_regressor.predict( X )
 		plt.scatter( y, self.prediction, alpha = 0.6 )
-		plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+		plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 		plt.xlabel( 'Observed' )
 		plt.ylabel( 'Projected' )
 		plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
 		plt.grid( True )
 		plt.show( )
+
 
 class AdaBoostRegression( Model ):
 	"""
@@ -2926,8 +2919,7 @@ class AdaBoostRegression( Model ):
 		super( ).__init__( )
 		self.max_depth: int = max
 		self.n_estimators: int = est
-		self.ada_boost_regressor: AdaBoostRegressor = AdaBoostRegressor( n_estimators = est,
-			max_depth = max )
+		self.ada_boost_regressor: AdaBoostRegressor = AdaBoostRegressor( n_estimators = est )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
 		self.precision: float = 0.0
@@ -3104,7 +3096,7 @@ class AdaBoostRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'ADA Boost Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -3153,8 +3145,8 @@ class BaggingRegression( Model ):
 		self.n_estimators: int = num
 		self.max_features: int = max
 		self.random_state: int = rando
-		self.bagging_regressor: BaggingRegressor = BaggingRegression( base_estimator = base,
-			n_estimator = num, max_features = max, random_state = rando )
+		self.bagging_regressor: BaggingRegressor = BaggingRegressor( max_features = max,
+			random_state = rando )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
 		self.precision: float = 0.0
@@ -3163,6 +3155,7 @@ class BaggingRegression( Model ):
 		self.roc_auc_score: float = 0.0
 		self.correlation_coefficient: float = 0.0
 		self.median_absolute_error: float = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -3197,7 +3190,7 @@ class BaggingRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Project target target_values
@@ -3330,7 +3323,7 @@ class BaggingRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Bagging Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -3475,7 +3468,7 @@ class VotingRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
 			Evaluates the Ridge model
@@ -3547,7 +3540,7 @@ class VotingRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Voting Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -3596,8 +3589,7 @@ class StackRegression( Model ):
 		super( ).__init__( )
 		self.estimators: List[ Tuple[ str, ClassifierMixin ] ] = estimators
 		self.final_estimator: ClassifierMixin = final
-		self.stacking_regressor: StackingRegressor = StackingRegressor( estimators = estimators,
-			final = final )
+		self.stacking_regressor: StackingRegressor = StackingRegressor( estimators = estimators )
 		self.prediction: np.array = None
 		self.accuracy: float = 0.0
 		self.precision: float = 0.0
@@ -3775,7 +3767,7 @@ class StackRegression( Model ):
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Stacking Regression: Observed vs Projected' )
-				plt.create_graph( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -3814,7 +3806,7 @@ class SupportVectorRegression:
 		self.median_absolute_error: float = 0.0
 
 
-	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 		Fit the SVR model to the data.
 
@@ -3826,7 +3818,7 @@ class SupportVectorRegression:
 		self.svr_model.fit( X, y )
 
 
-	def predict( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 		Predict target values for the input features.
 
@@ -3838,7 +3830,7 @@ class SupportVectorRegression:
 		return self.svr_model.predict( X )
 
 
-	def evaluate( self, X: np.ndarray, y_true: np.ndarray ) -> dict:
+	def score( self, X: np.ndarray, y_true: np.ndarray ) -> Dict | None:
 		"""
 		Evaluate the regression using MSE and R2 score.
 
@@ -3849,25 +3841,50 @@ class SupportVectorRegression:
 		:return: Dictionary with MSE and R2 score.
 		:rtype: dict
 		"""
-		y_pred = self.predict( X )
+		y_pred = self.project( X )
 		return {
 				'mse': mean_squared_error( y_true, y_pred ),
 				'r2': r2_score( y_true, y_pred )
 		}
 
 
-	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 		Print detailed regression metrics.
 
 		:param X: Input features.
 		:type X: np.ndarray
-		:param y_true: Ground truth values.
-		:type y_true: np.ndarray
+		:param y: Ground truth values.
+		:type y: np.ndarray
 		"""
-		scores = self.svr_model.evaluate( X, y_true )
-		print( f"Mean Squared Error: {scores[ 'mse' ]:.4f}" )
-		print( f"R^2 Score: {scores[ 'r2' ]:.4f}" )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.accuracy = accuracy_score( y, self.prediction )
+				self.precision = precision_score( y, self.prediction, average = 'binary' )
+				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
+				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
+				self.roc_auc_score = roc_auc_score( y, self.prediction )
+				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				return \
+				{
+						'Accuracy': self.accuracy,
+						'Precision': self.precision,
+						'Recall': self.recall,
+						'F1 Score': self.f1_score,
+						'ROC AUC': self.roc_auc_score,
+						'Correlation Coeff': self.correlation_coefficient
+				}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestNeighborRegression'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def create_graph( self, X: np.ndarray, y_true: np.ndarray ) -> None:

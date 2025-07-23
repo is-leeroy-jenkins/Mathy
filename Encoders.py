@@ -126,7 +126,7 @@ class OneHotEncoder( Metric ):
 			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 			Fit the encoder and transform the data.
 
