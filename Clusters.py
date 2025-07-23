@@ -40,9 +40,14 @@
 </summary>
 ******************************************************************************************
 '''
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import Optional
+from typing import Optional, Dict
+
+from pydantic import BaseModel
+
 from Booger import Error, ErrorDialog
 from sklearn.cluster import (KMeans, DBSCAN, MeanShift, AffinityPropagation,
                              SpectralClustering, AgglomerativeClustering,
@@ -50,7 +55,101 @@ from sklearn.cluster import (KMeans, DBSCAN, MeanShift, AffinityPropagation,
 from sklearn.metrics import silhouette_score
 
 
-class Cluster( ):
+class Model( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Abstract base class that defines the interface for all linerar_model wrappers.
+
+	"""
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+		self.pipeline = None
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the linerar_model to the training df.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+				y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+			Returns:
+			--------
+				None
+
+		"""
+		raise NotImplementedError
+
+	def project( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Generate predictions from  the trained linerar_model.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+
+			Returns:
+			-----------
+				np.ndarray: Predicted target_values or class labels.
+
+		"""
+		raise NotImplementedError
+
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+		"""
+
+			Purpose:
+			---------
+			Compute the core metric (e.g., R²) of the model on test df.
+
+			Parameters:
+			-----------
+				X (pd.DataFrame): Feature matrix.
+				y (np.ndarray): True target target_values.
+
+			Returns:
+			-----------
+				float: Score value (e.g., R² for regressors).
+
+		"""
+		raise NotImplementedError
+
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+		"""
+
+			Purpose:
+			---------
+			Evaluate the model using multiple performance metrics.
+
+			Parameters:
+			-----------
+				X (pd.DataFrame): Feature matrix.
+				y (np.ndarray): Ground truth target_values.
+
+			Returns:
+			-----------
+				dict: Dictionary containing multiple evaluation metrics.
+
+		"""
+		raise NotImplementedError
+
+
+class Cluster( Model ):
 	"""
 
         Purpose:
@@ -579,6 +678,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class SpectralClusteringModel( Cluster ):
 	"""
