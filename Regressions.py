@@ -108,7 +108,7 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -126,7 +126,7 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
 			Purpose:
@@ -145,7 +145,7 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
 			Purpose:
@@ -184,9 +184,17 @@ class MultilayerRegression( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, hidden: tuple = (100,), activ = 'relu', solver = 'adam',
-	              alpha = 0.0001, learning: str = 'constant', rando: int = 42 ) -> None:
+	def __init__( self, hidden: tuple=(100,), activ='relu', solver='adam',
+	              alpha=0.0001, learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activ
@@ -194,20 +202,21 @@ class MultilayerRegression( Model ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor: MLPRegressor = MLPRegressor( hidden_layer_sizes = hidden,
+		self.multilayer_regressor = MLPRegressor( hidden_layer_sizes = hidden,
 			activation = activ, solver = solver, alpha = alpha, learning_rate = learning,
 			random_state = 42 )
-		self.pipeline: Pipeline = Pipeline( steps = list( hidden ) )
+		self.pipeline = Pipeline( steps = list( hidden ) )
 		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -237,6 +246,7 @@ class MultilayerRegression( Model ):
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -269,38 +279,6 @@ class MultilayerRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
-		"""
-
-
-			Purpose:
-			-----------
-			Fits and transforms all pipeline steps on the text df.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-			y (Optional[np.ndarray]): Optional target array.
-
-			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.multilayer_regressor.fit_transform( X, y )
-				return self.prediction
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
-			exception.method = ('fit_transform( self, X: np.ndarray, y: '
-			                    'Optional[ np.ndarray ]=None ) -> np.ndarray')
-			error = ErrorDialog( exception )
-			error.show( )
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -336,6 +314,7 @@ class MultilayerRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
@@ -360,21 +339,22 @@ class MultilayerRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -382,6 +362,7 @@ class MultilayerRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -436,6 +417,14 @@ class LinearRegressor( Model ):
 		when data are collected without an experimental design.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self ) -> None:
 		"""
@@ -451,16 +440,16 @@ class LinearRegressor( Model ):
 
 		"""
 		super( ).__init__( )
-		self.linerar_regressor: LinearRegression = LinearRegression( fit_intercept = True,
+		self.linerar_regressor = LinearRegression( fit_intercept = True,
 			copy_X = True )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Optional[ object ]:
 		"""
@@ -524,6 +513,7 @@ class LinearRegressor( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> Optional[ float ]:
 		"""
 
@@ -559,6 +549,7 @@ class LinearRegressor( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Optional[ Dict[ str, float ] ]:
 		"""
 
@@ -583,21 +574,22 @@ class LinearRegressor( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -605,6 +597,7 @@ class LinearRegressor( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -664,6 +657,15 @@ class RidgeRegression( Model ):
 		If an array is passed, penalties are assumed to be specific to the targets.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
+
 
 	def __init__( self, alpha: float = 1.0, solver: str = 'auto', max: int = 1000,
 	              rando: int = 42 ) -> None:
@@ -689,13 +691,15 @@ class RidgeRegression( Model ):
 		self.random_state: int = rando
 		self.ridge_regressor: Ridge = Ridge( alpha = self.alpha, solver = self.solver,
 			max_iter = self.max_iter, random_state = self.random_state )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -731,6 +735,7 @@ class RidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -762,6 +767,7 @@ class RidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> Optional[ float ]:
 		"""
 
@@ -787,7 +793,8 @@ class RidgeRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.ridge_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -795,6 +802,7 @@ class RidgeRegression( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Optional[ Dict ]:
 		"""
@@ -820,21 +828,22 @@ class RidgeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -903,6 +912,15 @@ class LassoRegression( Model ):
 		specific to the targets. Hence they must correspond in number.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
+
 
 	def __init__( self, alph: float=1.0, max: int=500, rando: int=42 ) -> None:
 		"""
@@ -918,13 +936,15 @@ class LassoRegression( Model ):
 		self.random_state: int = rando
 		self.lasso_regressor: Lasso = Lasso( alpha = self.alpha, max_iter = self.max_iter,
 			random_state=self.random_state )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1015,7 +1035,8 @@ class LassoRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.lasso_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1049,21 +1070,22 @@ class LassoRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1123,6 +1145,14 @@ class ElasticNetRegression( Model ):
 		Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, max: int = 200,
 	              rando: int = 42, select: str = 'random' ) -> None:
@@ -1151,13 +1181,15 @@ class ElasticNetRegression( Model ):
 		self.elasticnet_regressor: ElasticNet = ElasticNet( alpha = self.alpha,
 			l1_ratio = self.ratio,
 			random_state = self.random_state, max_iter = self.max, selection = self.selection )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Optional[ object ]:
 		"""
@@ -1247,7 +1279,8 @@ class ElasticNetRegression( Model ):
 				raise Exception( 'The argument "X" is required!' )
 			else:
 				self.prediction = self.elasticnet_model.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1281,20 +1314,21 @@ class ElasticNetRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -1356,6 +1390,14 @@ class LogisticRegressor( Model ):
 		is only supported by the ‘saga’ solver.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, c: float = 1.0, penalty: str = 'l2', max: int = 1000,
 	              solver: str = 'lbfgs' ) -> None:
@@ -1379,13 +1421,15 @@ class LogisticRegressor( Model ):
 		self.logistic_regressor: LogisticRegression = LogisticRegression( C = self.alpha,
 			max_iter = self.max_iter,
 			solver = self.solver, penalty = self.penalty )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1474,7 +1518,8 @@ class LogisticRegressor( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.logistic_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1513,20 +1558,21 @@ class LogisticRegressor( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -1594,6 +1640,14 @@ class BayesianRidgeRegression( Model ):
 		is increasing between two consecutive iterations of the optimization.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, max: int = 300, shape_alpha: float = 1e-06,
 	              scale_alpha: float = 1e-06, shape_lambda: float = 1e-06,
@@ -1611,17 +1665,17 @@ class BayesianRidgeRegression( Model ):
 		self.scale_alpha: float = scale_alpha
 		self.shape_lambda: float = shape_lambda
 		self.scale_lambda: float = scale_lambda
-		self.bayesian_ridge_regressor: BayesianRidge = BayesianRidge( n_iter = self.max_iter,
-			alpha_1 = self.shape_alpha, alpha_2 = self.scale_alpha,
+		self.bayesian_ridge_regressor: BayesianRidge = BayesianRidge( alpha_1 = self.shape_alpha, alpha_2 = self.scale_alpha,
 			lambda_1 = self.shape_lambda, lambda_2 = self.scale_lambda )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1656,6 +1710,7 @@ class BayesianRidgeRegression( Model ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1713,7 +1768,8 @@ class BayesianRidgeRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.bayesian_ridge_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1745,20 +1801,21 @@ class BayesianRidgeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -1829,6 +1886,15 @@ class StochasticDescentRegression( Model ):
 		This implementation works with data represented as dense numpy arrays of floating point
 		values for the features.
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
+
 
 	def __init__( self, loss: str = 'hinge', max: int = 5, reg: str = 'l2' ) -> None:
 		"""
@@ -1850,15 +1916,14 @@ class StochasticDescentRegression( Model ):
 		self.penalty: str = reg
 		self.stochastic_regressor: SGDRegressor = SGDRegressor( loss = self.loss,
 			max_iter = self.max_iter, penalty = self.penalty )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1947,7 +2012,8 @@ class StochasticDescentRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.stochastic_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1979,20 +2045,21 @@ class StochasticDescentRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -2053,8 +2120,17 @@ class NearestNeighborRegression( Model ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, num: int = 5 ) -> None:
+
+	def __init__( self, num: int=5 ) -> None:
 		"""
 
 
@@ -2071,16 +2147,16 @@ class NearestNeighborRegression( Model ):
 		"""
 		super( ).__init__( )
 		self.n_neighbors = num
-		self.neighbor_regressor: KNeighborsRegressor = KNeighborsRegressor( n_neighbors = num )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.neighbor_regressor: KNeighborsRegressor = KNeighborsRegressor( n_neighbors=num )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2170,7 +2246,8 @@ class NearestNeighborRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.neighbor_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2203,20 +2280,21 @@ class NearestNeighborRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -2280,9 +2358,18 @@ class DecisionTreeRegression( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, criterion = 'squared_error', splitter = 'best', depth = 3,
-	              rando: int = 42 ) -> None:
+
+	def __init__( self, criterion='squared_error', splitter='best', depth=3,
+	              rando: int=42 ) -> None:
 		"""
 
 
@@ -2290,29 +2377,22 @@ class DecisionTreeRegression( Model ):
 			-----------
 			Initialize the KNeighborsClassifier linerar_model.
 
-			Attributes:
-			-----------
-				linerar_model (KNeighborsClassifier): Internal non-parametric classifier.
-					Parameters:
-						n_neighbors (int): Number of neighbors to use. Default is 5.
-
 		"""
 		super( ).__init__( )
-		self.criterion: str = criterion
-		self.splitter: str = splitter
-		self.max_depth: int = depth
+		self.criterion = criterion
+		self.splitter = splitter
+		self.max_depth = depth
 		self.random_state = rando
-		self.dt_regresssor: DecisionTreeRegressor = DecisionTreeRegressor(
-			criterion = self.criterion,
-			splitter = self.splitter, max_depth = self.max_depth, random_state = rando )
-		self.prediction: np.array = None
-		self.score: float = 0.0
-		self.mean_absolute_error: float = 0.0
-		self.mean_squared_error: float = 0.0
-		self.r_mean_squared_error: float = 0.0
-		self.r2_score: float = 0.0
-		self.explained_variance_score: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.dt_regresssor = DecisionTreeRegressor( criterion=self.criterion,
+			splitter=self.splitter, max_depth=self.max_depth, random_state=rando )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2347,6 +2427,7 @@ class DecisionTreeRegression( Model ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -2402,7 +2483,8 @@ class DecisionTreeRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.dt_regresssor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2435,20 +2517,21 @@ class DecisionTreeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -2519,6 +2602,14 @@ class RandomForestRegression( Model ):
 		The variance reduction is often significant hence yielding an overall better model.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, est: int = 10, crit: str = 'gini', max: int = 3, rando: int = 42 ) -> None:
 		"""
@@ -2543,13 +2634,14 @@ class RandomForestRegression( Model ):
 		self.random_forest_regressor: RandomForestRegressor = RandomForestRegressor(
 			n_estimators = est,
 			criterion = crit, random_state = rando )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2638,7 +2730,8 @@ class RandomForestRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.random_forest_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2670,20 +2763,21 @@ class RandomForestRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -2745,6 +2839,14 @@ class GradientBoostingRegression( Model ):
 		only a single regression tree is induced.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, lss: str = 'deviance', rate: float = 0.1,
 	              est: int = 100, max: int = 3, rando: int = 42 ) -> None:
@@ -2770,13 +2872,14 @@ class GradientBoostingRegression( Model ):
 		self.max_depth: int = max
 		self.gradient_boost_regressor = GradientBoostingRegressor( loss = lss, learning_rate = rate,
 			n_estimators = est, max_depth = max, random_state = rando )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Optional[ object ]:
 		"""
@@ -2835,7 +2938,8 @@ class GradientBoostingRegression( Model ):
 
 		"""
 		self.prediction = self.gradient_boost_regressor.predict( X )
-		return r2_score( y, self.prediction )
+		self.accuracy = r2_score( y, self.prediction )
+		return self.accuracy
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
@@ -2901,6 +3005,14 @@ class AdaBoostRegression( Model ):
 		majority vote (or sum) to produce the final prediction.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, est: int = 100, max: int = 3 ) -> None:
 		"""
@@ -2920,13 +3032,14 @@ class AdaBoostRegression( Model ):
 		self.max_depth: int = max
 		self.n_estimators: int = est
 		self.ada_boost_regressor: AdaBoostRegressor = AdaBoostRegressor( n_estimators = est )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -3015,7 +3128,8 @@ class AdaBoostRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.ada_boost_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -3046,20 +3160,21 @@ class AdaBoostRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -3126,6 +3241,14 @@ class BaggingRegression( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, base: object = None, num: int = 10, max: int = 1, rando: int = 42 ) -> None:
 		"""
@@ -3147,14 +3270,14 @@ class BaggingRegression( Model ):
 		self.random_state: int = rando
 		self.bagging_regressor: BaggingRegressor = BaggingRegressor( max_features = max,
 			random_state = rando )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -3242,7 +3365,8 @@ class BaggingRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.bagging_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -3273,20 +3397,21 @@ class BaggingRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -3346,6 +3471,14 @@ class VotingRegression( Model ):
 		Then it averages the individual predictions to form a final prediction.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	def __init__( self, est: List[ (str, object) ], vot = 'hard' ) -> None:
 		"""
@@ -3364,13 +3497,14 @@ class VotingRegression( Model ):
 		self.estimators: List[ (str, object) ] = est
 		self.voting: str = vot
 		self.voting_regressor: VotingRegressor = VotingRegressor( estimators = est )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -3459,7 +3593,8 @@ class VotingRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.voting_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -3490,20 +3625,21 @@ class VotingRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -3564,8 +3700,17 @@ class StackRegression( Model ):
 			the base estimators using cross_val_predict.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, estimators: List[ Tuple[ str, ClassifierMixin ] ],
+
+	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
 	              final: ClassifierMixin = None ) -> None:
 		"""
 
@@ -3587,17 +3732,18 @@ class StackRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.estimators: List[ Tuple[ str, ClassifierMixin ] ] = estimators
+		self.estimators: List[ Tuple[ str, ClassifierMixin ] ] = est
 		self.final_estimator: ClassifierMixin = final
-		self.stacking_regressor: StackingRegressor = StackingRegressor( estimators = estimators )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.median_absolute_error: float = 0.0
+		self.stacking_regressor = StackingRegressor( estimators=est )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -3632,6 +3778,7 @@ class StackRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -3661,6 +3808,7 @@ class StackRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -3684,7 +3832,8 @@ class StackRegression( Model ):
 				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.prediction = self.stacking_regressor.predict( X )
-				return r2_score( y, self.prediction )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -3692,6 +3841,7 @@ class StackRegression( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
@@ -3715,20 +3865,21 @@ class StackRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
-							'Accuracy': self.accuracy,
-							'Precision': self.precision,
-							'Recall': self.recall,
-							'F1 Score': self.f1_score,
-							'ROC AUC': self.roc_auc_score,
-							'Correlation Coeff': self.correlation_coefficient
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
 					}
 		except Exception as e:
 			exception = Error( e )
@@ -3737,6 +3888,7 @@ class StackRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -3783,27 +3935,40 @@ class SupportVectorRegression:
 	"""
 	Wrapper for sklearn's Support Vector Regression (SVR).
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
-	def __init__( self, kernel: str = 'rbf', C: float = 1.0, epsilon: float = 0.1 ) -> None:
-		"""
-		Initialize the SVR model.
 
-		:param kernel: Kernel type to be used in the algorithm.
-		:type kernel: str
-		:param C: Regularization parameter.
-		:type C: float
-		:param epsilon: Epsilon in the epsilon-SVR model.
-		:type epsilon: float
+	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1 ) -> None:
 		"""
-		self.svr_model = SVR( kernel = kernel, C = C, epsilon = epsilon )
-		self.prediction: np.array = None
-		self.accuracy: float = 0.0
-		self.precision: float = 0.0
-		self.recall: float = 0.0
-		self.f1_score: float = 0.0
-		self.roc_auc_score: float = 0.0
-		self.correlation_coefficient: float = 0.0
-		self.median_absolute_error: float = 0.0
+
+			Purpose:
+			---------
+			Initialize the SVR model.
+
+			:param kernel: Kernel type to be used in the algorithm.
+			:type kernel: str
+			:param C: Regularization parameter.
+			:type C: float
+			:param epsilon: Epsilon in the epsilon-SVR model.
+			:type epsilon: float
+
+		"""
+		self.svr_model = SVR( kernel=kernel, C=C, epsilon=epsilon )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -3818,44 +3983,18 @@ class SupportVectorRegression:
 		self.svr_model.fit( X, y )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:
 		"""
-		Predict target values for the input features.
+			Predict target values for the input features.
 
-		:param X: Input features.
-		:type X: np.ndarray
-		:return: Predicted target values.
-		:rtype: np.ndarray
-		"""
-		return self.svr_model.predict( X )
-
-
-	def score( self, X: np.ndarray, y_true: np.ndarray ) -> Dict | None:
-		"""
-		Evaluate the regression using MSE and R2 score.
-
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y_true: True target values.
-		:type y_true: np.ndarray
-		:return: Dictionary with MSE and R2 score.
-		:rtype: dict
-		"""
-		y_pred = self.project( X )
-		return {
-				'mse': mean_squared_error( y_true, y_pred ),
-				'r2': r2_score( y_true, y_pred )
-		}
-
-
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
-		"""
-		Print detailed regression metrics.
-
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y: Ground truth values.
-		:type y: np.ndarray
+			:param y:
+			:type y:
+			:param y:
+			:type y:
+			:param X: Input features.
+			:type X: np.ndarray
+			:return: Predicted target values.
+			:rtype: np.ndarray
 		"""
 		try:
 			if X is None:
@@ -3863,21 +4002,85 @@ class SupportVectorRegression:
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.accuracy = accuracy_score( y, self.prediction )
-				self.precision = precision_score( y, self.prediction, average = 'binary' )
-				self.recall = mean_squared_error( y, self.prediction, average = 'binary' )
-				self.f1_score = f1_score( y, self.prediction, average = 'binary' )
-				self.roc_auc_score = roc_auc_score( y, self.prediction )
-				self.correlation_coefficient = matthews_corrcoef( y, self.prediction )
+				return self.svr_model.predict( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorRegression'
+			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+		"""
+
+			Compute the R-squared
+			accuracy for the Ridge model.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Test features.
+				y (np.ndarray): Ground truth target_values.
+
+			Returns:
+			-----------
+				float: R-squared accuracy.
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.prediction = self.svr_model.predict( X )
+				self.accuracy = r2_score( y, self.prediction )
+				return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorRegression'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+		"""
+
+			Purpose:
+			---------
+			Print detailed regression metrics.
+
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y: Ground truth values.
+			:type y: np.ndarray
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+				self.mean_squared_error = mean_squared_error( y, self.prediction )
+				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+					squared = False )
+				self.r2_score = r2_score( y, self.prediction )
+				self.explained_variance_score = explained_variance_score( y, self.prediction )
+				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-				{
-						'Accuracy': self.accuracy,
-						'Precision': self.precision,
-						'Recall': self.recall,
-						'F1 Score': self.f1_score,
-						'ROC AUC': self.roc_auc_score,
-						'Correlation Coeff': self.correlation_coefficient
-				}
+					{
+							"MAE": mean_absolute_error( y, self.prediction ),
+							"MSE": mean_squared_error( y, self.prediction ),
+							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"R2": r2_score( y, self.prediction ),
+							"Explained Variance": explained_variance_score( y, self.prediction ),
+							"Median Absolute Error": median_absolute_error( y, self.prediction )
+					}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -3887,21 +4090,37 @@ class SupportVectorRegression:
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
-		Visualize the true vs predicted values for regression.
 
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y_true: True target values.
-		:type y_true: np.ndarray
+			Purpose:
+			--------
+			Visualize the true vs predicted values for regression.
+
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y: True target values.
+			:type y: np.ndarray
+
 		"""
-		y_pred = self.svr_model.predict( X )
-		plt.scatter( y_true, y_pred, color = 'blue', edgecolor = 'k' )
-		plt.plot( [ y_true.min( ), y_true.max( ) ], [ y_true.min( ), y_true.max( ) ], 'r--' )
-		plt.xlabel( "True Values" )
-		plt.ylabel( "Predicted Values" )
-		plt.title( "SVR: True vs Predicted" )
-		plt.grid( True )
-		plt.tight_layout( )
-		plt.show( )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				y_pred = self.svr_model.predict( X )
+				plt.scatter( y, y_pred, color = 'blue', edgecolor = 'k' )
+				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.xlabel( "True Values" )
+				plt.ylabel( "Predicted Values" )
+				plt.title( "SVR: True vs Predicted" )
+				plt.grid( True )
+				plt.tight_layout( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestNeighborRegression'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			error = ErrorDialog( exception )
+			error.show( )
