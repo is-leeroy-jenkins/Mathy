@@ -44,7 +44,7 @@ from Data import Metric
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
-import sklearn.preprocessing as ske
+import sklearn.preprocessing as sk
 
 
 class OneHotEncoder( Metric ):
@@ -58,7 +58,7 @@ class OneHotEncoder( Metric ):
 
 	def __init__( self, unknown: str = 'ignore' ) -> None:
 		super( ).__init__( )
-		self.hot_encoder = ske.OneHotEncoder( sparse_output = False, handle_unknown = unknown )
+		self.hot_encoder = sk.OneHotEncoder( sparse_output = False, handle_unknown = unknown )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
 		"""
@@ -136,7 +136,7 @@ class OrdinalEncoder( Metric ):
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.ordinal_encoder = ske.OrdinalEncoder( )
+		self.ordinal_encoder = sk.OrdinalEncoder( )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
 		"""
