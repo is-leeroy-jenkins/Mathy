@@ -60,6 +60,7 @@ class OneHotEncoder( Metric ):
 		super( ).__init__( )
 		self.hot_encoder = sk.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 
+
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
 
@@ -91,6 +92,7 @@ class OneHotEncoder( Metric ):
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -124,6 +126,20 @@ class OneHotEncoder( Metric ):
 			error.show( )
 
 
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+		"""
+			Fit the encoder and transform the data.
+
+			:param y:
+			:type y:
+			:param X: Input array with missing values.
+			:type X: np.ndarray
+			:return: Transformed data with imputed values.
+			:rtype: np.ndarray
+		"""
+		return self.hot_encoder.fit_transform( X )
+
+
 class OrdinalEncoder( Metric ):
 	"""
 
@@ -137,6 +153,7 @@ class OrdinalEncoder( Metric ):
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.ordinal_encoder = sk.OrdinalEncoder( )
+
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
@@ -168,6 +185,7 @@ class OrdinalEncoder( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -198,6 +216,21 @@ class OrdinalEncoder( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+		"""
+			Fit the encoder and transform the data.
+
+			:param y:
+			:type y:
+			:param X: Input array with missing values.
+			:type X: np.ndarray
+			:return: Transformed data with imputed values.
+			:rtype: np.ndarray
+		"""
+		return self.ordinal_encoder.fit_transform( X )
+
+
 class LabelEncoder( Metric ):
 	"""
 	Wrapper for LabelEncoder.
@@ -222,6 +255,7 @@ class LabelEncoder( Metric ):
 		"""
 		self.label_encoder.fit( labels )
 
+
 	def transform( self, labels: list[ str ] ) -> np.ndarray:
 		"""
 		Transform labels to encoded form.
@@ -233,7 +267,8 @@ class LabelEncoder( Metric ):
 		"""
 		return self.label_encoder.transform( labels )
 
-	def fit_transform( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+
+	def fit_transform( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 		Fit and transform the label data.
 
@@ -275,7 +310,7 @@ class PolynomialFeatures( Metric ):
 		self.polynomial_features.fit( X )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 		Transform data into polynomial features.
 
@@ -287,7 +322,7 @@ class PolynomialFeatures( Metric ):
 		return self.polynomial_features.transform( X )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 		Fit and transform data using polynomial expansion.
 
