@@ -55,7 +55,7 @@ from sklearn import tree
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import (silhouette_score, accuracy_score, confusion_matrix,
                              ConfusionMatrixDisplay, precision_score, f1_score, roc_auc_score,
-                             matthews_corrcoef, recall_score)
+                             matthews_corrcoef, recall_score, classification_report)
 from sklearn.base import BaseEstimator
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.linear_model import (
@@ -73,7 +73,7 @@ from sklearn.metrics import (
 )
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVC, SVR
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neural_network import MLPRegressor, MLPClassifier
 from sklearn.preprocessing import (StandardScaler, MinMaxScaler, RobustScaler, Normalizer,
@@ -87,6 +87,7 @@ from sklearn.cluster import (KMeans, MiniBatchKMeans, DBSCAN, MeanShift,
                              Birch, OPTICS)
 from Static import Scaler
 import pandas as pd
+import seaborn as sns
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Tuple
 
@@ -2716,10 +2717,10 @@ class StackClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-			Evaluate the Lasso model
+			Evaluate the Stack Classifier model
 			using multiple regression metrics.
 
 			Parameters:
@@ -2797,3 +2798,104 @@ class StackClassification( Model ):
 			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
+
+class SupportVectorClassification:
+	"""
+
+		Wrapper for sklearn's Support Vector Classification (SVC).
+
+	"""
+
+	def __init__( self, kernel: str = 'rbf', C: float = 1.0 ) -> None:
+		"""
+		Initialize the SVC model.
+
+		:param kernel: Kernel type to be used in the algorithm.
+		:type kernel: str
+		:param C: Regularization parameter.
+		:type C: float
+		"""
+		self.svc_model = SVC( kernel=kernel, C=C )
+		self.prediction: np.array = None
+		self.accuracy: float = 0.0
+		self.precision: float = 0.0
+		self.recall: float = 0.0
+		self.f1_score: float = 0.0
+		self.roc_auc_score: float = 0.0
+		self.correlation_coefficient: float = 0.0
+
+
+	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+		Fit the SVC model to the data.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y: Target labels.
+		:type y: np.ndarray
+		"""
+		self.svc_model.fit( X, y )
+
+
+	def predict( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Predict class labels for the input features.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:return: Predicted class labels.
+		:rtype: np.ndarray
+		"""
+		return self.svc_model.predict( X )
+
+
+	def evaluate( self, X: np.ndarray, y_true: np.ndarray ) -> float:
+		"""
+		Evaluate the model using accuracy score.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y_true: True labels.
+		:type y_true: np.ndarray
+		:return: Accuracy score.
+		:rtype: float
+		"""
+		y_pred = self.svc_model.predict( X )
+		return accuracy_score( y_true, y_pred )
+
+	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> str:
+		"""
+		Generate classification report.
+
+		:param self:
+		:type self:
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y_true: True labels.
+		:type y_true: np.ndarray
+		:return: Classification report.
+		:rtype: str
+		"""
+		y_pred = self.predict( X )
+		return classification_report( y_true, y_pred )
+
+	def create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+		"""
+		Generate and display a confusion matrix.
+
+		:param self:
+		:type self:
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y_true: True labels.
+		:type y_true: np.ndarray
+		"""
+		y_pred = self.predict( X )
+		cm = confusion_matrix( y_true, y_pred )
+		sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+		plt.xlabel( "Predicted" )
+		plt.ylabel( "Actual" )
+		plt.title( "Confusion Matrix" )
+		plt.tight_layout( )
+		plt.show( )

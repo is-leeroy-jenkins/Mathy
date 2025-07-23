@@ -3697,3 +3697,106 @@ class StackRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
+
+class SupportVectorRegression:
+	"""
+	Wrapper for sklearn's Support Vector Regression (SVR).
+	"""
+
+	def __init__( self, kernel: str = 'rbf', C: float = 1.0, epsilon: float = 0.1 ) -> None:
+		"""
+		Initialize the SVR model.
+
+		:param kernel: Kernel type to be used in the algorithm.
+		:type kernel: str
+		:param C: Regularization parameter.
+		:type C: float
+		:param epsilon: Epsilon in the epsilon-SVR model.
+		:type epsilon: float
+		"""
+		self.svr_model = SVR( kernel = kernel, C = C, epsilon = epsilon )
+		self.prediction: np.array = None
+		self.accuracy: float = 0.0
+		self.precision: float = 0.0
+		self.recall: float = 0.0
+		self.f1_score: float = 0.0
+		self.roc_auc_score: float = 0.0
+		self.correlation_coefficient: float = 0.0
+		self.median_absolute_error: float = 0.0
+
+
+	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+		Fit the SVR model to the data.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y: Target values.
+		:type y: np.ndarray
+		"""
+		self.svr_model.fit( X, y )
+
+
+	def predict( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		Predict target values for the input features.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:return: Predicted target values.
+		:rtype: np.ndarray
+		"""
+		return self.svr_model.predict( X )
+
+
+	def evaluate( self, X: np.ndarray, y_true: np.ndarray ) -> dict:
+		"""
+		Evaluate the regression using MSE and R2 score.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y_true: True target values.
+		:type y_true: np.ndarray
+		:return: Dictionary with MSE and R2 score.
+		:rtype: dict
+		"""
+		y_pred = self.predict( X )
+		return {
+				'mse': mean_squared_error( y_true, y_pred ),
+				'r2': r2_score( y_true, y_pred )
+		}
+
+
+	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+		"""
+		Print detailed regression metrics.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y_true: Ground truth values.
+		:type y_true: np.ndarray
+		"""
+		scores = self.svr_model.evaluate( X, y_true )
+		print( f"Mean Squared Error: {scores[ 'mse' ]:.4f}" )
+		print( f"R^2 Score: {scores[ 'r2' ]:.4f}" )
+
+
+	def create_graph( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+		"""
+		Visualize the true vs predicted values for regression.
+
+		:param X: Input features.
+		:type X: np.ndarray
+		:param y_true: True target values.
+		:type y_true: np.ndarray
+		"""
+		y_pred = self.svr_model.predict( X )
+		plt.scatter( y_true, y_pred, color = 'blue', edgecolor = 'k' )
+		plt.plot( [ y_true.min( ), y_true.max( ) ], [ y_true.min( ), y_true.max( ) ], 'r--' )
+		plt.xlabel( "True Values" )
+		plt.ylabel( "Predicted Values" )
+		plt.title( "SVR: True vs Predicted" )
+		plt.grid( True )
+		plt.tight_layout( )
+		plt.show( )
