@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Regressors.py
+  Filename:                Regressions.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Regressors.py" company="Terry D. Eppler">
+<copyright file="Regressions.py" company="Terry D. Eppler">
 
      Mathy Models
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Regressors.py
+	Regressions.py
 </summary>
 ******************************************************************************************
 '''
@@ -89,6 +89,7 @@ from Static import Scaler
 import pandas as pd
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Tuple
+
 
 class MultilayerRegression( Model ):
 	"""
@@ -343,6 +344,7 @@ class MultilayerRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class LinearRegressor( Model ):
 	"""
 
@@ -564,6 +566,7 @@ class LinearRegressor( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class RidgeRegression( Model ):
 	"""
@@ -806,6 +809,7 @@ class RidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class LassoRegression( Model ):
 	"""
 
@@ -1039,6 +1043,7 @@ class LassoRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class ElasticNetRegression( Model ):
 	"""
 
@@ -1268,6 +1273,7 @@ class ElasticNetRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class LogisticRegressor( Model ):
 	"""
@@ -1502,6 +1508,7 @@ class LogisticRegressor( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class BayesianRidgeRegression( Model ):
 	"""
 
@@ -1730,6 +1737,7 @@ class BayesianRidgeRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class StochasticDescentRegression( Model ):
 	"""
@@ -1964,6 +1972,7 @@ class StochasticDescentRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class NearestNeighborRegression( Model ):
 	"""
 
@@ -2190,6 +2199,7 @@ class NearestNeighborRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class DecisionTreeRegression( Model ):
 	'''
@@ -2421,6 +2431,7 @@ class DecisionTreeRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class RandomForestRegression( Model ):
 	"""
@@ -2656,6 +2667,7 @@ class RandomForestRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class GradientBoostingRegression( Model ):
 	"""
 
@@ -2883,7 +2895,7 @@ class AdaBoostRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Project target target_values
@@ -3028,6 +3040,7 @@ class AdaBoostRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class BaggingRegression( Model ):
 	"""
@@ -3253,6 +3266,7 @@ class BaggingRegression( Model ):
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class VotingRegression( Model ):
 	"""
