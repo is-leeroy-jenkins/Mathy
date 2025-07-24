@@ -364,7 +364,7 @@ class LabelEncoder( Metric ):
 		self.label_encoder = sk.LabelEncoder( )
 
 
-	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -376,10 +376,21 @@ class LabelEncoder( Metric ):
 			:param labels: List of labels.
 			:type labels: list[str]
 		"""
-		self.label_encoder.fit( labels )
+		try:
+			if labels is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.label_encoder.fit( labels )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'LabellEncoder'
+			exception.method = 'fit( self, labels: list[str] ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def transform( self, labels: list[ str ] ) -> np.ndarray:
+	def transform( self, labels: list[ str ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -391,7 +402,20 @@ class LabelEncoder( Metric ):
 			:return: Encoded labels.
 			:rtype: np.ndarray
 		"""
-		return self.label_encoder.transform( labels )
+
+		try:
+			if labels is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.transformed_data = self.label_encoder.transform( labels )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'LabellEncoder'
+			exception.method = 'fit( self, labels: list[str] ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def fit_transform( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
@@ -408,7 +432,19 @@ class LabelEncoder( Metric ):
 			:return: Encoded labels.
 			:rtype: np.ndarray
 		"""
-		return self.label_encoder.fit_transform( labels )
+
+		try:
+			if labels is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.label_encoder.fit_transform( labels )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'LabellEncoder'
+			exception.method = 'fit_transform( self, labels: list[str] ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class PolynomialFeatures( Metric ):
@@ -433,7 +469,7 @@ class PolynomialFeatures( Metric ):
 		self.polynomial_features = sk.PolynomialFeatures( degree=degree )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
