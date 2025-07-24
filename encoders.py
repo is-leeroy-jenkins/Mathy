@@ -317,7 +317,7 @@ class OrdinalEncoder( Metric ):
 			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -331,6 +331,7 @@ class OrdinalEncoder( Metric ):
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
+
 		try:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
