@@ -40,12 +40,12 @@
 </summary>
 ******************************************************************************************
 '''
-from Data import Metric
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional, List
 import sklearn.feature_extraction.text as sk
 from pydantic import BaseModel
+
 
 class Metric( BaseModel ):
 	"""
@@ -130,6 +130,7 @@ class Metric( BaseModel ):
 			                    ') -> np.ndarray')
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class TfidfTransformer( Metric ):
 	"""
@@ -345,7 +346,7 @@ class HashingVectorizer( Metric ):
 
 	"""
 
-	def __init__( self, n_features: int=1048576 ) -> None:
+	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
 			Purpose:
@@ -356,7 +357,7 @@ class HashingVectorizer( Metric ):
 			:type n_features: int
 		"""
 		super( ).__init__( )
-		self.vectorizer = sk.HashingVectorizer( n_features = n_features )
+		self.vectorizer = sk.HashingVectorizer( n_features=num )
 
 	def transform( self, documents: List[ str ] ) -> np.ndarray:
 		"""
