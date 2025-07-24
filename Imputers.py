@@ -40,11 +40,99 @@
 </summary>
 ******************************************************************************************
 '''
-from Data import Metric
+from __future__ import annotations
+
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
 import sklearn.impute as sk
+from pydantic import BaseModel
+
+
+class Metric( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
+	    `fit_transform` methods.
+
+	"""
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+		self.pipeline = None
+		self.transformed_data = [ ]
+		self.transformed_values = [ ]
+
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor to the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+		"""
+		raise NotImplementedError
+
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transforms the text df using the fitted preprocessor.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		raise NotImplementedError
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor and then transforms the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			self.fit( X, y )
+			return self.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Metric'
+			exception.method = ('fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray '
+			                    ']=None'
+			                    ') -> np.ndarray')
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class MeanImputer( Metric ):
@@ -56,12 +144,13 @@ class MeanImputer( Metric ):
 
 	"""
 
+
 	def __init__( self, strat: str='mean' ) -> None:
 		super( ).__init__( )
 		self.mean_imputer = sk.SimpleImputer( strategy=strat )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 
@@ -83,7 +172,7 @@ class MeanImputer( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.mean_imputer.fit( X )
+				return self.mean_imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -115,7 +204,8 @@ class MeanImputer( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.mean_imputer.transform( X )
+				self.transformed_data = self.mean_imputer.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
