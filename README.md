@@ -11,7 +11,7 @@
 and classification/regression models with custom wrappers, error handling, and diagnostic tools for 
 machine-learning workflows. Mathy targets professionals in data science and analytics who require reusable, robust, and 
 interpretable tools for building intelligent models—especially within government and research domains.
-
+___
 ## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
 - **`models.py`**: Wrappers for common classifiers/regressors such as:
@@ -51,7 +51,7 @@ mathy/
 ├── static/           # Static constants, helpers
 ├── README.md         # This file
 ```
-___
+
 
 
 ### 📊 Classification Models
@@ -59,6 +59,7 @@ ___
 models are foundational for tasks such as spam detection, disease diagnosis, and image recognition.
 Below is a list of supported classifiers in Mathy:
 
+___
 | Class Name                   | Description                                                  |
 |------------------------------|--------------------------------------------------------------|
 | Model                        | Base wrapper for all classification models.                  |
@@ -77,7 +78,7 @@ Below is a list of supported classifiers in Mathy:
 | SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
 
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
-___
+
 
 
 
@@ -86,6 +87,7 @@ ___
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
 models, listed below:
 
+___
 | Class Name                  | Description                                                        |
 |-----------------------------|--------------------------------------------------------------------|
 | Model                       | Base model interface for regression learners.                      |
@@ -108,7 +110,7 @@ models, listed below:
 | SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
 
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
-___
+
 
 
 ### 🔍 Clustering Models
@@ -116,6 +118,7 @@ ___
 outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
 irregular cluster shapes:
 
+___
 | Class Name                    | Description                                                     |
 |-------------------------------|-----------------------------------------------------------------|
 | Cluster                       | Abstract base for clustering methods.                           |
@@ -129,7 +132,6 @@ irregular cluster shapes:
 | OpticsClustering              | Orders points to extract density-based clusters.                |
 
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
-___
 
 
 
