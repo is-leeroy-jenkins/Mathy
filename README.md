@@ -76,7 +76,7 @@ Below is a list of supported classifiers in Mathy:
 | StackClassification          | Meta-learner trained on outputs of base classifiers.         |
 | SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
 ___
 
 
@@ -107,7 +107,7 @@ models, listed below:
 | StackRegression             | Trains meta-regressor on top of base models.                      |
 | SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 ___
 
 
@@ -128,7 +128,7 @@ irregular cluster shapes:
 | BirchClustering               | Clusters large datasets using hierarchical CF trees.            |
 | OpticsClustering              | Orders points to extract density-based clusters.                |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 ___
 
 
@@ -145,7 +145,7 @@ selection.
   | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
   | Dataset | Encapsulates data loading, transformation, and partitioning. |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
 ___
 
 
@@ -162,7 +162,7 @@ compatibility.
 | LabelEncoder       | Converts labels into integer representations.                     |
 | PolynomialFeatures | Generates polynomial combinations of features.                    |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)
 ___
 
 
@@ -177,7 +177,7 @@ ___
 | CountVectorizer    | Creates a document-term matrix of token counts.                           |
 | HashingVectorizer  | Applies hashing trick to vectorize text without building vocabulary.      |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/extractors.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/extractors.py)
 ___
 
 
@@ -191,7 +191,7 @@ ___
   | IterativeImputer | Estimates missing values using other features iteratively. |
   | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)
 
 ___
 
@@ -208,7 +208,7 @@ performance.
 | RobustScaler     | Uses medians and IQR for outlier-resistant scaling.                      |
 | NormalScaler     | Normalizes each sample to have unit norm.                                |
 
-- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)
 ___
 
 
