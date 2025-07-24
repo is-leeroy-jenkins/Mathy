@@ -75,7 +75,10 @@ Below is a list of supported classifiers in Mathy:
 | VotingClassification         | Combines multiple models through majority voting.            |
 | StackClassification          | Meta-learner trained on outputs of base classifiers.         |
 | SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
 ___
+
 
 
 ### 📈 Regression Models
@@ -103,6 +106,8 @@ models, listed below:
 | VotingRegression            | Aggregates predictions from multiple regressors.                  |
 | StackRegression             | Trains meta-regressor on top of base models.                      |
 | SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 ___
 
 
@@ -122,24 +127,10 @@ irregular cluster shapes:
 | AffinityPropagationClustering | Message-passing clustering based on exemplar similarity.        |
 | BirchClustering               | Clusters large datasets using hierarchical CF trees.            |
 | OpticsClustering              | Orders points to extract density-based clusters.                |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 ___
 
-
-### ⚙️ Preprocessors
-- Preprocessing transforms raw input data into a format suitable for modeling. Mathy includes a
-robust suite of feature scaling, normalization, encoding, and imputation tools, detailed below:
-
-| Processor         | Description                                                                 |
-|------------------|-----------------------------------------------------------------------------|
-| StandardScaler    | Scales features by removing the mean and scaling to unit variance (z-score normalization). |
-| MinMaxScaler      | Transforms features by scaling each feature to a given range (typically 0 to 1).         |
-| RobustScaler      | Scales features using statistics robust to outliers by removing the median and scaling by IQR. |
-| Normalizer        | Normalizes samples individually to unit norm, often useful for text classification or clustering. |
-| OneHotEncoder     | Encodes categorical variables as binary vectors using one-hot encoding.                   |
-| OrdinalEncoder    | Encodes categorical features as ordinal integers based on their order of appearance.     |
-| MeanImputer       | Fills missing values using the mean of each feature.                                     |
-| NearestImputer    | Imputes missing values using the nearest neighbor algorithm based on feature similarity. |
-___
 
 
 ### 📁 Data
@@ -153,6 +144,8 @@ selection.
   | CorrelationAnalysis | Analyzes relationships using Canonical Correlation Analysis. |
   | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
   | Dataset | Encapsulates data loading, transformation, and partitioning. |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
 ___
 
 
@@ -168,6 +161,8 @@ compatibility.
 | OrdinalEncoder     | Encodes categories as integer values based on rank or order.      |
 | LabelEncoder       | Converts labels into integer representations.                     |
 | PolynomialFeatures | Generates polynomial combinations of features.                    |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)
 ___
 
 
@@ -181,6 +176,8 @@ ___
 | TfidfVectorizer    | Extracts TF-IDF features directly from raw text.                          |
 | CountVectorizer    | Creates a document-term matrix of token counts.                           |
 | HashingVectorizer  | Applies hashing trick to vectorize text without building vocabulary.      |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/extractors.py)
 ___
 
 
@@ -193,6 +190,9 @@ ___
   | NearestNeighborImputer | Imputes based on values of nearest neighbors. |
   | IterativeImputer | Estimates missing values using other features iteratively. |
   | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)
+
 ___
 
 
@@ -207,6 +207,8 @@ performance.
 | MinMaxScaler     | Scales features to a defined range (usually [0, 1]).                      |
 | RobustScaler     | Uses medians and IQR for outlier-resistant scaling.                      |
 | NormalScaler     | Normalizes each sample to have unit norm.                                |
+
+- ![Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)
 ___
 
 
