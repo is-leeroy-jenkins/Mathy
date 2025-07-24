@@ -341,6 +341,22 @@ class Dataset( Metric ):
 		testing_values
 
 	"""
+	dataframe: pd.DataFrame
+	data: np.ndarray
+	rows: int
+	columns: int
+	target: str
+	test_size: float
+	random_state: int
+	features: List[ str ]
+	target_values: List[ object ]
+	numeric_columns: List[ str ]
+	text_columns: List[ str ]
+	training_data: pd.DataFrame
+	training_values: np.ndarray
+	testing_data: pd.DataFrame
+	testing_values: np.ndarray
+	transtuple: List[ Tuple ]
 
 	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
 		"""
@@ -377,7 +393,7 @@ class Dataset( Metric ):
 		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 2 ]
 		self.testing_values = \
 		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 3 ]
-		self.transtuple = [ ]
+		self.transtuple = None
 
 
 	def __dir__( self ):
@@ -388,8 +404,8 @@ class Dataset( Metric ):
 			This function retuns a list of strings (members of the class)
 
 		'''
-		return [ 'dataframe', 'rows', 'columns', 'target', 'split_data',
-		         'features', 'test_size', 'rando', 'df', 'scale_data',
+		return [ 'dataframe', 'rows', 'columns', 'target_values', 'split_data',
+		         'features', 'test_size', 'random_state', 'scale_data',
 		         'numeric_columns', 'text_columns', 'scaler', 'transtuple', 'create_testing_data',
 		         'calculate_statistics', 'create_training_data',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
@@ -418,7 +434,7 @@ class Dataset( Metric ):
 			elif columns is None:
 				raise Exception( 'Arguent "columns" cannot be None' )
 			else:
-				_tuple = (name, encoder, columns)
+				_tuple = ( name, encoder, columns )
 				self.transtuple.append( _tuple )
 				self.column_transformer = ColumnTransformer( self.transtuple )
 				self.column_transformer.fit_transform( self.data )
@@ -431,7 +447,7 @@ class Dataset( Metric ):
 			error.show( )
 
 
-	def calculate_statistics( self ) -> Dict:
+	def calculate_statistics( self ) -> pd.Series | None:
 		"""
 
 			Purpose:
@@ -455,7 +471,7 @@ class Dataset( Metric ):
 			error.show( )
 
 
-	def create_training_data( self ) -> Tuple[ np.ndarray, np.ndarray ]:
+	def create_training_data( self ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 		"""
 
 			Purpose:
@@ -470,7 +486,7 @@ class Dataset( Metric ):
 		return tuple( self.training_data, self.training_values )
 
 
-	def create_testing_data( self ) -> Tuple[ np.ndarray, np.ndarray ]:
+	def create_testing_data( self ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 		"""
 
 			Purpose:
