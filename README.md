@@ -51,57 +51,79 @@ mathy/
 ├── static/           # Static constants, helpers
 ├── README.md         # This file
 ```
+___
+
 
 ## 📊 Classification Models
 - Classification models are used to assign data samples into discrete categories or classes. These
 models are foundational for tasks such as spam detection, disease diagnosis, and image recognition.
 Below is a list of supported classifiers in Mathy:
 
-| Name                       | Description                                                                 |
-|----------------------------|-----------------------------------------------------------------------------|
-| PerceptronClassifier       | Linear classifier based on the perceptron algorithm for binary classification. |
-| RidgeClassifier            | Linear classifier using L2 regularization to prevent overfitting.           |
-| SGDClassifier              | Stochastic Gradient Descent for efficient training of linear classifiers.  |
-| LogisticRegression         | Probabilistic linear classifier suitable for binary and multi-class tasks. |
-| KNeighborsClassifier       | Instance-based learner using proximity (k-nearest neighbors).               |
-| DecisionTreeClassifier     | Tree-based model that splits data based on feature thresholds.             |
-| RandomForestClassifier     | Ensemble method combining multiple decision trees via bagging.             |
-| GradientBoostingClassifier | Boosted ensemble that reduces bias via stage-wise optimization.         |
-| MLPClassifier              | Feedforward neural network (multi-layer perceptron) for non-linear learning. |
+| Class Name                   | Description                                                  |
+|------------------------------|--------------------------------------------------------------|
+| Model                        | Base wrapper for all classification models.                  |
+| PerceptronClassifier         | Linear classifier using the perceptron learning rule.        |
+| MultilayerClassification     | Multi-layer perceptron (MLP) for non-linear classification.  |
+| RidgeClassification          | Classifier with L2 regularization to prevent overfitting.    |
+| StochasticDescentClassification | Learns model using stochastic gradient descent.         |
+| NearestNeighborClassification | Instance-based classifier using nearest neighbors.         |
+| DecisionTreeClassification   | Splits data into decision paths using feature thresholds.    |
+| RandomForestClassification   | Ensemble of decision trees trained with bagging.             |
+| GradientBoostingClassification | Sequential ensemble reducing bias with boosting.          |
+| AdaBoostClassification       | Boosts weak learners to correct classification errors.       |
+| BaggingClassification        | Aggregates predictions from multiple bootstrapped models.    |
+| VotingClassification         | Combines multiple models through majority voting.            |
+| StackClassification          | Meta-learner trained on outputs of base classifiers.         |
+| SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
 
-___
+
 
 ## 📈 Regression Models
 - Regression models predict continuous numerical outcomes and are crucial in applications like
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
 models, listed below:
 
-| Name                      | Description                                                             |
-|---------------------------|-------------------------------------------------------------------------|
-| LinearRegression          | Ordinary least squares linear regression.                               |
-| RidgeRegression           | Linear regression with L2 regularization to prevent overfitting.        |
-| LassoRegression           | Linear regression with L1 regularization for feature selection.         |
-| ElasticNet                | Combines L1 and L2 penalties for balanced regularization.               |
-| SGDRegressor              | Stochastic Gradient Descent optimizer for large-scale linear regression. |
-| DecisionTreeRegressor     | Tree-based model for piecewise constant regression.                     |
-| RandomForestRegressor     | Ensemble of decision trees using bootstrap aggregation.                 |
-| GradientBoostingRegressor | Boosted ensemble for reducing bias in regression tasks.                 |
-| MLPRegressor              | Multi-layer perceptron for capturing complex non-linear relationships.  |
+| Class Name                  | Description                                                        |
+|-----------------------------|--------------------------------------------------------------------|
+| Model                       | Base model interface for regression learners.                      |
+| MultilayerRegression        | Multi-layer neural network for regression.                         |
+| LinearRegressor             | Ordinary least squares regression.                                |
+| RidgeRegression             | Linear regression with L2 regularization.                         |
+| LassoRegression             | Linear regression with L1 penalty for sparsity.                   |
+| ElasticNetRegression        | Combines L1 and L2 penalties for robustness.                      |
+| LogisticRegressor           | Logistic regression for binary outcomes.                          |
+| BayesianRidgeRegression     | Bayesian linear model with priors on coefficients.               |
+| StochasticDescentRegression | Optimizes regression with stochastic gradient descent.            |
+| NearestNeighborRegression   | Instance-based regression using k-nearest neighbors.              |
+| DecisionTreeRegression      | Tree-based model for continuous targets.                          |
+| RandomForestRegression      | Ensemble of trees trained on bootstrapped samples.                |
+| GradientBoostingRegression  | Boosting technique for improved predictive accuracy.              |
+| AdaBoostRegression          | Adaptive boosting for regression tasks.                           |
+| BaggingRegression           | Bagging ensemble to reduce variance.                             |
+| VotingRegression            | Aggregates predictions from multiple regressors.                  |
+| StackRegression             | Trains meta-regressor on top of base models.                      |
+| SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
 
-___
+
 
 ## 🔍 Clustering Models
 - Clustering is an unsupervised technique used to discover natural groupings in data without labeled
 outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
 irregular cluster shapes:
 
-| Name                    | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
-| KMeansClustering        | Partitions data into k clusters by minimizing within-cluster variance.     |
-| DBSCANClustering        | Density-Based Spatial Clustering for detecting arbitrary-shaped clusters.  |
-| AgglomerativeClustering | Hierarchical clustering using a bottom-up merging strategy.                |
+| Class Name                    | Description                                                     |
+|-------------------------------|-----------------------------------------------------------------|
+| Cluster                       | Abstract base for clustering methods.                           |
+| KMeansClustering              | Clusters data into k partitions via centroid minimization.      |
+| DbscanClustering              | Density-based clustering that handles noise and outliers.       |
+| AgglomerativeClusteringModel  | Hierarchical clustering by iterative merging.                   |
+| SpectralClusteringModel       | Uses spectral decomposition for clustering.                     |
+| MeanShiftClustering           | Clusters by finding dense regions (modes) in feature space.     |
+| AffinityPropagationClustering | Message-passing clustering based on exemplar similarity.        |
+| BirchClustering               | Clusters large datasets using hierarchical CF trees.            |
+| OpticsClustering              | Orders points to extract density-based clusters.                |
 
-___
+
 
 ## ⚙️ Preprocessors
 - Preprocessing transforms raw input data into a format suitable for modeling. Mathy includes a
@@ -118,7 +140,74 @@ robust suite of feature scaling, normalization, encoding, and imputation tools, 
 | MeanImputer       | Fills missing values using the mean of each feature.                                     |
 | NearestImputer    | Imputes missing values using the nearest neighbor algorithm based on feature similarity. |
 
-___
+
+
+## 📁 Data
+- Encapsulates datasets and implements dimensionality reduction, correlation analysis, and feature
+selection.
+
+  | Class Name | Description |
+  |----------------------|-------------------------------------------------------------------|
+  | Metric | Base class for transformations and evaluation metrics. |
+  | VarianceThreshold | Removes low-variance features from the dataset. |
+  | CorrelationAnalysis | Analyzes relationships using Canonical Correlation Analysis. |
+  | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
+  | Dataset | Encapsulates data loading, transformation, and partitioning. |
+
+
+
+
+📁 Encoders
+- Provides encoders to transform categorical features into numeric representations for model
+compatibility.
+
+| Class Name         | Description                                                       |
+|--------------------|-------------------------------------------------------------------|
+| Metric             | Abstract base for transformation classes.                         |
+| OneHotEncoder      | Transforms categorical variables into binary one-hot vectors.     |
+| OrdinalEncoder     | Encodes categories as integer values based on rank or order.      |
+| LabelEncoder       | Converts labels into integer representations.                     |
+| PolynomialFeatures | Generates polynomial combinations of features.                    |
+
+
+
+📁 Extractors
+- Converts text data into structured numerical formats through vectorization and transformation.
+
+| Class Name         | Description                                                               |
+|--------------------|---------------------------------------------------------------------------|
+| Metric             | Interface for feature extraction utilities.                               |
+| TfidfTransformer   | Applies TF-IDF transformation to count matrices.                          |
+| TfidfVectorizer    | Extracts TF-IDF features directly from raw text.                          |
+| CountVectorizer    | Creates a document-term matrix of token counts.                           |
+| HashingVectorizer  | Applies hashing trick to vectorize text without building vocabulary.      |
+
+
+
+## 📁 Imputers
+- Implements techniques for handling missing values using statistical or learned methods.
+  | Class Name | Description |
+  |--------------------------|----------------------------------------------------------------------|
+  | Metric | Base for missing value processors. |
+  | MeanImputer | Fills missing values with feature-wise means. |
+  | NearestNeighborImputer | Imputes based on values of nearest neighbors. |
+  | IterativeImputer | Estimates missing values using other features iteratively. |
+  | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
+
+📁 Scalers.py
+- Provides feature scaling and normalization techniques critical for model convergence and
+performance.
+
+| Class Name       | Description                                                               |
+|------------------|---------------------------------------------------------------------------|
+| Metric           | Abstract base class for preprocessing utilities.                         |
+| StandardScaler   | Standardizes features by removing mean and scaling to unit variance.     |
+| MinMaxScaler     | Scales features to a defined range (usually [0, 1]).                      |
+| RobustScaler     | Uses medians and IQR for outlier-resistant scaling.                      |
+| NormalScaler     | Normalizes each sample to have unit norm.                                |
+
+
+
 
 ## 📦 Dependencies
 
