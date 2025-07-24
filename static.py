@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Static.py
+  Filename:                static.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Static.py" company="Terry D. Eppler">
+<copyright file="static.py" company="Terry D. Eppler">
 
      Boo
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Static.py
+	static.py
 </summary>
 ******************************************************************************************
 '''

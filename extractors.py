@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Extractors.py
+  Filename:                extractors.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Extractors.py" company="Terry D. Eppler">
+<copyright file="extractors.py" company="Terry D. Eppler">
 
      Mathy Encoders
 
@@ -36,11 +36,11 @@
 
 </copyright>
 <summary>
-	Encoders.py
+	encoders.py
 </summary>
 ******************************************************************************************
 '''
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional, List
 import sklearn.feature_extraction.text as sk

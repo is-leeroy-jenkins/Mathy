@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Clusters.py
+  Filename:                clusters.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Clusters.py" company="Terry D. Eppler">
+<copyright file="clusters.py" company="Terry D. Eppler">
 
      Mathy Clusters
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Clusters.py
+	clusters.py
 </summary>
 ******************************************************************************************
 '''
@@ -48,7 +48,7 @@ from typing import Optional, Dict
 
 from pydantic import BaseModel
 
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 from sklearn.cluster import (KMeans, DBSCAN, MeanShift, AffinityPropagation,
                              SpectralClustering, AgglomerativeClustering,
                              Birch, OPTICS)

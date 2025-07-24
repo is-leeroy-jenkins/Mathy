@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Regressions.py
+  Filename:                regressions.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Regressions.py" company="Terry D. Eppler">
+<copyright file="regressions.py" company="Terry D. Eppler">
 
      Mathy Models
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Regressions.py
+	regressions.py
 </summary>
 ******************************************************************************************
 '''
@@ -69,7 +69,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 
 class Model( BaseModel ):
 	"""

@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Imputers.py
+  Filename:                imputers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Imputers.py" company="Terry D. Eppler">
+<copyright file="imputers.py" company="Terry D. Eppler">
 
      Mathy Imputers
 
@@ -36,12 +36,12 @@
 
 </copyright>
 <summary>
-	Imputers.py
+	imputers.py
 </summary>
 ******************************************************************************************
 '''
 from __future__ import annotations
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
 import sklearn.impute as sk

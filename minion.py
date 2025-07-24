@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                {Minion.py
+  Filename:                {minion.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Minion.py" company="Terry D. Eppler">
+<copyright file="minion.py" company="Terry D. Eppler">
 
      Mathy Minions
 
@@ -36,13 +36,13 @@
 
 </copyright>
 <summary>
-	Minion.py
+	minion.py
 </summary>
 ******************************************************************************************
 '''
 import subprocess as sp
 import os
-from Static import *
+from static import *
 
 class App( ):
 	'''

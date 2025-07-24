@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Classifications.py
+  Filename:                classifications.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Classifications.py" company="Terry D. Eppler">
+<copyright file="classifications.py" company="Terry D. Eppler">
 
      Mathy Models
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Classifications.py
+	classifications.py
 </summary>
 ******************************************************************************************
 '''
@@ -71,7 +71,7 @@ from sklearn.preprocessing import (StandardScaler, MinMaxScaler)
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 
 
 class Model( BaseModel ):

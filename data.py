@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Data.py
+  Filename:                data.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Data.py" company="Terry D. Eppler">
+<copyright file="data.py" company="Terry D. Eppler">
 
      Mathy Data
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	Data.py
+	data.py
 </summary>
 ******************************************************************************************
 '''
@@ -49,7 +49,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
-from Static import Scaler
+from static import Scaler
 from sklearn.metrics import silhouette_score
 from sklearn.cross_decomposition import CCA
 from sklearn.base import BaseEstimator

@@ -1,7 +1,7 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Scalers.py
+  Filename:                scalers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
@@ -36,13 +36,13 @@
 
 </copyright>
 <summary>
-	Scalers.py
+	scalers.py
 </summary>
 ******************************************************************************************
 '''
 from __future__ import annotations
 
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
 import sklearn.preprocessing as skp

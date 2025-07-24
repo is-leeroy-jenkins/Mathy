@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                Scalers.py
+  Filename:                scalers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="Encoders.py" company="Terry D. Eppler">
+<copyright file="encoders.py" company="Terry D. Eppler">
 
      Mathy Encoders
 
@@ -36,13 +36,13 @@
 
 </copyright>
 <summary>
-	Encoders.py
+	encoders.py
 </summary>
 ******************************************************************************************
 '''
 from __future__ import annotations
 
-from Booger import Error, ErrorDialog
+from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
 import sklearn.preprocessing as sk
