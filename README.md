@@ -58,7 +58,7 @@ mathy/
 - Classification models are used to assign data samples into discrete categories or classes. These
 models are foundational for tasks such as spam detection, disease diagnosis, and image recognition.
 Below is a list of supported classifiers in Mathy:
-
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
 ___
 | Class Name                   | Description                                                  |
 |------------------------------|--------------------------------------------------------------|
@@ -77,7 +77,6 @@ ___
 | StackClassification          | Meta-learner trained on outputs of base classifiers.         |
 | SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
 
 
 
@@ -86,6 +85,7 @@ ___
 - Regression models predict continuous numerical outcomes and are crucial in applications like
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
 models, listed below:
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 
 ___
 | Class Name                  | Description                                                        |
@@ -109,7 +109,6 @@ ___
 | StackRegression             | Trains meta-regressor on top of base models.                      |
 | SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 
 
 
@@ -117,6 +116,7 @@ ___
 - Clustering is an unsupervised technique used to discover natural groupings in data without labeled
 outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
 irregular cluster shapes:
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 
 ___
 | Class Name                    | Description                                                     |
@@ -131,14 +131,15 @@ ___
 | BirchClustering               | Clusters large datasets using hierarchical CF trees.            |
 | OpticsClustering              | Orders points to extract density-based clusters.                |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 
 
 
 ### 📁 Data
 - Encapsulates datasets and implements dimensionality reduction, correlation analysis, and feature
 selection.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
 
+___
   | Class Name | Description |
   |----------------------|-------------------------------------------------------------------|
   | Metric | Base class for transformations and evaluation metrics. |
@@ -147,14 +148,16 @@ selection.
   | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
   | Dataset | Encapsulates data loading, transformation, and partitioning. |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
-___
+
 
 
 
 ### ⚡ Encoders
 - Provides encoders to transform categorical features into numeric representations for model
 compatibility.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)
+
+___
 
 | Class Name         | Description                                                       |
 |--------------------|-------------------------------------------------------------------|
@@ -164,12 +167,13 @@ compatibility.
 | LabelEncoder       | Converts labels into integer representations.                     |
 | PolynomialFeatures | Generates polynomial combinations of features.                    |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)
-___
 
 
 ### 🧠 Extractors
 - Converts text data into structured numerical formats through vectorization and transformation.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/extractors.py)
+
+___
 
 | Class Name         | Description                                                               |
 |--------------------|---------------------------------------------------------------------------|
@@ -179,12 +183,12 @@ ___
 | CountVectorizer    | Creates a document-term matrix of token counts.                           |
 | HashingVectorizer  | Applies hashing trick to vectorize text without building vocabulary.      |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/extractors.py)
-___
-
 
 ### 💻 Imputers
 - Implements techniques for handling missing values using statistical or learned methods.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)
+
+___
   | Class Name | Description |
   |--------------------------|----------------------------------------------------------------------|
   | Metric | Base for missing value processors. |
@@ -193,14 +197,14 @@ ___
   | IterativeImputer | Estimates missing values using other features iteratively. |
   | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
 
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)
-
-___
 
 
 ### 🛠️ Scalers.py
 - Provides feature scaling and normalization techniques critical for model convergence and
 performance.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)
+
+___
 
 | Class Name       | Description                                                               |
 |------------------|---------------------------------------------------------------------------|
@@ -209,9 +213,6 @@ performance.
 | MinMaxScaler     | Scales features to a defined range (usually [0, 1]).                      |
 | RobustScaler     | Uses medians and IQR for outlier-resistant scaling.                      |
 | NormalScaler     | Normalizes each sample to have unit norm.                                |
-
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)
-___
 
 
 
