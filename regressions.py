@@ -48,6 +48,7 @@ from typing import Optional, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from pydantic import BaseModel
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import (
@@ -184,6 +185,8 @@ class MultilayerRegression( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
+	multilayer_regressor: MLPRegressor
+	pipeline: Pipeline
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -192,20 +195,28 @@ class MultilayerRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	transformed_data: np.array
+	random_state: int
+	learning: str
+	alpha: float
+	activation_function: str
+	solver: str
+	hidden_layers: tuple
+
 
 	def __init__( self, hidden: tuple=(100,), activ='relu', solver='adam',
 	              alpha=0.0001, learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activ
-		self.learning_rate = learning
+		self.learning = learning
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor = MLPRegressor( hidden_layer_sizes = hidden,
-			activation = activ, solver = solver, alpha = alpha, learning_rate = learning,
-			random_state = 42 )
-		self.pipeline = Pipeline( steps = list( hidden ) )
+		self.multilayer_regressor = MLPRegressor( hidden_layer_sizes=hidden,
+			activation=activ, solver=solver, alpha=alpha, learning_rate=learning,
+			random_state=42 )
+		self.pipeline = Pipeline( steps=list( hidden ) )
 		self.prediction: np.array = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -237,8 +248,8 @@ class MultilayerRegression( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.pipeline = self.multilayer_regressor.fit( X, y )
-				return self.pipeline
+				self.multilayer_regressor.fit( X, y )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -269,8 +280,8 @@ class MultilayerRegression( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.pipeline.transform( X )
-				return self
+				self.prediction = self.multilayer_regressor.predict( X )
+				return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -315,7 +326,7 @@ class MultilayerRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -417,6 +428,7 @@ class LinearRegressor( Model ):
 		when data are collected without an experimental design.
 
 	"""
+	linear_regressor: LinearRegression
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -440,8 +452,8 @@ class LinearRegressor( Model ):
 
 		"""
 		super( ).__init__( )
-		self.linerar_regressor = LinearRegression( fit_intercept = True,
-			copy_X = True )
+		self.linerar_regressor = LinearRegression( fit_intercept=True,
+			copy_X=True )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -451,7 +463,7 @@ class LinearRegressor( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> Optional[ object ]:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -657,6 +669,7 @@ class RidgeRegression( Model ):
 		If an array is passed, penalties are assumed to be specific to the targets.
 
 	"""
+	ridge_regressor: Ridge
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -665,10 +678,15 @@ class RidgeRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	random_state: int
+	learning_rate: float
+	alpha: float
+	max_iter: int
+	solver: str
 
 
-	def __init__( self, alpha: float = 1.0, solver: str = 'auto', max: int = 1000,
-	              rando: int = 42 ) -> None:
+	def __init__( self, alpha: float=1.0, solver: str='auto', max: int=1000,
+	              rando: int=42 ) -> None:
 		"""
 
 
@@ -685,12 +703,12 @@ class RidgeRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.alpha: float = alpha
-		self.solver: str = solver
-		self.max_iter: int = max
-		self.random_state: int = rando
-		self.ridge_regressor: Ridge = Ridge( alpha = self.alpha, solver = self.solver,
-			max_iter = self.max_iter, random_state = self.random_state )
+		self.alpha = alpha
+		self.solver = solver
+		self.max_iter = max
+		self.random_state = rando
+		self.ridge_regressor = Ridge( alpha=self.alpha, solver=self.solver,
+			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -852,6 +870,7 @@ class RidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
@@ -912,6 +931,7 @@ class LassoRegression( Model ):
 		specific to the targets. Hence they must correspond in number.
 
 	"""
+	lasso_regressor: Lasso
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -920,6 +940,11 @@ class LassoRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	random_state: int
+	learning_rate: float
+	alpha: float
+	max_iter: int
+	solver: str
 
 
 	def __init__( self, alph: float=1.0, max: int=500, rando: int=42 ) -> None:
@@ -934,7 +959,7 @@ class LassoRegression( Model ):
 		self.alpha: float = alph
 		self.max_iter: int = max
 		self.random_state: int = rando
-		self.lasso_regressor: Lasso = Lasso( alpha = self.alpha, max_iter = self.max_iter,
+		self.lasso_regressor = Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1145,6 +1170,7 @@ class ElasticNetRegression( Model ):
 		Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
 	"""
+	elasticnet_regressor: ElasticNet
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -1153,9 +1179,15 @@ class ElasticNetRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	random_state: int
+	ratio: float
+	alpha: float
+	max_iter: int
+	selection: str
 
-	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, max: int = 200,
-	              rando: int = 42, select: str = 'random' ) -> None:
+
+	def __init__( self, alpha: float=1.0, ratio: float=0.5, max: int=200,
+	              rando: int=42, select: str='random' ) -> None:
 		"""
 
 			Purpose:
@@ -1173,14 +1205,14 @@ class ElasticNetRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.alpha: float = alpha
-		self.ratio: float = ratio
-		self.random_state: int = rando
-		self.selection: str = select
-		self.max: int = max
-		self.elasticnet_regressor: ElasticNet = ElasticNet( alpha = self.alpha,
-			l1_ratio = self.ratio,
-			random_state = self.random_state, max_iter = self.max, selection = self.selection )
+		self.alpha = alpha
+		self.ratio = ratio
+		self.random_state = rando
+		self.selection = select
+		self.max_iter = max
+		self.elasticnet_regressor = ElasticNet( alpha=self.alpha,
+			l1_ratio=self.ratio, random_state=self.random_state,
+			max_iter=self.max_iter, selection=self.selection )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1225,6 +1257,7 @@ class ElasticNetRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -1255,6 +1288,7 @@ class ElasticNetRegression( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -1289,6 +1323,7 @@ class ElasticNetRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
@@ -1322,14 +1357,14 @@ class ElasticNetRegression( Model ):
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1337,6 +1372,7 @@ class ElasticNetRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -1390,6 +1426,7 @@ class LogisticRegressor( Model ):
 		is only supported by the ‘saga’ solver.
 
 	"""
+	logistic_regressor: LogisticRegression
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -1398,9 +1435,14 @@ class LogisticRegressor( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	random_state: int
+	penalty: str
+	alpha: float
+	max_iter: int
+	solver: str
 
-	def __init__( self, c: float = 1.0, penalty: str = 'l2', max: int = 1000,
-	              solver: str = 'lbfgs' ) -> None:
+	def __init__( self, c: float=1.0, penalty: str='l2', max: int=1000,
+	              solver: str='lbfgs' ) -> None:
 		"""
 
 			Purpose:
@@ -1414,13 +1456,12 @@ class LogisticRegressor( Model ):
 
 		"""
 		super( ).__init__( )
-		self.alpha: float = c
-		self.penalty: str = penalty
-		self.max_iter: int = max
-		self.solver: str = solver
-		self.logistic_regressor: LogisticRegression = LogisticRegression( C = self.alpha,
-			max_iter = self.max_iter,
-			solver = self.solver, penalty = self.penalty )
+		self.alpha = c
+		self.penalty = penalty
+		self.max_iter = max
+		self.solver = solver
+		self.logistic_regressor = LogisticRegression( C=self.alpha,
+			max_iter=self.max_iter, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1464,6 +1505,7 @@ class LogisticRegressor( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -1493,6 +1535,8 @@ class LogisticRegressor( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -1527,6 +1571,7 @@ class LogisticRegressor( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
@@ -1566,14 +1611,14 @@ class LogisticRegressor( Model ):
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+						"MAE": mean_absolute_error( y, self.prediction ),
+						"MSE": mean_squared_error( y, self.prediction ),
+						"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+						"R2": r2_score( y, self.prediction ),
+						"Explained Variance": explained_variance_score( y, self.prediction ),
+						"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1607,7 +1652,7 @@ class LogisticRegressor( Model ):
 			else:
 				self.prediction = self.logistic_regressor.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm ).create_graph( )
+				ConfusionMatrixDisplay( confusion_matrix = cm )
 				plt.title( 'Logistic Regression Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -1640,6 +1685,7 @@ class BayesianRidgeRegression( Model ):
 		is increasing between two consecutive iterations of the optimization.
 
 	"""
+	bayesian_ridge_regressor: BayesianRidge
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -1648,10 +1694,17 @@ class BayesianRidgeRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	scale_alpha: float
+	shape_lambda: float
+	shape_alpha: float
+	max_iter: int
+	shape_lambda: float
+	scale_lambda: float
 
-	def __init__( self, max: int = 300, shape_alpha: float = 1e-06,
-	              scale_alpha: float = 1e-06, shape_lambda: float = 1e-06,
-	              scale_lambda: float = 1e-06 ) -> None:
+
+	def __init__( self, max: int=300, shape_alpha: float=1e-06,
+	              scale_alpha: float=1e-06, shape_lambda: float=1e-06,
+	              scale_lambda: float=1e-06 ) -> None:
 		"""
 
 			Purpose:
@@ -1660,13 +1713,13 @@ class BayesianRidgeRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.max_iter: int = max
-		self.shape_alpha: float = shape_alpha
-		self.scale_alpha: float = scale_alpha
-		self.shape_lambda: float = shape_lambda
-		self.scale_lambda: float = scale_lambda
-		self.bayesian_ridge_regressor: BayesianRidge = BayesianRidge( alpha_1 = self.shape_alpha, alpha_2 = self.scale_alpha,
-			lambda_1 = self.shape_lambda, lambda_2 = self.scale_lambda )
+		self.max_iter = max
+		self.shape_alpha = shape_alpha
+		self.scale_alpha = scale_alpha
+		self.shape_lambda = shape_lambda
+		self.scale_lambda = scale_lambda
+		self.bayesian_ridge_regressor = BayesianRidge( alpha_1=self.shape_alpha, alpha_2=self.scale_alpha,
+			lambda_1=self.shape_lambda, lambda_2=self.scale_lambda )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1743,6 +1796,7 @@ class BayesianRidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -1778,6 +1832,7 @@ class BayesianRidgeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
@@ -1804,19 +1859,19 @@ class BayesianRidgeRegression( Model ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction, average='binary' )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1824,6 +1879,7 @@ class BayesianRidgeRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -1885,7 +1941,9 @@ class StochasticDescentRegression( Model ):
 
 		This implementation works with data represented as dense numpy arrays of floating point
 		values for the features.
+
 	"""
+	stochastic_regressor = SGDRegressor
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -1894,9 +1952,14 @@ class StochasticDescentRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	random_state: int
+	penalty: str
+	loss: str
+	max_iter: int
+	penalty: str
 
 
-	def __init__( self, loss: str = 'hinge', max: int = 5, reg: str = 'l2' ) -> None:
+	def __init__( self, loss: str='hinge', max: int=5, reg: str='l2' ) -> None:
 		"""
 
 			Purpose:
@@ -1911,11 +1974,11 @@ class StochasticDescentRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.loss: str = loss
-		self.max_iter: int = max
-		self.penalty: str = reg
-		self.stochastic_regressor: SGDRegressor = SGDRegressor( loss = self.loss,
-			max_iter = self.max_iter, penalty = self.penalty )
+		self.loss = loss
+		self.max_iter = max
+		self.penalty = reg
+		self.stochastic_regressor = SGDRegressor( loss=self.loss,
+			max_iter=self.max_iter, penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1924,6 +1987,7 @@ class StochasticDescentRegression( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1958,6 +2022,7 @@ class StochasticDescentRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -1987,6 +2052,7 @@ class StochasticDescentRegression( Model ):
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -2022,6 +2088,7 @@ class StochasticDescentRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
 
@@ -2053,14 +2120,14 @@ class StochasticDescentRegression( Model ):
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2068,6 +2135,7 @@ class StochasticDescentRegression( Model ):
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2120,6 +2188,7 @@ class NearestNeighborRegression( Model ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
+	neighbor_regressor: KNeighborsRegressor
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -2128,6 +2197,10 @@ class NearestNeighborRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	n_neighbors: int
+	loss: str
+	max_iter: int
+	penalty: str
 
 
 	def __init__( self, num: int=5 ) -> None:
@@ -2147,7 +2220,7 @@ class NearestNeighborRegression( Model ):
 		"""
 		super( ).__init__( )
 		self.n_neighbors = num
-		self.neighbor_regressor: KNeighborsRegressor = KNeighborsRegressor( n_neighbors=num )
+		self.neighbor_regressor = KNeighborsRegressor( n_neighbors=num )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2192,6 +2265,7 @@ class NearestNeighborRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -2221,6 +2295,7 @@ class NearestNeighborRegression( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -2256,6 +2331,7 @@ class NearestNeighborRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
@@ -2288,14 +2364,14 @@ class NearestNeighborRegression( Model ):
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2303,6 +2379,7 @@ class NearestNeighborRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2358,6 +2435,7 @@ class DecisionTreeRegression( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
+	dt_regressor: DecisionTreeRegression
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -2366,6 +2444,10 @@ class DecisionTreeRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	criterion: str
+	splitter: str
+	max_depth: int
+	random_state: int
 
 
 	def __init__( self, criterion='squared_error', splitter='best', depth=3,
@@ -2393,6 +2475,7 @@ class DecisionTreeRegression( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2459,6 +2542,7 @@ class DecisionTreeRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -2492,6 +2576,7 @@ class DecisionTreeRegression( Model ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
@@ -2540,6 +2625,7 @@ class DecisionTreeRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2611,6 +2697,7 @@ class RandomForestRegression( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 
+
 	def __init__( self, est: int = 10, crit: str = 'gini', max: int = 3, rando: int = 42 ) -> None:
 		"""
 
@@ -2662,9 +2749,9 @@ class RandomForestRegression( Model ):
 		"""
 		try:
 			if X is None:
-				raise ArgumentError( 'The argument "X" is required!' )
+				raise Exception( 'The argument "X" is required!' )
 			elif y is None:
-				raise ArgumentError( 'The argument "y" is required!' )
+				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.random_forest_regressor.fit( X, y )
 				return self

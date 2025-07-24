@@ -45,8 +45,10 @@ from __future__ import annotations
 from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
+from sklearn.pipeline import Pipeline
 import sklearn.preprocessing as sk
 from pydantic import BaseModel
+
 
 class Metric( BaseModel ):
 	"""
@@ -57,6 +59,8 @@ class Metric( BaseModel ):
 	    `fit_transform` methods.
 
 	"""
+	pipeline: Pipeline
+	transformed_data: np.ndarray
 
 	class Config:
 		arbitrary_types_allowed = True
@@ -66,10 +70,10 @@ class Metric( BaseModel ):
 	def __init__( self ):
 		super( ).__init__( )
 		self.pipeline = None
-		self.transformed_data = [ ]
+		self.transformed_data = None
 		self.transformed_values = [ ]
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline | None:
 		"""
 
 			Purpose:
@@ -147,7 +151,7 @@ class OneHotEncoder( Metric ):
 		self.hot_encoder = sk.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline | None:
 		"""
 
 
@@ -170,6 +174,7 @@ class OneHotEncoder( Metric ):
 				raise Exception( 'The argument "X" is required!' )
 			else:
 				self.hot_encoder.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -202,7 +207,8 @@ class OneHotEncoder( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.hot_encoder.transform( X )
+				self.transformed_data = self.hot_encoder.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -230,7 +236,8 @@ class OneHotEncoder( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.hot_encoder.fit_transform( X )
+				self.transformed_data = self.hot_encoder.fit_transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -255,7 +262,7 @@ class OrdinalEncoder( Metric ):
 		self.ordinal_encoder = sk.OrdinalEncoder( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline | None:
 		"""
 
 			Purpose:
@@ -277,6 +284,7 @@ class OrdinalEncoder( Metric ):
 				raise Exception( 'The argument "X" is required!' )
 			else:
 				self.ordinal_encoder.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -307,7 +315,8 @@ class OrdinalEncoder( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.ordinal_encoder.transform( X )
+				self.transformed_data = self.ordinal_encoder.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -336,7 +345,8 @@ class OrdinalEncoder( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.ordinal_encoder.fit_transform( X )
+				self.transformed_datan= self.ordinal_encoder.fit_transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -365,7 +375,7 @@ class LabelEncoder( Metric ):
 		self.label_encoder = sk.LabelEncoder( )
 
 
-	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> Pipeline | None:
 		"""
 
 			Purpose:
@@ -381,7 +391,8 @@ class LabelEncoder( Metric ):
 			if labels is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.label_encoder.fit( labels )
+				self.label_encoder.fit( labels )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -438,7 +449,8 @@ class LabelEncoder( Metric ):
 			if labels is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.label_encoder.fit_transform( labels )
+				self.transformed_data = self.label_encoder.fit_transform( labels )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -470,7 +482,7 @@ class PolynomialFeatures( Metric ):
 		self.polynomial_features = sk.PolynomialFeatures( degree=degree )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline | None:
 		"""
 
 			Purpose:
@@ -482,7 +494,19 @@ class PolynomialFeatures( Metric ):
 			:param X: Feature matrix.
 			:type X: np.ndarray
 		"""
-		self.polynomial_features.fit( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.polynomial_features.fit( X )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'PolynomialFeatures'
+			exception.method = 'fit( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
@@ -497,7 +521,20 @@ class PolynomialFeatures( Metric ):
 			:return: Transformed feature matrix.
 			:rtype: np.ndarray
 		"""
-		return self.polynomial_features.transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.transformed_data = self.polynomial_features.transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'PolynomialFeatures'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
 
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
@@ -514,4 +551,16 @@ class PolynomialFeatures( Metric ):
 			:return: Transformed feature matrix.
 			:rtype: np.ndarray
 		"""
-		return self.polynomial_features.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.transformed_data = self.polynomial_features.fit_transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'PolynomialFeatures'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
