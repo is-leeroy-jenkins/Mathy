@@ -270,5 +270,5 @@ print(model.analyze(X_train, y_train))
 
 ## 📝 License
 
-Mathy is published under the [MIT General Public License v3](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE).
+Mathy is published under the [MIT General Public License v3](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE.txt).
 
