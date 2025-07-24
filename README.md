@@ -106,7 +106,7 @@ models, listed below:
 ___
 
 
-## 🔍 Clustering Models
+### 🔍 Clustering Models
 - Clustering is an unsupervised technique used to discover natural groupings in data without labeled
 outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
 irregular cluster shapes:
@@ -122,10 +122,10 @@ irregular cluster shapes:
 | AffinityPropagationClustering | Message-passing clustering based on exemplar similarity.        |
 | BirchClustering               | Clusters large datasets using hierarchical CF trees.            |
 | OpticsClustering              | Orders points to extract density-based clusters.                |
+___
 
 
-
-## ⚙️ Preprocessors
+### ⚙️ Preprocessors
 - Preprocessing transforms raw input data into a format suitable for modeling. Mathy includes a
 robust suite of feature scaling, normalization, encoding, and imputation tools, detailed below:
 
@@ -139,10 +139,10 @@ robust suite of feature scaling, normalization, encoding, and imputation tools, 
 | OrdinalEncoder    | Encodes categorical features as ordinal integers based on their order of appearance.     |
 | MeanImputer       | Fills missing values using the mean of each feature.                                     |
 | NearestImputer    | Imputes missing values using the nearest neighbor algorithm based on feature similarity. |
+___
 
 
-
-## 📁 Data
+### 📁 Data
 - Encapsulates datasets and implements dimensionality reduction, correlation analysis, and feature
 selection.
 
@@ -153,11 +153,11 @@ selection.
   | CorrelationAnalysis | Analyzes relationships using Canonical Correlation Analysis. |
   | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
   | Dataset | Encapsulates data loading, transformation, and partitioning. |
+___
 
 
 
-
-## ⚡ Encoders
+### ⚡ Encoders
 - Provides encoders to transform categorical features into numeric representations for model
 compatibility.
 
@@ -168,10 +168,10 @@ compatibility.
 | OrdinalEncoder     | Encodes categories as integer values based on rank or order.      |
 | LabelEncoder       | Converts labels into integer representations.                     |
 | PolynomialFeatures | Generates polynomial combinations of features.                    |
+___
 
 
-
-## 🧠 Extractors
+### 🧠 Extractors
 - Converts text data into structured numerical formats through vectorization and transformation.
 
 | Class Name         | Description                                                               |
@@ -181,10 +181,10 @@ compatibility.
 | TfidfVectorizer    | Extracts TF-IDF features directly from raw text.                          |
 | CountVectorizer    | Creates a document-term matrix of token counts.                           |
 | HashingVectorizer  | Applies hashing trick to vectorize text without building vocabulary.      |
+___
 
 
-
-## 💻 Imputers
+### 💻 Imputers
 - Implements techniques for handling missing values using statistical or learned methods.
   | Class Name | Description |
   |--------------------------|----------------------------------------------------------------------|
@@ -193,9 +193,10 @@ compatibility.
   | NearestNeighborImputer | Imputes based on values of nearest neighbors. |
   | IterativeImputer | Estimates missing values using other features iteratively. |
   | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
+___
 
 
-## 🛠️ Scalers.py
+### 🛠️ Scalers.py
 - Provides feature scaling and normalization techniques critical for model convergence and
 performance.
 
@@ -206,7 +207,7 @@ performance.
 | MinMaxScaler     | Scales features to a defined range (usually [0, 1]).                      |
 | RobustScaler     | Uses medians and IQR for outlier-resistant scaling.                      |
 | NormalScaler     | Normalizes each sample to have unit norm.                                |
-
+___
 
 
 
