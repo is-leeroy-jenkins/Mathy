@@ -295,7 +295,8 @@ class NearestNeighborImputer( Metric ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.knn_imputer.transform( X )
+				self.transformed_data = self.knn_imputer.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -307,26 +308,48 @@ class NearestNeighborImputer( Metric ):
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
-		Fit the iterative imputer and transform the data.
 
-		:param y:
-		:type y:
-		:param X: Input array with missing values.
-		:type X: np.ndarray
-		:return: Transformed data with imputed values.
-		:rtype: np.ndarray
+			Purpose:
+			---------
+			Fit the iterative imputer and transform the data.
+
+			:param y:
+			:type y:
+			:param X: Input array with missing values.
+			:type X: np.ndarray
+			:return: Transformed data with imputed values.
+			:rtype: np.ndarray
+
 		"""
-		return self.knn_imputer.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.knn_imputer.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestImputer'
+			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class IterativeImputer( Metric ):
 	"""
+
+
+		Purpose:
+		--------
 		A strategy for imputing missing values by modeling each feature with
 		missing values as a function of other features in a round-robin fashion.
 	"""
 
 	def __init__( self, max: int=10, rando: int=0 ) -> None:
 		"""
+
+			Purpose:
+			--------
 			Initialize the IterativeImputer.
 
 			:param max: Maximum number of imputation iterations.
@@ -338,32 +361,54 @@ class IterativeImputer( Metric ):
 		self.iterative_imputer = sk.IterativeImputer( max_iter=max, random_state=rando )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
+
+			Purpose:
+			--------
 			Fit the iterative imputer to the data.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
+
 		"""
-		self.iterative_imputer.fit( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.iterative_imputer.fit( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestImputer'
+			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			---------
 			Transform data by iteratively imputing missing values.
 
 			:param X: Data to transform.
 			:type X: np.ndarray
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
+
 		"""
 		return self.iterative_imputer.transform( X )
 
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Fit the iterative imputer and transform the data.
 
 			:param y:
@@ -372,30 +417,52 @@ class IterativeImputer( Metric ):
 			:type X: np.ndarray
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
+
 		"""
-		return self.iterative_imputer.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.transformed_data = self.iterative_imputer.fit_transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestImputer'
+			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class SimpleImputer( Metric ):
 	"""
-	Wrapper for sklearn's SimpleImputer.
+
+		Wrapper for sklearn's SimpleImputer.
+
 	"""
 
 	def __init__( self, strategy: str='mean', fill_value: float=0.0 ) -> None:
 		"""
+
+			Purpose:
+			---------
 			Initialize the SimpleImputer.
 
 			:param strategy: The imputation strategy ('mean', 'median', 'most_frequent', or 'constant').
 			:type strategy: str
 			:param fill_value: Value to use when strategy is 'constant'.
 			:type fill_value: float
+
 		"""
 		super( ).__init__( )
 		self.simple_imputer = sk.SimpleImputer( strategy=strategy, fill_value=fill_value )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
+
+			Purpose:
+			--------
 			Fit the imputer to the data.
 
 			:param y:
@@ -403,11 +470,25 @@ class SimpleImputer( Metric ):
 			:param X: Input array with missing values.
 			:type X: np.ndarray
 		"""
-		self.simple_imputer.fit( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.simple_imputer.fit( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestImputer'
+			exception.method = 'fit( X: np.ndarray ) -> self'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Transform data by imputing missing values.
 
 			:param X: Data to transform.
@@ -415,11 +496,25 @@ class SimpleImputer( Metric ):
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
-		return self.simple_imputer.transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.simple_imputer.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestImputer'
+			exception.method = 'fit( X: np.ndarray ) -> self'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Fit the imputer and transform the data.
 
 			:param y:
@@ -429,4 +524,16 @@ class SimpleImputer( Metric ):
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
-		return self.simple_imputer.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.transformed_data = self.simple_imputer.fit_transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'NearestImputer'
+			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray '
+			error = ErrorDialog( exception )
+			error.show( )
