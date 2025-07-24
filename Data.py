@@ -179,7 +179,7 @@ class VarianceThreshold( Metric ):
 			if X is None:
 				raise Exception( 'Argument "X" is None' )
 			else:
-				self.selector.fit( X )
+				return self.selector.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
