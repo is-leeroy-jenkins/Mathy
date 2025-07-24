@@ -261,11 +261,14 @@ class NearestNeighborImputer( Metric ):
 
 		"""
 		try:
-			self.knn_imputer.fit( X )
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.knn_imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
+			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'fit( self, X: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
