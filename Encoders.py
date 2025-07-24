@@ -40,11 +40,97 @@
 </summary>
 ******************************************************************************************
 '''
-from Data import Metric
+from __future__ import annotations
+
 from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional
 import sklearn.preprocessing as sk
+from pydantic import BaseModel
+
+class Metric( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
+	    `fit_transform` methods.
+
+	"""
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+		self.pipeline = None
+		self.transformed_data = [ ]
+		self.transformed_values = [ ]
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor to the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+		"""
+		raise NotImplementedError
+
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transforms the text df using the fitted preprocessor.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		raise NotImplementedError
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor and then transforms the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			self.fit( X, y )
+			return self.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Metric'
+			exception.method = ('fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray '
+			                    ']=None'
+			                    ') -> np.ndarray')
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class OneHotEncoder( Metric ):
@@ -61,7 +147,7 @@ class OneHotEncoder( Metric ):
 		self.hot_encoder = sk.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 
@@ -128,6 +214,9 @@ class OneHotEncoder( Metric ):
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Fit the encoder and transform the data.
 
 			:param y:
@@ -137,7 +226,18 @@ class OneHotEncoder( Metric ):
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
-		return self.hot_encoder.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.hot_encoder.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'OneHotEncoder'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class OrdinalEncoder( Metric ):
@@ -219,6 +319,9 @@ class OrdinalEncoder( Metric ):
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Fit the encoder and transform the data.
 
 			:param y:
@@ -228,16 +331,33 @@ class OrdinalEncoder( Metric ):
 			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
-		return self.ordinal_encoder.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				return self.ordinal_encoder.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'OrdinalEncoder'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class LabelEncoder( Metric ):
 	"""
+
+		Purpose:
+		--------
 		Wrapper for LabelEncoder.
 	"""
 
 	def __init__( self ) -> None:
 		"""
+
+			Purpose:
+			--------
 			Initialize LabelEncoder.
 		"""
 		super( ).__init__( )
@@ -246,6 +366,9 @@ class LabelEncoder( Metric ):
 
 	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> None:
 		"""
+
+			Purpose:
+			--------
 			Fit the label encoder to the data.
 
 			:param y:
@@ -258,6 +381,9 @@ class LabelEncoder( Metric ):
 
 	def transform( self, labels: list[ str ] ) -> np.ndarray:
 		"""
+
+			Purpose:
+			--------
 			Transform labels to encoded form.
 
 			:param labels: List of labels.
@@ -270,6 +396,9 @@ class LabelEncoder( Metric ):
 
 	def fit_transform( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Fit and transform the label data.
 
 			:param y:
@@ -284,11 +413,17 @@ class LabelEncoder( Metric ):
 
 class PolynomialFeatures( Metric ):
 	"""
+
+		Purpose:
+		--------
         Wrapper for PolynomialFeatures.
     """
 
 	def __init__( self, degree: int=2 ) -> None:
 		"""
+
+			Purpose:
+			--------
 			Initialize PolynomialFeatures.
 
 			:param degree: Degree of polynomial terms.
@@ -300,6 +435,9 @@ class PolynomialFeatures( Metric ):
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
+
+			Purpose:
+			--------
 			Fit polynomial transformer to data.
 
 			:param y:
@@ -312,6 +450,9 @@ class PolynomialFeatures( Metric ):
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Transform data into polynomial features.
 
 			:param X: Feature matrix.
@@ -324,6 +465,9 @@ class PolynomialFeatures( Metric ):
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Fit and transform data using polynomial expansion.
 
 			:param y:
