@@ -45,16 +45,107 @@ from Booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional, List
 import sklearn.feature_extraction.text as sk
+from pydantic import BaseModel
 
+class Metric( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
+	    `fit_transform` methods.
+
+	"""
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+		self.pipeline = None
+		self.transformed_data = [ ]
+		self.transformed_values = [ ]
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor to the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+		"""
+		raise NotImplementedError
+
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transforms the text df using the fitted preprocessor.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		raise NotImplementedError
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Fits the preprocessor and then transforms the text df.
+
+			Parameters:
+			-----------
+			X (pd.DataFrame): Feature matrix.
+			y (Optional[np.ndarray]): Optional target array.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			self.fit( X, y )
+			return self.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Metric'
+			exception.method = ('fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray '
+			                    ']=None'
+			                    ') -> np.ndarray')
+			error = ErrorDialog( exception )
+			error.show( )
 
 class TfidfTransformer( Metric ):
 	"""
-	Wrapper for TfidfTransformer.
+
+		Purpose:
+		---------
+		Wrapper for TfidfTransformer.
+
 	"""
 
 	def __init__( self ) -> None:
 		"""
-		Initialize TfidfTransformer.
+
+			Purpose:
+			---------
+			Initialize TfidfTransformer.
 		"""
 		super( ).__init__( )
 		self.transformer = sk.TfidfTransformer( )
@@ -62,50 +153,67 @@ class TfidfTransformer( Metric ):
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 		"""
-		Fit the transformer to a count matrix.
 
-		:param y:
-		:type y:
-		:param X: Input count matrix.
-		:type X: np.ndarray
+			Purpose:
+			---------
+			Fit the transformer to a count matrix.
+
+			:param y:
+			:type y:
+			:param X: Input count matrix.
+			:type X: np.ndarray
 		"""
 		self.transformer.fit ( X)
 
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-		Transform a count matrix to TF-IDF.
 
-		:param X: Input count matrix.
-		:type X: np.ndarray
-		:return: TF-IDF matrix.
-		:rtype: np.ndarray
+			Purpose:
+			---------
+			Transform a count matrix to TF-IDF.
+
+			:param X: Input count matrix.
+			:type X: np.ndarray
+			:return: TF-IDF matrix.
+			:rtype: np.ndarray
 		"""
 		return self.transformer.transform ( X ).toarray ()
 
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
-		Fit and transform the count matrix.
 
-		:param y:
-		:type y:
-		:param X: Input count matrix.
-		:type X: np.ndarray
-		:return: TF-IDF matrix.
-		:rtype: np.ndarray
+			Purpose:
+			---------
+			Fit and transform the count matrix.
+
+			:param y:
+			:type y:
+			:param X: Input count matrix.
+			:type X: np.ndarray
+			:return: TF-IDF matrix.
+			:rtype: np.ndarray
 		"""
 		return self.transformer.fit_transform ( X ).toarray ()
 
 
 class TfidfVectorizer( Metric ):
 	"""
-	Wrapper for TfidfVectorizer.
+
+		Purpose:
+		---------
+		Wrapper for TfidfVectorizer.
+
 	"""
 
 	def __init__( self ) -> None:
 		"""
-		Initialize TfidfVectorizer.
+
+			Purpose:
+			---------
+			Initialize TfidfVectorizer.
+
 		"""
 		super( ).__init__( )
 		self.vectorizer = sk.TfidfVectorizer( )
@@ -113,50 +221,65 @@ class TfidfVectorizer( Metric ):
 
 	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> None:
 		"""
-		Fit the vectorizer to the documents.
 
-		:param y:
-		:type y:
-		:param documents: List of text documents.
-		:type documents: list[str]
+			Purpose:
+			---------
+			Fit the vectorizer to the documents.
+
+			:param y:
+			:type y:
+			:param documents: List of text documents.
+			:type documents: list[str]
 		"""
 		self.vectorizer.fit( documents )
 
 
 	def transform( self, documents: list[ str ] ) -> np.ndarray:
 		"""
-		Transform documents to TF-IDF vectors.
 
-		:param documents: List of text documents.
-		:type documents: list[str]
-		:return: TF-IDF vectorized output.
-		:rtype: np.ndarray
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param documents: List of text documents.
+			:type documents: list[str]
+			:return: TF-IDF vectorized output.
+			:rtype: np.ndarray
 		"""
 		return self.vectorizer.transform( documents ).toarray( )
 
-	def fit_transform( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+	def fit_transform( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
-		Fit and transform the documents.
 
-		:param y:
-		:type y:
-		:param documents: List of text documents.
-		:type documents: list[str]
-		:return: TF-IDF vectorized output.
-		:rtype: np.ndarray
+			Purpose:
+			---------
+			Fit and transform the documents.
+
+			:param y:
+			:type y:
+			:param documents: List of text documents.
+			:type documents: list[str]
+			:return: TF-IDF vectorized output.
+			:rtype: np.ndarray
 		"""
 		return self.vectorizer.fit_transform( documents ).toarray( )
 
 
 class CountVectorizer( Metric ):
 	"""
-	Wrapper for sklearn's CountVectorizer.
 
-	This class converts a collection of text documents to a matrix of token counts.
+		Purpose:
+		---------
+		Wrapper for sklearn's CountVectorizer.
+
+		This class converts a collection of text documents to a matrix of token counts.
 	"""
 
 	def __init__( self ) -> None:
 		"""
+
+			Purpose:
+			---------
 			Initialize the CountVectorizerWrapper with default parameters.
 		"""
 		super( ).__init__( )
@@ -215,6 +338,8 @@ class CountVectorizer( Metric ):
 class HashingVectorizer( Metric ):
 	"""
 
+		Purpose:
+		---------
 		Wrapper for sklearn's HashingVectorizer.
 		This class transforms text documents to feature vectors using the hashing trick.
 
@@ -222,21 +347,27 @@ class HashingVectorizer( Metric ):
 
 	def __init__( self, n_features: int=1048576 ) -> None:
 		"""
-		Initialize the HashingVectorizer with the desired number of features.
 
-		:param n_features: Number of features (columns) in the output vectors.
-		:type n_features: int
+			Purpose:
+			---------
+			Initialize the HashingVectorizer with the desired number of features.
+
+			:param n_features: Number of features (columns) in the output vectors.
+			:type n_features: int
 		"""
 		super( ).__init__( )
 		self.vectorizer = sk.HashingVectorizer( n_features = n_features )
 
 	def transform( self, documents: List[ str ] ) -> np.ndarray:
 		"""
-		Transform documents into hashed token vectors.
 
-		:param documents: List of input text documents.
-		:type documents: List[str]
-		:return: Matrix of hashed features.
-		:rtype: np.ndarray
+			Purpose:
+			---------
+			Transform documents into hashed token vectors.
+
+			:param documents: List of input text documents.
+			:type documents: List[str]
+			:return: Matrix of hashed features.
+			:rtype: np.ndarray
 		"""
 		return self.vectorizer.transform( documents ).toarray( )
