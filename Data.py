@@ -51,6 +51,7 @@ from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
 from Static import Scaler
 from sklearn.metrics import silhouette_score
+from sklearn.cross_decomposition import CCA
 from sklearn.base import BaseEstimator
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Tuple
@@ -76,6 +77,7 @@ class Metric( BaseModel ):
 		self.pipeline = None
 		self.transformed_data = [ ]
 		self.transformed_values = [ ]
+
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
@@ -143,32 +145,55 @@ class Metric( BaseModel ):
 
 class VarianceThreshold( Metric ):
 	"""
-	Wrapper for VarianceThreshold feature selector.
+
+		Purpose:
+		---------
+		Wrapper for VarianceThreshold feature selector.
 	"""
 
 	def __init__( self, thresh: float=0.0 ) -> None:
 		"""
-		Initialize VarianceThreshold.
 
-		:param threshold: Features with variance below this are removed.
-		:type threshold: float
+			Purpose:
+			---------
+			Initialize VarianceThreshold.
+
+			:param threshold: Features with variance below this are removed.
+			:type threshold: float
 		"""
 		super( ).__init__( )
 		self.selector = VarianceThreshold( threshold=thresh )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def fit( self, X: np.ndarray ) -> object | None:
 		"""
+
+			Purpose:
+			---------
 			Fit the variance threshold model.
 
 			:param X: Input feature matrix.
 			:type X: np.ndarray
 		"""
-		self.selector.fit( X )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.selector.fit( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			---------
 			Apply variance threshold selection.
 
 			:param X: Feature matrix.
@@ -176,19 +201,45 @@ class VarianceThreshold( Metric ):
 			:return: Reduced feature matrix.
 			:rtype: np.ndarray
 		"""
-		return self.selector.transform( X )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				return self.selector.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			---------
 			Fit and transform the data using variance thresholding.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
 			:return: Reduced feature matrix.
 			:rtype: np.ndarray
+
 		"""
-		return self.selector.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				return self.selector.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class CorrelationAnalysis( Metric ):
@@ -200,6 +251,9 @@ class CorrelationAnalysis( Metric ):
 
 	def __init__( self, n: int=2 ) -> None:
 		"""
+
+			Purpose:
+			---------
 			Initialize CCA.
 
 			:param n: Number of components.
@@ -209,9 +263,11 @@ class CorrelationAnalysis( Metric ):
 		self.correlation_analysis = CCA( n_components=n )
 
 
-	def fit( self, X: np.ndarray, Y: np.ndarray ) -> None:
+	def fit( self, X: np.ndarray, Y: np.ndarray ) -> object | None:
 		"""
 
+			Purpose:
+			---------
 			Fit the CCA model to X and Y.
 
 			:param X: Feature matrix X.
@@ -220,12 +276,25 @@ class CorrelationAnalysis( Metric ):
 			:type Y: np.ndarray
 
 		"""
-		self.correlation_analysis.fit( X, Y )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				return self.correlation_analysis.fit( X, Y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray ]:
+	def transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray ] | None:
 		"""
 
+			Purpose:
+			---------
 			Apply the CCA transformation.
 
 			:param X: Feature matrix X.
@@ -236,12 +305,27 @@ class CorrelationAnalysis( Metric ):
 			:rtype: tuple[np.ndarray, np.ndarray]
 
 		"""
-		return self.correlation_analysis.transform( X, Y )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			elif Y is None:
+				raise Exception( 'Argument "Y" is None' )
+			else:
+				return self.correlation_analysis.transform( X, Y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray ]:
+	def fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 		"""
 
+			Purpose:
+			---------
 			Fit and transform with CCA.
 
 			:param X: Feature matrix X.
@@ -252,12 +336,27 @@ class CorrelationAnalysis( Metric ):
 			:rtype: tuple[np.ndarray, np.ndarray]
 
 		"""
-		return self.correlation_analysis.fit( X, Y ).transform( X, Y )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			elif Y is None:
+				raise Exception( 'Argument "Y" is None' )
+			else:
+				return self.correlation_analysis.fit( X, Y ).transform( X, Y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class ComponentAnalysis( Metric ):
 	"""
 
+		Purpose:
+		---------
 		Wrapper for Principal Component Analysis (PCA).
 
 	"""
@@ -265,6 +364,8 @@ class ComponentAnalysis( Metric ):
 	def __init__( self, num: int ) -> None:
 		"""
 
+			Purpose:
+			---------
 			Initialize PCA.
 
 			:param n_components: Number of components.
@@ -275,21 +376,36 @@ class ComponentAnalysis( Metric ):
 		self.component_analysis = PCA( n_components=num )
 
 
-	def fit( self, X: np.ndarray ) -> None:
+	def fit( self, X: np.ndarray ) -> object | None:
 		"""
 
+			Purpose:
+			---------
 			Fit PCA to the input data.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
 
 		"""
-		self.component_analysis.fit( X )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				return self.component_analysis.fit( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
+			Purpose:
+			---------
 			Apply PCA transformation.
 
 			:param X: Feature matrix.
@@ -298,12 +414,25 @@ class ComponentAnalysis( Metric ):
 			:rtype: np.ndarray
 
 		"""
-		return self.component_analysis.transform( X )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				return self.component_analysis.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
+			Purpose:
+			---------
 			Fit PCA and transform input data.
 
 			:param X: Feature matrix.
@@ -312,7 +441,18 @@ class ComponentAnalysis( Metric ):
 			:rtype: np.ndarray
 
 		"""
-		return self.component_analysis.fit_transform( X )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				return self.component_analysis.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class Dataset( Metric ):
