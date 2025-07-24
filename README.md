@@ -157,7 +157,7 @@ selection.
 
 
 
-📁 Encoders
+## ⚡ Encoders
 - Provides encoders to transform categorical features into numeric representations for model
 compatibility.
 
@@ -171,7 +171,7 @@ compatibility.
 
 
 
-📁 Extractors
+## 🧠 Extractors
 - Converts text data into structured numerical formats through vectorization and transformation.
 
 | Class Name         | Description                                                               |
@@ -184,7 +184,7 @@ compatibility.
 
 
 
-## 📁 Imputers
+## 💻 Imputers
 - Implements techniques for handling missing values using statistical or learned methods.
   | Class Name | Description |
   |--------------------------|----------------------------------------------------------------------|
@@ -194,7 +194,8 @@ compatibility.
   | IterativeImputer | Estimates missing values using other features iteratively. |
   | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
 
-📁 Scalers.py
+
+## 🛠️ Scalers.py
 - Provides feature scaling and normalization techniques critical for model convergence and
 performance.
 
