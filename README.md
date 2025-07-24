@@ -54,7 +54,7 @@ mathy/
 ___
 
 
-## 📊 Classification Models
+### 📊 Classification Models
 - Classification models are used to assign data samples into discrete categories or classes. These
 models are foundational for tasks such as spam detection, disease diagnosis, and image recognition.
 Below is a list of supported classifiers in Mathy:
@@ -75,10 +75,10 @@ Below is a list of supported classifiers in Mathy:
 | VotingClassification         | Combines multiple models through majority voting.            |
 | StackClassification          | Meta-learner trained on outputs of base classifiers.         |
 | SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
+___
 
 
-
-## 📈 Regression Models
+### 📈 Regression Models
 - Regression models predict continuous numerical outcomes and are crucial in applications like
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
 models, listed below:
@@ -103,7 +103,7 @@ models, listed below:
 | VotingRegression            | Aggregates predictions from multiple regressors.                  |
 | StackRegression             | Trains meta-regressor on top of base models.                      |
 | SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
-
+___
 
 
 ## 🔍 Clustering Models
