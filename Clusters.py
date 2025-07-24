@@ -495,7 +495,7 @@ class AgglomerativeClusteringModel( Cluster ):
 		self.model = AgglomerativeClustering( n_clusters=num )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -551,7 +551,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -582,7 +582,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -647,7 +647,7 @@ class SpectralClusteringModel( Cluster ):
 		self.model = SpectralClustering( n_clusters=num )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -704,7 +704,7 @@ class SpectralClusteringModel( Cluster ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -735,7 +735,7 @@ class SpectralClusteringModel( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -797,7 +797,7 @@ class MeanShiftClustering( Cluster ):
 		self.model = MeanShift( )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -853,7 +853,7 @@ class MeanShiftClustering( Cluster ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -884,7 +884,7 @@ class MeanShiftClustering( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -940,7 +940,7 @@ class AffinityPropagationClustering( Cluster ):
 		self.model = AffinityPropagation( )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -996,7 +996,7 @@ class AffinityPropagationClustering( Cluster ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -1027,7 +1027,7 @@ class AffinityPropagationClustering( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -1081,7 +1081,7 @@ class BirchClustering( Cluster ):
 
 	"""
 
-	def __init__( self, n_clusters: Optional[ int ] = None ) -> None:
+	def __init__( self, n_clusters: Optional[ int ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -1097,7 +1097,7 @@ class BirchClustering( Cluster ):
 		self.model = Birch( n_clusters=n_clusters )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -1153,7 +1153,7 @@ class BirchClustering( Cluster ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -1184,7 +1184,7 @@ class BirchClustering( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -1248,7 +1248,7 @@ class OpticsClustering( Cluster ):
 		self.model = OPTICS( min_samples=min )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -1336,7 +1336,7 @@ class OpticsClustering( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:

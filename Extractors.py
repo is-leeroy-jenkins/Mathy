@@ -68,7 +68,7 @@ class Metric( BaseModel ):
 		self.transformed_data = [ ]
 		self.transformed_values = [ ]
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -82,6 +82,7 @@ class Metric( BaseModel ):
 
 		"""
 		raise NotImplementedError
+
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -101,7 +102,8 @@ class Metric( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -118,18 +120,7 @@ class Metric( BaseModel ):
 			np.ndarray: Transformed feature matrix.
 
 		"""
-		try:
-			self.fit( X, y )
-			return self.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Metric'
-			exception.method = ('fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray '
-			                    ']=None'
-			                    ') -> np.ndarray')
-			error = ErrorDialog( exception )
-			error.show( )
+		raise NotImplementedError
 
 
 class TfidfTransformer( Metric ):
@@ -152,7 +143,7 @@ class TfidfTransformer( Metric ):
 		self.transformer = sk.TfidfTransformer( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -179,10 +170,10 @@ class TfidfTransformer( Metric ):
 			:return: TF-IDF matrix.
 			:rtype: np.ndarray
 		"""
-		return self.transformer.transform ( X ).toarray ()
+		return self.transformer.transform( X ).toarray ()
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -196,7 +187,7 @@ class TfidfTransformer( Metric ):
 			:return: TF-IDF matrix.
 			:rtype: np.ndarray
 		"""
-		return self.transformer.fit_transform ( X ).toarray ()
+		return self.transformer.fit_transform( X ).toarray ()
 
 
 class TfidfVectorizer( Metric ):
