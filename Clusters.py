@@ -318,7 +318,7 @@ class DbscanClustering( Cluster ):
 
 	"""
 
-	def __init__( self, eps: float = 0.5, min: int = 5 ) -> None:
+	def __init__( self, eps: float=0.5, min: int=5 ) -> None:
 		"""
 
 			Purpose:
@@ -335,7 +335,7 @@ class DbscanClustering( Cluster ):
 		self.model = DBSCAN( eps=eps, min_samples=min )
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -391,7 +391,7 @@ class DbscanClustering( Cluster ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
 		"""
 
 			Purpose:
@@ -423,7 +423,7 @@ class DbscanClustering( Cluster ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
