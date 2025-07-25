@@ -53,6 +53,7 @@ from static import Scaler
 from sklearn.metrics import silhouette_score
 from sklearn.cross_decomposition import CCA
 from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Tuple
 
@@ -66,6 +67,8 @@ class Metric( BaseModel ):
 	    `fit_transform` methods.
 
 	"""
+	pipeline: Pipeline
+	transformed_data: np.ndarray
 
 	class Config:
 		arbitrary_types_allowed = True
@@ -75,11 +78,10 @@ class Metric( BaseModel ):
 	def __init__( self ):
 		super( ).__init__( )
 		self.pipeline = None
-		self.transformed_data = [ ]
-		self.transformed_values = [ ]
+		self.transformed_data = None
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -143,6 +145,42 @@ class Metric( BaseModel ):
 			error.show( )
 
 
+class Model( BaseModel ):
+	"""
+
+		Purpose:
+		---------
+		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
+	    `fit_transform` methods.
+
+	"""
+	dataframe: pd.DataFrame
+	target: str
+	test_size: float
+	random_state: int
+	data: Optional[ np.ndarray ]
+	rows: Optional[ int ]
+	columns: Optional[ int ]
+	features: Optional[ List[ str ] ]
+	target_values: Optional[ List[ object ] ]
+	numeric_columns: Optional[ List[ str ] ]
+	text_columns: Optional[ List[ str ] ]
+	training_data: Optional[ pd.DataFrame ]
+	testing_data: Optional[ pd.DataFrame ]
+	training_values: Optional[ np.ndarray ]
+	testing_data: Optional[ pd.DataFrame ]
+	testing_values: Optional[ np.ndarray ]
+	transtuple: Optional[ List[ Tuple ] ]
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ):
+		super( ).__init__( )
+
+
 class VarianceThreshold( Metric ):
 	"""
 
@@ -165,7 +203,7 @@ class VarianceThreshold( Metric ):
 		self.selector = VarianceThreshold( threshold=thresh )
 
 
-	def fit( self, X: np.ndarray ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
 		"""
 
 			Purpose:
@@ -179,7 +217,8 @@ class VarianceThreshold( Metric ):
 			if X is None:
 				raise Exception( 'Argument "X" is None' )
 			else:
-				return self.selector.fit( X )
+				self.selector.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -205,7 +244,8 @@ class VarianceThreshold( Metric ):
 			if X is None:
 				raise Exception( 'Argument "X" is None' )
 			else:
-				return self.selector.transform( X )
+				self.transformed_data = self.selector.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -232,7 +272,8 @@ class VarianceThreshold( Metric ):
 			if X is None:
 				raise Exception( 'Argument "X" is None' )
 			else:
-				return self.selector.fit_transform( X )
+				self.transformed_data = self.selector.fit_transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -455,7 +496,7 @@ class ComponentAnalysis( Metric ):
 			error.show( )
 
 
-class Dataset( Metric ):
+class Dataset( Model ):
 	"""
 
 		Purpose:
@@ -481,22 +522,6 @@ class Dataset( Metric ):
 		testing_values
 
 	"""
-	dataframe: pd.DataFrame
-	data: np.ndarray
-	rows: int
-	columns: int
-	target: str
-	test_size: float
-	random_state: int
-	features: List[ str ]
-	target_values: List[ object ]
-	numeric_columns: List[ str ]
-	text_columns: List[ str ]
-	training_data: pd.DataFrame
-	training_values: np.ndarray
-	testing_data: pd.DataFrame
-	testing_values: np.ndarray
-	transtuple: List[ Tuple ]
 
 	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
 		"""

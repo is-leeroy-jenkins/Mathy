@@ -69,7 +69,6 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
-
 from booger import Error, ErrorDialog
 
 class Model( BaseModel ):
@@ -80,14 +79,14 @@ class Model( BaseModel ):
 		Abstract base class that defines the interface for all linerar_model wrappers.
 
 	"""
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	class Config:
 		arbitrary_types_allowed = True
@@ -97,7 +96,7 @@ class Model( BaseModel ):
 	def __init__( self ):
 		super( ).__init__( )
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -153,7 +152,7 @@ class Model( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -193,18 +192,18 @@ class MultilayerRegression( Model ):
 
 	"""
 	multilayer_regressor: MLPRegressor
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
-	transformed_data: np.array
-	random_state: int
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	random_state: Optional[ int ]
+	alpha: Optional[ float ]
 	learning: str
-	alpha: float
 	activation_function: str
 	solver: str
 	hidden_layers: tuple
@@ -233,7 +232,22 @@ class MultilayerRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultilayerRegression | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'learning', 'activation_function',
+		         'hidden_layers', 'random_state', 'alpha', 'max_depth', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> MultilayerRegression | None:
 		"""
 
 			Purpose:
@@ -253,6 +267,8 @@ class MultilayerRegression( Model ):
 		try:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.multilayer_regressor.fit( X, y )
 				return self
@@ -435,14 +451,15 @@ class LinearRegressor( Model ):
 
 	"""
 	linear_regressor: LinearRegression
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self ) -> None:
@@ -470,8 +487,21 @@ class LinearRegressor( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> LinearRegressor | None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'learning_rate',
+		         'n_estimators', 'random_state', 'loss', 'max_depth', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegressor | None:
 		"""
 
 			Purpose:
@@ -491,6 +521,8 @@ class LinearRegressor( Model ):
 		try:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.linear_regressor.fit( X, y )
 				return self
@@ -679,14 +711,15 @@ class RidgeRegression( Model ):
 
 	"""
 	ridge_regressor: Ridge
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	random_state: int
 	learning_rate: float
 	alpha: float
@@ -728,7 +761,22 @@ class RidgeRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> RidgeRegression | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'alpha',
+		         'solver', 'random_state', 'max_iter', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeRegression | None:
 		"""
 
 
@@ -941,14 +989,15 @@ class LassoRegression( Model ):
 
 	"""
 	lasso_regressor: Lasso
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	random_state: int
 	learning_rate: float
 	alpha: float
@@ -980,7 +1029,22 @@ class LassoRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy',
+		         'random_state', 'alpha', 'max_iter', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -1180,14 +1244,15 @@ class ElasticNetRegression( Model ):
 
 	"""
 	elasticnet_regressor: ElasticNet
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	random_state: int
 	ratio: float
 	alpha: float
@@ -1231,8 +1296,21 @@ class ElasticNetRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Optional[ object ]:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'alpha',
+		         'ratio', 'random_state', 'selection', 'max_iter', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegression | None:
 		"""
 
 
@@ -1436,14 +1514,15 @@ class LogisticRegressor( Model ):
 
 	"""
 	logistic_regressor: LogisticRegression
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	random_state: int
 	penalty: str
 	alpha: float
@@ -1480,8 +1559,22 @@ class LogisticRegressor( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'penalty',
+		         'solver', 'random_state', 'alpha', 'max_iter','mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -1695,14 +1788,15 @@ class BayesianRidgeRegression( Model ):
 
 	"""
 	bayesian_ridge_regressor: BayesianRidge
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	scale_alpha: float
 	shape_lambda: float
 	shape_alpha: float
@@ -1738,8 +1832,21 @@ class BayesianRidgeRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'shape_alpha', 'scale_alpha',
+		         'shape_lambda', 'random_state', 'scale_lambda', 'max_iter','mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -1953,20 +2060,19 @@ class StochasticDescentRegression( Model ):
 
 	"""
 	stochastic_regressor = SGDRegressor
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	random_state: int
 	penalty: str
 	loss: str
 	max_iter: int
 	penalty: str
-
 
 	def __init__( self, loss: str='hinge', max: int=5, penalty: str='l2' ) -> None:
 		"""
@@ -1998,7 +2104,21 @@ class StochasticDescentRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'penalty',
+		         'max_iter', 'random_state', 'loss', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -2198,14 +2318,15 @@ class NearestNeighborRegression( Model ):
 
 	"""
 	neighbor_regressor: KNeighborsRegressor
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	n_neighbors: int
 	algorithm: str
 	power: float
@@ -2243,7 +2364,23 @@ class NearestNeighborRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'algorithm',
+		         'n_neighbors', 'random_state', 'power', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 
@@ -2448,14 +2585,15 @@ class DecisionTreeRegression( Model ):
 
 	'''
 	dt_regressor: DecisionTreeRegression
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	criterion: str
 	splitter: str
 	max_depth: int
@@ -2488,8 +2626,22 @@ class DecisionTreeRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> DecisionTreeRegression | None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'criterion',
+		         'splitter', 'random_state', 'max_depth', 'mean_absolute_error',
+		         'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeRegression | None:
 		"""
 
 
@@ -2706,14 +2858,15 @@ class RandomForestRegression( Model ):
 	max_depth: int
 	criterion: str
 	learning_rate: float
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
@@ -2748,7 +2901,22 @@ class RandomForestRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'criterion',
+		         'n_estimators', 'random_state', 'loss', 'max_depth',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -2949,18 +3117,20 @@ class GradientBoostingRegression( Model ):
 
 	"""
 	gradient_boost_regressor: GradientBoostingRegressor
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	loss: str
 	learning_rate: float
 	n_estimators: int
 	max_detpth: int
+
 
 	def __init__( self, lss: str='deviance', rate: float=0.1,
 	              est: int=100, max: int=3, rando: int=42 ) -> None:
@@ -2996,7 +3166,22 @@ class GradientBoostingRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> GradientBoostingRegression | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'learning_rate',
+		         'n_estimators', 'random_state', 'loss', 'max_depth',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegression | None:
 		"""
 
 			Purpose:
@@ -3132,17 +3317,17 @@ class AdaBoostRegression( Model ):
 	random_state: int
 	loss: str
 	learning_rate: float
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
-	def __init__( self, est: int=50, rando: int=42 ) -> None:
+	def __init__( self, est: int=50, rando: int=42, loss: str='linear', learning: float=1.0 ) -> None:
 		"""
 
 			Purpose:
@@ -3159,7 +3344,10 @@ class AdaBoostRegression( Model ):
 		super( ).__init__( )
 		self.n_estimators = est
 		self.random_state = rando
-		self.ada_boost_regressor = AdaBoostRegressor( n_estimators=est, random_state=rando )
+		self.loss = loss
+		self.learning_rate = learning
+		self.ada_boost_regressor = AdaBoostRegressor( n_estimators=est, random_state=rando,
+			loss=loss, learning_rate=learning )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3170,8 +3358,22 @@ class AdaBoostRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AdaBoostRegression | None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'kernel', 'accuracy',
+		         'n_estimators', 'random_state', 'loss', 'learning_rate',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostRegression | None:
 		"""
 
 			Purpose:
@@ -3375,14 +3577,15 @@ class BaggingRegression( Model ):
 	"""
 	bagging_estimator: BaggingRegressor
 	base_estimator: object
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+
 
 	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
@@ -3413,7 +3616,21 @@ class BaggingRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'base_estimator', 'n_estimators', 'max_features', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph', 'random_state' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -3605,14 +3822,15 @@ class VotingRegression( Model ):
 
 	"""
 	voting_regressor: VotingRegressor
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	def __init__( self, est: List[ (str, object) ], vot = 'hard' ) -> None:
 		"""
@@ -3640,7 +3858,22 @@ class VotingRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> VotingRegression | None:
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingRegression | None:
 		"""
 
 			Purpose:
@@ -3837,14 +4070,14 @@ class StackRegression( Model ):
 	stacking_regressor: StackingRegressor
 	final_estimator: ClassifierMixin
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
@@ -3881,8 +4114,21 @@ class StackRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> StackRegression | None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'estimators', 'final_estimator', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StackRegression | None:
 		"""
 
 			Purpose:
@@ -4073,14 +4319,17 @@ class SupportVectorRegression:
 	Wrapper for sklearn's Support Vector Regression (SVR).
 	"""
 	svr_model: SVR
-	prediction: np.array
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	kernel: str
+	C: float
+	epsilon: float
 
 
 	def __init__( self, kernel: str='rbf', c: float=1.0, epsilon: float=0.1 ) -> None:
@@ -4098,6 +4347,9 @@ class SupportVectorRegression:
 			:type epsilon: float
 
 		"""
+		self.kernel = kernel
+		self.C = c
+		self.epsilon = epsilon
 		self.svr_model = SVR( kernel=kernel, C=c, epsilon=epsilon )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -4108,8 +4360,21 @@ class SupportVectorRegression:
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:

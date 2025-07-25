@@ -82,16 +82,16 @@ class Model( BaseModel ):
 		Abstract base class that defines the interface for all linerar_model wrappers.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	class Config:
 		arbitrary_types_allowed = True
@@ -200,16 +200,16 @@ class PerceptronClassifier( Model ):
 			constant learning rate.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, reg: float=0.0001, max: int=1000, mix: bool=True ) -> None:
@@ -239,7 +239,21 @@ class PerceptronClassifier( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassifier | None:
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -248,7 +262,7 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-			X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix.
 			y (np.ndarray): Binary class labels.
 
 			Returns:
@@ -457,16 +471,16 @@ class MultilayerClassification( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, hidden: tuple=(100,), activation='relu', solver='adam',
@@ -490,6 +504,19 @@ class MultilayerClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultilayerClassification | None:
@@ -701,16 +728,16 @@ class RidgeClassification( Model ):
 		distinct computational performance profiles.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	def __init__( self, alpha: float=1.0, solver: str='auto', max: int=1000,
 	              rando: int=42 ) -> None:
@@ -744,6 +771,21 @@ class RidgeClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -961,16 +1003,16 @@ class StochasticDescentClassification( Model ):
 		 models and achieve online feature selection.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	def __init__( self, loss: str='hinge', max: int=5, reg: str='l2' ) -> None:
 		"""
@@ -1000,6 +1042,20 @@ class StochasticDescentClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -1212,16 +1268,16 @@ class NearestNeighborClassification( Model ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, num: int=5 ) -> None:
@@ -1250,6 +1306,21 @@ class NearestNeighborClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -1463,16 +1534,16 @@ class DecisionTreeClassification( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
@@ -1499,6 +1570,20 @@ class DecisionTreeClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -1603,7 +1688,7 @@ class DecisionTreeClassification( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 
@@ -1726,16 +1811,16 @@ class RandomForestClassification( Model ):
 	n_estimators: int
 	criterion: str
 	random_forest_classifier: RandomForestClassifier
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
@@ -1761,6 +1846,20 @@ class RandomForestClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -1973,16 +2072,16 @@ class GradientBoostingClassification( Model ):
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 
 	def __init__( self, lss: str='deviance', rate: int=0.1,
@@ -2018,6 +2117,19 @@ class GradientBoostingClassification( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -2178,16 +2290,16 @@ class AdaBoostClassification( Model ):
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
 
 	def __init__( self, est: int=100, max: int=3 ) -> None:
@@ -2211,6 +2323,18 @@ class AdaBoostClassification( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 	def scale( self ) -> None:
 		"""
@@ -2304,6 +2428,7 @@ class AdaBoostClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -2336,6 +2461,7 @@ class AdaBoostClassification( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
@@ -2384,6 +2510,7 @@ class AdaBoostClassification( Model ):
 			                    'float ]')
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2441,16 +2568,16 @@ class BaggingClassification( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
@@ -2474,6 +2601,18 @@ class BaggingClassification( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2538,6 +2677,7 @@ class BaggingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -2570,6 +2710,7 @@ class BaggingClassification( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
@@ -2618,6 +2759,7 @@ class BaggingClassification( Model ):
 			                    'float ]')
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2671,16 +2813,16 @@ class VotingClassification( Model ):
 		performing model in order to balance out their individual weaknesses.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	estimators: List[ (str, object) ]
 
 
@@ -2703,6 +2845,18 @@ class VotingClassification( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2903,16 +3057,16 @@ class StackClassification( Model ):
 		estimators using cross_val_predict.
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
 	              final: Optional[ ClassifierMixin ]=None ) -> None:
@@ -2935,6 +3089,18 @@ class StackClassification( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -3126,16 +3292,16 @@ class SupportVectorClassification:
 		Support Vector Classification (SVC).
 
 	"""
-	prediction: np.array
-	max_depth: int
-	random_state: int
-	accuracy: float
-	mean_absolute_error: float
-	mean_squared_error: float
-	r_mean_squared_error: float
-	r2_score: float
-	explained_variance_score: float
-	median_absolute_error: float
+	prediction: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 
 	def __init__( self, kernel: str='rbf', C: float=1.0 ) -> None:
 		"""
@@ -3159,6 +3325,20 @@ class SupportVectorClassification:
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
