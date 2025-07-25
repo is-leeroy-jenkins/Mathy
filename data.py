@@ -576,6 +576,62 @@ class Dataset( Model ):
 		         'target_values', 'training_data', 'testing_data', 'training_values',
 		         'testing_values', 'transform_columns' ]
 
+	def calculate_entropy( self, p: float ) -> float | None:
+		'''
+
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability of 'p'.
+
+			:param p:
+			:type p:
+			:return:
+			:rtype:
+		'''
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
+
+
+	def calculate_gini_impurity( self, p: float ) -> float | None:
+		'''
+
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability of 'p'.
+
+			:param p:
+			:type p:
+			:return:
+			:rtype:
+		'''
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return p * (1 - p) + (1 - p) * (1 - (1 - p))
+
+
+	def calculate_misclassification_error( self, p: float ) -> float | None:
+		'''
+
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability of 'p'.
+
+			:param p:
+			:type p:
+			:return:
+			:rtype:
+		'''
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return 1 - np.max( [ p, 1 - p ] )
+
 
 	def transform_columns( self, name: str, encoder: object, columns: List[ str ] ) -> None:
 		"""

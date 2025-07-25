@@ -151,7 +151,7 @@ class StandardScaler( Metric ):
 		self.standard_scaler = skp.StandardScaler( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) ->  StandardScaler | None:
 		"""
 
 
@@ -233,7 +233,7 @@ class MinMaxScaler( Metric ):
 		self.minmax_scaler = skp.MinMaxScaler( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MinMaxScaler | None:
 		"""
 
 			Purpose:
@@ -313,7 +313,8 @@ class RobustScaler( Metric ):
 		super( ).__init__( )
 		self.robust_scaler = skp.RobustScaler( )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> RobustScaler | None:
 		"""
 
 
@@ -387,12 +388,12 @@ class NormalScaler( Metric ):
 
 	"""
 
-	def __init__( self, norm: str = 'l2' ) -> None:
+	def __init__( self, norm: str='l2' ) -> None:
 		super( ).__init__( )
 		self.normal_scaler = skp.Normalizer( norm = norm )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NormalScaler | None:
 		"""
 
 
