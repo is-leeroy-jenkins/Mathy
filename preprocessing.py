@@ -216,7 +216,7 @@ class TfidfTransformer( Metric ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.transform( documents ).toarray( )
+				return self.transformer.transform( documents ).toarray( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -324,6 +324,7 @@ class TfidfVectorizer( Metric ):
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
 		"""
@@ -706,7 +707,7 @@ class MinMaxScaler( Metric ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
-				return self.standard_scaler.inverse_transform( X ).toarray( )
+				return self.minmax_scaler.inverse_transform( X ).toarray( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -733,7 +734,7 @@ class RobustScaler( Metric ):
 		self.robust_scaler = skp.RobustScaler( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> RobustScaler | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> RobustScaler | None:
 		"""
 
 
@@ -900,6 +901,7 @@ class NormalScaler( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class OneHotEncoder( Metric ):
 	"""
 
@@ -1005,6 +1007,29 @@ class OneHotEncoder( Metric ):
 			exception.module = 'Mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param X: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.inverse_transform( X ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'OneHotEncoder'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1118,6 +1143,29 @@ class OrdinalEncoder( Metric ):
 			error.show( )
 
 
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param X: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.ordinal_encoder.inverse_transform( X ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'OrdinalEncoder'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
 class LabelEncoder( Metric ):
 	"""
 
@@ -1223,6 +1271,29 @@ class LabelEncoder( Metric ):
 			error.show( )
 
 
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param X: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( '"X" cannot be None' )
+			else:
+				return self.label_encoder.inverse_transform( X ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
 class PolynomialFeatures( Metric ):
 	"""
 
@@ -1245,7 +1316,7 @@ class PolynomialFeatures( Metric ):
 		self.polynomial_features = skp.PolynomialFeatures( degree = degree )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> PolynomialFeatures| None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> PolynomialFeatures| None:
 		"""
 
 			Purpose:
@@ -1265,7 +1336,7 @@ class PolynomialFeatures( Metric ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'fit( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1327,6 +1398,7 @@ class PolynomialFeatures( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class MeanImputer( Metric ):
 	"""
 
@@ -1340,7 +1412,8 @@ class MeanImputer( Metric ):
 		super( ).__init__( )
 		self.mean_imputer = ski.SimpleImputer( strategy = strat )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 
@@ -1370,6 +1443,7 @@ class MeanImputer( Metric ):
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1403,18 +1477,57 @@ class MeanImputer( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
-		"""
-		Fit the iterative imputer and transform the data.
 
-		:param y:
-		:type y:
-		:param X: Input array with missing values.
-		:type X: np.ndarray
-		:return: Transformed data with imputed values.
-		:rtype: np.ndarray
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
-		return self.mean_imputer.fit_transform( X )
+
+			Purpose:
+			--------
+			Fit the iterative imputer and transform the data.
+
+			:param y:
+			:type y:
+			:param X: Input array with missing values.
+			:type X: np.ndarray
+			:return: Transformed data with imputed values.
+			:rtype: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( '"X" cannot be None' )
+			else:
+				return self.mean_imputer.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MeanImputer'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param X: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( '"X" cannot be None' )
+			else:
+				return self.mean_imputer.inverse_transform( X ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
 
 class NearestNeighborImputer( Metric ):
 	"""
@@ -1459,6 +1572,7 @@ class NearestNeighborImputer( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -1490,6 +1604,7 @@ class NearestNeighborImputer( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
 		"""
 
@@ -1517,6 +1632,7 @@ class NearestNeighborImputer( Metric ):
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 class IterativeImputer( Metric ):
 	"""
