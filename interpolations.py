@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                imputers.py
+  Filename:                interpolations.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="imputers.py" company="Terry D. Eppler">
+<copyright file="interpolations.py" company="Terry D. Eppler">
 
      Mathy Imputers
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	imputers.py
+	interpolations.py
 </summary>
 ******************************************************************************************
 '''

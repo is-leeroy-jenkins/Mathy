@@ -41,7 +41,6 @@
 ******************************************************************************************
 '''
 from __future__ import annotations
-
 from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional

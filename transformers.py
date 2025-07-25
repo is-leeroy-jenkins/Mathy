@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                extractors.py
+  Filename:                transformers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="extractors.py" company="Terry D. Eppler">
+<copyright file="transformers.py" company="Terry D. Eppler">
 
      Mathy Encoders
 
@@ -65,7 +65,7 @@ class Metric( BaseModel ):
 	def __init__( self ):
 		super( ).__init__( )
 		self.pipeline = None
-		self.transformed_data = [ ]
+		self.transformed_data = np.ndarray | None
 		self.transformed_values = [ ]
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
