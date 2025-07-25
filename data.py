@@ -522,6 +522,18 @@ class Dataset( Model ):
 		testing_values
 
 	"""
+	dataframe: pd.DataFrame
+	data: pd.DataFrame
+	rows: Optional[ int ]
+	columns: Optional[ int ]
+	target: str
+	test_size: float
+	random_state: int
+	features: Optional[ List[ str ] ]
+	target_values: Optional[ List[ str ] ]
+	numeric_columns: Optional[ List[ str ] ]
+	text_columns: Optional[ List[ str ] ]
+
 
 	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
 		"""
@@ -574,7 +586,9 @@ class Dataset( Model ):
 		         'numeric_columns', 'text_columns', 'scaler', 'transtuple', 'create_testing_data',
 		         'calculate_statistics', 'create_training_data',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
-		         'testing_values', 'transform_columns' ]
+		         'testing_values', 'transform_columns', 'calculate_entropy',
+		         'calculate_gini_impurity', 'calculate_misclassification_error']
+
 
 	def calculate_entropy( self, p: float ) -> float | None:
 		'''
@@ -582,7 +596,7 @@ class Dataset( Model ):
 			Purpose:
 			--------
 			Method used to calculate the entropy of a numeric feature
-			with a probability of 'p'.
+			with a probability or proportion of 'p'.
 
 			:param p:
 			:type p:
@@ -601,7 +615,7 @@ class Dataset( Model ):
 			Purpose:
 			--------
 			Method used to calculate the entropy of a numeric feature
-			with a probability of 'p'.
+			with a probability or proportion of 'p'.
 
 			:param p:
 			:type p:
@@ -620,7 +634,7 @@ class Dataset( Model ):
 			Purpose:
 			--------
 			Method used to calculate the entropy of a numeric feature
-			with a probability of 'p'.
+			with a probability or proportion of 'p'.
 
 			:param p:
 			:type p:
