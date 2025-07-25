@@ -145,7 +145,8 @@ class TfidfTransformer( Metric ):
 
 		Purpose:
 		---------
-		Wrapper for TfidfTransformer.
+
+		Transform a count matrix to a normalized tf or tf-idf representation.
 
 	"""
 
@@ -238,7 +239,8 @@ class TfidfVectorizer( Metric ):
 
 		Purpose:
 		---------
-		Wrapper for TfidfVectorizer.
+
+		Convert a collection of raw documents to a matrix of TF-IDF features.
 
 	"""
 
@@ -386,7 +388,7 @@ class CountVectorizer( Metric ):
 
 			Purpose:
 			---------
-			Fit the vectorizer on a list of documents.
+			Convert a collection of text documents to a matrix of token counts.
 
 			:param y:
 			:type y:
@@ -471,8 +473,7 @@ class HashingVectorizer( Metric ):
 
 		Purpose:
 		---------
-		Wrapper for sklearn's HashingVectorizer.
-		This class transforms text documents to feature vectors using the hashing trick.
+		Convert a collection of text documents to a matrix of token occurrences.
 
 	"""
 
