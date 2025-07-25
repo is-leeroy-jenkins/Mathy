@@ -152,68 +152,34 @@ ___
 
 
 
-### ⚡ Encoders
-- Provides encoders to transform categorical features into numeric representations for model
-compatibility.
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)
+### 📁 Preprocessing
+
+- This module provides a unified collection of data preprocessing tools for scaling, encoding, and
+imputing. All classes extend the Metric interface, ensuring consistency in method signatures and
+usage across pipelines.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
 
 ___
 
-| Class Name         | Description                                                       |
-|--------------------|-------------------------------------------------------------------|
-| Metric             | Abstract base for transformation classes.                         |
-| OneHotEncoder      | Transforms categorical variables into binary one-hot vectors.     |
-| OrdinalEncoder     | Encodes categories as integer values based on rank or order.      |
-| LabelEncoder       | Converts labels into integer representations.                     |
-| PolynomialFeatures | Generates polynomial combinations of features.                    |
-
-
-
-### 🧠 Extractors
-- Converts text data into structured numerical formats through vectorization and transformation.
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/extractors.py)
-
-___
-
-| Class Name         | Description                                                               |
-|--------------------|---------------------------------------------------------------------------|
-| Metric             | Interface for feature extraction utilities.                               |
-| TfidfTransformer   | Applies TF-IDF transformation to count matrices.                          |
-| TfidfVectorizer    | Extracts TF-IDF features directly from raw text.                          |
-| CountVectorizer    | Creates a document-term matrix of token counts.                           |
-| HashingVectorizer  | Applies hashing trick to vectorize text without building vocabulary.      |
-
-
-### 💻 Imputers
-- Implements techniques for handling missing values using statistical or learned methods.
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)
-
-___
-  | Class Name | Description |
-  |--------------------------|----------------------------------------------------------------------|
-  | Metric | Base for missing value processors. |
-  | MeanImputer | Fills missing values with feature-wise means. |
-  | NearestNeighborImputer | Imputes based on values of nearest neighbors. |
-  | IterativeImputer | Estimates missing values using other features iteratively. |
-  | SimpleImputer | Wrapper for sklearn’s basic imputation strategies (mean, median). |
-
-
-
-### 🛠️ Scalers.py
-- Provides feature scaling and normalization techniques critical for model convergence and
-performance.
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)
-
-___
-
-| Class Name       | Description                                                               |
-|------------------|---------------------------------------------------------------------------|
-| Metric           | Abstract base class for preprocessing utilities.                         |
-| StandardScaler   | Standardizes features by removing mean and scaling to unit variance.     |
-| MinMaxScaler     | Scales features to a defined range (usually [0, 1]).                      |
-| RobustScaler     | Uses medians and IQR for outlier-resistant scaling.                      |
-| NormalScaler     | Normalizes each sample to have unit norm.                                |
-
+| Class Name               | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| Metric                   | Abstract base class for all preprocessors with methods like `fit`, `transform`, and `fit_transform`. |
+| TfidfTransformer         | Converts a count matrix to a normalized TF-IDF representation.              |
+| TfidfVectorizer          | Converts raw documents to TF-IDF features using vocabulary learning.        |
+| CountVectorizer          | Converts a collection of text documents to a matrix of token counts.        |
+| HashingVectorizer        | Uses hashing trick to convert text documents into numerical feature vectors. |
+| StandardScaler           | Standardizes features by removing the mean and scaling to unit variance.   |
+| MinMaxScaler             | Transforms features by scaling each to a given range, usually [0, 1].       |
+| RobustScaler             | Scales features using statistics robust to outliers like the median and IQR.|
+| NormalScaler             | Normalizes each sample to unit norm (L1 or L2).                             |
+| OneHotEncoder            | Encodes categorical features as a one-hot numeric array.                    |
+| OrdinalEncoder           | Encodes categorical features as integer values based on their order.        |
+| LabelEncoder             | Encodes target labels with integer values.                                  |
+| PolynomialFeatures       | Generates polynomial and interaction features for a dataset.                |
+| MeanImputer              | Fills missing values in a dataset using the column mean.                    |
+| NearestNeighborImputer   | Imputes missing values using the nearest neighbor algorithm.                |
+| IterativeImputer         | Imputes missing values by modeling them as a function of other features.    |
+| SimpleImputer            | Provides basic strategies for imputing missing values (mean, median, etc.). |
 
 
 ## 📦 Dependencies
