@@ -305,6 +305,7 @@ class TfidfVectorizer( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def fit_transform( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
