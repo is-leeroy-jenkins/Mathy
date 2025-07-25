@@ -522,17 +522,6 @@ class Dataset( Model ):
 		testing_values
 
 	"""
-	dataframe: pd.DataFrame
-	data: pd.DataFrame
-	rows: Optional[ int ]
-	columns: Optional[ int ]
-	target: str
-	test_size: float
-	random_state: int
-	features: Optional[ List[ str ] ]
-	target_values: Optional[ List[ str ] ]
-	numeric_columns: Optional[ List[ str ] ]
-	text_columns: Optional[ List[ str ] ]
 
 
 	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
