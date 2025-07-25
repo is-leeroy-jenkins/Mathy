@@ -80,6 +80,14 @@ class Model( BaseModel ):
 		Abstract base class that defines the interface for all linerar_model wrappers.
 
 	"""
+	prediction: np.array
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	class Config:
 		arbitrary_types_allowed = True
@@ -88,9 +96,8 @@ class Model( BaseModel ):
 
 	def __init__( self ):
 		super( ).__init__( )
-		self.pipeline = None
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -186,7 +193,6 @@ class MultilayerRegression( Model ):
 
 	"""
 	multilayer_regressor: MLPRegressor
-	pipeline: Pipeline
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -227,7 +233,7 @@ class MultilayerRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultilayerRegression | None:
 		"""
 
 			Purpose:
@@ -254,12 +260,12 @@ class MultilayerRegression( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'MultilayerRegression'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 
@@ -286,7 +292,7 @@ class MultilayerRegression( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'MultilayerRegression'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -438,6 +444,7 @@ class LinearRegressor( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 
+
 	def __init__( self ) -> None:
 		"""
 
@@ -452,7 +459,7 @@ class LinearRegressor( Model ):
 
 		"""
 		super( ).__init__( )
-		self.linerar_regressor = LinearRegression( fit_intercept=True,
+		self.linear_regressor = LinearRegression( fit_intercept=True,
 			copy_X=True )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -463,7 +470,8 @@ class LinearRegressor( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> LinearRegressor | None:
 		"""
 
 			Purpose:
@@ -484,7 +492,7 @@ class LinearRegressor( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.linerar_regressor.fit( X, y )
+				self.linear_regressor.fit( X, y )
 				return self
 		except Exception as e:
 			exception = Error( e )
@@ -493,6 +501,7 @@ class LinearRegressor( Model ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -526,7 +535,7 @@ class LinearRegressor( Model ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
 
@@ -562,7 +571,7 @@ class LinearRegressor( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Optional[ Dict[ str, float ] ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 
@@ -719,7 +728,7 @@ class RidgeRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> RidgeRegression | None:
 		"""
 
 
@@ -786,7 +795,7 @@ class RidgeRegression( Model ):
 			error.show( )
 
 
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Optional[ float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
 
@@ -822,7 +831,7 @@ class RidgeRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Optional[ Dict ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -971,7 +980,7 @@ class LassoRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -1223,7 +1232,7 @@ class ElasticNetRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> Optional[ object ]:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Optional[ object ]:
 		"""
 
 
@@ -1472,7 +1481,7 @@ class LogisticRegressor( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -1730,7 +1739,7 @@ class BayesianRidgeRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -1959,7 +1968,7 @@ class StochasticDescentRegression( Model ):
 	penalty: str
 
 
-	def __init__( self, loss: str='hinge', max: int=5, reg: str='l2' ) -> None:
+	def __init__( self, loss: str='hinge', max: int=5, penalty: str='l2' ) -> None:
 		"""
 
 			Purpose:
@@ -1976,7 +1985,7 @@ class StochasticDescentRegression( Model ):
 		super( ).__init__( )
 		self.loss = loss
 		self.max_iter = max
-		self.penalty = reg
+		self.penalty = penalty
 		self.stochastic_regressor = SGDRegressor( loss=self.loss,
 			max_iter=self.max_iter, penalty=self.penalty )
 		self.prediction = None
@@ -1989,7 +1998,7 @@ class StochasticDescentRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -2198,29 +2207,32 @@ class NearestNeighborRegression( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 	n_neighbors: int
-	loss: str
-	max_iter: int
-	penalty: str
+	algorithm: str
+	power: float
+	metric: str
 
 
-	def __init__( self, num: int=5 ) -> None:
+	def __init__( self, num: int=5, algo: str='auto', p: float=2.0, metric: str='minkowski' ) -> None:
 		"""
 
 
 			Purpose:
 			-----------
-			Initialize the KNeighborsRegressor linerar_model.
+			Initialize the linerar_model (KNeighborsRegressor): Internal non-parametric regressor.
 
 			Parameters:
 			-----------
-				linerar_model (KNeighborsRegressor): Internal non-parametric regressor.
 					Parameters:
-						n_neighbors (int): Number of neighbors to use. Default is 5.
+						num: Number of neighbors to use. Default is 5.
 
 		"""
 		super( ).__init__( )
 		self.n_neighbors = num
-		self.neighbor_regressor = KNeighborsRegressor( n_neighbors=num )
+		self.algorithm = algo
+		self.power = p
+		self.metric = metric
+		self.neighbor_regressor = KNeighborsRegressor( n_neighbors=self.n_neighbors,
+			algorithm=self.algorithm, p=self.power, metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2231,7 +2243,7 @@ class NearestNeighborRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 
@@ -2477,7 +2489,7 @@ class DecisionTreeRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> DecisionTreeRegression | None:
 		"""
 
 
@@ -2688,6 +2700,12 @@ class RandomForestRegression( Model ):
 		The variance reduction is often significant hence yielding an overall better model.
 
 	"""
+	random_forest_regressor: RandomForestRegressor
+	n_estimators: int
+	random_state: int
+	max_depth: int
+	criterion: str
+	learning_rate: float
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -2698,7 +2716,7 @@ class RandomForestRegression( Model ):
 	median_absolute_error: float
 
 
-	def __init__( self, est: int = 10, crit: str = 'gini', max: int = 3, rando: int = 42 ) -> None:
+	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -2714,13 +2732,12 @@ class RandomForestRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.n_estimators: int = est
-		self.criterion: str = crit
-		self.max_depth: int = max
-		self.random_state: int = rando
-		self.random_forest_regressor: RandomForestRegressor = RandomForestRegressor(
-			n_estimators = est,
-			criterion = crit, random_state = rando )
+		self.n_estimators = est
+		self.criterion = crit
+		self.max_depth = max
+		self.random_state = rando
+		self.random_forest_regressor = RandomForestRegressor(
+			n_estimators=est, criterion=crit, random_state=rando )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2731,7 +2748,7 @@ class RandomForestRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -2979,7 +2996,7 @@ class GradientBoostingRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegression | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> GradientBoostingRegression | None:
 		"""
 
 			Purpose:
@@ -3099,6 +3116,10 @@ class AdaBoostRegression( Model ):
 
 		Purpose:
 		---------
+		An AdaBoost [1] regressor is a meta-estimator that begins by fitting a regressor on the
+		original dataset and then fits additional copies of the regressor on the same dataset but
+		where the weights of instances are adjusted according to the error of the current prediction.
+
 		The core principle of Boost Regression is to fit a sequence of weak learners
 		(i.e., models that are only slightly better than random guessing,
 		such as small decision trees) on repeatedly modified versions of the df.
@@ -3106,6 +3127,11 @@ class AdaBoostRegression( Model ):
 		majority vote (or sum) to produce the final prediction.
 
 	"""
+	ada_boost_regressor: AdaBoostRegressor
+	n_estimators: int
+	random_state: int
+	loss: str
+	learning_rate: float
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -3116,7 +3142,7 @@ class AdaBoostRegression( Model ):
 	median_absolute_error: float
 
 
-	def __init__( self, est: int = 100, max: int = 3 ) -> None:
+	def __init__( self, est: int=50, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -3131,9 +3157,9 @@ class AdaBoostRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.max_depth: int = max
-		self.n_estimators: int = est
-		self.ada_boost_regressor: AdaBoostRegressor = AdaBoostRegressor( n_estimators = est )
+		self.n_estimators = est
+		self.random_state = rando
+		self.ada_boost_regressor = AdaBoostRegressor( n_estimators=est, random_state=rando )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3145,7 +3171,7 @@ class AdaBoostRegression( Model ):
 
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AdaBoostRegression | None:
 		"""
 
 			Purpose:
@@ -3178,6 +3204,7 @@ class AdaBoostRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -3206,6 +3233,7 @@ class AdaBoostRegression( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -3345,6 +3373,8 @@ class BaggingRegression( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
+	bagging_estimator: BaggingRegressor
+	base_estimator: object
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -3354,7 +3384,7 @@ class BaggingRegression( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 
-	def __init__( self, base: object = None, num: int = 10, max: int = 1, rando: int = 42 ) -> None:
+	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -3368,12 +3398,11 @@ class BaggingRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.base_estimator: object = base
-		self.n_estimators: int = num
-		self.max_features: int = max
-		self.random_state: int = rando
-		self.bagging_regressor: BaggingRegressor = BaggingRegressor( max_features = max,
-			random_state = rando )
+		self.base_estimator = base
+		self.n_estimators = num
+		self.max_features = max
+		self.random_state = rando
+		self.bagging_regressor = BaggingRegressor( max_features=max, random_state=rando )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3384,7 +3413,7 @@ class BaggingRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -3575,6 +3604,7 @@ class VotingRegression( Model ):
 		Then it averages the individual predictions to form a final prediction.
 
 	"""
+	voting_regressor: VotingRegressor
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -3599,8 +3629,8 @@ class VotingRegression( Model ):
 		"""
 		super( ).__init__( )
 		self.estimators: List[ (str, object) ] = est
-		self.voting: str = vot
-		self.voting_regressor: VotingRegressor = VotingRegressor( estimators = est )
+		self.voting = vot
+		self.voting_regressor = VotingRegressor( estimators = est )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3610,7 +3640,7 @@ class VotingRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> VotingRegression | None:
 		"""
 
 			Purpose:
@@ -3804,6 +3834,9 @@ class StackRegression( Model ):
 			the base estimators using cross_val_predict.
 
 	"""
+	stacking_regressor: StackingRegressor
+	final_estimator: ClassifierMixin
+	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -3815,7 +3848,7 @@ class StackRegression( Model ):
 
 
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
-	              final: ClassifierMixin = None ) -> None:
+	              final: ClassifierMixin=None ) -> None:
 		"""
 
 			Purpose:
@@ -3836,8 +3869,8 @@ class StackRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.estimators: List[ Tuple[ str, ClassifierMixin ] ] = est
-		self.final_estimator: ClassifierMixin = final
+		self.estimators = est
+		self.final_estimator = final
 		self.stacking_regressor = StackingRegressor( estimators=est )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3849,7 +3882,7 @@ class StackRegression( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> StackRegression | None:
 		"""
 
 			Purpose:
@@ -4039,6 +4072,7 @@ class SupportVectorRegression:
 	"""
 	Wrapper for sklearn's Support Vector Regression (SVR).
 	"""
+	svr_model: SVR
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -4049,7 +4083,7 @@ class SupportVectorRegression:
 	median_absolute_error: float
 
 
-	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1 ) -> None:
+	def __init__( self, kernel: str='rbf', c: float=1.0, epsilon: float=0.1 ) -> None:
 		"""
 
 			Purpose:
@@ -4058,13 +4092,13 @@ class SupportVectorRegression:
 
 			:param kernel: Kernel type to be used in the algorithm.
 			:type kernel: str
-			:param C: Regularization parameter.
-			:type C: float
+			:param c: Regularization parameter.
+			:type c: float
 			:param epsilon: Epsilon in the epsilon-SVR model.
 			:type epsilon: float
 
 		"""
-		self.svr_model = SVR( kernel=kernel, C=C, epsilon=epsilon )
+		self.svr_model = SVR( kernel=kernel, C=c, epsilon=epsilon )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4075,20 +4109,27 @@ class SupportVectorRegression:
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
-		Fit the SVR model to the data.
 
-		:param X: Input features.
-		:type X: np.ndarray
-		:param y: Target values.
-		:type y: np.ndarray
+			Purpose:
+			--------
+			Fit the SVR model to the data.
+
+			:param X: Input features.
+			:type X: np.ndarray
+			:param y: Target values.
+			:type y: np.ndarray
+
 		"""
 		self.svr_model.fit( X, y )
 
 
 	def project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:
 		"""
+
+			Purpose:
+			--------
 			Predict target values for the input features.
 
 			:param y:
@@ -4118,6 +4159,9 @@ class SupportVectorRegression:
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
+
+			Purpose:
+			--------
 
 			Compute the R-squared
 			accuracy for the Ridge model.

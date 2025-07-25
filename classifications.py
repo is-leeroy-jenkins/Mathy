@@ -82,6 +82,16 @@ class Model( BaseModel ):
 		Abstract base class that defines the interface for all linerar_model wrappers.
 
 	"""
+	prediction: np.array
+	max_depth: int
+	random_state: int
+	accuracy: float
+	mean_absolute_error: float
+	mean_squared_error: float
+	r_mean_squared_error: float
+	r2_score: float
+	explained_variance_score: float
+	median_absolute_error: float
 
 	class Config:
 		arbitrary_types_allowed = True
@@ -113,7 +123,7 @@ class Model( BaseModel ):
 		raise NotImplementedError
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -152,7 +162,7 @@ class Model( BaseModel ):
 		raise NotImplementedError
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 
 			Purpose:
@@ -201,6 +211,7 @@ class PerceptronClassifier( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 
+
 	def __init__( self, reg: float=0.0001, max: int=1000, mix: bool=True ) -> None:
 		"""
 
@@ -228,7 +239,7 @@ class PerceptronClassifier( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassifier | None:
 		"""
 
 			Purpose:
@@ -329,7 +340,7 @@ class PerceptronClassifier( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 
@@ -457,6 +468,7 @@ class MultilayerClassification( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 
+
 	def __init__( self, hidden: tuple=(100,), activation='relu', solver='adam',
 	              alpha = 0.0001, learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
@@ -480,7 +492,7 @@ class MultilayerClassification( Model ):
 		self.median_absolute_error = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultilayerClassification | None:
 		"""
 
 			Purpose:
@@ -579,7 +591,7 @@ class MultilayerClassification( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
