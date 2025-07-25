@@ -2730,6 +2730,7 @@ class RandomForestRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
@@ -2763,6 +2764,7 @@ class RandomForestRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -2792,6 +2794,7 @@ class RandomForestRegression( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -2826,6 +2829,7 @@ class RandomForestRegression( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
@@ -2873,6 +2877,7 @@ class RandomForestRegression( Model ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -2926,6 +2931,7 @@ class GradientBoostingRegression( Model ):
 		only a single regression tree is induced.
 
 	"""
+	gradient_boost_regressor: GradientBoostingRegressor
 	prediction: np.array
 	accuracy: float
 	mean_absolute_error: float
@@ -2934,9 +2940,13 @@ class GradientBoostingRegression( Model ):
 	r2_score: float
 	explained_variance_score: float
 	median_absolute_error: float
+	loss: str
+	learning_rate: float
+	n_estimators: int
+	max_detpth: int
 
-	def __init__( self, lss: str = 'deviance', rate: float = 0.1,
-	              est: int = 100, max: int = 3, rando: int = 42 ) -> None:
+	def __init__( self, lss: str='deviance', rate: float=0.1,
+	              est: int=100, max: int=3, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -2953,12 +2963,12 @@ class GradientBoostingRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.loss: str = lss
-		self.learning_rate: float = rate
-		self.n_estimators: int = est
-		self.max_depth: int = max
-		self.gradient_boost_regressor = GradientBoostingRegressor( loss = lss, learning_rate = rate,
-			n_estimators = est, max_depth = max, random_state = rando )
+		self.loss = lss
+		self.learning_rate = rate
+		self.n_estimators = est
+		self.max_depth = max
+		self.gradient_boost_regressor = GradientBoostingRegressor( loss=lss, learning_rate=rate,
+			n_estimators=est, max_depth=max, random_state=rando )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2968,7 +2978,8 @@ class GradientBoostingRegression( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> Optional[ object ]:
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegression | None:
 		"""
 
 			Purpose:
@@ -2988,6 +2999,7 @@ class GradientBoostingRegression( Model ):
 		self.gradient_boost_regressor.fit( X, y )
 		return self
 
+
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -3006,6 +3018,7 @@ class GradientBoostingRegression( Model ):
 		"""
 		self.prediction = self.gradient_boost_regressor.predict( X )
 		return self.prediction
+
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -3028,6 +3041,7 @@ class GradientBoostingRegression( Model ):
 		self.accuracy = r2_score( y, self.prediction )
 		return self.accuracy
 
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
@@ -3047,14 +3061,14 @@ class GradientBoostingRegression( Model ):
 		"""
 		self.prediction = self.gradient_boost_regressor.predict( X )
 		return \
-			{
-					'MAE': mean_absolute_error( y, self.prediction ),
-					'MSE': mean_squared_error( y, self.prediction ),
-					'RMSE': mean_squared_error( y, self.prediction, squared = False ),
-					'R2': r2_score( y, self.prediction ),
-					'Explained Variance': explained_variance_score( y, self.prediction ),
-					'Median Absolute Error': median_absolute_error( y, self.prediction )
-			}
+		{
+			'MAE': mean_absolute_error( y, self.prediction ),
+			'MSE': mean_squared_error( y, self.prediction ),
+			'RMSE': mean_squared_error( y, self.prediction, squared = False ),
+			'R2': r2_score( y, self.prediction ),
+			'Explained Variance': explained_variance_score( y, self.prediction ),
+			'Median Absolute Error': median_absolute_error( y, self.prediction )
+		}
 
 
 	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
