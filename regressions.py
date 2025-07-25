@@ -3115,6 +3115,7 @@ class AdaBoostRegression( Model ):
 	explained_variance_score: float
 	median_absolute_error: float
 
+
 	def __init__( self, est: int = 100, max: int = 3 ) -> None:
 		"""
 
@@ -3141,6 +3142,8 @@ class AdaBoostRegression( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
