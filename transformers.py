@@ -40,6 +40,8 @@
 </summary>
 ******************************************************************************************
 '''
+from __future__ import annotations
+
 from booger import Error, ErrorDialog
 import numpy as np
 from typing import Optional, List
@@ -123,6 +125,21 @@ class Metric( BaseModel ):
 		raise NotImplementedError
 
 
+	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param documents: List of text documents.
+			:type documents: list[str]
+			:return: TF-IDF vectorized output.
+			:rtype: np.ndarray
+		"""
+		return NotImplementedError
+
+
 class TfidfTransformer( Metric ):
 	"""
 
@@ -190,6 +207,32 @@ class TfidfTransformer( Metric ):
 		return self.transformer.fit_transform( X ).toarray ()
 
 
+	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param documents: List of text documents.
+			:type documents: list[str]
+			:return: TF-IDF vectorized output.
+			:rtype: np.ndarray
+		"""
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfTransformer'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
 class TfidfVectorizer( Metric ):
 	"""
 
@@ -211,7 +254,7 @@ class TfidfVectorizer( Metric ):
 		self.vectorizer = sk.TfidfVectorizer( )
 
 
-	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -223,10 +266,21 @@ class TfidfVectorizer( Metric ):
 			:param documents: List of text documents.
 			:type documents: list[str]
 		"""
-		self.vectorizer.fit( documents )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.fit( documents )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def transform( self, documents: list[ str ] ) -> np.ndarray:
+	def transform( self, documents: list[ str ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -238,7 +292,18 @@ class TfidfVectorizer( Metric ):
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
-		return self.vectorizer.transform( documents ).toarray( )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def fit_transform( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
@@ -254,7 +319,44 @@ class TfidfVectorizer( Metric ):
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
-		return self.vectorizer.fit_transform( documents ).toarray( )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.fit_transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform documents to TF-IDF vectors.
+
+			:param documents: List of text documents.
+			:type documents: list[str]
+			:return: TF-IDF vectorized output.
+			:rtype: np.ndarray
+		"""
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.inverse_transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfVectorizer'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class CountVectorizer( Metric ):
@@ -277,7 +379,8 @@ class CountVectorizer( Metric ):
 		super( ).__init__( )
 		self.vectorizer = sk.CountVectorizer( )
 
-	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> None:
+
+	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -290,9 +393,21 @@ class CountVectorizer( Metric ):
 			:type documents: List[str]
 
 		"""
-		self.vectorizer.fit( documents )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.fit( documents )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CountVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
-	def transform( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+
+	def transform( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -300,16 +415,28 @@ class CountVectorizer( Metric ):
 			Transform documents into count vectors.
 
 			:param y:
-			:type y:
+			:type y: np.ndarray
 			:param documents: List of input text documents.
 			:type documents: List[str]
 			:return: Matrix of token counts.
 			:rtype: np.ndarray
 
 		"""
-		return self.vectorizer.transform( documents ).toarray( )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CountVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
-	def fit_transform( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray:
+
+	def fit_transform( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -324,7 +451,18 @@ class CountVectorizer( Metric ):
 			:rtype: np.ndarray
 
 		"""
-		return self.vectorizer.fit_transform( documents ).toarray( )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.fit_transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CountVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class HashingVectorizer( Metric ):
@@ -337,6 +475,7 @@ class HashingVectorizer( Metric ):
 
 	"""
 
+
 	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
@@ -344,13 +483,12 @@ class HashingVectorizer( Metric ):
 			---------
 			Initialize the HashingVectorizer with the desired number of features.
 
-			:param n_features: Number of features (columns) in the output vectors.
-			:type n_features: int
 		"""
 		super( ).__init__( )
 		self.vectorizer = sk.HashingVectorizer( n_features=num )
 
-	def transform( self, documents: List[ str ] ) -> np.ndarray:
+
+	def transform( self, documents: List[ str ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -362,4 +500,15 @@ class HashingVectorizer( Metric ):
 			:return: Matrix of hashed features.
 			:rtype: np.ndarray
 		"""
-		return self.vectorizer.transform( documents ).toarray( )
+		try:
+			if documents is None:
+				raise Exception( '"documents" cannot be None' )
+			else:
+				return self.vectorizer.transform( documents ).toarray( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'HasVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
