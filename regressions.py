@@ -1079,7 +1079,7 @@ class LassoRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 
@@ -1333,7 +1333,7 @@ class ElasticNetRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 
@@ -1582,7 +1582,7 @@ class LogisticRegressor( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -1842,7 +1842,7 @@ class BayesianRidgeRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -2098,7 +2098,7 @@ class StochasticDescentRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -2848,7 +2848,7 @@ class RandomForestRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -3270,7 +3270,7 @@ class AdaBoostRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Evaluates the Ridge model
@@ -3508,7 +3508,7 @@ class BaggingRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Evaluates the Ridge model
@@ -3737,7 +3737,7 @@ class VotingRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Evaluates the Ridge model
@@ -3980,7 +3980,7 @@ class StackRegression( Model ):
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Evaluates the Ridge model
@@ -4194,7 +4194,7 @@ class SupportVectorRegression:
 			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
