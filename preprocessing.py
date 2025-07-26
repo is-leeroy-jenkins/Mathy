@@ -138,6 +138,178 @@ class Processor( BaseModel ):
 		"""
 		return NotImplementedError
 
+
+class LabelBinarizer( BaseModel ):
+	"""
+
+		Purpose:
+		_______
+		Binarize labels in a one-vs-all fashion. Several regression and binary classification
+		algorithms are available in scikit-learn. A simple way to extend these algorithms to the
+		multi-class classification case is to use the so-called one-vs-all scheme.
+
+		At learning time, this simply consists in learning one regressor or binary classifier
+		per class. In doing so, one needs to convert multi-class labels to binary labels
+		(belong or does not belong to the class). LabelBinarizer makes this process easy
+		with the transform method.
+
+		At prediction time, one assigns the class for which the corresponding model gave
+		the greatest confidence. LabelBinarizer makes this easy with the inverse_transform method.
+
+
+	"""
+	label_binarizer: LabelBinarizer
+	transformed_data: np.ndarray | None
+
+	class Config:
+		arbitrary_types_allowed = True
+		extra = 'ignore'
+		allow_mutation = True
+
+	def __init__( self ) -> None:
+		"""
+
+		Purpose:
+		_______
+		Initializes the LabelBinarizerWrapper.
+
+		"""
+		super( ).__init__( )
+		self.label_binarizer = skp.LabelBinarizer( )
+		self.transformed_data = None
+
+
+
+	def fit( self, y: np.ndarray ) -> LabelBinarizer | None:
+		"""
+
+			Purpose:
+			_______
+			Fits the label binarizer on the input labels.
+
+			Args:
+				y (np.ndarray): Target labels for fitting.
+
+		"""
+		try:
+			if y is None:
+				raise Exception( '"y" cannot be None' )
+			else:
+				return self.label_binarizer.fit( y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelBinarizer'
+			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def transform( self, y: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			_______
+			Transforms labels into a binary format.
+
+			Args:
+				y (Union[List, np.ndarray]): Labels to encode.
+
+			Returns:
+				np.ndarray: Binary-encoded label matrix.
+		"""
+		try:
+			if y is None:
+				raise Exception( '"y" cannot be None' )
+			else:
+				return self.label_binarizer.transform( y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelBinarizer'
+			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def fit_transform( self, y: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			_______
+			Fits the encoder and transforms the input labels in one step.
+
+			Args:
+				y np.ndarray: Labels to fit and transform.
+
+			Returns:
+				np.ndarray: Binary-encoded label matrix.
+		"""
+		try:
+			if y is None:
+				raise Exception( '"y" cannot be None' )
+			else:
+				return self.label_binarizer.fit_transform( y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelBinarizer'
+			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def inverse_transform( self, y: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			_______
+			Converts binary matrix back to original labels.
+
+			Args:
+				y (np.ndarray): Binary-encoded label matrix.
+
+			Returns:
+				np.ndarray: Original labels.
+		"""
+		try:
+			if y is None:
+				raise Exception( '"y" cannot be None' )
+			else:
+				return self.label_binarizer.inverse_transform( y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelBinarizer'
+			exception.method = 'inverse_transform( self, y: np.ndarray, thresh: float=None ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def classes( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			_______
+			Returns the unique class labels.
+
+			Returns:
+				np.ndarray: Array of class labels.
+		"""
+		return self.encoder.classes_
+
+	def is_multilabel( self ) -> bool:
+		"""
+
+			Purpose:
+			_______
+			Checks whether the encoding corresponds to multilabel output.
+
+			Returns:
+				bool: True if multilabel format, False otherwise.
+		"""
+		return self.encoder.y_type_ == "multilabel-indicator"
+
+
 class TfidfTransformer( Processor ):
 	"""
 
@@ -1331,118 +1503,6 @@ class LabelEncoder( Processor ):
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-
-
-class LabelBinarizer( Processor ):
-	"""
-
-		Purpose:
-		_______
-		Wrapper class for scikit-learn's LabelBinarizer.
-
-		Provides methods for fitting, transforming, inverse transforming, and
-		examining the structure of binary-encoded labels.
-
-		Attributes:
-			encoder (LabelBinarizer): The internal scikit-learn LabelBinarizer instance.
-
-	"""
-
-	def __init__( self, **kwargs: Any ) -> None:
-		"""
-
-		Purpose:
-		_______
-		Initializes the LabelBinarizerWrapper.
-
-		Args:
-			**kwargs: Optional keyword arguments passed to sklearn.preprocessing.LabelBinarizer.
-		"""
-		super( ).__init__( )
-		self.encoder = skp.LabelBinarizer( **kwargs )
-
-	def fit( self, y: np.ndarray  ) -> None:
-		"""
-
-		Purpose:
-		_______
-		Fits the label binarizer on the input labels.
-
-		Args:
-			y (Union[List, np.ndarray]): Target labels for fitting.
-		"""
-		self.encoder.fit( y )
-
-	def transform( self, y: Union[ List, np.ndarray ] ) -> np.ndarray:
-		"""
-
-		Purpose:
-		_______
-		Transforms labels into a binary format.
-
-		Args:
-			y (Union[List, np.ndarray]): Labels to encode.
-
-		Returns:
-			np.ndarray: Binary-encoded label matrix.
-		"""
-		return self.encoder.transform( y )
-
-	def fit_transform( self, y: Union[ List, np.ndarray ] ) -> np.ndarray:
-		"""
-
-		Purpose:
-		_______
-		Fits the encoder and transforms the input labels in one step.
-
-		Args:
-			y (Union[List, np.ndarray]): Labels to fit and transform.
-
-		Returns:
-			np.ndarray: Binary-encoded label matrix.
-		"""
-		return self.encoder.fit_transform( y )
-
-	def inverse_transform( self, Y: np.ndarray, threshold: Optional[ float ] = None ) -> np.ndarray:
-		"""
-
-			Purpose:
-			_______
-			Converts binary matrix back to original labels.
-
-			Args:
-				Y (np.ndarray): Binary-encoded label matrix.
-				threshold (Optional[float]): Threshold for converting probabilities to class labels.
-
-			Returns:
-				np.ndarray: Original labels.
-		"""
-		return self.encoder.inverse_transform( Y, threshold = threshold )
-
-	def classes( self ) -> np.ndarray:
-		"""
-
-			Purpose:
-			_______
-			Returns the unique class labels.
-
-			Returns:
-				np.ndarray: Array of class labels.
-		"""
-		return self.encoder.classes_
-
-	def is_multilabel( self ) -> bool:
-		"""
-
-			Purpose:
-			_______
-			Checks whether the encoding corresponds to multilabel output.
-
-			Returns:
-				bool: True if multilabel format, False otherwise.
-		"""
-		return self.encoder.y_type_ == "multilabel-indicator"
-
 
 class PolynomialFeatures( Processor ):
 	"""
