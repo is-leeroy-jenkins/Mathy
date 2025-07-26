@@ -43,13 +43,14 @@
 from __future__ import annotations
 from booger import Error, ErrorDialog
 import numpy as np
-from typing import Optional, List
+from typing import Optional, List, Union, Any
 import sklearn.feature_extraction.text as sk
 import sklearn.preprocessing as skp
 import sklearn.impute as ski
 from pydantic import BaseModel
 
-class Metric( BaseModel ):
+
+class Processor( BaseModel ):
 	"""
 
 		Purpose:
@@ -70,7 +71,8 @@ class Metric( BaseModel ):
 		self.transformed_data = np.ndarray | None
 		self.transformed_values = [ ]
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -136,7 +138,7 @@ class Metric( BaseModel ):
 		"""
 		return NotImplementedError
 
-class TfidfTransformer( Metric ):
+class TfidfTransformer( Processor ):
 	"""
 
 		Purpose:
@@ -241,7 +243,7 @@ class TfidfTransformer( Metric ):
 			error.show( )
 
 
-class TfidfVectorizer( Metric ):
+class TfidfVectorizer( Processor ):
 	"""
 
 		Purpose:
@@ -369,7 +371,7 @@ class TfidfVectorizer( Metric ):
 			error.show( )
 
 
-class CountVectorizer( Metric ):
+class CountVectorizer( Processor ):
 	"""
 
 		Purpose:
@@ -477,7 +479,7 @@ class CountVectorizer( Metric ):
 			error.show( )
 
 
-class HashingVectorizer( Metric ):
+class HashingVectorizer( Processor ):
 	"""
 
 		Purpose:
@@ -528,7 +530,7 @@ class HashingVectorizer( Metric ):
 			error.show( )
 
 
-class StandardScaler( Metric ):
+class StandardScaler( Processor ):
 	"""
 
 		Purpose:
@@ -636,7 +638,7 @@ class StandardScaler( Metric ):
 			error.show( )
 
 
-class MinMaxScaler( Metric ):
+class MinMaxScaler( Processor ):
 	"""
 
 		Purpose:
@@ -742,7 +744,7 @@ class MinMaxScaler( Metric ):
 			error.show( )
 
 
-class RobustScaler( Metric ):
+class RobustScaler( Processor ):
 	"""
 
 		Purpose:
@@ -848,7 +850,7 @@ class RobustScaler( Metric ):
 			error.show( )
 
 
-class NormalScaler( Metric ):
+class NormalScaler( Processor ):
 	"""
 
 		Purpose:
@@ -927,7 +929,7 @@ class NormalScaler( Metric ):
 			error.show( )
 
 
-class OneHotEncoder( Metric ):
+class OneHotEncoder( Processor ):
 	"""
 
 		Purpose:
@@ -1069,7 +1071,7 @@ class OneHotEncoder( Metric ):
 			error.show( )
 
 
-class OrdinalEncoder( Metric ):
+class OrdinalEncoder( Processor ):
 	"""
 
 
@@ -1201,12 +1203,14 @@ class OrdinalEncoder( Metric ):
 			error.show( )
 
 
-class LabelEncoder( Metric ):
+class LabelEncoder( Processor ):
 	"""
 
 		Purpose:
 		--------
-		Wrapper for LabelEncoder.
+		Encode target labels with value between 0 and n_classes-1. This transformer should be
+		used to encode target values, i.e. y, and not the input X.
+
 	"""
 
 	def __init__( self ) -> None:
@@ -1329,7 +1333,118 @@ class LabelEncoder( Metric ):
 			error.show( )
 
 
-class PolynomialFeatures( Metric ):
+class LabelBinarizer( Processor ):
+	"""
+
+		Purpose:
+		_______
+		Wrapper class for scikit-learn's LabelBinarizer.
+
+		Provides methods for fitting, transforming, inverse transforming, and
+		examining the structure of binary-encoded labels.
+
+		Attributes:
+			encoder (LabelBinarizer): The internal scikit-learn LabelBinarizer instance.
+
+	"""
+
+	def __init__( self, **kwargs: Any ) -> None:
+		"""
+
+		Purpose:
+		_______
+		Initializes the LabelBinarizerWrapper.
+
+		Args:
+			**kwargs: Optional keyword arguments passed to sklearn.preprocessing.LabelBinarizer.
+		"""
+		super( ).__init__( )
+		self.encoder = skp.LabelBinarizer( **kwargs )
+
+	def fit( self, y: np.ndarray  ) -> None:
+		"""
+
+		Purpose:
+		_______
+		Fits the label binarizer on the input labels.
+
+		Args:
+			y (Union[List, np.ndarray]): Target labels for fitting.
+		"""
+		self.encoder.fit( y )
+
+	def transform( self, y: Union[ List, np.ndarray ] ) -> np.ndarray:
+		"""
+
+		Purpose:
+		_______
+		Transforms labels into a binary format.
+
+		Args:
+			y (Union[List, np.ndarray]): Labels to encode.
+
+		Returns:
+			np.ndarray: Binary-encoded label matrix.
+		"""
+		return self.encoder.transform( y )
+
+	def fit_transform( self, y: Union[ List, np.ndarray ] ) -> np.ndarray:
+		"""
+
+		Purpose:
+		_______
+		Fits the encoder and transforms the input labels in one step.
+
+		Args:
+			y (Union[List, np.ndarray]): Labels to fit and transform.
+
+		Returns:
+			np.ndarray: Binary-encoded label matrix.
+		"""
+		return self.encoder.fit_transform( y )
+
+	def inverse_transform( self, Y: np.ndarray, threshold: Optional[ float ] = None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			_______
+			Converts binary matrix back to original labels.
+
+			Args:
+				Y (np.ndarray): Binary-encoded label matrix.
+				threshold (Optional[float]): Threshold for converting probabilities to class labels.
+
+			Returns:
+				np.ndarray: Original labels.
+		"""
+		return self.encoder.inverse_transform( Y, threshold = threshold )
+
+	def classes( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			_______
+			Returns the unique class labels.
+
+			Returns:
+				np.ndarray: Array of class labels.
+		"""
+		return self.encoder.classes_
+
+	def is_multilabel( self ) -> bool:
+		"""
+
+			Purpose:
+			_______
+			Checks whether the encoding corresponds to multilabel output.
+
+			Returns:
+				bool: True if multilabel format, False otherwise.
+		"""
+		return self.encoder.y_type_ == "multilabel-indicator"
+
+
+class PolynomialFeatures( Processor ):
 	"""
 
 		Purpose:
@@ -1434,7 +1549,7 @@ class PolynomialFeatures( Metric ):
 			error.show( )
 
 
-class MeanImputer( Metric ):
+class MeanImputer( Processor ):
 	"""
 
 		Purpose:
@@ -1564,7 +1679,7 @@ class MeanImputer( Metric ):
 			error.show( )
 
 
-class NearestNeighborImputer( Metric ):
+class NearestNeighborImputer( Processor ):
 	"""
 
 		Purpose:
@@ -1669,7 +1784,7 @@ class NearestNeighborImputer( Metric ):
 			error.show( )
 
 
-class IterativeImputer( Metric ):
+class IterativeImputer( Processor ):
 	"""
 
 
@@ -1764,7 +1879,7 @@ class IterativeImputer( Metric ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SimpleImputer( Metric ):
+class SimpleImputer( Processor ):
 	"""
 
 		Wrapper for sklearn's SimpleImputer.
