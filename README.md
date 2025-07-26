@@ -164,6 +164,7 @@ ___
 | Class Name               | Description                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
 | Metric                   | Abstract base class for all preprocessors with methods like `fit`, `transform`, and `fit_transform`. |
+| LabelBinarizer           | Binarize labels in a one-vs-all fashion.                                  |            
 | TfidfTransformer         | Converts a count matrix to a normalized TF-IDF representation.              |
 | TfidfVectorizer          | Converts raw documents to TF-IDF features using vocabulary learning.        |
 | CountVectorizer          | Converts a collection of text documents to a matrix of token counts.        |
