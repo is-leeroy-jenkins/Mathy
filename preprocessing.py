@@ -141,8 +141,23 @@ class TfidfTransformer( Metric ):
 
 		Purpose:
 		---------
+		Transform a count matrix to a normalized tf or tf-idf representation. Tf means
+		term-frequency while tf-idf means term-frequency times inverse document-frequency.
+		This is a common term weighting scheme in information retrieval, that has also found good
+		use in document classification. The goal of using tf-idf instead of the raw frequencies of
+		occurrence of a token in a given document is to scale down the impact of tokens that occur
+		very frequently in a given corpus and that are hence empirically less informative than
+		features that occur in a small fraction of the training corpus.
 
-		Transform a count matrix to a normalized tf or tf-idf representation.
+		The formula that is used to compute the tf-idf for a term t of a document d in a
+		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
+		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
+		number of documents in the document set and df(t) is the document frequency of t;
+		the document frequency is the number of documents in the document set that contain
+		the term t. The effect of adding “1” to the idf in the equation above is that
+		terms with zero idf, i.e., terms that occur in all documents in a training set,
+		will not be entirely ignored. (Note that the idf formula above differs from the
+		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
 
 	"""
 
@@ -232,7 +247,9 @@ class TfidfVectorizer( Metric ):
 		Purpose:
 		---------
 
-		Convert a collection of raw documents to a matrix of TF-IDF features.
+		Convert a collection of raw documents to a matrix of TF-IDF features. Equivalent to
+		CountVectorizer followed by TfidfTransformer. Tf means term-frequency while tf–idf means
+		 term-frequency times inverse document-frequency:
 
 	"""
 
@@ -357,9 +374,12 @@ class CountVectorizer( Metric ):
 
 		Purpose:
 		---------
-		Wrapper for sklearn's CountVectorizer.
+		Convert a collection of text documents to a matrix of token counts. This implementation
+		produces a sparse representation of the counts using scipy.sparse.csr_matrix. If you do not
+		provide an a-priori dictionary and you do not use an analyzer that does some kind of
+		feature selection then the number of features will be equal to the vocabulary
+		size found by analyzing the data.
 
-		This class converts a collection of text documents to a matrix of token counts.
 	"""
 
 	def __init__( self ) -> None:
@@ -462,7 +482,12 @@ class HashingVectorizer( Metric ):
 
 		Purpose:
 		---------
-		Convert a collection of text documents to a matrix of token occurrences.
+		Convert a collection of text documents to a matrix of token occurrences. It turns a
+		collection of text documents into a scipy.sparse matrix holding token occurrence counts
+		(or binary occurrence information), possibly normalized as token frequencies
+		if norm=’l1’ or projected on the euclidean unit sphere if norm=’l2’. This text vectorizer
+		implementation uses the hashing trick to find the token string name to feature integer
+		index mapping.
 
 	"""
 
@@ -907,7 +932,17 @@ class OneHotEncoder( Metric ):
 
 		Purpose:
 		---------
-		Encodes categorical features as a one-hot numeric array.
+		Encode categorical features as a one-hot numeric array. The input to this transformer
+		should be an array-like of integers or strings, denoting the values taken on by categorical
+		(discrete) features. The features are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
+		encoding scheme. This creates a binary column for each category and returns a sparse
+		matrix or dense array (depending on the sparse_output parameter)
+
+		By default, the encoder derives the categories based on the unique values in each feature.
+		Alternatively, you can also specify the categories manually. This encoding is needed for
+		feeding categorical data to many scikit-learn estimators, notably linear models and SVMs
+		with the standard kernels. Note: a one-hot encoding of y labels should use a
+		LabelBinarizer instead.
 
 	"""
 
