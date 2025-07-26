@@ -921,8 +921,8 @@ class RobustScaler( Processor ):
 
 		Purpose:
 		--------
-		This Scaler wraps the RobustScaler and removes the median and scales
-		the data according to the quantile range (defaults to IQR: Interquartile Range).
+		This Scaler removes the median and scales the data according to the
+		quantile range (defaults to IQR: Interquartile Range).
 		The IQR is the range between the 1st quartile (25th quantile)
 		and the 3rd quartile (75th quantile).
 
