@@ -487,6 +487,9 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def export_excel( self, filename: str=None ) -> None:
+		pass
+
 
 class VarianceThreshold( ):
 	"""
