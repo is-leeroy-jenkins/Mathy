@@ -528,7 +528,7 @@ class Dataset( Model ):
 		"""
 		super( ).__init__( )
 		self.dataframe = df
-		self.data = df[ 1:, : ]
+		self.data = df.values
 		self.rows = len( df )
 		self.columns = len( df.columns )
 		self.target = target
