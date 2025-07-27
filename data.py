@@ -68,28 +68,27 @@ def entropy( p: float ) -> float | None:
 		with a probability or proportion of 'p'.
 
 		:param p:
-		:type p:
-		:return:
-		:rtype:
+		:type p: float
+		:return: entropy
+		:rtype: float | None
 	'''
 	if p is None:
 		raise Exception( 'Argument "p" cannot be None' )
 	else:
 		return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
 
-
 def gini_impurity( p: float ) -> float | None:
 	'''
 
-		Purpose:
-		--------
-		Method used to calculate the entropy of a numeric feature
-		with a probability or proportion of 'p'.
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability or proportion of 'p'.
 
-		:param p:
-		:type p:
-		:return:
-		:rtype:
+			:param p:
+			:type p: float
+			:return: impurity
+			:rtype: float | None
 	'''
 	if p is None:
 		raise Exception( 'Argument "p" cannot be None' )
@@ -105,15 +104,14 @@ def misclassification_error( p: float ) -> float | None:
 		with a probability or proportion of 'p'.
 
 		:param p:
-		:type p:
-		:return:
-		:rtype:
+		:type p: float
+		:return: error rate
+		:rtype: float | None
 	'''
 	if p is None:
 		raise Exception( 'Argument "p" cannot be None' )
 	else:
 		return 1 - np.max( [ p, 1 - p ] )
-
 
 class Dataset( ):
 	"""
