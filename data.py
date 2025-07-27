@@ -528,7 +528,7 @@ class Dataset( ):
 	transtuple: Optional[ List[ Tuple ] ]
 
 
-	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
+	def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
 		"""
 
 			Purpose:
@@ -555,13 +555,13 @@ class Dataset( ):
 		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = \
-		train_test_split( df.values, target, test_size=size, random_state=rando )[ 0 ]
+		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 0 ]
 		self.testing_data = \
-		train_test_split( df.values, target, test_size=size, random_state=rando )[ 1 ]
+		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 1 ]
 		self.training_values = \
-		train_test_split( df.values, target, test_size=size, random_state=rando )[ 2 ]
+		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 2 ]
 		self.testing_values = \
-		train_test_split( df.values, target, test_size=size, random_state=rando )[ 3 ]
+		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 3 ]
 		self.transtuple = None
 
 
