@@ -185,14 +185,14 @@ class Dataset( ):
 
 		"""
 		self.dataframe = df
-		self.data = df.values
+		self.data = df.to_numpy( )
 		self.rows = len( df )
 		self.columns = len( df.columns )
 		self.target = target
 		self.test_size = size
 		self.random_state = rando
 		self.features = [ column for column in df.columns ]
-		self.target_values = np.array( df[ target ].values )
+		self.target_values = df[ target ].to_numpy( )
 		self.numeric_columns = df.select_dtypes( include = [ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include = [ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = train_test_split( self.data, self.target_values,
