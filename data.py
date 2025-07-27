@@ -288,7 +288,6 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def calculate_categorical_statistics( self ) -> pd.DataFrame | None:
 		"""
 
@@ -311,7 +310,6 @@ class Dataset( ):
 			exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 	def create_pivot_table( self, df: pd.DataFrame, cols: List[ str ] ) -> pd.DataFrame | None:
 		'''
@@ -341,7 +339,6 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def calculate_variance( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
@@ -369,7 +366,6 @@ class Dataset( ):
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 	def calculate_skew( self, axes: int=0 ) -> pd.Series | None:
 		'''
@@ -400,7 +396,6 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def calculate_kurtosis( self, axes: int=0 ) -> pd.Series | None:
 		'''
 
@@ -428,22 +423,21 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
-	def calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+	def calculate_mean_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
-		Purpose:
-		--------
-		Return unbiased standard error of the mean over requested axis. Normalized by N-1 by default.
-		This can be changed using the degree argument.
+			Purpose:
+			--------
+			Return unbiased standard error of the mean over requested axis. Normalized by N-1 by default.
+			This can be changed using the degree argument.
 
 
-		:param dimension:
-		:type dimension:
-		:param degree:
-		:type degree:
-		:return:
-		:rtype:
+			:param axes:
+			:type axes: int
+			:param degree:
+			:type degree: int
+			:return: pd.Series
+			:rtype: pd.Series | None
 		'''
 		try:
 			if axes is None:
@@ -461,8 +455,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
-	def calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+	def calculate_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
 			Purpose:
