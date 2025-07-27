@@ -113,6 +113,7 @@ def misclassification_error( p: float ) -> float | None:
 	else:
 		return 1 - np.max( [ p, 1 - p ] )
 
+
 class Dataset( ):
 	"""
 
@@ -487,8 +488,31 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def export_excel( self, filename: str=None ) -> None:
-		pass
+	def export_excel( self, filepath: str=None ) -> None:
+		'''
+
+		Purpose:
+		--------
+		Exports dataframe to an Excel file.
+
+
+		:param filepath:
+		:type filepath:
+		:return:
+		:rtype:
+		'''
+		try:
+			if filepath is None:
+				raise Exception( 'Argument "filepath" cannot be None' )
+			else:
+				self.dataframe.to_excel( filepath )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'export_excel( self, filepath: str=None ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 class VarianceThreshold( ):
@@ -512,7 +536,6 @@ class VarianceThreshold( ):
 			:param threshold: Features with variance below this are removed.
 			:type threshold: float
 		"""
-		super( ).__init__( )
 		self.variance_selector = VarianceThreshold( threshold=thresh )
 		self.transformed_data = None
 
@@ -617,7 +640,6 @@ class CorrelationAnalysis( ):
 			:param n: Number of components.
 			:type n: int
 		"""
-		super( ).__init__( )
 		self.correlation_analysis = CCA( n_components=num )
 		self.transformed_data = None
 

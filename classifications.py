@@ -49,7 +49,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from pydantic import BaseModel
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import (
 	RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier,
@@ -57,17 +56,13 @@ from sklearn.ensemble import (
 from sklearn.linear_model import (
 	RidgeClassifier, SGDClassifier, Perceptron,
 )
-from sklearn.metrics import (accuracy_score, confusion_matrix,
-                             ConfusionMatrixDisplay, precision_score, f1_score, roc_auc_score,
-                             matthews_corrcoef, recall_score, classification_report)
-from sklearn.metrics import (
+from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report,
 	r2_score, mean_squared_error, mean_absolute_error,
 	explained_variance_score, median_absolute_error
 )
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import (StandardScaler, MinMaxScaler)
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
@@ -92,6 +87,8 @@ class Model(  ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self ):
 		pass
@@ -176,7 +173,7 @@ class Model(  ):
 		raise NotImplementedError
 
 
-class PerceptronClassifier( Model ):
+class PerceptronClassification( Model ):
 	"""
 
 
@@ -194,6 +191,7 @@ class PerceptronClassifier( Model ):
 			constant learning rate.
 
 	"""
+	perceptron_classifier: Perceptron
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -204,6 +202,8 @@ class PerceptronClassifier( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, reg: float=0.0001, max: int=1000, mix: bool=True ) -> None:
@@ -211,7 +211,7 @@ class PerceptronClassifier( Model ):
 
 			Purpose:
 			---------
-			Initialize the PerceptronClassifier linerar_model.
+			Initialize the PerceptronClassification linerar_model.
 
 
 			Parameters:
@@ -247,12 +247,12 @@ class PerceptronClassifier( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassification | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the PerceptronClassifier linerar_model.
+			Fit the PerceptronClassification linerar_model.
 
 			Parameters:
 			---------
@@ -275,7 +275,7 @@ class PerceptronClassifier( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'PerceptronClassification'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -286,7 +286,7 @@ class PerceptronClassifier( Model ):
 
 			Purpose:
 			---------
-			Predict binary class labels using the PerceptronClassifier.
+			Predict binary class labels using the PerceptronClassification.
 
 			Parameters:
 			---------
@@ -306,7 +306,7 @@ class PerceptronClassifier( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'PerceptronClassification'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -318,7 +318,7 @@ class PerceptronClassifier( Model ):
 
 			Purpose:
 			---------
-			Compute accuracy of the PerceptronClassifier classifier.
+			Compute accuracy of the PerceptronClassification classifier.
 
 			Parameters:
 			---------
@@ -342,7 +342,7 @@ class PerceptronClassifier( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'PerceptronClassification'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -400,7 +400,7 @@ class PerceptronClassifier( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'PerceptronClassification'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -466,6 +466,7 @@ class MultilayerClassification( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
+	multilayer_classifier: MLPClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -476,6 +477,8 @@ class MultilayerClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, hidden: tuple=(100,), activation='relu', solver='adam',
@@ -487,9 +490,9 @@ class MultilayerClassification( Model ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_classifier = MLPClassifier( hidden_layer_sizes=hidden,
-			activation=activation, solver=solver, alpha=alpha, learning_rate=learning,
-			random_state=42 )
+		self.multilayer_classifier = MLPClassifier( hidden_layer_sizes=self.hidden_layers,
+			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
+			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.pipeline = Pipeline( steps=list( hidden ) )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -540,7 +543,7 @@ class MultilayerClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = 'MultilayerClassification'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -724,6 +727,7 @@ class RidgeClassification( Model ):
 		distinct computational performance profiles.
 
 	"""
+	ridge_classifier: RidgeClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -734,6 +738,8 @@ class RidgeClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, alpha: float=1.0, solver: str='auto', max: int=1000,
 	              rando: int=42 ) -> None:
@@ -757,8 +763,8 @@ class RidgeClassification( Model ):
 		self.solver = solver
 		self.max_iter = max
 		self.random_state = rando
-		self.ridge_classifier = RidgeClassifier( alpha=alpha,
-			solver=solver, max_iter=max, random_state=rando )
+		self.ridge_classifier = RidgeClassifier( alpha=self.alpha,
+			solver=self.solver, max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -783,7 +789,7 @@ class RidgeClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeClassification | None:
 		"""
 
 
@@ -1001,6 +1007,7 @@ class StochasticDescentClassification( Model ):
 		 models and achieve online feature selection.
 
 	"""
+	stochastic_classifier: SGDClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -1011,6 +1018,8 @@ class StochasticDescentClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, loss: str='hinge', max: int=5, reg: str='l2' ) -> None:
 		"""
@@ -1030,8 +1039,8 @@ class StochasticDescentClassification( Model ):
 		self.loss = loss
 		self.max_iter = max
 		self.regularization = reg
-		self.stochastic_classifier = SGDClassifier( loss=loss,
-			max_iter=max, penalty=reg )
+		self.stochastic_classifier = SGDClassifier( loss=self.loss,
+			max_iter=self.max_iter, penalty=self.regularization )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1056,7 +1065,7 @@ class StochasticDescentClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticDescentClassification | None:
 		"""
 
 			Purpose:
@@ -1267,7 +1276,9 @@ class NearestNeighborClassification( Model ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
+	neighbor_classifier: KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
+	n_neighbors: Optional[ int ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -1277,6 +1288,8 @@ class NearestNeighborClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, num: int=5 ) -> None:
@@ -1295,8 +1308,9 @@ class NearestNeighborClassification( Model ):
 
 		"""
 		super( ).__init__( )
+		self.n_neighbors = num
 		self.neighbor_classifier = KNeighborsClassifier(
-			n_neighbors=num )
+			n_neighbors=self.n_neighbors )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1321,7 +1335,7 @@ class NearestNeighborClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborClassification | None:
 		"""
 
 			Purpose:
@@ -1535,6 +1549,7 @@ class DecisionTreeClassification( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
+	dt_classifier: DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -1545,6 +1560,8 @@ class DecisionTreeClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
@@ -1587,7 +1604,7 @@ class DecisionTreeClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeClassification | None:
 		"""
 
 			Purpose:
@@ -1823,6 +1840,8 @@ class RandomForestClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
@@ -1838,8 +1857,8 @@ class RandomForestClassification( Model ):
 		self.criterion = crit
 		self.max_depth = max
 		self.random_state = rando
-		self.random_forest_classifier = RandomForestClassifier(
-			n_estimators=est, criterion=crit, random_state=rando )
+		self.random_forest_classifier = RandomForestClassifier( n_estimators=self.n_estimators,
+			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1864,7 +1883,7 @@ class RandomForestClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestClassification | None:
 		"""
 
 			Purpose:
@@ -2075,6 +2094,7 @@ class GradientBoostingClassification( Model ):
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
 	"""
+	gradient_boost_classifier: GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -2085,6 +2105,8 @@ class GradientBoostingClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, lss: str='deviance', rate: int=0.1,
@@ -2110,8 +2132,9 @@ class GradientBoostingClassification( Model ):
 		self.n_estimators = est
 		self.max_depth = max
 		self.random_state = rando
-		self.gradient_boost_classifier = GradientBoostingClassifier( loss=lss,
-			learning_rate=rate, n_estimators=est, max_depth=max, random_state=rando )
+		self.gradient_boost_classifier = GradientBoostingClassifier( loss=self.loss,
+			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
+			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2135,7 +2158,7 @@ class GradientBoostingClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassification | None:
 		"""
 
 			Purpose:
@@ -2152,11 +2175,24 @@ class GradientBoostingClassification( Model ):
 				Pipeline
 
 		"""
-		self.gradient_boost_classifier.fit( X, y )
-		return self
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.gradient_boost_classifier.fit( X, y )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'GradientBoostClassification'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassification'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2172,8 +2208,19 @@ class GradientBoostingClassification( Model ):
 				np.ndarray: Predicted labels.
 
 		"""
-		self.prediction = self.gradient_boost_classifier.predict( X )
-		return self.prediction
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.prediction = self.gradient_boost_classifier.predict( X )
+				return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'GradientBoostClassification'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
@@ -2294,8 +2341,10 @@ class AdaBoostClassification( Model ):
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
+	ada_boost_classifier = AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
+	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -2305,6 +2354,8 @@ class AdaBoostClassification( Model ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, est: int=100, max: int=3 ) -> None:
 		"""
@@ -2341,7 +2392,7 @@ class AdaBoostClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostClassification | None:
 		"""
 
 			Purpose:
@@ -2545,6 +2596,7 @@ class BaggingClassification( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
+	bagging_classifier: BaggingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -2555,6 +2607,8 @@ class BaggingClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
@@ -2567,8 +2621,9 @@ class BaggingClassification( Model ):
 		self.n_estimators = num
 		self.max_features = max
 		self.random_state = rando
-		self.bagging_classifier = BaggingClassifier( n_estimators=num,
-			max_features=max, random_state=rando )
+		self.bagging_classifier = BaggingClassifier( estimator=self.base_estimator,
+			n_estimators=self.n_estimators, max_features=self.max_features,
+			random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2592,7 +2647,7 @@ class BaggingClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingClassification | None:
 		"""
 
 			Purpose:
@@ -2791,6 +2846,7 @@ class VotingClassification( Model ):
 		performing model in order to balance out their individual weaknesses.
 
 	"""
+	voting_classifier: VotingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -2802,6 +2858,8 @@ class VotingClassification( Model ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	estimators: List[ (str, object) ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, estimators: List[ (str, object) ], vote='hard' ) -> None:
@@ -2813,7 +2871,8 @@ class VotingClassification( Model ):
 		super( ).__init__( )
 		self.estimators = estimators
 		self.voting = vote
-		self.voting_classifier = VotingClassifier( estimators=estimators, voting=vote )
+		self.voting_classifier = VotingClassifier( estimators=self.estimators,
+			voting=self.voting )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2838,7 +2897,7 @@ class VotingClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingClassification | None:
 		"""
 
 			Purpose:
@@ -3038,6 +3097,9 @@ class StackClassification( Model ):
 		estimators using cross_val_predict.
 
 	"""
+	stacking_classifier: StackingClassifier
+	estimators: List[ Tuple[ str, ClassifierMixin ] ]
+	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -3048,6 +3110,8 @@ class StackClassification( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
 	              final: Optional[ ClassifierMixin ]=None ) -> None:
@@ -3059,8 +3123,8 @@ class StackClassification( Model ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_classifier = StackingClassifier( estimators=est,
-			final_estimator=final )
+		self.stacking_classifier = StackingClassifier( estimators=self.estimators,
+			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3084,7 +3148,7 @@ class StackClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StackClassification | None:
 		"""
 
 			Purpose:
@@ -3275,6 +3339,10 @@ class SupportVectorClassification:
 		Support Vector Classification (SVC).
 
 	"""
+	svc_classifier: SVC
+	kernel: str
+	regulation: float
+	degree: int
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -3285,8 +3353,10 @@ class SupportVectorClassification:
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
-	def __init__( self, kernel: str='rbf', C: float=1.0 ) -> None:
+	def __init__( self, kernel: str='rbf', C: float=1.0, degree: int=3 ) -> None:
 		"""
 		
 			Purpose:
@@ -3299,7 +3369,11 @@ class SupportVectorClassification:
 			:type C: float
 			
 		"""
-		self.svc_classifier = SVC( kernel=kernel, C=C )
+		self.kernel = kernel
+		self.regulation = C
+		self.degree = degree
+		self.svc_classifier = SVC( kernel=self.kernel, C=self.regulation,
+			random_state=self.random_state, degree=self.degree )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3324,7 +3398,7 @@ class SupportVectorClassification:
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassification | None:
 		"""
 		
 			Purpose:
@@ -3352,8 +3426,19 @@ class SupportVectorClassification:
 			:rtype: np.ndarray
 			
 		"""
-		self.prediction = self.svc_classifier.predict( X )
-		return self.prediction
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.prediction = self.svc_classifier.predict( X )
+				return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorClassification'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray '
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def score( self, X: np.ndarray, y_true: np.ndarray ) -> float | None:
@@ -3371,12 +3456,25 @@ class SupportVectorClassification:
 			:rtype: float
 			
 		"""
-		self.prediction = self.svc_classifier.predict( X )
-		self.accuracy = accuracy_score( y_true, self.prediction )
-		return self.accuracy
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" cannot be None')
+			elif y_true is None:
+				raise Exception( 'The argument "y_true" cannot be None')
+			else:
+				self.prediction = self.svc_classifier.predict( X )
+				self.accuracy = accuracy_score( y_true, self.prediction )
+				return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorClassification'
+			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
+			error = ErrorDialog( exception )
+			error.show( )
 
 
-	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> str:
+	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> str | None:
 		"""
 		
 			Purpose:
@@ -3393,8 +3491,21 @@ class SupportVectorClassification:
 			:rtype: str
 			
 		"""
-		self.prediction = self.svc_classifier.predict( X )
-		return classification_report( y_true, self.prediction )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" cannot be None' )
+			elif y_true is None:
+				raise Exception( 'The argument "y_true" cannot be None' )
+			else:
+				self.prediction = self.svc_classifier.predict( X )
+				return classification_report( y_true, self.prediction )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorClassification'
+			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None:
@@ -3412,11 +3523,24 @@ class SupportVectorClassification:
 			:type y_true: np.ndarray
 			
 		"""
-		self.prediction = self.svc_classifier.predict( X )
-		cm = confusion_matrix( y_true, self.prediction )
-		sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-		plt.xlabel( 'Predicted' )
-		plt.ylabel( 'Actual' )
-		plt.title( 'Confusion Matrix' )
-		plt.tight_layout( )
-		plt.show( )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" cannot be None' )
+			elif y_true is None:
+				raise Exception( 'The argument "y_true" cannot be None' )
+			else:
+				self.prediction = self.svc_classifier.predict( X )
+				cm = confusion_matrix( y_true, self.prediction )
+				sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
+				plt.xlabel( 'Predicted' )
+				plt.ylabel( 'Actual' )
+				plt.title( 'Confusion Matrix' )
+				plt.tight_layout( )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorClassification'
+			exception.method = 'create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )

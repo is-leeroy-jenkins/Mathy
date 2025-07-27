@@ -87,6 +87,8 @@ class Model( ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self ):
@@ -204,6 +206,8 @@ class MultilayerRegression( Model ):
 	activation_function: str
 	solver: str
 	hidden_layers: tuple
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, hidden: tuple=(100,), activ='relu', solver='adam',
@@ -457,6 +461,8 @@ class LinearRegressor( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self ) -> None:
@@ -483,6 +489,8 @@ class LinearRegressor( Model ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -722,6 +730,8 @@ class RidgeRegression( Model ):
 	alpha: float
 	max_iter: int
 	solver: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, alpha: float=1.0, solver: str='auto', max: int=1000,
@@ -1001,6 +1011,8 @@ class LassoRegression( Model ):
 	alpha: float
 	max_iter: int
 	solver: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, alph: float=1.0, max: int=500, rando: int=42 ) -> None:
@@ -1257,6 +1269,8 @@ class ElasticNetRegression( Model ):
 	alpha: float
 	max_iter: int
 	selection: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, alpha: float=1.0, ratio: float=0.5, max: int=200,
@@ -1528,6 +1542,8 @@ class LogisticRegressor( Model ):
 	alpha: float
 	max_iter: int
 	solver: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, c: float=1.0, penalty: str='l2', max: int=1000,
 	              solver: str='lbfgs' ) -> None:
@@ -1804,6 +1820,8 @@ class BayesianRidgeRegression( Model ):
 	max_iter: int
 	shape_lambda: float
 	scale_lambda: float
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, max: int=300, shape_alpha: float=1e-06,
@@ -2075,6 +2093,9 @@ class StochasticDescentRegression( Model ):
 	loss: str
 	max_iter: int
 	penalty: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+
 
 	def __init__( self, loss: str='hinge', max: int=5, penalty: str='l2' ) -> None:
 		"""
@@ -2334,6 +2355,8 @@ class NearestNeighborRegression( Model ):
 	algorithm: str
 	power: float
 	metric: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, num: int=5, algo: str='auto', p: float=2.0, metric: str='minkowski' ) -> None:
@@ -2602,6 +2625,8 @@ class DecisionTreeRegression( Model ):
 	splitter: str
 	max_depth: int
 	random_state: int
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, criterion='squared_error', splitter='best', depth=3,
@@ -2872,6 +2897,8 @@ class RandomForestRegression( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
@@ -3136,6 +3163,8 @@ class GradientBoostingRegression( Model ):
 	learning_rate: float
 	n_estimators: int
 	max_detpth: int
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, lss: str='deviance', rate: float=0.1,
@@ -3331,6 +3360,8 @@ class AdaBoostRegression( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, est: int=50, rando: int=42, loss: str='linear', learning: float=1.0 ) -> None:
@@ -3592,6 +3623,8 @@ class BaggingRegression( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
@@ -3839,6 +3872,8 @@ class VotingRegression( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 	def __init__( self, est: List[ (str, object) ], vot = 'hard' ) -> None:
 		"""
@@ -4087,6 +4122,8 @@ class StackRegression( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
 
 
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
