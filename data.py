@@ -520,10 +520,10 @@ class Dataset( ):
 	target_values: Optional[ List[ object ] ]
 	numeric_columns: Optional[ List[ str ] ]
 	text_columns: Optional[ List[ str ] ]
-	training_data: Optional[ pd.DataFrame ]
-	testing_data: Optional[ pd.DataFrame ]
+	training_data: Optional[ np.ndarray ]
+	testing_data: Optional[ np.ndarray ]
 	training_values: Optional[ np.ndarray ]
-	testing_data: Optional[ pd.DataFrame ]
+	testing_data: Optional[ np.ndarray ]
 	testing_values: Optional[ np.ndarray ]
 	transtuple: Optional[ List[ Tuple ] ]
 
