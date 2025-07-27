@@ -467,18 +467,18 @@ class Dataset( ):
 	def calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
-		Purpose:
-		--------
-		Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
-		This can be changed using the degree argument.
+			Purpose:
+			--------
+			Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
+			This can be changed using the degree argument.
 
 
-		:param dimension:
-		:type dimension:
-		:param degree:
-		:type degree:
-		:return:
-		:rtype:
+			:param axes:
+			:type axes: int
+			:param degree:
+			:type degree: int
+			:return: pd.Series
+			:rtype: pd.Series | None
 		'''
 		try:
 			if axes is None:
