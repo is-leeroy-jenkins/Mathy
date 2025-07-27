@@ -58,7 +58,7 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Tuple
 
 
-class Metric( BaseModel ):
+class Metric( ):
 	"""
 
 		Purpose:
@@ -70,16 +70,8 @@ class Metric( BaseModel ):
 	pipeline: Pipeline
 	transformed_data: np.ndarray
 
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
-
 	def __init__( self ):
-		super( ).__init__( )
-		self.pipeline = None
-		self.transformed_data = None
-
+		pass
 
 	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -145,7 +137,7 @@ class Metric( BaseModel ):
 			error.show( )
 
 
-class Model( BaseModel ):
+class Model( ):
 	"""
 
 		Purpose:
@@ -172,13 +164,8 @@ class Model( BaseModel ):
 	testing_values: Optional[ np.ndarray ]
 	transtuple: Optional[ List[ Tuple ] ]
 
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
-
 	def __init__( self ):
-		super( ).__init__( )
+		pass
 
 
 class VarianceThreshold( Metric ):
@@ -290,7 +277,7 @@ class CorrelationAnalysis( Metric ):
 
 	"""
 
-	def __init__( self, n: int=2 ) -> None:
+	def __init__( self, num: int=2 ) -> None:
 		"""
 
 			Purpose:
@@ -301,7 +288,7 @@ class CorrelationAnalysis( Metric ):
 			:type n: int
 		"""
 		super( ).__init__( )
-		self.correlation_analysis = CCA( n_components=n )
+		self.correlation_analysis = CCA( n_components=num )
 
 
 	def fit( self, X: np.ndarray, Y: np.ndarray ) -> object | None:
@@ -402,7 +389,7 @@ class ComponentAnalysis( Metric ):
 
 	"""
 
-	def __init__( self, num: int ) -> None:
+	def __init__( self, num: int=2 ) -> None:
 		"""
 
 			Purpose:

@@ -50,7 +50,7 @@ import sklearn.impute as ski
 from pydantic import BaseModel
 
 
-class Processor( BaseModel ):
+class Processor(  ):
 	"""
 
 		Purpose:
@@ -59,17 +59,8 @@ class Processor( BaseModel ):
 	    `fit_transform` methods.
 
 	"""
-
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
-
 	def __init__( self ):
-		super( ).__init__( )
-		self.pipeline = None
-		self.transformed_data = np.ndarray | None
-		self.transformed_values = [ ]
+		pass
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
@@ -105,7 +96,7 @@ class Processor( BaseModel ):
 		"""
 		raise NotImplementedError
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -139,7 +130,7 @@ class Processor( BaseModel ):
 		return NotImplementedError
 
 
-class LabelBinarizer( BaseModel ):
+class LabelBinarizer(  ):
 	"""
 
 		Purpose:
@@ -161,11 +152,6 @@ class LabelBinarizer( BaseModel ):
 	label_binarizer: LabelBinarizer
 	transformed_data: np.ndarray | None
 
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
-
 	def __init__( self ) -> None:
 		"""
 
@@ -174,7 +160,6 @@ class LabelBinarizer( BaseModel ):
 		Initializes the LabelBinarizerWrapper.
 
 		"""
-		super( ).__init__( )
 		self.label_binarizer = skp.LabelBinarizer( )
 		self.transformed_data = None
 
@@ -285,30 +270,6 @@ class LabelBinarizer( BaseModel ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def classes( self ) -> np.ndarray:
-		"""
-
-			Purpose:
-			_______
-			Returns the unique class labels.
-
-			Returns:
-				np.ndarray: Array of class labels.
-		"""
-		return self.encoder.classes_
-
-	def is_multilabel( self ) -> bool:
-		"""
-
-			Purpose:
-			_______
-			Checks whether the encoding corresponds to multilabel output.
-
-			Returns:
-				bool: True if multilabel format, False otherwise.
-		"""
-		return self.encoder.y_type_ == "multilabel-indicator"
-
 
 class TfidfTransformer( Processor ):
 	"""
@@ -345,7 +306,7 @@ class TfidfTransformer( Processor ):
 		super( ).__init__( )
 		self.transformer = sk.TfidfTransformer( )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
 
 			Purpose:
@@ -373,7 +334,7 @@ class TfidfTransformer( Processor ):
 		"""
 		return self.transformer.transform( X ).toarray( )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -438,7 +399,7 @@ class TfidfVectorizer( Processor ):
 		super( ).__init__( )
 		self.vectorizer = sk.TfidfVectorizer( )
 
-	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ] = None ) -> object | None:
+	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -489,7 +450,7 @@ class TfidfVectorizer( Processor ):
 			error.show( )
 
 	def fit_transform( self, documents: list[ str ],
-	                   y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	                   y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -566,7 +527,7 @@ class CountVectorizer( Processor ):
 		super( ).__init__( )
 		self.vectorizer = sk.CountVectorizer( )
 
-	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ] = None ) -> object | None:
+	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -593,7 +554,7 @@ class CountVectorizer( Processor ):
 			error.show( )
 
 	def transform( self, documents: List[ str ],
-	               y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -622,7 +583,7 @@ class CountVectorizer( Processor ):
 			error.show( )
 
 	def fit_transform( self, documents: List[ str ],
-	                   y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	                   y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -719,7 +680,7 @@ class StandardScaler( Processor ):
 		self.standard_scaler = skp.StandardScaler( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> StandardScaler | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> StandardScaler | None:
 		"""
 
 
@@ -826,7 +787,7 @@ class MinMaxScaler( Processor ):
 		self.minmax_scaler = skp.MinMaxScaler( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MinMaxScaler | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MinMaxScaler | None:
 		"""
 
 			Purpose:
@@ -1037,7 +998,7 @@ class NormalScaler( Processor ):
 		super( ).__init__( )
 		self.normal_scaler = skp.Normalizer( norm = norm )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> NormalScaler | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NormalScaler | None:
 		"""
 
 
@@ -1125,7 +1086,7 @@ class OneHotEncoder( Processor ):
 		self.hot_encoder = skp.OneHotEncoder( sparse_output = False, handle_unknown = unknown )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> OneHotEncoder | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OneHotEncoder | None:
 		"""
 
 
@@ -1191,7 +1152,7 @@ class OneHotEncoder( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1258,7 +1219,7 @@ class OrdinalEncoder( Processor ):
 		self.ordinal_encoder = skp.OrdinalEncoder( )
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> OrdinalEncoder | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OrdinalEncoder | None:
 		"""
 
 			Purpose:
@@ -1322,7 +1283,7 @@ class OrdinalEncoder( Processor ):
 			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1396,7 +1357,7 @@ class LabelEncoder( Processor ):
 		self.label_encoder = skp.LabelEncoder( )
 
 
-	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ] = None ) -> LabelEncoder | None:
+	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> LabelEncoder | None:
 		"""
 
 			Purpose:
@@ -1452,7 +1413,7 @@ class LabelEncoder( Processor ):
 
 
 	def fit_transform( self, labels: list[ str ],
-	                   y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	                   y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1580,7 +1541,7 @@ class PolynomialFeatures( Processor ):
 			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1752,7 +1713,7 @@ class NearestNeighborImputer( Processor ):
 		super( ).__init__( )
 		self.knn_imputer = ski.KNNImputer( )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
 
 			Purpose:
@@ -1815,7 +1776,7 @@ class NearestNeighborImputer( Processor ):
 			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1869,7 +1830,7 @@ class IterativeImputer( Processor ):
 		super( ).__init__( )
 		self.iterative_imputer = ski.IterativeImputer( max_iter = max, random_state = rando )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -1910,7 +1871,7 @@ class IterativeImputer( Processor ):
 		"""
 		return self.iterative_imputer.transform( X )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1962,7 +1923,7 @@ class SimpleImputer( Processor ):
 		super( ).__init__( )
 		self.simple_imputer = ski.SimpleImputer( strategy = strategy, fill_value = fill_value )
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -2012,7 +1973,7 @@ class SimpleImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
