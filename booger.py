@@ -45,10 +45,10 @@ import traceback
 import FreeSimpleGUI as sg
 from sys import exc_info
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional, Tuple, Dict, Any
 
 
-class Dark( BaseModel ):
+class Dark( ):
 	'''
 
         Constructor:
@@ -60,11 +60,6 @@ class Dark( BaseModel ):
 		Class representing the theme
 
     '''
-
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
 
 	def __init__( self ):
 		sg.theme( 'DarkGrey15' )
@@ -128,6 +123,12 @@ class Error( Exception ):
                 method: str=None, module: str=None )
 
     '''
+	error: Optional[ Exception ]
+	heading: Optional[ str ]
+	module: Optional[ str ]
+	info: Optional[ str ]
+	cause: Optional[ str ]
+	method: Optional[ str ]
 
 	def __init__( self, error: Exception, heading: str=None, cause: str=None,
 	              method: str=None, module: str=None ):
@@ -191,14 +192,13 @@ class ErrorDialog( Dark ):
             a single, optional argument 'error' of scaler Error
 
     '''
+	error: Optional[ Exception ]
+	heading: Optional[ str ]
+	module: Optional[ str ]
+	info: Optional[ str ]
+	cause: Optional[ str ]
+	method: Optional[ str ]
 
-	# Fields
-	error: Exception=None
-	heading: str=None
-	module: str=None
-	info: str=None
-	cause: str=None
-	method: str=None
 
 	def __init__( self, error: Error ):
 		super( ).__init__( )
@@ -217,12 +217,12 @@ class ErrorDialog( Dark ):
 		self.button_backcolor = sg.theme_button_color_background( )
 		self.button_forecolor = sg.theme_button_color_text( )
 		self.button_color = sg.theme_button_color( )
-		self.icon_path = r'/\resources\ico\ninja.ico'
+		self.icon_path = r'\resources\ico\ninja.ico'
 		self.theme_font = ('Roboto', 11)
 		self.scrollbar_color = '#755600'
 		sg.set_global_icon( icon = self.icon_path )
 		sg.set_options( font = self.theme_font )
-		sg.user_settings_save( 'Mathy', r'/\resources\theme' )
+		sg.user_settings_save( 'Mathy', r'\resources\theme' )
 		self.form_size = (500, 300)
 		self.error = error
 		self.heading = error.heading
@@ -311,7 +311,8 @@ class ErrorDialog( Dark ):
 		_window = sg.Window( r' Mathy', _layout,
 			icon=self.icon_path,
 			font=self.theme_font,
-			size=self.form_size )
+			size=self.form_size,
+			keep_on_top=True)
 
 		while True:
 			_event, _values = _window.read( )

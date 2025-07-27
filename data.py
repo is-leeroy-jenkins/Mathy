@@ -41,10 +41,12 @@
 ******************************************************************************************
 '''
 from argparse import ArgumentError
-import pandas as pd
 import numpy as np
-from typing import Optional, List, Dict, Union, Sequence
+import pandas
+import pandas as pd
+from typing import Optional, List, Dict, Tuple, Union, Sequence
 from pandas.core.common import random_state
+from pandas.core.reshape import pivot
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA
@@ -55,433 +57,7 @@ from sklearn.cross_decomposition import CCA
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List, Tuple
-
-
-class Metric( ):
-	"""
-
-		Purpose:
-		---------
-		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
-	    `fit_transform` methods.
-
-	"""
-	pipeline: Pipeline
-	transformed_data: np.ndarray
-
-	def __init__( self ):
-		pass
-
-	def fit( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
-
-			Purpose:
-			---------
-			Fits the preprocessor to the text df.
-
-			Parameters:
-			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (Optional[np.ndarray]): Optional target array.
-
-		"""
-		raise NotImplementedError
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Transforms the text df using the fitted preprocessor.
-
-			Parameters:
-			-----------
-			X (pd.DataFrame): Feature matrix.
-
-			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
-
-		"""
-		raise NotImplementedError
-
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Fits the preprocessor and then transforms the text df.
-
-			Parameters:
-			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (Optional[np.ndarray]): Optional target array.
-
-			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
-
-		"""
-		try:
-			self.fit( X, y )
-			return self.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Processor'
-			exception.method = ('fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray '
-			                    ']=None'
-			                    ') -> np.ndarray')
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-class Model( ):
-	"""
-
-		Purpose:
-		---------
-		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
-	    `fit_transform` methods.
-
-	"""
-	dataframe: pd.DataFrame
-	target: str
-	test_size: float
-	random_state: int
-	data: Optional[ np.ndarray ]
-	rows: Optional[ int ]
-	columns: Optional[ int ]
-	features: Optional[ List[ str ] ]
-	target_values: Optional[ List[ object ] ]
-	numeric_columns: Optional[ List[ str ] ]
-	text_columns: Optional[ List[ str ] ]
-	training_data: Optional[ pd.DataFrame ]
-	testing_data: Optional[ pd.DataFrame ]
-	training_values: Optional[ np.ndarray ]
-	testing_data: Optional[ pd.DataFrame ]
-	testing_values: Optional[ np.ndarray ]
-	transtuple: Optional[ List[ Tuple ] ]
-
-	def __init__( self ):
-		pass
-
-
-class VarianceThreshold( Metric ):
-	"""
-
-		Purpose:
-		---------
-		Wrapper for VarianceThreshold feature selector.
-	"""
-
-	def __init__( self, thresh: float=0.0 ) -> None:
-		"""
-
-			Purpose:
-			---------
-			Initialize VarianceThreshold.
-
-			:param threshold: Features with variance below this are removed.
-			:type threshold: float
-		"""
-		super( ).__init__( )
-		self.selector = VarianceThreshold( threshold=thresh )
-
-
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
-		"""
-
-			Purpose:
-			---------
-			Fit the variance threshold model.
-
-			:param X: Input feature matrix.
-			:type X: np.ndarray
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				self.selector.fit( X )
-				return self
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Apply variance threshold selection.
-
-			:param X: Feature matrix.
-			:type X: np.ndarray
-			:return: Reduced feature matrix.
-			:rtype: np.ndarray
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				self.transformed_data = self.selector.transform( X )
-				return self.transformed_data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = ''
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Fit and transform the data using variance thresholding.
-
-			:param X: Feature matrix.
-			:type X: np.ndarray
-			:return: Reduced feature matrix.
-			:rtype: np.ndarray
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				self.transformed_data = self.selector.fit_transform( X )
-				return self.transformed_data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = ''
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-class CorrelationAnalysis( Metric ):
-	"""
-
-		Wrapper for Canonical Correlation Analysis (CCA).
-
-	"""
-
-	def __init__( self, num: int=2 ) -> None:
-		"""
-
-			Purpose:
-			---------
-			Initialize CCA.
-
-			:param n: Number of components.
-			:type n: int
-		"""
-		super( ).__init__( )
-		self.correlation_analysis = CCA( n_components=num )
-
-
-	def fit( self, X: np.ndarray, Y: np.ndarray ) -> object | None:
-		"""
-
-			Purpose:
-			---------
-			Fit the CCA model to X and Y.
-
-			:param X: Feature matrix X.
-			:type X: np.ndarray
-			:param Y: Feature matrix Y.
-			:type Y: np.ndarray
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				return self.correlation_analysis.fit( X, Y )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray ] | None:
-		"""
-
-			Purpose:
-			---------
-			Apply the CCA transformation.
-
-			:param X: Feature matrix X.
-			:type X: np.ndarray
-			:param Y: Feature matrix Y.
-			:type Y: np.ndarray
-			:return: Transformed tuple (X_c, Y_c).
-			:rtype: tuple[np.ndarray, np.ndarray]
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			elif Y is None:
-				raise Exception( 'Argument "Y" is None' )
-			else:
-				return self.correlation_analysis.transform( X, Y )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = ''
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | None:
-		"""
-
-			Purpose:
-			---------
-			Fit and transform with CCA.
-
-			:param X: Feature matrix X.
-			:type X: np.ndarray
-			:param Y: Feature matrix Y.
-			:type Y: np.ndarray
-			:return: Transformed tuple (X_c, Y_c).
-			:rtype: tuple[np.ndarray, np.ndarray]
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			elif Y is None:
-				raise Exception( 'Argument "Y" is None' )
-			else:
-				return self.correlation_analysis.fit( X, Y ).transform( X, Y )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = ''
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-class ComponentAnalysis( Metric ):
-	"""
-
-		Purpose:
-		---------
-		Wrapper for Principal Component Analysis (PCA).
-
-	"""
-
-	def __init__( self, num: int=2 ) -> None:
-		"""
-
-			Purpose:
-			---------
-			Initialize PCA.
-
-			:param n_components: Number of components.
-			:type n_components: int
-
-		"""
-		super( ).__init__( )
-		self.component_analysis = PCA( n_components=num )
-
-
-	def fit( self, X: np.ndarray ) -> object | None:
-		"""
-
-			Purpose:
-			---------
-			Fit PCA to the input data.
-
-			:param X: Feature matrix.
-			:type X: np.ndarray
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				return self.component_analysis.fit( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = ''
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Apply PCA transformation.
-
-			:param X: Feature matrix.
-			:type X: np.ndarray
-			:return: Transformed matrix.
-			:rtype: np.ndarray
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				return self.component_analysis.transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Fit PCA and transform input data.
-
-			:param X: Feature matrix.
-			:type X: np.ndarray
-			:return: Transformed matrix.
-			:rtype: np.ndarray
-
-		"""
-		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				return self.component_analysis.fit_transform( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Data'
-			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-
+from booger import Error, ErrorDialog
 
 class Dataset( ):
 	"""
@@ -517,7 +93,7 @@ class Dataset( ):
 	rows: Optional[ int ]
 	columns: Optional[ int ]
 	features: Optional[ List[ str ] ]
-	target_values: Optional[ List[ object ] ]
+	target_values: Optional[ np.ndarray ]
 	numeric_columns: Optional[ List[ str ] ]
 	text_columns: Optional[ List[ str ] ]
 	training_data: Optional[ np.ndarray ]
@@ -526,9 +102,18 @@ class Dataset( ):
 	testing_data: Optional[ np.ndarray ]
 	testing_values: Optional[ np.ndarray ]
 	transtuple: Optional[ List[ Tuple ] ]
+	numeric_statistics: Optional[ pd.DataFrame ]
+	categorical_statistics: Optional[ pd.DataFrame ]
+	pivot_data: Optional[ pd.DataFrame ]
+	kurtosis: Optional[ pd.Series ]
+	skew: Optional[ pd.Series ]
+	variance: Optional[ pd.Series ]
+	standard_error: Optional[ pd.Series ]
+	standeard_deviation: Optional[ pd.Series ]
 
 
-	def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
+
+	def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
 		"""
 
 			Purpose:
@@ -552,17 +137,24 @@ class Dataset( ):
 		self.random_state = rando
 		self.features = [ column for column in df.columns ]
 		self.target_values = np.array( df[ target ].values )
-		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
+		self.numeric_columns = df.select_dtypes( include = [ 'number' ] ).columns.tolist( )
+		self.text_columns = df.select_dtypes( include = [ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = train_test_split( self.data, self.target_values,
-			test_size=self.test_size, random_state=self.random_state )[ 0 ]
+			test_size = self.test_size, random_state = self.random_state )[ 0 ]
 		self.testing_data = train_test_split( self.data, self.target_values,
-			test_size=self.test_size, random_state=self.random_state )[ 1 ]
+			test_size = self.test_size, random_state = self.random_state )[ 1 ]
 		self.training_values = train_test_split( self.data, self.target_values,
-			test_size=self.test_size, random_state=self.random_state )[ 2 ]
+			test_size = self.test_size, random_state = self.random_state )[ 2 ]
 		self.testing_values = train_test_split( self.data, self.target_values,
-			test_size=self.test_size, random_state=self.random_state )[ 3 ]
-		self.transtuple = None
+			test_size = self.test_size, random_state = self.random_state )[ 3 ]
+		self.transtuple = [ ]
+		self.numeric_statistics = None
+		self.categorical_statistics = None
+		self.skew = None
+		self.variance = None
+		self.kurtosis = None
+		self.standard_error = None
+		self.standeard_deviation = None
 
 
 	def __dir__( self ):
@@ -573,70 +165,15 @@ class Dataset( ):
 			This function retuns a list of strings (members of the class)
 
 		'''
-		return [ 'dataframe', 'rows', 'columns', 'target_values', 'split_data',
-		         'features', 'test_size', 'random_state', 'scale_data',
-		         'numeric_columns', 'text_columns', 'scaler', 'transtuple', 'create_testing_data',
-		         'calculate_statistics', 'create_training_data',
+		return [ 'dataframe', 'rows', 'columns', 'target_values',
+		         'features', 'test_size', 'random_state', 'categorical_statistics',
+		         'numeric_columns', 'text_columns', 'transtuple',
+		         'calculate_statistics', 'numeric_statistics',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
 		         'testing_values', 'transform_columns', 'calculate_entropy',
-		         'calculate_gini_impurity', 'calculate_misclassification_error']
-
-
-	def calculate_entropy( self, p: float ) -> float | None:
-		'''
-
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
-
-			:param p:
-			:type p:
-			:return:
-			:rtype:
-		'''
-		if p is None:
-			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
-
-
-	def calculate_gini_impurity( self, p: float ) -> float | None:
-		'''
-
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
-
-			:param p:
-			:type p:
-			:return:
-			:rtype:
-		'''
-		if p is None:
-			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return p * (1 - p) + (1 - p) * (1 - (1 - p))
-
-
-	def calculate_misclassification_error( self, p: float ) -> float | None:
-		'''
-
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
-
-			:param p:
-			:type p:
-			:return:
-			:rtype:
-		'''
-		if p is None:
-			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return 1 - np.max( [ p, 1 - p ] )
+		         'calculate_gini_impurity', 'calculate_misclassification_error',
+		         'create_pivot_table', 'calculate_skew', 'calculate_variance',
+		         'calculate_standard_error', 'calculate_standeard_deviation', 'calculate_kurtosis']
 
 
 	def transform_columns( self, name: str, encoder: object, columns: List[ str ] ) -> None:
@@ -661,7 +198,7 @@ class Dataset( ):
 			elif columns is None:
 				raise Exception( 'Arguent "columns" cannot be None' )
 			else:
-				_tuple = ( name, encoder, columns )
+				_tuple = (name, encoder, columns)
 				self.transtuple.append( _tuple )
 				self.column_transformer = ColumnTransformer( self.transtuple )
 				self.column_transformer.fit_transform( self.data )
@@ -673,56 +210,613 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def calculate_entropy( self, p: float ) -> float | None:
+		'''
 
-	def calculate_statistics( self ) -> pd.Series | None:
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability or proportion of 'p'.
+
+			:param p:
+			:type p:
+			:return:
+			:rtype:
+		'''
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
+
+	def calculate_gini_impurity( self, p: float ) -> float | None:
+		'''
+
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability or proportion of 'p'.
+
+			:param p:
+			:type p:
+			:return:
+			:rtype:
+		'''
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return p * (1 - p) + (1 - p) * (1 - (1 - p))
+
+	def calculate_misclassification_error( self, p: float ) -> float | None:
+		'''
+
+			Purpose:
+			--------
+			Method used to calculate the entropy of a numeric feature
+			with a probability or proportion of 'p'.
+
+			:param p:
+			:type p:
+			:return:
+			:rtype:
+		'''
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return 1 - np.max( [ p, 1 - p ] )
+
+	def calculate_numeric_statistics( self ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			-----------
-			Method calculating descriptive statistics.
+			Method calculating descriptive statistics for the datasets numeric columns.
 
 			Returns:
 			-----------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+			pd.DataFrame
 
 		"""
 		try:
-			statistics = self.dataframe.describe( )
-			return statistics
+			self.numeric_statistics = self.dataframe.describe(
+				percentiles = [ .1, .25, .5, .75, .9 ],
+				include = [ np.number ] )
+			return self.numeric_statistics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'Dataset'
-			exception.method = 'caluclate_statistics( ) -> Dict'
+			exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_categorical_statistics( self ) -> pd.DataFrame | None:
+		"""
+
+			Purpose:
+			-----------
+			Method calculating descriptive statistics for the datasets categorical columns.
+
+			Returns:
+			-----------
+			pd.DataFrame
+
+		"""
+		try:
+			self.categorical_statistics = self.dataframe.describe( include = [ object ] )
+			return self.categorical_statistics
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def create_pivot_table( self, df: pd.DataFrame, cols: List[ str ] ) -> pd.DataFrame | None:
+		'''
+
+			Purpose:
+			________
+			Create a spreadsheet-style pivot table as a DataFrame. The levels in the pivot table
+			will be stored in MultiIndex objects (hierarchical indexes) on the index and columns
+			of the result DataFrame.
+
+			:return: pivot table
+			:rtype: pd.DataFrame
+		'''
+		try:
+			if df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif cols is None:
+				raise Exception( 'Argument "cols" cannot be None' )
+			else:
+				self.pivot_table = pandas.pivot( data=df, columns=cols )
+				return self.pivot_table
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_variance( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+		'''
+
+		Purpose:
+		--------
+
+
+		:param dimension:
+		:type dimension:
+		:param degree:
+		:type degree:
+		:return:
+		:rtype:
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			else:
+				self.variance = self.dataframe.var( axis=axes, ddof=degree )
+				return self.variance
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_skew( self, axes: int=0 ) -> pd.Series | None:
+		'''
+
+		Purpose:
+		--------
+		Return unbiased skew over requested axis.
+
+
+		:param dimension:
+		:type dimension:
+		:param degree:
+		:type degree:
+		:return:
+		:rtype:
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			else:
+				self.skew = self.dataframe.skew( axis=axes )
+				return self.skew
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_kurtosis( self, axes: int=0 ) -> pd.Series | None:
+		'''
+
+		Purpose:
+		--------
+		Return unbiased skutosis over requested axis.
+
+
+		:param dimension:
+		:type dimension:
+		:param degree:
+		:type degree:
+		:return:
+		:rtype:
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			else:
+				self.kurtosis = self.dataframe.kurt( axis=axes )
+				return self.kurtosis
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+		'''
+
+		Purpose:
+		--------
+		Return unbiased standard error of the mean over requested axis.
+
+
+		:param dimension:
+		:type dimension:
+		:param degree:
+		:type degree:
+		:return:
+		:rtype:
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			else:
+				self.standard_error = self.dataframe.sem( axis=axes, ddof=degree )
+				return self.standard_error
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+		'''
+
+		Purpose:
+		--------
+		Return unbiased standard deviation over requested axis.
+
+
+		:param dimension:
+		:type dimension:
+		:param degree:
+		:type degree:
+		:return:
+		:rtype:
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			else:
+				self.standeard_deviation = self.dataframe.sem( axis = axes, ddof = degree )
+				return self.standeard_deviation
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def create_training_data( self ) -> Tuple[ np.ndarray, np.ndarray ] | None:
+class VarianceThreshold( ):
+	"""
+
+		Purpose:
+		---------
+		Wrapper for VarianceThreshold feature selector.
+	"""
+	variance_selector: VarianceThreshold
+	transformed_data: Optional[ np.ndarray ]
+
+
+	def __init__( self, thresh: float=0.0 ) -> None:
 		"""
 
 			Purpose:
-			-----------
-			Return the training features and labels.
+			---------
+			Initialize VarianceThreshold.
 
-			Returns:
-			-----------
-			Tuple[ np.ndarray, np.ndarray ]: ( training_data, training_values )
-
+			:param threshold: Features with variance below this are removed.
+			:type threshold: float
 		"""
-		return tuple( self.training_data, self.training_values )
+		super( ).__init__( )
+		self.variance_selector = VarianceThreshold( threshold=thresh )
+		self.transformed_data = None
 
 
-	def create_testing_data( self ) -> Tuple[ np.ndarray, np.ndarray ] | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
-			-----------
-			Return the test features and labels.
+			---------
+			Fit the variance threshold model.
 
-			Returns:
-			-----------
-			Tuple[ np.ndarray, np.ndarray ]: testing_data, testing_values
+			:param X: Input feature matrix.
+			:type X: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.variance_selector.fit( X )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Apply variance threshold selection.
+
+			:param X: Feature matrix.
+			:type X: np.ndarray
+			:return: Reduced feature matrix.
+			:rtype: np.ndarray
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.transformed_data = self.variance_selector.transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Fit and transform the data using variance thresholding.
+
+			:param X: Feature matrix.
+			:type X: np.ndarray
+			:return: Reduced feature matrix.
+			:rtype: np.ndarray
 
 		"""
-		return tuple( self.testing_data, self.testing_values )
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.transformed_data = self.variance_selector.fit_transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+class CorrelationAnalysis( ):
+	"""
+
+		Wrapper for Canonical Correlation Analysis (CCA).
+
+	"""
+	correlation_analysis: CCA
+	transformed_data: ( np.ndarray, np.ndarray )
+
+
+	def __init__( self, num: int=2 ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize CCA.
+
+			:param n: Number of components.
+			:type n: int
+		"""
+		super( ).__init__( )
+		self.correlation_analysis = CCA( n_components=num )
+		self.transformed_data = None
+
+
+	def fit( self, X: np.ndarray, Y: np.ndarray ) -> CCA | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the CCA model to X and Y.
+
+			:param X: Feature matrix X.
+			:type X: np.ndarray
+			:param Y: Feature matrix Y.
+			:type Y: np.ndarray
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.correlation_analysis.fit( X, Y )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'CorrelationAnalysis'
+			exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def transform( self, X: np.ndarray, Y: np.ndarray ) -> ( np.ndarray, np.ndarray ):
+		"""
+
+			Purpose:
+			---------
+			Apply the CCA transformation.
+
+			:param X: Feature matrix X.
+			:type X: np.ndarray
+			:param Y: Feature matrix Y.
+			:type Y: np.ndarray
+			:return: Transformed tuple (X_c, Y_c).
+			:rtype: tuple[np.ndarray, np.ndarray]
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			elif Y is None:
+				raise Exception( 'Argument "Y" is None' )
+			else:
+				self.transformed_data = self.correlation_analysis.transform( X, Y )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'CorrelationAnalysis'
+			exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def fit_transform( self, X: np.ndarray, y: np.ndarray ) ->  ( np.ndarray, np.ndarray ):
+		"""
+
+			Purpose:
+			---------
+			Fit and transform with CCA.
+
+			:param X: Feature matrix X.
+			:type X: np.ndarray
+			:param Y: Feature matrix Y.
+			:type Y: np.ndarray
+			:return: Transformed tuple (X_c, Y_c).
+			:rtype: tuple[np.ndarray, np.ndarray]
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			elif y is None:
+				raise Exception( 'Argument "Y" is None' )
+			else:
+				self.transformed_data = self.correlation_analysis.fit( X, y ).transform( X, y )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'CorrelationAnalysis'
+			exception.method = 'fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+class ComponentAnalysis( ):
+	"""
+
+		Purpose:
+		---------
+		Wrapper for Principal Component Analysis (PCA).
+
+	"""
+	component_analysis: PCA
+	transformed_data: Optional[ np.ndarray ]
+
+
+	def __init__( self, num: int=2 ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize PCA.
+
+			:param n_components: Number of components.
+			:type n_components: int
+
+		"""
+		super( ).__init__( )
+		self.component_analysis = PCA( n_components=num )
+		self.transformed_data = None
+
+
+	def fit( self, X: np.ndarray ) -> PCA | None:
+		"""
+
+			Purpose:
+			---------
+			Fit PCA to the input data.
+
+			:param X: Feature matrix.
+			:type X: np.ndarray
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.component_analysis.fit( X )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'ComponentAnalysis'
+			exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Apply PCA transformation.
+
+			:param X: Feature matrix.
+			:type X: np.ndarray
+			:return: Transformed matrix.
+			:rtype: np.ndarray
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.transformed_data = self.component_analysis.transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'ComponentAnalysis'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Fit PCA and transform input data.
+
+			:param X: Feature matrix.
+			:type X: np.ndarray
+			:return: Transformed matrix.
+			:rtype: np.ndarray
+
+		"""
+		try:
+			if X is None:
+				raise Exception( 'Argument "X" is None' )
+			else:
+				self.transformed_data = self.component_analysis.fit_transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'ComponentAnalysis'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
