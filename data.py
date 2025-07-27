@@ -551,17 +551,17 @@ class Dataset( ):
 		self.test_size = size
 		self.random_state = rando
 		self.features = [ column for column in df.columns ]
-		self.target_values = [ value for value in df[ target ].values ]
+		self.target_values = np.array( df[ target ].values )
 		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
-		self.training_data = \
-		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 0 ]
-		self.testing_data = \
-		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 1 ]
-		self.training_values = \
-		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 2 ]
-		self.testing_values = \
-		train_test_split( df.values, target, test_size=self.test_size, random_state=self.random_state )[ 3 ]
+		self.training_data = train_test_split( self.data, self.target_values,
+			test_size=self.test_size, random_state=self.random_state )[ 0 ]
+		self.testing_data = train_test_split( self.data, self.target_values,
+			test_size=self.test_size, random_state=self.random_state )[ 1 ]
+		self.training_values = train_test_split( self.data, self.target_values,
+			test_size=self.test_size, random_state=self.random_state )[ 2 ]
+		self.testing_values = train_test_split( self.data, self.target_values,
+			test_size=self.test_size, random_state=self.random_state )[ 3 ]
 		self.transtuple = None
 
 
