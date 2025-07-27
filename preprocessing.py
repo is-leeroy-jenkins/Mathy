@@ -59,6 +59,8 @@ class Processor(  ):
 	    `fit_transform` methods.
 
 	"""
+	transformed_data: np.ndarray | None
+
 	def __init__( self ):
 		pass
 
@@ -207,7 +209,8 @@ class LabelBinarizer(  ):
 			if y is None:
 				raise Exception( '"y" cannot be None' )
 			else:
-				return self.label_binarizer.transform( y )
+				self.transformed_data = self.label_binarizer.transform( y )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -234,7 +237,8 @@ class LabelBinarizer(  ):
 			if y is None:
 				raise Exception( '"y" cannot be None' )
 			else:
-				return self.label_binarizer.fit_transform( y )
+				self.transformed_data = self.label_binarizer.fit_transform( y )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -305,6 +309,7 @@ class TfidfTransformer( Processor ):
 		"""
 		super( ).__init__( )
 		self.transformer = sk.TfidfTransformer( )
+		self.transformed_data = None
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 		"""
@@ -332,7 +337,8 @@ class TfidfTransformer( Processor ):
 			:return: TF-IDF matrix.
 			:rtype: np.ndarray
 		"""
-		return self.transformer.transform( X ).toarray( )
+		self.transformed_data = self.transformer.transform( X ).toarray( )
+		return self.transformed_data
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
@@ -348,7 +354,8 @@ class TfidfTransformer( Processor ):
 			:return: TF-IDF matrix.
 			:rtype: np.ndarray
 		"""
-		return self.transformer.fit_transform( X ).toarray( )
+		self.transformed_data = self.transformer.fit_transform( X ).toarray( )
+		return self.transformed_data
 
 	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
 		"""
@@ -366,7 +373,8 @@ class TfidfTransformer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.transformer.transform( documents ).toarray( )
+				self.transformed_data = self.transformer.transform( documents ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -398,8 +406,9 @@ class TfidfVectorizer( Processor ):
 		"""
 		super( ).__init__( )
 		self.vectorizer = sk.TfidfVectorizer( )
+		self.transformed_data = None
 
-	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> TfidfVectorizer | None:
 		"""
 
 			Purpose:
@@ -415,7 +424,8 @@ class TfidfVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.fit( documents )
+				self.vectorizer.fit( documents )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -440,7 +450,8 @@ class TfidfVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.transform( documents ).toarray( )
+				self.transformed_data = self.vectorizer.transform( documents ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -468,7 +479,8 @@ class TfidfVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.fit_transform( documents ).toarray( )
+				self.transformed_data = self.vectorizer.fit_transform( documents ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -526,8 +538,10 @@ class CountVectorizer( Processor ):
 		"""
 		super( ).__init__( )
 		self.vectorizer = sk.CountVectorizer( )
+		self.transformed_data = None
 
-	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> object | None:
+
+	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
@@ -544,7 +558,8 @@ class CountVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.fit( documents )
+				self.vectorizer.fit( documents )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -573,7 +588,8 @@ class CountVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.transform( documents ).toarray( )
+				self.transformed_data = self.vectorizer.transform( documents ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -602,7 +618,8 @@ class CountVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.fit_transform( documents ).toarray( )
+				self.transformed_data = self.vectorizer.fit_transform( documents ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -653,7 +670,8 @@ class HashingVectorizer( Processor ):
 			if documents is None:
 				raise Exception( '"documents" cannot be None' )
 			else:
-				return self.vectorizer.transform( documents ).toarray( )
+				self.transformed_data = self.vectorizer.transform( documents ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -678,6 +696,7 @@ class StandardScaler( Processor ):
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.standard_scaler = skp.StandardScaler( )
+		self.transformed_data = None
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> StandardScaler | None:
@@ -785,6 +804,7 @@ class MinMaxScaler( Processor ):
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.minmax_scaler = skp.MinMaxScaler( )
+		self.transformed_data = None
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MinMaxScaler | None:
@@ -892,6 +912,7 @@ class RobustScaler( Processor ):
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.robust_scaler = skp.RobustScaler( )
+		self.transformed_data = None
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> RobustScaler | None:
@@ -917,6 +938,7 @@ class RobustScaler( Processor ):
 				raise Exception( 'The argument "X" is required!' )
 			else:
 				self.robust_scaler.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -947,7 +969,8 @@ class RobustScaler( Processor ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.robust_scaler.transform( X )
+				self.transformed_data = self.robust_scaler.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -973,7 +996,8 @@ class RobustScaler( Processor ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
-				return self.robust_scaler.inverse_transform( X ).toarray( )
+				self.transformed_data = self.robust_scaler.inverse_transform( X ).toarray( )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -990,13 +1014,14 @@ class NormalScaler( Processor ):
 		---------
 		Normalize samples individually to unit norm. Each sample (i.e. each row of the data matrix)
 		with at least one non zero component is rescaled independently of other samples
-		so that its norm (l1 or l2) equals one.
+		so that its regularlization (l1 or l2) equals one.
 
 	"""
 
-	def __init__( self, norm: str = 'l2' ) -> None:
+	def __init__( self, reg: str='l2' ) -> None:
 		super( ).__init__( )
-		self.normal_scaler = skp.Normalizer( norm = norm )
+		self.normal_scaler = skp.Normalizer( norm=reg )
+		self.transformed_data = None
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NormalScaler | None:
 		"""
@@ -1021,6 +1046,7 @@ class NormalScaler( Processor ):
 				raise Exception( 'The argument "X" is required!' )
 			else:
 				self.normal_scaler.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1052,7 +1078,8 @@ class NormalScaler( Processor ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.normal_scaler.transform( X )
+				self.transformed_data = self.normal_scaler.transform( X )
+				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1083,7 +1110,7 @@ class OneHotEncoder( Processor ):
 
 	def __init__( self, unknown: str = 'ignore' ) -> None:
 		super( ).__init__( )
-		self.hot_encoder = skp.OneHotEncoder( sparse_output = False, handle_unknown = unknown )
+		self.hot_encoder = skp.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OneHotEncoder | None:
@@ -1152,6 +1179,7 @@ class OneHotEncoder( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
@@ -1177,29 +1205,6 @@ class OneHotEncoder( Processor ):
 			exception.module = 'Mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-
-
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Transform documents to TF-IDF vectors.
-
-			:param X: np.ndarray
-		"""
-		try:
-			if X is None:
-				raise Exception( '"documents" cannot be None' )
-			else:
-				return self.vectorizer.inverse_transform( X ).toarray( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'OneHotEncoder'
-			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
