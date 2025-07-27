@@ -226,8 +226,7 @@ class Dataset( ):
 		         'numeric_columns', 'text_columns', 'transtuple',
 		         'calculate_statistics', 'numeric_statistics',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
-		         'testing_values', 'transform_columns', 'calculate_entropy',
-		         'calculate_gini_impurity', 'calculate_misclassification_error',
+		         'testing_values', 'transform_columns',
 		         'create_pivot_table', 'calculate_skew', 'calculate_variance',
 		         'calculate_standard_error', 'calculate_standeard_deviation', 'calculate_kurtosis']
 
@@ -291,6 +290,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def calculate_categorical_statistics( self ) -> pd.DataFrame | None:
 		"""
 
@@ -313,6 +313,7 @@ class Dataset( ):
 			exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def create_pivot_table( self, df: pd.DataFrame, cols: List[ str ] ) -> pd.DataFrame | None:
 		'''
@@ -342,6 +343,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def calculate_variance( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
@@ -370,20 +372,21 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def calculate_skew( self, axes: int=0 ) -> pd.Series | None:
 		'''
 
-		Purpose:
-		--------
-		Return unbiased skew over requested axis.
+			Purpose:
+			--------
+			Return unbiased skew over requested axis.
 
 
-		:param dimension:
-		:type dimension:
-		:param degree:
-		:type degree:
-		:return:
-		:rtype:
+			:param dimension:
+			:type dimension:
+			:param degree:
+			:type degree:
+			:return: pd.Series
+			:rtype: pd.Series | None
 		'''
 		try:
 			if axes is None:
@@ -399,18 +402,19 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def calculate_kurtosis( self, axes: int=0 ) -> pd.Series | None:
 		'''
 
-		Purpose:
-		--------
-		Return unbiased skutosis over requested axis.
+			Purpose:
+			--------
+			Return unbiased skutosis over requested axis.
 
 
-		:param axes:
-		:type axes: int
-		:return: pd.Series
-		:rtype: pd.Series | None
+			:param axes:
+			:type axes: int
+			:return: pd.Series
+			:rtype: pd.Series | None
 		'''
 		try:
 			if axes is None:
@@ -425,6 +429,7 @@ class Dataset( ):
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
@@ -456,6 +461,7 @@ class Dataset( ):
 			exception.method = 'calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
