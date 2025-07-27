@@ -513,7 +513,7 @@ class Dataset( ):
 	target: str
 	test_size: float
 	random_state: int
-	data: Optional[ np.ndarray ]
+	data: Optional[ pd.DataFrame ]
 	rows: Optional[ int ]
 	columns: Optional[ int ]
 	features: Optional[ List[ str ] ]
@@ -544,7 +544,7 @@ class Dataset( ):
 
 		"""
 		self.dataframe = df
-		self.data = df.values
+		self.data = df[ 1:, : ]
 		self.rows = len( df )
 		self.columns = len( df.columns )
 		self.target = target
