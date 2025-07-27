@@ -483,7 +483,7 @@ class ComponentAnalysis( Metric ):
 			error.show( )
 
 
-class Dataset( Model ):
+class Dataset( ):
 	"""
 
 		Purpose:
@@ -509,6 +509,23 @@ class Dataset( Model ):
 		testing_values
 
 	"""
+	dataframe: pd.DataFrame
+	target: str
+	test_size: float
+	random_state: int
+	data: Optional[ np.ndarray ]
+	rows: Optional[ int ]
+	columns: Optional[ int ]
+	features: Optional[ List[ str ] ]
+	target_values: Optional[ List[ object ] ]
+	numeric_columns: Optional[ List[ str ] ]
+	text_columns: Optional[ List[ str ] ]
+	training_data: Optional[ pd.DataFrame ]
+	testing_data: Optional[ pd.DataFrame ]
+	training_values: Optional[ np.ndarray ]
+	testing_data: Optional[ pd.DataFrame ]
+	testing_values: Optional[ np.ndarray ]
+	transtuple: Optional[ List[ Tuple ] ]
 
 
 	def __init__( self, df: pd.DataFrame, target: str, size: float=0.2, rando: int=42 ):
@@ -526,7 +543,6 @@ class Dataset( Model ):
 			rando (int): Seed for reproducibility.
 
 		"""
-		super( ).__init__( )
 		self.dataframe = df
 		self.data = df.values
 		self.rows = len( df )
