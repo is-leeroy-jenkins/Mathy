@@ -210,7 +210,7 @@ class Dataset( ):
 		self.variance = None
 		self.kurtosis = None
 		self.standard_error = None
-		self.standeard_deviation = None
+		self.standard_deviation = None
 
 
 	def __dir__( self ):
@@ -436,7 +436,8 @@ class Dataset( ):
 
 		Purpose:
 		--------
-		Return unbiased standard error of the mean over requested axis.
+		Return unbiased standard error of the mean over requested axis. Normalized by N-1 by default.
+		This can be changed using the degree argument.
 
 
 		:param dimension:
@@ -468,7 +469,8 @@ class Dataset( ):
 
 		Purpose:
 		--------
-		Return unbiased standard deviation over requested axis.
+		Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
+		This can be changed using the degree argument.
 
 
 		:param dimension:
@@ -484,8 +486,8 @@ class Dataset( ):
 			elif degree is None:
 				raise Exception( 'Argument "degree" cannot be None' )
 			else:
-				self.standeard_deviation = self.dataframe.sem( axis = axes, ddof = degree )
-				return self.standeard_deviation
+				self.standard_deviation = self.dataframe.std( axis=axes, ddof=degree )
+				return self.standard_deviation
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
