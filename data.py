@@ -513,7 +513,7 @@ class Dataset( ):
 	target: str
 	test_size: float
 	random_state: int
-	data: Optional[ pd.DataFrame ]
+	data: Optional[ np.ndarray ]
 	rows: Optional[ int ]
 	columns: Optional[ int ]
 	features: Optional[ List[ str ] ]
@@ -544,14 +544,14 @@ class Dataset( ):
 
 		"""
 		self.dataframe = df
-		self.data = df[ 1:, : ]
+		self.data = df.values
 		self.rows = len( df )
 		self.columns = len( df.columns )
 		self.target = target
 		self.test_size = size
 		self.random_state = rando
 		self.features = [ column for column in df.columns ]
-		self.target_values = [ value for value in df[ 1:, target ] ]
+		self.target_values = [ value for value in df[ target ].values ]
 		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = \
