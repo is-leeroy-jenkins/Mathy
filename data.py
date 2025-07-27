@@ -555,13 +555,13 @@ class Dataset( ):
 		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = \
-		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 0 ]
+		train_test_split( df.values, target, test_size=size, random_state=rando )[ 0 ]
 		self.testing_data = \
-		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 1 ]
+		train_test_split( df.values, target, test_size=size, random_state=rando )[ 1 ]
 		self.training_values = \
-		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 2 ]
+		train_test_split( df.values, target, test_size=size, random_state=rando )[ 2 ]
 		self.testing_values = \
-		train_test_split( df[ 1:, : ], target, test_size=size, random_state=rando )[ 3 ]
+		train_test_split( df.values, target, test_size=size, random_state=rando )[ 3 ]
 		self.transtuple = None
 
 
