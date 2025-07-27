@@ -4375,11 +4375,11 @@ class SupportVectorRegression:
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	kernel: str
-	C: float
+	regulation: float
 	epsilon: float
 
 
-	def __init__( self, kernel: str='rbf', c: float=1.0, epsilon: float=0.1 ) -> None:
+	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1 ) -> None:
 		"""
 
 			Purpose:
@@ -4395,9 +4395,9 @@ class SupportVectorRegression:
 
 		"""
 		self.kernel = kernel
-		self.C = c
+		self.regulation = C
 		self.epsilon = epsilon
-		self.svr_model = SVR( kernel=kernel, C=c, epsilon=epsilon )
+		self.svr_model = SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4415,7 +4415,7 @@ class SupportVectorRegression:
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy',
+		return [ 'prediction', 'kernel', 'regulation', 'epsilon', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
