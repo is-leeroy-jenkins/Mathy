@@ -45,17 +45,12 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Optional, Dict
-
-from pydantic import BaseModel
-
 from booger import Error, ErrorDialog
-from sklearn.cluster import (KMeans, DBSCAN, MeanShift, AffinityPropagation,
-                             SpectralClustering, AgglomerativeClustering,
-                             Birch, OPTICS)
+import sklearn.cluster as skc
 from sklearn.metrics import silhouette_score
 
 
-class Cluster( BaseModel ):
+class Cluster( ):
 	"""
 
 		Purpose:
@@ -64,14 +59,8 @@ class Cluster( BaseModel ):
 
 	"""
 
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
-
 	def __init__( self ):
-		super( ).__init__( )
-		self.pipeline = None
+		pass
 
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
@@ -175,6 +164,9 @@ class KMeansClustering( Cluster ):
 		significantly.
 
 	"""
+	kmeans_cluster: skc.KMeans
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
 
 	def __init__( self, num: int=8, rando: int=42 ) -> None:
 		"""
@@ -190,10 +182,12 @@ class KMeansClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.kmeans_cluster = KMeans( n_clusters=num, random_state=rando )
+		self.kmeans_cluster = skc.KMeans( n_clusters=num, random_state=rando )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> KMeansClustering | None:
 		"""
 
 			Purpose:
@@ -207,6 +201,7 @@ class KMeansClustering( Cluster ):
 		"""
 		try:
 			self.kmeans_cluster.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -233,7 +228,8 @@ class KMeansClustering( Cluster ):
 
 		"""
 		try:
-			return self.kmeans_cluster.predict( X )
+			self.prediction = self.kmeans_cluster.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -288,7 +284,7 @@ class KMeansClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input arguement "X" is required.' )
 			else:
-				labels = self.model.predict( X )
+				labels = self.kmeans_cluster.predict( X )
 				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
 				plt.title( "KMeans Cluster" )
 				plt.show( )
@@ -296,7 +292,7 @@ class KMeansClustering( Cluster ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'KMeansClustering'
-			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
+			exception.method = 'visualize( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -317,6 +313,9 @@ class DbscanClustering( Cluster ):
 		min_samples or lower eps indicate higher density necessary to form a cluster.
 
 	"""
+	db_scan: skc.DBSCAN
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
 
 	def __init__( self, eps: float=0.5, min: int=5 ) -> None:
 		"""
@@ -332,10 +331,12 @@ class DbscanClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = DBSCAN( eps=eps, min_samples=min )
+		self.model = skc.DBSCAN( eps=eps, min_samples=min )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> DbscanClustering | None:
 		"""
 
 			Purpose:
@@ -351,7 +352,8 @@ class DbscanClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.db_scan.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -381,7 +383,8 @@ class DbscanClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.fit_predict( X )
+				self.prediction = self.db_scan.fit_predict( X )
+				return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -412,7 +415,7 @@ class DbscanClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.db_scan.fit_predict( X )
 				return silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
 		except Exception as e:
 			exception = Error( e )
@@ -439,20 +442,20 @@ class DbscanClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'plasma' )
+				labels = self.db_scan.fit_predict( X )
+				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='plasma' )
 				plt.title( 'DBSCAN Cluster' )
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'DbscanClustering'
-			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class AgglomerativeClusteringModel( Cluster ):
+class AgglomerativeClustering( Cluster ):
 	"""
 
 		Purpose:
@@ -478,6 +481,9 @@ class AgglomerativeClusteringModel( Cluster ):
 		constraints are added between samples: it considers at each step all the possible merges.
 
 	"""
+	agg_cluster: skc.AgglomerativeClustering
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
 
 	def __init__( self, num: int = 2 ) -> None:
 		"""
@@ -492,10 +498,12 @@ class AgglomerativeClusteringModel( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = AgglomerativeClustering( n_clusters=num )
+		self.agg_cluster = skc.AgglomerativeClustering( n_clusters=num )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AgglomerativeClustering | None:
 		"""
 
 			Purpose:
@@ -511,7 +519,8 @@ class AgglomerativeClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.agg_cluster.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -541,7 +550,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.fit_predict( X )
+				return self.agg_cluster.fit_predict( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -571,7 +580,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.agg_cluster.fit_predict( X )
 				return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -599,7 +608,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.agg_cluster.fit_predict( X )
 				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'tab10' )
 				plt.title( 'Agglomerative Cluster' )
 				plt.show( )
@@ -612,7 +621,7 @@ class AgglomerativeClusteringModel( Cluster ):
 			error.show( )
 
 
-class SpectralClusteringModel( Cluster ):
+class SpectralClustering( Cluster ):
 	"""
 
 		Purpose:
@@ -630,8 +639,12 @@ class SpectralClusteringModel( Cluster ):
 		graph are a function of the gradient of the image.
 
 	"""
+	spectral_clustering: skc.SpectralClustering
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
 
-	def __init__( self, num: int = 8 ) -> None:
+
+	def __init__( self, num: int=8 ) -> None:
 		"""
 
 			Purpose:
@@ -644,10 +657,12 @@ class SpectralClusteringModel( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = SpectralClustering( n_clusters=num )
+		self.spectral_clustering = skc.SpectralClustering( n_clusters=num )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> SpectralClustering | None:
 		"""
 
 			Purpose:
@@ -663,7 +678,8 @@ class SpectralClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.spectral_clustering.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -694,7 +710,8 @@ class SpectralClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.fit_predict( X )
+				self.prediction = self.spectral_clustering.fit_predict( X )
+				return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -724,7 +741,7 @@ class SpectralClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.spectral_clustering.fit_predict( X )
 				return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -751,7 +768,7 @@ class SpectralClusteringModel( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.spectral_clustering.fit_predict( X )
 				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Accent' )
 				plt.title( 'Spectral Cluster' )
 				plt.show( )
@@ -784,6 +801,10 @@ class MeanShiftClustering( Cluster ):
 		however the algorithm will stop iterating when the change in centroids is small.
 
 	"""
+	mean_shift: skc.MeanShift
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+
 
 	def __init__( self ) -> None:
 		"""
@@ -794,7 +815,9 @@ class MeanShiftClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = MeanShift( )
+		self.mean_shift = skc.MeanShift( )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
@@ -813,7 +836,7 @@ class MeanShiftClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.mean_shift.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -843,7 +866,8 @@ class MeanShiftClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.fit_predict( X )
+				self.prediction = self.mean_shift.fit_predict( X )
+				return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -873,7 +897,7 @@ class MeanShiftClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.mean_shift.fit_predict( X )
 				return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -900,7 +924,7 @@ class MeanShiftClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.mean_shift.fit_predict( X )
 				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Set1' )
 				plt.title( 'MeanShift Cluster' )
 				plt.show( )
@@ -927,6 +951,10 @@ class AffinityPropagationClustering( Cluster ):
 		and hence the final clustering is given.
 
 	"""
+	affinity_propagation: skc.AffinityPropagation
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+
 
 	def __init__( self ) -> None:
 		"""
@@ -937,10 +965,12 @@ class AffinityPropagationClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = AffinityPropagation( )
+		self.affinity_propagation = skc.AffinityPropagation( )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AffinityPropagationClustering | None:
 		"""
 
 			Purpose:
@@ -956,7 +986,7 @@ class AffinityPropagationClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.affinity_propagation.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -986,7 +1016,7 @@ class AffinityPropagationClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.fit( X ).labels_
+				return self.affinity_propagation.fit( X ).labels_
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1016,7 +1046,7 @@ class AffinityPropagationClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit( X ).labels_
+				labels = self.affinity_propagation.fit( X ).labels_
 				return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -1043,8 +1073,8 @@ class AffinityPropagationClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit( X ).labels_
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Paired' )
+				labels = self.affinity_propagation.fit( X ).labels_
+				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
 				plt.title( 'AffinityPropagation Cluster' )
 				plt.show( )
 		except Exception as e:
@@ -1080,8 +1110,12 @@ class BirchClustering( Cluster ):
 		mapped to the global label of the nearest subcluster.
 
 	"""
+	birch_clustering: skc.Birch
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
 
-	def __init__( self, n_clusters: Optional[ int ]=None ) -> None:
+
+	def __init__( self, num: int=3 ) -> None:
 		"""
 
 			Purpose:
@@ -1094,10 +1128,12 @@ class BirchClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = Birch( n_clusters=n_clusters )
+		self.birch_clustering = skc.Birch( n_clusters=num )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> BirchClustering | None:
 		"""
 
 			Purpose:
@@ -1113,7 +1149,8 @@ class BirchClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.birch_clustering.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1143,7 +1180,8 @@ class BirchClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.predict( X )
+				self.prediction = self.birch_clustering.predict( X )
+				return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1173,7 +1211,7 @@ class BirchClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.predict( X )
+				labels = self.birch_clustering.predict( X )
 				return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -1200,7 +1238,7 @@ class BirchClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.predict( X )
+				labels = self.birch_clustering.predict( X )
 				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Dark2' )
 				plt.title( 'Birch Cluster' )
 				plt.show( )
@@ -1231,8 +1269,12 @@ class OpticsClustering( Cluster ):
 		each point to find other potential reachable points.
 
 	"""
+	optics_clustering: skc.OPTICS
+	prediction: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
 
-	def __init__( self, min: int = 5 ) -> None:
+
+	def __init__( self, min: int=5 ) -> None:
 		"""
 
 			Purpose:
@@ -1245,10 +1287,12 @@ class OpticsClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = OPTICS( min_samples=min )
+		self.optics_clustering = skc.OPTICS( min_samples=min )
+		self.prediction = None
+		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OpticsClustering | None:
 		"""
 
 			Purpose:
@@ -1264,7 +1308,8 @@ class OpticsClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				self.model.fit( X )
+				self.optics_clustering.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1294,7 +1339,8 @@ class OpticsClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				return self.model.fit_predict( X )
+				self.prediction = self.optics_clustering.fit_predict( X )
+				return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1325,7 +1371,7 @@ class OpticsClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.optics_clustering.fit_predict( X )
 				return silhouette_score( X, labels )
 		except Exception as e:
 			exception = Error( e )
@@ -1352,7 +1398,7 @@ class OpticsClustering( Cluster ):
 			if X is None:
 				raise Exception( 'The input argument "X" is required.' )
 			else:
-				labels = self.model.fit_predict( X )
+				labels = self.optics_clustering.fit_predict( X )
 				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'rainbow' )
 				plt.title( 'OPTICS Cluster' )
 				plt.show( )

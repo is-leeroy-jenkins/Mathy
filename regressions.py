@@ -71,7 +71,7 @@ from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from booger import Error, ErrorDialog
 
-class Model( BaseModel ):
+class Model( ):
 	"""
 
 		Purpose:
@@ -88,13 +88,10 @@ class Model( BaseModel ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
 
 	def __init__( self ):
-		super( ).__init__( )
+		pass
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -416,7 +413,7 @@ class MultilayerRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.predict( X )
+				self.prediction = self.multilayer_regressor.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
@@ -556,7 +553,7 @@ class LinearRegressor( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.prediction = self.linerar_regressor.predict( X )
+				self.prediction = self.linear_regressor.predict( X )
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -671,7 +668,7 @@ class LinearRegressor( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.linerar_regressor.predict( X )
+				self.prediction = self.linear_regressor.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
@@ -903,6 +900,7 @@ class RidgeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.ridge_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -952,7 +950,7 @@ class RidgeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.predict( X )
+				self.prediction = self.ridge_regressor.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
@@ -1168,6 +1166,7 @@ class LassoRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.lasso_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1212,7 +1211,7 @@ class LassoRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.predict( X )
+				self.prediction = self.lasso_regressor.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
@@ -1334,7 +1333,7 @@ class ElasticNetRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.elasticnet_model.fit( X, y )
+				self.elasticnet_regressor.fit( X, y )
 				return self
 		except Exception as e:
 			exception = Error( e )
@@ -1366,7 +1365,7 @@ class ElasticNetRegression( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.prediction = self.elasticnet_model.predict( X )
+				self.prediction = self.elasticnet_regressor.predict( X )
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1399,7 +1398,7 @@ class ElasticNetRegression( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.prediction = self.elasticnet_model.predict( X )
+				self.prediction = self.elasticnet_regressor.predict( X )
 				self.accuracy = r2_score( y, self.prediction )
 				return self.accuracy
 		except Exception as e:
@@ -1436,6 +1435,7 @@ class ElasticNetRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.elasticnet_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1480,7 +1480,7 @@ class ElasticNetRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.predict( X )
+				self.prediction = self.elasticnet_regressor.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
@@ -1705,6 +1705,7 @@ class LogisticRegressor( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.logistic_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1972,6 +1973,7 @@ class BayesianRidgeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.bayesian_ridge_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -2238,6 +2240,7 @@ class StochasticDescentRegression( Model ):
 		try:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
+				self.prediction = self.stochastic_regressor.predict( X )
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
@@ -2505,6 +2508,7 @@ class NearestNeighborRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.neighbor_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -2766,6 +2770,7 @@ class DecisionTreeRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.dt_regresssor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3039,6 +3044,7 @@ class RandomForestRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.random_forest_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3494,6 +3500,7 @@ class AdaBoostRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.ada_boost_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3747,6 +3754,7 @@ class BaggingRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.bagging_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3992,6 +4000,7 @@ class VotingRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.voting_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -4000,14 +4009,14 @@ class VotingRegression( Model ):
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -4248,6 +4257,7 @@ class StackRegression( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.stacking_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -4478,6 +4488,7 @@ class SupportVectorRegression:
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.svr_model.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -4486,14 +4497,14 @@ class SupportVectorRegression:
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+				{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -4522,8 +4533,8 @@ class SupportVectorRegression:
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				y_pred = self.svr_model.predict( X )
-				plt.scatter( y, y_pred, color = 'blue', edgecolor = 'k' )
+				self.prediction = self.svr_model.predict( X )
+				plt.scatter( y, self.prediction, color = 'blue', edgecolor = 'k' )
 				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.xlabel( "True Values" )
 				plt.ylabel( "Predicted Values" )

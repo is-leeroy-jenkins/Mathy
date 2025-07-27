@@ -74,7 +74,7 @@ from sklearn.tree import DecisionTreeClassifier
 from booger import Error, ErrorDialog
 
 
-class Model( BaseModel ):
+class Model(  ):
 	"""
 
 		Purpose:
@@ -93,14 +93,8 @@ class Model( BaseModel ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 
-	class Config:
-		arbitrary_types_allowed = True
-		extra = 'ignore'
-		allow_mutation = True
-
 	def __init__( self ):
-		super( ).__init__( )
-		self.pipeline = None
+		pass
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -385,6 +379,7 @@ class PerceptronClassifier( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.perceptron_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -551,7 +546,7 @@ class MultilayerClassification( Model ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
 
@@ -572,7 +567,7 @@ class MultilayerClassification( Model ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.prediction = self.pipeline.transform( X )
+				self.prediction = self.multilayer_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -642,6 +637,7 @@ class MultilayerClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.multilayer_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -811,7 +807,7 @@ class RidgeClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.ridge_regressor.fit( X, y )
+				self.ridge_classifier.fit( X, y )
 				return self
 		except Exception as e:
 			exception = Error( e )
@@ -820,6 +816,7 @@ class RidgeClassification( Model ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
+
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -913,6 +910,7 @@ class RidgeClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.ridge_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -963,7 +961,7 @@ class RidgeClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.predict( X )
+				self.prediction = self.ridge_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
 				plt.xlabel( 'Predicted' )
@@ -1187,6 +1185,7 @@ class StochasticDescentClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.stochastic_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1412,7 +1411,8 @@ class NearestNeighborClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				return r2_score( y, self.neighbor_classifier.predict( X ) )
+				self.prediction = self.neighbor_classifier.predict( X )
+				return r2_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1454,6 +1454,7 @@ class NearestNeighborClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.neighbor_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1720,6 +1721,7 @@ class DecisionTreeClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.dt_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1988,6 +1990,7 @@ class RandomForestClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.random_forest_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -2196,7 +2199,7 @@ class GradientBoostingClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.random_forest_classifier.predict( X )
+				self.prediction = self.gradient_boost_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
 		except Exception as e:
@@ -2230,6 +2233,7 @@ class GradientBoostingClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.gradient_boost_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -2335,34 +2339,6 @@ class AdaBoostClassification( Model ):
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
-
-	def scale( self ) -> None:
-		"""
-
-			Purpose:
-			-----------
-			Scale numeric features using selected scaler.
-
-
-		"""
-		if self.scaler_type is None:
-			return
-
-		scaler = \
-		{
-			'standard': StandardScaler( ),
-			'minmax': MinMaxScaler( )
-		}.get( self.scaler_type )
-
-		if scaler is None:
-			raise ValueError( 'Scaler must be standard or minmax.' )
-
-		scaled_array = scaler.fit_transform( self.X[ self.numeric_features ] )
-		scaled_df = pd.DataFrame( scaled_array, columns=self.numeric_features,
-			index=self.X.index )
-
-		# Combine scaled numeric with untouched categorical
-		self.X_scaled = pd.concat( [ scaled_df, self.X[ self.categorical_features ] ], axis = 1 )
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
@@ -2485,6 +2461,7 @@ class AdaBoostClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.ada_boost_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -2613,6 +2590,7 @@ class BaggingClassification( Model ):
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2845,6 +2823,7 @@ class VotingClassification( Model ):
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
 
+
 	def __dir__( self ) -> List[ str ]:
 		'''
 
@@ -2857,6 +2836,7 @@ class VotingClassification( Model ):
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -2978,6 +2958,7 @@ class VotingClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.voting_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3102,6 +3083,7 @@ class StackClassification( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
 
+
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
@@ -3221,6 +3203,7 @@ class StackClassification( Model ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.stacking_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3316,7 +3299,7 @@ class SupportVectorClassification:
 			:type C: float
 			
 		"""
-		self.svc_model = SVC( kernel=kernel, C=C )
+		self.svc_classifier = SVC( kernel=kernel, C=C )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3353,7 +3336,7 @@ class SupportVectorClassification:
 			:param y: Target labels.
 			:type y: np.ndarray
 		"""
-		self.svc_model.fit( X, y )
+		self.svc_classifier.fit( X, y )
 
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
@@ -3369,7 +3352,7 @@ class SupportVectorClassification:
 			:rtype: np.ndarray
 			
 		"""
-		self.prediction = self.svc_model.predict( X )
+		self.prediction = self.svc_classifier.predict( X )
 		return self.prediction
 
 
@@ -3388,7 +3371,7 @@ class SupportVectorClassification:
 			:rtype: float
 			
 		"""
-		self.prediction = self.svc_model.predict( X )
+		self.prediction = self.svc_classifier.predict( X )
 		self.accuracy = accuracy_score( y_true, self.prediction )
 		return self.accuracy
 
@@ -3410,7 +3393,7 @@ class SupportVectorClassification:
 			:rtype: str
 			
 		"""
-		self.prediction = self.svc_model.predict( X )
+		self.prediction = self.svc_classifier.predict( X )
 		return classification_report( y_true, self.prediction )
 
 
@@ -3429,7 +3412,7 @@ class SupportVectorClassification:
 			:type y_true: np.ndarray
 			
 		"""
-		self.prediction = self.svc_model.predict( X )
+		self.prediction = self.svc_classifier.predict( X )
 		cm = confusion_matrix( y_true, self.prediction )
 		sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 		plt.xlabel( 'Predicted' )
