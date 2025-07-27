@@ -59,6 +59,62 @@ from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
 
+def entropy( p: float ) -> float | None:
+	'''
+
+		Purpose:
+		--------
+		Method used to calculate the entropy of a numeric feature
+		with a probability or proportion of 'p'.
+
+		:param p:
+		:type p:
+		:return:
+		:rtype:
+	'''
+	if p is None:
+		raise Exception( 'Argument "p" cannot be None' )
+	else:
+		return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
+
+
+def gini_impurity( p: float ) -> float | None:
+	'''
+
+		Purpose:
+		--------
+		Method used to calculate the entropy of a numeric feature
+		with a probability or proportion of 'p'.
+
+		:param p:
+		:type p:
+		:return:
+		:rtype:
+	'''
+	if p is None:
+		raise Exception( 'Argument "p" cannot be None' )
+	else:
+		return p * (1 - p) + (1 - p) * (1 - (1 - p))
+
+def misclassification_error( p: float ) -> float | None:
+	'''
+
+		Purpose:
+		--------
+		Method used to calculate the entropy of a numeric feature
+		with a probability or proportion of 'p'.
+
+		:param p:
+		:type p:
+		:return:
+		:rtype:
+	'''
+	if p is None:
+		raise Exception( 'Argument "p" cannot be None' )
+	else:
+		return 1 - np.max( [ p, 1 - p ] )
+
+
 class Dataset( ):
 	"""
 
@@ -210,60 +266,6 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_entropy( self, p: float ) -> float | None:
-		'''
-
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
-
-			:param p:
-			:type p:
-			:return:
-			:rtype:
-		'''
-		if p is None:
-			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
-
-	def calculate_gini_impurity( self, p: float ) -> float | None:
-		'''
-
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
-
-			:param p:
-			:type p:
-			:return:
-			:rtype:
-		'''
-		if p is None:
-			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return p * (1 - p) + (1 - p) * (1 - (1 - p))
-
-	def calculate_misclassification_error( self, p: float ) -> float | None:
-		'''
-
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
-
-			:param p:
-			:type p:
-			:return:
-			:rtype:
-		'''
-		if p is None:
-			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return 1 - np.max( [ p, 1 - p ] )
-
 	def calculate_numeric_statistics( self ) -> pd.DataFrame | None:
 		"""
 
@@ -405,12 +407,10 @@ class Dataset( ):
 		Return unbiased skutosis over requested axis.
 
 
-		:param dimension:
-		:type dimension:
-		:param degree:
-		:type degree:
-		:return:
-		:rtype:
+		:param axes:
+		:type axes: int
+		:return: pd.Series
+		:rtype: pd.Series | None
 		'''
 		try:
 			if axes is None:
