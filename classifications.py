@@ -43,7 +43,7 @@
 from __future__ import annotations
 
 from typing import Dict
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Any
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -545,9 +545,16 @@ class MultilayerClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	hidden_layers: tuple[ int, int ]
+	activation_function: str
+	solver: str
+	alpha: float
+	learning_rate: Any
+	random_state: int
 
 
-	def __init__( self, hidden: tuple=(100,), activation='relu', solver='adam',
+
+	def __init__( self, hidden=( 100, ), activation='relu', solver='adam',
 	              alpha = 0.0001, learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
@@ -863,6 +870,8 @@ class RidgeClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	alpha: float
+	solver: str
 
 	def __init__( self, alpha: float=1.0, solver: str='auto', max: int=1000,
 	              rando: int=42 ) -> None:
@@ -1190,7 +1199,7 @@ class StochasticDescentClassification( Model ):
 	"""
 	stochastic_classifier: SGDClassifier
 	prediction: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
+	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -1201,8 +1210,12 @@ class StochasticDescentClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	loss: Optional[ str ]
+	regularization: Optional[ Any ]
+	alpha: Optional[ float ]
 
-	def __init__( self, loss: str='hinge', max: int=5, reg: str='l2' ) -> None:
+
+	def __init__( self, loss: str='hinge', max: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
 		"""
 
 			Purpose:
@@ -1220,8 +1233,9 @@ class StochasticDescentClassification( Model ):
 		self.loss = loss
 		self.max_iter = max
 		self.regularization = reg
+		self.alpha = alpha
 		self.stochastic_classifier = SGDClassifier( loss=self.loss,
-			max_iter=self.max_iter, penalty=self.regularization )
+			max_iter=self.max_iter, penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1518,8 +1532,6 @@ class NearestNeighborClassification( Model ):
 	neighbor_classifier: KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
-	max_depth: Optional[ int ]
-	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -1529,9 +1541,11 @@ class NearestNeighborClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	algorithm: Any
+	metric: str
 
 
-	def __init__( self, num: int=5 ) -> None:
+	def __init__( self, num: int=5, algorithm: Any='auto', metric: str='minkowski' ) -> None:
 		"""
 
 
@@ -1548,8 +1562,10 @@ class NearestNeighborClassification( Model ):
 		"""
 		super( ).__init__( )
 		self.n_neighbors = num
-		self.neighbor_classifier = KNeighborsClassifier(
-			n_neighbors=self.n_neighbors )
+		self.algorithm = algorithm
+		self.metric = metric
+		self.neighbor_classifier = KNeighborsClassifier( n_neighbors=self.n_neighbors,
+			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
