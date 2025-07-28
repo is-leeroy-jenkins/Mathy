@@ -429,7 +429,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_skew( self, axes: int=0 ) -> pd.Series | None:
+	def calculate_skew( self, axes: int=0, numeric: bool=True ) -> pd.Series | None:
 		'''
 
 			Purpose:
@@ -447,8 +447,10 @@ class Dataset( ):
 		try:
 			if axes is None:
 				raise Exception( 'Argument "axis" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
-				self.skew = self.dataframe.skew( axis=axes )
+				self.skew = self.dataframe.skew( axis=axes, numeric_only=numeric )
 				return self.skew
 		except Exception as e:
 			exception = Error( e )
@@ -458,7 +460,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_kurtosis( self, axes: int=0 ) -> pd.Series | None:
+	def calculate_kurtosis( self, axes: int=0, numeric: bool = True ) -> pd.Series | None:
 		'''
 
 			Purpose:
@@ -474,8 +476,10 @@ class Dataset( ):
 		try:
 			if axes is None:
 				raise Exception( 'Argument "axis" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
-				self.kurtosis = self.dataframe.kurt( axis=axes )
+				self.kurtosis = self.dataframe.kurt( axis=axes, numeric_only=numeric )
 				return self.kurtosis
 		except Exception as e:
 			exception = Error( e )
@@ -485,7 +489,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+	def calculate_standard_error( self, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
 		'''
 
 			Purpose:
@@ -506,8 +510,10 @@ class Dataset( ):
 				raise Exception( 'Argument "axis" cannot be None' )
 			elif degree is None:
 				raise Exception( 'Argument "degree" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
-				self.standard_error = self.dataframe.sem( axis=axes, ddof=degree )
+				self.standard_error = self.dataframe.sem( axis=axes, ddof=degree, numeric_only=numeric )
 				return self.standard_error
 		except Exception as e:
 			exception = Error( e )
@@ -517,7 +523,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+	def calculate_deviation( self, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
 		'''
 
 			Purpose:
@@ -539,7 +545,8 @@ class Dataset( ):
 			elif degree is None:
 				raise Exception( 'Argument "degree" cannot be None' )
 			else:
-				self.standard_deviation = self.dataframe.std( axis=axes, ddof=degree )
+				self.standard_deviation = self.dataframe.std( axis=axes,
+					ddof=degree, numeric_only=numeric )
 				return self.standard_deviation
 		except Exception as e:
 			exception = Error( e )
