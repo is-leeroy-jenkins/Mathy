@@ -52,21 +52,17 @@ import pandas as pd
 import seaborn as sns
 from scipy import stats
 from sklearn.base import ClassifierMixin
-from sklearn.ensemble import (
-	RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier,
-	BaggingClassifier, VotingClassifier, StackingClassifier)
-from sklearn.linear_model import (
-	RidgeClassifier, SGDClassifier, Perceptron,
-)
+import sklearn.ensemble as ske
+import sklearn.linear_model as skc
 from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report,
 	r2_score, mean_squared_error, mean_absolute_error,
 	explained_variance_score, median_absolute_error
 )
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
+import sklearn.neighbors as skn
+import sklearn.neural_network as snn
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
+import sklearn.svm as skv
+import sklearn.tree as skd
 
 from booger import Error, ErrorDialog
 
@@ -174,7 +170,7 @@ class Model(  ):
 		"""
 		raise NotImplementedError
 
-class PerceptronClassification( Model ):
+class PerceptronClassifier( Model ):
 	"""
 
 
@@ -192,7 +188,7 @@ class PerceptronClassification( Model ):
 			constant learning rate.
 
 	"""
-	perceptron_classifier: Perceptron
+	perceptron_classifier: skc.Perceptron
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -216,7 +212,7 @@ class PerceptronClassification( Model ):
 
 			Purpose:
 			---------
-			Initialize the PerceptronClassification linerar_model.
+			Initialize the PerceptronClassifier linerar_model.
 
 
 			Parameters:
@@ -230,7 +226,7 @@ class PerceptronClassification( Model ):
 		self.max_iter = max
 		self.shuffle = shuffle
 		self.l1_ratio = l1
-		self.perceptron_classifier = Perceptron( alpha=self.alpha, max_iter=self.max_iter,
+		self.perceptron_classifier = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
 			shuffle=self.shuffle, l1_ratio=self.l1_ratio, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -256,12 +252,12 @@ class PerceptronClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassifier | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the PerceptronClassification linerar_model.
+			Fit the PerceptronClassifier linerar_model.
 
 			Parameters:
 			---------
@@ -284,7 +280,7 @@ class PerceptronClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassification'
+			exception.cause = 'PerceptronClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -295,7 +291,7 @@ class PerceptronClassification( Model ):
 
 			Purpose:
 			---------
-			Predict binary class labels using the PerceptronClassification.
+			Predict binary class labels using the PerceptronClassifier.
 
 			Parameters:
 			---------
@@ -315,7 +311,7 @@ class PerceptronClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassification'
+			exception.cause = 'PerceptronClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -327,7 +323,7 @@ class PerceptronClassification( Model ):
 
 			Purpose:
 			---------
-			Compute accuracy of the PerceptronClassification classifier.
+			Compute accuracy of the PerceptronClassifier classifier.
 
 			Parameters:
 			---------
@@ -351,7 +347,7 @@ class PerceptronClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassification'
+			exception.cause = 'PerceptronClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -409,7 +405,7 @@ class PerceptronClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'PerceptronClassification'
+			exception.cause = 'PerceptronClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -450,7 +446,7 @@ class PerceptronClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -508,12 +504,12 @@ class PerceptronClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
-class MultilayerClassification( Model ):
+class MultiLayerClassifier( Model ):
 	"""
 
 		Purpose:
@@ -532,7 +528,7 @@ class MultilayerClassification( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
-	multilayer_classifier: MLPClassifier
+	multilayer_classifier: snn.MLPClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -563,7 +559,7 @@ class MultilayerClassification( Model ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_classifier = MLPClassifier( hidden_layer_sizes=self.hidden_layers,
+		self.multilayer_classifier = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.pipeline = Pipeline( steps=list( hidden ) )
@@ -590,7 +586,7 @@ class MultilayerClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultilayerClassification | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultiLayerClassifier | None:
 		"""
 
 			Purpose:
@@ -616,7 +612,7 @@ class MultilayerClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerClassification'
+			exception.cause = 'MultiLayerClassifier'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -734,7 +730,7 @@ class MultilayerClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerClassification'
+			exception.cause = 'MultiLayerClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -775,7 +771,7 @@ class MultilayerClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerClassification'
+			exception.cause = 'MultiLayerClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -838,7 +834,7 @@ class MultilayerClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RidgeClassification( Model ):
+class RidgeClassifier( Model ):
 	"""
 
 		Purpose:
@@ -852,12 +848,12 @@ class RidgeClassification( Model ):
 		It might seem questionable to use a (penalized) Least Squares loss to fit a classification
 		model instead of the more traditional logistic or hinge losses. However, in practice,
 		all those models can lead to similar cross-validation scores in terms of accuracy
-		or precision/recall, while the penalized least squares loss used by the RidgeClassification
+		or precision/recall, while the penalized least squares loss used by the RidgeClassifier
 		allows for a very different choice of the numerical solvers with
 		distinct computational performance profiles.
 
 	"""
-	ridge_classifier: RidgeClassifier
+	ridge_classifier: skc.RidgeClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -895,7 +891,7 @@ class RidgeClassification( Model ):
 		self.solver = solver
 		self.max_iter = max
 		self.random_state = rando
-		self.ridge_classifier = RidgeClassifier( alpha=self.alpha,
+		self.ridge_classifier = skc.RidgeClassifier( alpha=self.alpha,
 			solver=self.solver, max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -922,7 +918,7 @@ class RidgeClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeClassifier | None:
 		"""
 
 
@@ -1175,7 +1171,7 @@ class RidgeClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StochasticDescentClassification( Model ):
+class StochasticGradientClassifier( Model ):
 	"""
 
 		Purpose:
@@ -1198,7 +1194,7 @@ class StochasticDescentClassification( Model ):
 		 models and achieve online feature selection.
 
 	"""
-	stochastic_classifier: SGDClassifier
+	stochastic_classifier: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
@@ -1235,7 +1231,7 @@ class StochasticDescentClassification( Model ):
 		self.max_iter = max
 		self.regularization = reg
 		self.alpha = alpha
-		self.stochastic_classifier = SGDClassifier( loss=self.loss,
+		self.stochastic_classifier = skc.SGDClassifier( loss=self.loss,
 			max_iter=self.max_iter, penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1262,7 +1258,7 @@ class StochasticDescentClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticDescentClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientClassifier | None:
 		"""
 
 			Purpose:
@@ -1452,7 +1448,7 @@ class StochasticDescentClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StochasticDescentClassification'
+			exception.cause = 'StochasticGradientClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1516,7 +1512,7 @@ class StochasticDescentClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class NearestNeighborClassification( Model ):
+class NearestNeighborClassifier( Model ):
 	"""
 
 		Purpose:
@@ -1531,7 +1527,7 @@ class NearestNeighborClassification( Model ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
-	neighbor_classifier: KNeighborsClassifier
+	neighbor_classifier: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -1566,7 +1562,7 @@ class NearestNeighborClassification( Model ):
 		self.n_neighbors = num
 		self.algorithm = algorithm
 		self.metric = metric
-		self.neighbor_classifier = KNeighborsClassifier( n_neighbors=self.n_neighbors,
+		self.neighbor_classifier = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1592,7 +1588,7 @@ class NearestNeighborClassification( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborClassifier | None:
 		"""
 
 			Purpose:
@@ -1847,7 +1843,7 @@ class NearestNeighborClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class DecisionTreeClassification( Model ):
+class DecisionTreeClassifier( Model ):
 	'''
 
 		Purpose:
@@ -1861,7 +1857,7 @@ class DecisionTreeClassification( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
-	dt_classifier: DecisionTreeClassifier
+	dt_classifier: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -1892,7 +1888,7 @@ class DecisionTreeClassification( Model ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.dt_classifier = DecisionTreeClassifier( criterion=self.criterion,
+		self.dt_classifier = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state =self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1919,7 +1915,7 @@ class DecisionTreeClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeClassifier | None:
 		"""
 
 			Purpose:
@@ -1947,7 +1943,7 @@ class DecisionTreeClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DecisionTreeClassification'
+			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1979,7 +1975,7 @@ class DecisionTreeClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DecisionTreeClassification'
+			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2015,7 +2011,7 @@ class DecisionTreeClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DecisionTreeClassification'
+			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2074,7 +2070,7 @@ class DecisionTreeClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DecisionTreeClassification'
+			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2115,7 +2111,7 @@ class DecisionTreeClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DecisionTreeClassification'
+			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2179,7 +2175,7 @@ class DecisionTreeClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RandomForestClassification( Model ):
+class RandomForestClassifier( Model ):
 	"""
 
 		Purpose:
@@ -2202,7 +2198,7 @@ class RandomForestClassification( Model ):
 	"""
 	n_estimators: int
 	criterion: Optional[ Any ]
-	random_forest_classifier: RandomForestClassifier
+	random_forest_classifier: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
@@ -2222,7 +2218,7 @@ class RandomForestClassification( Model ):
 
 			Purpose:
 			-----------
-			Initializes the RandomForestClassification.
+			Initializes the RandomForestClassifier.
 
 		"""
 		super( ).__init__( )
@@ -2230,7 +2226,7 @@ class RandomForestClassification( Model ):
 		self.criterion = crit
 		self.max_depth = max
 		self.random_state = rando
-		self.random_forest_classifier = RandomForestClassifier( n_estimators=self.n_estimators,
+		self.random_forest_classifier = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2257,7 +2253,7 @@ class RandomForestClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestClassifier | None:
 		"""
 
 			Purpose:
@@ -2287,7 +2283,7 @@ class RandomForestClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2319,7 +2315,7 @@ class RandomForestClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2354,7 +2350,7 @@ class RandomForestClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2404,7 +2400,7 @@ class RandomForestClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -2445,7 +2441,7 @@ class RandomForestClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestClassification'
+			exception.cause = 'RandomForestClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2509,7 +2505,7 @@ class RandomForestClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GradientBoostingClassification( Model ):
+class GradientBoostingClassifier( Model ):
 	"""
 
 		Purpose:
@@ -2526,7 +2522,7 @@ class GradientBoostingClassification( Model ):
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
 	"""
-	gradient_boost_classifier: GradientBoostingClassifier
+	gradient_boost_classifier: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -2547,7 +2543,7 @@ class GradientBoostingClassification( Model ):
 
 			Purpose:
 			________
-			Initialize the GradientBoostingClassification.
+			Initialize the GradientBoostingClassifier.
 
 			Parameters:
 			___________
@@ -2564,7 +2560,7 @@ class GradientBoostingClassification( Model ):
 		self.n_estimators = est
 		self.max_depth = max
 		self.random_state = rando
-		self.gradient_boost_classifier = GradientBoostingClassifier( loss=self.loss,
+		self.gradient_boost_classifier = ske.GradientBoostingClassifier( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
@@ -2591,7 +2587,7 @@ class GradientBoostingClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassifier | None:
 		"""
 
 			Purpose:
@@ -2620,7 +2616,7 @@ class GradientBoostingClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'GradientBoostClassification'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassification'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassifier'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2685,7 +2681,7 @@ class GradientBoostingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'GradientBoostingClassification'
+			exception.cause = 'GradientBoostingClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2734,7 +2730,7 @@ class GradientBoostingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'GradientBoostingClassification'
+			exception.cause = 'GradientBoostingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -2821,7 +2817,7 @@ class GradientBoostingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class AdaBoostClassification( Model ):
+class AdaBoostClassifier( Model ):
 	"""
 
 		Purpose:
@@ -2832,7 +2828,7 @@ class AdaBoostClassification( Model ):
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
-	ada_boost_classifier = AdaBoostClassifier
+	ada_boost_classifier = ske.AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
@@ -2859,7 +2855,7 @@ class AdaBoostClassification( Model ):
 		self.estimator = 'AdaBoostClassifier'
 		self.n_estimators = num
 		self.learning_rate = learning
-		self.ada_boost_classifier = AdaBoostClassifier( estimator=self.estimator,
+		self.ada_boost_classifier = ske.AdaBoostClassifier( estimator=self.estimator,
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate  )
 		self.X_scaled = None
 		self.prediction = None
@@ -2880,12 +2876,13 @@ class AdaBoostClassification( Model ):
 
 		'''
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'X_scaled', 'n_estimators', 'learning_rate', 'ada_boost_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostClassifier | None:
 		"""
 
 			Purpose:
@@ -2913,7 +2910,7 @@ class AdaBoostClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostClassification'
+			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2943,7 +2940,7 @@ class AdaBoostClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostClassification'
+			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2977,7 +2974,7 @@ class AdaBoostClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostClassification'
+			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3026,7 +3023,7 @@ class AdaBoostClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostClassification'
+			exception.cause = 'AdaBoostClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -3066,7 +3063,7 @@ class AdaBoostClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostClassification'
+			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3130,7 +3127,7 @@ class AdaBoostClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class BaggingClassification( Model ):
+class BaggingClassifier( Model ):
 	"""
 
 		Purpose:
@@ -3147,7 +3144,7 @@ class BaggingClassification( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
-	bagging_classifier: BaggingClassifier
+	bagging_classifier: ske.BaggingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
@@ -3166,7 +3163,7 @@ class BaggingClassification( Model ):
 	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
 
-			Initialize the BaggingClassification.
+			Initialize the BaggingClassifier.
 
 		"""
 		super( ).__init__( )
@@ -3174,7 +3171,7 @@ class BaggingClassification( Model ):
 		self.n_estimators = num
 		self.max_features = max
 		self.random_state = rando
-		self.bagging_classifier = BaggingClassifier( estimator=self.base_estimator,
+		self.bagging_classifier = ske.BaggingClassifier( estimator=self.base_estimator,
 			n_estimators=self.n_estimators, max_features=self.max_features,
 			random_state=self.random_state )
 		self.prediction = None
@@ -3200,7 +3197,7 @@ class BaggingClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingClassifier | None:
 		"""
 
 			Purpose:
@@ -3228,7 +3225,7 @@ class BaggingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingClassification'
+			exception.cause = 'BaggingClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3258,7 +3255,7 @@ class BaggingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingClassification'
+			exception.cause = 'BaggingClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3292,7 +3289,7 @@ class BaggingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingClassification'
+			exception.cause = 'BaggingClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3340,7 +3337,7 @@ class BaggingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingClassification'
+			exception.cause = 'BaggingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -3382,7 +3379,7 @@ class BaggingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingClassification'
+			exception.cause = 'BaggingClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3446,18 +3443,18 @@ class BaggingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class VotingClassification( Model ):
+class VotingClassifier( Model ):
 	"""
 
 		Purpose:
 		--------
-		The idea behind the VotingClassification is to combine conceptually different machine rate
+		The idea behind the VotingClassifier is to combine conceptually different machine rate
 		classifiers and use a majority vote or the average predicted probabilities (soft vote)
 		to predict the class labels. Such a classifier can be useful for a set of equally well
 		performing model in order to balance out their individual weaknesses.
 
 	"""
-	voting_classifier: VotingClassifier
+	voting_classifier: ske.VotingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -3471,18 +3468,20 @@ class VotingClassification( Model ):
 	estimators: List[ (str, object) ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	estimators: List[ (str, object) ]
+	vote: str
 
 
 	def __init__( self, estimators: List[ (str, object) ], vote='hard' ) -> None:
 		"""
 
-			Initialize the RandomForestClassification.
+			Initialize the RandomForestClassifier.
 
 		"""
 		super( ).__init__( )
 		self.estimators = estimators
 		self.voting = vote
-		self.voting_classifier = VotingClassifier( estimators=self.estimators,
+		self.voting_classifier = ske.VotingClassifier( estimators=self.estimators,
 			voting=self.voting )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3508,7 +3507,7 @@ class VotingClassification( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingClassifier | None:
 		"""
 
 			Purpose:
@@ -3536,7 +3535,7 @@ class VotingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingClassification'
+			exception.cause = 'VotingClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3566,7 +3565,7 @@ class VotingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingClassification'
+			exception.cause = 'VotingClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3600,7 +3599,7 @@ class VotingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingClassification'
+			exception.cause = 'VotingClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3649,7 +3648,7 @@ class VotingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingClassification'
+			exception.cause = 'VotingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -3689,7 +3688,7 @@ class VotingClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingClassification'
+			exception.cause = 'VotingClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3753,7 +3752,7 @@ class VotingClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StackClassification( Model ):
+class StackingClassifier( Model ):
 	"""
 
 		Purpose:
@@ -3766,12 +3765,10 @@ class StackClassification( Model ):
 		estimators using cross_val_predict.
 
 	"""
-	stacking_classifier: StackingClassifier
+	stacking_classifier: ske.StackingClassifier
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
-	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -3786,13 +3783,13 @@ class StackClassification( Model ):
 	              final: Optional[ ClassifierMixin ]=None ) -> None:
 		"""
 
-			Initialize the RandomForestClassification.
+			Initialize the RandomForestClassifier.
 
 		"""
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_classifier = StackingClassifier( estimators=self.estimators,
+		self.stacking_classifier = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3811,13 +3808,13 @@ class StackClassification( Model ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		return [ 'prediction', 'accuracy', 'final_estimator', 'estimators', 'stacking_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StackClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingClassifier | None:
 		"""
 
 			Purpose:
@@ -3845,7 +3842,7 @@ class StackClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackClassification'
+			exception.cause = 'StackingClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3875,7 +3872,7 @@ class StackClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackClassification'
+			exception.cause = 'StackingClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3909,7 +3906,7 @@ class StackClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackClassification'
+			exception.cause = 'StackingClassifier'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3957,7 +3954,7 @@ class StackClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackClassification'
+			exception.cause = 'StackingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -3996,7 +3993,7 @@ class StackClassification( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackClassification'
+			exception.cause = 'StackingClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4121,6 +4118,7 @@ class SupportVectorClassification:
 
 		'''
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'svc_classifier', 'kernel', 'regulation', 'degree',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
@@ -4138,7 +4136,21 @@ class SupportVectorClassification:
 			:param y: Target labels.
 			:type y: np.ndarray
 		"""
-		self.svc_classifier.fit( X, y )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				self.svc_classifier.fit( X, y )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'SupportVectorClassification'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray '
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
@@ -4164,7 +4176,7 @@ class SupportVectorClassification:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'SupportVectorClassification'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray '
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassification'
 			error = ErrorDialog( exception )
 			error.show( )
 
