@@ -286,7 +286,7 @@ class TfidfTransformer( Processor ):
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		features that occur in a small fraction of the training corpus.
+		feature_names that occur in a small fraction of the training corpus.
 
 		The formula that is used to compute the tf-idf for a term t of a document d in a
 		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
@@ -390,7 +390,7 @@ class TfidfVectorizer( Processor ):
 		Purpose:
 		---------
 
-		Convert a collection of raw documents to a matrix of TF-IDF features. Equivalent to
+		Convert a collection of raw documents to a matrix of TF-IDF feature_names. Equivalent to
 		CountVectorizer followed by TfidfTransformer. Tf means term-frequency while tf–idf means
 		 term-frequency times inverse document-frequency:
 
@@ -524,7 +524,7 @@ class CountVectorizer( Processor ):
 		Convert a collection of text documents to a matrix of token counts. This implementation
 		produces a sparse representation of the counts using scipy.sparse.csr_matrix. If you do not
 		provide an a-priori dictionary and you do not use an analyzer that does some kind of
-		feature selection then the number of features will be equal to the vocabulary
+		feature selection then the number of feature_names will be equal to the vocabulary
 		size found by analyzing the data.
 
 	"""
@@ -648,7 +648,7 @@ class HashingVectorizer( Processor ):
 
 			Purpose:
 			---------
-			Initialize the HashingVectorizer with the desired number of features.
+			Initialize the HashingVectorizer with the desired number of feature_names.
 
 		"""
 		super( ).__init__( )
@@ -663,7 +663,7 @@ class HashingVectorizer( Processor ):
 
 			:param documents: List of input text documents.
 			:type documents: List[str]
-			:return: Matrix of hashed features.
+			:return: Matrix of hashed feature_names.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -686,7 +686,7 @@ class StandardScaler( Processor ):
 
 		Purpose:
 		--------
-		Standardize features by removing the mean and scaling to unit variance. The standard score
+		Standardize feature_names by removing the mean and scaling to unit variance. The standard score
 		of a sample x is calculated as: z = (x - u) / s where u is the mean of the training
 		samples or zero if with_mean=False, and s is the standard deviation of the training
 		samples or one if with_std=False.
@@ -795,7 +795,7 @@ class MinMaxScaler( Processor ):
 
 		Purpose:
 		---------
-		Transforms features by scaling each feature to a given range. This estimator scales and
+		Transforms feature_names by scaling each feature to a given range. This estimator scales and
 		translates each feature individually such that it is in the given range on the
 		training set, e.g. between zero and one.
 
@@ -1094,9 +1094,9 @@ class OneHotEncoder( Processor ):
 
 		Purpose:
 		---------
-		Encode categorical features as a one-hot numeric array. The input to this transformer
+		Encode categorical feature_names as a one-hot numeric array. The input to this transformer
 		should be an array-like of integers or strings, denoting the values taken on by categorical
-		(discrete) features. The features are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
+		(discrete) feature_names. The feature_names are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
 		encoding scheme. This creates a binary column for each category and returns a sparse
 		matrix or dense array (depending on the sparse_output parameter)
 
@@ -1215,7 +1215,7 @@ class OrdinalEncoder( Processor ):
 
 			Purpose:
 			---------
-			Encodes categorical features as ordinal integers.
+			Encodes categorical feature_names as ordinal integers.
 
 	"""
 
@@ -1524,7 +1524,7 @@ class PolynomialFeatures( Processor ):
 
 			Purpose:
 			--------
-			Transform data into polynomial features.
+			Transform data into polynomial feature_names.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
@@ -1817,7 +1817,7 @@ class IterativeImputer( Processor ):
 		Purpose:
 		--------
 		A strategy for imputing missing values by modeling each feature with
-		missing values as a function of other features in a round-robin fashion.
+		missing values as a function of other feature_names in a round-robin fashion.
 	"""
 
 	def __init__( self, max: int = 10, rando: int = 0 ) -> None:

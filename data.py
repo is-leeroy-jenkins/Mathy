@@ -48,6 +48,7 @@ from typing import Optional, List, Dict, Tuple, Union, Sequence
 from pandas.core.common import random_state
 from pandas.core.reshape import pivot
 from sklearn.model_selection import train_test_split
+from sklearn.covariance import empirical_covariance
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
@@ -170,6 +171,34 @@ def sigmoid( z: float ) -> float | None:
 		error.show( )
 
 
+def covariance( X: np.ndarray ) -> float | None:
+	'''
+
+		Purpose:
+		________
+		Compute the Maximum likelihood covariance estimator.
+
+
+		:param X:
+		:type X: np.ndarray
+		:return:
+		:rtype:
+
+	'''
+	try:
+		if X is None:
+			raise Exception( 'Argument "X" cannot be None' )
+		else:
+			return empirical_covariance( X )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'covariance( X: np.ndarray ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
+
+
 class Dataset( ):
 	"""
 
@@ -186,7 +215,7 @@ class Dataset( ):
 		target: str
 		test_size: float
 		random_state: int
-		features: list
+		feature_names: list
 		target_values
 		numeric_columns
 		text_columns: list
@@ -203,7 +232,7 @@ class Dataset( ):
 	data: Optional[ np.ndarray ]
 	rows: Optional[ int ]
 	columns: Optional[ int ]
-	features: Optional[ List[ str ] ]
+	feature_names: Optional[ List[ str ] ]
 	target_values: Optional[ np.ndarray ]
 	numeric_columns: Optional[ List[ str ] ]
 	text_columns: Optional[ List[ str ] ]
@@ -224,7 +253,7 @@ class Dataset( ):
 
 
 
-	def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
+	def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
 		"""
 
 			Purpose:
@@ -246,18 +275,18 @@ class Dataset( ):
 		self.target = target
 		self.test_size = size
 		self.random_state = rando
-		self.features = [ column for column in df.columns ]
+		self.feature_names = [ column for column in df.columns ]
 		self.target_values = df[ target ].to_numpy( )
-		self.numeric_columns = df.select_dtypes( include = [ 'number' ] ).columns.tolist( )
-		self.text_columns = df.select_dtypes( include = [ 'object', 'category' ] ).columns.tolist( )
+		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
 		self.training_data = train_test_split( self.data, self.target_values,
-			test_size = self.test_size, random_state = self.random_state )[ 0 ]
+			test_size=self.test_size, random_state=self.random_state )[ 0 ]
 		self.testing_data = train_test_split( self.data, self.target_values,
-			test_size = self.test_size, random_state = self.random_state )[ 1 ]
+			test_size=self.test_size, random_state=self.random_state )[ 1 ]
 		self.training_values = train_test_split( self.data, self.target_values,
-			test_size = self.test_size, random_state = self.random_state )[ 2 ]
+			test_size=self.test_size, random_state=self.random_state )[ 2 ]
 		self.testing_values = train_test_split( self.data, self.target_values,
-			test_size = self.test_size, random_state = self.random_state )[ 3 ]
+			test_size=self.test_size, random_state=self.random_state )[ 3 ]
 		self.transtuple = [ ]
 		self.numeric_statistics = None
 		self.categorical_statistics = None
@@ -277,7 +306,7 @@ class Dataset( ):
 
 		'''
 		return [ 'dataframe', 'rows', 'columns', 'target_values',
-		         'features', 'test_size', 'random_state', 'categorical_statistics',
+		         'feature_names', 'test_size', 'random_state', 'categorical_statistics',
 		         'numeric_columns', 'text_columns', 'transtuple',
 		         'calculate_statistics', 'numeric_statistics',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
@@ -291,7 +320,7 @@ class Dataset( ):
 
 			Purpose:
 			-----------
-				Scale numeric features using selected scaler.
+				Scale numeric feature_names using selected scaler.
 
 			Paramters:
 			-----------

@@ -345,7 +345,7 @@ class DbscanClustering( Cluster ):
 
 			Parameters:
 			----------
-			X: Input features.
+			X: Input feature_names.
 
 		"""
 		try:
@@ -372,7 +372,7 @@ class DbscanClustering( Cluster ):
 
 			Parameters:
 			----------
-			X: Input features.
+			X: Input feature_names.
 
 			Returns:
 			---------
@@ -403,7 +403,7 @@ class DbscanClustering( Cluster ):
 
 			Parameters:
 			----------
-			X: Input features.
+			X: Input feature_names.
 			X: np.ndarray
 
 			Returns:
@@ -435,7 +435,7 @@ class DbscanClustering( Cluster ):
 
 			Parameters:
 			----------
-			X: 2D input features.
+			X: 2D input feature_names.
 
 		"""
 		try:
@@ -1359,7 +1359,7 @@ class OpticsClustering( Cluster ):
 
 			Parameters:
 			----------
-			X: Input features.
+			X: Input feature_names.
 			X: np.ndarray
 
 			Returns:
