@@ -174,7 +174,6 @@ class Model(  ):
 		"""
 		raise NotImplementedError
 
-
 class PerceptronClassification( Model ):
 	"""
 
@@ -206,9 +205,13 @@ class PerceptronClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	alpha: Optional[ float ]
+	max_iter: Optional[ int ]
+	shuffle: Optional[ bool ]
+	l1_ratio: Optional[ float ]
 
 
-	def __init__( self, reg: float=0.0001, max: int=1000, mix: bool=True ) -> None:
+	def __init__( self, reg: float=0.0001, max: int=1000, shuffle: bool=True, l1: float=0.15 ) -> None:
 		"""
 
 			Purpose:
@@ -223,8 +226,12 @@ class PerceptronClassification( Model ):
 
 		"""
 		super( ).__init__( )
-		self.perceptron_classifier = Perceptron( alpha=reg, max_iter=max,
-			shuffle=mix )
+		self.alpha = reg
+		self.max_iter = max
+		self.shuffle = shuffle
+		self.l1_ratio = l1
+		self.perceptron_classifier = Perceptron( alpha=self.alpha, max_iter=self.max_iter,
+			shuffle=self.shuffle, l1_ratio=self.l1_ratio, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -505,7 +512,6 @@ class PerceptronClassification( Model ):
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 class MultilayerClassification( Model ):
 	"""
@@ -824,7 +830,6 @@ class MultilayerClassification( Model ):
 			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 class RidgeClassification( Model ):
 	"""
@@ -1494,7 +1499,6 @@ class StochasticDescentClassification( Model ):
 			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 class NearestNeighborClassification( Model ):
 	"""
@@ -4032,7 +4036,6 @@ class StackClassification( Model ):
 			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 class SupportVectorClassification:
 	"""
