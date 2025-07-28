@@ -4104,6 +4104,7 @@ class VotingRegression( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class StackRegression( Model ):
 	"""
 
@@ -4156,7 +4157,8 @@ class StackRegression( Model ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_regressor = StackingRegressor( estimators=est )
+		self.stacking_regressor = StackingRegressor( estimators=self.estimators,
+			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
