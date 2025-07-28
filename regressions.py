@@ -1017,7 +1017,7 @@ class LassoRegression( Model ):
 	training_score: Optional[ float ]
 
 
-	def __init__( self, alph: float=1.0, max: int=500, rando: int=42 ) -> None:
+	def __init__( self, alpha: float=1.0, max: int=500, rando: int=42 ) -> None:
 		"""
 
 
@@ -1026,9 +1026,9 @@ class LassoRegression( Model ):
 			Initialize the LassoRegression linerar_model.
 		"""
 		super( ).__init__( )
-		self.alpha: float = alph
-		self.max_iter: int = max
-		self.random_state: int = rando
+		self.alpha = alpha
+		self.max_iter = max
+		self.random_state = rando
 		self.lasso_regressor = Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
@@ -1547,7 +1547,7 @@ class LogisticRegressor( Model ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 
-	def __init__( self, c: float=1.0, penalty: str='l2', max: int=1000,
+	def __init__( self, C: float=1.0, penalty: str='l2', max: int=1000,
 	              solver: str='lbfgs' ) -> None:
 		"""
 
@@ -1562,7 +1562,7 @@ class LogisticRegressor( Model ):
 
 		"""
 		super( ).__init__( )
-		self.alpha = c
+		self.alpha = C
 		self.penalty = penalty
 		self.max_iter = max
 		self.solver = solver
@@ -2361,7 +2361,7 @@ class NearestNeighborRegression( Model ):
 	training_score: Optional[ float ]
 
 
-	def __init__( self, num: int=5, algo: str='auto', p: float=2.0, metric: str='minkowski' ) -> None:
+	def __init__( self, num: int=5, algo: str='auto', power: float=2.0, metric: str='minkowski' ) -> None:
 		"""
 
 
@@ -2378,7 +2378,7 @@ class NearestNeighborRegression( Model ):
 		super( ).__init__( )
 		self.n_neighbors = num
 		self.algorithm = algo
-		self.power = p
+		self.power = power
 		self.metric = metric
 		self.neighbor_regressor = KNeighborsRegressor( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, p=self.power, metric=self.metric )
