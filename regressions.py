@@ -3880,8 +3880,9 @@ class VotingRegression( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	estimators: List[ (str, object) ]
 
-	def __init__( self, est: List[ (str, object) ], vot = 'hard' ) -> None:
+	def __init__( self, est: List[ (str, object) ] ) -> None:
 		"""
 
 			Purpose:
@@ -3895,9 +3896,8 @@ class VotingRegression( Model ):
 
 		"""
 		super( ).__init__( )
-		self.estimators: List[ (str, object) ] = est
-		self.voting = vot
-		self.voting_regressor = VotingRegressor( estimators = est )
+		self.estimators = est
+		self.voting_regressor = VotingRegressor( estimators=self.estimators  )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
