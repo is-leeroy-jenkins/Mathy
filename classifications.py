@@ -1585,10 +1585,10 @@ class NearestNeighborClassification( Model ):
 
 		'''
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'n_neigbors', 'algorithm', 'metric', 'neighbor_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborClassification | None:
 		"""
@@ -1623,7 +1623,6 @@ class NearestNeighborClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
@@ -1654,7 +1653,6 @@ class NearestNeighborClassification( Model ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -1689,7 +1687,6 @@ class NearestNeighborClassification( Model ):
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
-
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
 		"""
@@ -1875,6 +1872,8 @@ class DecisionTreeClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	classifier: Optional[ Any ]
+	splitter: Optional[ str ]
 
 
 	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
@@ -1892,7 +1891,7 @@ class DecisionTreeClassification( Model ):
 		self.max_depth = depth
 		self.random_state = rando
 		self.dt_classifier = DecisionTreeClassifier( criterion=self.criterion,
-			splitter=self.splitter, max_depth=self.max_depth )
+			splitter=self.splitter, max_depth=self.max_depth, random_state =self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1912,6 +1911,7 @@ class DecisionTreeClassification( Model ):
 
 		'''
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'criterion', 'splitter', 'dt_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
@@ -2199,10 +2199,10 @@ class RandomForestClassification( Model ):
 
 	"""
 	n_estimators: int
-	criterion: str
+	criterion: Optional[ Any ]
 	random_forest_classifier: RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
+	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -2215,7 +2215,7 @@ class RandomForestClassification( Model ):
 	training_score: Optional[ float ]
 
 
-	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
+	def __init__( self, est: int=10, crit: Any='gini', max: Any=None, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -2248,7 +2248,8 @@ class RandomForestClassification( Model ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'n_estimators',
+		         'max_depth', 'criterior',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
