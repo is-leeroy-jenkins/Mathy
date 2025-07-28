@@ -870,8 +870,8 @@ class RidgeClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
-	alpha: float
-	solver: str
+	alpha: Optional[ float ]
+	solver: Optional[ str ]
 
 	def __init__( self, alpha: float=1.0, solver: str='auto', max: int=1000,
 	              rando: int=42 ) -> None:
@@ -915,7 +915,8 @@ class RidgeClassification( Model ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		return [ 'prediction', 'max_iter', 'random_state', 'accuracy',
+		         'alpha', 'solver', 'ridge_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
@@ -1254,7 +1255,8 @@ class StochasticDescentClassification( Model ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		return [ 'prediction', 'max_iter', 'random_state', 'accuracy',
+		         'loss', 'regularization', 'alpha', 'stochastic_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
