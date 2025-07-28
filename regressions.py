@@ -3388,8 +3388,8 @@ class AdaBoostRegression( Model ):
 		self.random_state = rando
 		self.loss = loss
 		self.learning_rate = learning
-		self.ada_boost_regressor = AdaBoostRegressor( n_estimators=est, random_state=rando,
-			loss=loss, learning_rate=learning )
+		self.ada_boost_regressor = AdaBoostRegressor( n_estimators=self.n_estimators,
+			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
