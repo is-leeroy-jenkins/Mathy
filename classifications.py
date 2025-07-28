@@ -2585,6 +2585,7 @@ class GradientBoostingClassification( Model ):
 
 		'''
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		         'loss', 'learning_rate', 'n_estimators', 'gradient_boost_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
@@ -2833,7 +2834,6 @@ class AdaBoostClassification( Model ):
 	"""
 	ada_boost_classifier = AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -2846,18 +2846,21 @@ class AdaBoostClassification( Model ):
 	X_scaled: Optional[ pd.DataFrame ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	estimator: Optional[ Any ]
+	learning_rate: Optional[ float ]
 
-	def __init__( self, est: int=100, max: int=3 ) -> None:
+	def __init__( self, num: int=100, learning: float=1.0 ) -> None:
 		"""
 
 			Initialize the Random Forest Classifier.
 
 		"""
 		super( ).__init__( )
-		self.scaler_type = 'AdaBoostClassifier'
-		self.max_depth = max
-		self.n_estimators = est
-		self.ada_boost_classifier = AdaBoostClassifier( n_estimators=est )
+		self.estimator = 'AdaBoostClassifier'
+		self.n_estimators = num
+		self.learning_rate = learning
+		self.ada_boost_classifier = AdaBoostClassifier( estimator=self.estimator,
+			n_estimators=self.n_estimators, learning_rate=self.learning_rate  )
 		self.X_scaled = None
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3146,7 +3149,7 @@ class BaggingClassification( Model ):
 	"""
 	bagging_classifier: BaggingClassifier
 	prediction: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
+	max_features: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -3157,6 +3160,8 @@ class BaggingClassification( Model ):
 	median_absolute_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	base_estimator: Optional[ Any ]
+	n_estimators: Optional[ int ]
 
 	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
