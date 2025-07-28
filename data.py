@@ -397,7 +397,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_variance( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+	def calculate_variance( self, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
 		'''
 
 			Purpose:
@@ -414,8 +414,12 @@ class Dataset( ):
 		try:
 			if axes is None:
 				raise Exception( 'Argument "axis" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
-				self.variance = self.dataframe.var( axis=axes, ddof=degree )
+				self.variance = self.dataframe.var( axis=axes, ddof=degree, numeric_only=numeric )
 				return self.variance
 		except Exception as e:
 			exception = Error( e )
