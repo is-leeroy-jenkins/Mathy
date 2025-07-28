@@ -4058,13 +4058,13 @@ class StackingClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SupportVectorClassification:
+class SupportVectorClassifier:
 	"""
 
 		Support Vector Classification (SVC).
 
 	"""
-	svc_classifier: SVC
+	svc_classifier: skv.SVC
 	kernel: str
 	regulation: float
 	degree: int
@@ -4097,7 +4097,7 @@ class SupportVectorClassification:
 		self.kernel = kernel
 		self.regulation = C
 		self.degree = degree
-		self.svc_classifier = SVC( kernel=self.kernel, C=self.regulation,
+		self.svc_classifier = skv.SVC( kernel=self.kernel, C=self.regulation,
 			random_state=self.random_state, degree=self.degree )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -4124,7 +4124,7 @@ class SupportVectorClassification:
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassification | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassifier | None:
 		"""
 		
 			Purpose:
@@ -4147,7 +4147,7 @@ class SupportVectorClassification:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorClassification'
+			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4175,8 +4175,8 @@ class SupportVectorClassification:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorClassification'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassification'
+			exception.cause = 'SupportVectorClassifier'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassifier'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4208,7 +4208,7 @@ class SupportVectorClassification:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorClassification'
+			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4242,7 +4242,7 @@ class SupportVectorClassification:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorClassification'
+			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4280,7 +4280,7 @@ class SupportVectorClassification:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorClassification'
+			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y_true: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
