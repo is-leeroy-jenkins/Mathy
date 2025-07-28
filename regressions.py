@@ -1054,7 +1054,7 @@ class LassoRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoRegression | None:
 		"""
 
 			Purpose:
@@ -1865,7 +1865,7 @@ class BayesianRidgeRegression( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidgeRegression | None:
 		"""
 
 			Purpose:
@@ -2141,7 +2141,7 @@ class StochasticDescentRegression( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticDescentRegression | None:
 		"""
 
 			Purpose:
@@ -2406,7 +2406,7 @@ class NearestNeighborRegression( Model ):
 
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborRegression | None:
 		"""
 
 
@@ -2948,7 +2948,7 @@ class RandomForestRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestRegression | None:
 		"""
 
 			Purpose:
@@ -3670,7 +3670,7 @@ class BaggingRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph', 'random_state' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingRegression | None:
 		"""
 
 			Purpose:
@@ -4421,7 +4421,7 @@ class SupportVectorRegression:
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorRegression | None:
 		"""
 
 			Purpose:
@@ -4435,6 +4435,7 @@ class SupportVectorRegression:
 
 		"""
 		self.svr_model.fit( X, y )
+		return self
 
 
 	def project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:

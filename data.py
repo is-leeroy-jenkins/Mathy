@@ -428,16 +428,16 @@ class Dataset( ):
 	def calculate_variance( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
-		Purpose:
-		--------
+			Purpose:
+			--------
 
 
-		:param dimension:
-		:type dimension:
-		:param degree:
-		:type degree:
-		:return:
-		:rtype:
+			:param dimension:
+			:type dimension:
+			:param degree:
+			:type degree:
+			:return:
+			:rtype:
 		'''
 		try:
 			if axes is None:
@@ -576,15 +576,15 @@ class Dataset( ):
 	def export_excel( self, filepath: str=None ) -> None:
 		'''
 
-		Purpose:
-		--------
-		Exports dataframe to an Excel file.
+			Purpose:
+			--------
+			Exports dataframe to an Excel file.
 
 
-		:param filepath:
-		:type filepath:
-		:return:
-		:rtype:
+			:param filepath:
+			:type filepath:
+			:return:
+			:rtype:
 		'''
 		try:
 			if filepath is None:
