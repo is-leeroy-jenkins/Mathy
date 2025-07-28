@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                data.py
+  Filename:                feature_matrix.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="data.py" company="Terry D. Eppler">
+<copyright file="feature_matrix.py" company="Terry D. Eppler">
 
      Mathy Data
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	data.py
+	feature_matrix.py
 </summary>
 ******************************************************************************************
 '''
@@ -59,6 +59,7 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
+from preprocessing import Processor
 
 
 def entropy( p: float ) -> float | None:
@@ -82,7 +83,7 @@ def entropy( p: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'data'
+		exception.cause = 'feature_matrix'
 		exception.method = 'entropy( p: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -109,7 +110,7 @@ def gini_impurity( p: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'data'
+		exception.cause = 'feature_matrix'
 		exception.method = 'gini_impurity( p: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -136,7 +137,7 @@ def misclassification_error( p: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'data'
+		exception.cause = 'feature_matrix'
 		exception.method = 'misclassification_error( p: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -165,7 +166,7 @@ def sigmoid( z: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'data'
+		exception.cause = 'feature_matrix'
 		exception.method = 'sigmoid( z: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -181,13 +182,13 @@ class Dataset( ):
 		Members:
 		------------
 		dataframe: pd.DataFrame
-		data: np.ndarray
+		feature_matrix: np.ndarray
 		n_samples: int
 		n_features: int
 		target: str
 		test_size: float
 		random_state: int
-		feature_names: list
+		features: list
 		labels
 		numeric_columns
 		text_columns: list
@@ -201,10 +202,10 @@ class Dataset( ):
 	target: str
 	test_size: float
 	random_state: int
-	data: Optional[ np.ndarray ]
+	feature_matrix: Optional[ np.ndarray ]
 	n_samples: Optional[ int ]
 	n_features: Optional[ int ]
-	feature_names: Optional[ List[ str ] ]
+	features: Optional[ List[ str ] ]
 	labels: Optional[ np.ndarray ]
 	numeric_columns: Optional[ List[ str ] ]
 	text_columns: Optional[ List[ str ] ]
@@ -212,9 +213,9 @@ class Dataset( ):
 	X_testing: Optional[ np.ndarray ]
 	y_training: Optional[ np.ndarray ]
 	y_testing: Optional[ np.ndarray ]
-	transtuple: Optional[ List[ Tuple ] ]
-	numeric_statistics: Optional[ pd.DataFrame ]
-	categorical_statistics: Optional[ pd.DataFrame ]
+	transtuple: Optional[ List[ Tuple[ str, Processor, List[ str ] ] ] ]
+	numeric_metrics: Optional[ pd.DataFrame ]
+	categorical_metrics: Optional[ pd.DataFrame ]
 	pivot_table: Optional[ pd.DataFrame ]
 	kurtosis: Optional[ pd.DataFrame ]
 	skew: Optional[ pd.DataFrame ]
@@ -240,33 +241,33 @@ class Dataset( ):
 
 		"""
 		self.dataframe = df
-		self.data = df.to_numpy( )
+		self.feature_matrix = df.to_numpy( )
 		self.n_samples = len( df )
 		self.n_features = len( df.columns )
 		self.target = target
 		self.test_size = size
 		self.random_state = rando
-		self.feature_names = [ column for column in df.columns ]
+		self.features = [ column for column in df.columns ]
 		self.labels = df[ target ].to_numpy( )
 		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
-		self.X_training = train_test_split( self.data, self.labels,
+		self.X_training = train_test_split( self.feature_matrix, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 0 ]
-		self.X_testing = train_test_split( self.data, self.labels,
+		self.X_testing = train_test_split( self.feature_matrix, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 1 ]
-		self.y_training = train_test_split( self.data, self.labels,
+		self.y_training = train_test_split( self.feature_matrix, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 2 ]
-		self.y_testing = train_test_split( self.data, self.labels,
+		self.y_testing = train_test_split( self.feature_matrix, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 3 ]
-		self.transtuple = [ ]
-		self.numeric_statistics = None
-		self.categorical_statistics = None
-		self.pivot_table = None
 		self.skew = df.skew( axis=0, numeric_only=True )
-		self.variance = df.var( axis=0, ddof = 1, numeric_only=True )
+		self.variance = df.var( axis=0, ddof=1, numeric_only=True )
 		self.kurtosis = df.kurt( axis=0, numeric_only=True )
 		self.mean_standard_error = df.sem( axis=0, ddof=1, numeric_only=True )
 		self.standard_deviation = df.std( axis=0, ddof=1, numeric_only=True  )
+		self.transtuple = [ ]
+		self.numeric_metrics = None
+		self.categorical_metrics = None
+		self.pivot_table = None
 
 
 	def __dir__( self ):
@@ -278,19 +279,19 @@ class Dataset( ):
 
 		'''
 		return [ 'dataframe', 'n_samples', 'n_features', 'labels',
-		         'feature_names', 'test_size', 'random_state', 'categorical_statistics',
-		         'numeric_columns', 'text_columns', 'transtuple', 'numeric_statistics',
-		         'pivot_table', 'calculate_statistics', 'numeric_statistics',
+		         'features', 'test_size', 'random_state', 'categorical_metrics',
+		         'numeric_columns', 'text_columns', 'transtuple', 'numeric_metrics',
+		         'pivot_table', 'calculate_statistics', 'numeric_metrics',
 		         'labels', 'X_training', 'X_testing', 'y_training',
 		         'y_testing', 'transform_columns', 'create_pivot_table', 'export_excel']
 
 
-	def transform_columns( self, name: str, encoder: object, columns: List[ str ] ) -> None:
+	def transform_columns( self, name: str, encoder: Processor, columns: List[ str ] ) -> None:
 		"""
 
 			Purpose:
 			-----------
-				Scale numeric feature_names using selected scaler.
+				Scale numeric features using selected scaler.
 
 			Paramters:
 			-----------
@@ -307,10 +308,10 @@ class Dataset( ):
 			elif columns is None:
 				raise Exception( 'Arguent "n_features" cannot be None' )
 			else:
-				_tuple = (name, encoder, columns)
+				_tuple = ( name, encoder, columns )
 				self.transtuple.append( _tuple )
 				self.column_transformer = ColumnTransformer( self.transtuple )
-				self.column_transformer.fit_transform( self.data )
+				self.column_transformer.fit_transform( self.feature_matrix )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -332,10 +333,10 @@ class Dataset( ):
 
 		"""
 		try:
-			self.numeric_statistics = self.dataframe.describe(
+			self.numeric_metrics = self.dataframe.describe(
 				percentiles = [ .1, .25, .5, .75, .9 ],
 				include = [ np.number ] )
-			return self.numeric_statistics
+			return self.numeric_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -357,8 +358,8 @@ class Dataset( ):
 
 		"""
 		try:
-			self.categorical_statistics = self.dataframe.describe( include=[ object ] )
-			return self.categorical_statistics
+			self.categorical_metrics = self.dataframe.describe( include=[ object ] )
+			return self.categorical_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -509,7 +510,7 @@ class VarianceThreshold( ):
 
 			Purpose:
 			---------
-			Fit and transform the data using variance thresholding.
+			Fit and transform the feature_matrix using variance thresholding.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
@@ -663,10 +664,10 @@ class ComponentAnalysis( ):
 		Purpose:
 		---------
 		Principal Component Analysis (PCA). Linear dimensionality reduction using
-		Singular Value Decomposition of the data to project it to a lower dimensional space.
-		The input data is centered but not scaled for each feature before applying the SVD.
+		Singular Value Decomposition of the feature_matrix to project it to a lower dimensional space.
+		The input feature_matrix is centered but not scaled for each feature before applying the SVD.
 		It uses the LAPACK implementation of the full SVD or a randomized truncated SVD
-		by the method of Halko et al. 2009, depending on the shape of the input data and
+		by the method of Halko et al. 2009, depending on the shape of the input feature_matrix and
 		the number of components to extract.
 
 	"""
@@ -699,7 +700,7 @@ class ComponentAnalysis( ):
 
 			Purpose:
 			---------
-			Fit PCA to the input data.
+			Fit PCA to the input feature_matrix.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
@@ -753,7 +754,7 @@ class ComponentAnalysis( ):
 
 			Purpose:
 			---------
-			Fit PCA and transform input data.
+			Fit PCA and transform input feature_matrix.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray

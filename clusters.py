@@ -148,7 +148,7 @@ class KMeansClustering( Cluster ):
 
 		Purpose:
 		---------
-		The KMeans algorithm clusters data by trying to separate samples in n groups of equal
+		The KMeans algorithm clusters feature_matrix by trying to separate samples in n groups of equal
 		variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares.
 		This algorithm requires the number of clusters to be specified.
 		It scales well to large number of samples and has been used across a
@@ -202,8 +202,9 @@ class KMeansClustering( Cluster ):
 			Fit the KMeans model on the dataset.
 
 			Parameters:
-			----------
-			X: The input data.
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -226,8 +227,9 @@ class KMeansClustering( Cluster ):
 			Predict the closest cluster each sample in X belongs to.
 
 			Parameters:
-			----------
-			X: The input data.
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -254,9 +256,9 @@ class KMeansClustering( Cluster ):
 			Evaluate clustering performance using silhouette score.
 
 			Parameters:
-			----------
-			X: The input data.
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -283,8 +285,10 @@ class KMeansClustering( Cluster ):
 			Visualize clustering result using a scatter plot.
 
 			Parameters:
-			----------
-			X: Input data of shape (n_samples, 2).
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 
 		"""
 		try:
@@ -357,11 +361,12 @@ class DbscanCluster( Cluster ):
 
 			Purpose:
 			---------
-			Fit the DBSCAN model to the data.
+			Fit the DBSCAN model to the feature_matrix.
 
 			Parameters:
-			----------
-			X: Input feature_names.
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -387,8 +392,9 @@ class DbscanCluster( Cluster ):
 			Predict clusters using DBSCAN fit.
 
 			Parameters:
-			----------
-			X: Input feature_names.
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -418,9 +424,9 @@ class DbscanCluster( Cluster ):
 			Evaluate DBSCAN clusters with silhouette score.
 
 			Parameters:
-			----------
-			X: Input feature_names.
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -450,8 +456,9 @@ class DbscanCluster( Cluster ):
 			Visualize DBSCAN clusters.
 
 			Parameters:
-			----------
-			X: 2D input feature_names.
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -524,11 +531,13 @@ class AgglomerativeClustering( Cluster ):
 
 			Purpose:
 			---------
-			Fit Agglomerative model to data.
+			Fit Agglomerative model to feature_matrix.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 
 		"""
 		try:
@@ -554,8 +563,9 @@ class AgglomerativeClustering( Cluster ):
 			Predict clusters using agglomerative clustering.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -584,8 +594,9 @@ class AgglomerativeClustering( Cluster ):
 			Evaluate agglomerative clustering using silhouette score.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-------
@@ -615,9 +626,9 @@ class AgglomerativeClustering( Cluster ):
 			Visualize agglomerative clustering results.
 
 			Parameters:
-			----------
-			X: 2D input data.
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -686,8 +697,9 @@ class SpectralClustering( Cluster ):
 			Fit the SpectralClustering model.
 
 			Parameters:
-			----------
-			X:  np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -713,8 +725,9 @@ class SpectralClustering( Cluster ):
 			Predict clusters using SpectralClustering.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 
 			Return:
@@ -745,8 +758,9 @@ class SpectralClustering( Cluster ):
 			Evaluate SpectralClustering results.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Return:
 			--------
@@ -777,8 +791,9 @@ class SpectralClustering( Cluster ):
 			Visualize Spectral Cluster results.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -842,11 +857,12 @@ class MeanShiftClustering( Cluster ):
 
 			Purpose:
 			---------
-			Fit MeanShift model to the data.
+			Fit MeanShift model to the feature_matrix.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -871,8 +887,9 @@ class MeanShiftClustering( Cluster ):
 			Predict clusters using MeanShift.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Return:
 			--------
@@ -902,8 +919,9 @@ class MeanShiftClustering( Cluster ):
 			Evaluate MeanShift clustering.
 
 			Parameters:
-			----------
-			X:  np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Return:
 			--------
@@ -933,8 +951,9 @@ class MeanShiftClustering( Cluster ):
 			Visualize MeanShift clustering.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -992,11 +1011,12 @@ class AffinityPropagationClustering( Cluster ):
 
 			Purpose:
 			---------
-			Fit the model to data.
+			Fit the model to feature_matrix.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1021,8 +1041,9 @@ class AffinityPropagationClustering( Cluster ):
 			Predict clusters.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1051,8 +1072,9 @@ class AffinityPropagationClustering( Cluster ):
 			Evaluate clustering result.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Return:
 			--------
@@ -1082,8 +1104,9 @@ class AffinityPropagationClustering( Cluster ):
 			Visualize clustering with AffinityPropagation.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1108,8 +1131,8 @@ class BirchClustering( Cluster ):
 
 		Purpose:
 		---------
-		The Birch builds a tree called the Clustering Feature Tree (CFT) for the given data.
-		The data is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
+		The Birch builds a tree called the Clustering Feature Tree (CFT) for the given feature_matrix.
+		The feature_matrix is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
 		The CF Nodes have a number of subclusters called Clustering Feature subclusters
 		(CF Subclusters) and these CF Subclusters located in the non-terminal
 		CF Nodes can have CF Nodes as children.
@@ -1118,9 +1141,9 @@ class BirchClustering( Cluster ):
 		The branching factor limits the number of subclusters in a node and the threshold limits
 		the distance between the entering sample and the existing subclusters.
 
-		This algorithm can be viewed as an instance or data reduction method, since it reduces the
-		input data to a set of subclusters which are obtained directly from the leaves of the CFT.
-		This reduced data can be further processed by feeding it into a global clusterer.
+		This algorithm can be viewed as an instance or feature_matrix reduction method, since it reduces the
+		input feature_matrix to a set of subclusters which are obtained directly from the leaves of the CFT.
+		This reduced feature_matrix can be further processed by feeding it into a global clusterer.
 		This global clusterer can be set by n_clusters. If n_clusters is set to None,
 		the subclusters from the leaves are directly read off, otherwise a global clustering step
 		labels these subclusters into global clusters (labels) and the samples are
@@ -1158,8 +1181,9 @@ class BirchClustering( Cluster ):
 			Fit Birch clustering model.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1185,8 +1209,9 @@ class BirchClustering( Cluster ):
 			Predict clusters with Birch.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1216,8 +1241,9 @@ class BirchClustering( Cluster ):
 			Evaluate Birch clustering.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Return:
 			--------
@@ -1247,8 +1273,9 @@ class BirchClustering( Cluster ):
 			Visualize Birch clustering.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1320,8 +1347,9 @@ class OpticsClustering( Cluster ):
 			Fit OPTICS model.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1347,8 +1375,9 @@ class OpticsClustering( Cluster ):
 			Predict clusters with OPTICS.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Return:
 			--------
@@ -1378,9 +1407,9 @@ class OpticsClustering( Cluster ):
 			Evaluate OPTICS clustering.
 
 			Parameters:
-			----------
-			X: Input feature_names.
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -1410,8 +1439,10 @@ class OpticsClustering( Cluster ):
 			Visualize OPTICS clustering result.
 
 			Parameters:
-			----------
-			X: np.ndarray
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 
 		"""
 		try:

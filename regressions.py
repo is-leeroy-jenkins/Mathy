@@ -319,7 +319,7 @@ class MultiLayerRegressor( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test feature_names.
+			X (np.ndarray): Test features.
 			y (np.ndarray): True values.
 
 			Returns:
@@ -403,7 +403,7 @@ class MultiLayerRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True target labels.
 
 		"""
@@ -438,13 +438,13 @@ class LinearRegressor( Model ):
 		Ordinary Least Squares Regression fits a linear model with coefficients to minimize the
 		residual sum of squares between the observed targets in the dataset, and the targets
 		predicted by the linear approximation. The coefficient estimates for Ordinary Least Squares
-		rely on the independence of the feature_names.
+		rely on the independence of the features.
 
-		When feature_names are correlated and the n_features of the design matrix have an approximately
+		When features are correlated and the n_features of the design matrix have an approximately
 		linear dependence, the design matrix becomes close to singular and as a result,
 		the least-squares estimate becomes highly sensitive to random errors in the observed target,
 		producing a large variance. This situation of multicollinearity can arise, for example,
-		when data are collected without an experimental design.
+		when feature_matrix are collected without an experimental design.
 
 	"""
 	linear_regressor: skl.LinearRegression
@@ -580,7 +580,7 @@ class LinearRegressor( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test feature_names.
+			X (np.ndarray): Test features.
 			y (np.ndarray): True target labels.
 
 			Returns:
@@ -664,7 +664,7 @@ class LinearRegressor( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature_names.
+			X (np.ndarray): Input features.
 			y (np.ndarray): True target labels.
 
 		"""
@@ -858,7 +858,7 @@ class RidgeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -944,7 +944,7 @@ class RidgeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -1126,7 +1126,7 @@ class LassoRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -1162,7 +1162,7 @@ class LassoRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -1248,7 +1248,7 @@ class ElasticNetRegressor( Model ):
 		are non-zero like Lasso, while still maintaining the regularization properties of Ridge.
 		We control the convex combination of and using the l1_ratio parameter.
 
-		Elastic-net is useful when there are multiple feature_names that are correlated with one another.
+		Elastic-net is useful when there are multiple features that are correlated with one another.
 		Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
 	"""
@@ -1398,7 +1398,7 @@ class ElasticNetRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -1433,7 +1433,7 @@ class ElasticNetRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -1482,7 +1482,7 @@ class ElasticNetRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True target labels.
 
 		"""
@@ -1663,7 +1663,7 @@ class LogisticRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -1698,7 +1698,7 @@ class LogisticRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+				X (np.ndarray): Input features of shape (n_samples, n_features).
 				y (np.ndarray): True labels of shape (n_samples,).
 
 			Returns:
@@ -1753,7 +1753,7 @@ class LogisticRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -1940,7 +1940,7 @@ class BayesianRidgeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): True labels.
 
 			Returns:
@@ -2024,7 +2024,7 @@ class BayesianRidgeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True target labels.
 
 		"""
@@ -2065,7 +2065,7 @@ class StochasticDescentRegression( Model ):
 		SGD has been successfully applied to large-scale and sparse machine rate problems
 		often encountered in text classification and natural language processing.
 		Given that the df is sparse, the classifiers in this module easily scale to problems
-		with more than 10^5 training examples and more than 10^5 feature_names.
+		with more than 10^5 training examples and more than 10^5 features.
 
 		The regularizer is a penalty added to the loss function that shrinks model parameters
 		towards the zero vector using either the squared euclidean norm L2 or the absolute norm L1
@@ -2073,8 +2073,8 @@ class StochasticDescentRegression( Model ):
 		because of the regularizer, the update is truncated to 0.0 to allow for learning sparse
 		models and achieve online feature selection.
 
-		This implementation works with data represented as dense numpy arrays of floating point
-		values for the feature_names.
+		This implementation works with feature_matrix represented as dense numpy arrays of floating point
+		values for the features.
 
 	"""
 	stochastic_regressor = skl.SGDRegressor
@@ -2213,7 +2213,7 @@ class StochasticDescentRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -2248,7 +2248,7 @@ class StochasticDescentRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True target labels.
 
 			Returns:
@@ -2297,7 +2297,7 @@ class StochasticDescentRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True target labels.
 
 		"""
@@ -2479,7 +2479,7 @@ class NearestNeighborRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -2515,7 +2515,7 @@ class NearestNeighborRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): True target labels.
 
 			Returns:
@@ -2564,7 +2564,7 @@ class NearestNeighborRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -2602,9 +2602,9 @@ class DecisionTreeRegressor( Model ):
 		--------
 		Decision Trees (DTs) are a non-parametric supervised learning method used for
 		regression. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the data feature_names.
+		target variable by learning simple decision rules inferred from the feature_matrix features.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from data
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from feature_matrix
 		to approximate a sine curve with a set of if-then-else decision rules.
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
@@ -2743,7 +2743,7 @@ class DecisionTreeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -2779,7 +2779,7 @@ class DecisionTreeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): True target labels.
 
 			Returns:
@@ -2828,7 +2828,7 @@ class DecisionTreeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -2868,7 +2868,7 @@ class RandomForestRegressor( Model ):
 		(i.e., a bootstrap sample) from the training set.
 
 		Furthermore, when splitting each node during the construction of a tree,
-		the best split is found either from all input feature_names or a random subset of
+		the best split is found either from all input features or a random subset of
 		size max_features.
 
 		The purpose of these two sources of randomness is to decrease the variance
@@ -3020,7 +3020,7 @@ class RandomForestRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -3104,7 +3104,7 @@ class RandomForestRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3226,7 +3226,7 @@ class GradientBoostingRegressor( Model ):
 
 			Parameters:
 			___________
-				X (np.ndarray): Training feature_names.
+				X (np.ndarray): Training features.
 				y (np.ndarray): Training targets.
 
 			Returns:
@@ -3267,7 +3267,7 @@ class GradientBoostingRegressor( Model ):
 
 			Parameters:
 			___________
-			X (np.ndarray): Test feature_names.
+			X (np.ndarray): Test features.
 			y (np.ndarray): True target values.
 
 			Returns:
@@ -3289,7 +3289,7 @@ class GradientBoostingRegressor( Model ):
 
 			Parameters:
 			__________
-			X (np.ndarray): Input feature_names.
+			X (np.ndarray): Input features.
 			y (np.ndarray): Ground truth target values.
 
 			Returns:
@@ -3485,7 +3485,7 @@ class AdaBoostRegressor( Model ):
 
 			Parameters:
 			----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -3565,7 +3565,7 @@ class AdaBoostRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3742,7 +3742,7 @@ class BaggingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -3822,7 +3822,7 @@ class BaggingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3990,7 +3990,7 @@ class VotingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -4070,7 +4070,7 @@ class VotingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -4250,7 +4250,7 @@ class StackingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -4334,7 +4334,7 @@ class StackingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -4430,9 +4430,9 @@ class SupportVectorRegressor:
 
 			Purpose:
 			--------
-			Fit the SVR model to the data.
+			Fit the SVR model to the feature_matrix.
 
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y: Target values.
 			:type y: np.ndarray
@@ -4447,13 +4447,13 @@ class SupportVectorRegressor:
 
 			Purpose:
 			--------
-			Predict target values for the input feature_names.
+			Predict target values for the input features.
 
 			:param y:
 			:type y:
 			:param y:
 			:type y:
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:return: Predicted target values.
 			:rtype: np.ndarray
@@ -4485,7 +4485,7 @@ class SupportVectorRegressor:
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -4518,7 +4518,7 @@ class SupportVectorRegressor:
 			---------
 			Print detailed regression metrics.
 
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y: Ground truth values.
 			:type y: np.ndarray
@@ -4563,7 +4563,7 @@ class SupportVectorRegressor:
 			--------
 			Visualize the true vs predicted values for regression.
 
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y: True target values.
 			:type y: np.ndarray

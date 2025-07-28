@@ -327,7 +327,7 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -363,7 +363,7 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+				X (np.ndarray): Input features of shape (n_samples, n_features).
 				y (np.ndarray): Ground truth class labels.
 
 			Returns:
@@ -421,7 +421,7 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -659,7 +659,7 @@ class MultiLayerClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): True values.
 
 			Returns:
@@ -746,7 +746,7 @@ class MultiLayerClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -995,7 +995,7 @@ class RidgeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -1082,7 +1082,7 @@ class RidgeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -1181,10 +1181,10 @@ class StochasticGradientClassifier( Model ):
 		the gradient of the loss is estimated each sample at a time and the model is updated along
 		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
 		(online/out-of-core) learning via the partial_fit method. For best results using the
-		default learning rate schedule, the data should have zero mean and unit variance.
+		default learning rate schedule, the feature_matrix should have zero mean and unit variance.
 
-		This implementation works with data represented as dense or sparse arrays of floating point
-		 values for the feature_names. The model it fits can be controlled with the loss parameter;
+		This implementation works with feature_matrix represented as dense or sparse arrays of floating point
+		 values for the features. The model it fits can be controlled with the loss parameter;
 		 by default, it fits a linear support vector machine (SVM).
 
 		The regularizer is a penalty added to the loss function that shrinks model parameters
@@ -1332,7 +1332,7 @@ class StochasticGradientClassifier( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test feature_names.
+			X (np.ndarray): Test features.
 			y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -1423,7 +1423,7 @@ class StochasticGradientClassifier( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature_names.
+			X (np.ndarray): Input features.
 			y (np.ndarray): True class labels.
 
 			Returns:
@@ -1662,7 +1662,7 @@ class NearestNeighborClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -1754,7 +1754,7 @@ class NearestNeighborClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -1850,9 +1850,9 @@ class DecisionTreeClassifier( Model ):
 		--------
 		Decision Trees (DTs) are a non-parametric supervised learning method used for
 		classification. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the data feature_names.
+		target variable by learning simple decision rules inferred from the feature_matrix features.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from data
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from feature_matrix
 		to approximate a sine curve with a set of if-then-else decision rules.
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
@@ -1991,7 +1991,7 @@ class DecisionTreeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth labels.
 
 			Returns:
@@ -2086,7 +2086,7 @@ class DecisionTreeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -2184,7 +2184,7 @@ class RandomForestClassifier( Model ):
 		(i.e., a bootstrap sample) from the training set.
 
 		Furthermore, when splitting each node during the construction of a tree,
-		the best split is found either from all input feature_names or a random subset of
+		the best split is found either from all input features or a random subset of
 		size max_features.
 
 		The purpose of these two sources of randomness is to decrease the variance
@@ -2330,7 +2330,7 @@ class RandomForestClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -2365,7 +2365,7 @@ class RandomForestClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -2416,7 +2416,7 @@ class RandomForestClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -2516,8 +2516,8 @@ class GradientBoostingClassifier( Model ):
 		or multinomial deviance loss function. Binary classification is a special case where
 		only a single regression tree is induced.
 
-		The feature_names are always randomly permuted at each split. Therefore, the best found split
-		may vary, even with the same training data and max_features=n_features, if the improvement
+		The features are always randomly permuted at each split. Therefore, the best found split
+		may vary, even with the same training feature_matrix and max_features=n_features, if the improvement
 		of the criterion is identical for several splits enumerated during the search of the best
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
@@ -2745,7 +2745,7 @@ class GradientBoostingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth labels.
 
 		"""
@@ -2954,7 +2954,7 @@ class AdaBoostClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -2988,7 +2988,7 @@ class AdaBoostClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3038,7 +3038,7 @@ class AdaBoostClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -3269,7 +3269,7 @@ class BaggingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3303,7 +3303,7 @@ class BaggingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3354,7 +3354,7 @@ class BaggingClassifier( Model ):
 
 			Parameters:
 			------------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -3579,7 +3579,7 @@ class VotingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3613,7 +3613,7 @@ class VotingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3663,7 +3663,7 @@ class VotingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -3886,7 +3886,7 @@ class StackingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Test features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3919,7 +3919,7 @@ class StackingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): Ground truth target labels.
 
 			Returns:
@@ -3968,7 +3968,7 @@ class StackingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
+				X (np.ndarray): Input features.
 				y (np.ndarray): True class labels.
 
 			Returns:
@@ -4129,9 +4129,9 @@ class SupportVectorClassifier:
 		
 			Purpose:
 			---------
-			Fit the SVC model to the data.
+			Fit the SVC model to the feature_matrix.
 	
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y: Target labels.
 			:type y: np.ndarray
@@ -4158,9 +4158,9 @@ class SupportVectorClassifier:
 			
 			Purpose:
 			--------
-			Predict class labels for the input feature_names.
+			Predict class labels for the input features.
 	
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:return: Predicted class labels.
 			:rtype: np.ndarray
@@ -4188,7 +4188,7 @@ class SupportVectorClassifier:
 			---------
 			Evaluate the model using accuracy score.
 	
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y_true: True labels.
 			:type y_true: np.ndarray
@@ -4223,7 +4223,7 @@ class SupportVectorClassifier:
 	
 			:param self:
 			:type self:
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y_true: True labels.
 			:type y_true: np.ndarray
@@ -4257,7 +4257,7 @@ class SupportVectorClassifier:
 	
 			:param self:
 			:type self:
-			:param X: Input feature_names.
+			:param X: Input features.
 			:type X: np.ndarray
 			:param y_true: True labels.
 			:type y_true: np.ndarray

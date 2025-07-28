@@ -43,11 +43,10 @@
 from __future__ import annotations
 from booger import Error, ErrorDialog
 import numpy as np
-from typing import Optional, List, Union, Any
+from typing import Optional, List, Union
 import sklearn.feature_extraction.text as sk
 import sklearn.preprocessing as skp
 import sklearn.impute as ski
-from pydantic import BaseModel
 
 
 class Processor(  ):
@@ -62,10 +61,10 @@ class Processor(  ):
 	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ):
-		pass
+		self.transformed_data = None
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
 			Purpose:
@@ -74,13 +73,13 @@ class Processor(  ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (Optional[np.ndarray]): Optional target array.
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		raise NotImplementedError
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -89,7 +88,8 @@ class Processor(  ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -98,7 +98,7 @@ class Processor(  ):
 		"""
 		raise NotImplementedError
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -107,8 +107,8 @@ class Processor(  ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (Optional[np.ndarray]): Optional target array.
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -117,22 +117,22 @@ class Processor(  ):
 		"""
 		raise NotImplementedError
 
-	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
+	def inverse_transform( self, text: list[ str ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform documents to TF-IDF vectors.
+			Transform text to TF-IDF vectors.
 
-			:param documents: List of text documents.
-			:type documents: list[str]
+			:param text: List of text text.
+			:type text: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		return NotImplementedError
 
 
-class LabelBinarizer(  ):
+class LabelBinarizer( Processor ):
 	"""
 
 		Purpose:
@@ -162,12 +162,13 @@ class LabelBinarizer(  ):
 		Initializes the LabelBinarizerWrapper.
 
 		"""
+		super( ).__init__( )
 		self.label_binarizer = skp.LabelBinarizer( )
 		self.transformed_data = None
 
 
 
-	def fit( self, y: np.ndarray ) -> LabelBinarizer | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> LabelBinarizer | None:
 		"""
 
 			Purpose:
@@ -175,7 +176,9 @@ class LabelBinarizer(  ):
 			Fits the label binarizer on the input labels.
 
 			Args:
-				y (np.ndarray): Target labels for fitting.
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
 		try:
@@ -192,7 +195,7 @@ class LabelBinarizer(  ):
 			error.show( )
 
 
-	def transform( self, y: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -200,10 +203,16 @@ class LabelBinarizer(  ):
 			Transforms labels into a binary format.
 
 			Args:
-				y (Union[List, np.ndarray]): Labels to encode.
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
+				:param y:
+				:type y:
+				:param X:
+				:type X:
 		"""
 		try:
 			if y is None:
@@ -220,7 +229,7 @@ class LabelBinarizer(  ):
 			error.show( )
 
 
-	def fit_transform( self, y: np.ndarray ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -228,7 +237,9 @@ class LabelBinarizer(  ):
 			Fits the encoder and transforms the input labels in one step.
 
 			Args:
-				y np.ndarray: Labels to fit and transform.
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
@@ -282,23 +293,24 @@ class TfidfTransformer( Processor ):
 		---------
 		Transform a count matrix to a normalized tf or tf-idf representation. Tf means
 		term-frequency while tf-idf means term-frequency times inverse document-frequency.
-		This is a common term weighting scheme in information retrieval, that has also found good
+		This is a common term-weighting scheme in information retrieval, that has also found good
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		feature_names that occur in a small fraction of the training corpus.
+		features that occur in a small fraction of the training corpus.
 
 		The formula that is used to compute the tf-idf for a term t of a document d in a
 		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
 		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
-		number of documents in the document set and df(t) is the document frequency of t;
-		the document frequency is the number of documents in the document set that contain
+		number of text in the document set and df(t) is the document frequency of t;
+		the document frequency is the number of text in the document set that contain
 		the term t. The effect of adding “1” to the idf in the equation above is that
-		terms with zero idf, i.e., terms that occur in all documents in a training set,
+		terms with zero idf, i.e., terms that occur in all text in a training set,
 		will not be entirely ignored. (Note that the idf formula above differs from the
 		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
 
 	"""
+	tfidf_transformer: sk.TfidfTransformer
 
 	def __init__( self ) -> None:
 		"""
@@ -308,37 +320,62 @@ class TfidfTransformer( Processor ):
 			Initialize TfidfTransformer.
 		"""
 		super( ).__init__( )
-		self.transformer = sk.TfidfTransformer( )
+		self.tfidf_transformer = sk.TfidfTransformer( )
 		self.transformed_data = None
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> TfidfTransformer | None:
 		"""
 
 			Purpose:
 			---------
 			Fit the transformer to a count matrix.
 
-			:param y:
-			:type y:
-			:param X: Input count matrix.
-			:type X: np.ndarray
-		"""
-		self.transformer.fit( X )
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+		try:
+			if X is None:
+				raise Exception( '"X" cannot be None' )
+			else:
+				self.tfidf_transformer.fit( X )
+				return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfTransformer'
+			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
 			Transform a count matrix to TF-IDF.
 
-			:param X: Input count matrix.
-			:type X: np.ndarray
-			:return: TF-IDF matrix.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 		"""
-		self.transformed_data = self.transformer.transform( X ).toarray( )
-		return self.transformed_data
+		try:
+			if X is None:
+				raise Exception( '"X" cannot be None' )
+			else:
+				self.transformed_data = self.tfidf_transformer.transform( X ).toarray( )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TfidfTransformer'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None  ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
@@ -347,54 +384,39 @@ class TfidfTransformer( Processor ):
 			---------
 			Fit and transform the count matrix.
 
-			:param y:
-			:type y:
-			:param X: Input count matrix.
-			:type X: np.ndarray
-			:return: TF-IDF matrix.
-			:rtype: np.ndarray
-		"""
-		self.transformed_data = self.transformer.fit_transform( X ).toarray( )
-		return self.transformed_data
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
-	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
-		"""
-
-			Purpose:
-			---------
-			Transform documents to TF-IDF vectors.
-
-			:param documents: List of text documents.
-			:type documents: list[str]
-			:return: TF-IDF vectorized output.
-			:rtype: np.ndarray
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if X is None:
+				raise Exception( '"X" cannot be None' )
 			else:
-				self.transformed_data = self.transformer.transform( documents ).toarray( )
+				self.transformed_data = self.tfidf_transformer.fit_transform( X ).toarray( )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
-
+# noinspection PyUnusedLocal
 class TfidfVectorizer( Processor ):
 	"""
 
 		Purpose:
 		---------
 
-		Convert a collection of raw documents to a matrix of TF-IDF feature_names. Equivalent to
+		Convert a collection of raw text to a matrix of TF-IDF features. Equivalent to
 		CountVectorizer followed by TfidfTransformer. Tf means term-frequency while tf–idf means
 		 term-frequency times inverse document-frequency:
 
 	"""
+	tfidf_vectorizer: sk.TfidfVectorizer
 
 	def __init__( self ) -> None:
 		"""
@@ -405,26 +427,26 @@ class TfidfVectorizer( Processor ):
 
 		"""
 		super( ).__init__( )
-		self.vectorizer = sk.TfidfVectorizer( )
+		self.tfidf_vectorizer = sk.TfidfVectorizer( )
 		self.transformed_data = None
 
-	def fit( self, documents: list[ str ], y: Optional[ np.ndarray ]=None ) -> TfidfVectorizer | None:
+	def fit( self, text: list[ str ], y: Optional[ np.ndarray ]=None ) -> TfidfVectorizer | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the vectorizer to the documents.
+			Fit the vectorizer to the text.
 
 			:param y:
 			:type y:
-			:param documents: List of text documents.
-			:type documents: list[str]
+			:param text: List of text text.
+			:type text: list[str]
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				self.vectorizer.fit( documents )
+				self.tfidf_vectorizer.fit( text )
 				return self
 		except Exception as e:
 			exception = Error( e )
@@ -434,23 +456,26 @@ class TfidfVectorizer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def transform( self, documents: list[ str ] ) -> np.ndarray | None:
+	def transform( self, text: list[ str ],
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform documents to TF-IDF vectors.
+			Transform text to TF-IDF vectors.
 
-			:param documents: List of text documents.
-			:type documents: list[str]
+			:param y:
+			:type y:
+			:param text: List of strings.
+			:type text: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( ' "text" cannot be None' )
 			else:
-				self.transformed_data = self.vectorizer.transform( documents ).toarray( )
+				self.transformed_data = self.tfidf_vectorizer.transform( text ).toarray( )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -460,26 +485,26 @@ class TfidfVectorizer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, documents: list[ str ],
+	def fit_transform( self, text: list[ str ],
 	                   y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Fit and transform the documents.
+			Fit and transform the text.
 
 			:param y:
 			:type y:
-			:param documents: List of text documents.
-			:type documents: list[str]
+			:param text: List of text text.
+			:type text: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				self.transformed_data = self.vectorizer.fit_transform( documents ).toarray( )
+				self.transformed_data = self.tfidf_vectorizer.fit_transform( text ).toarray( )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -490,23 +515,23 @@ class TfidfVectorizer( Processor ):
 			error.show( )
 
 
-	def inverse_transform( self, documents: list[ str ] ) -> np.ndarray | None:
+	def inverse_transform( self, text: list[ str ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform documents to TF-IDF vectors.
+			Transform text to TF-IDF vectors.
 
-			:param documents: List of text documents.
-			:type documents: list[str]
+			:param text: List of text text.
+			:type text: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				return self.vectorizer.inverse_transform( documents ).toarray( )
+				return self.tfidf_vectorizer.inverse_transform( text ).toarray( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -521,13 +546,14 @@ class CountVectorizer( Processor ):
 
 		Purpose:
 		---------
-		Convert a collection of text documents to a matrix of token counts. This implementation
+		Convert a collection of text text to a matrix of token counts. This implementation
 		produces a sparse representation of the counts using scipy.sparse.csr_matrix. If you do not
 		provide an a-priori dictionary and you do not use an analyzer that does some kind of
-		feature selection then the number of feature_names will be equal to the vocabulary
-		size found by analyzing the data.
+		feature selection then the number of features will be equal to the vocabulary
+		size found by analyzing the feature_matrix.
 
 	"""
+	count_vectorizer: sk.CountVectorizer
 
 	def __init__( self ) -> None:
 		"""
@@ -537,28 +563,28 @@ class CountVectorizer( Processor ):
 			Initialize the CountVectorizerWrapper with default parameters.
 		"""
 		super( ).__init__( )
-		self.vectorizer = sk.CountVectorizer( )
+		self.count_vectorizer = sk.CountVectorizer( )
 		self.transformed_data = None
 
 
-	def fit( self, documents: List[ str ], y: Optional[ np.ndarray ]=None ) -> CountVectorizer | None:
+	def fit( self, text: List[ str ], y: Optional[ np.ndarray ]=None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
 			---------
-			Convert a collection of text documents to a matrix of token counts.
+			Convert a collection of text text to a matrix of token counts.
 
 			:param y:
 			:type y:
-			:param documents: List of input text documents.
-			:type documents: List[str]
+			:param text: List of input text text.
+			:type text: List[str]
 
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				self.vectorizer.fit( documents )
+				self.count_vectorizer.fit( text )
 				return self
 		except Exception as e:
 			exception = Error( e )
@@ -568,27 +594,27 @@ class CountVectorizer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def transform( self, documents: List[ str ],
+	def transform( self, text: List[ str ],
 	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			-------
-			Transform documents into count vectors.
+			Transform text into count vectors.
 
 			:param y:
 			:type y: np.ndarray
-			:param documents: List of input text documents.
-			:type documents: List[str]
+			:param text: List of input text text.
+			:type text: List[str]
 			:return: Matrix of token counts.
 			:rtype: np.ndarray
 
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				self.transformed_data = self.vectorizer.transform( documents ).toarray( )
+				self.transformed_data = self.count_vectorizer.transform( text ).toarray( )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -598,27 +624,27 @@ class CountVectorizer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def fit_transform( self, documents: List[ str ],
+	def fit_transform( self, text: List[ str ],
 	                   y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the vectorizer and transform the documents.
+			Fit the vectorizer and transform the text.
 
 			:param y:
 			:type y:
-			:param documents: List of input text documents.
-			:type documents: List[str]
+			:param text: List of input text text.
+			:type text: List[str]
 			:return: Matrix of token counts.
 			:rtype: np.ndarray
 
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				self.transformed_data = self.vectorizer.fit_transform( documents ).toarray( )
+				self.transformed_data = self.count_vectorizer.fit_transform( text ).toarray( )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -634,43 +660,47 @@ class HashingVectorizer( Processor ):
 
 		Purpose:
 		---------
-		Convert a collection of text documents to a matrix of token occurrences. It turns a
-		collection of text documents into a scipy.sparse matrix holding token occurrence counts
+		Convert a collection of text text to a matrix of token occurrences. It turns a
+		collection of text text into a scipy.sparse matrix holding token occurrence counts
 		(or binary occurrence information), possibly normalized as token frequencies
 		if norm=’l1’ or projected on the euclidean unit sphere if norm=’l2’. This text vectorizer
 		implementation uses the hashing trick to find the token string name to feature integer
 		index mapping.
 
 	"""
+	hash_vectorizer: sk.HashingVectorizer
 
 	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the HashingVectorizer with the desired number of feature_names.
+			Initialize the HashingVectorizer with the desired number of features.
 
 		"""
 		super( ).__init__( )
-		self.vectorizer = sk.HashingVectorizer( n_features = num )
+		self.hash_vectorizer = sk.HashingVectorizer( n_features=num )
 
-	def transform( self, documents: List[ str ] ) -> np.ndarray | None:
+	def transform( self, text: List[ str ],
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform documents into hashed token vectors.
+			Transform text into hashed token vectors.
 
-			:param documents: List of input text documents.
-			:type documents: List[str]
-			:return: Matrix of hashed feature_names.
+			:param y:
+			:type y:
+			:param text: List of input text text.
+			:type text: List[str]
+			:return: Matrix of hashed features.
 			:rtype: np.ndarray
 		"""
 		try:
-			if documents is None:
-				raise Exception( '"documents" cannot be None' )
+			if text is None:
+				raise Exception( '"text" cannot be None' )
 			else:
-				self.transformed_data = self.vectorizer.transform( documents ).toarray( )
+				self.transformed_data = self.hash_vectorizer.transform( text ).toarray( )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -686,7 +716,7 @@ class StandardScaler( Processor ):
 
 		Purpose:
 		--------
-		Standardize feature_names by removing the mean and scaling to unit variance. The standard score
+		Standardize features by removing the mean and scaling to unit variance. The standard score
 		of a sample x is calculated as: z = (x - u) / s where u is the mean of the training
 		samples or zero if with_mean=False, and s is the standard deviation of the training
 		samples or one if with_std=False.
@@ -709,8 +739,8 @@ class StandardScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
-			y (Optional[np.ndarray]): Ignored.
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -733,7 +763,8 @@ class StandardScaler( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -742,7 +773,8 @@ class StandardScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -769,11 +801,11 @@ class StandardScaler( Processor ):
 
 			Purpose:
 			---------
-			Transforms into standardized data.
+			Transforms into standardized feature_matrix.
 
-			:param X: List of text documents.
+			:param X: List of text text.
 			:type X: list[str]
-			:return: Standardized data.
+			:return: Standardized feature_matrix.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -795,7 +827,7 @@ class MinMaxScaler( Processor ):
 
 		Purpose:
 		---------
-		Transforms feature_names by scaling each feature to a given range. This estimator scales and
+		Transforms features by scaling each feature to a given range. This estimator scales and
 		translates each feature individually such that it is in the given range on the
 		training set, e.g. between zero and one.
 
@@ -816,8 +848,8 @@ class MinMaxScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
-			y (Optional[np.ndarray]): Ignored.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -840,7 +872,8 @@ class MinMaxScaler( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -849,7 +882,8 @@ class MinMaxScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -876,11 +910,11 @@ class MinMaxScaler( Processor ):
 
 			Purpose:
 			---------
-			Transforms into min-maxed data.
+			Transforms into min-maxed feature_matrix.
 
-			:param X: List of text documents.
+			:param X: List of text text.
 			:type X: list[str]
-			:return: Standardized data.
+			:return: Standardized feature_matrix.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -902,7 +936,7 @@ class RobustScaler( Processor ):
 
 		Purpose:
 		--------
-		This Scaler removes the median and scales the data according to the
+		This Scaler removes the median and scales the feature_matrix according to the
 		quantile range (defaults to IQR: Interquartile Range).
 		The IQR is the range between the 1st quartile (25th quantile)
 		and the 3rd quartile (75th quantile).
@@ -925,8 +959,8 @@ class RobustScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
-			y (Optional[np.ndarray]): Ignored.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -949,7 +983,8 @@ class RobustScaler( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -958,7 +993,8 @@ class RobustScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -985,11 +1021,11 @@ class RobustScaler( Processor ):
 
 			Purpose:
 			---------
-			Transforms into robust data.
+			Transforms into robust feature_matrix.
 
-			:param X: List of text documents.
+			:param X: List of text text.
 			:type X: list[str]
-			:return: Standardized data.
+			:return: Standardized feature_matrix.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -1012,7 +1048,7 @@ class NormalScaler( Processor ):
 
 		Purpose:
 		---------
-		Normalize samples individually to unit norm. Each sample (i.e. each row of the data matrix)
+		Normalize samples individually to unit norm. Each sample (i.e. each row of the feature_matrix matrix)
 		with at least one non zero component is rescaled independently of other samples
 		so that its regularlization (l1 or l2) equals one.
 
@@ -1033,8 +1069,8 @@ class NormalScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
-			y (Optional[np.ndarray]): Ignored.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1057,7 +1093,8 @@ class NormalScaler( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 
@@ -1067,7 +1104,8 @@ class NormalScaler( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1094,21 +1132,21 @@ class OneHotEncoder( Processor ):
 
 		Purpose:
 		---------
-		Encode categorical feature_names as a one-hot numeric array. The input to this transformer
+		Encode categorical features as a one-hot numeric array. The input to this transformer
 		should be an array-like of integers or strings, denoting the values taken on by categorical
-		(discrete) feature_names. The feature_names are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
+		(discrete) features. The features are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
 		encoding scheme. This creates a binary column for each category and returns a sparse
 		matrix or dense array (depending on the sparse_output parameter)
 
 		By default, the encoder derives the categories based on the unique values in each feature.
 		Alternatively, you can also specify the categories manually. This encoding is needed for
-		feeding categorical data to many scikit-learn estimators, notably linear models and SVMs
+		feeding categorical feature_matrix to many scikit-learn estimators, notably linear models and SVMs
 		with the standard kernels. Note: a one-hot encoding of y labels should use a
 		LabelBinarizer instead.
 
 	"""
 
-	def __init__( self, unknown: str = 'ignore' ) -> None:
+	def __init__( self, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
 		self.hot_encoder = skp.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 
@@ -1123,8 +1161,8 @@ class OneHotEncoder( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Categorical text df.
-			y (Optional[np.ndarray]): Ignored.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1147,7 +1185,8 @@ class OneHotEncoder( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 
@@ -1158,7 +1197,8 @@ class OneHotEncoder( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Categorical text df.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1185,14 +1225,13 @@ class OneHotEncoder( Processor ):
 
 			Purpose:
 			--------
-			Fit the encoder and transform the data.
+			Fit the encoder and transform the feature_matrix.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -1215,7 +1254,7 @@ class OrdinalEncoder( Processor ):
 
 			Purpose:
 			---------
-			Encodes categorical feature_names as ordinal integers.
+			Encodes categorical features as ordinal integers.
 
 	"""
 
@@ -1232,9 +1271,9 @@ class OrdinalEncoder( Processor ):
 			Fits the ordial encoder to the categorical df.
 
 			Parameters:
-			_____
-			X (np.ndarray): Categorical text df.
-			y (Optional[np.ndarray]): Ignored.
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1256,7 +1295,8 @@ class OrdinalEncoder( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1266,7 +1306,8 @@ class OrdinalEncoder( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Categorical text df.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1293,14 +1334,13 @@ class OrdinalEncoder( Processor ):
 
 			Purpose:
 			--------
-			Fit the encoder and transform the data.
+			Fit the encoder and transform the feature_matrix.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 		"""
 
 		try:
@@ -1323,13 +1363,13 @@ class OrdinalEncoder( Processor ):
 
 			Purpose:
 			---------
-			Transform documents to TF-IDF vectors.
+			Transform text to TF-IDF vectors.
 
 			:param X: np.ndarray
 		"""
 		try:
 			if X is None:
-				raise Exception( '"documents" cannot be None' )
+				raise Exception( '"text" cannot be None' )
 			else:
 				return self.ordinal_encoder.inverse_transform( X ).toarray( )
 		except Exception as e:
@@ -1362,23 +1402,24 @@ class LabelEncoder( Processor ):
 		self.label_encoder = skp.LabelEncoder( )
 
 
-	def fit( self, labels: list[ str ], y: Optional[ np.ndarray ]=None ) -> LabelEncoder | None:
+	def fit( self, X: list[ str ], y: Optional[ np.ndarray ] ) -> LabelEncoder | None:
 		"""
 
 			Purpose:
 			--------
-			Fit the label encoder to the data.
+			Fit the label encoder to the feature_matrix.
 
-			:param y:
-			:type y:
-			:param labels: List of labels.
-			:type labels: list[str]
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 		"""
 		try:
-			if labels is None:
+			if y is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.label_encoder.fit( labels )
+				self.label_encoder.fit( y )
 				return self
 		except Exception as e:
 			exception = Error( e )
@@ -1389,24 +1430,26 @@ class LabelEncoder( Processor ):
 			error.show( )
 
 
-	def transform( self, labels: list[ str ] ) -> np.ndarray | None:
+	def transform( self, X: list[ str ],
+	               y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
 			Transform labels to encoded form.
 
-			:param labels: List of labels.
-			:type labels: list[str]
-			:return: Encoded labels.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
 		"""
 
 		try:
-			if labels is None:
+			if y is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.transformed_data = self.label_encoder.transform( labels )
+				self.transformed_data = self.label_encoder.transform( y )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1417,14 +1460,16 @@ class LabelEncoder( Processor ):
 			error.show( )
 
 
-	def fit_transform( self, labels: list[ str ],
-	                   y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def fit_transform( self, X: list[ str ],
+	                   y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Fit and transform the label data.
+			Fit and transform the label feature_matrix.
 
+			:param X:
+			:type X:
 			:param y:
 			:type y:
 			:param labels: List of labels.
@@ -1434,10 +1479,10 @@ class LabelEncoder( Processor ):
 		"""
 
 		try:
-			if labels is None:
+			if y is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.transformed_data = self.label_encoder.fit_transform( labels )
+				self.transformed_data = self.label_encoder.fit_transform( y )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1453,7 +1498,7 @@ class LabelEncoder( Processor ):
 
 			Purpose:
 			---------
-			Transform documents to TF-IDF vectors.
+			Transform text to TF-IDF vectors.
 
 			:param X: np.ndarray
 		"""
@@ -1478,7 +1523,7 @@ class PolynomialFeatures( Processor ):
         Wrapper for PolynomialFeatures.
     """
 
-	def __init__( self, degree: int = 2 ) -> None:
+	def __init__( self, degree: int=2 ) -> None:
 		"""
 
 			Purpose:
@@ -1489,7 +1534,7 @@ class PolynomialFeatures( Processor ):
 			:type degree: int
 		"""
 		super( ).__init__( )
-		self.polynomial_features = skp.PolynomialFeatures( degree = degree )
+		self.polynomial_features = skp.PolynomialFeatures( degree=degree )
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> PolynomialFeatures| None:
@@ -1497,7 +1542,7 @@ class PolynomialFeatures( Processor ):
 
 			Purpose:
 			--------
-			Fit polynomial transformer to data.
+			Fit polynomial transformer to feature_matrix.
 
 			:param y:
 			:type y:
@@ -1519,13 +1564,16 @@ class PolynomialFeatures( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Transform data into polynomial feature_names.
+			Transform feature_matrix into polynomial features.
 
+			:param y:
+			:type y:
 			:param X: Feature matrix.
 			:type X: np.ndarray
 			:return: Transformed feature matrix.
@@ -1551,7 +1599,7 @@ class PolynomialFeatures( Processor ):
 
 			Purpose:
 			--------
-			Fit and transform data using polynomial expansion.
+			Fit and transform feature_matrix using polynomial expansion.
 
 			:param y:
 			:type y:
@@ -1583,10 +1631,12 @@ class MeanImputer( Processor ):
 		Fills missing labels using the average.
 
 	"""
+	strategy: Optional[ str ]
 
-	def __init__( self, strat: str = 'mean' ) -> None:
+	def __init__( self, strategy: str='mean' ) -> None:
 		super( ).__init__( )
-		self.mean_imputer = ski.SimpleImputer( strategy = strat )
+		self.strategy = strategy
+		self.mean_imputer = ski.SimpleImputer( strategy=self.strategy )
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
@@ -1621,7 +1671,8 @@ class MeanImputer( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 
@@ -1659,13 +1710,13 @@ class MeanImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the iterative imputer and transform the data.
+			Fit the iterative imputer and transform the feature_matrix.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed data with imputed values.
+			:return: Transformed feature_matrix with imputed values.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -1687,7 +1738,7 @@ class MeanImputer( Processor ):
 
 			Purpose:
 			---------
-			Transform documents to TF-IDF vectors.
+			Transform text to TF-IDF vectors.
 
 			:param X: np.ndarray
 		"""
@@ -1713,10 +1764,12 @@ class NearestNeighborImputer( Processor ):
 		Fills missing labels using k-nearest neighbors.
 
 	"""
+	n_neighbors: Optional[ int ]
 
-	def __init__( self ) -> None:
+	def __init__( self, neighbors: int=5 ) -> None:
 		super( ).__init__( )
-		self.knn_imputer = ski.KNNImputer( )
+		self.n_neighbors = neighbors
+		self.knn_imputer = ski.KNNImputer( n_neighbors=self.n_neighbors )
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
@@ -1749,7 +1802,8 @@ class NearestNeighborImputer( Processor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1786,13 +1840,13 @@ class NearestNeighborImputer( Processor ):
 
 			Purpose:
 			---------
-			Fit the iterative imputer and transform the data.
+			Fit the iterative imputer and transform the feature_matrix.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed data with imputed values.
+			:return: Transformed feature_matrix with imputed values.
 			:rtype: np.ndarray
 
 		"""
@@ -1817,7 +1871,7 @@ class IterativeImputer( Processor ):
 		Purpose:
 		--------
 		A strategy for imputing missing values by modeling each feature with
-		missing values as a function of other feature_names in a round-robin fashion.
+		missing values as a function of other features in a round-robin fashion.
 	"""
 
 	def __init__( self, max: int = 10, rando: int = 0 ) -> None:
@@ -1840,7 +1894,7 @@ class IterativeImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the iterative imputer to the data.
+			Fit the iterative imputer to the feature_matrix.
 
 			:param y:
 			:type y:
@@ -1861,16 +1915,19 @@ class IterativeImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform data by iteratively imputing missing values.
+			Transform feature_matrix by iteratively imputing missing values.
 
+			:param y:
+			:type y:
 			:param X: Data to transform.
 			:type X: np.ndarray
-			:return: Transformed data with imputed values.
+			:return: Transformed feature_matrix with imputed values.
 			:rtype: np.ndarray
 
 		"""
@@ -1881,13 +1938,13 @@ class IterativeImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the iterative imputer and transform the data.
+			Fit the iterative imputer and transform the feature_matrix.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed data with imputed values.
+			:return: Transformed feature_matrix with imputed values.
 			:rtype: np.ndarray
 
 		"""
@@ -1933,7 +1990,7 @@ class SimpleImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the imputer to the data.
+			Fit the imputer to the feature_matrix.
 
 			:param y:
 			:type y:
@@ -1953,16 +2010,19 @@ class SimpleImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray,
+	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Transform data by imputing missing values.
+			Transform feature_matrix by imputing missing values.
 
+			:param y:
+			:type y:
 			:param X: Data to transform.
 			:type X: np.ndarray
-			:return: Transformed data with imputed values.
+			:return: Transformed feature_matrix with imputed values.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -1983,13 +2043,13 @@ class SimpleImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the imputer and transform the data.
+			Fit the imputer and transform the feature_matrix.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed data with imputed values.
+			:return: Transformed feature_matrix with imputed values.
 			:rtype: np.ndarray
 		"""
 		try:
