@@ -2647,7 +2647,7 @@ class DecisionTreeRegression( Model ):
 		self.max_depth = depth
 		self.random_state = rando
 		self.dt_regresssor = DecisionTreeRegressor( criterion=self.criterion,
-			splitter=self.splitter, max_depth=self.max_depth, random_state=rando )
+			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2923,8 +2923,8 @@ class RandomForestRegression( Model ):
 		self.criterion = crit
 		self.max_depth = max
 		self.random_state = rando
-		self.random_forest_regressor = RandomForestRegressor(
-			n_estimators=est, criterion=crit, random_state=rando )
+		self.random_forest_regressor = RandomForestRegressor( n_estimators=self.n_estimators,
+			criterion=self.criterion, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3161,10 +3161,11 @@ class GradientBoostingRegression( Model ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	loss: str
-	learning_rate: float
-	n_estimators: int
-	max_detpth: int
+	loss: Optional[ str ]
+	learning_rate: Optional[ float ]
+	random_state: Optional[ int ]
+	n_estimators: Optional[ int ]
+	max_detpth: Optional[ int ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 
@@ -3191,8 +3192,10 @@ class GradientBoostingRegression( Model ):
 		self.learning_rate = rate
 		self.n_estimators = est
 		self.max_depth = max
-		self.gradient_boost_regressor = GradientBoostingRegressor( loss=lss, learning_rate=rate,
-			n_estimators=est, max_depth=max, random_state=rando )
+		self.random_state = rando
+		self.gradient_boost_regressor = GradientBoostingRegressor( loss=self.loss,
+			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
+			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
