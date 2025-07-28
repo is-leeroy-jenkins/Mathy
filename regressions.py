@@ -1245,7 +1245,7 @@ class ElasticNetRegression( Model ):
 
 		Purpose:
 		--------
-		ElasticNet is a linear regression model trained with both and -norm regularization of the
+		ElasticNet is a linear regression model trained with both L1 and L2-norm regularization of the
 		coefficients. This combination allows for learning a sparse model where few of the weights
 		are non-zero like Lasso, while still maintaining the regularization properties of Ridge.
 		We control the convex combination of and using the l1_ratio parameter.
@@ -1274,7 +1274,7 @@ class ElasticNetRegression( Model ):
 
 
 	def __init__( self, alpha: float=1.0, ratio: float=0.5, max: int=200,
-	              rando: int=42, select: str='random' ) -> None:
+	              rando: int=None, select: str='random' ) -> None:
 		"""
 
 			Purpose:
