@@ -223,7 +223,7 @@ class MultilayerRegression( Model ):
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning, random_state=self.random_state )
 		self.pipeline = Pipeline( steps=list( hidden ) )
-		self.prediction: np.array = None
+		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
