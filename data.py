@@ -481,7 +481,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def calculate_mean_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
+	def calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series | None:
 		'''
 
 			Purpose:
