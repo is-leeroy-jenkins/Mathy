@@ -96,7 +96,7 @@ class Cluster( ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values or class labels.
+				np.ndarray: Predicted labels or class labels.
 
 		"""
 		raise NotImplementedError
@@ -112,7 +112,7 @@ class Cluster( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -132,7 +132,7 @@ class Cluster( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -149,9 +149,9 @@ class KMeansClustering( Cluster ):
 		Purpose:
 		---------
 		The KMeans algorithm clusters data by trying to separate samples in n groups of equal
-		variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares
-		(see below). This algorithm requires the number of clusters
-		to be specified. It scales well to large number of samples and has been used across a
+		variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares.
+		This algorithm requires the number of clusters to be specified.
+		It scales well to large number of samples and has been used across a
 		large range of application areas in many different fields.
 
 		The algorithm has three steps. The first step chooses the initial centroids,
@@ -165,10 +165,13 @@ class KMeansClustering( Cluster ):
 
 	"""
 	kmeans_cluster: skc.KMeans
+	n_clusters: Optional[ int ]
+	random_state: Optional[ int ]
+	max_iter: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 
-	def __init__( self, num: int=8, rando: int=42 ) -> None:
+	def __init__( self, num: int=8, rando: int=42, max: int=300 ) -> None:
 		"""
 			Purpose:
 			---------
@@ -178,11 +181,15 @@ class KMeansClustering( Cluster ):
 			----------
 			num: Number of clusters to form.
 			rando: Random seed for reproducibility.
-			rando: int
+			max: number of iterations.
 
 		"""
 		super( ).__init__( )
-		self.kmeans_cluster = skc.KMeans( n_clusters=num, random_state=rando )
+		self.n_clusters = num
+		self.random_state = rando
+		self.max_iter = max
+		self.kmeans_cluster = skc.KMeans( n_clusters=self.n_clusters,
+			random_state=self.random_state, max_iter=self.max_iter )
 		self.prediction = None
 		self.accuracy = 0.0
 
@@ -297,7 +304,7 @@ class KMeansClustering( Cluster ):
 			error.show( )
 
 
-class DbscanClustering( Cluster ):
+class DbscanCluster( Cluster ):
 	"""
 
 		Purpose:
@@ -306,7 +313,9 @@ class DbscanClustering( Cluster ):
 		density. Due to this rather generic view, clusters found by DBSCAN can be any shape,
 		as opposed to k-means which assumes that clusters are convex shaped. The central component
 		to the DBSCAN is the concept of core samples, which are samples that are in areas of high
-		density. A cluster is therefore a set of core samples, each close to each other (measured
+		density.
+
+		A cluster is therefore a set of core samples, each close to each other (measured
 		by some distance measure) and a set of non-core samples that are close to a core sample
 		(but are not themselves core samples). There are two parameters to the algorithm,
 		min_samples and eps, which define formally what we mean when we say dense. Higher
@@ -314,10 +323,13 @@ class DbscanClustering( Cluster ):
 
 	"""
 	db_scan: skc.DBSCAN
+	eps: Optional[ float ]
+	min_samples: Optional[ int ]
+	algorithm: Optional[ str ]
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 
-	def __init__( self, eps: float=0.5, min: int=5 ) -> None:
+	def __init__( self, eps: float=0.5, min: int=5, algo: str='auto' ) -> None:
 		"""
 
 			Purpose:
@@ -331,12 +343,16 @@ class DbscanClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = skc.DBSCAN( eps=eps, min_samples=min )
+		self.eps = eps
+		self.min_samples = min
+		self.algorithm = algo
+		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
+			algorithm=self.algorithm )
 		self.prediction = None
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> DbscanClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> DbscanCluster | None:
 		"""
 
 			Purpose:
@@ -357,7 +373,7 @@ class DbscanClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DbscanClustering'
+			exception.cause = 'DbscanCluster'
 			exception.method = 'fit( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -388,7 +404,7 @@ class DbscanClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DbscanClustering'
+			exception.cause = 'DbscanCluster'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -420,7 +436,7 @@ class DbscanClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DbscanClustering'
+			exception.cause = 'DbscanCluster'
 			exception.method = 'evaluate( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -449,7 +465,7 @@ class DbscanClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'DbscanClustering'
+			exception.cause = 'DbscanCluster'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -742,7 +758,8 @@ class SpectralClustering( Cluster ):
 				raise Exception( 'The input argument "X" is required.' )
 			else:
 				labels = self.spectral_clustering.fit_predict( X )
-				return silhouette_score( X, labels )
+				self.accuracy = silhouette_score( X, labels )
+				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1270,6 +1287,7 @@ class OpticsClustering( Cluster ):
 
 	"""
 	optics_clustering: skc.OPTICS
+	min_samples: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 
@@ -1287,8 +1305,10 @@ class OpticsClustering( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.optics_clustering = skc.OPTICS( min_samples=min )
+		self.min_samples = min
+		self.optics_clustering = skc.OPTICS( min_samples=self.min_samples )
 		self.prediction = None
+
 		self.accuracy = 0.0
 
 

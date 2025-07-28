@@ -125,7 +125,7 @@ class Model(  ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values or class labels.
+				np.ndarray: Predicted labels or class labels.
 
 		"""
 		raise NotImplementedError
@@ -141,7 +141,7 @@ class Model(  ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -161,7 +161,7 @@ class Model(  ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -696,7 +696,7 @@ class MultiLayerClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -959,7 +959,7 @@ class RidgeClassifier( Model ):
 
 			Purpose:
 			-----------
-			Project target target_values using the RidgeRegressor linerar_model.
+			Project target labels using the RidgeRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -967,7 +967,7 @@ class RidgeClassifier( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -996,7 +996,7 @@ class RidgeClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -1032,7 +1032,7 @@ class RidgeClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -1078,12 +1078,12 @@ class RidgeClassifier( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs actual target_values.
+			Plot predicted vs actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -1333,7 +1333,7 @@ class StochasticGradientClassifier( Model ):
 			Parameters:
 			-----------
 			X (np.ndarray): Test feature_names.
-			y (np.ndarray): Ground truth target target_values.
+			y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2331,7 +2331,7 @@ class RandomForestClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2366,7 +2366,7 @@ class RandomForestClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2955,7 +2955,7 @@ class AdaBoostClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2989,7 +2989,7 @@ class AdaBoostClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3270,7 +3270,7 @@ class BaggingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3304,7 +3304,7 @@ class BaggingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3580,7 +3580,7 @@ class VotingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3614,7 +3614,7 @@ class VotingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3887,7 +3887,7 @@ class StackingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3920,7 +3920,7 @@ class StackingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------

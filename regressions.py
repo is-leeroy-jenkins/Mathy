@@ -51,12 +51,8 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 from sklearn.base import ClassifierMixin
-from sklearn.ensemble import (
-	RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor,
-	BaggingRegressor, VotingRegressor, StackingRegressor)
-from sklearn.linear_model import (
-	LinearRegression, LogisticRegression, Ridge, Lasso, ElasticNet,
-	BayesianRidge, SGDRegressor, )
+import sklearn.ensemble as ske
+import sklearn.linear_model as skl
 from sklearn.metrics import (accuracy_score, confusion_matrix,
                              ConfusionMatrixDisplay, precision_score, f1_score, roc_auc_score,
                              matthews_corrcoef)
@@ -64,11 +60,11 @@ from sklearn.metrics import (
 	r2_score, mean_squared_error, mean_absolute_error,
 	explained_variance_score, median_absolute_error
 )
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.neural_network import MLPRegressor
+import sklearn.neighbors as skn
+import sklearn.neural_network as skn
 from sklearn.pipeline import Pipeline
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
+import sklearn.svm as skv
+import sklearn.tree as skd
 from booger import Error, ErrorDialog
 
 class Model( ):
@@ -127,7 +123,7 @@ class Model( ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values or class labels.
+				np.ndarray: Predicted labels or class labels.
 
 		"""
 		raise NotImplementedError
@@ -142,7 +138,7 @@ class Model( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -161,7 +157,7 @@ class Model( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -171,7 +167,7 @@ class Model( ):
 		raise NotImplementedError
 
 
-class MultilayerRegression( Model ):
+class MultiLayerRegressor( Model ):
 	"""
 
 		Purpose:
@@ -190,7 +186,7 @@ class MultilayerRegression( Model ):
 			- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
-	multilayer_regressor: MLPRegressor
+	multilayer_regressor: skn.MLPRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -219,7 +215,7 @@ class MultilayerRegression( Model ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor = MLPRegressor( hidden_layer_sizes=self.hidden_layers,
+		self.multilayer_regressor = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning, random_state=self.random_state )
 		self.pipeline = Pipeline( steps=list( hidden ) )
@@ -248,7 +244,7 @@ class MultilayerRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> MultilayerRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) ->  MultiLayerRegressor | None:
 		"""
 
 			Purpose:
@@ -276,7 +272,7 @@ class MultilayerRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = ''
 			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -308,7 +304,7 @@ class MultilayerRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = ''
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -343,7 +339,7 @@ class MultilayerRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = ''
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -360,7 +356,7 @@ class MultilayerRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -392,7 +388,7 @@ class MultilayerRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -403,12 +399,12 @@ class MultilayerRegression( Model ):
 
 			Purpose:
 			-----------
-				Plot actual vs predicted target_values.
+				Plot actual vs predicted labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 		"""
 		try:
@@ -428,7 +424,7 @@ class MultilayerRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = ''
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -451,7 +447,7 @@ class LinearRegressor( Model ):
 		when data are collected without an experimental design.
 
 	"""
-	linear_regressor: LinearRegression
+	linear_regressor: skl.LinearRegression
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -481,7 +477,7 @@ class LinearRegressor( Model ):
 		super( ).__init__( )
 		self.fit_intercept = fit
 		self.copy_X = copy
-		self.linear_regressor = LinearRegression( fit_intercept=self.fit_intercept,
+		self.linear_regressor = skl.LinearRegression( fit_intercept=self.fit_intercept,
 			copy_X=self.copy_X )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -548,7 +544,7 @@ class LinearRegressor( Model ):
 
 			Purpose:
 			-----------
-			Predict target target_values using the OLS linerar_model.
+			Predict target labels using the OLS linerar_model.
 
 			Parameters:
 			-----------
@@ -556,7 +552,7 @@ class LinearRegressor( Model ):
 
 			Returns:
 			-----------
-			np.ndarray: Predicted target target_values.
+			np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -585,7 +581,7 @@ class LinearRegressor( Model ):
 			Parameters:
 			-----------
 			X (np.ndarray): Test feature_names.
-			y (np.ndarray): True target target_values.
+			y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -621,7 +617,7 @@ class LinearRegressor( Model ):
 			Parameters:
 			-----------
 			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Ground truth target_values.
+			y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -664,12 +660,12 @@ class LinearRegressor( Model ):
 
 			Purpose:
 			-----------
-			Plot actual vs predicted target_values.
+			Plot actual vs predicted labels.
 
 			Parameters:
 			-----------
 			X (np.ndarray): Input feature_names.
-			y (np.ndarray): True target target_values.
+			y (np.ndarray): True target labels.
 
 		"""
 		try:
@@ -695,7 +691,7 @@ class LinearRegressor( Model ):
 			error.show( )
 
 
-class RidgeRegression( Model ):
+class RidgeRegressor( Model ):
 	"""
 
 		Purpose:
@@ -717,7 +713,7 @@ class RidgeRegression( Model ):
 		If an array is passed, penalties are assumed to be specific to the targets.
 
 	"""
-	ridge_regressor: Ridge
+	ridge_regressor: skl.Ridge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -758,7 +754,7 @@ class RidgeRegression( Model ):
 		self.solver = solver
 		self.max_iter = max
 		self.random_state = rando
-		self.ridge_regressor = Ridge( alpha=self.alpha, solver=self.solver,
+		self.ridge_regressor = skl.Ridge( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -785,7 +781,7 @@ class RidgeRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeRegressor | None:
 		"""
 
 
@@ -814,7 +810,7 @@ class RidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RidgeRegression'
+			exception.cause = 'RidgeRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -826,7 +822,7 @@ class RidgeRegression( Model ):
 
 			Purpose:
 			-----------
-			Project target target_values using the RidgeRegressor linerar_model.
+			Project target labels using the RidgeRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -834,7 +830,7 @@ class RidgeRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -846,7 +842,7 @@ class RidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RidgeRegression'
+			exception.cause = 'RidgeRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -863,7 +859,7 @@ class RidgeRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -882,7 +878,7 @@ class RidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RidgeRegression'
+			exception.cause = 'RidgeRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -899,7 +895,7 @@ class RidgeRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -932,7 +928,7 @@ class RidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RidgeRegression'
+			exception.cause = 'RidgeRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -944,12 +940,12 @@ class RidgeRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs actual target_values.
+			Plot predicted vs actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -973,7 +969,7 @@ class RidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RidgeRegression'
+			exception.cause = 'RidgeRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -998,7 +994,7 @@ class LassoRegression( Model ):
 		specific to the targets. Hence they must correspond in number.
 
 	"""
-	lasso_regressor: Lasso
+	lasso_regressor: skl.Lasso
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1029,7 +1025,7 @@ class LassoRegression( Model ):
 		self.alpha = alpha
 		self.max_iter = max
 		self.random_state = rando
-		self.lasso_regressor = Lasso( alpha=self.alpha, max_iter=self.max_iter,
+		self.lasso_regressor = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1094,7 +1090,7 @@ class LassoRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict target target_values using the LassoRegression linerar_model.
+			Predict target labels using the LassoRegression linerar_model.
 
 
 			Parameters:
@@ -1103,7 +1099,7 @@ class LassoRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -1131,7 +1127,7 @@ class LassoRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -1167,7 +1163,7 @@ class LassoRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -1211,12 +1207,12 @@ class LassoRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot actual vs. predicted target_values.
+			Plot actual vs. predicted labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature matrix.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 		"""
 		try:
@@ -1242,7 +1238,7 @@ class LassoRegression( Model ):
 			error.show( )
 
 
-class ElasticNetRegression( Model ):
+class ElasticNetRegressor( Model ):
 	"""
 
 		Purpose:
@@ -1256,7 +1252,7 @@ class ElasticNetRegression( Model ):
 		Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
 	"""
-	elasticnet_regressor: ElasticNet
+	elasticnet_regressor: skl.ElasticNet
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1299,7 +1295,7 @@ class ElasticNetRegression( Model ):
 		self.random_state = rando
 		self.selection = select
 		self.max_iter = max
-		self.elasticnet_regressor = ElasticNet( alpha=self.alpha,
+		self.elasticnet_regressor = skl.ElasticNet( alpha=self.alpha,
 			l1_ratio=self.ratio, random_state=self.random_state,
 			max_iter=self.max_iter, selection=self.selection )
 		self.prediction = None
@@ -1325,13 +1321,13 @@ class ElasticNetRegression( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegressor | None:
 		"""
 
 
 			Purpose:
 			-----------
-			Fit the ElasticNetRegression regression linerar_model.
+			Fit the ElasticNetRegressor regression linerar_model.
 
 			Parameters:
 			-----------
@@ -1354,7 +1350,7 @@ class ElasticNetRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'ElasticNetRegression'
+			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1366,7 +1362,7 @@ class ElasticNetRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict target target_values using the ElasticNetRegression linerar_model.
+			Predict target labels using the ElasticNetRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -1374,7 +1370,7 @@ class ElasticNetRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -1386,7 +1382,7 @@ class ElasticNetRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'ElasticNetRegression'
+			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1403,7 +1399,7 @@ class ElasticNetRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -1420,7 +1416,7 @@ class ElasticNetRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'ElasticNetRegression'
+			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1438,7 +1434,7 @@ class ElasticNetRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -1471,7 +1467,7 @@ class ElasticNetRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'ElasticNetRegression'
+			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1487,7 +1483,7 @@ class ElasticNetRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 		"""
 		try:
@@ -1507,7 +1503,7 @@ class ElasticNetRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'ElasticNetRegression'
+			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1529,7 +1525,7 @@ class LogisticRegressor( Model ):
 		is only supported by the ‘saga’ solver.
 
 	"""
-	logistic_regressor: LogisticRegression
+	logistic_regressor: skl.LogisticRegression
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1566,7 +1562,7 @@ class LogisticRegressor( Model ):
 		self.penalty = penalty
 		self.max_iter = max
 		self.solver = solver
-		self.logistic_regressor = LogisticRegression( C=self.alpha,
+		self.logistic_regressor = skl.LogisticRegression( C=self.alpha,
 			max_iter=self.max_iter, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1786,7 +1782,7 @@ class LogisticRegressor( Model ):
 			error.show( )
 
 
-class BayesianRidgeRegression( Model ):
+class BayesianRidgeRegressor( Model ):
 	"""
 
 		Purpose:
@@ -1806,7 +1802,7 @@ class BayesianRidgeRegression( Model ):
 		is increasing between two consecutive iterations of the optimization.
 
 	"""
-	bayesian_ridge_regressor: BayesianRidge
+	bayesian_ridge_regressor: skl.BayesianRidge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1833,7 +1829,7 @@ class BayesianRidgeRegression( Model ):
 
 			Purpose:
 			-----------
-				Initializes the BayesianRidgeRegression.
+				Initializes the BayesianRidgeRegressor.
 
 		"""
 		super( ).__init__( )
@@ -1842,7 +1838,7 @@ class BayesianRidgeRegression( Model ):
 		self.scale_alpha = scale_alpha
 		self.shape_lambda = shape_lambda
 		self.scale_lambda = scale_lambda
-		self.bayesian_ridge_regressor = BayesianRidge( alpha_1=self.shape_alpha, alpha_2=self.scale_alpha,
+		self.bayesian_ridge_regressor = skl.BayesianRidge( alpha_1=self.shape_alpha, alpha_2=self.scale_alpha,
 			lambda_1=self.shape_lambda, lambda_2=self.scale_lambda )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1867,7 +1863,7 @@ class BayesianRidgeRegression( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidgeRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidgeRegressor | None:
 		"""
 
 			Purpose:
@@ -1896,7 +1892,7 @@ class BayesianRidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BayesianRidgeRegression'
+			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1907,7 +1903,7 @@ class BayesianRidgeRegression( Model ):
 
 			Purpose:
 			-----------
-				Predicts target target_values
+				Predicts target labels
 				using the Bayesian linerar_model.
 
 			Parameters:
@@ -1916,7 +1912,7 @@ class BayesianRidgeRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values.
+				np.ndarray: Predicted labels.
 
 		"""
 		try:
@@ -1928,7 +1924,7 @@ class BayesianRidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BayesianRidgeRegression'
+			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1945,7 +1941,7 @@ class BayesianRidgeRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True target_values.
+				y (np.ndarray): True labels.
 
 			Returns:
 			-----------
@@ -1964,7 +1960,7 @@ class BayesianRidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BayesianRidgeRegression'
+			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1980,7 +1976,7 @@ class BayesianRidgeRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -2013,7 +2009,7 @@ class BayesianRidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BayesianRidgeRegression'
+			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2024,12 +2020,12 @@ class BayesianRidgeRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs. actual target_values.
+			Plot predicted vs. actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 		"""
 		try:
@@ -2049,7 +2045,7 @@ class BayesianRidgeRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BayesianRidgeRegression'
+			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2081,7 +2077,7 @@ class StochasticDescentRegression( Model ):
 		values for the feature_names.
 
 	"""
-	stochastic_regressor = SGDRegressor
+	stochastic_regressor = skl.SGDRegressor
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -2117,7 +2113,7 @@ class StochasticDescentRegression( Model ):
 		self.loss = loss
 		self.max_iter = max
 		self.penalty = penalty
-		self.stochastic_regressor = SGDRegressor( loss=self.loss,
+		self.stochastic_regressor = skl.SGDRegressor( loss=self.loss,
 			max_iter=self.max_iter, penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2153,7 +2149,7 @@ class StochasticDescentRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target target_values.
+				y (np.ndarray): Target labels.
 
 			Returns:
 			--------
@@ -2182,7 +2178,7 @@ class StochasticDescentRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict target_values using the SGD regressor linerar_model.
+			Predict labels using the SGD regressor linerar_model.
 
 			Parameters:
 			-----------
@@ -2190,7 +2186,7 @@ class StochasticDescentRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values.
+				np.ndarray: Predicted labels.
 
 		"""
 		try:
@@ -2218,7 +2214,7 @@ class StochasticDescentRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2253,7 +2249,7 @@ class StochasticDescentRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -2297,12 +2293,12 @@ class StochasticDescentRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs. actual target_values.
+			Plot predicted vs. actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 		"""
 		try:
@@ -2328,7 +2324,7 @@ class StochasticDescentRegression( Model ):
 			error.show( )
 
 
-class NearestNeighborRegression( Model ):
+class NearestNeighborRegressor( Model ):
 	"""
 
 		Purpose:
@@ -2343,7 +2339,7 @@ class NearestNeighborRegression( Model ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
-	neighbor_regressor: KNeighborsRegressor
+	neighbor_regressor: skn.KNeighborsRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -2380,7 +2376,7 @@ class NearestNeighborRegression( Model ):
 		self.algorithm = algo
 		self.power = power
 		self.metric = metric
-		self.neighbor_regressor = KNeighborsRegressor( n_neighbors=self.n_neighbors,
+		self.neighbor_regressor = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, p=self.power, metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2408,7 +2404,7 @@ class NearestNeighborRegression( Model ):
 
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborRegressor | None:
 		"""
 
 
@@ -2419,7 +2415,7 @@ class NearestNeighborRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target target_values.
+				y (np.ndarray): Target labels.
 
 			Returns:
 			--------
@@ -2437,7 +2433,7 @@ class NearestNeighborRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestNeighborRegression'
+			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2448,7 +2444,7 @@ class NearestNeighborRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict target_values using the KNN regressor.
+			Predict labels using the KNN regressor.
 
 			Parameters:
 			-----------
@@ -2456,7 +2452,7 @@ class NearestNeighborRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values.
+				np.ndarray: Predicted labels.
 
 		"""
 		try:
@@ -2468,7 +2464,7 @@ class NearestNeighborRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestNeighborRegression'
+			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2484,7 +2480,7 @@ class NearestNeighborRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -2503,7 +2499,7 @@ class NearestNeighborRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestNeighborRegression'
+			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2520,7 +2516,7 @@ class NearestNeighborRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -2553,7 +2549,7 @@ class NearestNeighborRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestNeighborRegression'
+			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2564,12 +2560,12 @@ class NearestNeighborRegression( Model ):
 
 			Purpose:
 			-----------
-				Plot predicted vs actual target_values.
+				Plot predicted vs actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2593,13 +2589,13 @@ class NearestNeighborRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestRegression'
+			exception.cause = 'RandomForestRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class DecisionTreeRegression( Model ):
+class DecisionTreeRegressor( Model ):
 	'''
 
 		Purpose:
@@ -2613,7 +2609,7 @@ class DecisionTreeRegression( Model ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
-	dt_regressor: DecisionTreeRegression
+	dt_regressor: skd.DecisionTreeRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -2646,7 +2642,7 @@ class DecisionTreeRegression( Model ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.dt_regresssor = DecisionTreeRegressor( criterion=self.criterion,
+		self.dt_regresssor = skd.DecisionTreeRegressor( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2672,7 +2668,7 @@ class DecisionTreeRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeRegressor | None:
 		"""
 
 
@@ -2683,7 +2679,7 @@ class DecisionTreeRegression( Model ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target target_values.
+			y (np.ndarray): Target labels.
 
 			Returns:
 			--------
@@ -2712,7 +2708,7 @@ class DecisionTreeRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict target_values using the KNN regressor.
+			Predict labels using the KNN regressor.
 
 			Parameters:
 			-----------
@@ -2720,7 +2716,7 @@ class DecisionTreeRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target_values.
+				np.ndarray: Predicted labels.
 
 		"""
 		try:
@@ -2748,7 +2744,7 @@ class DecisionTreeRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -2784,7 +2780,7 @@ class DecisionTreeRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True target target_values.
+				y (np.ndarray): True target labels.
 
 			Returns:
 			-----------
@@ -2828,12 +2824,12 @@ class DecisionTreeRegression( Model ):
 
 			Purpose:
 			-----------
-				Plot predicted vs actual target_values.
+				Plot predicted vs actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -2863,7 +2859,7 @@ class DecisionTreeRegression( Model ):
 			error.show( )
 
 
-class RandomForestRegression( Model ):
+class RandomForestRegressor( Model ):
 	"""
 
 		Purpose:
@@ -2884,7 +2880,7 @@ class RandomForestRegression( Model ):
 		The variance reduction is often significant hence yielding an overall better model.
 
 	"""
-	random_forest_regressor: RandomForestRegressor
+	random_forest_regressor: ske.RandomForestRegressor
 	n_estimators: int
 	random_state: int
 	max_depth: int
@@ -2923,7 +2919,7 @@ class RandomForestRegression( Model ):
 		self.criterion = crit
 		self.max_depth = max
 		self.random_state = rando
-		self.random_forest_regressor = RandomForestRegressor( n_estimators=self.n_estimators,
+		self.random_forest_regressor = ske.RandomForestRegressor( n_estimators=self.n_estimators,
 			criterion=self.criterion, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2950,7 +2946,7 @@ class RandomForestRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestRegressor | None:
 		"""
 
 			Purpose:
@@ -2978,7 +2974,7 @@ class RandomForestRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestRegression'
+			exception.cause = 'RandomForestRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2989,7 +2985,7 @@ class RandomForestRegression( Model ):
 
 			Purpose:
 			-----------
-			Project target target_values using the RidgeRegressor linerar_model.
+			Project target labels using the RidgeRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -2997,7 +2993,7 @@ class RandomForestRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -3009,7 +3005,7 @@ class RandomForestRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestRegression'
+			exception.cause = 'RandomForestRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3025,7 +3021,7 @@ class RandomForestRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -3044,7 +3040,7 @@ class RandomForestRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestRegression'
+			exception.cause = 'RandomForestRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3060,7 +3056,7 @@ class RandomForestRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3093,7 +3089,7 @@ class RandomForestRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestRegression'
+			exception.cause = 'RandomForestRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3104,12 +3100,12 @@ class RandomForestRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs actual target_values.
+			Plot predicted vs actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3133,13 +3129,13 @@ class RandomForestRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'RandomForestRegression'
+			exception.cause = 'RandomForestRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class GradientBoostingRegression( Model ):
+class GradientBoostingRegressor( Model ):
 	"""
 
 		Purpose:
@@ -3151,7 +3147,7 @@ class GradientBoostingRegression( Model ):
 		only a single regression tree is induced.
 
 	"""
-	gradient_boost_regressor: GradientBoostingRegressor
+	gradient_boost_regressor: ske.GradientBoostingRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -3176,7 +3172,7 @@ class GradientBoostingRegression( Model ):
 
 			Purpose:
 			_______
-				Initialize the GradientBoostingRegression.
+				Initialize the GradientBoostingRegressor.
 
 			Parameters:
 			___________
@@ -3193,7 +3189,7 @@ class GradientBoostingRegression( Model ):
 		self.n_estimators = est
 		self.max_depth = max
 		self.random_state = rando
-		self.gradient_boost_regressor = GradientBoostingRegressor( loss=self.loss,
+		self.gradient_boost_regressor = ske.GradientBoostingRegressor( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
@@ -3221,7 +3217,7 @@ class GradientBoostingRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegressor | None:
 		"""
 
 			Purpose:
@@ -3336,7 +3332,7 @@ class GradientBoostingRegression( Model ):
 		plt.show( )
 
 
-class AdaBoostRegression( Model ):
+class AdaBoostRegressor( Model ):
 	"""
 
 		Purpose:
@@ -3352,7 +3348,7 @@ class AdaBoostRegression( Model ):
 		majority vote (or sum) to produce the final prediction.
 
 	"""
-	ada_boost_regressor: AdaBoostRegressor
+	ada_boost_regressor: ske.AdaBoostRegressor
 	n_estimators: int
 	random_state: int
 	loss: str
@@ -3388,7 +3384,7 @@ class AdaBoostRegression( Model ):
 		self.random_state = rando
 		self.loss = loss
 		self.learning_rate = learning
-		self.ada_boost_regressor = AdaBoostRegressor( n_estimators=self.n_estimators,
+		self.ada_boost_regressor = ske.AdaBoostRegressor( n_estimators=self.n_estimators,
 			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3415,7 +3411,7 @@ class AdaBoostRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostRegressor | None:
 		"""
 
 			Purpose:
@@ -3443,7 +3439,7 @@ class AdaBoostRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostRegression'
+			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3452,7 +3448,7 @@ class AdaBoostRegression( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Project target target_values
+			Project target labels
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -3461,7 +3457,7 @@ class AdaBoostRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -3473,7 +3469,7 @@ class AdaBoostRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostRegression'
+			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3490,7 +3486,7 @@ class AdaBoostRegression( Model ):
 			Parameters:
 			----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			--------
@@ -3509,7 +3505,7 @@ class AdaBoostRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostRegression'
+			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3523,7 +3519,7 @@ class AdaBoostRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3556,7 +3552,7 @@ class AdaBoostRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostRegression'
+			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3565,12 +3561,12 @@ class AdaBoostRegression( Model ):
 		"""
 
 			Plot predicted vs
-			actual target_values.
+			actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3594,13 +3590,13 @@ class AdaBoostRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AdaBoostRegression'
+			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class BaggingRegression( Model ):
+class BaggingRegressor( Model ):
 	"""
 
 		Purpose:
@@ -3618,7 +3614,7 @@ class BaggingRegression( Model ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
-	bagging_estimator: BaggingRegressor
+	bagging_estimator: ske.BaggingRegressor
 	base_estimator: object
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -3650,7 +3646,7 @@ class BaggingRegression( Model ):
 		self.n_estimators = num
 		self.max_features = max
 		self.random_state = rando
-		self.bagging_regressor = BaggingRegressor( estimator=self.base_estimator,
+		self.bagging_regressor = ske.BaggingRegressor( estimator=self.base_estimator,
 			max_features=self.max_features, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3676,7 +3672,7 @@ class BaggingRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph', 'random_state' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingRegressor | None:
 		"""
 
 			Purpose:
@@ -3704,7 +3700,7 @@ class BaggingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingRegression'
+			exception.cause = 'BaggingRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3712,7 +3708,7 @@ class BaggingRegression( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Project target target_values
+			Project target labels
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -3721,7 +3717,7 @@ class BaggingRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -3733,7 +3729,7 @@ class BaggingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingRegression'
+			exception.cause = 'BaggingRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3747,7 +3743,7 @@ class BaggingRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -3766,7 +3762,7 @@ class BaggingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingRegression'
+			exception.cause = 'BaggingRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3780,7 +3776,7 @@ class BaggingRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3813,7 +3809,7 @@ class BaggingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingRegression'
+			exception.cause = 'BaggingRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3822,12 +3818,12 @@ class BaggingRegression( Model ):
 		"""
 
 			Plot predicted vs
-			actual target_values.
+			actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -3851,13 +3847,13 @@ class BaggingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BaggingRegression'
+			exception.cause = 'BaggingRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class VotingRegression( Model ):
+class VotingRegressor( Model ):
 	"""
 
 		Purpose:
@@ -3868,7 +3864,7 @@ class VotingRegression( Model ):
 		Then it averages the individual predictions to form a final prediction.
 
 	"""
-	voting_regressor: VotingRegressor
+	voting_regressor: ske.VotingRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -3897,7 +3893,7 @@ class VotingRegression( Model ):
 		"""
 		super( ).__init__( )
 		self.estimators = est
-		self.voting_regressor = VotingRegressor( estimators=self.estimators  )
+		self.voting_regressor = ske.VotingRegressor( estimators=self.estimators  )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3922,7 +3918,7 @@ class VotingRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingRegressor | None:
 		"""
 
 			Purpose:
@@ -3950,7 +3946,7 @@ class VotingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingRegression'
+			exception.cause = 'VotingRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3960,7 +3956,7 @@ class VotingRegression( Model ):
 
 			Purpose:
 			---------
-			Project target target_values
+			Project target labels
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -3969,7 +3965,7 @@ class VotingRegression( Model ):
 
 			Returns:
 			-------
-			np.ndarray: Predicted target target_values.
+			np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -3981,7 +3977,7 @@ class VotingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingRegression'
+			exception.cause = 'VotingRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3995,7 +3991,7 @@ class VotingRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -4014,7 +4010,7 @@ class VotingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingRegression'
+			exception.cause = 'VotingRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4028,7 +4024,7 @@ class VotingRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -4061,7 +4057,7 @@ class VotingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingRegression'
+			exception.cause = 'VotingRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4070,12 +4066,12 @@ class VotingRegression( Model ):
 		"""
 
 			Plot predicted vs
-			actual target_values.
+			actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -4099,13 +4095,13 @@ class VotingRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'VotingRegression'
+			exception.cause = 'VotingRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class StackRegression( Model ):
+class StackingRegressor( Model ):
 	"""
 
 			Purpose:
@@ -4118,7 +4114,7 @@ class StackRegression( Model ):
 			the base estimators using cross_val_predict.
 
 	"""
-	stacking_regressor: StackingRegressor
+	stacking_regressor: ske.StackingRegressor
 	final_estimator: ClassifierMixin
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	prediction: Optional[ np.ndarray ]
@@ -4157,7 +4153,7 @@ class StackRegression( Model ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_regressor = StackingRegressor( estimators=self.estimators,
+		self.stacking_regressor = ske.StackingRegressor( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -4182,7 +4178,7 @@ class StackRegression( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StackRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingRegressor | None:
 		"""
 
 			Purpose:
@@ -4210,7 +4206,7 @@ class StackRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackRegression'
+			exception.cause = 'StackingRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4219,7 +4215,7 @@ class StackRegression( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Project target target_values
+			Project target labels
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -4228,7 +4224,7 @@ class StackRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_values.
+				np.ndarray: Predicted target labels.
 
 		"""
 		try:
@@ -4240,7 +4236,7 @@ class StackRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackRegression'
+			exception.cause = 'StackingRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4255,7 +4251,7 @@ class StackRegression( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -4274,7 +4270,7 @@ class StackRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackRegression'
+			exception.cause = 'StackingRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4289,7 +4285,7 @@ class StackRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -4322,7 +4318,7 @@ class StackRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackRegression'
+			exception.cause = 'StackingRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4334,12 +4330,12 @@ class StackRegression( Model ):
 			Purpose:
 			---------
 			Plot predicted vs
-			actual target_values.
+			actual labels.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_values.
+				y (np.ndarray): Ground truth target labels.
 
 			Returns:
 			-----------
@@ -4363,17 +4359,17 @@ class StackRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StackRegression'
+			exception.cause = 'StackingRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class SupportVectorRegression:
+class SupportVectorRegressor:
 	"""
 	Wrapper for sklearn's Support Vector Regression (SVR).
 	"""
-	svr_model: SVR
+	svr_model: skv.SVR
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -4405,7 +4401,7 @@ class SupportVectorRegression:
 		self.kernel = kernel
 		self.regulation = C
 		self.epsilon = epsilon
-		self.svr_model = SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
+		self.svr_model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4429,7 +4425,7 @@ class SupportVectorRegression:
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorRegressor | None:
 		"""
 
 			Purpose:
@@ -4472,7 +4468,7 @@ class SupportVectorRegression:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorRegression'
+			exception.cause = 'SupportVectorRegressor'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4490,7 +4486,7 @@ class SupportVectorRegression:
 			Parameters:
 			-----------
 				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_values.
+				y (np.ndarray): Ground truth labels.
 
 			Returns:
 			-----------
@@ -4509,7 +4505,7 @@ class SupportVectorRegression:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'SupportVectorRegression'
+			exception.cause = 'SupportVectorRegressor'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4554,7 +4550,7 @@ class SupportVectorRegression:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestNeighborRegression'
+			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4590,7 +4586,7 @@ class SupportVectorRegression:
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestNeighborRegression'
+			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )

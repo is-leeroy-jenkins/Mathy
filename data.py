@@ -188,13 +188,13 @@ class Dataset( ):
 		test_size: float
 		random_state: int
 		feature_names: list
-		target_values
+		labels
 		numeric_columns
 		text_columns: list
-		training_data: pd.DataFrame
-		training_values
-		testing_data
-		testing_values
+		X_training: pd.DataFrame
+		y_training
+		X_testing
+		y_testing
 
 	"""
 	dataframe: pd.DataFrame
@@ -205,23 +205,22 @@ class Dataset( ):
 	n_samples: Optional[ int ]
 	n_features: Optional[ int ]
 	feature_names: Optional[ List[ str ] ]
-	target_values: Optional[ np.ndarray ]
+	labels: Optional[ np.ndarray ]
 	numeric_columns: Optional[ List[ str ] ]
 	text_columns: Optional[ List[ str ] ]
-	training_data: Optional[ np.ndarray ]
-	testing_data: Optional[ np.ndarray ]
-	training_values: Optional[ np.ndarray ]
-	testing_data: Optional[ np.ndarray ]
-	testing_values: Optional[ np.ndarray ]
+	X_training: Optional[ np.ndarray ]
+	X_testing: Optional[ np.ndarray ]
+	y_training: Optional[ np.ndarray ]
+	y_testing: Optional[ np.ndarray ]
 	transtuple: Optional[ List[ Tuple ] ]
 	numeric_statistics: Optional[ pd.DataFrame ]
 	categorical_statistics: Optional[ pd.DataFrame ]
-	pivot_data: Optional[ pd.DataFrame ]
-	kurtosis: Optional[ pd.Series ]
-	skew: Optional[ pd.Series ]
-	variance: Optional[ pd.Series ]
-	standard_error: Optional[ pd.Series ]
-	standard_deviation: Optional[ pd.Series ]
+	pivot_table: Optional[ pd.DataFrame ]
+	kurtosis: Optional[ pd.DataFrame ]
+	skew: Optional[ pd.DataFrame ]
+	variance: Optional[ pd.DataFrame ]
+	mean_standard_error: Optional[ pd.DataFrame ]
+	standard_deviation: Optional[ pd.DataFrame ]
 
 
 
@@ -248,24 +247,25 @@ class Dataset( ):
 		self.test_size = size
 		self.random_state = rando
 		self.feature_names = [ column for column in df.columns ]
-		self.target_values = df[ target ].to_numpy( )
+		self.labels = df[ target ].to_numpy( )
 		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
-		self.training_data = train_test_split( self.data, self.target_values,
+		self.X_training = train_test_split( self.data, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 0 ]
-		self.testing_data = train_test_split( self.data, self.target_values,
+		self.X_testing = train_test_split( self.data, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 1 ]
-		self.training_values = train_test_split( self.data, self.target_values,
+		self.y_training = train_test_split( self.data, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 2 ]
-		self.testing_values = train_test_split( self.data, self.target_values,
+		self.y_testing = train_test_split( self.data, self.labels,
 			test_size=self.test_size, random_state=self.random_state )[ 3 ]
 		self.transtuple = [ ]
 		self.numeric_statistics = None
 		self.categorical_statistics = None
-		self.skew = df.skew( axis=0, numeric_only =True )
+		self.pivot_table = None
+		self.skew = df.skew( axis=0, numeric_only=True )
 		self.variance = df.var( axis=0, ddof = 1, numeric_only=True )
 		self.kurtosis = df.kurt( axis=0, numeric_only=True )
-		self.standard_error = df.std( axis=0, ddof=1, numeric_only=True )
+		self.mean_standard_error = df.sem( axis=0, ddof=1, numeric_only=True )
 		self.standard_deviation = df.std( axis=0, ddof=1, numeric_only=True  )
 
 
@@ -277,13 +277,12 @@ class Dataset( ):
 			This function retuns a list of strings (members of the class)
 
 		'''
-		return [ 'dataframe', 'n_samples', 'n_features', 'target_values',
+		return [ 'dataframe', 'n_samples', 'n_features', 'labels',
 		         'feature_names', 'test_size', 'random_state', 'categorical_statistics',
-		         'numeric_columns', 'text_columns', 'transtuple',
-		         'calculate_statistics', 'numeric_statistics',
-		         'target_values', 'training_data', 'testing_data', 'training_values',
-		         'testing_values', 'transform_columns',
-		         'create_pivot_table', 'export_excel']
+		         'numeric_columns', 'text_columns', 'transtuple', 'numeric_statistics',
+		         'pivot_table', 'calculate_statistics', 'numeric_statistics',
+		         'labels', 'X_training', 'X_testing', 'y_training',
+		         'y_testing', 'transform_columns', 'create_pivot_table', 'export_excel']
 
 
 	def transform_columns( self, name: str, encoder: object, columns: List[ str ] ) -> None:
@@ -428,10 +427,14 @@ class VarianceThreshold( ):
 
 		Purpose:
 		---------
-		Wrapper for VarianceThreshold feature selector.
+		VarianceThreshold is a simple baseline approach to feature selection. It removes all
+		features whose variance doesn’t meet some threshold. By default, it removes all
+		zero-variance features, i.e. features that have the same value in all samples.
+
 	"""
 	variance_selector: VarianceThreshold
 	transformed_data: Optional[ np.ndarray ]
+	threshold: Optional[ float ]
 
 
 	def __init__( self, thresh: float=0.0 ) -> None:
@@ -444,7 +447,8 @@ class VarianceThreshold( ):
 			:param threshold: Features with variance below this are removed.
 			:type threshold: float
 		"""
-		self.variance_selector = VarianceThreshold( threshold=thresh )
+		self.threshold = thresh
+		self.variance_selector = VarianceThreshold( threshold=self.threshold )
 		self.transformed_data = None
 
 
@@ -531,14 +535,19 @@ class VarianceThreshold( ):
 class CorrelationAnalysis( ):
 	"""
 
-		Wrapper for Canonical Correlation Analysis (CCA).
+		Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
+		i.e. the components of each datasets that explain the most shared variance
+		between both datasets.
 
 	"""
 	correlation_analysis: CCA
+	n_components: Optional[ int ]
+	scale: bool
+	max_iter: Optional[ int ]
 	transformed_data: ( np.ndarray, np.ndarray )
 
 
-	def __init__( self, num: int=2 ) -> None:
+	def __init__( self, num: int=2, scale: bool=True, max: int=500 ) -> None:
 		"""
 
 			Purpose:
@@ -548,7 +557,11 @@ class CorrelationAnalysis( ):
 			:param n: Number of components.
 			:type n: int
 		"""
-		self.correlation_analysis = CCA( n_components=num )
+		self.scale = scale
+		self.n_components = num
+		self.max_iter = max
+		self.correlation_analysis = CCA( n_components=self.n_components,
+			scale=self.scale, max_iter=self.max_iter )
 		self.transformed_data = None
 
 
@@ -649,14 +662,21 @@ class ComponentAnalysis( ):
 
 		Purpose:
 		---------
-		Wrapper for Principal Component Analysis (PCA).
+		Principal Component Analysis (PCA). Linear dimensionality reduction using
+		Singular Value Decomposition of the data to project it to a lower dimensional space.
+		The input data is centered but not scaled for each feature before applying the SVD.
+		It uses the LAPACK implementation of the full SVD or a randomized truncated SVD
+		by the method of Halko et al. 2009, depending on the shape of the input data and
+		the number of components to extract.
 
 	"""
 	component_analysis: PCA
+	svd_solver: Optional[ str ]
+	n_components: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
 
 
-	def __init__( self, num: int=2 ) -> None:
+	def __init__( self, num: int=2, solver: str='auto' ) -> None:
 		"""
 
 			Purpose:
@@ -668,7 +688,9 @@ class ComponentAnalysis( ):
 
 		"""
 		super( ).__init__( )
-		self.component_analysis = PCA( n_components=num )
+		self.n_components = num
+		self.svd_solver = solver
+		self.component_analysis = PCA( n_components=num, svd_solver=self.svd_solver )
 		self.transformed_data = None
 
 

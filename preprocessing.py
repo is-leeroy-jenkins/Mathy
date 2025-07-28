@@ -59,7 +59,7 @@ class Processor(  ):
 	    `fit_transform` methods.
 
 	"""
-	transformed_data: np.ndarray | None
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ):
 		pass
@@ -643,7 +643,7 @@ class HashingVectorizer( Processor ):
 
 	"""
 
-	def __init__( self, num: int = 1048576 ) -> None:
+	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
 			Purpose:
@@ -1580,7 +1580,7 @@ class MeanImputer( Processor ):
 
 		Purpose:
 		-----------
-		Fills missing target_values using the average.
+		Fills missing labels using the average.
 
 	"""
 
@@ -1599,7 +1599,7 @@ class MeanImputer( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df with missing target_values.
+			X (np.ndarray): Input df with missing labels.
 			y (Optional[np.ndarray]): Ignored.
 
 			Returns:
@@ -1628,11 +1628,11 @@ class MeanImputer( Processor ):
 			Purpose:
 			---------
 			Transforms the text
-			df by filling in missing target_values.
+			df by filling in missing labels.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df with missing target_values.
+			X (np.ndarray): Input df with missing labels.
 
 			Returns:
 			-----------
@@ -1710,7 +1710,7 @@ class NearestNeighborImputer( Processor ):
 
 		Purpose:
 		---------
-		Fills missing target_values using k-nearest neighbors.
+		Fills missing labels using k-nearest neighbors.
 
 	"""
 
@@ -1727,7 +1727,7 @@ class NearestNeighborImputer( Processor ):
 
 			Parameters:
 			_____
-			X (np.ndarray): Input df with missing target_values.
+			X (np.ndarray): Input df with missing labels.
 			y (Optional[np.ndarray]): Ignored.
 
 			Returns:
@@ -1755,7 +1755,7 @@ class NearestNeighborImputer( Processor ):
 			Purpose:
 			_________
 
-			Transforms the text df by imputing missing target_values.
+			Transforms the text df by imputing missing labels.
 
 			Parameters:
 			-----------
