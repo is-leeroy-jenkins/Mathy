@@ -262,11 +262,11 @@ class Dataset( ):
 		self.transtuple = [ ]
 		self.numeric_statistics = None
 		self.categorical_statistics = None
-		self.skew = df.skew( axis=0 )
-		self.variance = df.var( axis=0 )
-		self.kurtosis = df.kurt( axis=0 )
-		self.standard_error = df.std( axis=0 )
-		self.standard_deviation = df.std( axis=0 )
+		self.skew = df.skew( axis=0, numeric_only =True )
+		self.variance = df.var( axis=0, ddof = 1, numeric_only=True )
+		self.kurtosis = df.kurt( axis=0, numeric_only=True )
+		self.standard_error = df.std( axis=0, ddof=1, numeric_only=True )
+		self.standard_deviation = df.std( axis=0, ddof=1, numeric_only=True  )
 
 
 	def __dir__( self ):
@@ -283,8 +283,7 @@ class Dataset( ):
 		         'calculate_statistics', 'numeric_statistics',
 		         'target_values', 'training_data', 'testing_data', 'training_values',
 		         'testing_values', 'transform_columns',
-		         'create_pivot_table', 'calculate_skew', 'calculate_variance',
-		         'calculate_standard_error', 'calculate_standeard_deviation', 'calculate_kurtosis']
+		         'create_pivot_table', 'export_excel']
 
 
 	def transform_columns( self, name: str, encoder: object, columns: List[ str ] ) -> None:
@@ -394,165 +393,6 @@ class Dataset( ):
 			exception.module = 'Mathy'
 			exception.cause = 'Dataset'
 			exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def calculate_variance( self, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
-		'''
-
-			Purpose:
-			--------
-
-
-			:param dimension:
-			:type dimension:
-			:param degree:
-			:type degree:
-			:return:
-			:rtype:
-		'''
-		try:
-			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
-			elif degree is None:
-				raise Exception( 'Argument "degree" cannot be None' )
-			elif numeric is None:
-				raise Exception( 'Argument "numeric" cannot be None' )
-			else:
-				self.variance = self.dataframe.var( axis=axes, ddof=degree, numeric_only=numeric )
-				return self.variance
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
-			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def calculate_skew( self, axes: int=0, numeric: bool=True ) -> pd.Series | None:
-		'''
-
-			Purpose:
-			--------
-			Return unbiased skew over requested axis.
-
-
-			:param dimension:
-			:type dimension:
-			:param degree:
-			:type degree:
-			:return: pd.Series
-			:rtype: pd.Series | None
-		'''
-		try:
-			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
-			elif numeric is None:
-				raise Exception( 'Argument "numeric" cannot be None' )
-			else:
-				self.skew = self.dataframe.skew( axis=axes, numeric_only=numeric )
-				return self.skew
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
-			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def calculate_kurtosis( self, axes: int=0, numeric: bool = True ) -> pd.Series | None:
-		'''
-
-			Purpose:
-			--------
-			Return unbiased skutosis over requested axis.
-
-
-			:param axes:
-			:type axes: int
-			:return: pd.Series
-			:rtype: pd.Series | None
-		'''
-		try:
-			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
-			elif numeric is None:
-				raise Exception( 'Argument "numeric" cannot be None' )
-			else:
-				self.kurtosis = self.dataframe.kurt( axis=axes, numeric_only=numeric )
-				return self.kurtosis
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
-			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def calculate_standard_error( self, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
-		'''
-
-			Purpose:
-			--------
-			Return unbiased standard error of the mean over requested axis. Normalized by N-1 by default.
-			This can be changed using the degree argument.
-
-
-			:param axes:
-			:type axes: int
-			:param degree:
-			:type degree: int
-			:return: pd.Series
-			:rtype: pd.Series | None
-		'''
-		try:
-			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
-			elif degree is None:
-				raise Exception( 'Argument "degree" cannot be None' )
-			elif numeric is None:
-				raise Exception( 'Argument "numeric" cannot be None' )
-			else:
-				self.standard_error = self.dataframe.sem( axis=axes, ddof=degree, numeric_only=numeric )
-				return self.standard_error
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
-			exception.method = 'calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def calculate_deviation( self, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
-		'''
-
-			Purpose:
-			--------
-			Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
-			This can be changed using the degree argument.
-
-
-			:param axes:
-			:type axes: int
-			:param degree:
-			:type degree: int
-			:return: pd.Series
-			:rtype: pd.Series | None
-		'''
-		try:
-			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
-			elif degree is None:
-				raise Exception( 'Argument "degree" cannot be None' )
-			else:
-				self.standard_deviation = self.dataframe.std( axis=axes,
-					ddof=degree, numeric_only=numeric )
-				return self.standard_deviation
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
-			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
 
