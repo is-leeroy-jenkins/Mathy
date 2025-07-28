@@ -219,9 +219,9 @@ class MultilayerRegression( Model ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor = MLPRegressor( hidden_layer_sizes=hidden,
-			activation=activ, solver=solver, alpha=alpha, learning_rate=learning,
-			random_state=42 )
+		self.multilayer_regressor = MLPRegressor( hidden_layer_sizes=self.hidden_layers,
+			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
+			learning_rate=self.learning, random_state=self.random_state )
 		self.pipeline = Pipeline( steps=list( hidden ) )
 		self.prediction: np.array = None
 		self.accuracy = 0.0
@@ -465,7 +465,7 @@ class LinearRegressor( Model ):
 	training_score: Optional[ float ]
 
 
-	def __init__( self ) -> None:
+	def __init__( self, fit: bool=True, copy: bool=True ) -> None:
 		"""
 
 			Purpose:
@@ -479,8 +479,10 @@ class LinearRegressor( Model ):
 
 		"""
 		super( ).__init__( )
-		self.linear_regressor = LinearRegression( fit_intercept=True,
-			copy_X=True )
+		self.fit_intercept = fit
+		self.copy_X = copy
+		self.linear_regressor = LinearRegression( fit_intercept=self.fit_intercept,
+			copy_X=self.copy_X )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
