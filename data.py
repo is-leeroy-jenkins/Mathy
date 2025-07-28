@@ -171,34 +171,6 @@ def sigmoid( z: float ) -> float | None:
 		error.show( )
 
 
-def covariance( X: np.ndarray ) -> float | None:
-	'''
-
-		Purpose:
-		________
-		Compute the Maximum likelihood covariance estimator.
-
-
-		:param X:
-		:type X: np.ndarray
-		:return:
-		:rtype:
-
-	'''
-	try:
-		if X is None:
-			raise Exception( 'Argument "X" cannot be None' )
-		else:
-			return empirical_covariance( X )
-	except Exception as e:
-		exception = Error( e )
-		exception.module = 'mathy'
-		exception.cause = 'data'
-		exception.method = 'covariance( X: np.ndarray ) -> float'
-		error = ErrorDialog( exception )
-		error.show( )
-
-
 class Dataset( ):
 	"""
 
@@ -210,8 +182,8 @@ class Dataset( ):
 		------------
 		dataframe: pd.DataFrame
 		data: np.ndarray
-		rows: int
-		columns: int
+		n_samples: int
+		n_features: int
 		target: str
 		test_size: float
 		random_state: int
@@ -230,8 +202,8 @@ class Dataset( ):
 	test_size: float
 	random_state: int
 	data: Optional[ np.ndarray ]
-	rows: Optional[ int ]
-	columns: Optional[ int ]
+	n_samples: Optional[ int ]
+	n_features: Optional[ int ]
 	feature_names: Optional[ List[ str ] ]
 	target_values: Optional[ np.ndarray ]
 	numeric_columns: Optional[ List[ str ] ]
@@ -263,15 +235,15 @@ class Dataset( ):
 			Parameters:
 			-----------
 			df (pd.DataFrame): Matrix text vector.
-			target List[ str ]: Name of the target columns.
+			target List[ str ]: Name of the target n_features.
 			size (float): Proportion of df to use as test set.
 			rando (int): Seed for reproducibility.
 
 		"""
 		self.dataframe = df
 		self.data = df.to_numpy( )
-		self.rows = len( df )
-		self.columns = len( df.columns )
+		self.n_samples = len( df )
+		self.n_features = len( df.columns )
 		self.target = target
 		self.test_size = size
 		self.random_state = rando
@@ -290,11 +262,11 @@ class Dataset( ):
 		self.transtuple = [ ]
 		self.numeric_statistics = None
 		self.categorical_statistics = None
-		self.skew = None
-		self.variance = None
-		self.kurtosis = None
-		self.standard_error = None
-		self.standard_deviation = None
+		self.skew = df.skew( axis=0 )
+		self.variance = df.var( axis=0 )
+		self.kurtosis = df.kurt( axis=0 )
+		self.standard_error = df.std( axis=0 )
+		self.standard_deviation = df.std( axis=0 )
 
 
 	def __dir__( self ):
@@ -305,7 +277,7 @@ class Dataset( ):
 			This function retuns a list of strings (members of the class)
 
 		'''
-		return [ 'dataframe', 'rows', 'columns', 'target_values',
+		return [ 'dataframe', 'n_samples', 'n_features', 'target_values',
 		         'feature_names', 'test_size', 'random_state', 'categorical_statistics',
 		         'numeric_columns', 'text_columns', 'transtuple',
 		         'calculate_statistics', 'numeric_statistics',
@@ -326,7 +298,7 @@ class Dataset( ):
 			-----------
 				name - the name of the encoder
 				encoder - the encoder object to transform the df.
-				columns - the list of column names to apply the transformation to.
+				n_features - the list of column names to apply the transformation to.
 
 		"""
 		try:
@@ -335,7 +307,7 @@ class Dataset( ):
 			elif encoder is None:
 				raise Exception( 'Arguent "encoder" cannot be None' )
 			elif columns is None:
-				raise Exception( 'Arguent "columns" cannot be None' )
+				raise Exception( 'Arguent "n_features" cannot be None' )
 			else:
 				_tuple = (name, encoder, columns)
 				self.transtuple.append( _tuple )
@@ -345,7 +317,7 @@ class Dataset( ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'Dataset'
-			exception.method = 'transform_columns( self, name: str, encoder: object, columns: List[ str ] )'
+			exception.method = 'transform_columns( self, name: str, encoder: object, n_features: List[ str ] )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -354,7 +326,7 @@ class Dataset( ):
 
 			Purpose:
 			-----------
-			Method calculating descriptive statistics for the datasets numeric columns.
+			Method calculating descriptive statistics for the datasets numeric n_features.
 
 			Returns:
 			-----------
@@ -379,7 +351,7 @@ class Dataset( ):
 
 			Purpose:
 			-----------
-			Method calculating descriptive statistics for the datasets categorical columns.
+			Method calculating descriptive statistics for the datasets categorical n_features.
 
 			Returns:
 			-----------
@@ -387,7 +359,7 @@ class Dataset( ):
 
 		"""
 		try:
-			self.categorical_statistics = self.dataframe.describe( include = [ object ] )
+			self.categorical_statistics = self.dataframe.describe( include=[ object ] )
 			return self.categorical_statistics
 		except Exception as e:
 			exception = Error( e )
@@ -403,7 +375,7 @@ class Dataset( ):
 			Purpose:
 			________
 			Create a spreadsheet-style pivot table as a DataFrame. The levels in the pivot table
-			will be stored in MultiIndex objects (hierarchical indexes) on the index and columns
+			will be stored in MultiIndex objects (hierarchical indexes) on the index and n_features
 			of the result DataFrame.
 
 			:return: pivot table

@@ -444,7 +444,7 @@ class LinearRegressor( Model ):
 		predicted by the linear approximation. The coefficient estimates for Ordinary Least Squares
 		rely on the independence of the feature_names.
 
-		When feature_names are correlated and the columns of the design matrix have an approximately
+		When feature_names are correlated and the n_features of the design matrix have an approximately
 		linear dependence, the design matrix becomes close to singular and as a result,
 		the least-squares estimate becomes highly sensitive to random errors in the observed target,
 		producing a large variance. This situation of multicollinearity can arise, for example,
