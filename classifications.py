@@ -46,9 +46,11 @@ from typing import Dict
 from typing import Optional, List, Tuple
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy import stats
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import (
 	RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier,
@@ -244,7 +246,7 @@ class PerceptronClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassification | None:
@@ -442,7 +444,65 @@ class PerceptronClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'RandomForestClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
+						marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
+							edgecolor='black', alpha=1.0, linewidth=1,
+							marker='o', s=100, label='Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'RandomForestClassification'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -514,7 +574,7 @@ class MultilayerClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultilayerClassification | None:
@@ -703,7 +763,65 @@ class MultilayerClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'MultilayerClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -786,7 +904,7 @@ class RidgeClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeClassification | None:
@@ -983,6 +1101,64 @@ class RidgeClassification( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class StochasticDescentClassification( Model ):
 	"""
@@ -1062,7 +1238,7 @@ class StochasticDescentClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticDescentClassification | None:
@@ -1256,7 +1432,66 @@ class StochasticDescentClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'StochasticDescentClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1332,7 +1567,7 @@ class NearestNeighborClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborClassification | None:
@@ -1530,10 +1765,68 @@ class NearestNeighborClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'NearestNeighbotClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class DecisionTreeClassification( Model ):
 	'''
@@ -1601,7 +1894,7 @@ class DecisionTreeClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeClassification | None:
@@ -1801,10 +2094,68 @@ class DecisionTreeClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'DecisionTreeClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class RandomForestClassification( Model ):
 	"""
@@ -1880,7 +2231,7 @@ class RandomForestClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestClassification | None:
@@ -2072,10 +2423,68 @@ class RandomForestClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'RandomForestClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class GradientBoostingClassification( Model ):
 	"""
@@ -2155,7 +2564,7 @@ class GradientBoostingClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassification | None:
@@ -2329,6 +2738,64 @@ class GradientBoostingClassification( Model ):
 		plt.tight_layout( )
 		plt.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class AdaBoostClassification( Model ):
 	"""
@@ -2389,7 +2856,7 @@ class AdaBoostClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostClassification | None:
@@ -2574,10 +3041,68 @@ class AdaBoostClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'AdaBoostClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class BaggingClassification( Model ):
 	"""
@@ -2644,7 +3169,7 @@ class BaggingClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingClassification | None:
@@ -2830,10 +3355,68 @@ class BaggingClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'BaggingClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class VotingClassification( Model ):
 	"""
@@ -2894,7 +3477,7 @@ class VotingClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingClassification | None:
@@ -3079,10 +3662,68 @@ class VotingClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'VotingClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class StackClassification( Model ):
 	"""
@@ -3145,7 +3786,7 @@ class StackClassification( Model ):
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackClassification | None:
@@ -3328,7 +3969,67 @@ class StackClassification( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'StackClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3395,7 +4096,7 @@ class SupportVectorClassification:
 		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_matrix' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassification | None:
@@ -3508,7 +4209,7 @@ class SupportVectorClassification:
 			error.show( )
 
 
-	def create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+	def create_heatmap( self, X: np.ndarray, y_true: np.ndarray ) -> None:
 		"""
 		
 			Purpose:
@@ -3532,8 +4233,8 @@ class SupportVectorClassification:
 				self.prediction = self.svc_classifier.predict( X )
 				cm = confusion_matrix( y_true, self.prediction )
 				sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
+				plt.xlabel( 'Projected' )
+				plt.ylabel( 'Observed' )
 				plt.title( 'Confusion Matrix' )
 				plt.tight_layout( )
 				plt.show( )
@@ -3541,6 +4242,66 @@ class SupportVectorClassification:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'SupportVectorClassification'
-			exception.method = 'create_matrix( self, X: np.ndarray, y_true: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y_true: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
+
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	                           resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				# setup marker generator and color map
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+
+				# plot the decision surface
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+
+				# plot class examples
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+
+					# plot all examples
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+

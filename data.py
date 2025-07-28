@@ -59,6 +59,7 @@ from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
 
+
 def entropy( p: float ) -> float | None:
 	'''
 
@@ -72,10 +73,19 @@ def entropy( p: float ) -> float | None:
 		:return: entropy
 		:rtype: float | None
 	'''
-	if p is None:
-		raise Exception( 'Argument "p" cannot be None' )
-	else:
-		return - p * np.log2( p ) - (1 - p) * np.log2( (1 - p) )
+	try:
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return - p * np.log2( p ) - ( 1 - p ) * np.log2( ( 1 - p ) )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'entropy( p: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
+
 
 def gini_impurity( p: float ) -> float | None:
 	'''
@@ -90,10 +100,19 @@ def gini_impurity( p: float ) -> float | None:
 			:return: impurity
 			:rtype: float | None
 	'''
-	if p is None:
-		raise Exception( 'Argument "p" cannot be None' )
-	else:
-		return p * (1 - p) + (1 - p) * (1 - (1 - p))
+	try:
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return p * ( 1 - p ) + ( 1 - p ) * ( 1 - ( 1 - p ) )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'gini_impurity( p: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
+
 
 def misclassification_error( p: float ) -> float | None:
 	'''
@@ -108,10 +127,47 @@ def misclassification_error( p: float ) -> float | None:
 		:return: error rate
 		:rtype: float | None
 	'''
-	if p is None:
-		raise Exception( 'Argument "p" cannot be None' )
-	else:
-		return 1 - np.max( [ p, 1 - p ] )
+	try:
+		if p is None:
+			raise Exception( 'Argument "p" cannot be None' )
+		else:
+			return 1 - np.max( [ p, 1 - p ] )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'misclassification_error( p: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
+
+
+def sigmoid( z: float ) -> float | None:
+	'''
+
+		Purpose:
+		_________
+		While the logit function maps the probability to a real-number range, we can consider the
+		inverse of this function to map the real-number range back to a [0, 1] range for the
+		probability p. This inverse of the logit function is typically called the logistic sigmoid function,
+		which is sometimes simply abbreviated to sigmoid function due to its characteristic S-shape
+
+		:param z:
+		:type z: float
+		:return:
+		:rtype: float | None
+	'''
+	try:
+		if z is None:
+			raise Exception( 'Argument "z" cannot be None' )
+		else:
+			return 1.0 / ( 1.0 + np.exp( -z ) )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'sigmoid( z: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
 
 
 class Dataset( ):
@@ -164,7 +220,7 @@ class Dataset( ):
 	skew: Optional[ pd.Series ]
 	variance: Optional[ pd.Series ]
 	standard_error: Optional[ pd.Series ]
-	standeard_deviation: Optional[ pd.Series ]
+	standard_deviation: Optional[ pd.Series ]
 
 
 

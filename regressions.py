@@ -1590,7 +1590,7 @@ class LogisticRegressor( Model ):
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegressor | None:
 		"""
 
 			Purpose:
@@ -1779,7 +1779,7 @@ class LogisticRegressor( Model ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'LogisticRegressor'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
