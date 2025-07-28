@@ -3650,7 +3650,8 @@ class BaggingRegression( Model ):
 		self.n_estimators = num
 		self.max_features = max
 		self.random_state = rando
-		self.bagging_regressor = BaggingRegressor( max_features=max, random_state=rando )
+		self.bagging_regressor = BaggingRegressor( estimator=self.base_estimator,
+			max_features=self.max_features, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
