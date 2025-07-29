@@ -373,7 +373,7 @@ class DataSource( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_pivot_table( self, df: pd.DataFrame, cols: List[ str ] ) -> pd.DataFrame | None:
+	def create_pivot_table( self, df: pd.DataFrame, cols: list, vals: list, idx: list ) -> pd.DataFrame | None:
 		'''
 
 			Purpose:
@@ -386,12 +386,18 @@ class DataSource( ):
 			:rtype: pd.DataFrame
 		'''
 		try:
-			if df is None:
-				raise Exception( 'Argument "df" cannot be None' )
-			elif cols is None:
+			if cols is None:
 				raise Exception( 'Argument "cols" cannot be None' )
+			elif df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif vals is None:
+				raise Exception( 'Argument "vals" cannot be None' )
+			elif idx is None:
+				raise Exception( 'Argument "idx" cannot be None' )
 			else:
-				self.pivot_table = pandas.pivot( data=df, columns=cols )
+				_dataframe = df.copy( )
+				self.pivot_table = pd.pivot_table( data=_dataframe, columns=cols,
+					index=idx, values=vals, aggfunc='sum', margins=True, )
 				return self.pivot_table
 		except Exception as e:
 			exception = Error( e )
@@ -504,7 +510,7 @@ class DataSource( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_correlation_analysis( self, df: pd.DataFrame, strategy = 'pearson',
+	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson',
 	                                 numbers_only: bool = True ):
 		'''
 
