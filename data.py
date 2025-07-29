@@ -220,6 +220,7 @@ class Dataset( ):
 	categorical_metrics: Optional[ pd.DataFrame ]
 	pivot_table: Optional[ pd.DataFrame ]
 	mean_standard_error: Optional[ pd.DataFrame ]
+	average: Optional[ pd.Series ]
 	kurtosis: Optional[ pd.Series ]
 	skew: Optional[ pd.Series ]
 	variance: Optional[ pd.Series ]
@@ -264,6 +265,7 @@ class Dataset( ):
 		self.skew = df.skew( axis=0, numeric_only=True )
 		self.variance = df.var( axis=0, ddof=1, numeric_only=True )
 		self.kurtosis = df.kurt( axis=0, numeric_only=True )
+		self.average = df.mean( axis=0, numeric_only=True )
 		self.mean_standard_error = df.sem( axis=0, ddof=1, numeric_only=True )
 		self.standard_deviation = df.std( axis=0, ddof=1, numeric_only=True  )
 		self.transtuple = [ ]
@@ -424,7 +426,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_histogram( self ):
+	def show_histogram( self ):
 		'''
 
 			Purpose:
@@ -435,7 +437,7 @@ class Dataset( ):
 		'''
 		try:
 			plt.figure( figsize=( 8, 6 ) )
-			sns.histplot( self.dataframe, bins=20, kde=True )
+			sns.histplot( self.dataframe.mean( axis=0, numeric_only=True), bins=20, kde=True )
 			plt.title( "Histogram (Mean)" )
 			plt.xlabel( "Name" )
 			plt.ylabel( "Value" )
@@ -444,7 +446,72 @@ class Dataset( ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'data'
-			exception.method = 'create_histogram( self )'
+			exception.method = 'show_histogram( self )'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def create_histogram( self, df: pd.DataFrame, axes: int=0, numbers_only=True ):
+		'''
+
+			Purpose:
+			________
+
+			Method to create histogram of from a dataframe.
+
+		'''
+		try:
+			if df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				plt.figure( figsize = (8, 6) )
+				sns.histplot( _dataframe.mean( axis=axes, numeric_only=numbers_only ), bins = 20,
+					kde = True )
+				plt.title( "Histogram (Mean)" )
+				plt.xlabel( "Name" )
+				plt.ylabel( "Value" )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'data'
+			exception.method = 'create_histogram( self, df: pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series | None:
+		'''
+
+			Purpose:
+			--------
+			Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
+			This can be changed using the degree argument.
+
+
+			:param axes:
+			:type axes: int
+			:param degree:
+			:type degree: int
+			:return: pd.Series
+			:rtype: pd.Series | None
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
+				return _deviation
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
 
