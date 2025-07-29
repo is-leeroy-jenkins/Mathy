@@ -285,10 +285,11 @@ class Dataset( ):
 		         'feature_names', 'test_size', 'random_state', 'categorical_metrics',
 		         'categorical_columns', 'transtuple', 'numeric_metrics',
 		         'pivot_table', 'calculate_statistics', 'numeric_columns',
-		         'X_training', 'X_testing', 'y_training',
+		         'X_training', 'X_testing', 'y_training', 'average',
 		         'y_testing', 'transform_columns', 'create_pivot_table',
 		         'export_excel', 'create_histogram', 'calculate_skew', 'calculate_average',
-		         'calculate_deviation', 'calculate_kurtosis', 'calculate_standard_error',]
+		         'calculate_deviation', 'calculate_kurtosis', 'calculate_standard_error',
+		         'show_correlation_analysis', 'create_correlation_analysis']
 
 	def transform_columns( self, name: str, encoder: Processor, columns: List[ str ] ) -> None:
 		"""
