@@ -283,7 +283,8 @@ class Dataset( ):
 		         'pivot_table', 'calculate_statistics', 'numeric_columns',
 		         'X_training', 'X_testing', 'y_training',
 		         'y_testing', 'transform_columns', 'create_pivot_table',
-		         'export_excel', 'create_histogram' ]
+		         'export_excel', 'create_histogram', 'calculate_skew',
+		         'calculate_deviation', 'calculate_kurtosis', 'calculate_standard_error',]
 
 	def transform_columns( self, name: str, encoder: Processor, columns: List[ str ] ) -> None:
 		"""
