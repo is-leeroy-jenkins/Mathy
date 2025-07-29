@@ -96,7 +96,7 @@ class Cluster( ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels or class labels.
+				np.ndarray: Predicted target_names or class target_names.
 
 		"""
 		raise NotImplementedError
@@ -112,7 +112,7 @@ class Cluster( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target labels.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -132,7 +132,7 @@ class Cluster( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -143,12 +143,12 @@ class Cluster( ):
 
 
 
-class KMeansClustering( Cluster ):
+class KMeansCluster( Cluster ):
 	"""
 
 		Purpose:
 		---------
-		The KMeans algorithm clusters feature_matrix by trying to separate samples in n groups of equal
+		The KMeans algorithm clusters data by trying to separate samples in n groups of equal
 		variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares.
 		This algorithm requires the number of clusters to be specified.
 		It scales well to large number of samples and has been used across a
@@ -194,7 +194,7 @@ class KMeansClustering( Cluster ):
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> KMeansClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> KMeansCluster | None:
 		"""
 
 			Purpose:
@@ -213,7 +213,7 @@ class KMeansClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'KMeansClustering'
+			exception.cause = 'KMeansCluster'
 			exception.method = 'fit( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -242,7 +242,7 @@ class KMeansClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'KMeansClustering'
+			exception.cause = 'KMeansCluster'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -271,7 +271,7 @@ class KMeansClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'KMeansClustering'
+			exception.cause = 'KMeansCluster'
 			exception.method = 'evaluate( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -302,7 +302,7 @@ class KMeansClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'KMeansClustering'
+			exception.cause = 'KMeansCluster'
 			exception.method = 'visualize( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -361,7 +361,7 @@ class DbscanCluster( Cluster ):
 
 			Purpose:
 			---------
-			Fit the DBSCAN model to the feature_matrix.
+			Fit the DBSCAN model to the data.
 
 			Parameters:
 			-----------
@@ -478,12 +478,12 @@ class DbscanCluster( Cluster ):
 			error.show( )
 
 
-class AgglomerativeClustering( Cluster ):
+class AgglomerativeCluster( Cluster ):
 	"""
 
 		Purpose:
 		---------
-		The AgglomerativeClustering object performs a hierarchical clustering using a
+		The AgglomerativeCluster object performs a hierarchical clustering using a
 		bottom up approach: each observation starts in its own cluster, and clusters are
 		successively merged together. The linkage criteria determines the metric used for the merge
 		strategy:
@@ -499,7 +499,7 @@ class AgglomerativeClustering( Cluster ):
 			pairs of clusters.
 
 		Single linkage minimizes the distance between the closest observations of pairs of clusters.
-		AgglomerativeClustering can also scale to large number of samples when it is used jointly
+		AgglomerativeCluster can also scale to large number of samples when it is used jointly
 		with a connectivity matrix, but is computationally expensive when no connectivity
 		constraints are added between samples: it considers at each step all the possible merges.
 
@@ -513,7 +513,7 @@ class AgglomerativeClustering( Cluster ):
 
 			Purpose:
 			---------
-			Initialize AgglomerativeClustering.
+			Initialize AgglomerativeCluster.
 
 			Parameters:
 			----------
@@ -526,12 +526,12 @@ class AgglomerativeClustering( Cluster ):
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AgglomerativeClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AgglomerativeCluster | None:
 		"""
 
 			Purpose:
 			---------
-			Fit Agglomerative model to feature_matrix.
+			Fit Agglomerative model to data.
 
 			Parameters:
 			-----------
@@ -648,14 +648,14 @@ class AgglomerativeClustering( Cluster ):
 			error.show( )
 
 
-class SpectralClustering( Cluster ):
+class SpectralCluster( Cluster ):
 	"""
 
 		Purpose:
 		---------
-		SpectralClustering does a low-dimension embedding of the affinity matrix between samples,
+		SpectralCluster does a low-dimension embedding of the affinity matrix between samples,
 		followed by a KMeans in the low dimensional space. It is especially efficient if the
-		affinity matrix is sparse and the pyamg module is installed. SpectralClustering requires
+		affinity matrix is sparse and the pyamg module is installed. SpectralCluster requires
 		the number of clusters to be specified. It works well for a small number of clusters but
 		is not advised when using many clusters.
 
@@ -676,7 +676,7 @@ class SpectralClustering( Cluster ):
 
 			Purpose:
 			---------
-			Initialize the SpectralClustering model.
+			Initialize the SpectralCluster model.
 
 			Parameters:
 			----------
@@ -689,12 +689,12 @@ class SpectralClustering( Cluster ):
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> SpectralClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> SpectralCluster | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the SpectralClustering model.
+			Fit the SpectralCluster model.
 
 			Parameters:
 			-----------
@@ -722,7 +722,7 @@ class SpectralClustering( Cluster ):
 
 			Purpose:
 			---------
-			Predict clusters using SpectralClustering.
+			Predict clusters using SpectralCluster.
 
 			Parameters:
 			-----------
@@ -755,7 +755,7 @@ class SpectralClustering( Cluster ):
 
 			Purpose:
 			---------
-			Evaluate SpectralClustering results.
+			Evaluate SpectralCluster results.
 
 			Parameters:
 			-----------
@@ -813,7 +813,7 @@ class SpectralClustering( Cluster ):
 			error.show( )
 
 
-class MeanShiftClustering( Cluster ):
+class MeanShiftCluster( Cluster ):
 	"""
 
 		Purpose:
@@ -857,7 +857,7 @@ class MeanShiftClustering( Cluster ):
 
 			Purpose:
 			---------
-			Fit MeanShift model to the feature_matrix.
+			Fit MeanShift model to the data.
 
 			Parameters:
 			-----------
@@ -873,7 +873,7 @@ class MeanShiftClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MeanShiftClustering'
+			exception.cause = 'MeanShiftCluster'
 			exception.method = 'fit( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -905,7 +905,7 @@ class MeanShiftClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MeanShiftClustering'
+			exception.cause = 'MeanShiftCluster'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -937,7 +937,7 @@ class MeanShiftClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MeanShiftClustering'
+			exception.cause = 'MeanShiftCluster'
 			exception.method = 'evaluate( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -967,13 +967,13 @@ class MeanShiftClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'MeanShiftClustering'
+			exception.cause = 'MeanShiftCluster'
 			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class AffinityPropagationClustering( Cluster ):
+class AffinityPropagationCluster( Cluster ):
 	"""
 
 		Purpose:
@@ -1006,12 +1006,12 @@ class AffinityPropagationClustering( Cluster ):
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AffinityPropagationClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> AffinityPropagationCluster | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the model to feature_matrix.
+			Fit the model to data.
 
 			Parameters:
 			-----------
@@ -1027,7 +1027,7 @@ class AffinityPropagationClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AffinityPropagationClustering'
+			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'fit( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1058,7 +1058,7 @@ class AffinityPropagationClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AffinityPropagationClustering'
+			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1090,7 +1090,7 @@ class AffinityPropagationClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AffinityPropagationClustering'
+			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'evaluate( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1120,19 +1120,19 @@ class AffinityPropagationClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'AffinityPropagationClustering'
+			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class BirchClustering( Cluster ):
+class BirchCluster( Cluster ):
 	"""
 
 		Purpose:
 		---------
-		The Birch builds a tree called the Clustering Feature Tree (CFT) for the given feature_matrix.
-		The feature_matrix is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
+		The Birch builds a tree called the Clustering Feature Tree (CFT) for the given data.
+		The data is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
 		The CF Nodes have a number of subclusters called Clustering Feature subclusters
 		(CF Subclusters) and these CF Subclusters located in the non-terminal
 		CF Nodes can have CF Nodes as children.
@@ -1141,12 +1141,12 @@ class BirchClustering( Cluster ):
 		The branching factor limits the number of subclusters in a node and the threshold limits
 		the distance between the entering sample and the existing subclusters.
 
-		This algorithm can be viewed as an instance or feature_matrix reduction method, since it reduces the
-		input feature_matrix to a set of subclusters which are obtained directly from the leaves of the CFT.
-		This reduced feature_matrix can be further processed by feeding it into a global clusterer.
+		This algorithm can be viewed as an instance or data reduction method, since it reduces the
+		input data to a set of subclusters which are obtained directly from the leaves of the CFT.
+		This reduced data can be further processed by feeding it into a global clusterer.
 		This global clusterer can be set by n_clusters. If n_clusters is set to None,
 		the subclusters from the leaves are directly read off, otherwise a global clustering step
-		labels these subclusters into global clusters (labels) and the samples are
+		target_names these subclusters into global clusters (target_names) and the samples are
 		mapped to the global label of the nearest subcluster.
 
 	"""
@@ -1173,7 +1173,7 @@ class BirchClustering( Cluster ):
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> BirchClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> BirchCluster | None:
 		"""
 
 			Purpose:
@@ -1195,7 +1195,7 @@ class BirchClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BirchClustering'
+			exception.cause = 'BirchCluster'
 			exception.method = 'fit( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1227,7 +1227,7 @@ class BirchClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BirchClustering'
+			exception.cause = 'BirchCluster'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1259,7 +1259,7 @@ class BirchClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BirchClustering'
+			exception.cause = 'BirchCluster'
 			exception.method = 'evaluate( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1289,13 +1289,13 @@ class BirchClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'BirchClustering'
+			exception.cause = 'BirchCluster'
 			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class OpticsClustering( Cluster ):
+class OpticsCluster( Cluster ):
 	"""
 
 		Purpose:
@@ -1339,7 +1339,7 @@ class OpticsClustering( Cluster ):
 		self.accuracy = 0.0
 
 
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OpticsClustering | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OpticsCluster | None:
 		"""
 
 			Purpose:
@@ -1361,7 +1361,7 @@ class OpticsClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'OpticsClustering'
+			exception.cause = 'OpticsCluster'
 			exception.method = 'fit( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1393,7 +1393,7 @@ class OpticsClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'OpticsClustering'
+			exception.cause = 'OpticsCluster'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1425,7 +1425,7 @@ class OpticsClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'OpticsClustering'
+			exception.cause = 'OpticsCluster'
 			exception.method = 'evaluate( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1456,7 +1456,7 @@ class OpticsClustering( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'OpticsClustering'
+			exception.cause = 'OpticsCluster'
 			exception.method = 'visualize_clusters( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )

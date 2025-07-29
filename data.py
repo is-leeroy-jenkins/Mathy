@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                feature_matrix.py
+  Filename:                data.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="feature_matrix.py" company="Terry D. Eppler">
+<copyright file="data.py" company="Terry D. Eppler">
 
      Mathy Data
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	feature_matrix.py
+	data.py
 </summary>
 ******************************************************************************************
 '''
@@ -59,7 +59,7 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
-from preprocessing import Processor
+from preprocessors import Processor
 
 
 def entropy( p: float ) -> float | None:
@@ -83,7 +83,7 @@ def entropy( p: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'feature_matrix'
+		exception.cause = 'data'
 		exception.method = 'entropy( p: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -110,7 +110,7 @@ def gini_impurity( p: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'feature_matrix'
+		exception.cause = 'data'
 		exception.method = 'gini_impurity( p: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -137,7 +137,7 @@ def misclassification_error( p: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'feature_matrix'
+		exception.cause = 'data'
 		exception.method = 'misclassification_error( p: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -166,7 +166,7 @@ def sigmoid( z: float ) -> float | None:
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
-		exception.cause = 'feature_matrix'
+		exception.cause = 'data'
 		exception.method = 'sigmoid( z: float ) -> float'
 		error = ErrorDialog( exception )
 		error.show( )
@@ -182,15 +182,15 @@ class Dataset( ):
 		Members:
 		------------
 		dataframe: pd.DataFrame
-		feature_matrix: np.ndarray
+		data: np.ndarray
 		n_samples: int
 		n_features: int
 		target: str
 		test_size: float
 		random_state: int
-		features: list
-		labels
-		numeric_columns
+		feature_names: list
+		target_names
+		categorical_columns
 		text_columns: list
 		X_training: pd.DataFrame
 		y_training
@@ -202,12 +202,12 @@ class Dataset( ):
 	target: str
 	test_size: float
 	random_state: int
-	feature_matrix: Optional[ np.ndarray ]
+	data: Optional[ np.ndarray ]
 	n_samples: Optional[ int ]
 	n_features: Optional[ int ]
-	features: Optional[ List[ str ] ]
-	labels: Optional[ np.ndarray ]
-	numeric_columns: Optional[ List[ str ] ]
+	feature_names: Optional[ List[ str ] ]
+	target_names: Optional[ np.ndarray ]
+	categorical_columns: Optional[ List[ str ] ]
 	text_columns: Optional[ List[ str ] ]
 	X_training: Optional[ np.ndarray ]
 	X_testing: Optional[ np.ndarray ]
@@ -241,23 +241,23 @@ class Dataset( ):
 
 		"""
 		self.dataframe = df
-		self.feature_matrix = df.to_numpy( )
+		self.data = df.to_numpy( )
 		self.n_samples = len( df )
 		self.n_features = len( df.columns )
-		self.target = target
+		self.target = df[ target ].to_numpy( )
 		self.test_size = size
 		self.random_state = rando
-		self.features = [ column for column in df.columns ]
-		self.labels = df[ target ].to_numpy( )
-		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+		self.feature_names = [ column for column in df.columns ]
+		self.target_names = np.unique( df[ target ].to_numpy( ) )
+		self.categorical_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
-		self.X_training = train_test_split( self.feature_matrix, self.labels,
+		self.X_training = train_test_split( self.data, self.target_names,
 			test_size=self.test_size, random_state=self.random_state )[ 0 ]
-		self.X_testing = train_test_split( self.feature_matrix, self.labels,
+		self.X_testing = train_test_split( self.data, self.target_names,
 			test_size=self.test_size, random_state=self.random_state )[ 1 ]
-		self.y_training = train_test_split( self.feature_matrix, self.labels,
+		self.y_training = train_test_split( self.data, self.target_names,
 			test_size=self.test_size, random_state=self.random_state )[ 2 ]
-		self.y_testing = train_test_split( self.feature_matrix, self.labels,
+		self.y_testing = train_test_split( self.data, self.target_names,
 			test_size=self.test_size, random_state=self.random_state )[ 3 ]
 		self.skew = df.skew( axis=0, numeric_only=True )
 		self.variance = df.var( axis=0, ddof=1, numeric_only=True )
@@ -278,11 +278,11 @@ class Dataset( ):
 			This function retuns a list of strings (members of the class)
 
 		'''
-		return [ 'dataframe', 'n_samples', 'n_features', 'labels',
-		         'features', 'test_size', 'random_state', 'categorical_metrics',
-		         'numeric_columns', 'text_columns', 'transtuple', 'numeric_metrics',
+		return [ 'dataframe', 'n_samples', 'n_features', 'target_names',
+		         'feature_names', 'test_size', 'random_state', 'categorical_metrics',
+		         'categorical_columns', 'text_columns', 'transtuple', 'numeric_metrics',
 		         'pivot_table', 'calculate_statistics', 'numeric_metrics',
-		         'labels', 'X_training', 'X_testing', 'y_training',
+		         'target_names', 'X_training', 'X_testing', 'y_training',
 		         'y_testing', 'transform_columns', 'create_pivot_table', 'export_excel']
 
 
@@ -291,7 +291,7 @@ class Dataset( ):
 
 			Purpose:
 			-----------
-				Scale numeric features using selected scaler.
+				Scale numeric feature_names using selected scaler.
 
 			Paramters:
 			-----------
@@ -311,7 +311,7 @@ class Dataset( ):
 				_tuple = ( name, encoder, columns )
 				self.transtuple.append( _tuple )
 				self.column_transformer = ColumnTransformer( self.transtuple )
-				self.column_transformer.fit_transform( self.feature_matrix )
+				self.column_transformer.fit_transform( self.data )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -334,8 +334,8 @@ class Dataset( ):
 		"""
 		try:
 			self.numeric_metrics = self.dataframe.describe(
-				percentiles = [ .1, .25, .5, .75, .9 ],
-				include = [ np.number ] )
+				percentiles=[ .1, .25, .5, .75, .9 ],
+				include=[ np.number ] )
 			return self.numeric_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -422,6 +422,29 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def create_histogram( self ):
+		'''
+
+			Purpose:
+			________
+
+			Method to create histogram of numeric n_features.
+
+		'''
+		try:
+			plt.figure( figsize=( 8, 6 ) )
+			sns.histplot( self.dataframe.mean( ), bins=20, kde=True )
+			plt.title( "Histogram (Mean)" )
+			plt.xlabel( "Name" )
+			plt.ylabel( "Value" )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'data'
+			exception.method = 'create_histogram( self )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class VarianceThreshold( ):
 	"""
@@ -429,8 +452,8 @@ class VarianceThreshold( ):
 		Purpose:
 		---------
 		VarianceThreshold is a simple baseline approach to feature selection. It removes all
-		features whose variance doesn’t meet some threshold. By default, it removes all
-		zero-variance features, i.e. features that have the same value in all samples.
+		feature_names whose variance doesn’t meet some threshold. By default, it removes all
+		zero-variance feature_names, i.e. feature_names that have the same value in all samples.
 
 	"""
 	variance_selector: VarianceThreshold
@@ -510,7 +533,7 @@ class VarianceThreshold( ):
 
 			Purpose:
 			---------
-			Fit and transform the feature_matrix using variance thresholding.
+			Fit and transform the data using variance thresholding.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
@@ -664,10 +687,10 @@ class ComponentAnalysis( ):
 		Purpose:
 		---------
 		Principal Component Analysis (PCA). Linear dimensionality reduction using
-		Singular Value Decomposition of the feature_matrix to project it to a lower dimensional space.
-		The input feature_matrix is centered but not scaled for each feature before applying the SVD.
+		Singular Value Decomposition of the data to project it to a lower dimensional space.
+		The input data is centered but not scaled for each feature before applying the SVD.
 		It uses the LAPACK implementation of the full SVD or a randomized truncated SVD
-		by the method of Halko et al. 2009, depending on the shape of the input feature_matrix and
+		by the method of Halko et al. 2009, depending on the shape of the input data and
 		the number of components to extract.
 
 	"""
@@ -700,7 +723,7 @@ class ComponentAnalysis( ):
 
 			Purpose:
 			---------
-			Fit PCA to the input feature_matrix.
+			Fit PCA to the input data.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray
@@ -754,7 +777,7 @@ class ComponentAnalysis( ):
 
 			Purpose:
 			---------
-			Fit PCA and transform input feature_matrix.
+			Fit PCA and transform input data.
 
 			:param X: Feature matrix.
 			:type X: np.ndarray

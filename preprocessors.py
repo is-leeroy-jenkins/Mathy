@@ -8,7 +8,7 @@
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="preprocessing.py" company="Terry D. Eppler">
+<copyright file="preprocessors.py" company="Terry D. Eppler">
 
      Mathy Preprocessing
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	preprocessing.py
+	preprocessors.py
 </summary>
 ******************************************************************************************
 '''
@@ -137,12 +137,12 @@ class LabelBinarizer( Processor ):
 
 		Purpose:
 		_______
-		Binarize labels in a one-vs-all fashion. Several regression and binary classification
+		Binarize target_names in a one-vs-all fashion. Several regression and binary classification
 		algorithms are available in scikit-learn. A simple way to extend these algorithms to the
 		multi-class classification case is to use the so-called one-vs-all scheme.
 
 		At learning time, this simply consists in learning one regressor or binary classifier
-		per class. In doing so, one needs to convert multi-class labels to binary labels
+		per class. In doing so, one needs to convert multi-class target_names to binary target_names
 		(belong or does not belong to the class). LabelBinarizer makes this process easy
 		with the transform method.
 
@@ -151,8 +151,8 @@ class LabelBinarizer( Processor ):
 
 
 	"""
-	label_binarizer: LabelBinarizer
-	transformed_data: np.ndarray | None
+	label_binarizer: skp.LabelBinarizer
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		"""
@@ -173,7 +173,7 @@ class LabelBinarizer( Processor ):
 
 			Purpose:
 			_______
-			Fits the label binarizer on the input labels.
+			Fits the label binarizer on the input target_names.
 
 			Args:
 			-----------
@@ -200,7 +200,7 @@ class LabelBinarizer( Processor ):
 
 			Purpose:
 			_______
-			Transforms labels into a binary format.
+			Transforms target_names into a binary format.
 
 			Args:
 			-----------
@@ -234,7 +234,7 @@ class LabelBinarizer( Processor ):
 
 			Purpose:
 			_______
-			Fits the encoder and transforms the input labels in one step.
+			Fits the encoder and transforms the input target_names in one step.
 
 			Args:
 			-----------
@@ -264,13 +264,13 @@ class LabelBinarizer( Processor ):
 
 			Purpose:
 			_______
-			Converts binary matrix back to original labels.
+			Converts binary matrix back to original target_names.
 
 			Args:
 				y (np.ndarray): Binary-encoded label matrix.
 
 			Returns:
-				np.ndarray: Original labels.
+				np.ndarray: Original target_names.
 		"""
 		try:
 			if y is None:
@@ -297,7 +297,7 @@ class TfidfTransformer( Processor ):
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		features that occur in a small fraction of the training corpus.
+		feature_names that occur in a small fraction of the training corpus.
 
 		The formula that is used to compute the tf-idf for a term t of a document d in a
 		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
@@ -311,6 +311,7 @@ class TfidfTransformer( Processor ):
 
 	"""
 	tfidf_transformer: sk.TfidfTransformer
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		"""
@@ -411,12 +412,13 @@ class TfidfVectorizer( Processor ):
 		Purpose:
 		---------
 
-		Convert a collection of raw text to a matrix of TF-IDF features. Equivalent to
+		Convert a collection of raw text to a matrix of TF-IDF feature_names. Equivalent to
 		CountVectorizer followed by TfidfTransformer. Tf means term-frequency while tf–idf means
 		 term-frequency times inverse document-frequency:
 
 	"""
 	tfidf_vectorizer: sk.TfidfVectorizer
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		"""
@@ -549,11 +551,12 @@ class CountVectorizer( Processor ):
 		Convert a collection of text text to a matrix of token counts. This implementation
 		produces a sparse representation of the counts using scipy.sparse.csr_matrix. If you do not
 		provide an a-priori dictionary and you do not use an analyzer that does some kind of
-		feature selection then the number of features will be equal to the vocabulary
-		size found by analyzing the feature_matrix.
+		feature selection then the number of feature_names will be equal to the vocabulary
+		size found by analyzing the data.
 
 	"""
 	count_vectorizer: sk.CountVectorizer
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		"""
@@ -669,13 +672,14 @@ class HashingVectorizer( Processor ):
 
 	"""
 	hash_vectorizer: sk.HashingVectorizer
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the HashingVectorizer with the desired number of features.
+			Initialize the HashingVectorizer with the desired number of feature_names.
 
 		"""
 		super( ).__init__( )
@@ -693,7 +697,7 @@ class HashingVectorizer( Processor ):
 			:type y:
 			:param text: List of input text text.
 			:type text: List[str]
-			:return: Matrix of hashed features.
+			:return: Matrix of hashed feature_names.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -716,12 +720,14 @@ class StandardScaler( Processor ):
 
 		Purpose:
 		--------
-		Standardize features by removing the mean and scaling to unit variance. The standard score
+		Standardize feature_names by removing the mean and scaling to unit variance. The standard score
 		of a sample x is calculated as: z = (x - u) / s where u is the mean of the training
 		samples or zero if with_mean=False, and s is the standard deviation of the training
 		samples or one if with_std=False.
 
 	"""
+	standard_scaler: skp.StandardScaler
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
@@ -801,11 +807,11 @@ class StandardScaler( Processor ):
 
 			Purpose:
 			---------
-			Transforms into standardized feature_matrix.
+			Transforms into standardized data.
 
 			:param X: List of text text.
 			:type X: list[str]
-			:return: Standardized feature_matrix.
+			:return: Standardized data.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -827,11 +833,13 @@ class MinMaxScaler( Processor ):
 
 		Purpose:
 		---------
-		Transforms features by scaling each feature to a given range. This estimator scales and
+		Transforms feature_names by scaling each feature to a given range. This estimator scales and
 		translates each feature individually such that it is in the given range on the
 		training set, e.g. between zero and one.
 
 	"""
+	minmax_scaler: skp.MinMaxScaler
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
@@ -910,11 +918,11 @@ class MinMaxScaler( Processor ):
 
 			Purpose:
 			---------
-			Transforms into min-maxed feature_matrix.
+			Transforms into min-maxed data.
 
 			:param X: List of text text.
 			:type X: list[str]
-			:return: Standardized feature_matrix.
+			:return: Standardized data.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -936,12 +944,14 @@ class RobustScaler( Processor ):
 
 		Purpose:
 		--------
-		This Scaler removes the median and scales the feature_matrix according to the
+		This Scaler removes the median and scales the data according to the
 		quantile range (defaults to IQR: Interquartile Range).
 		The IQR is the range between the 1st quartile (25th quantile)
 		and the 3rd quartile (75th quantile).
 
 	"""
+	robust_scaler: skp.RobustScaler
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
@@ -1021,11 +1031,11 @@ class RobustScaler( Processor ):
 
 			Purpose:
 			---------
-			Transforms into robust feature_matrix.
+			Transforms into robust data.
 
 			:param X: List of text text.
 			:type X: list[str]
-			:return: Standardized feature_matrix.
+			:return: Standardized data.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -1048,11 +1058,13 @@ class NormalScaler( Processor ):
 
 		Purpose:
 		---------
-		Normalize samples individually to unit norm. Each sample (i.e. each row of the feature_matrix matrix)
+		Normalize samples individually to unit norm. Each sample (i.e. each row of the data matrix)
 		with at least one non zero component is rescaled independently of other samples
 		so that its regularlization (l1 or l2) equals one.
 
 	"""
+	normal_scaler: skp.Normalizer
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self, reg: str='l2' ) -> None:
 		super( ).__init__( )
@@ -1132,19 +1144,21 @@ class OneHotEncoder( Processor ):
 
 		Purpose:
 		---------
-		Encode categorical features as a one-hot numeric array. The input to this transformer
+		Encode categorical feature_names as a one-hot numeric array. The input to this transformer
 		should be an array-like of integers or strings, denoting the values taken on by categorical
-		(discrete) features. The features are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
+		(discrete) feature_names. The feature_names are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
 		encoding scheme. This creates a binary column for each category and returns a sparse
 		matrix or dense array (depending on the sparse_output parameter)
 
 		By default, the encoder derives the categories based on the unique values in each feature.
 		Alternatively, you can also specify the categories manually. This encoding is needed for
-		feeding categorical feature_matrix to many scikit-learn estimators, notably linear models and SVMs
-		with the standard kernels. Note: a one-hot encoding of y labels should use a
+		feeding categorical data to many scikit-learn estimators, notably linear models and SVMs
+		with the standard kernels. Note: a one-hot encoding of y target_names should use a
 		LabelBinarizer instead.
 
 	"""
+	hot_encoder: skp.OneHotEncoder
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
@@ -1225,7 +1239,7 @@ class OneHotEncoder( Processor ):
 
 			Purpose:
 			--------
-			Fit the encoder and transform the feature_matrix.
+			Fit the encoder and transform the data.
 
 			Parameters:
 			-----------
@@ -1254,9 +1268,11 @@ class OrdinalEncoder( Processor ):
 
 			Purpose:
 			---------
-			Encodes categorical features as ordinal integers.
+			Encodes categorical feature_names as ordinal integers.
 
 	"""
+	ordinal_encoder: skp.OrdinalEncoder
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		super( ).__init__( )
@@ -1334,7 +1350,7 @@ class OrdinalEncoder( Processor ):
 
 			Purpose:
 			--------
-			Fit the encoder and transform the feature_matrix.
+			Fit the encoder and transform the data.
 
 			Parameters:
 			-----------
@@ -1386,10 +1402,12 @@ class LabelEncoder( Processor ):
 
 		Purpose:
 		--------
-		Encode target labels with value between 0 and n_classes-1. This transformer should be
+		Encode target target_names with value between 0 and n_classes-1. This transformer should be
 		used to encode target values, i.e. y, and not the input X.
 
 	"""
+	label_encoder: skp.LabelEncoder
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self ) -> None:
 		"""
@@ -1407,7 +1425,7 @@ class LabelEncoder( Processor ):
 
 			Purpose:
 			--------
-			Fit the label encoder to the feature_matrix.
+			Fit the label encoder to the data.
 
 			Parameters:
 			-----------
@@ -1425,7 +1443,7 @@ class LabelEncoder( Processor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'LabellEncoder'
-			exception.method = 'fit( self, labels: list[str] ) -> np.ndarray'
+			exception.method = 'fit( self, target_names: list[str] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1436,7 +1454,7 @@ class LabelEncoder( Processor ):
 
 			Purpose:
 			--------
-			Transform labels to encoded form.
+			Transform target_names to encoded form.
 
 			Parameters:
 			-----------
@@ -1455,7 +1473,7 @@ class LabelEncoder( Processor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'LabellEncoder'
-			exception.method = 'fit( self, labels: list[str] ) -> np.ndarray'
+			exception.method = 'fit( self, target_names: list[str] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1466,15 +1484,15 @@ class LabelEncoder( Processor ):
 
 			Purpose:
 			--------
-			Fit and transform the label feature_matrix.
+			Fit and transform the label data.
 
 			:param X:
 			:type X:
 			:param y:
 			:type y:
-			:param labels: List of labels.
-			:type labels: list[str]
-			:return: Encoded labels.
+			:param target_names: List of target_names.
+			:type target_names: list[str]
+			:return: Encoded target_names.
 			:rtype: np.ndarray
 		"""
 
@@ -1488,7 +1506,7 @@ class LabelEncoder( Processor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'LabellEncoder'
-			exception.method = 'fit_transform( self, labels: list[str] ) -> np.ndarray'
+			exception.method = 'fit_transform( self, target_names: list[str] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1515,6 +1533,7 @@ class LabelEncoder( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class PolynomialFeatures( Processor ):
 	"""
 
@@ -1522,6 +1541,8 @@ class PolynomialFeatures( Processor ):
 		--------
         Wrapper for PolynomialFeatures.
     """
+	polynomial_features: skp.PolynomialFeatures
+	transformed_data: Optional[ np.ndarray ]
 
 	def __init__( self, degree: int=2 ) -> None:
 		"""
@@ -1542,7 +1563,7 @@ class PolynomialFeatures( Processor ):
 
 			Purpose:
 			--------
-			Fit polynomial transformer to feature_matrix.
+			Fit polynomial transformer to data.
 
 			:param y:
 			:type y:
@@ -1570,7 +1591,7 @@ class PolynomialFeatures( Processor ):
 
 			Purpose:
 			--------
-			Transform feature_matrix into polynomial features.
+			Transform data into polynomial feature_names.
 
 			:param y:
 			:type y:
@@ -1599,7 +1620,7 @@ class PolynomialFeatures( Processor ):
 
 			Purpose:
 			--------
-			Fit and transform feature_matrix using polynomial expansion.
+			Fit and transform data using polynomial expansion.
 
 			:param y:
 			:type y:
@@ -1628,15 +1649,19 @@ class MeanImputer( Processor ):
 
 		Purpose:
 		-----------
-		Fills missing labels using the average.
+		Fills missing target_names using the average.
 
 	"""
 	strategy: Optional[ str ]
+	mean_imputer: ski.SimpleImputer
+	transformed_data: Optional[ np.ndarray ]
+
 
 	def __init__( self, strategy: str='mean' ) -> None:
 		super( ).__init__( )
 		self.strategy = strategy
 		self.mean_imputer = ski.SimpleImputer( strategy=self.strategy )
+		self.transformed_data = None
 
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
@@ -1649,7 +1674,7 @@ class MeanImputer( Processor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df with missing labels.
+			X (np.ndarray): Input df with missing target_names.
 			y (Optional[np.ndarray]): Ignored.
 
 			Returns:
@@ -1679,11 +1704,11 @@ class MeanImputer( Processor ):
 			Purpose:
 			---------
 			Transforms the text
-			df by filling in missing labels.
+			df by filling in missing target_names.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df with missing labels.
+			X (np.ndarray): Input df with missing target_names.
 
 			Returns:
 			-----------
@@ -1710,13 +1735,13 @@ class MeanImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the iterative imputer and transform the feature_matrix.
+			Fit the iterative imputer and transform the data.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed feature_matrix with imputed values.
+			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -1761,15 +1786,20 @@ class NearestNeighborImputer( Processor ):
 
 		Purpose:
 		---------
-		Fills missing labels using k-nearest neighbors.
+		Fills missing target_names using k-nearest neighbors.
 
 	"""
 	n_neighbors: Optional[ int ]
+	knn_imputer: ski.KNNImputer
+	transformed_data: Optional[ np.ndarray ]
+
 
 	def __init__( self, neighbors: int=5 ) -> None:
 		super( ).__init__( )
 		self.n_neighbors = neighbors
 		self.knn_imputer = ski.KNNImputer( n_neighbors=self.n_neighbors )
+		self.transformed_data = None
+
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
 		"""
@@ -1780,7 +1810,7 @@ class NearestNeighborImputer( Processor ):
 
 			Parameters:
 			_____
-			X (np.ndarray): Input df with missing labels.
+			X (np.ndarray): Input df with missing target_names.
 			y (Optional[np.ndarray]): Ignored.
 
 			Returns:
@@ -1809,7 +1839,7 @@ class NearestNeighborImputer( Processor ):
 			Purpose:
 			_________
 
-			Transforms the text df by imputing missing labels.
+			Transforms the text df by imputing missing target_names.
 
 			Parameters:
 			-----------
@@ -1840,13 +1870,13 @@ class NearestNeighborImputer( Processor ):
 
 			Purpose:
 			---------
-			Fit the iterative imputer and transform the feature_matrix.
+			Fit the iterative imputer and transform the data.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed feature_matrix with imputed values.
+			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 
 		"""
@@ -1871,10 +1901,15 @@ class IterativeImputer( Processor ):
 		Purpose:
 		--------
 		A strategy for imputing missing values by modeling each feature with
-		missing values as a function of other features in a round-robin fashion.
+		missing values as a function of other feature_names in a round-robin fashion.
 	"""
+	iterative_imputer: ski.IterativeImputer
+	max_iter: Optional[ int ]
+	random_state: Optional[ int ]
+	transformed_data: Optional[ np.ndarray ]
 
-	def __init__( self, max: int = 10, rando: int = 0 ) -> None:
+
+	def __init__( self, max: int=10, rando: int=0 ) -> None:
 		"""
 
 			Purpose:
@@ -1887,14 +1922,18 @@ class IterativeImputer( Processor ):
 			:type rando: int
 		"""
 		super( ).__init__( )
-		self.iterative_imputer = ski.IterativeImputer( max_iter = max, random_state = rando )
+		self.max_iter = max
+		self.random_state = rando
+		self.iterative_imputer = ski.IterativeImputer( max_iter=self.max_iter,
+			random_state=self.random_state )
+
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
 			--------
-			Fit the iterative imputer to the feature_matrix.
+			Fit the iterative imputer to the data.
 
 			:param y:
 			:type y:
@@ -1915,19 +1954,20 @@ class IterativeImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def transform( self, X: np.ndarray,
 	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform feature_matrix by iteratively imputing missing values.
+			Transform data by iteratively imputing missing values.
 
 			:param y:
 			:type y:
 			:param X: Data to transform.
 			:type X: np.ndarray
-			:return: Transformed feature_matrix with imputed values.
+			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 
 		"""
@@ -1938,13 +1978,13 @@ class IterativeImputer( Processor ):
 
 			Purpose:
 			--------
-			Fit the iterative imputer and transform the feature_matrix.
+			Fit the iterative imputer and transform the data.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed feature_matrix with imputed values.
+			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 
 		"""
@@ -1962,14 +2002,19 @@ class IterativeImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 class SimpleImputer( Processor ):
 	"""
 
 		Wrapper for sklearn's SimpleImputer.
 
 	"""
+	simple_imputer: ski.SimpleImputer
+	transformed_data: Optional[ np.ndarray ]
+	strategy: Optional[ str ]
+	fill_value: Optional[ float ]
 
-	def __init__( self, strategy: str = 'mean', fill_value: float = 0.0 ) -> None:
+	def __init__( self, strategy: str='mean', fill_value: float=0.0 ) -> None:
 		"""
 
 			Purpose:
@@ -1983,14 +2028,18 @@ class SimpleImputer( Processor ):
 
 		"""
 		super( ).__init__( )
-		self.simple_imputer = ski.SimpleImputer( strategy = strategy, fill_value = fill_value )
+		self.strategy = strategy
+		self.fill_value = fill_value
+		self.simple_imputer = ski.SimpleImputer( strategy=self.strategy, fill_value=self.fill_value )
+		self.transformed_data = None
+
 
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""
 
 			Purpose:
 			--------
-			Fit the imputer to the feature_matrix.
+			Fit the imputer to the data.
 
 			:param y:
 			:type y:
@@ -2010,19 +2059,20 @@ class SimpleImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def transform( self, X: np.ndarray,
 	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Transform feature_matrix by imputing missing values.
+			Transform data by imputing missing values.
 
 			:param y:
 			:type y:
 			:param X: Data to transform.
 			:type X: np.ndarray
-			:return: Transformed feature_matrix with imputed values.
+			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
 		try:
@@ -2038,18 +2088,19 @@ class SimpleImputer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Fit the imputer and transform the feature_matrix.
+			Fit the imputer and transform the data.
 
 			:param y:
 			:type y:
 			:param X: Input array with missing values.
 			:type X: np.ndarray
-			:return: Transformed feature_matrix with imputed values.
+			:return: Transformed data with imputed values.
 			:rtype: np.ndarray
 		"""
 		try:

@@ -188,7 +188,7 @@ class ErrorDialog( Dark ):
 
 	    Construcotr:  ErrorDialog( error )
 
-	    Purpose:  Class that displays excetption labels that accepts
+	    Purpose:  Class that displays excetption target_names that accepts
             a single, optional argument 'error' of scaler Error
 
     '''

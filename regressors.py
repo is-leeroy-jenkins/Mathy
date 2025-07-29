@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                regressions.py
+  Filename:                regressors.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="regressions.py" company="Terry D. Eppler">
+<copyright file="regressors.py" company="Terry D. Eppler">
 
      Mathy Models
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	regressions.py
+	regressors.py
 </summary>
 ******************************************************************************************
 '''
@@ -67,7 +67,7 @@ import sklearn.svm as skv
 import sklearn.tree as skd
 from booger import Error, ErrorDialog
 
-class Model( ):
+class Regressor( ):
 	"""
 
 		Purpose:
@@ -123,7 +123,7 @@ class Model( ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels or class labels.
+				np.ndarray: Predicted target_names or class target_names.
 
 		"""
 		raise NotImplementedError
@@ -138,7 +138,7 @@ class Model( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target labels.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -157,7 +157,7 @@ class Model( ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -167,7 +167,7 @@ class Model( ):
 		raise NotImplementedError
 
 
-class MultiLayerRegressor( Model ):
+class MultiLayerRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -319,7 +319,7 @@ class MultiLayerRegressor( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test features.
+			X (np.ndarray): Test feature_names.
 			y (np.ndarray): True values.
 
 			Returns:
@@ -356,7 +356,7 @@ class MultiLayerRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -399,12 +399,12 @@ class MultiLayerRegressor( Model ):
 
 			Purpose:
 			-----------
-				Plot actual vs predicted labels.
+				Plot actual vs predicted target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True target target_names.
 
 		"""
 		try:
@@ -430,7 +430,7 @@ class MultiLayerRegressor( Model ):
 			error.show( )
 
 
-class LinearRegressor( Model ):
+class LinearRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -438,13 +438,13 @@ class LinearRegressor( Model ):
 		Ordinary Least Squares Regression fits a linear model with coefficients to minimize the
 		residual sum of squares between the observed targets in the dataset, and the targets
 		predicted by the linear approximation. The coefficient estimates for Ordinary Least Squares
-		rely on the independence of the features.
+		rely on the independence of the feature_names.
 
-		When features are correlated and the n_features of the design matrix have an approximately
+		When feature_names are correlated and the n_features of the design matrix have an approximately
 		linear dependence, the design matrix becomes close to singular and as a result,
 		the least-squares estimate becomes highly sensitive to random errors in the observed target,
 		producing a large variance. This situation of multicollinearity can arise, for example,
-		when feature_matrix are collected without an experimental design.
+		when data are collected without an experimental design.
 
 	"""
 	linear_regressor: skl.LinearRegression
@@ -544,7 +544,7 @@ class LinearRegressor( Model ):
 
 			Purpose:
 			-----------
-			Predict target labels using the OLS linerar_model.
+			Predict target target_names using the OLS linerar_model.
 
 			Parameters:
 			-----------
@@ -552,7 +552,7 @@ class LinearRegressor( Model ):
 
 			Returns:
 			-----------
-			np.ndarray: Predicted target labels.
+			np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -580,8 +580,8 @@ class LinearRegressor( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test features.
-			y (np.ndarray): True target labels.
+			X (np.ndarray): Test feature_names.
+			y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -617,7 +617,7 @@ class LinearRegressor( Model ):
 			Parameters:
 			-----------
 			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Ground truth labels.
+			y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -660,12 +660,12 @@ class LinearRegressor( Model ):
 
 			Purpose:
 			-----------
-			Plot actual vs predicted labels.
+			Plot actual vs predicted target_names.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True target labels.
+			X (np.ndarray): Input feature_names.
+			y (np.ndarray): True target target_names.
 
 		"""
 		try:
@@ -691,7 +691,7 @@ class LinearRegressor( Model ):
 			error.show( )
 
 
-class RidgeRegressor( Model ):
+class RidgeRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -822,7 +822,7 @@ class RidgeRegressor( Model ):
 
 			Purpose:
 			-----------
-			Project target labels using the RidgeRegressor linerar_model.
+			Project target target_names using the RidgeRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -830,7 +830,7 @@ class RidgeRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -858,8 +858,8 @@ class RidgeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -895,7 +895,7 @@ class RidgeRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -940,12 +940,12 @@ class RidgeRegressor( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs actual labels.
+			Plot predicted vs actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -975,12 +975,12 @@ class RidgeRegressor( Model ):
 			error.show( )
 
 
-class LassoRegression( Model ):
+class LassoRegression( Regressor ):
 	"""
 
 		Purpose:
 		--------
-		Linear Model trained with L1 for the regularizer. Regularization improves the
+		Linear Classifier trained with L1 for the regularizer. Regularization improves the
 		conditioning of the problem and reduces the variance of the estimates. Larger values
 		specify stronger alpha. Technically the Lasso model is optimizing the same
 		objective function as the Elastic Net with l1_ratio=1.0 (no L2 penalty).
@@ -1090,7 +1090,7 @@ class LassoRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict target labels using the LassoRegression linerar_model.
+			Predict target target_names using the LassoRegression linerar_model.
 
 
 			Parameters:
@@ -1099,7 +1099,7 @@ class LassoRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -1126,8 +1126,8 @@ class LassoRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -1162,8 +1162,8 @@ class LassoRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -1207,12 +1207,12 @@ class LassoRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot actual vs. predicted labels.
+			Plot actual vs. predicted target_names.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Input feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 		"""
 		try:
@@ -1238,7 +1238,7 @@ class LassoRegression( Model ):
 			error.show( )
 
 
-class ElasticNetRegressor( Model ):
+class ElasticNetRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -1248,7 +1248,7 @@ class ElasticNetRegressor( Model ):
 		are non-zero like Lasso, while still maintaining the regularization properties of Ridge.
 		We control the convex combination of and using the l1_ratio parameter.
 
-		Elastic-net is useful when there are multiple features that are correlated with one another.
+		Elastic-net is useful when there are multiple feature_names that are correlated with one another.
 		Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
 	"""
@@ -1362,7 +1362,7 @@ class ElasticNetRegressor( Model ):
 
 			Purpose:
 			-----------
-			Predict target labels using the ElasticNetRegressor linerar_model.
+			Predict target target_names using the ElasticNetRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -1370,7 +1370,7 @@ class ElasticNetRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -1398,8 +1398,8 @@ class ElasticNetRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -1433,8 +1433,8 @@ class ElasticNetRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -1482,8 +1482,8 @@ class ElasticNetRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True target target_names.
 
 		"""
 		try:
@@ -1509,7 +1509,7 @@ class ElasticNetRegressor( Model ):
 			error.show( )
 
 
-class LogisticRegressor( Model ):
+class LogisticRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -1598,7 +1598,7 @@ class LogisticRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target class labels.
+				y (np.ndarray): Target class target_names.
 
 			Returns:
 			--------
@@ -1627,7 +1627,7 @@ class LogisticRegressor( Model ):
 
 			Purpose:
 			-----------
-			Predict class labels using the logistic regression linerar_model.
+			Predict class target_names using the logistic regression linerar_model.
 
 			Parameters:
 			-----------
@@ -1635,7 +1635,7 @@ class LogisticRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted class labels.
+				np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -1663,8 +1663,8 @@ class LogisticRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -1698,8 +1698,8 @@ class LogisticRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features of shape (n_samples, n_features).
-				y (np.ndarray): True labels of shape (n_samples,).
+				X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+				y (np.ndarray): True target_names of shape (n_samples,).
 
 			Returns:
 			-----------
@@ -1753,8 +1753,8 @@ class LogisticRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -1782,7 +1782,7 @@ class LogisticRegressor( Model ):
 			error.show( )
 
 
-class BayesianRidgeRegressor( Model ):
+class BayesianRidgeRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -1903,7 +1903,7 @@ class BayesianRidgeRegressor( Model ):
 
 			Purpose:
 			-----------
-				Predicts target labels
+				Predicts target target_names
 				using the Bayesian linerar_model.
 
 			Parameters:
@@ -1912,7 +1912,7 @@ class BayesianRidgeRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels.
+				np.ndarray: Predicted target_names.
 
 		"""
 		try:
@@ -1940,8 +1940,8 @@ class BayesianRidgeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): True labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): True target_names.
 
 			Returns:
 			-----------
@@ -1976,7 +1976,7 @@ class BayesianRidgeRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target labels.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -2020,12 +2020,12 @@ class BayesianRidgeRegressor( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs. actual labels.
+			Plot predicted vs. actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True target target_names.
 
 		"""
 		try:
@@ -2051,7 +2051,7 @@ class BayesianRidgeRegressor( Model ):
 			error.show( )
 
 
-class StochasticDescentRegression( Model ):
+class StochasticGradientRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -2065,7 +2065,7 @@ class StochasticDescentRegression( Model ):
 		SGD has been successfully applied to large-scale and sparse machine rate problems
 		often encountered in text classification and natural language processing.
 		Given that the df is sparse, the classifiers in this module easily scale to problems
-		with more than 10^5 training examples and more than 10^5 features.
+		with more than 10^5 training examples and more than 10^5 feature_names.
 
 		The regularizer is a penalty added to the loss function that shrinks model parameters
 		towards the zero vector using either the squared euclidean norm L2 or the absolute norm L1
@@ -2073,8 +2073,8 @@ class StochasticDescentRegression( Model ):
 		because of the regularizer, the update is truncated to 0.0 to allow for learning sparse
 		models and achieve online feature selection.
 
-		This implementation works with feature_matrix represented as dense numpy arrays of floating point
-		values for the features.
+		This implementation works with data represented as dense numpy arrays of floating point
+		values for the feature_names.
 
 	"""
 	stochastic_regressor = skl.SGDRegressor
@@ -2139,7 +2139,7 @@ class StochasticDescentRegression( Model ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_graph' ]
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticDescentRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientRegressor | None:
 		"""
 
 			Purpose:
@@ -2149,7 +2149,7 @@ class StochasticDescentRegression( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target labels.
+				y (np.ndarray): Target target_names.
 
 			Returns:
 			--------
@@ -2167,7 +2167,7 @@ class StochasticDescentRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StochasticDescentRegression'
+			exception.cause = 'StochasticGradientRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2178,7 +2178,7 @@ class StochasticDescentRegression( Model ):
 
 			Purpose:
 			-----------
-			Predict labels using the SGD regressor linerar_model.
+			Predict target_names using the SGD regressor linerar_model.
 
 			Parameters:
 			-----------
@@ -2186,7 +2186,7 @@ class StochasticDescentRegression( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels.
+				np.ndarray: Predicted target_names.
 
 		"""
 		try:
@@ -2198,7 +2198,7 @@ class StochasticDescentRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StochasticDescentRegression'
+			exception.cause = 'StochasticGradientRegressor'
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2213,8 +2213,8 @@ class StochasticDescentRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -2248,8 +2248,8 @@ class StochasticDescentRegression( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -2282,7 +2282,7 @@ class StochasticDescentRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StochasticDescentRegression'
+			exception.cause = 'StochasticGradientRegressor'
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2293,12 +2293,12 @@ class StochasticDescentRegression( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs. actual labels.
+			Plot predicted vs. actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True target target_names.
 
 		"""
 		try:
@@ -2318,13 +2318,13 @@ class StochasticDescentRegression( Model ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'StochasticDescentRegression'
+			exception.cause = 'StochasticGradientRegressor'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-class NearestNeighborRegressor( Model ):
+class NearestNeighborRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -2415,7 +2415,7 @@ class NearestNeighborRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target labels.
+				y (np.ndarray): Target target_names.
 
 			Returns:
 			--------
@@ -2444,7 +2444,7 @@ class NearestNeighborRegressor( Model ):
 
 			Purpose:
 			-----------
-			Predict labels using the KNN regressor.
+			Predict target_names using the KNN regressor.
 
 			Parameters:
 			-----------
@@ -2452,7 +2452,7 @@ class NearestNeighborRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels.
+				np.ndarray: Predicted target_names.
 
 		"""
 		try:
@@ -2479,8 +2479,8 @@ class NearestNeighborRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -2515,8 +2515,8 @@ class NearestNeighborRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -2560,12 +2560,12 @@ class NearestNeighborRegressor( Model ):
 
 			Purpose:
 			-----------
-				Plot predicted vs actual labels.
+				Plot predicted vs actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -2595,16 +2595,16 @@ class NearestNeighborRegressor( Model ):
 			error.show( )
 
 
-class DecisionTreeRegressor( Model ):
+class DecisionTreeRegressor( Regressor ):
 	'''
 
 		Purpose:
 		--------
 		Decision Trees (DTs) are a non-parametric supervised learning method used for
 		regression. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the feature_matrix features.
+		target variable by learning simple decision rules inferred from the data feature_names.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from feature_matrix
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from data
 		to approximate a sine curve with a set of if-then-else decision rules.
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
@@ -2679,7 +2679,7 @@ class DecisionTreeRegressor( Model ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target labels.
+			y (np.ndarray): Target target_names.
 
 			Returns:
 			--------
@@ -2708,7 +2708,7 @@ class DecisionTreeRegressor( Model ):
 
 			Purpose:
 			-----------
-			Predict labels using the KNN regressor.
+			Predict target_names using the KNN regressor.
 
 			Parameters:
 			-----------
@@ -2716,7 +2716,7 @@ class DecisionTreeRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels.
+				np.ndarray: Predicted target_names.
 
 		"""
 		try:
@@ -2743,8 +2743,8 @@ class DecisionTreeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -2779,8 +2779,8 @@ class DecisionTreeRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): True target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -2824,12 +2824,12 @@ class DecisionTreeRegressor( Model ):
 
 			Purpose:
 			-----------
-				Plot predicted vs actual labels.
+				Plot predicted vs actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -2859,7 +2859,7 @@ class DecisionTreeRegressor( Model ):
 			error.show( )
 
 
-class RandomForestRegressor( Model ):
+class RandomForestRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -2868,7 +2868,7 @@ class RandomForestRegressor( Model ):
 		(i.e., a bootstrap sample) from the training set.
 
 		Furthermore, when splitting each node during the construction of a tree,
-		the best split is found either from all input features or a random subset of
+		the best split is found either from all input feature_names or a random subset of
 		size max_features.
 
 		The purpose of these two sources of randomness is to decrease the variance
@@ -2985,7 +2985,7 @@ class RandomForestRegressor( Model ):
 
 			Purpose:
 			-----------
-			Project target labels using the RidgeRegressor linerar_model.
+			Project target target_names using the RidgeRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -2993,7 +2993,7 @@ class RandomForestRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -3020,8 +3020,8 @@ class RandomForestRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -3056,7 +3056,7 @@ class RandomForestRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3100,12 +3100,12 @@ class RandomForestRegressor( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs actual labels.
+			Plot predicted vs actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3135,7 +3135,7 @@ class RandomForestRegressor( Model ):
 			error.show( )
 
 
-class GradientBoostingRegressor( Model ):
+class GradientBoostingRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -3226,7 +3226,7 @@ class GradientBoostingRegressor( Model ):
 
 			Parameters:
 			___________
-				X (np.ndarray): Training features.
+				X (np.ndarray): Training feature_names.
 				y (np.ndarray): Training targets.
 
 			Returns:
@@ -3267,7 +3267,7 @@ class GradientBoostingRegressor( Model ):
 
 			Parameters:
 			___________
-			X (np.ndarray): Test features.
+			X (np.ndarray): Test feature_names.
 			y (np.ndarray): True target values.
 
 			Returns:
@@ -3289,7 +3289,7 @@ class GradientBoostingRegressor( Model ):
 
 			Parameters:
 			__________
-			X (np.ndarray): Input features.
+			X (np.ndarray): Input feature_names.
 			y (np.ndarray): Ground truth target values.
 
 			Returns:
@@ -3332,7 +3332,7 @@ class GradientBoostingRegressor( Model ):
 		plt.show( )
 
 
-class AdaBoostRegressor( Model ):
+class AdaBoostRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -3370,7 +3370,7 @@ class AdaBoostRegressor( Model ):
 
 			Purpose:
 			--------
-			Initialize the Ridge Regression Model.
+			Initialize the Ridge Regression Classifier.
 
 
 			Parameters:
@@ -3448,7 +3448,7 @@ class AdaBoostRegressor( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Project target labels
+			Project target target_names
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -3457,7 +3457,7 @@ class AdaBoostRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -3485,8 +3485,8 @@ class AdaBoostRegressor( Model ):
 
 			Parameters:
 			----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			--------
@@ -3519,7 +3519,7 @@ class AdaBoostRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3561,12 +3561,12 @@ class AdaBoostRegressor( Model ):
 		"""
 
 			Plot predicted vs
-			actual labels.
+			actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3596,7 +3596,7 @@ class AdaBoostRegressor( Model ):
 			error.show( )
 
 
-class BaggingRegressor( Model ):
+class BaggingRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -3708,7 +3708,7 @@ class BaggingRegressor( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Project target labels
+			Project target target_names
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -3717,7 +3717,7 @@ class BaggingRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -3742,8 +3742,8 @@ class BaggingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -3776,7 +3776,7 @@ class BaggingRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3818,12 +3818,12 @@ class BaggingRegressor( Model ):
 		"""
 
 			Plot predicted vs
-			actual labels.
+			actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3853,7 +3853,7 @@ class BaggingRegressor( Model ):
 			error.show( )
 
 
-class VotingRegressor( Model ):
+class VotingRegressor( Regressor ):
 	"""
 
 		Purpose:
@@ -3956,7 +3956,7 @@ class VotingRegressor( Model ):
 
 			Purpose:
 			---------
-			Project target labels
+			Project target target_names
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -3965,7 +3965,7 @@ class VotingRegressor( Model ):
 
 			Returns:
 			-------
-			np.ndarray: Predicted target labels.
+			np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -3990,8 +3990,8 @@ class VotingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -4024,7 +4024,7 @@ class VotingRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -4066,12 +4066,12 @@ class VotingRegressor( Model ):
 		"""
 
 			Plot predicted vs
-			actual labels.
+			actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -4101,7 +4101,7 @@ class VotingRegressor( Model ):
 			error.show( )
 
 
-class StackingRegressor( Model ):
+class StackingRegressor( Regressor ):
 	"""
 
 			Purpose:
@@ -4215,7 +4215,7 @@ class StackingRegressor( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Project target labels
+			Project target target_names
 			using the RidgeRegressor linerar_model.
 
 			Parameters:
@@ -4224,7 +4224,7 @@ class StackingRegressor( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -4250,8 +4250,8 @@ class StackingRegressor( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -4285,7 +4285,7 @@ class StackingRegressor( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -4330,12 +4330,12 @@ class StackingRegressor( Model ):
 			Purpose:
 			---------
 			Plot predicted vs
-			actual labels.
+			actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -4392,8 +4392,8 @@ class SupportVectorRegressor:
 
 			:param kernel: Kernel type to be used in the algorithm.
 			:type kernel: str
-			:param c: Regularization parameter.
-			:type c: float
+			:param C: Regularization parameter.
+			:type C: float
 			:param epsilon: Epsilon in the epsilon-SVR model.
 			:type epsilon: float
 
@@ -4430,9 +4430,9 @@ class SupportVectorRegressor:
 
 			Purpose:
 			--------
-			Fit the SVR model to the feature_matrix.
+			Fit the SVR model to the data.
 
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
 			:param y: Target values.
 			:type y: np.ndarray
@@ -4447,13 +4447,13 @@ class SupportVectorRegressor:
 
 			Purpose:
 			--------
-			Predict target values for the input features.
+			Predict target values for the input feature_names.
 
 			:param y:
 			:type y:
 			:param y:
 			:type y:
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
 			:return: Predicted target values.
 			:rtype: np.ndarray
@@ -4485,8 +4485,8 @@ class SupportVectorRegressor:
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -4518,7 +4518,7 @@ class SupportVectorRegressor:
 			---------
 			Print detailed regression metrics.
 
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
 			:param y: Ground truth values.
 			:type y: np.ndarray
@@ -4563,7 +4563,7 @@ class SupportVectorRegressor:
 			--------
 			Visualize the true vs predicted values for regression.
 
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
 			:param y: True target values.
 			:type y: np.ndarray

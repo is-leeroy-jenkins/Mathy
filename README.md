@@ -45,9 +45,10 @@ ___
 ```plaintext
 mathy/
 ├── data.py           # Dataset handler and model interface
-├── models.py         # Encapsulated classifiers and regressors
+├── regressors.py     # Encapsulated regression models
+├── classifiers.py    # Encapsulated classification models
 ├── clusters.py       # Clustering models (KMeans, DBSCAN, etc.)
-├── processors.py     # Preprocessing tools (scalers, encoders)
+├── preprocessors.py  # Data preprocessing tools (scalers, encoders)
 ├── static/           # Static constants, helpers
 ├── README.md         # This file
 ```
@@ -60,22 +61,22 @@ models are foundational for tasks such as spam detection, disease diagnosis, and
 Below is a list of supported classifiers in Mathy:
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
 ___
-| Class Name                   | Description                                                  |
-|------------------------------|--------------------------------------------------------------|
-| Model                        | Base wrapper for all classification models.                  |
-| PerceptronClassifier         | Linear classifier using the perceptron learning rule.        |
-| MultilayerClassification     | Multi-layer perceptron (MLP) for non-linear classification.  |
-| RidgeClassification          | Classifier with L2 regularization to prevent overfitting.    |
-| StochasticDescentClassification | Learns model using stochastic gradient descent.         |
-| NearestNeighborClassification | Instance-based classifier using nearest neighbors.         |
-| DecisionTreeClassification   | Splits data into decision paths using feature thresholds.    |
-| RandomForestClassification   | Ensemble of decision trees trained with bagging.             |
-| GradientBoostingClassification | Sequential ensemble reducing bias with boosting.          |
-| AdaBoostClassification       | Boosts weak learners to correct classification errors.       |
-| BaggingClassification        | Aggregates predictions from multiple bootstrapped models.    |
-| VotingClassification         | Combines multiple models through majority voting.            |
-| StackClassification          | Meta-learner trained on outputs of base classifiers.         |
-| SupportVectorClassification  | Support Vector Machine (SVC) classifier.                     |
+| Class Name                  | Description                                                  |
+|-----------------------------|--------------------------------------------------------------|
+| Model                       | Base wrapper for all classification models.                  |
+| PerceptronClassifier        | Linear classifier using the perceptron learning rule.        |
+| MultilayerClassifier        | Multi-layer perceptron (MLP) for non-linear classification.  |
+| RidgeClassifier             | Classifier with L2 regularization to prevent overfitting.    |
+| StochasticDescentClassifier | Learns model using stochastic gradient descent.         |
+| NearestNeighborClassifier   | Instance-based classifier using nearest neighbors.         |
+| DecisionTreeClassifier      | Splits data into decision paths using feature thresholds.    |
+| RandomForestClassifier      | Ensemble of decision trees trained with bagging.             |
+| GradientBoostingClassifier  | Sequential ensemble reducing bias with boosting.          |
+| AdaBoostClassifier          | Boosts weak learners to correct classification errors.       |
+| BaggingClassifier           | Aggregates predictions from multiple bootstrapped models.    |
+| VotingClassifier            | Combines multiple models through majority voting.            |
+| StackClassifier             | Meta-learner trained on outputs of base classifiers.         |
+| SupportVectorClassifier     | Support Vector Machine (SVC) classifier.                     |
 
 
 
@@ -88,26 +89,26 @@ models, listed below:
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 
 ___
-| Class Name                  | Description                                                        |
-|-----------------------------|--------------------------------------------------------------------|
-| Model                       | Base model interface for regression learners.                      |
-| MultilayerRegression        | Multi-layer neural network for regression.                         |
-| LinearRegressor             | Ordinary least squares regression.                                |
-| RidgeRegression             | Linear regression with L2 regularization.                         |
-| LassoRegression             | Linear regression with L1 penalty for sparsity.                   |
-| ElasticNetRegression        | Combines L1 and L2 penalties for robustness.                      |
-| LogisticRegressor           | Logistic regression for binary outcomes.                          |
-| BayesianRidgeRegression     | Bayesian linear model with priors on coefficients.               |
-| StochasticDescentRegression | Optimizes regression with stochastic gradient descent.            |
-| NearestNeighborRegression   | Instance-based regression using k-nearest neighbors.              |
-| DecisionTreeRegression      | Tree-based model for continuous targets.                          |
-| RandomForestRegression      | Ensemble of trees trained on bootstrapped samples.                |
-| GradientBoostingRegression  | Boosting technique for improved predictive accuracy.              |
-| AdaBoostRegression          | Adaptive boosting for regression tasks.                           |
-| BaggingRegression           | Bagging ensemble to reduce variance.                             |
-| VotingRegression            | Aggregates predictions from multiple regressors.                  |
-| StackRegression             | Trains meta-regressor on top of base models.                      |
-| SupportVectorRegression     | Support Vector Regression (SVR) for high-dimensional data.        |
+| Class Name                 | Description                                                        |
+|----------------------------|--------------------------------------------------------------------|
+| Model                      | Base model interface for regression learners.                      |
+| MultilayerRegressor        | Multi-layer neural network for regression.                         |
+| LinearRegressor            | Ordinary least squares regression.                                |
+| RidgeRegressor             | Linear regression with L2 regularization.                         |
+| LassoRegressor             | Linear regression with L1 penalty for sparsity.                   |
+| ElasticNetRegressor        | Combines L1 and L2 penalties for robustness.                      |
+| LogisticRegressor          | Logistic regression for binary outcomes.                          |
+| BayesianRidgeRegressor     | Bayesian linear model with priors on coefficients.               |
+| StochasticDescentRegressor | Optimizes regression with stochastic gradient descent.            |
+| NearestNeighborRegressor   | Instance-based regression using k-nearest neighbors.              |
+| DecisionTreeRegressor      | Tree-based model for continuous targets.                          |
+| RandomForestRegressor      | Ensemble of trees trained on bootstrapped samples.                |
+| GradientBoostingRegressor  | Boosting technique for improved predictive accuracy.              |
+| AdaBoostRegressor          | Adaptive boosting for regression tasks.                           |
+| BaggingRegressor           | Bagging ensemble to reduce variance.                             |
+| VotingRegressor            | Aggregates predictions from multiple regressors.                  |
+| StackRegressor             | Trains meta-regressor on top of base models.                      |
+| SupportVectorRegressor      | Support Vector Regression (SVR) for high-dimensional data.        |
 
 
 
@@ -119,17 +120,17 @@ irregular cluster shapes:
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 
 ___
-| Class Name                    | Description                                                     |
-|-------------------------------|-----------------------------------------------------------------|
-| Cluster                       | Abstract base for clustering methods.                           |
-| KMeansClustering              | Clusters data into k partitions via centroid minimization.      |
-| DbscanClustering              | Density-based clustering that handles noise and outliers.       |
-| AgglomerativeClusteringModel  | Hierarchical clustering by iterative merging.                   |
-| SpectralClusteringModel       | Uses spectral decomposition for clustering.                     |
-| MeanShiftClustering           | Clusters by finding dense regions (modes) in feature space.     |
-| AffinityPropagationClustering | Message-passing clustering based on exemplar similarity.        |
-| BirchClustering               | Clusters large datasets using hierarchical CF trees.            |
-| OpticsClustering              | Orders points to extract density-based clusters.                |
+| Class Name                 | Description                                                     |
+|----------------------------|-----------------------------------------------------------------|
+| Cluster                    | Abstract base for clustering methods.                           |
+| KMeansCluster              | Clusters data into k partitions via centroid minimization.      |
+| DbscanCluster              | Density-based clustering that handles noise and outliers.       |
+| AgglomerativeCluster       | Hierarchical clustering by iterative merging.                   |
+| SpectralCluster            | Uses spectral decomposition for clustering.                     |
+| MeanShiftCluster           | Clusters by finding dense regions (modes) in feature space.     |
+| AffinityPropagationCluster | Message-passing clustering based on exemplar similarity.        |
+| BirchCluster               | Clusters large datasets using hierarchical CF trees.            |
+| OpticsCluster              | Orders points to extract density-based clusters.                |
 
 
 

@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                Mathy
-  Filename:                classifications.py
+  Filename:                classifiers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="classifications.py" company="Terry D. Eppler">
+<copyright file="classifiers.py" company="Terry D. Eppler">
 
      Mathy Models
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	classifications.py
+	classifiers.py
 </summary>
 ******************************************************************************************
 '''
@@ -67,7 +67,7 @@ import sklearn.tree as skd
 from booger import Error, ErrorDialog
 
 
-class Model(  ):
+class Classifier( ):
 	"""
 
 		Purpose:
@@ -125,7 +125,7 @@ class Model(  ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted labels or class labels.
+				np.ndarray: Predicted target_names or class target_names.
 
 		"""
 		raise NotImplementedError
@@ -141,7 +141,7 @@ class Model(  ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target labels.
+				y (np.ndarray): True target target_names.
 
 			Returns:
 			-----------
@@ -161,7 +161,7 @@ class Model(  ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -170,7 +170,7 @@ class Model(  ):
 		"""
 		raise NotImplementedError
 
-class PerceptronClassifier( Model ):
+class PerceptronClassifier( Classifier ):
 	"""
 
 
@@ -262,7 +262,7 @@ class PerceptronClassifier( Model ):
 			Parameters:
 			---------
 			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Binary class labels.
+			y (np.ndarray): Binary class target_names.
 
 			Returns:
 			--------
@@ -291,7 +291,7 @@ class PerceptronClassifier( Model ):
 
 			Purpose:
 			---------
-			Predict binary class labels using the PerceptronClassifier.
+			Predict binary class target_names using the PerceptronClassifier.
 
 			Parameters:
 			---------
@@ -327,8 +327,8 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Test features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			---------
@@ -363,8 +363,8 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input features of shape (n_samples, n_features).
-				y (np.ndarray): Ground truth class labels.
+				X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+				y (np.ndarray): Ground truth class target_names.
 
 			Returns:
 			---------
@@ -421,8 +421,8 @@ class PerceptronClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			---------
@@ -509,7 +509,7 @@ class PerceptronClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class MultiLayerClassifier( Model ):
+class MultiLayerClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -659,7 +659,7 @@ class MultiLayerClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
+				X (np.ndarray): Test feature_names.
 				y (np.ndarray): True values.
 
 			Returns:
@@ -696,7 +696,7 @@ class MultiLayerClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -746,8 +746,8 @@ class MultiLayerClassifier( Model ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			---------
@@ -834,7 +834,7 @@ class MultiLayerClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RidgeClassifier( Model ):
+class RidgeClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -959,7 +959,7 @@ class RidgeClassifier( Model ):
 
 			Purpose:
 			-----------
-			Project target labels using the RidgeRegressor linerar_model.
+			Project target target_names using the RidgeRegressor linerar_model.
 
 			Parameters:
 			-----------
@@ -967,7 +967,7 @@ class RidgeClassifier( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target labels.
+				np.ndarray: Predicted target target_names.
 
 		"""
 		try:
@@ -995,8 +995,8 @@ class RidgeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -1032,7 +1032,7 @@ class RidgeClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target labels.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -1078,12 +1078,12 @@ class RidgeClassifier( Model ):
 
 			Purpose:
 			-----------
-			Plot predicted vs actual labels.
+			Plot predicted vs actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -1171,7 +1171,7 @@ class RidgeClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StochasticGradientClassifier( Model ):
+class StochasticGradientClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -1181,10 +1181,10 @@ class StochasticGradientClassifier( Model ):
 		the gradient of the loss is estimated each sample at a time and the model is updated along
 		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
 		(online/out-of-core) learning via the partial_fit method. For best results using the
-		default learning rate schedule, the feature_matrix should have zero mean and unit variance.
+		default learning rate schedule, the data should have zero mean and unit variance.
 
-		This implementation works with feature_matrix represented as dense or sparse arrays of floating point
-		 values for the features. The model it fits can be controlled with the loss parameter;
+		This implementation works with data represented as dense or sparse arrays of floating point
+		 values for the feature_names. The model it fits can be controlled with the loss parameter;
 		 by default, it fits a linear support vector machine (SVM).
 
 		The regularizer is a penalty added to the loss function that shrinks model parameters
@@ -1268,7 +1268,7 @@ class StochasticGradientClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			--------
@@ -1297,7 +1297,7 @@ class StochasticGradientClassifier( Model ):
 
 				Purpose:
 				-----------
-					Predict class labels using the SGD classifier.
+					Predict class target_names using the SGD classifier.
 
 				Parameters:
 				-----------
@@ -1305,7 +1305,7 @@ class StochasticGradientClassifier( Model ):
 
 				Returns:
 				-----------
-					np.ndarray: Predicted class labels.
+					np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -1332,8 +1332,8 @@ class StochasticGradientClassifier( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test features.
-			y (np.ndarray): Ground truth target labels.
+			X (np.ndarray): Test feature_names.
+			y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -1367,7 +1367,7 @@ class StochasticGradientClassifier( Model ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-			y (np.ndarray): True class labels of shape (n_samples,).
+			y (np.ndarray): True class target_names of shape (n_samples,).
 
 			Returns:
 			-----------
@@ -1423,8 +1423,8 @@ class StochasticGradientClassifier( Model ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True class labels.
+			X (np.ndarray): Input feature_names.
+			y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -1512,7 +1512,7 @@ class StochasticGradientClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class NearestNeighborClassifier( Model ):
+class NearestNeighborClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -1598,7 +1598,7 @@ class NearestNeighborClassifier( Model ):
 			Parameters:
 			-----------
 			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Class labels.
+			y (np.ndarray): Class target_names.
 
 			Returns:
 			-------
@@ -1627,7 +1627,7 @@ class NearestNeighborClassifier( Model ):
 
 			Purpose:
 			-----------
-			Predict class labels using the KNN classifier.
+			Predict class target_names using the KNN classifier.
 
 			Parameters:
 			-----------
@@ -1635,7 +1635,7 @@ class NearestNeighborClassifier( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted class labels.
+				np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -1662,8 +1662,8 @@ class NearestNeighborClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -1698,7 +1698,7 @@ class NearestNeighborClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-				y (np.ndarray): True class labels of shape (n_samples,).
+				y (np.ndarray): True class target_names of shape (n_samples,).
 
 			Returns:
 			-----------
@@ -1754,8 +1754,8 @@ class NearestNeighborClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -1843,16 +1843,16 @@ class NearestNeighborClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class DecisionTreeClassifier( Model ):
+class DecisionTreeClassifier( Classifier ):
 	'''
 
 		Purpose:
 		--------
 		Decision Trees (DTs) are a non-parametric supervised learning method used for
 		classification. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the feature_matrix features.
+		target variable by learning simple decision rules inferred from the data feature_names.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from feature_matrix
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from data
 		to approximate a sine curve with a set of if-then-else decision rules.
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
@@ -1925,7 +1925,7 @@ class DecisionTreeClassifier( Model ):
 			Parameters:
 			-----------
 			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Class labels.
+			y (np.ndarray): Class target_names.
 
 			Returns:
 			-------
@@ -1955,7 +1955,7 @@ class DecisionTreeClassifier( Model ):
 
 			Purpose:
 			-----------
-			Predict class labels using the KNN classifier.
+			Predict class target_names using the KNN classifier.
 
 			Parameters:
 			-----------
@@ -1963,7 +1963,7 @@ class DecisionTreeClassifier( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted class labels.
+				np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -1991,8 +1991,8 @@ class DecisionTreeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
@@ -2029,7 +2029,7 @@ class DecisionTreeClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-				y (np.ndarray): True class labels of shape (n_samples,).
+				y (np.ndarray): True class target_names of shape (n_samples,).
 
 			Returns:
 			-----------
@@ -2086,8 +2086,8 @@ class DecisionTreeClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -2175,7 +2175,7 @@ class DecisionTreeClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RandomForestClassifier( Model ):
+class RandomForestClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -2184,7 +2184,7 @@ class RandomForestClassifier( Model ):
 		(i.e., a bootstrap sample) from the training set.
 
 		Furthermore, when splitting each node during the construction of a tree,
-		the best split is found either from all input features or a random subset of
+		the best split is found either from all input feature_names or a random subset of
 		size max_features.
 
 		The purpose of these two sources of randomness is to decrease the variance
@@ -2264,7 +2264,7 @@ class RandomForestClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			--------
@@ -2294,7 +2294,7 @@ class RandomForestClassifier( Model ):
 
 				Purpose:
 				-------
-				Predict class labels
+				Predict class target_names
 				using the SGD classifier.
 
 				Parameters:
@@ -2303,7 +2303,7 @@ class RandomForestClassifier( Model ):
 
 				Returns:
 				---------
-					np.ndarray: Predicted class labels.
+					np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -2330,8 +2330,8 @@ class RandomForestClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -2365,8 +2365,8 @@ class RandomForestClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -2416,8 +2416,8 @@ class RandomForestClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -2505,7 +2505,7 @@ class RandomForestClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GradientBoostingClassifier( Model ):
+class GradientBoostingClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -2516,8 +2516,8 @@ class GradientBoostingClassifier( Model ):
 		or multinomial deviance loss function. Binary classification is a special case where
 		only a single regression tree is induced.
 
-		The features are always randomly permuted at each split. Therefore, the best found split
-		may vary, even with the same training feature_matrix and max_features=n_features, if the improvement
+		The feature_names are always randomly permuted at each split. Therefore, the best found split
+		may vary, even with the same training data and max_features=n_features, if the improvement
 		of the criterion is identical for several splits enumerated during the search of the best
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
@@ -2597,7 +2597,7 @@ class GradientBoostingClassifier( Model ):
 			Parameters:
 			__________
 				X (np.ndarray): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			--------
@@ -2626,7 +2626,7 @@ class GradientBoostingClassifier( Model ):
 
 			Purpose:
 			________
-				Predict class labels.
+				Predict class target_names.
 
 			Parameters:
 			__________
@@ -2634,7 +2634,7 @@ class GradientBoostingClassifier( Model ):
 
 			Returns:
 			________
-				np.ndarray: Predicted labels.
+				np.ndarray: Predicted target_names.
 
 		"""
 		try:
@@ -2662,7 +2662,7 @@ class GradientBoostingClassifier( Model ):
 			Parameters:
 			__________
 				X (np.ndarray): Features.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			________
@@ -2696,7 +2696,7 @@ class GradientBoostingClassifier( Model ):
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix.
-				y (np.ndarray): Ground truth labels.
+				y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			--------
@@ -2745,8 +2745,8 @@ class GradientBoostingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target_names.
 
 		"""
 		self.prediction = self.gradient_boost_classifier.predict( X )
@@ -2817,7 +2817,7 @@ class GradientBoostingClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class AdaBoostClassifier( Model ):
+class AdaBoostClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -2892,7 +2892,7 @@ class AdaBoostClassifier( Model ):
 			Parameters:
 			_________
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			--------
@@ -2919,7 +2919,7 @@ class AdaBoostClassifier( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Predict class labels
+			Predict class target_names
 			using the SGD classifier.
 
 			Parameters:
@@ -2928,7 +2928,7 @@ class AdaBoostClassifier( Model ):
 
 			Returns:
 			-----------
-			np.ndarray: Predicted class labels.
+			np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -2954,8 +2954,8 @@ class AdaBoostClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -2988,8 +2988,8 @@ class AdaBoostClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3038,8 +3038,8 @@ class AdaBoostClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -3127,7 +3127,7 @@ class AdaBoostClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class BaggingClassifier( Model ):
+class BaggingClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -3207,7 +3207,7 @@ class BaggingClassifier( Model ):
 			Parameters:
 			----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			-------
@@ -3234,7 +3234,7 @@ class BaggingClassifier( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Predict class labels
+			Predict class target_names
 			using the SGD classifier.
 
 			Parameters:
@@ -3243,7 +3243,7 @@ class BaggingClassifier( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted class labels.
+				np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -3269,8 +3269,8 @@ class BaggingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3303,8 +3303,8 @@ class BaggingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3354,8 +3354,8 @@ class BaggingClassifier( Model ):
 
 			Parameters:
 			------------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			---------
@@ -3443,14 +3443,14 @@ class BaggingClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class VotingClassifier( Model ):
+class VotingClassifier( Classifier ):
 	"""
 
 		Purpose:
 		--------
 		The idea behind the VotingClassifier is to combine conceptually different machine rate
 		classifiers and use a majority vote or the average predicted probabilities (soft vote)
-		to predict the class labels. Such a classifier can be useful for a set of equally well
+		to predict the class target_names. Such a classifier can be useful for a set of equally well
 		performing model in order to balance out their individual weaknesses.
 
 	"""
@@ -3517,7 +3517,7 @@ class VotingClassifier( Model ):
 			Parameters:
 			-----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			--------
@@ -3544,7 +3544,7 @@ class VotingClassifier( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Predict class labels
+			Predict class target_names
 			using the SGD classifier.
 
 			Parameters:
@@ -3553,7 +3553,7 @@ class VotingClassifier( Model ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted class labels.
+				np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -3579,8 +3579,8 @@ class VotingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3613,8 +3613,8 @@ class VotingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3663,8 +3663,8 @@ class VotingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -3752,7 +3752,7 @@ class VotingClassifier( Model ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StackingClassifier( Model ):
+class StackingClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -3824,7 +3824,7 @@ class StackingClassifier( Model ):
 			Parameters:
 			----------
 				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class labels.
+				y (np.ndarray): Class target_names.
 
 			Returns:
 			--------
@@ -3851,7 +3851,7 @@ class StackingClassifier( Model ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-			Predict class labels
+			Predict class target_names
 			using the SGD classifier.
 
 			Parameters:
@@ -3860,7 +3860,7 @@ class StackingClassifier( Model ):
 
 			Returns:
 			-----------
-			np.ndarray: Predicted class labels.
+			np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -3886,8 +3886,8 @@ class StackingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Test feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3919,8 +3919,8 @@ class StackingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): Ground truth target labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): Ground truth target target_names.
 
 			Returns:
 			-----------
@@ -3968,8 +3968,8 @@ class StackingClassifier( Model ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input features.
-				y (np.ndarray): True class labels.
+				X (np.ndarray): Input feature_names.
+				y (np.ndarray): True class target_names.
 
 			Returns:
 			-----------
@@ -4129,11 +4129,11 @@ class SupportVectorClassifier:
 		
 			Purpose:
 			---------
-			Fit the SVC model to the feature_matrix.
+			Fit the SVC model to the data.
 	
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
-			:param y: Target labels.
+			:param y: Target target_names.
 			:type y: np.ndarray
 		"""
 		try:
@@ -4158,11 +4158,11 @@ class SupportVectorClassifier:
 			
 			Purpose:
 			--------
-			Predict class labels for the input features.
+			Predict class target_names for the input feature_names.
 	
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
-			:return: Predicted class labels.
+			:return: Predicted class target_names.
 			:rtype: np.ndarray
 			
 		"""
@@ -4188,9 +4188,9 @@ class SupportVectorClassifier:
 			---------
 			Evaluate the model using accuracy score.
 	
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
-			:param y_true: True labels.
+			:param y_true: True target_names.
 			:type y_true: np.ndarray
 			:return: Accuracy score.
 			:rtype: float
@@ -4223,9 +4223,9 @@ class SupportVectorClassifier:
 	
 			:param self:
 			:type self:
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
-			:param y_true: True labels.
+			:param y_true: True target_names.
 			:type y_true: np.ndarray
 			:return: Classification report.
 			:rtype: str
@@ -4257,9 +4257,9 @@ class SupportVectorClassifier:
 	
 			:param self:
 			:type self:
-			:param X: Input features.
+			:param X: Input feature_names.
 			:type X: np.ndarray
-			:param y_true: True labels.
+			:param y_true: True target_names.
 			:type y_true: np.ndarray
 			
 		"""
@@ -4285,22 +4285,21 @@ class SupportVectorClassifier:
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
-	                           resolution = 0.02 ):
+	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx=None,
+	                           resolution=0.02 ):
 		'''
 
 			Purpose:
 			--------
 			Visualize how well it separates the different sample
 
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Optional target array  of shape ( n_samples, ).
+			test_idx: Opional[ int ]
+			resolution: Optional[ float ]
+
 		'''
 		try:
 			if X is None:
