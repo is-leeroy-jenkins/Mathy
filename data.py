@@ -435,7 +435,7 @@ class Dataset( ):
 		'''
 		try:
 			plt.figure( figsize=( 8, 6 ) )
-			sns.histplot( self.dataframe.mean( axis=0, numeric_only=False), bins=20, kde=True )
+			sns.histplot( self.dataframe, bins=20, kde=True )
 			plt.title( "Histogram (Mean)" )
 			plt.xlabel( "Name" )
 			plt.ylabel( "Value" )
