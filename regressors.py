@@ -1074,7 +1074,8 @@ class RidgeRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
 		'''
 
 			Purpose:
