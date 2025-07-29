@@ -452,7 +452,7 @@ class PerceptronClassifier( Classifier ):
 			error.show( )
 
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
 		'''
 
 			Purpose:
@@ -776,7 +776,7 @@ class MultiLayerClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
 		'''
 
 			Purpose:
@@ -830,7 +830,7 @@ class MultiLayerClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1112,7 +1112,7 @@ class RidgeClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -1167,7 +1167,7 @@ class RidgeClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1453,7 +1453,7 @@ class StochasticGradientClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -1508,7 +1508,7 @@ class StochasticGradientClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1784,7 +1784,7 @@ class NearestNeighborClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -1839,7 +1839,7 @@ class NearestNeighborClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2116,7 +2116,7 @@ class DecisionTreeClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -2171,7 +2171,7 @@ class DecisionTreeClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2446,7 +2446,7 @@ class RandomForestClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -2501,7 +2501,7 @@ class RandomForestClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2758,7 +2758,7 @@ class GradientBoostingClassifier( Classifier ):
 		plt.tight_layout( )
 		plt.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -2813,7 +2813,7 @@ class GradientBoostingClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3068,7 +3068,7 @@ class AdaBoostClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -3123,7 +3123,7 @@ class AdaBoostClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3384,7 +3384,7 @@ class BaggingClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -3439,7 +3439,7 @@ class BaggingClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3693,7 +3693,7 @@ class VotingClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -3748,7 +3748,7 @@ class VotingClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3999,7 +3999,7 @@ class StackingClassifier( Classifier ):
 			error.show( )
 
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx = None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
 		'''
 
@@ -4054,7 +4054,7 @@ class StackingClassifier( Classifier ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4285,7 +4285,7 @@ class SupportVectorClassifier:
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def plot_decision_regions( self, X: np.ndarray, y: np.ndarray, test_idx=None,
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None,
 	                           resolution=0.02 ):
 		'''
 
@@ -4339,7 +4339,7 @@ class SupportVectorClassifier:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'plot_decision_regions( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
 

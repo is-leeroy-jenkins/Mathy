@@ -49,6 +49,7 @@ from typing import Optional, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.colors import ListedColormap
 from pydantic import BaseModel
 from sklearn.base import ClassifierMixin
 import sklearn.ensemble as ske
@@ -166,7 +167,6 @@ class Regressor( ):
 		"""
 		raise NotImplementedError
 
-
 class MultiLayerRegressor( Regressor ):
 	"""
 
@@ -241,7 +241,7 @@ class MultiLayerRegressor( Regressor ):
 		         'hidden_layers', 'random_state', 'alpha', 'max_depth', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) ->  MultiLayerRegressor | None:
@@ -394,7 +394,7 @@ class MultiLayerRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -425,10 +425,60 @@ class MultiLayerRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = ''
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c= 'none',
+							edgecolor='black', alpha=1.0, linewidth=1,
+							marker='o', s=100, label='Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class LinearRegressor( Regressor ):
 	"""
@@ -502,7 +552,7 @@ class LinearRegressor( Regressor ):
 		         'n_estimators', 'random_state', 'loss', 'max_depth', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegressor | None:
 		"""
@@ -655,7 +705,7 @@ class LinearRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -686,10 +736,60 @@ class LinearRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'LinearRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class RidgeRegressor( Regressor ):
 	"""
@@ -778,7 +878,7 @@ class RidgeRegressor( Regressor ):
 		         'solver', 'random_state', 'max_iter', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeRegressor | None:
@@ -934,7 +1034,7 @@ class RidgeRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 
@@ -970,10 +1070,60 @@ class RidgeRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'RidgeRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class LassoRegression( Regressor ):
 	"""
@@ -1049,7 +1199,7 @@ class LassoRegression( Regressor ):
 		         'random_state', 'alpha', 'max_iter', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoRegression | None:
@@ -1201,7 +1351,7 @@ class LassoRegression( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 
@@ -1233,10 +1383,60 @@ class LassoRegression( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'LassoRegression'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class ElasticNetRegressor( Regressor ):
 	"""
@@ -1319,7 +1519,7 @@ class ElasticNetRegressor( Regressor ):
 		         'ratio', 'random_state', 'selection', 'max_iter', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegressor | None:
 		"""
@@ -1473,7 +1673,7 @@ class ElasticNetRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -1504,10 +1704,60 @@ class ElasticNetRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'ElasticNetRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class LogisticRegressor( Regressor ):
 	"""
@@ -1585,7 +1835,7 @@ class LogisticRegressor( Regressor ):
 		         'solver', 'random_state', 'alpha', 'max_iter','mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegressor | None:
@@ -1769,7 +2019,7 @@ class LogisticRegressor( Regressor ):
 			else:
 				self.prediction = self.logistic_regressor.predict( X )
 				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix = cm )
+				ConfusionMatrixDisplay( confusion_matrix=cm )
 				plt.title( 'Logistic Regression Confusion Matrix' )
 				plt.grid( False )
 				plt.show( )
@@ -1781,6 +2031,56 @@ class LogisticRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class BayesianRidgeRegressor( Regressor ):
 	"""
@@ -1861,7 +2161,7 @@ class BayesianRidgeRegressor( Regressor ):
 		         'shape_lambda', 'random_state', 'scale_lambda', 'max_iter','mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidgeRegressor | None:
 		"""
@@ -2015,7 +2315,7 @@ class BayesianRidgeRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -2046,10 +2346,60 @@ class BayesianRidgeRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'BayesianRidgeRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class StochasticGradientRegressor( Regressor ):
 	"""
@@ -2137,7 +2487,7 @@ class StochasticGradientRegressor( Regressor ):
 		         'max_iter', 'random_state', 'loss', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientRegressor | None:
 		"""
@@ -2288,7 +2638,7 @@ class StochasticGradientRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -2319,10 +2669,60 @@ class StochasticGradientRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'StochasticGradientRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class NearestNeighborRegressor( Regressor ):
 	"""
@@ -2400,7 +2800,7 @@ class NearestNeighborRegressor( Regressor ):
 		         'n_neighbors', 'random_state', 'power', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 
@@ -2555,7 +2955,7 @@ class NearestNeighborRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -2590,10 +2990,60 @@ class NearestNeighborRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'RandomForestRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class DecisionTreeRegressor( Regressor ):
 	'''
@@ -2665,7 +3115,7 @@ class DecisionTreeRegressor( Regressor ):
 		         'splitter', 'random_state', 'max_depth', 'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeRegressor | None:
@@ -2819,7 +3269,7 @@ class DecisionTreeRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -2854,10 +3304,60 @@ class DecisionTreeRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'DecisionTreeRegression'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class RandomForestRegressor( Regressor ):
 	"""
@@ -2943,7 +3443,7 @@ class RandomForestRegressor( Regressor ):
 		         'n_estimators', 'random_state', 'loss', 'max_depth',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestRegressor | None:
@@ -3095,7 +3595,7 @@ class RandomForestRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -3130,10 +3630,60 @@ class RandomForestRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'RandomForestRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class GradientBoostingRegressor( Regressor ):
 	"""
@@ -3214,7 +3764,7 @@ class GradientBoostingRegressor( Regressor ):
 		         'n_estimators', 'random_state', 'loss', 'max_depth',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegressor | None:
@@ -3309,7 +3859,7 @@ class GradientBoostingRegressor( Regressor ):
 		}
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -3331,6 +3881,56 @@ class GradientBoostingRegressor( Regressor ):
 		plt.grid( True )
 		plt.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class AdaBoostRegressor( Regressor ):
 	"""
@@ -3408,7 +4008,7 @@ class AdaBoostRegressor( Regressor ):
 		         'n_estimators', 'random_state', 'loss', 'learning_rate',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostRegressor | None:
@@ -3557,7 +4157,7 @@ class AdaBoostRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Plot predicted vs
@@ -3591,10 +4191,60 @@ class AdaBoostRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'AdaBoostRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class BaggingRegressor( Regressor ):
 	"""
@@ -3669,7 +4319,7 @@ class BaggingRegressor( Regressor ):
 		return [ 'prediction', 'base_estimator', 'n_estimators', 'max_features', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph', 'random_state' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter', 'random_state' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingRegressor | None:
@@ -3814,7 +4464,7 @@ class BaggingRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Plot predicted vs
@@ -3848,10 +4498,60 @@ class BaggingRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'BaggingRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class VotingRegressor( Regressor ):
 	"""
@@ -3915,7 +4615,7 @@ class VotingRegressor( Regressor ):
 		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingRegressor | None:
@@ -4062,7 +4762,7 @@ class VotingRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Plot predicted vs
@@ -4096,10 +4796,60 @@ class VotingRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'VotingRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class StackingRegressor( Regressor ):
 	"""
@@ -4175,7 +4925,7 @@ class StackingRegressor( Regressor ):
 		return [ 'prediction', 'estimators', 'final_estimator', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingRegressor | None:
@@ -4324,7 +5074,7 @@ class StackingRegressor( Regressor ):
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -4360,10 +5110,60 @@ class StackingRegressor( Regressor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'StackingRegressor'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class SupportVectorRegressor:
 	"""
@@ -4422,7 +5222,7 @@ class SupportVectorRegressor:
 		return [ 'prediction', 'kernel', 'regulation', 'epsilon', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_graph' ]
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorRegressor | None:
@@ -4556,7 +5356,7 @@ class SupportVectorRegressor:
 			error.show( )
 
 
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -4590,3 +5390,55 @@ class SupportVectorRegressor:
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
+
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			elif y is None:
+				raise Exception( 'The argument "y" is required!' )
+			else:
+				markers = ('o', 's', '^', 'v', '<')
+				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+					np.arange( x2_min, x2_max, resolution ) )
+				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+				lab = lab.reshape( xx1.shape )
+				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+				plt.xlim( xx1.min( ), xx1.max( ) )
+				plt.ylim( xx2.min( ), xx2.max( ) )
+				for idx, cl in enumerate( np.unique( y ) ):
+					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+						c = colors[ idx ],
+						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+					if test_idx:
+						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+							edgecolor = 'black', alpha = 1.0, linewidth = 1,
+							marker = 'o', s = 100, label = 'Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+

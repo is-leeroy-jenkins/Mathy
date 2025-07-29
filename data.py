@@ -284,9 +284,9 @@ class Dataset( ):
 		return [ 'dataframe', 'n_samples', 'n_features', 'target_names',
 		         'feature_names', 'test_size', 'random_state', 'categorical_metrics',
 		         'categorical_columns', 'transtuple', 'numeric_metrics',
-		         'pivot_table', 'calculate_statistics', 'numeric_columns',
-		         'X_training', 'X_testing', 'y_training', 'average',
-		         'y_testing', 'transform_columns', 'create_pivot_table',
+		         'pivot_table', 'calculate_statistics', 'numeric_columns', 'mean_standard_error',
+		         'X_training', 'X_testing', 'y_training', 'average', 'kurtosis', 'variance',
+		         'y_testing', 'transform_columns', 'create_pivot_table', 'standard_deviation',
 		         'export_excel', 'create_histogram', 'calculate_skew', 'calculate_average',
 		         'calculate_deviation', 'calculate_kurtosis', 'calculate_standard_error',
 		         'show_correlation_analysis', 'create_correlation_analysis']
@@ -477,6 +477,59 @@ class Dataset( ):
 			exception.module = 'Mathy'
 			exception.cause = 'data'
 			exception.method = 'create_histogram( self, df: pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def show_correlation_analysis( self, strategy = 'pearson', numbers_only: bool = True ):
+		'''
+
+			Purpose:
+			--------
+			Method to show the pearson-correlation analysis of the dataset.
+		'''
+		try:
+			if strategy is None:
+				raise Exception( 'Argument "strategy" cannot be None' )
+			else:
+				_correlation = self.dataframe.corr( method = strategy, numeric_only = numbers_only )
+				plt.figure( figsize = (10, 6) )
+				sns.heatmap( _correlation, cmap = "coolwarm", annot = True )
+				plt.title( "Pearson Correlation" )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'data'
+			exception.method = 'show_correlation_analysis( self )'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def create_correlation_analysis( self, df: pd.DataFrame, strategy = 'pearson',
+	                                 numbers_only: bool = True ):
+		'''
+
+			Purpose:
+			--------
+			Method to show the pearson-correlation analysis of the dataset.
+
+		'''
+		try:
+			if df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif strategy is None:
+				raise Exception( 'Argument "strategy" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_correlation = _dataframe.corr( method = strategy, numeric_only = numbers_only )
+				plt.figure( figsize = (10, 6) )
+				sns.heatmap( _correlation, cmap = 'coolwarm', annot = True )
+				plt.title( 'Pearson Correlation' )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'data'
+			exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -695,59 +748,6 @@ class Dataset( ):
 			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
-
-	def show_correlation_analysis( self, strategy='pearson', numbers_only: bool=True ):
-		'''
-
-			Purpose:
-			--------
-			Method to show the pearson-correlation analysis of the dataset.
-		'''
-		try:
-			if strategy is None:
-				raise Exception( 'Argument "strategy" cannot be None' )
-			else:
-				_correlation = self.dataframe.corr( method=strategy, numeric_only=numbers_only )
-				plt.figure( figsize = (10, 6) )
-				sns.heatmap( _correlation, cmap="coolwarm", annot=True )
-				plt.title( "Pearson Correlation" )
-				plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'data'
-			exception.method = 'show_correlation_analysis( self )'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson', numbers_only: bool=True ):
-		'''
-
-			Purpose:
-			--------
-			Method to show the pearson-correlation analysis of the dataset.
-
-		'''
-		try:
-			if df is None:
-				raise Exception( 'Argument "df" cannot be None' )
-			elif strategy is None:
-				raise Exception( 'Argument "strategy" cannot be None' )
-			else:
-				_dataframe = df.copy( )
-				_correlation = _dataframe.corr( method=strategy, numeric_only=numbers_only )
-				plt.figure( figsize = ( 10, 6 ) )
-				sns.heatmap( _correlation, cmap='coolwarm', annot=True )
-				plt.title( 'Pearson Correlation' )
-				plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = 'data'
-			exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
-			error = ErrorDialog( exception )
-			error.show( )
-
 
 class VarianceThreshold( ):
 	"""
