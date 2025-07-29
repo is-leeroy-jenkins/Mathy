@@ -68,7 +68,7 @@ def entropy( p: float ) -> float | None:
 		Purpose:
 		--------
 		Method used to calculate the entropy of a numeric feature
-		with a probability or proportion of 'p'.
+		with a proportion of 'p'.
 
 		:param p:
 		:type p: float
@@ -95,7 +95,7 @@ def gini_impurity( p: float ) -> float | None:
 			Purpose:
 			--------
 			Method used to calculate the entropy of a numeric feature
-			with a probability or proportion of 'p'.
+			with a proportion of 'p'.
 
 			:param p:
 			:type p: float
@@ -122,7 +122,7 @@ def misclassification_error( p: float ) -> float | None:
 		Purpose:
 		--------
 		Method used to calculate the entropy of a numeric feature
-		with a probability or proportion of 'p'.
+		with a proportion of 'p'.
 
 		:param p:
 		:type p: float
@@ -191,7 +191,7 @@ class Dataset( ):
 		feature_names: list
 		target_names
 		categorical_columns
-		text_columns: list
+		numeric_columns: list
 		X_training: pd.DataFrame
 		y_training
 		X_testing
@@ -199,7 +199,7 @@ class Dataset( ):
 
 	"""
 	dataframe: pd.DataFrame
-	target: str
+	target: np.ndarray
 	test_size: float
 	random_state: int
 	data: Optional[ np.ndarray ]
@@ -208,7 +208,7 @@ class Dataset( ):
 	feature_names: Optional[ List[ str ] ]
 	target_names: Optional[ np.ndarray ]
 	categorical_columns: Optional[ List[ str ] ]
-	text_columns: Optional[ List[ str ] ]
+	numeric_columns: Optional[ List[ str ] ]
 	X_training: Optional[ np.ndarray ]
 	X_testing: Optional[ np.ndarray ]
 	y_training: Optional[ np.ndarray ]
@@ -217,11 +217,11 @@ class Dataset( ):
 	numeric_metrics: Optional[ pd.DataFrame ]
 	categorical_metrics: Optional[ pd.DataFrame ]
 	pivot_table: Optional[ pd.DataFrame ]
-	kurtosis: Optional[ pd.DataFrame ]
-	skew: Optional[ pd.DataFrame ]
-	variance: Optional[ pd.DataFrame ]
 	mean_standard_error: Optional[ pd.DataFrame ]
-	standard_deviation: Optional[ pd.DataFrame ]
+	kurtosis: Optional[ pd.Series ]
+	skew: Optional[ pd.Series ]
+	variance: Optional[ pd.Series ]
+	standard_deviation: Optional[ pd.Series ]
 
 
 
@@ -248,16 +248,16 @@ class Dataset( ):
 		self.test_size = size
 		self.random_state = rando
 		self.feature_names = [ column for column in df.columns ]
-		self.target_names = np.unique( df[ target ].to_numpy( ) )
-		self.categorical_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-		self.text_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
-		self.X_training = train_test_split( self.data, self.target_names,
-			test_size=self.test_size, random_state=self.random_state )[ 0 ]
-		self.X_testing = train_test_split( self.data, self.target_names,
-			test_size=self.test_size, random_state=self.random_state )[ 1 ]
-		self.y_training = train_test_split( self.data, self.target_names,
-			test_size=self.test_size, random_state=self.random_state )[ 2 ]
-		self.y_testing = train_test_split( self.data, self.target_names,
+		self.target_names = np.array( df[ target ].unique( ) )
+		self.categorical_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
+		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+		self.X_training = train_test_split( self.data, self.target,
+			test_size=self.test_size  )[ 0 ]
+		self.X_testing = train_test_split( self.data, self.target,
+			test_size=self.test_size  )[ 1 ]
+		self.y_training = train_test_split( self.data, self.target,
+			test_size=self.test_size  )[ 2 ]
+		self.y_testing = train_test_split( self.data, self.target,
 			test_size=self.test_size, random_state=self.random_state )[ 3 ]
 		self.skew = df.skew( axis=0, numeric_only=True )
 		self.variance = df.var( axis=0, ddof=1, numeric_only=True )
@@ -269,7 +269,6 @@ class Dataset( ):
 		self.categorical_metrics = None
 		self.pivot_table = None
 
-
 	def __dir__( self ):
 		'''
 
@@ -280,11 +279,11 @@ class Dataset( ):
 		'''
 		return [ 'dataframe', 'n_samples', 'n_features', 'target_names',
 		         'feature_names', 'test_size', 'random_state', 'categorical_metrics',
-		         'categorical_columns', 'text_columns', 'transtuple', 'numeric_metrics',
-		         'pivot_table', 'calculate_statistics', 'numeric_metrics',
-		         'target_names', 'X_training', 'X_testing', 'y_training',
-		         'y_testing', 'transform_columns', 'create_pivot_table', 'export_excel']
-
+		         'categorical_columns', 'transtuple', 'numeric_metrics',
+		         'pivot_table', 'calculate_statistics', 'numeric_columns',
+		         'X_training', 'X_testing', 'y_training',
+		         'y_testing', 'transform_columns', 'create_pivot_table',
+		         'export_excel', 'create_histogram' ]
 
 	def transform_columns( self, name: str, encoder: Processor, columns: List[ str ] ) -> None:
 		"""
@@ -445,6 +444,184 @@ class Dataset( ):
 			exception.method = 'create_histogram( self )'
 			error = ErrorDialog( exception )
 			error.show( )
+
+	def calculate_variance( self, df: pd.DataFrame, axes: int=0, degree: int=1,
+	                        numeric: bool=True ) -> pd.Series | None:
+		'''
+
+			Purpose:
+			--------
+
+
+			:param dimension:
+			:type dimension:
+			:param degree:
+			:type degree:
+			:return:
+			:rtype:
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_variance = _dataframe.var( axis=axes, ddof=degree,
+					numeric_only=numeric )
+				return _variance
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_skew( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series | None:
+		'''
+
+			Purpose:
+			--------
+			Return unbiased skew over requested axis.
+
+
+			:param dimension:
+			:type dimension:
+			:param degree:
+			:type degree:
+			:return: pd.Series
+			:rtype: pd.Series | None
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_skew = _dataframe.skew( axis=axes, numeric_only=numeric )
+				return _skew
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_kurtosis( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series | None:
+		'''
+
+			Purpose:
+			--------
+			Return unbiased skutosis over requested axis.
+
+
+			:param axes:
+			:type axes: int
+			:return: pd.Series
+			:rtype: pd.Series | None
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_kurtosis = _dataframe.kurt( axis=axes, numeric_only=numeric )
+				return _kurtosis
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_standard_error( self, df: pd.DataFrame, axes: int=0, degree: int=1,
+	                              numeric: bool=True ) -> pd.Series | None:
+		'''
+
+			Purpose:
+			--------
+			Return unbiased standard error of the mean over requested axis. Normalized by N-1 by default.
+			This can be changed using the degree argument.
+
+
+			:param axes:
+			:type axes: int
+			:param degree:
+			:type degree: int
+			:return: pd.Series
+			:rtype: pd.Series | None
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_error = _dataframe.sem( axis=axes, ddof=degree,
+					numeric_only=numeric )
+				return _error
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def calculate_deviation( self, df: pd.DataFrame, axes: int=0, degree: int=1,
+	                         numeric: bool=True ) -> pd.Series | None:
+		'''
+
+			Purpose:
+			--------
+			Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
+			This can be changed using the degree argument.
+
+
+			:param axes:
+			:type axes: int
+			:param degree:
+			:type degree: int
+			:return: pd.Series
+			:rtype: pd.Series | None
+		'''
+		try:
+			if axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
+			elif df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif degree is None:
+				raise Exception( 'Argument "degree" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_deviation = _dataframe.std( axis=axes,
+					ddof=degree, numeric_only=numeric )
+				return _deviation
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'Dataset'
+			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
+			error = ErrorDialog( exception )
+			error.show( )
+
 
 class VarianceThreshold( ):
 	"""
