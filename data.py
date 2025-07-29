@@ -436,7 +436,7 @@ class Dataset( ):
 
 		'''
 		try:
-			plt.figure( figsize=( 8, 6 ) )
+			plt.figure( figsize=( 10, 6 ) )
 			sns.histplot( self.dataframe.mean( axis=0, numeric_only=True), bins=20, kde=True )
 			plt.title( "Histogram (Mean)" )
 			plt.xlabel( "Name" )
@@ -692,6 +692,58 @@ class Dataset( ):
 			exception.module = 'Mathy'
 			exception.cause = 'Dataset'
 			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def show_correlation_analysis( self, strategy='pearson' ):
+		'''
+
+			Purpose:
+			--------
+			Method to show the pearson-correlation analysis of the dataset.
+		'''
+		try:
+			if strategy is None:
+				raise Exception( 'Argument "strategy" cannot be None' )
+			else:
+				_correlation = self.dataframe.corr( method=strategy )
+				plt.figure( figsize = (10, 6) )
+				sns.heatmap( _correlation, cmap="coolwarm", annot=True )
+				plt.title( "Pearson Correlation" )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'data'
+			exception.method = 'show_correlation_analysis( self )'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson' ):
+		'''
+
+			Purpose:
+			--------
+			Method to show the pearson-correlation analysis of the dataset.
+
+		'''
+		try:
+			if df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif strategy is None:
+				raise Exception( 'Argument "strategy" cannot be None' )
+			else:
+				_dataframe = df.copy( )
+				_correlation = _dataframe.corr( method=strategy )
+				plt.figure( figsize = ( 10, 6 ) )
+				sns.heatmap( _correlation, cmap='coolwarm', annot=True )
+				plt.title( 'Pearson Correlation' )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'data'
+			exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
 			error = ErrorDialog( exception )
 			error.show( )
 
