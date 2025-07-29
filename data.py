@@ -479,7 +479,6 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-
 	def calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series | None:
 		'''
 
