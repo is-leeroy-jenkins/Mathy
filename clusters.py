@@ -1335,7 +1335,6 @@ class OpticsCluster( Cluster ):
 		self.min_samples = min
 		self.optics_clustering = skc.OPTICS( min_samples=self.min_samples )
 		self.prediction = None
-
 		self.accuracy = 0.0
 
 

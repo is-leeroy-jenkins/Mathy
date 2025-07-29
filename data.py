@@ -174,7 +174,7 @@ def sigmoid( z: float ) -> float | None:
 		error.show( )
 
 
-class Dataset( ):
+class DataSource( ):
 	"""
 
 		Purpose:
@@ -320,7 +320,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'transform_columns( self, name: str, encoder: object, n_features: List[ str ] )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -339,13 +339,13 @@ class Dataset( ):
 		"""
 		try:
 			self.numeric_metrics = self.dataframe.describe(
-				percentiles=[ .1, .25, .5, .75, .9 ],
+				percentiles= [ .05, .1, .25, .3, .5, .75, .8, .9, .95 ],
 				include=[ np.number ] )
 			return self.numeric_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -368,7 +368,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -396,7 +396,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -422,7 +422,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'export_excel( self, filepath: str=None ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -563,7 +563,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -600,7 +600,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -634,7 +634,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -666,7 +666,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -705,7 +705,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -744,7 +744,7 @@ class Dataset( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'Dataset'
+			exception.cause = 'DataSource'
 			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
 			error.show( )
