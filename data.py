@@ -44,7 +44,8 @@ from argparse import ArgumentError
 import numpy as np
 import pandas
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
+import seaborn as sns
 from typing import Optional, List, Dict, Tuple, Union, Sequence
 from pandas.core.common import random_state
 from pandas.core.reshape import pivot
