@@ -696,7 +696,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def show_correlation_analysis( self, strategy='pearson' ):
+	def show_correlation_analysis( self, strategy='pearson', numbers_only: bool=True ):
 		'''
 
 			Purpose:
@@ -707,7 +707,7 @@ class Dataset( ):
 			if strategy is None:
 				raise Exception( 'Argument "strategy" cannot be None' )
 			else:
-				_correlation = self.dataframe.corr( method=strategy )
+				_correlation = self.dataframe.corr( method=strategy, numeric_only=numbers_only )
 				plt.figure( figsize = (10, 6) )
 				sns.heatmap( _correlation, cmap="coolwarm", annot=True )
 				plt.title( "Pearson Correlation" )
@@ -720,7 +720,7 @@ class Dataset( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson' ):
+	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson', numbers_only: bool=True ):
 		'''
 
 			Purpose:
@@ -735,7 +735,7 @@ class Dataset( ):
 				raise Exception( 'Argument "strategy" cannot be None' )
 			else:
 				_dataframe = df.copy( )
-				_correlation = _dataframe.corr( method=strategy )
+				_correlation = _dataframe.corr( method=strategy, numeric_only=numbers_only )
 				plt.figure( figsize = ( 10, 6 ) )
 				sns.heatmap( _correlation, cmap='coolwarm', annot=True )
 				plt.title( 'Pearson Correlation' )
