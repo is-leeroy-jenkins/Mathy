@@ -497,11 +497,11 @@ class Dataset( ):
 		'''
 		try:
 			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
+				raise Exception( 'Argument "axes" cannot be None' )
 			elif df is None:
 				raise Exception( 'Argument "df" cannot be None' )
-			elif degree is None:
-				raise Exception( 'Argument "degree" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
 				_dataframe = df.copy( )
 				_deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
@@ -510,7 +510,7 @@ class Dataset( ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'Dataset'
-			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
+			exception.method = 'calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series '
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -530,7 +530,9 @@ class Dataset( ):
 			:rtype:
 		'''
 		try:
-			if axes is None:
+			if df is None:
+				raise Exception( 'Argument "df" cannot be None' )
+			elif axes is None:
 				raise Exception( 'Argument "axis" cannot be None' )
 			elif degree is None:
 				raise Exception( 'Argument "degree" cannot be None' )
@@ -565,10 +567,10 @@ class Dataset( ):
 			:rtype: pd.Series | None
 		'''
 		try:
-			if axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
-			elif df is None:
+			if df is None:
 				raise Exception( 'Argument "df" cannot be None' )
+			elif axes is None:
+				raise Exception( 'Argument "axis" cannot be None' )
 			elif numeric is None:
 				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
@@ -678,6 +680,8 @@ class Dataset( ):
 				raise Exception( 'Argument "df" cannot be None' )
 			elif degree is None:
 				raise Exception( 'Argument "degree" cannot be None' )
+			elif numeric is None:
+				raise Exception( 'Argument "numeric" cannot be None' )
 			else:
 				_dataframe = df.copy( )
 				_deviation = _dataframe.std( axis=axes,
