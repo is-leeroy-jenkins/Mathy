@@ -397,7 +397,7 @@ class DataSource( ):
 			else:
 				_dataframe = df.copy( )
 				self.pivot_table = pd.pivot_table( data=_dataframe, columns=cols,
-					index=idx, values=vals, aggfunc='sum', margins=True, )
+					index=idx, values=vals, aggfunc='sum', dropna=True, margins=True, )
 				return self.pivot_table
 		except Exception as e:
 			exception = Error( e )
