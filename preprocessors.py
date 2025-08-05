@@ -764,7 +764,7 @@ class StandardScaler( Preprocessor ):
 
 			Returns:
 			--------
-			self
+			StandardScaler | None
 
 		"""
 		try:
@@ -793,8 +793,8 @@ class StandardScaler( Preprocessor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y ( Optional[np.ndarray ] ): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -823,10 +823,15 @@ class StandardScaler( Preprocessor ):
 			---------
 			Transforms into standardized data.
 
-			:param X: List of text text.
-			:type X: list[str]
-			:return: Standardized data.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y ( Optional[np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			-----------
+			np.ndarray
+
 		"""
 		try:
 			if X is None:
@@ -904,12 +909,13 @@ class MinMaxScaler( Preprocessor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y ( Optional[np.ndarray ] ): Optional target array  of shape ( n_samples, ).
 
 			Returns:
 			-----------
-			np.ndarray: Scaled df.
+			np.ndarray
+
 
 		"""
 		try:
@@ -932,12 +938,16 @@ class MinMaxScaler( Preprocessor ):
 
 			Purpose:
 			---------
-			Transforms into min-maxed data.
+			Transforms back to original data
 
-			:param X: List of text text.
-			:type X: list[str]
-			:return: Standardized data.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+
+			Returns:
+			-----------
+			np.ndarray
+
 		"""
 		try:
 			if X is None:
