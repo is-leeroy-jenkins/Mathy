@@ -61,7 +61,7 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
-from preprocessors import Processor
+from preprocessors import Preprocessor
 
 
 def entropy( p: float ) -> float | None:
@@ -215,7 +215,7 @@ class DataSource( ):
 	X_testing: Optional[ np.ndarray ]
 	y_training: Optional[ np.ndarray ]
 	y_testing: Optional[ np.ndarray ]
-	transtuple: Optional[ List[ Tuple[ str, Processor, List[ str ] ] ] ]
+	transtuple: Optional[ List[ Tuple[ str, Preprocessor, List[ str ] ] ] ]
 	numeric_metrics: Optional[ pd.DataFrame ]
 	categorical_metrics: Optional[ pd.DataFrame ]
 	pivot_table: Optional[ pd.DataFrame ]
@@ -291,18 +291,18 @@ class DataSource( ):
 		         'calculate_deviation', 'calculate_kurtosis', 'calculate_standard_error',
 		         'show_correlation_analysis', 'create_correlation_analysis']
 
-	def transform_columns( self, name: str, encoder: Processor, columns: List[ str ] ) -> None:
+	def transform_columns( self, name: str, encoder: Preprocessor, columns: List[ str ] ) -> None:
 		"""
 
 			Purpose:
 			-----------
-				Scale numeric feature_names using selected scaler.
+			Scale numeric feature_names using selected scaler.
 
 			Paramters:
 			-----------
-				name - the name of the encoder
-				encoder - the encoder object to transform the df.
-				n_features - the list of column names to apply the transformation to.
+			name - the name of the encoder
+			encoder - the encoder object to transform the df.
+			n_features - the list of column names to apply the transformation to.
 
 		"""
 		try:
@@ -486,7 +486,7 @@ class DataSource( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def show_correlation_analysis( self, strategy = 'pearson', numbers_only: bool = True ):
+	def show_correlation_analysis( self, strategy='pearson', numbers_only: bool=True ):
 		'''
 
 			Purpose:
@@ -511,7 +511,7 @@ class DataSource( ):
 			error.show( )
 
 	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson',
-	                                 numbers_only: bool = True ):
+	                                 numbers_only: bool=True ):
 		'''
 
 			Purpose:
@@ -582,18 +582,21 @@ class DataSource( ):
 			--------
 
 
-			:param dimension:
-			:type dimension:
+			:param axes:
+			:type int:
 			:param degree:
-			:type degree:
-			:return:
-			:rtype:
+			:type int:
+			:param numeric:
+			:type bool:
+			:return: Series
+			:rtype: pd.Series
+
 		'''
 		try:
 			if df is None:
 				raise Exception( 'Argument "df" cannot be None' )
 			elif axes is None:
-				raise Exception( 'Argument "axis" cannot be None' )
+				raise Exception( 'Argument "axes" cannot be None' )
 			elif degree is None:
 				raise Exception( 'Argument "degree" cannot be None' )
 			elif numeric is None:

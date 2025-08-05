@@ -49,7 +49,7 @@ import sklearn.preprocessing as skp
 import sklearn.impute as ski
 
 
-class Processor(  ):
+class Preprocessor( ):
 	"""
 
 		Purpose:
@@ -63,7 +63,6 @@ class Processor(  ):
 	def __init__( self ):
 		self.transformed_data = None
 
-
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
@@ -73,8 +72,12 @@ class Processor(  ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y ( Optional[ np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			-----------
+			object | None
 
 		"""
 		raise NotImplementedError
@@ -132,7 +135,7 @@ class Processor(  ):
 		return NotImplementedError
 
 
-class LabelBinarizer( Processor ):
+class LabelBinarizer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -175,17 +178,22 @@ class LabelBinarizer( Processor ):
 			_______
 			Fits the label binarizer on the input target_names.
 
-			Args:
+			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y ( Optional[ np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			-----------
+			LabelBinarizer | None
 
 		"""
 		try:
 			if y is None:
 				raise Exception( '"y" cannot be None' )
 			else:
-				return self.label_binarizer.fit( y )
+				self.label_binarizer.fit( y )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -286,7 +294,7 @@ class LabelBinarizer( Processor ):
 			error.show( )
 
 
-class TfidfTransformer( Processor ):
+class TfidfTransformer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -335,6 +343,10 @@ class TfidfTransformer( Processor ):
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			---------
+			TfidfTransformer | None
 
 		"""
 		try:
@@ -405,8 +417,8 @@ class TfidfTransformer( Processor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-# noinspection PyUnusedLocal
-class TfidfVectorizer( Processor ):
+
+class TfidfVectorizer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -543,7 +555,7 @@ class TfidfVectorizer( Processor ):
 			error.show( )
 
 
-class CountVectorizer( Processor ):
+class CountVectorizer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -605,12 +617,14 @@ class CountVectorizer( Processor ):
 			-------
 			Transform text into count vectors.
 
-			:param y:
-			:type y: np.ndarray
-			:param text: List of input text text.
-			:type text: List[str]
-			:return: Matrix of token counts.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			-----------
+			np.adarray | None
 
 		"""
 		try:
@@ -658,7 +672,7 @@ class CountVectorizer( Processor ):
 			error.show( )
 
 
-class HashingVectorizer( Processor ):
+class HashingVectorizer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -715,7 +729,7 @@ class HashingVectorizer( Processor ):
 			error.show( )
 
 
-class StandardScaler( Processor ):
+class StandardScaler( Preprocessor ):
 	"""
 
 		Purpose:
@@ -828,7 +842,7 @@ class StandardScaler( Processor ):
 			error.show( )
 
 
-class MinMaxScaler( Processor ):
+class MinMaxScaler( Preprocessor ):
 	"""
 
 		Purpose:
@@ -939,7 +953,7 @@ class MinMaxScaler( Processor ):
 			error.show( )
 
 
-class RobustScaler( Processor ):
+class RobustScaler( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1053,7 +1067,7 @@ class RobustScaler( Processor ):
 			error.show( )
 
 
-class NormalScaler( Processor ):
+class NormalScaler( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1139,7 +1153,7 @@ class NormalScaler( Processor ):
 			error.show( )
 
 
-class OneHotEncoder( Processor ):
+class OneHotEncoder( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1262,7 +1276,7 @@ class OneHotEncoder( Processor ):
 			error.show( )
 
 
-class OrdinalEncoder( Processor ):
+class OrdinalEncoder( Preprocessor ):
 	"""
 
 
@@ -1397,7 +1411,7 @@ class OrdinalEncoder( Processor ):
 			error.show( )
 
 
-class LabelEncoder( Processor ):
+class LabelEncoder( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1534,7 +1548,7 @@ class LabelEncoder( Processor ):
 			error.show( )
 
 
-class PolynomialFeatures( Processor ):
+class PolynomialFeatures( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1644,7 +1658,7 @@ class PolynomialFeatures( Processor ):
 			error.show( )
 
 
-class MeanImputer( Processor ):
+class MeanImputer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1781,7 +1795,7 @@ class MeanImputer( Processor ):
 			error.show( )
 
 
-class NearestNeighborImputer( Processor ):
+class NearestNeighborImputer( Preprocessor ):
 	"""
 
 		Purpose:
@@ -1894,7 +1908,7 @@ class NearestNeighborImputer( Processor ):
 			error.show( )
 
 
-class IterativeImputer( Processor ):
+class IterativeImputer( Preprocessor ):
 	"""
 
 
@@ -1920,6 +1934,7 @@ class IterativeImputer( Processor ):
 			:type max: int
 			:param rando: Random seed.
 			:type rando: int
+
 		"""
 		super( ).__init__( )
 		self.max_iter = max
@@ -2003,7 +2018,7 @@ class IterativeImputer( Processor ):
 			error.show( )
 
 
-class SimpleImputer( Processor ):
+class SimpleImputer( Preprocessor ):
 	"""
 
 		Wrapper for sklearn's SimpleImputer.
