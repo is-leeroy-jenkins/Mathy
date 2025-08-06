@@ -424,9 +424,22 @@ class TfidfVectorizer( Preprocessor ):
 		Purpose:
 		---------
 
-		Convert a collection of raw text to a matrix of TF-IDF feature_names. Equivalent to
-		CountVectorizer followed by TfidfTransformer. Tf means term-frequency while tf–idf means
-		 term-frequency times inverse document-frequency:
+		Tf means term-frequency while tf-idf means term-frequency times inverse document-frequency.
+		This is a common term-weighting scheme in information retrieval, that has also found good
+		use in document classification. The goal of using tf-idf instead of the raw frequencies of
+		occurrence of a token in a given document is to scale down the impact of tokens that occur
+		very frequently in a given corpus and that are hence empirically less informative than
+		feature_names that occur in a small fraction of the training corpus.
+
+		The formula that is used to compute the tf-idf for a term t of a document d in a
+		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
+		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
+		number of text in the document set and df(t) is the document frequency of t;
+		the document frequency is the number of text in the document set that contain
+		the term t. The effect of adding “1” to the idf in the equation above is that
+		terms with zero idf, i.e., terms that occur in all text in a training set,
+		will not be entirely ignored. (Note that the idf formula above differs from the
+		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
 
 	"""
 	tfidf_vectorizer: sk.TfidfVectorizer
@@ -560,7 +573,7 @@ class CountVectorizer( Preprocessor ):
 
 		Purpose:
 		---------
-		Convert a collection of text text to a matrix of token counts. This implementation
+		Convert a collection of text to a matrix of token counts. This implementation
 		produces a sparse representation of the counts using scipy.sparse.csr_matrix. If you do not
 		provide an a-priori dictionary and you do not use an analyzer that does some kind of
 		feature selection then the number of feature_names will be equal to the vocabulary
@@ -678,11 +691,27 @@ class HashingVectorizer( Preprocessor ):
 		Purpose:
 		---------
 		Convert a collection of text text to a matrix of token occurrences. It turns a
-		collection of text text into a scipy.sparse matrix holding token occurrence counts
+		collection of text into a scipy.sparse matrix holding token occurrence counts
 		(or binary occurrence information), possibly normalized as token frequencies
-		if norm=’l1’ or projected on the euclidean unit sphere if norm=’l2’. This text vectorizer
-		implementation uses the hashing trick to find the token string name to feature integer
-		index mapping.
+		if norm=’l1’ or projected on the euclidean unit sphere if norm=’l2’.
+
+		This text vectorizer implementation uses the hashing trick to find the token
+		string name to feature integer index mapping. This strategy has several advantages it is
+		very low memory scalable to large datasets as there is no need to store a vocabulary
+		dictionary in memory.
+
+		It is fast to pickle and un-pickle as it holds no state besides the constructor parameters.
+		it can be used in a streaming (partial fit) or parallel pipeline as there is no state
+		computed during fit.
+
+		There are also a couple of cons (vs using a CountVectorizer with an in-memory vocabulary):
+		there is no way to compute the inverse transform (from feature indices to string feature
+		names) which can be a problem when trying to introspect which features are most
+		important to a model.
+
+		There can be collisions: distinct tokens can be mapped to the same feature index.
+		However in practice this is rarely an issue if n_features is large enough (e.g. 2 ** 18
+		for text classification problems).
 
 	"""
 	hash_vectorizer: sk.HashingVectorizer
@@ -852,9 +881,13 @@ class MinMaxScaler( Preprocessor ):
 
 		Purpose:
 		---------
-		Transforms feature_names by scaling each feature to a given range. This estimator scales and
-		translates each feature individually such that it is in the given range on the
-		training set, e.g. between zero and one.
+		This estimator scales and translates each feature individually such that it is in the
+		given range on the training set, e.g. between zero and one. This transformation is often
+		used as an alternative to zero mean, unit variance scaling.
+
+		MinMaxScaler doesn’t reduce the effect of outliers, but it linearly scales them down
+		into a fixed range, where the largest occurring data point corresponds to the maximum
+		value and the smallest one corresponds to the minimum value
 
 	"""
 	minmax_scaler: skp.MinMaxScaler
@@ -968,10 +1001,18 @@ class RobustScaler( Preprocessor ):
 
 		Purpose:
 		--------
-		This Scaler removes the median and scales the data according to the
-		quantile range (defaults to IQR: Interquartile Range).
-		The IQR is the range between the 1st quartile (25th quantile)
-		and the 3rd quartile (75th quantile).
+		This Scaler removes the median and scales the data according to the quantile range
+		(defaults to IQR: Interquartile Range). The IQR is the range between the 1st quartile
+		(25th quantile) and the 3rd quartile (75th quantile).
+
+		Centering and scaling happen independently on each feature by computing the relevant
+		statistics on the samples in the training set. Median and interquartile range are
+		then stored to be used on later data using the transform method.
+
+		Standardization of a dataset is a common preprocessing for many machine learning estimators.
+		Typically this is done by removing the mean and scaling to unit variance.
+		However, outliers can often influence the sample mean / variance in a negative way.
+		In such cases, using the median and the interquartile range often give better results.
 
 	"""
 	robust_scaler: skp.RobustScaler
@@ -1083,8 +1124,14 @@ class NormalScaler( Preprocessor ):
 		Purpose:
 		---------
 		Normalize samples individually to unit norm. Each sample (i.e. each row of the data matrix)
-		with at least one non zero component is rescaled independently of other samples
-		so that its regularlization (l1 or l2) equals one.
+		with at least one non zero component is rescaled independently of other samples so that
+		its norm (l1, l2 or inf) equals one.
+
+		This transformer is able to work both with dense numpy arrays and scipy.sparse matrix
+		(use CSR format if you want to avoid the burden of a copy / conversion). Scaling inputs to
+		unit norms is a common operation for text classification or clustering for instance.
+		For instance the dot product of two l2-normalized TF-IDF vectors is the cosine similarity
+		of the vectors and is the base similarity metric for the Vector Space Model.
 
 	"""
 	normal_scaler: skp.Normalizer
@@ -1170,8 +1217,9 @@ class OneHotEncoder( Preprocessor ):
 		---------
 		Encode categorical feature_names as a one-hot numeric array. The input to this transformer
 		should be an array-like of integers or strings, denoting the values taken on by categorical
-		(discrete) feature_names. The feature_names are encoded using a one-hot (aka ‘one-of-K’ or ‘dummy’)
-		encoding scheme. This creates a binary column for each category and returns a sparse
+		(discrete) feature_names. The feature_names are encoded using a one-hot
+		(aka ‘one-of-K’ or ‘dummy’) encoding scheme.
+		This creates a binary column for each category and returns a sparse
 		matrix or dense array (depending on the sparse_output parameter)
 
 		By default, the encoder derives the categories based on the unique values in each feature.
@@ -1292,7 +1340,17 @@ class OrdinalEncoder( Preprocessor ):
 
 			Purpose:
 			---------
-			Encodes categorical feature_names as ordinal integers.
+			This estimator transforms each categorical feature to one new feature of integers
+			(0 to n_categories - 1):
+
+			Such integer representation can, however, not be used directly with all scikit-learn
+			estimators, as these expect continuous input, and would interpret the categories as
+			being ordered, which is often not desired (i.e. the set of browsers was
+			ordered arbitrarily).
+
+			By default, OrdinalEncoder will also passthrough missing values that are indicated
+			by np.nan. OrdinalEncoder provides a parameter encoded_missing_value to encode
+			the missing values without the need to create a pipeline and using SimpleImputer.
 
 	"""
 	ordinal_encoder: skp.OrdinalEncoder
@@ -1426,8 +1484,8 @@ class LabelEncoder( Preprocessor ):
 
 		Purpose:
 		--------
-		Encode target target_names with value between 0 and n_classes-1. This transformer should be
-		used to encode target values, i.e. y, and not the input X.
+		Encode target target_names with value between 0 and n_classes-1.
+		This transformer should be used to encode target values, i.e. y, and not the input X.
 
 	"""
 	label_encoder: skp.LabelEncoder
@@ -1563,7 +1621,14 @@ class PolynomialFeatures( Preprocessor ):
 
 		Purpose:
 		--------
-        Wrapper for PolynomialFeatures.
+        Generate a new feature matrix consisting of all polynomial combinations of the features
+        with degree less than or equal to the specified degree. For example, if an input sample is
+        two dimensional and of the form [a, b], the degree-2 polynomial
+        features are [1, a, b, a^2, ab, b^2].
+
+
+
+
     """
 	polynomial_features: skp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
@@ -1810,7 +1875,20 @@ class NearestNeighborImputer( Preprocessor ):
 
 		Purpose:
 		---------
-		Fills missing target_names using k-nearest neighbors.
+		The NearestNeighborImputer class provides imputation for filling in missing values using
+		the k-Nearest Neighbors approach. By default, a euclidean distance metric that supports
+		missing values, nan_euclidean_distances, is used to find the nearest neighbors.
+		Each missing feature is imputed using values from n_neighbors nearest neighbors that have
+		a value for the feature. The feature of the neighbors are averaged uniformly or weighted
+		by distance to each neighbor.
+
+		If a sample has more than one feature missing, then the neighbors for that sample can be
+		different depending on the particular feature being imputed. When the number of available
+		neighbors is less than n_neighbors and there are no defined distances to the training set,
+		the training set average for that feature is used during imputation. If there is at least
+		one neighbor with a defined distance, the weighted or unweighted average of the
+		remaining neighbors will be used during imputation. If a feature is always missing in
+		training, it is removed during transform.
 
 	"""
 	n_neighbors: Optional[ int ]
@@ -1920,12 +1998,17 @@ class NearestNeighborImputer( Preprocessor ):
 
 class IterativeImputer( Preprocessor ):
 	"""
-
-
 		Purpose:
 		--------
-		A strategy for imputing missing values by modeling each feature with
-		missing values as a function of other feature_names in a round-robin fashion.
+		The IterativeImputer class, which models each feature with missing values as a function of
+		other features, and uses that estimate for imputation. It does so in an iterated
+		round-robin fashion: at each step, a feature column is designated as output y and the
+		other feature columns are treated as inputs X. A regressor is fit on (X, y) for known y.
+
+		Then, the regressor is used to predict the missing values of y. This is done for each
+		feature in an iterative fashion, and then is repeated for max_iter imputation rounds.
+		The results of the final imputation round are returned.
+
 	"""
 	iterative_imputer: ski.IterativeImputer
 	max_iter: Optional[ int ]
