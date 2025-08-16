@@ -1271,8 +1271,7 @@ class OneHotEncoder( Preprocessor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray,
-	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 
