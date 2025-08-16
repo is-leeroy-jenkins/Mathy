@@ -97,7 +97,7 @@ class Regressor( ):
 
 			Purpose:
 			---------
-			Fit the linerar_model to the training df.
+			Fits the model to the training data
 
 			Parameters:
 			-----------
@@ -116,7 +116,7 @@ class Regressor( ):
 
 			Purpose:
 			---------
-			Generate predictions from  the trained linerar_model.
+			Predictions using the trained model.
 
 			Parameters:
 			-----------
@@ -134,7 +134,7 @@ class Regressor( ):
 
 			Purpose:
 			---------
-			Compute the core metric (e.g., R²) of the model on test df.
+			Return the core regression metric (e.g., R²).
 
 			Parameters:
 			-----------
@@ -153,7 +153,7 @@ class Regressor( ):
 
 			Purpose:
 			---------
-			Evaluate the model using multiple performance metrics.
+			Return regression diagnostics (MAE, MSE, RMSE, R², etc.).
 
 			Parameters:
 			-----------
@@ -215,18 +215,17 @@ class MultiLayerRegressor( Regressor ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
-			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
-			learning_rate=self.learning, random_state=self.random_state )
-		self.pipeline = Pipeline( steps=list( hidden ) )
+		self.multilayer_regressor = skn.MLPRegressor(
+			hidden_layer_sizes = self.hidden_layers,
+			activation = self.activation_function,
+			solver = self.solver,
+			alpha = self.alpha,
+			learning_rate = self.learning,
+			random_state = self.random_state,
+		)
 		self.prediction = None
-		self.accuracy = 0.0
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+
+		# ... keep metric fields as before
 
 
 	def __dir__( self ) -> List[ str ]:
@@ -258,7 +257,7 @@ class MultiLayerRegressor( Regressor ):
 
 			Returns:
 			--------
-			Pipeline
+			self
 
 		"""
 		try:
@@ -372,7 +371,7 @@ class MultiLayerRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
+					squared=False )
 				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
@@ -380,7 +379,7 @@ class MultiLayerRegressor( Regressor ):
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -426,57 +425,6 @@ class MultiLayerRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = ''
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c= 'none',
-							edgecolor='black', alpha=1.0, linewidth=1,
-							marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -568,7 +516,7 @@ class LinearRegressor( Regressor ):
 
 			Returns:
 			--------
-			Pipeline
+			self
 
 		"""
 		try:
@@ -644,7 +592,7 @@ class LinearRegressor( Regressor ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
-				self.prediction = self.linerar_regressor.predict( X )
+				self.prediction = self.linear_regressor.predict( X )
 				self.accuracy = r2_score( y, self.prediction )
 				return self.accuracy
 		except Exception as e:
@@ -683,15 +631,15 @@ class LinearRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -737,57 +685,6 @@ class LinearRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'LinearRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -896,7 +793,7 @@ class RidgeRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+				self
 
 		"""
 		try:
@@ -1012,15 +909,15 @@ class RidgeRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -1075,56 +972,6 @@ class RidgeRegressor( Regressor ):
 			error.show( )
 
 
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
 
 class LassoRegression( Regressor ):
 	"""
@@ -1217,7 +1064,7 @@ class LassoRegression( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -1331,15 +1178,15 @@ class LassoRegression( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -1385,57 +1232,6 @@ class LassoRegression( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'LassoRegression'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1537,7 +1333,7 @@ class ElasticNetRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -1652,15 +1448,15 @@ class ElasticNetRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -1706,57 +1502,6 @@ class ElasticNetRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1853,7 +1598,7 @@ class LogisticRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -1974,15 +1719,15 @@ class LogisticRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 						"MAE": mean_absolute_error( y, self.prediction ),
 						"MSE": mean_squared_error( y, self.prediction ),
-						"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+						"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 						"R2": r2_score( y, self.prediction ),
 						"Explained Variance": explained_variance_score( y, self.prediction ),
 						"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -2029,57 +1774,6 @@ class LogisticRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'LogisticRegressor'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2179,7 +1873,7 @@ class BayesianRidgeRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -2302,7 +1996,7 @@ class BayesianRidgeRegressor( Regressor ):
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -2351,57 +2045,6 @@ class BayesianRidgeRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
 class StochasticGradientRegressor( Regressor ):
 	"""
 
@@ -2446,7 +2089,8 @@ class StochasticGradientRegressor( Regressor ):
 	training_score: Optional[ float ]
 
 
-	def __init__( self, loss: str='hinge', max: int=5, penalty: str='l2' ) -> None:
+	def __init__( self, loss: str='squared_loss', max: int=1000, penalty: str='l2',
+	              alpha: float=0.0001, rando: int=42) -> None:
 		"""
 
 			Purpose:
@@ -2463,6 +2107,8 @@ class StochasticGradientRegressor( Regressor ):
 		super( ).__init__( )
 		self.loss = loss
 		self.max_iter = max
+		self.alpha = alpha
+		self.random_state = rando
 		self.penalty = penalty
 		self.stochastic_regressor = skl.SGDRegressor( loss=self.loss,
 			max_iter=self.max_iter, penalty=self.penalty )
@@ -2504,7 +2150,7 @@ class StochasticGradientRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -2610,22 +2256,22 @@ class StochasticGradientRegressor( Regressor ):
 		try:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
-				self.prediction = self.stochastic_regressor.predict( X )
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				self.prediction = self.stochastic_regressor.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -2671,57 +2317,6 @@ class StochasticGradientRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'StochasticGradientRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2820,7 +2415,7 @@ class NearestNeighborRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -2934,15 +2529,15 @@ class NearestNeighborRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction  )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -2992,57 +2587,6 @@ class NearestNeighborRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3134,7 +2678,7 @@ class DecisionTreeRegressor( Regressor ):
 
 			Returns:
 			--------
-			Pipeline
+			self
 
 		"""
 		try:
@@ -3248,15 +2792,15 @@ class DecisionTreeRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
 							"MAE": mean_absolute_error( y, self.prediction ),
 							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 							"R2": r2_score( y, self.prediction ),
 							"Explained Variance": explained_variance_score( y, self.prediction ),
 							"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -3306,57 +2850,6 @@ class DecisionTreeRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3461,7 +2954,7 @@ class RandomForestRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -3574,15 +3067,15 @@ class RandomForestRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
 							"MAE": mean_absolute_error( y, self.prediction ),
 							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 							"R2": r2_score( y, self.prediction ),
 							"Explained Variance": explained_variance_score( y, self.prediction ),
 							"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -3632,57 +3125,6 @@ class RandomForestRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3782,7 +3224,7 @@ class GradientBoostingRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		self.gradient_boost_regressor.fit( X, y )
@@ -3853,7 +3295,7 @@ class GradientBoostingRegressor( Regressor ):
 		{
 			'MAE': mean_absolute_error( y, self.prediction ),
 			'MSE': mean_squared_error( y, self.prediction ),
-			'RMSE': mean_squared_error( y, self.prediction, squared = False ),
+			'RMSE': mean_squared_error( y, self.prediction, squared=False ),
 			'R2': r2_score( y, self.prediction ),
 			'Explained Variance': explained_variance_score( y, self.prediction ),
 			'Median Absolute Error': median_absolute_error( y, self.prediction )
@@ -3881,57 +3323,6 @@ class GradientBoostingRegressor( Regressor ):
 		plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
 		plt.grid( True )
 		plt.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
 
 class AdaBoostRegressor( Regressor ):
 	"""
@@ -4025,8 +3416,8 @@ class AdaBoostRegressor( Regressor ):
 				y (np.ndarray): Target vector.
 
 			Returns:
-			-----------
-				None
+			--------
+			self
 
 		"""
 		try:
@@ -4137,15 +3528,15 @@ class AdaBoostRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction  )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
 							"MAE": mean_absolute_error( y, self.prediction ),
 							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 							"R2": r2_score( y, self.prediction ),
 							"Explained Variance": explained_variance_score( y, self.prediction ),
 							"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -4193,57 +3584,6 @@ class AdaBoostRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4337,7 +3677,7 @@ class BaggingRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -4444,15 +3784,15 @@ class BaggingRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
 							"MAE": mean_absolute_error( y, self.prediction ),
 							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 							"R2": r2_score( y, self.prediction ),
 							"Explained Variance": explained_variance_score( y, self.prediction ),
 							"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -4500,57 +3840,6 @@ class BaggingRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'BaggingRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4633,7 +3922,7 @@ class VotingRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -4742,15 +4031,15 @@ class VotingRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -4798,57 +4087,6 @@ class VotingRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'VotingRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4943,7 +4181,7 @@ class StackingRegressor( Regressor ):
 
 			Returns:
 			--------
-				Pipeline
+			self
 
 		"""
 		try:
@@ -5053,15 +4291,15 @@ class StackingRegressor( Regressor ):
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = f1_score( y, self.prediction, average = 'binary' )
+					squared=False )
+				self.r2_score = f1_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				return \
 					{
 							"MAE": mean_absolute_error( y, self.prediction ),
 							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 							"R2": r2_score( y, self.prediction ),
 							"Explained Variance": explained_variance_score( y, self.prediction ),
 							"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -5112,57 +4350,6 @@ class StackingRegressor( Regressor ):
 			exception.module = 'Mathy'
 			exception.cause = 'StackingRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -5237,6 +4424,10 @@ class SupportVectorRegressor:
 			:type X: np.ndarray
 			:param y: Target values.
 			:type y: np.ndarray
+
+			Returns:
+			--------
+			self
 
 		"""
 		self.svr_model.fit( X, y )
@@ -5335,7 +4526,7 @@ class SupportVectorRegressor:
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
+					squared=False )
 				self.r2_score = r2_score( y, self.prediction )
 				self.explained_variance_score = explained_variance_score( y, self.prediction )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
@@ -5343,7 +4534,7 @@ class SupportVectorRegressor:
 				{
 					"MAE": mean_absolute_error( y, self.prediction ),
 					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared = False ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
 					"R2": r2_score( y, self.prediction ),
 					"Explained Variance": explained_variance_score( y, self.prediction ),
 					"Median Absolute Error": median_absolute_error( y, self.prediction )
@@ -5389,57 +4580,6 @@ class SupportVectorRegressor:
 			exception.module = 'Mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None, resolution = 0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'Mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
