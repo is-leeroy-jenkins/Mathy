@@ -68,7 +68,7 @@ class Preprocessor( ):
 
 			Purpose:
 			---------
-			Fits the preprocessor to the text df.
+			Train/flex hook; return self in concrete subclasses.
 
 			Parameters:
 			-----------
@@ -87,7 +87,7 @@ class Preprocessor( ):
 
 			Purpose:
 			---------
-			Transforms the text df using the fitted preprocessor.
+			Transform X using a fitted preprocessor; return transformed X.
 
 			Parameters:
 			-----------
@@ -106,7 +106,7 @@ class Preprocessor( ):
 
 			Purpose:
 			---------
-			Fits the preprocessor and then transforms the text df.
+			Fit to X (and y if used) then transform X in one step.
 
 			Parameters:
 			-----------
@@ -125,7 +125,7 @@ class Preprocessor( ):
 
 			Purpose:
 			---------
-			Transform text to TF-IDF vectors.
+			Invert the transformation when supported; raise NotImplementedError otherwise.
 
 			:param text: List of text text.
 			:type text: list[str]
@@ -171,17 +171,17 @@ class LabelBinarizer( Preprocessor ):
 
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> LabelBinarizer | None:
+	def fit( self, X: np.ndarray, y: np.ndarray ) -> LabelBinarizer | None:
 		"""
 
 			Purpose:
 			_______
-			Fits the label binarizer on the input target_names.
+            Fit the label binarizer on target values y.
 
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( Optional[ np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+			y ( np.ndarray ): Optional target array  of shape ( n_features ).
 
 			Returns:
 			-----------
@@ -198,22 +198,22 @@ class LabelBinarizer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
-			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			_______
-			Transforms target_names into a binary format.
+			Transform target y to binary matrix.
 
 			Args:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y ( np.ndarray ): Optional target array  of shape ( n_features ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
@@ -237,17 +237,17 @@ class LabelBinarizer( Preprocessor ):
 			error.show( )
 
 
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			_______
-			Fits the encoder and transforms the input target_names in one step.
+			Fit on y then transform y to binary matrix.
 
 			Args:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y ( np.ndarray ): Optional target array  of shape ( n_features ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
@@ -374,6 +374,10 @@ class TfidfTransformer( Preprocessor ):
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			--------
+			np.ndarray: Dense matrix of token counts.
 
 		"""
 		try:
@@ -542,7 +546,7 @@ class TfidfVectorizer( Preprocessor ):
 			error.show( )
 
 
-	def inverse_transform( self, text: list[ str ] ) -> np.ndarray | None:
+	def inverse_transform( self, text: list[ str ] ) -> List[ List[ str ] ] | None:
 		"""
 
 			Purpose:
@@ -558,12 +562,12 @@ class TfidfVectorizer( Preprocessor ):
 			if text is None:
 				raise Exception( '"text" cannot be None' )
 			else:
-				return self.tfidf_vectorizer.inverse_transform( text ).toarray( )
+				return self.tfidf_vectorizer.inverse_transform( text )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> List[ List[ str ] ]'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -637,7 +641,7 @@ class CountVectorizer( Preprocessor ):
 
 			Returns:
 			-----------
-			np.adarray | None
+			np.ndarray | None
 
 		"""
 		try:
@@ -650,7 +654,7 @@ class CountVectorizer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, text: List[ str ] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -728,8 +732,7 @@ class HashingVectorizer( Preprocessor ):
 		super( ).__init__( )
 		self.hash_vectorizer = sk.HashingVectorizer( n_features=num )
 
-	def transform( self, text: List[ str ],
-	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def transform( self, text: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -752,8 +755,8 @@ class HashingVectorizer( Preprocessor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'HasVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.cause = 'HashingVectorizer'
+			exception.method = 'transform( self, text: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -866,7 +869,7 @@ class StandardScaler( Preprocessor ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
-				return self.standard_scaler.inverse_transform( X ).toarray( )
+				return self.standard_scaler.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -986,7 +989,7 @@ class MinMaxScaler( Preprocessor ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
-				return self.minmax_scaler.inverse_transform( X ).toarray( )
+				return self.minmax_scaler.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1107,7 +1110,7 @@ class RobustScaler( Preprocessor ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
-				self.transformed_data = self.robust_scaler.inverse_transform( X ).toarray( )
+				self.transformed_data = self.robust_scaler.inverse_transform( X )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1277,8 +1280,7 @@ class OneHotEncoder( Preprocessor ):
 
 			Purpose:
 			---------
-			Transforms the text
-			df into a one-hot encoded format.
+			Transforms the categorical matrix into one-hot encoded form
 
 			Parameters:
 			-----------
@@ -1392,8 +1394,7 @@ class OrdinalEncoder( Preprocessor ):
 			error.show( )
 
 
-	def transform( self, X: np.ndarray,
-	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1439,7 +1440,6 @@ class OrdinalEncoder( Preprocessor ):
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 
 		"""
-
 		try:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
@@ -1450,7 +1450,7 @@ class OrdinalEncoder( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'OrdinalEncoder'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1460,13 +1460,16 @@ class OrdinalEncoder( Preprocessor ):
 
 			Purpose:
 			---------
-			Transform text to TF-IDF vectors.
+			Map ordinal-encoded matrix back to original categories.
 
-			:param X: np.ndarray
+			Parameters:
+			-----------
+			X: np.ndarray
+
 		"""
 		try:
 			if X is None:
-				raise Exception( '"text" cannot be None' )
+				raise Exception( '"X" cannot be None' )
 			else:
 				return self.ordinal_encoder.inverse_transform( X ).toarray( )
 		except Exception as e:
@@ -1496,12 +1499,13 @@ class LabelEncoder( Preprocessor ):
 			Purpose:
 			--------
 			Initialize LabelEncoder.
+
 		"""
 		super( ).__init__( )
 		self.label_encoder = skp.LabelEncoder( )
 
 
-	def fit( self, X: list[ str ], y: Optional[ np.ndarray ] ) -> LabelEncoder | None:
+	def fit( self, X: list[ str ], y: np.ndarray ) -> LabelEncoder | None:
 		"""
 
 			Purpose:
@@ -1516,21 +1520,20 @@ class LabelEncoder( Preprocessor ):
 		"""
 		try:
 			if y is None:
-				raise Exception( 'The argument "X" is required!' )
+				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.label_encoder.fit( y )
 				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'LabellEncoder'
-			exception.method = 'fit( self, target_names: list[str] ) -> np.ndarray'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'fit( self, X: list[ str ], y: np.ndarray ) -> LabelEncoder'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def transform( self, X: list[ str ],
-	               y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1546,21 +1549,20 @@ class LabelEncoder( Preprocessor ):
 
 		try:
 			if y is None:
-				raise Exception( 'The argument "X" is required!' )
+				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.transformed_data = self.label_encoder.transform( y )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'LabellEncoder'
-			exception.method = 'fit( self, target_names: list[str] ) -> np.ndarray'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def fit_transform( self, X: list[ str ],
-	                   y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def fit_transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1579,33 +1581,36 @@ class LabelEncoder( Preprocessor ):
 
 		try:
 			if y is None:
-				raise Exception( 'The argument "X" is required!' )
+				raise Exception( 'The argument "y" is required!' )
 			else:
 				self.transformed_data = self.label_encoder.fit_transform( y )
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'LabellEncoder'
-			exception.method = 'fit_transform( self, target_names: list[str] ) -> np.ndarray'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'fit_transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, y: np.ndarray ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			---------
-			Transform text to TF-IDF vectors.
+			Map integer labels back to original classes.
 
-			:param X: np.ndarray
+			Parameters:
+			-----------
+		    y: np.ndarray
+
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
+			if y is None:
+				raise Exception( '"y" cannot be None' )
 			else:
-				return self.label_encoder.inverse_transform( X ).toarray( )
+				return self.label_encoder.inverse_transform( y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1752,7 +1757,7 @@ class MeanImputer( Preprocessor ):
 		self.transformed_data = None
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MeanImputer | None:
 		"""
 
 
@@ -1774,12 +1779,13 @@ class MeanImputer( Preprocessor ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.mean_imputer.fit( X )
+				self.mean_imputer.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'MeanImputer'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None'
+			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MeanImputer'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1841,7 +1847,7 @@ class MeanImputer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
-			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1859,11 +1865,11 @@ class MeanImputer( Preprocessor ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
-				return self.mean_imputer.inverse_transform( X ).toarray( )
+				return self.mean_imputer.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LabelEncoder'
+			exception.cause = 'MeanImputer'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1902,7 +1908,7 @@ class NearestNeighborImputer( Preprocessor ):
 		self.transformed_data = None
 
 
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ):
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NearestNeighborImputer | None:
 		"""
 
 			Purpose:
@@ -1923,18 +1929,18 @@ class NearestNeighborImputer( Preprocessor ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				return self.knn_imputer.fit( X )
+				self.knn_imputer.fit( X )
+				return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'NearestNeighborImputer'
-			exception.method = 'fit( self, X: np.ndarray ) -> Pipeline'
+			exception.method = 'fit( self, X: np.ndarray ) -> NearestNeighborImputer'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def transform( self, X: np.ndarray,
-	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1960,8 +1966,8 @@ class NearestNeighborImputer( Preprocessor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
-			exception.method = ''
+			exception.cause = 'NearestNeighborImputer'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1989,7 +1995,7 @@ class NearestNeighborImputer( Preprocessor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
+			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2056,14 +2062,13 @@ class IterativeImputer( Preprocessor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
+			exception.cause = 'IterativeImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def transform( self, X: np.ndarray,
-	               y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -2078,7 +2083,19 @@ class IterativeImputer( Preprocessor ):
 			:rtype: np.ndarray
 
 		"""
-		return self.iterative_imputer.transform( X )
+		try:
+			if X is None:
+				raise Exception( 'The argument "X" is required!' )
+			else:
+				self.transformed_data = self.iterative_imputer.transform( X )
+				return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'Mathy'
+			exception.cause = 'IterativeImputer'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
@@ -2099,12 +2116,11 @@ class IterativeImputer( Preprocessor ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
-				self.transformed_data = self.iterative_imputer.fit_transform( X )
-				return self.transformed_data
+				return self.iterative_imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
-			exception.cause = 'NearestImputer'
+			exception.cause = 'IterativeImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
