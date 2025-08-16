@@ -52,8 +52,8 @@ from pandas.core.reshape import pivot
 from sklearn.model_selection import train_test_split
 from sklearn.covariance import empirical_covariance
 from sklearn.compose import ColumnTransformer
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import VarianceThreshold
+import sklearn.decomposition as sd
+import sklearn.feature_selection as sf
 from static import Scaler
 from sklearn.metrics import silhouette_score
 from sklearn.cross_decomposition import CCA
@@ -67,21 +67,27 @@ from preprocessors import Preprocessor
 def entropy( p: float ) -> float | None:
 	'''
 
-		Purpose:
-		--------
-		Method used to calculate the entropy of a numeric feature
-		with a proportion of 'p'.
+	    Purpose:
+	    _______
+        Shannon entropy for a Bernoulli variable with success probability p.
 
-		:param p:
-		:type p: float
-		:return: entropy
-		:rtype: float | None
+	    Parameters:
+	    __________
+        p (float): Probability in [0, 1].
+
+	    Returns:
+	    ________
+        float | None: Entropy in bits, or None on error.
+
 	'''
 	try:
 		if p is None:
 			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return - p * np.log2( p ) - ( 1 - p ) * np.log2( ( 1 - p ) )
+		if p < 0 or p > 1:
+			raise Exception( 'Argument "p" must be in [0, 1]' )
+		eps = 1e-12
+		p = np.clip( p, eps, 1 - eps )
+		return -p * np.log2( p ) - (1 - p) * np.log2( 1 - p )
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
@@ -94,21 +100,25 @@ def entropy( p: float ) -> float | None:
 def gini_impurity( p: float ) -> float | None:
 	'''
 
-			Purpose:
-			--------
-			Method used to calculate the entropy of a numeric feature
-			with a proportion of 'p'.
+	    Purpose:
+	    _______
+	    Gini impurity for a Bernoulli variable with success probability p.
 
-			:param p:
-			:type p: float
-			:return: impurity
-			:rtype: float | None
+	    Parameters:
+	    _________
+	    p (float): Probability in [0, 1].
+
+	    Returns:
+	    _______
+	    float | None: Gini impurity, or None on error.
+
 	'''
 	try:
 		if p is None:
 			raise Exception( 'Argument "p" cannot be None' )
-		else:
-			return p * ( 1 - p ) + ( 1 - p ) * ( 1 - ( 1 - p ) )
+		if p < 0 or p > 1:
+			raise Exception( 'Argument "p" must be in [0, 1]' )
+		return 1.0 - max( p, 1.0 - p )
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
@@ -121,15 +131,18 @@ def gini_impurity( p: float ) -> float | None:
 def misclassification_error( p: float ) -> float | None:
 	'''
 
-		Purpose:
-		--------
-		Method used to calculate the entropy of a numeric feature
-		with a proportion of 'p'.
+	    Purpose:
+	    ________
+        Misclassification error for Bernoulli (1 - max class probability).
 
-		:param p:
-		:type p: float
-		:return: error rate
-		:rtype: float | None
+	    Parameters:
+	    ________
+        p (float): Probability in [0, 1].
+
+	    Returns:
+	    ________
+        float | None: Error rate, or None on error.
+
 	'''
 	try:
 		if p is None:
@@ -155,16 +168,20 @@ def sigmoid( z: float ) -> float | None:
 		probability p. This inverse of the logit function is typically called the logistic sigmoid function,
 		which is sometimes simply abbreviated to sigmoid function due to its characteristic S-shape
 
-		:param z:
-		:type z: float
-		:return:
-		:rtype: float | None
+		Parameters:
+		_________
+	    z (float): Real-valued input.
+
+		Returns:
+		_________
+	    float | None: σ(z), or None on error.
+
 	'''
 	try:
 		if z is None:
 			raise Exception( 'Argument "z" cannot be None' )
-		else:
-			return 1.0 / ( 1.0 + np.exp( -z ) )
+		z = float( np.clip( z, -709, 709 ) )
+		return 1.0 / (1.0 + np.exp( -z ))
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
@@ -235,40 +252,45 @@ class DataSource( ):
 			-----------
 			Initialize and split the dataset.
 
-			Parameters:
+	        Parameters:
 			-----------
-			df (pd.DataFrame): Matrix text vector.
-			target List[ str ]: Name of the target n_features.
-			size (float): Proportion of df to use as test set.
-			rando (int): Seed for reproducibility.
+            df (pd.DataFrame): Source dataframe.
+            target (str): Name of the target column.
+            size (float): Test set proportion.
+            rando (int): Random seed for reproducibility.
+
+	        Returns:
+			-----------
+	            None
 
 		"""
-		self.dataframe = df
-		self.data = df.to_numpy( )
-		self.n_samples = len( df )
-		self.n_features = len( df.columns )
-		self.target = df[ target ].to_numpy( )
+		self.dataframe = df.copy( )
 		self.test_size = size
 		self.random_state = rando
-		self.feature_names = [ column for column in df.columns ]
-		self.target_names = np.array( df[ target ].unique( ) )
-		self.categorical_columns = df.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
-		self.numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-		self.X_training = train_test_split( self.data, self.target,
-			test_size=self.test_size  )[ 0 ]
-		self.X_testing = train_test_split( self.data, self.target,
-			test_size=self.test_size  )[ 1 ]
-		self.y_training = train_test_split( self.data, self.target,
-			test_size=self.test_size  )[ 2 ]
-		self.y_testing = train_test_split( self.data, self.target,
-			test_size=self.test_size, random_state=self.random_state )[ 3 ]
-		self.skew = df.skew( axis=0, numeric_only=True )
-		self.variance = df.var( axis=0, ddof=1, numeric_only=True )
-		self.kurtosis = df.kurt( axis=0, numeric_only=True )
-		self.average = df.mean( axis=0, numeric_only=True )
-		self.mean_standard_error = df.sem( axis=0, ddof=1, numeric_only=True )
-		self.standard_deviation = df.std( axis=0, ddof=1, numeric_only=True  )
-		self.transtuple = [ ]
+
+		if target not in df.columns:
+			raise ArgumentError( None, f'target "{target}" not in dataframe' )
+		X = df.drop( columns = [ target ] )
+		y = df[ target ]
+		self.feature_names = list( X.columns )
+		self.numeric_columns = X.select_dtypes( include = [ 'number' ] ).columns.tolist( )
+		self.categorical_columns = X.select_dtypes(
+			include = [ 'object', 'category' ] ).columns.tolist( )
+		self.data = X.to_numpy( )
+		self.n_samples = len( df )
+		self.n_features = X.shape[ 1 ]
+		self.target = y.to_numpy( )
+		self.target_names = np.array( sorted( y.unique( ) ) )
+		self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split(
+			X, y, test_size=self.test_size, random_state=self.random_state, stratify=None)
+		num_df = df.select_dtypes( include = 'number' )
+		self.skew = num_df.skew( axis=0, numeric_only=True )
+		self.variance = num_df.var( axis=0, ddof=1, numeric_only=True )
+		self.kurtosis = num_df.kurt( axis=0, numeric_only=True )
+		self.average = num_df.mean( axis=0, numeric_only=True )
+		self.mean_standard_error = num_df.sem( axis=0, ddof = 1, numeric_only=True )
+		self.standard_deviation = num_df.std( axis = 0, ddof = 1, numeric_only=True )
+		self.transtuple: list[ tuple[ str, Preprocessor, list[ str ] ] ]=[ ]
 		self.numeric_metrics = None
 		self.categorical_metrics = None
 		self.pivot_table = None
@@ -294,29 +316,34 @@ class DataSource( ):
 	def transform_columns( self, name: str, encoder: Preprocessor, columns: List[ str ] ) -> None:
 		"""
 
-			Purpose:
+		    Purpose:
 			-----------
-			Scale numeric feature_names using selected scaler.
+	        Add a (name, transformer, columns) triple and fit/transform X using ColumnTransformer.
 
-			Paramters:
+		    Parameters:
 			-----------
-			name - the name of the encoder
-			encoder - the encoder object to transform the df.
-			n_features - the list of column names to apply the transformation to.
+	        name (str): Transformer name.
+	        encoder (Preprocessor): Transformer implementing fit/transform.
+	        columns (list[str]): Column names to transform.
+
+		    Returns:
+			-----------
+	        None
 
 		"""
 		try:
-			if name is None:
-				raise Exception( 'Arguent "name" cannot be None' )
-			elif encoder is None:
-				raise Exception( 'Arguent "encoder" cannot be None' )
-			elif columns is None:
-				raise Exception( 'Arguent "n_features" cannot be None' )
-			else:
-				_tuple = ( name, encoder, columns )
-				self.transtuple.append( _tuple )
-				self.column_transformer = ColumnTransformer( self.transtuple )
-				self.column_transformer.fit_transform( self.data )
+			if not name:
+				raise Exception( 'Argument "name" cannot be None or empty' )
+			if encoder is None:
+				raise Exception( 'Argument "encoder" cannot be None' )
+			if not columns:
+				raise Exception( 'Argument "columns" cannot be None or empty' )
+			self.transtuple.append( (name, encoder, columns) )
+			self.column_transformer = ColumnTransformer(
+				transformers=self.transtuple,
+				remainder='passthrough' )
+			X = self.dataframe[ self.feature_names ]
+			_ = self.column_transformer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -376,29 +403,35 @@ class DataSource( ):
 	def create_pivot_table( self, df: pd.DataFrame, cols: list, vals: list, idx: list ) -> pd.DataFrame | None:
 		'''
 
-			Purpose:
-			________
-			Create a spreadsheet-style pivot table as a DataFrame. The levels in the pivot table
-			will be stored in MultiIndex objects (hierarchical indexes) on the index and n_features
-			of the result DataFrame.
+		    Purpose:
+		    _______
+	        Create a spreadsheet-style pivot table as a DataFrame.
 
-			:return: pivot table
-			:rtype: pd.DataFrame
+		    Parameters:
+		    __________
+	        df (pd.DataFrame): Source dataframe.
+	        cols (list): Columns to use for columns axis of pivot.
+	        vals (list): Value columns to aggregate.
+	        idx (list): Columns to use as row index of pivot.
+
+		    Returns:
+			________
+		    pd.DataFrame | None: Pivot table or None on error.
+
 		'''
 		try:
-			if cols is None:
-				raise Exception( 'Argument "cols" cannot be None' )
-			elif df is None:
+			if df is None:
 				raise Exception( 'Argument "df" cannot be None' )
-			elif vals is None:
-				raise Exception( 'Argument "vals" cannot be None' )
-			elif idx is None:
-				raise Exception( 'Argument "idx" cannot be None' )
-			else:
-				_dataframe = df.copy( )
-				self.pivot_table = pd.pivot_table( data=_dataframe, columns=cols,
-					index=idx, values=vals, aggfunc='sum', dropna=True, margins=True, )
-				return self.pivot_table
+			if not cols:
+				raise Exception( 'Argument "cols" cannot be None or empty' )
+			if not vals:
+				raise Exception( 'Argument "vals" cannot be None or empty' )
+			if not idx:
+				raise Exception( 'Argument "idx" cannot be None or empty' )
+			_df = df.copy( )
+			self.pivot_table = pd.pivot_table( data=_df, index=idx, columns=cols,
+				values=vals, aggfun='sum', dropna=True, margins=True )
+			return self.pivot_table
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -443,11 +476,12 @@ class DataSource( ):
 
 		'''
 		try:
-			plt.figure( figsize=( 10, 6 ) )
-			sns.histplot( self.dataframe.mean( axis=0, numeric_only=True), bins=20, kde=True )
-			plt.title( "Histogram (Mean)" )
-			plt.xlabel( "Name" )
-			plt.ylabel( "Value" )
+			col_means = self.dataframe.select_dtypes( 'number' ).mean( axis = 0 )
+			plt.figure( figsize = (10, 6) )
+			sns.histplot( col_means, bins = 20, kde = True )
+			plt.title( "Histogram of Column Means" )
+			plt.xlabel( "Mean Value" )
+			plt.ylabel( "Frequency" )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -469,15 +503,14 @@ class DataSource( ):
 		try:
 			if df is None:
 				raise Exception( 'Argument "df" cannot be None' )
-			else:
-				_dataframe = df.copy( )
-				plt.figure( figsize = (8, 6) )
-				sns.histplot( _dataframe.mean( axis=axes, numeric_only=numbers_only ), bins = 20,
-					kde = True )
-				plt.title( "Histogram (Mean)" )
-				plt.xlabel( "Name" )
-				plt.ylabel( "Value" )
-				plt.show( )
+			_df = df.select_dtypes( 'number' ) if numbers_only else df
+			series = _df.mean( axis = axes )
+			plt.figure( figsize = (8, 6) )
+			sns.histplot( series, bins = 20, kde = True )
+			plt.title( "Histogram of Means" )
+			plt.xlabel( "Mean Value" )
+			plt.ylabel( "Frequency" )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -542,18 +575,20 @@ class DataSource( ):
 	def calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series | None:
 		'''
 
-			Purpose:
-			--------
-			Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
-			This can be changed using the degree argument.
+		    Purpose:
+		    ________
+	        Compute the mean along the specified axis.
 
+		    Parameters:
+		    __________
+	        df (pd.DataFrame): Source dataframe.
+	        axes (int): Axis over which to compute mean (0=columns, 1=rows).
+	        numeric (bool): If True, restrict to numeric dtypes.
 
-			:param axes:
-			:type axes: int
-			:param degree:
-			:type degree: int
-			:return: pd.Series
-			:rtype: pd.Series | None
+		    Returns:
+			________
+	        pd.Series | None: Means by axis, or None on error.
+
 		'''
 		try:
 			if axes is None:
@@ -570,7 +605,8 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'Mathy'
 			exception.cause = 'DataSource'
-			exception.method = 'calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series '
+			exception.method = ('calculate_average( self, df: pd.DataFrame, axes: int=0, '
+			                    'numeric: bool=True ) -> pd.Series ')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -578,18 +614,20 @@ class DataSource( ):
 	                        numeric: bool=True ) -> pd.Series | None:
 		'''
 
-			Purpose:
-			--------
+		    Purpose:
+		    _______
+	        Compute the variance along the specified axis.
 
+		    Parameters:
+		    _________
+	        df (pd.DataFrame): Source dataframe.
+	        axes (int): Axis over which to compute variance.
+	        degree (int): Delta degrees of freedom (ddof).
+	        numeric (bool): If True, restrict to numeric dtypes.
 
-			:param axes:
-			:type int:
-			:param degree:
-			:type int:
-			:param numeric:
-			:type bool:
-			:return: Series
-			:rtype: pd.Series
+		    Returns:
+		    _______
+	        pd.Series | None: Variances by axis, or None on error.
 
 		'''
 		try:
@@ -768,7 +806,7 @@ class VarianceThreshold( ):
 		zero-variance feature_names, i.e. feature_names that have the same value in all samples.
 
 	"""
-	variance_selector: VarianceThreshold
+	variance_selector: sf.VarianceThreshold
 	transformed_data: Optional[ np.ndarray ]
 	threshold: Optional[ float ]
 
@@ -784,7 +822,7 @@ class VarianceThreshold( ):
 			:type threshold: float
 		"""
 		self.threshold = thresh
-		self.variance_selector = VarianceThreshold( threshold=self.threshold )
+		self.variance_selector = sf.VarianceThreshold( threshold=self.threshold )
 		self.transformed_data = None
 
 
@@ -1006,7 +1044,7 @@ class ComponentAnalysis( ):
 		the number of components to extract.
 
 	"""
-	component_analysis: PCA
+	component_analysis: sd.PCA
 	svd_solver: Optional[ str ]
 	n_components: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1023,10 +1061,9 @@ class ComponentAnalysis( ):
 			:type n_components: int
 
 		"""
-		super( ).__init__( )
 		self.n_components = num
 		self.svd_solver = solver
-		self.component_analysis = PCA( n_components=num, svd_solver=self.svd_solver )
+		self.component_analysis = sd.PCA( n_components=num, svd_solver=self.svd_solver )
 		self.transformed_data = None
 
 
