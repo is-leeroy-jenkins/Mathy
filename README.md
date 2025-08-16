@@ -7,7 +7,7 @@
 
 ## 🧠 Overview
 
-**Mathy** is a clean abstraction over clustering algorithms, preprocessing tools, 
+**Mathy** is a library of clustering algorithms, preprocessing tools, 
 and classification/regression models with custom wrappers, error handling, and diagnostic tools for 
 machine-learning workflows. Mathy targets professionals in data science and analytics who require reusable, robust, and 
 interpretable tools for building intelligent models—especially within government and research domains.
