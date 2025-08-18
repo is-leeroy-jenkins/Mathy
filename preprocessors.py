@@ -92,7 +92,7 @@ class Preprocessor( ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -111,7 +111,7 @@ class Preprocessor( ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -213,7 +213,7 @@ class LabelBinarizer( Preprocessor ):
 			Args:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( np.ndarray ): Optional target array  of shape ( n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_features ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
@@ -247,7 +247,7 @@ class LabelBinarizer( Preprocessor ):
 			Args:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( np.ndarray ): Optional target array  of shape ( n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_features ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
@@ -274,11 +274,12 @@ class LabelBinarizer( Preprocessor ):
 			_______
 			Converts binary matrix back to original target_names.
 
-			Args:
-				y (np.ndarray): Binary-encoded label matrix.
+			Parameters:
+			----------
+			y (np.ndarray): Binary-encoded label matrix.
 
 			Returns:
-				np.ndarray: Original target_names.
+			np.ndarray: Original target_names.
 		"""
 		try:
 			if y is None:
@@ -342,7 +343,7 @@ class TfidfTransformer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -373,7 +374,7 @@ class TfidfTransformer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -404,7 +405,7 @@ class TfidfTransformer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -468,10 +469,10 @@ class TfidfVectorizer( Preprocessor ):
 			---------
 			Fit the vectorizer to the text.
 
-			:param y:
-			:type y:
-			:param text: List of text text.
-			:type text: list[str]
+			Parameters:
+			-----------
+			text: list[str]
+
 		"""
 		try:
 			if text is None:
@@ -637,7 +638,7 @@ class CountVectorizer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -792,7 +793,7 @@ class StandardScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -826,7 +827,7 @@ class StandardScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( Optional[np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -858,7 +859,7 @@ class StandardScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( Optional[np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -912,7 +913,7 @@ class MinMaxScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -946,7 +947,7 @@ class MinMaxScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( Optional[np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1038,7 +1039,7 @@ class RobustScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1072,7 +1073,7 @@ class RobustScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1156,7 +1157,7 @@ class NormalScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1191,7 +1192,7 @@ class NormalScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1251,7 +1252,7 @@ class OneHotEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1285,7 +1286,7 @@ class OneHotEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1317,7 +1318,7 @@ class OneHotEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1372,7 +1373,7 @@ class OrdinalEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1405,7 +1406,7 @@ class OrdinalEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1437,7 +1438,7 @@ class OrdinalEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1515,7 +1516,7 @@ class LabelEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1542,8 +1543,8 @@ class LabelEncoder( Preprocessor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			X ( List[ str ] ): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 
@@ -1569,14 +1570,11 @@ class LabelEncoder( Preprocessor ):
 			--------
 			Fit and transform the label data.
 
-			:param X:
-			:type X:
-			:param y:
-			:type y:
-			:param target_names: List of target_names.
-			:type target_names: list[str]
-			:return: Encoded target_names.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X ( List[ str ] ): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 
 		try:
@@ -1658,10 +1656,11 @@ class PolynomialFeatures( Preprocessor ):
 			--------
 			Fit polynomial transformer to data.
 
-			:param y:
-			:type y:
-			:param X: Feature matrix.
-			:type X: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -1686,12 +1685,11 @@ class PolynomialFeatures( Preprocessor ):
 			--------
 			Transform data into polynomial feature_names.
 
-			:param y:
-			:type y:
-			:param X: Feature matrix.
-			:type X: np.ndarray
-			:return: Transformed feature matrix.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -1715,12 +1713,11 @@ class PolynomialFeatures( Preprocessor ):
 			--------
 			Fit and transform data using polynomial expansion.
 
-			:param y:
-			:type y:
-			:param X: Feature matrix.
-			:type X: np.ndarray
-			:return: Transformed feature matrix.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -1767,8 +1764,8 @@ class MeanImputer( Preprocessor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df with missing target_names.
-			y (Optional[np.ndarray]): Ignored.
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1797,8 +1794,7 @@ class MeanImputer( Preprocessor ):
 
 			Purpose:
 			---------
-			Transforms the text
-			df by filling in missing target_names.
+			Transforms the text df by filling in missing target_names.
 
 			Parameters:
 			-----------
@@ -1831,12 +1827,11 @@ class MeanImputer( Preprocessor ):
 			--------
 			Fit the iterative imputer and transform the data.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -1916,9 +1911,9 @@ class NearestNeighborImputer( Preprocessor ):
 			Fits the simple_imputer to the df.
 
 			Parameters:
-			_____
-			X (np.ndarray): Input df with missing target_names.
-			y (Optional[np.ndarray]): Ignored.
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1950,7 +1945,8 @@ class NearestNeighborImputer( Preprocessor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input df
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1979,12 +1975,10 @@ class NearestNeighborImputer( Preprocessor ):
 			---------
 			Fit the iterative imputer and transform the data.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -2048,10 +2042,10 @@ class IterativeImputer( Preprocessor ):
 			--------
 			Fit the iterative imputer to the data.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -2075,12 +2069,10 @@ class IterativeImputer( Preprocessor ):
 			---------
 			Transform data by iteratively imputing missing values.
 
-			:param y:
-			:type y:
-			:param X: Data to transform.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -2104,12 +2096,10 @@ class IterativeImputer( Preprocessor ):
 			--------
 			Fit the iterative imputer and transform the data.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -2164,10 +2154,11 @@ class SimpleImputer( Preprocessor ):
 			--------
 			Fit the imputer to the data.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -2191,12 +2182,11 @@ class SimpleImputer( Preprocessor ):
 			--------
 			Transform data by imputing missing values.
 
-			:param y:
-			:type y:
-			:param X: Data to transform.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -2219,12 +2209,11 @@ class SimpleImputer( Preprocessor ):
 			--------
 			Fit the imputer and transform the data.
 
-			:param y:
-			:type y:
-			:param X: Input array with missing values.
-			:type X: np.ndarray
-			:return: Transformed data with imputed values.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:

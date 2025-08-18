@@ -140,7 +140,7 @@ class Classifier( ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 				y (np.ndarray): True target target_names.
 
 			Returns:
@@ -160,7 +160,7 @@ class Classifier( ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 				y (np.ndarray): Ground truth target_names.
 
 			Returns:
@@ -261,7 +261,7 @@ class PerceptronClassifier( Classifier ):
 
 			Parameters:
 			---------
-			X (np.ndarray): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			y (np.ndarray): Binary class target_names.
 
 			Returns:
@@ -295,7 +295,7 @@ class PerceptronClassifier( Classifier ):
 
 			Parameters:
 			---------
-			X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			---------
@@ -327,8 +327,8 @@ class PerceptronClassifier( Classifier ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True class target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -419,8 +419,8 @@ class PerceptronClassifier( Classifier ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -655,7 +655,7 @@ class MultiLayerClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 				y (np.ndarray): True values.
 
 			Returns:
@@ -691,7 +691,7 @@ class MultiLayerClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 				y (np.ndarray): Ground truth target_names.
 
 			Returns:
@@ -740,8 +740,8 @@ class MultiLayerClassifier( Classifier ):
 
 			Parameters:
 			---------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -922,8 +922,8 @@ class RidgeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -957,7 +957,7 @@ class RidgeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -989,8 +989,8 @@ class RidgeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1025,8 +1025,8 @@ class RidgeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1076,8 +1076,8 @@ class RidgeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1114,14 +1114,11 @@ class RidgeClassifier( Classifier ):
 			--------
 			Visualize how well it separates the different sample
 
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			
 		'''
 		try:
 			if X is None:
@@ -1261,8 +1258,8 @@ class StochasticGradientClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1289,17 +1286,17 @@ class StochasticGradientClassifier( Classifier ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-				Purpose:
-				-----------
-					Predict class target_names using the SGD classifier.
+			Purpose:
+			-----------
+				Predict class target_names using the SGD classifier.
 
-				Parameters:
-				-----------
-					X (pd.DataFrame): Feature matrix.
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
-				Returns:
-				-----------
-					np.ndarray: Predicted class target_names.
+			Returns:
+			-----------
+				np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -1326,8 +1323,8 @@ class StochasticGradientClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test feature_names.
-			y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1360,8 +1357,8 @@ class StochasticGradientClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-			y (np.ndarray): True class target_names of shape (n_samples,).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1417,8 +1414,8 @@ class StochasticGradientClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature_names.
-			y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1591,8 +1588,8 @@ class NearestNeighborClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-------
@@ -1625,7 +1622,7 @@ class NearestNeighborClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -1656,8 +1653,8 @@ class NearestNeighborClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1691,8 +1688,8 @@ class NearestNeighborClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-				y (np.ndarray): True class target_names of shape (n_samples,).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1748,8 +1745,8 @@ class NearestNeighborClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1918,8 +1915,8 @@ class DecisionTreeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-------
@@ -1953,7 +1950,7 @@ class DecisionTreeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -1985,8 +1982,8 @@ class DecisionTreeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2022,8 +2019,8 @@ class DecisionTreeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-				y (np.ndarray): True class target_names of shape (n_samples,).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2080,8 +2077,8 @@ class DecisionTreeClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2110,22 +2107,18 @@ class DecisionTreeClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
-	                           resolution = 0.02 ):
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
 		'''
 
 			Purpose:
 			--------
 			Visualize how well it separates the different sample
 
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
+			Parmeters:
+			----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			
 		'''
 		try:
 			if X is None:
@@ -2257,8 +2250,8 @@ class RandomForestClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2293,7 +2286,7 @@ class RandomForestClassifier( Classifier ):
 
 				Parameters:
 				----------
-					X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 				Returns:
 				---------
@@ -2324,8 +2317,8 @@ class RandomForestClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2359,8 +2352,8 @@ class RandomForestClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2410,8 +2403,8 @@ class RandomForestClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2590,8 +2583,8 @@ class GradientBoostingClassifier( Classifier ):
 
 			Parameters:
 			__________
-				X (np.ndarray): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2624,7 +2617,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Parameters:
 			__________
-				X (np.ndarray): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			________
@@ -2655,8 +2648,8 @@ class GradientBoostingClassifier( Classifier ):
 
 			Parameters:
 			__________
-				X (np.ndarray): Features.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			________
@@ -2689,8 +2682,8 @@ class GradientBoostingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2739,8 +2732,8 @@ class GradientBoostingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
 		self.prediction = self.gradient_boost_classifier.predict( X )
@@ -2881,16 +2874,16 @@ class AdaBoostClassifier( Classifier ):
 
 			Purpose:
 			_______
-				Fit the classifier.
+			Fit the classifier.
 
 			Parameters:
 			_________
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
-				Pipeline
+			Pipeline
 
 		"""
 		try:
@@ -2918,7 +2911,7 @@ class AdaBoostClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -2948,12 +2941,12 @@ class AdaBoostClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
-				float: R^2 accuracy.
+			float: R^2 accuracy.
 
 		"""
 		try:
@@ -2982,8 +2975,8 @@ class AdaBoostClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3032,8 +3025,8 @@ class AdaBoostClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3200,12 +3193,12 @@ class BaggingClassifier( Classifier ):
 
 			Parameters:
 			----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-------
-				Pipeline
+			Pipeline
 
 		"""
 		try:
@@ -3233,7 +3226,7 @@ class BaggingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -3263,8 +3256,8 @@ class BaggingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3297,12 +3290,12 @@ class BaggingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
-				dict: Dictionary of MAE, RMSE, R², etc.
+			dict: Dictionary of MAE, RMSE, R², etc.
 
 		"""
 		try:
@@ -3348,8 +3341,8 @@ class BaggingClassifier( Classifier ):
 
 			Parameters:
 			------------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -3506,16 +3499,16 @@ class VotingClassifier( Classifier ):
 
 			Purpose:
 			---------
-				Fit the classifier.
+			Fit the classifier.
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
-				Pipeline
+			Pipeline
 
 		"""
 		try:
@@ -3543,7 +3536,7 @@ class VotingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -3573,8 +3566,8 @@ class VotingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3607,8 +3600,8 @@ class VotingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3657,8 +3650,8 @@ class VotingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3817,8 +3810,8 @@ class StackingClassifier( Classifier ):
 
 			Parameters:
 			----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -3850,7 +3843,7 @@ class StackingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -3880,8 +3873,8 @@ class StackingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3913,8 +3906,8 @@ class StackingClassifier( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3957,13 +3950,12 @@ class StackingClassifier( Classifier ):
 	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
-			Plot confusion matrix
-			for classifier predictions.
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4124,11 +4116,12 @@ class SupportVectorClassifier:
 			Purpose:
 			---------
 			Fit the SVC model to the data.
-	
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y: Target target_names.
-			:type y: np.ndarray
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -4153,11 +4146,10 @@ class SupportVectorClassifier:
 			Purpose:
 			--------
 			Predict class target_names for the input feature_names.
-	
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:return: Predicted class target_names.
-			:rtype: np.ndarray
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			
 		"""
 		try:
@@ -4182,12 +4174,11 @@ class SupportVectorClassifier:
 			---------
 			Evaluate the model using accuracy score.
 	
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y_true: True target_names.
-			:type y_true: np.ndarray
-			:return: Accuracy score.
-			:rtype: float
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 			
 		"""
 		try:
@@ -4215,14 +4206,11 @@ class SupportVectorClassifier:
 			----------
 			Generate classification report.
 	
-			:param self:
-			:type self:
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y_true: True target_names.
-			:type y_true: np.ndarray
-			:return: Classification report.
-			:rtype: str
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 			
 		"""
 		try:
@@ -4249,12 +4237,11 @@ class SupportVectorClassifier:
 			---------
 			Generate and display a confusion matrix.
 	
-			:param self:
-			:type self:
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y_true: True target_names.
-			:type y_true: np.ndarray
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y_true (np.ndarray): True class target vector of shape ( n_samples, ).
 			
 		"""
 		try:

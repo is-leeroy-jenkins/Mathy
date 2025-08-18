@@ -138,8 +138,8 @@ class Regressor( ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -157,8 +157,8 @@ class Regressor( ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -252,8 +252,8 @@ class MultiLayerRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature matrix.
-			y (Optional[np.ndarray]): Optional target array.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			--------
@@ -318,8 +318,8 @@ class MultiLayerRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test feature_names.
-			y (np.ndarray): True values.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -354,8 +354,8 @@ class MultiLayerRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -402,8 +402,8 @@ class MultiLayerRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 		"""
 		try:
@@ -511,8 +511,8 @@ class LinearRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Target vector.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			--------
@@ -546,7 +546,7 @@ class LinearRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
+			X ( n_samples, n_features ): Input feature matrix.
 
 			Returns:
 			-----------
@@ -578,8 +578,8 @@ class LinearRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Test feature_names.
-			y (np.ndarray): True target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -614,8 +614,8 @@ class LinearRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Ground truth target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -662,8 +662,8 @@ class LinearRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature_names.
-			y (np.ndarray): True target target_names.
+			X ( n_samples, n_features ): Input feature matrix.
+			y ( n_samples, ): True target target_names.
 
 		"""
 		try:
@@ -788,8 +788,8 @@ class RidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			--------
@@ -823,7 +823,7 @@ class RidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
 
 			Returns:
 			-----------
@@ -855,8 +855,8 @@ class RidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -886,17 +886,17 @@ class RidgeRegressor( Regressor ):
 
 			Purpose:
 			-----------
-				Evaluates the Ridge model
-				using multiple metrics.
+			Evaluates the Ridge model
+			using multiple metrics.
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
-				dict: Evaluation metrics including MAE, RMSE, R², etc.
+			dict: Evaluation metrics including MAE, RMSE, R², etc.
 
 		"""
 		try:
@@ -941,8 +941,8 @@ class RidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -1059,8 +1059,8 @@ class LassoRegression( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			--------
@@ -1093,7 +1093,7 @@ class LassoRegression( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -1124,8 +1124,8 @@ class LassoRegression( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -1160,8 +1160,8 @@ class LassoRegression( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -1209,8 +1209,8 @@ class LassoRegression( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature matrix.
-				y (np.ndarray): Ground truth target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 		"""
 		try:
@@ -1328,8 +1328,8 @@ class ElasticNetRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			--------
@@ -1363,7 +1363,8 @@ class ElasticNetRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -1395,8 +1396,8 @@ class ElasticNetRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -1430,8 +1431,8 @@ class ElasticNetRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 			Returns:
 			-----------
@@ -1479,8 +1480,8 @@ class ElasticNetRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_names.
+			X ( n_samples, n_features ): np.ndarray - feature matrix.
+			y ( n_samples, ): np.ndarray - target vector.
 
 		"""
 		try:
@@ -1593,8 +1594,8 @@ class LogisticRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1627,7 +1628,7 @@ class LogisticRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -1659,8 +1660,8 @@ class LogisticRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True class target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1749,8 +1750,8 @@ class LogisticRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True class target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1868,8 +1869,8 @@ class BayesianRidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1898,12 +1899,11 @@ class BayesianRidgeRegressor( Regressor ):
 
 			Purpose:
 			-----------
-				Predicts target target_names
-				using the Bayesian linerar_model.
+			Predicts target target_names using the Bayesian linerar_model.
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -1935,8 +1935,8 @@ class BayesianRidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1970,8 +1970,8 @@ class BayesianRidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2019,8 +2019,8 @@ class BayesianRidgeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -2145,8 +2145,8 @@ class StochasticGradientRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2179,7 +2179,7 @@ class StochasticGradientRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -2210,8 +2210,8 @@ class StochasticGradientRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2245,8 +2245,8 @@ class StochasticGradientRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2294,8 +2294,8 @@ class StochasticGradientRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): True target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -2410,8 +2410,8 @@ class NearestNeighborRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2444,7 +2444,7 @@ class NearestNeighborRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -2475,8 +2475,8 @@ class NearestNeighborRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2511,8 +2511,8 @@ class NearestNeighborRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2560,8 +2560,8 @@ class NearestNeighborRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2673,8 +2673,8 @@ class DecisionTreeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2707,7 +2707,7 @@ class DecisionTreeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -2738,8 +2738,8 @@ class DecisionTreeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2774,8 +2774,8 @@ class DecisionTreeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): True target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2823,8 +2823,8 @@ class DecisionTreeRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2949,8 +2949,8 @@ class RandomForestRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
-			y (np.ndarray): Target vector.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -2983,7 +2983,7 @@ class RandomForestRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -3014,8 +3014,8 @@ class RandomForestRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3049,8 +3049,8 @@ class RandomForestRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3098,8 +3098,8 @@ class RandomForestRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3219,8 +3219,8 @@ class GradientBoostingRegressor( Regressor ):
 
 			Parameters:
 			___________
-				X (np.ndarray): Training feature_names.
-				y (np.ndarray): Training targets.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -3240,7 +3240,7 @@ class GradientBoostingRegressor( Regressor ):
 
 			Parameters:
 			_________
-			X (np.ndarray): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			________
@@ -3260,8 +3260,8 @@ class GradientBoostingRegressor( Regressor ):
 
 			Parameters:
 			___________
-			X (np.ndarray): Test feature_names.
-			y (np.ndarray): True target values.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			_______
@@ -3281,9 +3281,9 @@ class GradientBoostingRegressor( Regressor ):
 			Evaluate performance using standard regression metrics.
 
 			Parameters:
-			__________
-			X (np.ndarray): Input feature_names.
-			y (np.ndarray): Ground truth target values.
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			________
@@ -3311,8 +3311,8 @@ class GradientBoostingRegressor( Regressor ):
 
 			Parameters:
 			___________
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground truth target values.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
 		self.prediction = self.gradient_boost_regressor.predict( X )
@@ -3411,9 +3411,9 @@ class AdaBoostRegressor( Regressor ):
 				Fit the RidgeRegressor regression linerar_model.
 
 			Parameters:
-			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -3445,7 +3445,7 @@ class AdaBoostRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -3477,8 +3477,8 @@ class AdaBoostRegressor( Regressor ):
 
 			Parameters:
 			----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -3510,8 +3510,8 @@ class AdaBoostRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3557,8 +3557,8 @@ class AdaBoostRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3671,9 +3671,9 @@ class BaggingRegressor( Regressor ):
 			Fit the RidgeRegressor regression linerar_model.
 
 			Parameters:
-			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -3704,7 +3704,7 @@ class BaggingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -3733,8 +3733,8 @@ class BaggingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3766,8 +3766,8 @@ class BaggingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3813,8 +3813,8 @@ class BaggingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -3917,8 +3917,8 @@ class VotingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -3951,7 +3951,7 @@ class VotingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-			X (pd.DataFrame): Feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-------
@@ -3980,8 +3980,8 @@ class VotingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4013,8 +4013,8 @@ class VotingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4060,8 +4060,8 @@ class VotingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4176,8 +4176,8 @@ class StackingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Target vector.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -4209,7 +4209,7 @@ class StackingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			-----------
@@ -4239,8 +4239,8 @@ class StackingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4273,8 +4273,8 @@ class StackingRegressor( Regressor ):
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4318,13 +4318,12 @@ class StackingRegressor( Regressor ):
 
 			Purpose:
 			---------
-			Plot predicted vs
-			actual target_names.
+			Plot predicted vs actual target_names.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature_names.
-				y (np.ndarray): Ground truth target target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4420,10 +4419,10 @@ class SupportVectorRegressor:
 			--------
 			Fit the SVR model to the data.
 
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y: Target values.
-			:type y: np.ndarray
+			Parameters:
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -4441,14 +4440,11 @@ class SupportVectorRegressor:
 			--------
 			Predict target values for the input feature_names.
 
-			:param y:
-			:type y:
-			:param y:
-			:type y:
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:return: Predicted target values.
-			:rtype: np.ndarray
+			Parameters:
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
 		"""
 		try:
 			if X is None:
@@ -4477,8 +4473,8 @@ class SupportVectorRegressor:
 
 			Parameters:
 			-----------
-				X (np.ndarray): Test feature_names.
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -4510,10 +4506,10 @@ class SupportVectorRegressor:
 			---------
 			Print detailed regression metrics.
 
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y: Ground truth values.
-			:type y: np.ndarray
+			Parameters:
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -4555,10 +4551,10 @@ class SupportVectorRegressor:
 			--------
 			Visualize the true vs predicted values for regression.
 
-			:param X: Input feature_names.
-			:type X: np.ndarray
-			:param y: True target values.
-			:type y: np.ndarray
+			Parameters:
+			___________
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
 		try:
