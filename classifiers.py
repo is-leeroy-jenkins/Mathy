@@ -2653,7 +2653,6 @@ class GradientBoostingClassifier( Classifier ):
 			markers = ('o', 's', '^', 'v', '<')
 			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
 			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-
 			# plot the decision surface
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
@@ -2664,19 +2663,16 @@ class GradientBoostingClassifier( Classifier ):
 			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
 			plt.xlim( xx1.min( ), xx1.max( ) )
 			plt.ylim( xx2.min( ), xx2.max( ) )
-
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
 					c = colors[ idx ], marker = markers[ idx ],
 					label = f'Class {cl}', edgecolor = 'black' )
-
 			# plot all examples
 			if test_idx:
 				X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-
-			plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-				alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
+				plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black', alpha=1.0,
+					linewidth=1, marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
