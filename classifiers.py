@@ -273,15 +273,10 @@ class PerceptronClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.perceptron_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.perceptron_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -308,12 +303,9 @@ class PerceptronClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.perceptron_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.perceptron_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -342,16 +334,11 @@ class PerceptronClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.perceptron_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.perceptron_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -387,29 +374,24 @@ class PerceptronClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.perceptron_classifier.predict( X )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared=False )
-				return \
-				{
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.perceptron_classifier.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -438,21 +420,16 @@ class PerceptronClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.perceptron_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.perceptron_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -479,40 +456,35 @@ class PerceptronClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
-						marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
+					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-							edgecolor='black', alpha=1.0, linewidth=1,
-							marker='o', s=100, label='Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
+						edgecolor='black', alpha=1.0, linewidth=1,
+						marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -614,12 +586,9 @@ class MultiLayerClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.multilayer_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			self.multilayer_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -647,13 +616,9 @@ class MultiLayerClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.multilayer_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.multilayer_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -681,16 +646,11 @@ class MultiLayerClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.multilayer_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -719,29 +679,24 @@ class MultiLayerClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.multilayer_classifier.predict( X )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
-				return \
-				{
-						'MSE': self.mean_squared_error,
-						'RMSE': self.r_mean_squared_error,
-						'R2': self.r2_score,
-						'Explained Variance': self.explained_variance_score,
-						'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_classifier.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared = False )
+			return \
+			{
+					'MSE': self.mean_squared_error,
+					'RMSE': self.r_mean_squared_error,
+					'R2': self.r2_score,
+					'Explained Variance': self.explained_variance_score,
+					'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -770,21 +725,16 @@ class MultiLayerClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.multilayer_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -810,41 +760,36 @@ class MultiLayerClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -956,15 +901,10 @@ class RidgeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.ridge_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.ridge_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -992,12 +932,9 @@ class RidgeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.ridge_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.ridge_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1026,16 +963,11 @@ class RidgeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.ridge_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ridge_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1064,31 +996,26 @@ class RidgeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.ridge_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ridge_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared = False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1117,21 +1044,16 @@ class RidgeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.ridge_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ridge_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1155,41 +1077,36 @@ class RidgeClassifier( Classifier ):
 			
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1303,15 +1220,10 @@ class StochasticGradientClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.stochastic_classifier.fit( X, y )
-				return self
-				throw_if( 'X', X )
-				throw_if( 'y', y )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.stochastic_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1338,12 +1250,9 @@ class StochasticGradientClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.stochastic_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.stochastic_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1371,16 +1280,11 @@ class StochasticGradientClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.stochastic_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stochastic_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1414,31 +1318,26 @@ class StochasticGradientClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.stochastic_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared=False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stochastic_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1466,21 +1365,16 @@ class StochasticGradientClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.stochastic_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stochastic_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1507,41 +1401,36 @@ class StochasticGradientClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1644,15 +1533,10 @@ class NearestNeighborClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.neighbor_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.neighbor_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1679,12 +1563,9 @@ class NearestNeighborClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.neighbor_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.neighbor_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1712,15 +1593,10 @@ class NearestNeighborClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.neighbor_classifier.predict( X )
-				return accuracy_score( y, self.prediction )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.neighbor_classifier.predict( X )
+			return accuracy_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1756,31 +1632,26 @@ class NearestNeighborClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.neighbor_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.neighbor_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared = False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1808,21 +1679,16 @@ class NearestNeighborClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.neighbor_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.neighbor_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1849,41 +1715,36 @@ class NearestNeighborClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1982,15 +1843,10 @@ class DecisionTreeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.dt_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.dt_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2018,12 +1874,9 @@ class DecisionTreeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.dt_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.dt_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2052,16 +1905,11 @@ class DecisionTreeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.dt_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.dt_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2098,31 +1946,26 @@ class DecisionTreeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.dt_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.dt_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared = False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2151,21 +1994,16 @@ class DecisionTreeClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.dt_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.dt_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2188,41 +2026,36 @@ class DecisionTreeClassifier( Classifier ):
 			
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2329,15 +2162,10 @@ class RandomForestClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.random_forest_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.random_forest_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2365,12 +2193,9 @@ class RandomForestClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.random_forest_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.random_forest_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2398,16 +2223,11 @@ class RandomForestClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.random_forest_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.random_forest_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2435,31 +2255,26 @@ class RandomForestClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.random_forest_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared=False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.random_forest_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2488,21 +2303,16 @@ class RandomForestClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.random_forest_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.random_forest_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2529,41 +2339,36 @@ class RandomForestClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2672,15 +2477,10 @@ class GradientBoostingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.gradient_boost_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.gradient_boost_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2707,12 +2507,9 @@ class GradientBoostingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.gradient_boost_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.gradient_boost_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2740,16 +2537,11 @@ class GradientBoostingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.gradient_boost_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.gradient_boost_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2776,31 +2568,26 @@ class GradientBoostingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.gradient_boost_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared=False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.gradient_boost_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2823,14 +2610,24 @@ class GradientBoostingClassifier( Classifier ):
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
-		self.prediction = self.gradient_boost_classifier.predict( X )
-		cm = confusion_matrix( y, self.prediction )
-		sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-		plt.xlabel( 'Predicted' )
-		plt.ylabel( 'Actual' )
-		plt.title( 'Confusion Matrix' )
-		plt.tight_layout( )
-		plt.show( )
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.gradient_boost_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingClassifier'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
 	                           resolution = 0.02 ):
@@ -2850,41 +2647,36 @@ class GradientBoostingClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+			np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ], marker = markers[ idx ],
+					label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+			# plot all examples
+			if test_idx:
+				X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+
+			plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
+				alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2976,15 +2768,10 @@ class AdaBoostClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.ada_boost_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.ada_boost_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3010,12 +2797,9 @@ class AdaBoostClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.ada_boost_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.ada_boost_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3042,16 +2826,11 @@ class AdaBoostClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.ada_boost_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ada_boost_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3078,31 +2857,26 @@ class AdaBoostClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.ada_boost_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ada_boost_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared = False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3130,21 +2904,16 @@ class AdaBoostClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.ada_boost_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ada_boost_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3171,41 +2940,36 @@ class AdaBoostClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3302,15 +3066,10 @@ class BaggingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.bagging_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.bagging_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3336,12 +3095,9 @@ class BaggingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.bagging_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.bagging_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3368,16 +3124,11 @@ class BaggingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.bagging_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bagging_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3404,30 +3155,25 @@ class BaggingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					square=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared=False )
-				return \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.r_mean_squared_error,
-							'R2': self.r2_score,
-							'Explained Variance': self.explained_variance_score,
-							'Median Absolute Error': self.median_absolute_error,
-					}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				square=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3457,21 +3203,16 @@ class BaggingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.bagging_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bagging_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3498,41 +3239,36 @@ class BaggingClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3623,15 +3359,10 @@ class VotingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.voting_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.voting_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3657,12 +3388,9 @@ class VotingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.voting_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.voting_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3689,16 +3417,11 @@ class VotingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.voting_classifier.predict( X )
-				self.accuracy = accuracy_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.voting_classifier.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3725,31 +3448,26 @@ class VotingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.voting_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared = False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.voting_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared = False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3777,21 +3495,16 @@ class VotingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.voting_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.voting_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3818,41 +3531,36 @@ class VotingClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3941,15 +3649,10 @@ class StackingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.stacking_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.stacking_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3975,12 +3678,9 @@ class StackingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.stacking_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.stacking_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4007,16 +3707,11 @@ class StackingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.stacking_classifier.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stacking_classifier.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4042,31 +3737,26 @@ class StackingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.stacking_classifier.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared = False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.median_absolute_error = median_absolute_error( y, self.prediction,
-					squared=False )
-				return \
-				{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stacking_classifier.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared = False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4092,21 +3782,16 @@ class StackingClassifier( Classifier ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.stacking_classifier.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
-				plt.xlabel( 'Predicted' )
-				plt.ylabel( 'Actual' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stacking_classifier.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4134,41 +3819,36 @@ class StackingClassifier( Classifier ):
 			:type resolution: float
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4257,15 +3937,10 @@ class SupportVectorClassifier:
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.svc_classifier.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.svc_classifier.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4288,12 +3963,9 @@ class SupportVectorClassifier:
 			
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				throw_if( 'X', X )
-				self.prediction = self.svc_classifier.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.svc_classifier.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4318,16 +3990,11 @@ class SupportVectorClassifier:
 			
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" cannot be None')
-			elif y_true is None:
-				raise Exception( 'The argument "y_true" cannot be None')
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.svc_classifier.predict( X )
-				self.accuracy = accuracy_score( y_true, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y_true', y_true )
+			self.prediction = self.svc_classifier.predict( X )
+			self.accuracy = accuracy_score( y_true, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4352,15 +4019,10 @@ class SupportVectorClassifier:
 			
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" cannot be None' )
-			elif y_true is None:
-				raise Exception( 'The argument "y_true" cannot be None' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.svc_classifier.predict( X )
-				return classification_report( y_true, self.prediction )
+			throw_if( 'X', X )
+			throw_if( 'y_true', y_true )
+			self.prediction = self.svc_classifier.predict( X )
+			return classification_report( y_true, self.prediction )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4385,21 +4047,16 @@ class SupportVectorClassifier:
 			
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" cannot be None' )
-			elif y_true is None:
-				raise Exception( 'The argument "y_true" cannot be None' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.svc_classifier.predict( X )
-				cm = confusion_matrix( y_true, self.prediction )
-				sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-				plt.xlabel( 'Projected' )
-				plt.ylabel( 'Observed' )
-				plt.title( 'Confusion Matrix' )
-				plt.tight_layout( )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y_true', y_true )
+			self.prediction = self.svc_classifier.predict( X )
+			cm = confusion_matrix( y_true, self.prediction )
+			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
+			plt.xlabel( 'Projected' )
+			plt.ylabel( 'Observed' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4425,41 +4082,36 @@ class SupportVectorClassifier:
 
 		'''
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				# setup marker generator and color map
-				markers = ('o', 's', '^', 'v', '<')
-				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-				cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
 
-				# plot the decision surface
-				x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-				x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-				xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-					np.arange( x2_min, x2_max, resolution ) )
-				lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-				lab = lab.reshape( xx1.shape )
-				plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
-				plt.xlim( xx1.min( ), xx1.max( ) )
-				plt.ylim( xx2.min( ), xx2.max( ) )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha = 0.3, cmap = cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
 
-				# plot class examples
-				for idx, cl in enumerate( np.unique( y ) ):
-					plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
-						c = colors[ idx ],
-						marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x = X[ y == cl, 0 ], y = X[ y == cl, 1 ], alpha = 0.8,
+					c = colors[ idx ],
+					marker = markers[ idx ], label = f'Class {cl}', edgecolor = 'black' )
 
-					# plot all examples
-					if test_idx:
-						X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-						plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
-							edgecolor = 'black', alpha = 1.0, linewidth = 1,
-							marker = 'o', s = 100, label = 'Test set' )
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c = 'none',
+						edgecolor = 'black', alpha = 1.0, linewidth = 1,
+						marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
