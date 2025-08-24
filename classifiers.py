@@ -63,9 +63,12 @@ import sklearn.neural_network as snn
 from sklearn.pipeline import Pipeline
 import sklearn.svm as skv
 import sklearn.tree as skd
-
 from booger import Error, ErrorDialog
 
+
+def throw_if( name: str, value: object ):
+	if not value:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Classifier( ):
 	"""
@@ -275,11 +278,13 @@ class PerceptronClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.perceptron_classifier.fit( X, y )
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PerceptronClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -310,7 +315,7 @@ class PerceptronClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PerceptronClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -346,7 +351,7 @@ class PerceptronClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PerceptronClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -402,7 +407,7 @@ class PerceptronClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PerceptronClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -443,7 +448,7 @@ class PerceptronClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PerceptronClassifier'
 			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -501,7 +506,7 @@ class PerceptronClassifier( Classifier ):
 							marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PerceptronClassifier'
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 )'
 			error = ErrorDialog( exception )
@@ -607,7 +612,7 @@ class MultiLayerClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MultiLayerClassifier'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -639,7 +644,7 @@ class MultiLayerClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MultilayerRegression'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -674,7 +679,7 @@ class MultiLayerClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MultilayerRegression'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -723,7 +728,7 @@ class MultiLayerClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MultiLayerClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -764,7 +769,7 @@ class MultiLayerClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MultiLayerClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -822,7 +827,7 @@ class MultiLayerClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -940,7 +945,7 @@ class RidgeClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -972,7 +977,7 @@ class RidgeClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1008,7 +1013,7 @@ class RidgeClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1059,7 +1064,7 @@ class RidgeClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -1100,7 +1105,7 @@ class RidgeClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeClassifier'
 			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1156,7 +1161,7 @@ class RidgeClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeClassifier'
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -1276,7 +1281,7 @@ class StochasticGradientClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -1307,7 +1312,7 @@ class StochasticGradientClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1342,7 +1347,7 @@ class StochasticGradientClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1398,7 +1403,7 @@ class StochasticGradientClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -1438,7 +1443,7 @@ class StochasticGradientClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1497,7 +1502,7 @@ class StochasticGradientClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientClassifier'
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -1606,7 +1611,7 @@ class NearestNeighborClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1637,7 +1642,7 @@ class NearestNeighborClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1671,7 +1676,7 @@ class NearestNeighborClassifier( Classifier ):
 				return accuracy_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1729,7 +1734,7 @@ class NearestNeighborClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -1769,7 +1774,7 @@ class NearestNeighborClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbotClassifier'
 			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1828,7 +1833,7 @@ class NearestNeighborClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborClassifier'
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -1933,7 +1938,7 @@ class DecisionTreeClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1965,7 +1970,7 @@ class DecisionTreeClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2001,7 +2006,7 @@ class DecisionTreeClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -2060,7 +2065,7 @@ class DecisionTreeClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -2101,7 +2106,7 @@ class DecisionTreeClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -2156,7 +2161,7 @@ class DecisionTreeClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -2269,7 +2274,7 @@ class RandomForestClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -2301,7 +2306,7 @@ class RandomForestClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2336,7 +2341,7 @@ class RandomForestClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -2386,7 +2391,7 @@ class RandomForestClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -2427,7 +2432,7 @@ class RandomForestClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -2486,7 +2491,7 @@ class RandomForestClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -2601,7 +2606,7 @@ class GradientBoostingClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'GradientBoostClassification'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassifier'
 			error = ErrorDialog( exception )
@@ -2632,7 +2637,7 @@ class GradientBoostingClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'GradientBoostClassification'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2667,7 +2672,7 @@ class GradientBoostingClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'GradientBoostingClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -2716,7 +2721,7 @@ class GradientBoostingClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'GradientBoostingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -2798,7 +2803,7 @@ class GradientBoostingClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -2896,7 +2901,7 @@ class AdaBoostClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -2926,7 +2931,7 @@ class AdaBoostClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2960,7 +2965,7 @@ class AdaBoostClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3009,7 +3014,7 @@ class AdaBoostClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -3049,7 +3054,7 @@ class AdaBoostClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -3108,7 +3113,7 @@ class AdaBoostClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -3211,7 +3216,7 @@ class BaggingClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -3241,7 +3246,7 @@ class BaggingClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3275,7 +3280,7 @@ class BaggingClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3323,7 +3328,7 @@ class BaggingClassifier( Classifier ):
 					}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -3365,7 +3370,7 @@ class BaggingClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -3424,7 +3429,7 @@ class BaggingClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -3521,7 +3526,7 @@ class VotingClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -3551,7 +3556,7 @@ class VotingClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3585,7 +3590,7 @@ class VotingClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3634,7 +3639,7 @@ class VotingClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -3674,7 +3679,7 @@ class VotingClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -3733,7 +3738,7 @@ class VotingClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -3828,7 +3833,7 @@ class StackingClassifier( Classifier ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -3858,7 +3863,7 @@ class StackingClassifier( Classifier ):
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3892,7 +3897,7 @@ class StackingClassifier( Classifier ):
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3940,7 +3945,7 @@ class StackingClassifier( Classifier ):
 				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
@@ -3978,7 +3983,7 @@ class StackingClassifier( Classifier ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -4038,7 +4043,7 @@ class StackingClassifier( Classifier ):
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
@@ -4133,7 +4138,7 @@ class SupportVectorClassifier:
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )
@@ -4160,7 +4165,7 @@ class SupportVectorClassifier:
 				return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassifier'
 			error = ErrorDialog( exception )
@@ -4192,7 +4197,7 @@ class SupportVectorClassifier:
 				return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
 			error = ErrorDialog( exception )
@@ -4223,7 +4228,7 @@ class SupportVectorClassifier:
 				return classification_report( y_true, self.prediction )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
 			error = ErrorDialog( exception )
@@ -4260,7 +4265,7 @@ class SupportVectorClassifier:
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y_true: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -4318,7 +4323,7 @@ class SupportVectorClassifier:
 							marker = 'o', s = 100, label = 'Test set' )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )

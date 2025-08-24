@@ -63,6 +63,9 @@ from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
 from preprocessors import Preprocessor
 
+def throw_if( name: str, value: object ):
+	if not value:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 def entropy( p: float ) -> float | None:
 	'''
@@ -332,12 +335,9 @@ class DataSource( ):
 
 		"""
 		try:
-			if not name:
-				raise Exception( 'Argument "name" cannot be None or empty' )
-			if encoder is None:
-				raise Exception( 'Argument "encoder" cannot be None' )
-			if not columns:
-				raise Exception( 'Argument "columns" cannot be None or empty' )
+			throw_if( 'name', name )
+			throw_if( 'encoder', encoder )
+			throw_if( 'columns', columns )
 			self.transtuple.append( (name, encoder, columns) )
 			self.column_transformer = ColumnTransformer(
 				transformers=self.transtuple,
@@ -346,7 +346,7 @@ class DataSource( ):
 			_ = self.column_transformer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'transform_columns( self, name: str, encoder: object, n_features: List[ str ] )'
 			error = ErrorDialog( exception )
@@ -371,7 +371,7 @@ class DataSource( ):
 			return self.numeric_metrics
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
 			error = ErrorDialog( exception )
@@ -394,7 +394,7 @@ class DataSource( ):
 			return self.categorical_metrics
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
@@ -420,21 +420,17 @@ class DataSource( ):
 
 		'''
 		try:
-			if df is None:
-				raise Exception( 'Argument "df" cannot be None' )
-			if not cols:
-				raise Exception( 'Argument "cols" cannot be None or empty' )
-			if not vals:
-				raise Exception( 'Argument "vals" cannot be None or empty' )
-			if not idx:
-				raise Exception( 'Argument "idx" cannot be None or empty' )
-			_df = df.copy( )
-			self.pivot_table = pd.pivot_table( data=_df, index=idx, columns=cols,
+			throw_if( 'df', df )
+			throw_if( 'cols', cols )
+			throw_if( 'vals', vals )
+			throw_if( 'idx', idx )
+			self.dataframe = df.copy( )
+			self.pivot_table = pd.pivot_table( data=self.dataframe, index=idx, columns=cols,
 				values=vals, aggfun='sum', dropna=True, margins=True )
 			return self.pivot_table
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
@@ -454,13 +450,11 @@ class DataSource( ):
 			:rtype:
 		'''
 		try:
-			if filepath is None:
-				raise Exception( 'Argument "filepath" cannot be None' )
-			else:
-				self.dataframe.to_excel( filepath )
+			throw_if( 'filepath', filepath )
+			self.dataframe.to_excel( filepath )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'export_excel( self, filepath: str=None ) -> None'
 			error = ErrorDialog( exception )
@@ -485,7 +479,7 @@ class DataSource( ):
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'data'
 			exception.method = 'show_histogram( self )'
 			error = ErrorDialog( exception )
@@ -501,8 +495,7 @@ class DataSource( ):
 
 		'''
 		try:
-			if df is None:
-				raise Exception( 'Argument "df" cannot be None' )
+			throw_if( 'df', df )
 			_df = df.select_dtypes( 'number' ) if numbers_only else df
 			series = _df.mean( axis = axes )
 			plt.figure( figsize = (8, 6) )
@@ -513,7 +506,7 @@ class DataSource( ):
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'data'
 			exception.method = 'create_histogram( self, df: pd.DataFrame '
 			error = ErrorDialog( exception )
@@ -530,14 +523,14 @@ class DataSource( ):
 			if strategy is None:
 				raise Exception( 'Argument "strategy" cannot be None' )
 			else:
-				_correlation = self.dataframe.corr( method = strategy, numeric_only = numbers_only )
+				_correlation = self.dataframe.corr( method=strategy, numeric_only=numbers_only )
 				plt.figure( figsize = (10, 6) )
 				sns.heatmap( _correlation, cmap = "coolwarm", annot = True )
 				plt.title( "Pearson Correlation" )
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'data'
 			exception.method = 'show_correlation_analysis( self )'
 			error = ErrorDialog( exception )
@@ -553,20 +546,16 @@ class DataSource( ):
 
 		'''
 		try:
-			if df is None:
-				raise Exception( 'Argument "df" cannot be None' )
-			elif strategy is None:
-				raise Exception( 'Argument "strategy" cannot be None' )
-			else:
-				_dataframe = df.copy( )
-				_correlation = _dataframe.corr( method = strategy, numeric_only = numbers_only )
-				plt.figure( figsize = (10, 6) )
-				sns.heatmap( _correlation, cmap = 'coolwarm', annot = True )
-				plt.title( 'Pearson Correlation' )
-				plt.show( )
+			throw_if( 'df', df )
+			_dataframe = df.copy( )
+			_correlation = _dataframe.corr( method=strategy, numeric_only=numbers_only )
+			plt.figure( figsize=( 10, 6 ) )
+			sns.heatmap( _correlation, cmap='coolwarm', annot=True )
+			plt.title( 'Pearson Correlation' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'data'
 			exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
 			error = ErrorDialog( exception )
@@ -591,19 +580,13 @@ class DataSource( ):
 
 		'''
 		try:
-			if axes is None:
-				raise Exception( 'Argument "axes" cannot be None' )
-			elif df is None:
-				raise Exception( 'Argument "df" cannot be None' )
-			elif numeric is None:
-				raise Exception( 'Argument "numeric" cannot be None' )
-			else:
-				_dataframe = df.copy( )
-				_deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
-				return _deviation
+			throw_if( 'df', df )
+			_dataframe = df.copy( )
+			_deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
+			return _deviation
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = ('calculate_average( self, df: pd.DataFrame, axes: int=0, '
 			                    'numeric: bool=True ) -> pd.Series ')
@@ -646,7 +629,7 @@ class DataSource( ):
 				return _variance
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
@@ -680,7 +663,7 @@ class DataSource( ):
 				return _skew
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
@@ -712,7 +695,7 @@ class DataSource( ):
 				return _kurtosis
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
 			error = ErrorDialog( exception )
@@ -751,7 +734,7 @@ class DataSource( ):
 				return _error
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'calculate_standard_error( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
@@ -790,7 +773,7 @@ class DataSource( ):
 				return _deviation
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'calculate_standard_deviation( self, axes: int=0, degree: int=1 ) -> pd.Series'
 			error = ErrorDialog( exception )
@@ -844,7 +827,7 @@ class VarianceThreshold( ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'Data'
 			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
 			error = ErrorDialog( exception )
@@ -871,7 +854,7 @@ class VarianceThreshold( ):
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'Data'
 			exception.method = ''
 			error = ErrorDialog( exception )
@@ -899,7 +882,7 @@ class VarianceThreshold( ):
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'Data'
 			exception.method = ''
 			error = ErrorDialog( exception )
@@ -960,7 +943,7 @@ class CorrelationAnalysis( ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'CorrelationAnalysis'
 			exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
 			error = ErrorDialog( exception )
@@ -992,7 +975,7 @@ class CorrelationAnalysis( ):
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'CorrelationAnalysis'
 			exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
 			error = ErrorDialog( exception )
@@ -1024,7 +1007,7 @@ class CorrelationAnalysis( ):
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'CorrelationAnalysis'
 			exception.method = 'fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
 			error = ErrorDialog( exception )
@@ -1086,7 +1069,7 @@ class ComponentAnalysis( ):
 				return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ComponentAnalysis'
 			exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
 			error = ErrorDialog( exception )
@@ -1114,7 +1097,7 @@ class ComponentAnalysis( ):
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ComponentAnalysis'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1142,7 +1125,7 @@ class ComponentAnalysis( ):
 				return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ComponentAnalysis'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )

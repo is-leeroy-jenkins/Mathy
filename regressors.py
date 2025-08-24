@@ -41,11 +41,9 @@
 ******************************************************************************************
 '''
 from __future__ import annotations
-
 from argparse import ArgumentError
 from typing import Dict
 from typing import Optional, List, Tuple
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -67,6 +65,11 @@ from sklearn.pipeline import Pipeline
 import sklearn.svm as skv
 import sklearn.tree as skd
 from booger import Error, ErrorDialog
+
+
+def throw_if( name: str, value: object ):
+	if not value:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Regressor( ):
 	"""
@@ -261,16 +264,13 @@ class MultiLayerRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.multilayer_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.multilayer_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -295,14 +295,12 @@ class MultiLayerRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.multilayer_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.multilayer_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -327,17 +325,14 @@ class MultiLayerRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.multilayer_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -363,30 +358,27 @@ class MultiLayerRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -407,22 +399,19 @@ class MultiLayerRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.multilayer_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'MLP: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'MLP: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -520,16 +509,13 @@ class LinearRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.linear_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.linear_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LinearRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -554,14 +540,12 @@ class LinearRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.linear_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.linear_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LinearRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -587,17 +571,14 @@ class LinearRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.linear_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.linear_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LinearRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -623,30 +604,27 @@ class LinearRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LinearRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -667,22 +645,19 @@ class LinearRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.linear_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Linear Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.linear_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Linear Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LinearRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -797,16 +772,13 @@ class RidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.ridge_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.ridge_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -831,14 +803,12 @@ class RidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.ridge_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.ridge_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -864,17 +834,14 @@ class RidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.ridge_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ridge_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -900,31 +867,28 @@ class RidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.ridge_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ridge_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -950,22 +914,19 @@ class RidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.ridge_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Ridge Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ridge_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Ridge Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RidgeRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1068,16 +1029,13 @@ class LassoRegression( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.lasso_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.lasso_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LassoRegression'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -1101,14 +1059,11 @@ class LassoRegression( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.lasso_regressor.predict( X )
-				return self.prediction
+			self.prediction = self.lasso_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LassoRegression'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1133,17 +1088,14 @@ class LassoRegression( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.lasso_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.lasso_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LassoRegression'
 			exception.method = 'accuracy(self, X: np.ndarray, y: np.ndarray) -> float'
 			error = ErrorDialog( exception )
@@ -1169,31 +1121,28 @@ class LassoRegression( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.lasso_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.lasso_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LassoRegression'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -1214,22 +1163,19 @@ class LassoRegression( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.lasso_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Lasso Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.lasso_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Lasso Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LassoRegression'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1337,16 +1283,13 @@ class ElasticNetRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.elasticnet_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.elasticnet_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -1372,14 +1315,12 @@ class ElasticNetRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.elasticnet_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.elasticnet_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1405,15 +1346,14 @@ class ElasticNetRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.elasticnet_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.elasticnet_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1440,31 +1380,28 @@ class ElasticNetRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.elasticnet_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.elasticnet_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -1485,22 +1422,19 @@ class ElasticNetRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.elasticnet_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'ElasticNet Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.elasticnet_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'ElasticNet Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1603,16 +1537,13 @@ class LogisticRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.logistic_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.logistic_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LogisticRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -1636,14 +1567,12 @@ class LogisticRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.logistic_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.logistic_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LogisticRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1669,17 +1598,14 @@ class LogisticRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.logistic_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LogisticRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1711,31 +1637,28 @@ class LogisticRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.logistic_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-						"MAE": mean_absolute_error( y, self.prediction ),
-						"MSE": mean_squared_error( y, self.prediction ),
-						"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-						"R2": r2_score( y, self.prediction ),
-						"Explained Variance": explained_variance_score( y, self.prediction ),
-						"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LogisticRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -1759,20 +1682,17 @@ class LogisticRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.logistic_regressor.predict( X )
-				cm = confusion_matrix( y, self.prediction )
-				ConfusionMatrixDisplay( confusion_matrix=cm )
-				plt.title( 'Logistic Regression Confusion Matrix' )
-				plt.grid( False )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regressor.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			ConfusionMatrixDisplay( confusion_matrix=cm )
+			plt.title( 'Logistic Regression Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LogisticRegressor'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1878,16 +1798,13 @@ class BayesianRidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.bayesian_ridge_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.bayesian_ridge_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -1911,14 +1828,12 @@ class BayesianRidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.bayesian_ridge_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1944,17 +1859,14 @@ class BayesianRidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.bayesian_ridge_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1979,31 +1891,28 @@ class BayesianRidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.bayesian_ridge_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction, average='binary' )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction, average='binary' )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -2024,22 +1933,19 @@ class BayesianRidgeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.bayesian_ridge_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Bayesian-Ridge Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Bayesian-Ridge Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BayesianRidgeRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -2154,16 +2060,13 @@ class StochasticGradientRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.stochastic_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.stochastic_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -2187,14 +2090,12 @@ class StochasticGradientRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.stochastic_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.stochastic_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientRegressor'
 			exception.method = ''
 			error = ErrorDialog( exception )
@@ -2219,17 +2120,14 @@ class StochasticGradientRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.stochastic_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stochastic_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -2254,31 +2152,28 @@ class StochasticGradientRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.stochastic_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stochastic_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientRegressor'
 			exception.method = ''
 			error = ErrorDialog( exception )
@@ -2299,22 +2194,19 @@ class StochasticGradientRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.stochastic_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Stochastic Gradient Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stochastic_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Stochastic Gradient Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StochasticGradientRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -2419,16 +2311,13 @@ class NearestNeighborRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.neighbor_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.neighbor_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -2452,14 +2341,12 @@ class NearestNeighborRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.neighbor_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.neighbor_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2484,17 +2371,14 @@ class NearestNeighborRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.neighbor_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.neighbor_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -2520,31 +2404,28 @@ class NearestNeighborRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.neighbor_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction  )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.neighbor_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -2569,22 +2450,19 @@ class NearestNeighborRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.neighbor_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Nearest-Neighbor Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.neighbor_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Nearest-Neighbor Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -2682,16 +2560,13 @@ class DecisionTreeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.dt_regresssor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.dt_regresssor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -2715,14 +2590,12 @@ class DecisionTreeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.dt_regresssor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.dt_regresssor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2747,17 +2620,14 @@ class DecisionTreeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.dt_regresssor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.dt_regresssor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -2783,31 +2653,28 @@ class DecisionTreeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.dt_regresssor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.dt_regresssor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+				{
+						"MAE": mean_absolute_error( y, self.prediction ),
+						"MSE": mean_squared_error( y, self.prediction ),
+						"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+						"R2": r2_score( y, self.prediction ),
+						"Explained Variance": explained_variance_score( y, self.prediction ),
+						"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -2832,22 +2699,19 @@ class DecisionTreeRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.dt_regresssor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Decision Tree Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.dt_regresssor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Decision Tree Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -2958,16 +2822,13 @@ class RandomForestRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.random_forest_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.random_forest_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -2991,14 +2852,12 @@ class RandomForestRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.random_forest_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.random_forest_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3023,17 +2882,14 @@ class RandomForestRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.random_forest_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.random_forest_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3058,31 +2914,28 @@ class RandomForestRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.random_forest_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.random_forest_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+				{
+						"MAE": mean_absolute_error( y, self.prediction ),
+						"MSE": mean_squared_error( y, self.prediction ),
+						"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+						"R2": r2_score( y, self.prediction ),
+						"Explained Variance": explained_variance_score( y, self.prediction ),
+						"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -3107,22 +2960,19 @@ class RandomForestRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.random_forest_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Random Forest Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.random_forest_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Random Forest Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RandomForestRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -3227,8 +3077,18 @@ class GradientBoostingRegressor( Regressor ):
 			self
 
 		"""
-		self.gradient_boost_regressor.fit( X, y )
-		return self
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.gradient_boost_regressor.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
@@ -3247,8 +3107,17 @@ class GradientBoostingRegressor( Regressor ):
 			np.ndarray: Predicted target values.
 
 		"""
-		self.prediction = self.gradient_boost_regressor.predict( X )
-		return self.prediction
+		try:
+			throw_if( 'X', X )
+			self.prediction = self.gradient_boost_regressor.predict( X )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
@@ -3268,9 +3137,19 @@ class GradientBoostingRegressor( Regressor ):
 			float: R² accuracy.
 
 		"""
-		self.prediction = self.gradient_boost_regressor.predict( X )
-		self.accuracy = r2_score( y, self.prediction )
-		return self.accuracy
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.gradient_boost_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
@@ -3290,16 +3169,26 @@ class GradientBoostingRegressor( Regressor ):
 			Dict[str, float]: Evaluation metrics.
 
 		"""
-		self.prediction = self.gradient_boost_regressor.predict( X )
-		return \
-		{
-			'MAE': mean_absolute_error( y, self.prediction ),
-			'MSE': mean_squared_error( y, self.prediction ),
-			'RMSE': mean_squared_error( y, self.prediction, squared=False ),
-			'R2': r2_score( y, self.prediction ),
-			'Explained Variance': explained_variance_score( y, self.prediction ),
-			'Median Absolute Error': median_absolute_error( y, self.prediction )
-		}
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.gradient_boost_regressor.predict( X )
+			return \
+			{
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction )
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -3315,14 +3204,24 @@ class GradientBoostingRegressor( Regressor ):
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 		"""
-		self.prediction = self.gradient_boost_regressor.predict( X )
-		plt.scatter( y, self.prediction, alpha = 0.6 )
-		plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-		plt.xlabel( 'Observed' )
-		plt.ylabel( 'Projected' )
-		plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
-		plt.grid( True )
-		plt.show( )
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.gradient_boost_regressor.predict( X )
+			plt.scatter( y, self.prediction, alpha = 0.6 )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
+			plt.grid( True )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class AdaBoostRegressor( Regressor ):
 	"""
@@ -3421,16 +3320,13 @@ class AdaBoostRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.ada_boost_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.ada_boost_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -3453,14 +3349,12 @@ class AdaBoostRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.ada_boost_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.ada_boost_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3486,17 +3380,14 @@ class AdaBoostRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.ada_boost_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ada_boost_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3519,31 +3410,28 @@ class AdaBoostRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.ada_boost_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction  )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ada_boost_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+				{
+						"MAE": mean_absolute_error( y, self.prediction ),
+						"MSE": mean_squared_error( y, self.prediction ),
+						"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+						"R2": r2_score( y, self.prediction ),
+						"Explained Variance": explained_variance_score( y, self.prediction ),
+						"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -3566,22 +3454,19 @@ class AdaBoostRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.ada_boost_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'ADA Boost Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.ada_boost_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'ADA Boost Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AdaBoostRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -3681,16 +3566,13 @@ class BaggingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.bagging_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.bagging_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -3712,14 +3594,12 @@ class BaggingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.bagging_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.bagging_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3742,17 +3622,14 @@ class BaggingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.bagging_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bagging_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -3775,31 +3652,28 @@ class BaggingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.bagging_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bagging_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+				{
+						"MAE": mean_absolute_error( y, self.prediction ),
+						"MSE": mean_squared_error( y, self.prediction ),
+						"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+						"R2": r2_score( y, self.prediction ),
+						"Explained Variance": explained_variance_score( y, self.prediction ),
+						"Median Absolute Error": median_absolute_error( y, self.prediction )
+				}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -3822,22 +3696,19 @@ class BaggingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.bagging_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Bagging Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.bagging_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Bagging Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BaggingRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -3926,16 +3797,13 @@ class VotingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.voting_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.voting_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -3959,14 +3827,12 @@ class VotingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.voting_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.voting_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -3989,17 +3855,14 @@ class VotingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.voting_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.voting_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -4022,31 +3885,28 @@ class VotingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.voting_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.voting_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -4074,6 +3934,8 @@ class VotingRegressor( Regressor ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.voting_regressor.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
@@ -4084,7 +3946,7 @@ class VotingRegressor( Regressor ):
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'VotingRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -4185,16 +4047,13 @@ class StackingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.stacking_regressor.fit( X, y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.stacking_regressor.fit( X, y )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -4217,14 +4076,12 @@ class StackingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.prediction = self.stacking_regressor.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.stacking_regressor.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -4248,17 +4105,14 @@ class StackingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.stacking_regressor.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stacking_regressor.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -4282,31 +4136,28 @@ class StackingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.stacking_regressor.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = f1_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-					{
-							"MAE": mean_absolute_error( y, self.prediction ),
-							"MSE": mean_squared_error( y, self.prediction ),
-							"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-							"R2": r2_score( y, self.prediction ),
-							"Explained Variance": explained_variance_score( y, self.prediction ),
-							"Median Absolute Error": median_absolute_error( y, self.prediction )
-					}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stacking_regressor.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = f1_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -4331,22 +4182,19 @@ class StackingRegressor( Regressor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.stacking_regressor.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Stacking Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.stacking_regressor.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Stacking Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StackingRegressor'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -4429,8 +4277,18 @@ class SupportVectorRegressor:
 			self
 
 		"""
-		self.svr_model.fit( X, y )
-		return self
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.svr_model.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SupportVectorRegressor'
+			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
 
 
 	def project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:
@@ -4447,15 +4305,12 @@ class SupportVectorRegressor:
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				return self.svr_model.predict( X )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			return self.svr_model.predict( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorRegressor'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -4482,17 +4337,14 @@ class SupportVectorRegressor:
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.svr_model.predict( X )
-				self.accuracy = r2_score( y, self.prediction )
-				return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.svr_model.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SupportVectorRegressor'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -4513,31 +4365,28 @@ class SupportVectorRegressor:
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.svr_model.predict( X )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-					squared=False )
-				self.r2_score = r2_score( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				return \
-				{
-					"MAE": mean_absolute_error( y, self.prediction ),
-					"MSE": mean_squared_error( y, self.prediction ),
-					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-					"R2": r2_score( y, self.prediction ),
-					"Explained Variance": explained_variance_score( y, self.prediction ),
-					"Median Absolute Error": median_absolute_error( y, self.prediction )
-				}
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.svr_model.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return \
+			{
+				"MAE": mean_absolute_error( y, self.prediction ),
+				"MSE": mean_squared_error( y, self.prediction ),
+				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+				"R2": r2_score( y, self.prediction ),
+				"Explained Variance": explained_variance_score( y, self.prediction ),
+				"Median Absolute Error": median_absolute_error( y, self.prediction )
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
@@ -4558,22 +4407,19 @@ class SupportVectorRegressor:
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			elif y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.prediction = self.svr_model.predict( X )
-				plt.scatter( y, self.prediction, color = 'blue', edgecolor = 'k' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.xlabel( "True Values" )
-				plt.ylabel( "Predicted Values" )
-				plt.title( "SVR: True vs Predicted" )
-				plt.grid( True )
-				plt.tight_layout( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.svr_model.predict( X )
+			plt.scatter( y, self.prediction, color = 'blue', edgecolor = 'k' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.xlabel( "True Values" )
+			plt.ylabel( "Predicted Values" )
+			plt.title( "SVR: True vs Predicted" )
+			plt.grid( True )
+			plt.tight_layout( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )

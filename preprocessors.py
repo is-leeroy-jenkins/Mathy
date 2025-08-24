@@ -49,6 +49,11 @@ import sklearn.preprocessing as skp
 import sklearn.impute as ski
 
 
+def throw_if( name: str, value: object ):
+	if not value:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+
+
 class Preprocessor( ):
 	"""
 
@@ -189,11 +194,9 @@ class LabelBinarizer( Preprocessor ):
 
 		"""
 		try:
-			if y is None:
-				raise Exception( '"y" cannot be None' )
-			else:
-				self.label_binarizer.fit( y )
-				return self
+			throw_if( 'y', y )
+			self.label_binarizer.fit( y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -223,11 +226,9 @@ class LabelBinarizer( Preprocessor ):
 				:type X:
 		"""
 		try:
-			if y is None:
-				raise Exception( '"y" cannot be None' )
-			else:
-				self.transformed_data = self.label_binarizer.transform( y )
-				return self.transformed_data
+			throw_if( 'y', y )
+			self.transformed_data = self.label_binarizer.transform( y )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -253,11 +254,9 @@ class LabelBinarizer( Preprocessor ):
 				np.ndarray: Binary-encoded label matrix.
 		"""
 		try:
-			if y is None:
-				raise Exception( '"y" cannot be None' )
-			else:
-				self.transformed_data = self.label_binarizer.fit_transform( y )
-				return self.transformed_data
+			throw_if( 'y', y )
+			self.transformed_data = self.label_binarizer.fit_transform( y )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -282,10 +281,8 @@ class LabelBinarizer( Preprocessor ):
 			np.ndarray: Original target_names.
 		"""
 		try:
-			if y is None:
-				raise Exception( '"y" cannot be None' )
-			else:
-				return self.label_binarizer.inverse_transform( y )
+			throw_if( 'y', y )
+			return self.label_binarizer.inverse_transform( y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -351,11 +348,9 @@ class TfidfTransformer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				self.tfidf_transformer.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.tfidf_transformer.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -382,11 +377,9 @@ class TfidfTransformer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				self.transformed_data = self.tfidf_transformer.transform( X ).toarray( )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.tfidf_transformer.transform( X ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -409,11 +402,9 @@ class TfidfTransformer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				self.transformed_data = self.tfidf_transformer.fit_transform( X ).toarray( )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.tfidf_transformer.fit_transform( X ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -475,11 +466,9 @@ class TfidfVectorizer( Preprocessor ):
 
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				self.tfidf_vectorizer.fit( text )
-				return self
+			throw_if( 'text', text )
+			self.tfidf_vectorizer.fit( text )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -504,11 +493,9 @@ class TfidfVectorizer( Preprocessor ):
 			:rtype: np.ndarray
 		"""
 		try:
-			if text is None:
-				raise Exception( ' "text" cannot be None' )
-			else:
-				self.transformed_data = self.tfidf_vectorizer.transform( text ).toarray( )
-				return self.transformed_data
+			throw_if( 'text', text )
+			self.transformed_data = self.tfidf_vectorizer.transform( text ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -533,11 +520,9 @@ class TfidfVectorizer( Preprocessor ):
 			:rtype: np.ndarray
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				self.transformed_data = self.tfidf_vectorizer.fit_transform( text ).toarray( )
-				return self.transformed_data
+			throw_if( 'text', text )
+			self.transformed_data = self.tfidf_vectorizer.fit_transform( text ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -560,10 +545,8 @@ class TfidfVectorizer( Preprocessor ):
 			:rtype: np.ndarray
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				return self.tfidf_vectorizer.inverse_transform( text )
+			throw_if( 'text', text )
+			return self.tfidf_vectorizer.inverse_transform( text )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -614,11 +597,9 @@ class CountVectorizer( Preprocessor ):
 
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				self.count_vectorizer.fit( text )
-				return self
+			throw_if( 'text', text )
+			self.count_vectorizer.fit( text )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -646,11 +627,9 @@ class CountVectorizer( Preprocessor ):
 
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				self.transformed_data = self.count_vectorizer.transform( text ).toarray( )
-				return self.transformed_data
+			throw_if( 'text', text )
+			self.transformed_data = self.count_vectorizer.transform( text ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -676,11 +655,9 @@ class CountVectorizer( Preprocessor ):
 
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				self.transformed_data = self.count_vectorizer.fit_transform( text ).toarray( )
-				return self.transformed_data
+			throw_if( 'text', text )
+			self.transformed_data = self.count_vectorizer.fit_transform( text ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -748,11 +725,9 @@ class HashingVectorizer( Preprocessor ):
 			:rtype: np.ndarray
 		"""
 		try:
-			if text is None:
-				raise Exception( '"text" cannot be None' )
-			else:
-				self.transformed_data = self.hash_vectorizer.transform( text ).toarray( )
-				return self.transformed_data
+			throw_if( 'text', text )
+			self.transformed_data = self.hash_vectorizer.transform( text ).toarray( )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -801,11 +776,9 @@ class StandardScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'Argument "X" is None' )
-			else:
-				self.standard_scaler.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.standard_scaler.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -835,11 +808,9 @@ class StandardScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.standard_scaler.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.standard_scaler.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -867,10 +838,8 @@ class StandardScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				return self.standard_scaler.inverse_transform( X )
+			throw_if( 'X', X )
+			return self.standard_scaler.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -921,11 +890,9 @@ class MinMaxScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.minmax_scaler.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.minmax_scaler.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -956,11 +923,9 @@ class MinMaxScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.minmax_scaler.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.minmax_scaler.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -987,10 +952,8 @@ class MinMaxScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				return self.minmax_scaler.inverse_transform( X )
+			throw_if( 'X', X )
+			return self.minmax_scaler.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1047,11 +1010,9 @@ class RobustScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.robust_scaler.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.robust_scaler.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1081,11 +1042,9 @@ class RobustScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.robust_scaler.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.robust_scaler.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1108,11 +1067,9 @@ class RobustScaler( Preprocessor ):
 			:rtype: np.ndarray
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				self.transformed_data = self.robust_scaler.inverse_transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.robust_scaler.inverse_transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1165,11 +1122,9 @@ class NormalScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.normal_scaler.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.normal_scaler.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1200,11 +1155,9 @@ class NormalScaler( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.normal_scaler.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.normal_scaler.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1260,11 +1213,9 @@ class OneHotEncoder( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.hot_encoder.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.hot_encoder.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1294,11 +1245,9 @@ class OneHotEncoder( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.hot_encoder.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.hot_encoder.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1322,11 +1271,9 @@ class OneHotEncoder( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.hot_encoder.fit_transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.hot_encoder.fit_transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1381,11 +1328,9 @@ class OrdinalEncoder( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.ordinal_encoder.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.ordinal_encoder.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1414,11 +1359,9 @@ class OrdinalEncoder( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.ordinal_encoder.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.ordinal_encoder.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1442,11 +1385,9 @@ class OrdinalEncoder( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.ordinal_encoder.fit_transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.ordinal_encoder.fit_transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1472,6 +1413,7 @@ class OrdinalEncoder( Preprocessor ):
 			if X is None:
 				raise Exception( '"X" cannot be None' )
 			else:
+				throw_if( 'X', X )
 				return self.ordinal_encoder.inverse_transform( X ).toarray( )
 		except Exception as e:
 			exception = Error( e )
@@ -1520,11 +1462,10 @@ class LabelEncoder( Preprocessor ):
 
 		"""
 		try:
-			if y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.label_encoder.fit( y )
-				return self
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.label_encoder.fit( y )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1549,11 +1490,10 @@ class LabelEncoder( Preprocessor ):
 		"""
 
 		try:
-			if y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.transformed_data = self.label_encoder.transform( y )
-				return self.transformed_data
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.transformed_data = self.label_encoder.transform( y )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1578,11 +1518,10 @@ class LabelEncoder( Preprocessor ):
 		"""
 
 		try:
-			if y is None:
-				raise Exception( 'The argument "y" is required!' )
-			else:
-				self.transformed_data = self.label_encoder.fit_transform( y )
-				return self.transformed_data
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.transformed_data = self.label_encoder.fit_transform( y )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1605,10 +1544,8 @@ class LabelEncoder( Preprocessor ):
 
 		"""
 		try:
-			if y is None:
-				raise Exception( '"y" cannot be None' )
-			else:
-				return self.label_encoder.inverse_transform( y )
+			throw_if( 'y', y )
+			return self.label_encoder.inverse_transform( y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1663,11 +1600,9 @@ class PolynomialFeatures( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.polynomial_features.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.polynomial_features.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1692,11 +1627,9 @@ class PolynomialFeatures( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.polynomial_features.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.polynomial_features.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1720,11 +1653,9 @@ class PolynomialFeatures( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.polynomial_features.fit_transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.polynomial_features.fit_transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1773,11 +1704,9 @@ class MeanImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.mean_imputer.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.mean_imputer.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1806,11 +1735,9 @@ class MeanImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.mean_imputer.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.mean_imputer.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1834,10 +1761,8 @@ class MeanImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				return self.mean_imputer.fit_transform( X )
+			throw_if( 'X', X )
+			return self.mean_imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1857,10 +1782,8 @@ class MeanImputer( Preprocessor ):
 			:param X: np.ndarray
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				return self.mean_imputer.inverse_transform( X )
+			throw_if( 'X', X )
+			return self.mean_imputer.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1921,11 +1844,9 @@ class NearestNeighborImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.knn_imputer.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.knn_imputer.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1954,11 +1875,9 @@ class NearestNeighborImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.knn_imputer.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.knn_imputer.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -1982,10 +1901,8 @@ class NearestNeighborImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.knn_imputer.fit_transform( X )
+			throw_if( 'X', X )
+			return self.knn_imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2049,10 +1966,8 @@ class IterativeImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.iterative_imputer.fit( X )
+			throw_if( 'X', X )
+			return self.iterative_imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2076,11 +1991,9 @@ class IterativeImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.iterative_imputer.transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.iterative_imputer.transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2103,10 +2016,8 @@ class IterativeImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.iterative_imputer.fit_transform( X )
+			throw_if( 'X', X )
+			return self.iterative_imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2161,10 +2072,8 @@ class SimpleImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.simple_imputer.fit( X )
+			throw_if( 'X', X )
+			return self.simple_imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2189,10 +2098,8 @@ class SimpleImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				return self.simple_imputer.transform( X )
+			throw_if( 'X', X )
+			return self.simple_imputer.transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'
@@ -2216,11 +2123,9 @@ class SimpleImputer( Preprocessor ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The argument "X" is required!' )
-			else:
-				self.transformed_data = self.simple_imputer.fit_transform( X )
-				return self.transformed_data
+			throw_if( 'X', X )
+			self.transformed_data = self.simple_imputer.fit_transform( X )
+			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'Mathy'

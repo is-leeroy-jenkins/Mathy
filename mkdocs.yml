@@ -1,0 +1,35 @@
+site_name: Mathy
+site_description: Machine learning utilities for classification, clustering, and regression
+repo_url: https://github.com/is-leeroy-jenkins/Mathy
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - toc.integrate
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [ "." ]
+          options:
+            docstring_style: google
+            show_source: true
+            separate_signature: true
+            show_root_heading: true
+            show_symbol_type_heading: true
+nav:
+  - Home: index.md
+  - Reference:
+      - API: reference/api.md

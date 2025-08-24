@@ -49,6 +49,9 @@ from booger import Error, ErrorDialog
 import sklearn.cluster as skc
 from sklearn.metrics import silhouette_score
 
+def throw_if( name: str, value: object ):
+	if not value:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Cluster( ):
 	"""
@@ -216,18 +219,19 @@ class KMeansCluster( Cluster ):
 
 		"""
 		try:
+			throw_if( 'X', X )
 			self.kmeans_cluster.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'KMeansCluster'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -245,11 +249,12 @@ class KMeansCluster( Cluster ):
 
 		"""
 		try:
+			throw_if( 'X', X )
 			self.prediction = self.kmeans_cluster.fit_predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'KMeansCluster'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -274,14 +279,13 @@ class KMeansCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
+			throw_if( 'X', X )
 			labels = self.kmeans_cluster.predict( X )
 			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'KMeansCluster'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -303,16 +307,14 @@ class KMeansCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input arguement "X" is required.' )
-			else:
-				labels = self.kmeans_cluster.predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
-				plt.title( "KMeans Cluster" )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.kmeans_cluster.predict( X )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
+			plt.title( "KMeans Cluster" )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'KMeansCluster'
 			exception.method = 'visualize( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -381,21 +383,19 @@ class DbscanCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.db_scan.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.db_scan.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DbscanCluster'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -413,14 +413,12 @@ class DbscanCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.prediction = self.db_scan.fit_predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.db_scan.fit_predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DbscanCluster'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -445,15 +443,13 @@ class DbscanCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.db_scan.fit_predict( X )
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.db_scan.fit_predict( X )
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DbscanCluster'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -474,16 +470,14 @@ class DbscanCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.db_scan.fit_predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='plasma' )
-				plt.title( 'DBSCAN Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.db_scan.fit_predict( X )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='plasma' )
+			plt.title( 'DBSCAN Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'DbscanCluster'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -553,21 +547,19 @@ class AgglomerativeCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.agg_cluster.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.agg_cluster.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AgglomerativeClusteringModel'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -585,14 +577,12 @@ class AgglomerativeCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.prediction = self.agg_cluster.fit_predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.agg_cluster.fit_predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AgglomerativeClusteringModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -617,15 +607,13 @@ class AgglomerativeCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.agg_cluster.fit_predict( X )
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.agg_cluster.fit_predict( X )
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AgglomerativeClusteringModel'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -646,17 +634,15 @@ class AgglomerativeCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-				labels = self.agg_cluster.fit_predict( X )
-				plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c = labels, cmap = 'tab10' )
-				plt.title( 'Agglomerative Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			labels = self.agg_cluster.fit_predict( X )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c = labels, cmap = 'tab10' )
+			plt.title( 'Agglomerative Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AgglomerativeClusteringModel'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -718,21 +704,19 @@ class SpectralCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.spectral_clustering.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.spectral_clustering.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SpectralClustering'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -751,14 +735,12 @@ class SpectralCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.prediction = self.spectral_clustering.fit_predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.spectral_clustering.fit_predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SpectralClustering'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -783,15 +765,13 @@ class SpectralCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.spectral_clustering.fit_predict( X )
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.spectral_clustering.fit_predict( X )
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SpectralClustering'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -812,16 +792,14 @@ class SpectralCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.spectral_clustering.fit_predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Accent' )
-				plt.title( 'Spectral Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.spectral_clustering.fit_predict( X )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Accent' )
+			plt.title( 'Spectral Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'SpectralClustering'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -881,21 +859,19 @@ class MeanShiftCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.mean_shift.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.mean_shift.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MeanShiftCluster'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -913,14 +889,12 @@ class MeanShiftCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.prediction = self.mean_shift.predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.mean_shift.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MeanShiftCluster'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -945,15 +919,13 @@ class MeanShiftCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.mean_shift.fit_predict( X )
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.mean_shift.fit_predict( X )
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MeanShiftCluster'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -974,16 +946,14 @@ class MeanShiftCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.mean_shift.fit_predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Set1' )
-				plt.title( 'MeanShift Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.mean_shift.fit_predict( X )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Set1' )
+			plt.title( 'MeanShift Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MeanShiftCluster'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1037,21 +1007,19 @@ class AffinityPropagationCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.affinity_propagation.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.affinity_propagation.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1069,13 +1037,11 @@ class AffinityPropagationCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				return self.affinity_propagation.fit( X ).labels_
+			throw_if( 'X', X )
+			return self.affinity_propagation.fit( X ).labels_
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1100,15 +1066,13 @@ class AffinityPropagationCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.affinity_propagation.fit( X ).labels_
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.affinity_propagation.fit( X ).labels_
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1129,16 +1093,14 @@ class AffinityPropagationCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.affinity_propagation.fit( X ).labels_
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
-				plt.title( 'AffinityPropagation Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.affinity_propagation.fit( X ).labels_
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
+			plt.title( 'AffinityPropagation Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'AffinityPropagationCluster'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1206,21 +1168,19 @@ class BirchCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.birch_clustering.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.birch_clustering.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BirchCluster'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1238,14 +1198,12 @@ class BirchCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.prediction = self.birch_clustering.fit_predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.birch_clustering.fit_predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BirchCluster'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1270,15 +1228,13 @@ class BirchCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.birch_clustering.predict( X )
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.birch_clustering.predict( X )
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BirchCluster'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1299,16 +1255,14 @@ class BirchCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.birch_clustering.predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Dark2' )
-				plt.title( 'Birch Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.birch_clustering.predict( X )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Dark2' )
+			plt.title( 'Birch Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'BirchCluster'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
@@ -1372,21 +1326,19 @@ class OpticsCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.optics_clustering.fit( X )
-				return self
+			throw_if( 'X', X )
+			self.optics_clustering.fit( X )
+			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OpticsCluster'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
 
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -1404,14 +1356,12 @@ class OpticsCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				self.prediction = self.optics_clustering.fit_predict( X )
-				return self.prediction
+			throw_if( 'X', X )
+			self.prediction = self.optics_clustering.fit_predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OpticsCluster'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1436,15 +1386,13 @@ class OpticsCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.optics_clustering.fit_predict( X )
-				self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-				return self.accuracy
+			throw_if( 'X', X )
+			labels = self.optics_clustering.fit_predict( X )
+			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OpticsCluster'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
@@ -1466,16 +1414,14 @@ class OpticsCluster( Cluster ):
 
 		"""
 		try:
-			if X is None:
-				raise Exception( 'The input argument "X" is required.' )
-			else:
-				labels = self.optics_clustering.fit_predict( X )
-				plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'rainbow' )
-				plt.title( 'OPTICS Cluster' )
-				plt.show( )
+			throw_if( 'X', X )
+			labels = self.optics_clustering.fit_predict( X )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'rainbow' )
+			plt.title( 'OPTICS Cluster' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OpticsCluster'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )

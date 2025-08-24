@@ -1,19 +1,16 @@
-###### Mathy-Py
-
-<p align="center">
-  <img src="https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/Mathy.png">
-</p>
-
-
 ## 🧠 Overview
 
-**Mathy** is a library of clustering algorithms, preprocessing tools, 
-and classification/regression models with custom wrappers, error handling, and diagnostic tools for 
-machine-learning workflows. Mathy targets professionals in data science and analytics who require reusable, robust, and 
-interpretable tools for building intelligent models—especially within government and research domains.
+**Mathy** is a library of clustering algorithms, preprocessing tools,
+and classification/regression models with custom wrappers, error handling, and diagnostic tools for
+machine-learning workflows. Mathy targets professionals in data science and analytics who require
+reusable, robust, and
+interpretable tools for building intelligent models—especially within government and research
+domains.
 
 ## 🧰 Core Modules
-- **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
+
+- **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and
+  splitting data.
 - **`models.py`**: Wrappers for common classifiers/regressors such as:
 - Perceptron, Ridge, SGD, MLP (Multilayer Perceptron)
 - Decision Trees, KNN, Logistic Regression, SVMs, Ensemble Methods
@@ -23,19 +20,22 @@ interpretable tools for building intelligent models—especially within governme
 - `StandardScaler`, `MinMaxScaler`, `RobustScaler`, `Normalizer`, `OneHotEncoder`
 
 ## 🧠 Machine Learning
+
 - Supports both classification and regression models.
 - Model analysis using:
 - Accuracy, Precision, Recall, F1 Score, ROC AUC, R², MAE, MSE, RMSE, etc.
 - Seamless training, scoring, prediction (`train`, `score`, `project`, `analyze`)
 
 ## 📊 Clustering & Visualization
+
 - Integrated support for:
-  - KMeans: Centroid-based partitioning
-  - DBSCAN: Density-based clustering
-  - Agglomerative: Hierarchical linkage models
+    - KMeans: Centroid-based partitioning
+    - DBSCAN: Density-based clustering
+    - Agglomerative: Hierarchical linkage models
 - 2D cluster visualizations using Matplotlib
 
 ## 🛠️ Data Preprocessing
+
 - Scaling and normalization strategies
 - Missing value imputation
 - Transformation pipelines for numerical and categorical data
@@ -53,12 +53,12 @@ mathy/
 ├── README.md         # This file
 ```
 
-
-
 ### 📊 Classification Models
+
 - Classification models are used to assign data samples into discrete categories or classes. These
-models are foundational for tasks such as spam detection, disease diagnosis, and image recognition.
-Below is a list of supported classifiers in Mathy:
+  models are foundational for tasks such as spam detection, disease diagnosis, and image
+  recognition.
+  Below is a list of supported classifiers in Mathy:
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py)
 
 | Class Name                  | Description                                                  |
@@ -78,16 +78,13 @@ Below is a list of supported classifiers in Mathy:
 | StackClassifier             | Meta-learner trained on outputs of base classifiers.         |
 | SupportVectorClassifier     | Support Vector Machine (SVC) classifier.                     |
 
-
-
-
-
 ### 📈 Regression Models
-- Regression models predict continuous numerical outcomes and are crucial in applications like
-forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
-models, listed below:
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 
+- Regression models predict continuous numerical outcomes and are crucial in applications like
+  forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear
+  regression
+  models, listed below:
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
 
 | Class Name                 | Description                                                        |
 |----------------------------|--------------------------------------------------------------------|
@@ -110,15 +107,12 @@ models, listed below:
 | StackRegressor             | Trains meta-regressor on top of base models.                      |
 | SupportVectorRegressor      | Support Vector Regression (SVR) for high-dimensional data.        |
 
-
-
-
 ### 🔍 Clustering Models
-- Clustering is an unsupervised technique used to discover natural groupings in data without labeled
-outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
-irregular cluster shapes:
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 
+- Clustering is an unsupervised technique used to discover natural groupings in data without labeled
+  outcomes. Mathy supports a variety of clustering algorithms suitable for both spherical and
+  irregular cluster shapes:
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)
 
 | Class Name                 | Description                                                     |
 |----------------------------|-----------------------------------------------------------------|
@@ -132,35 +126,26 @@ irregular cluster shapes:
 | BirchCluster               | Clusters large datasets using hierarchical CF trees.            |
 | OpticsCluster              | Orders points to extract density-based clusters.                |
 
-
-
-
 ### 📁 Data
+
 - Encapsulates datasets and implements dimensionality reduction, correlation analysis, and feature
-selection.
+  selection.
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
 
-
-  | Class Name | Description |
+| Class Name | Description |
   |----------------------|-------------------------------------------------------------------|
-  | Metric | Base class for transformations and evaluation metrics. |
-  | VarianceThreshold | Removes low-variance features from the dataset. |
-  | CorrelationAnalysis | Analyzes relationships using Canonical Correlation Analysis. |
-  | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
-  | Dataset | Encapsulates data loading, transformation, and partitioning. |
-
-
-
-
+| Metric | Base class for transformations and evaluation metrics. |
+| VarianceThreshold | Removes low-variance features from the dataset. |
+| CorrelationAnalysis | Analyzes relationships using Canonical Correlation Analysis. |
+| ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
+| Dataset | Encapsulates data loading, transformation, and partitioning. |
 
 ### 📁 Preprocessing
 
 - This module provides a unified collection of data preprocessing tools for scaling, encoding, and
-imputing. All classes extend the Metric interface, ensuring consistency in method signatures and
-usage across pipelines.
+  imputing. All classes extend the Metric interface, ensuring consistency in method signatures and
+  usage across pipelines.
 - [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
-
-
 
 | Class Name               | Description                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
@@ -183,7 +168,6 @@ usage across pipelines.
 | IterativeImputer         | Imputes missing values by modeling them as a function of other features.    |
 | SimpleImputer            | Provides basic strategies for imputing missing values (mean, median, etc.). |
 
-
 ## 📦 Dependencies
 
 ###### Mathy requires Python 3.9+ and the following libraries:
@@ -205,7 +189,8 @@ pip install -r requirements.txt
 
 ## ⚡ Quickstart
 
-#### 1. **Load and Split Data**  
+#### 1. **Load and Split Data**
+
 - Load a dataset and define the target column.
 
 ```
@@ -235,8 +220,3 @@ model.train(X_train, y_train)
 print(model.score(X_train, y_train))
 print(model.analyze(X_train, y_train))
 ```
-
-## 📝 License
-
-Mathy is published under the [MIT General Public License v3](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE.txt).
-
