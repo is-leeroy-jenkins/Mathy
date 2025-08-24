@@ -63,6 +63,8 @@ from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
 from preprocessors import Preprocessor
 
+
+
 def throw_if( name: str, value: object ):
 	if not value:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
