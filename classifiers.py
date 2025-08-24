@@ -311,6 +311,7 @@ class PerceptronClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.perceptron_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -346,6 +347,8 @@ class PerceptronClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.perceptron_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -389,6 +392,8 @@ class PerceptronClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.perceptron_classifier.predict( X )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -438,6 +443,8 @@ class PerceptronClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.perceptron_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -477,6 +484,8 @@ class PerceptronClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -608,6 +617,7 @@ class MultiLayerClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.multilayer_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -640,6 +650,8 @@ class MultiLayerClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.multilayer_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -674,6 +686,8 @@ class MultiLayerClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.multilayer_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -710,6 +724,8 @@ class MultiLayerClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.multilayer_classifier.predict( X )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -759,6 +775,8 @@ class MultiLayerClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.multilayer_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -797,6 +815,8 @@ class MultiLayerClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -941,6 +961,8 @@ class RidgeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.ridge_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -973,6 +995,7 @@ class RidgeClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.ridge_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -1008,6 +1031,8 @@ class RidgeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.ridge_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -1044,6 +1069,8 @@ class RidgeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.ridge_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -1095,6 +1122,8 @@ class RidgeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.ridge_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -1131,6 +1160,8 @@ class RidgeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -1279,6 +1310,8 @@ class StochasticGradientClassifier( Classifier ):
 			else:
 				self.stochastic_classifier.fit( X, y )
 				return self
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1308,6 +1341,7 @@ class StochasticGradientClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.stochastic_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -1342,6 +1376,8 @@ class StochasticGradientClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.stochastic_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -1383,6 +1419,8 @@ class StochasticGradientClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.stochastic_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -1433,6 +1471,8 @@ class StochasticGradientClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.stochastic_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -1472,6 +1512,8 @@ class StochasticGradientClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -1607,6 +1649,8 @@ class NearestNeighborClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.neighbor_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -1638,6 +1682,7 @@ class NearestNeighborClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.neighbor_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -1672,6 +1717,8 @@ class NearestNeighborClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.neighbor_classifier.predict( X )
 				return accuracy_score( y, self.prediction )
 		except Exception as e:
@@ -1714,6 +1761,8 @@ class NearestNeighborClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.neighbor_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -1764,6 +1813,8 @@ class NearestNeighborClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.neighbor_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -1803,6 +1854,8 @@ class NearestNeighborClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -1934,6 +1987,8 @@ class DecisionTreeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.dt_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -1966,6 +2021,7 @@ class DecisionTreeClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.dt_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -2001,6 +2057,8 @@ class DecisionTreeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.dt_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -2045,6 +2103,8 @@ class DecisionTreeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.dt_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -2096,6 +2156,8 @@ class DecisionTreeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.dt_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -2131,6 +2193,8 @@ class DecisionTreeClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -2270,6 +2334,8 @@ class RandomForestClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.random_forest_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -2302,6 +2368,7 @@ class RandomForestClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.random_forest_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -2336,6 +2403,8 @@ class RandomForestClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.random_forest_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -2371,6 +2440,8 @@ class RandomForestClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.random_forest_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -2422,6 +2493,8 @@ class RandomForestClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.random_forest_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -2461,6 +2534,8 @@ class RandomForestClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -2602,6 +2677,8 @@ class GradientBoostingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.gradient_boost_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -2633,6 +2710,7 @@ class GradientBoostingClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.gradient_boost_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -2667,6 +2745,8 @@ class GradientBoostingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.gradient_boost_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -2701,6 +2781,8 @@ class GradientBoostingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.gradient_boost_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -2773,6 +2855,8 @@ class GradientBoostingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -2897,6 +2981,8 @@ class AdaBoostClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.ada_boost_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -2927,6 +3013,7 @@ class AdaBoostClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.ada_boost_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -2960,6 +3047,8 @@ class AdaBoostClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.ada_boost_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -2994,6 +3083,8 @@ class AdaBoostClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.ada_boost_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -3044,6 +3135,8 @@ class AdaBoostClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.ada_boost_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -3083,6 +3176,8 @@ class AdaBoostClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -3212,6 +3307,8 @@ class BaggingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.bagging_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -3242,6 +3339,7 @@ class BaggingClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.bagging_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -3275,6 +3373,8 @@ class BaggingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.bagging_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -3309,6 +3409,8 @@ class BaggingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
 				self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -3360,6 +3462,8 @@ class BaggingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.bagging_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -3399,6 +3503,8 @@ class BaggingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -3522,6 +3628,8 @@ class VotingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.voting_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -3552,6 +3660,7 @@ class VotingClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.voting_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -3585,6 +3694,8 @@ class VotingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.voting_classifier.predict( X )
 				self.accuracy = accuracy_score( y, self.prediction )
 				return self.accuracy
@@ -3619,6 +3730,8 @@ class VotingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.voting_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -3669,6 +3782,8 @@ class VotingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.voting_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -3708,6 +3823,8 @@ class VotingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -3829,6 +3946,8 @@ class StackingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.stacking_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -3859,6 +3978,7 @@ class StackingClassifier( Classifier ):
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.stacking_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -3892,6 +4012,8 @@ class StackingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.stacking_classifier.predict( X )
 				self.accuracy = r2_score( y, self.prediction )
 				return self.accuracy
@@ -3925,6 +4047,8 @@ class StackingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.stacking_classifier.predict( X )
 				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 				self.mean_squared_error = mean_squared_error( y, self.prediction )
@@ -3973,6 +4097,8 @@ class StackingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.stacking_classifier.predict( X )
 				cm = confusion_matrix( y, self.prediction )
 				sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
@@ -4013,6 +4139,8 @@ class StackingClassifier( Classifier ):
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
@@ -4134,6 +4262,8 @@ class SupportVectorClassifier:
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.svc_classifier.fit( X, y )
 				return self
 		except Exception as e:
@@ -4161,6 +4291,7 @@ class SupportVectorClassifier:
 			if X is None:
 				raise Exception( 'The argument "X" is required!' )
 			else:
+				throw_if( 'X', X )
 				self.prediction = self.svc_classifier.predict( X )
 				return self.prediction
 		except Exception as e:
@@ -4192,6 +4323,8 @@ class SupportVectorClassifier:
 			elif y_true is None:
 				raise Exception( 'The argument "y_true" cannot be None')
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.svc_classifier.predict( X )
 				self.accuracy = accuracy_score( y_true, self.prediction )
 				return self.accuracy
@@ -4224,6 +4357,8 @@ class SupportVectorClassifier:
 			elif y_true is None:
 				raise Exception( 'The argument "y_true" cannot be None' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.svc_classifier.predict( X )
 				return classification_report( y_true, self.prediction )
 		except Exception as e:
@@ -4255,6 +4390,8 @@ class SupportVectorClassifier:
 			elif y_true is None:
 				raise Exception( 'The argument "y_true" cannot be None' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				self.prediction = self.svc_classifier.predict( X )
 				cm = confusion_matrix( y_true, self.prediction )
 				sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
@@ -4293,6 +4430,8 @@ class SupportVectorClassifier:
 			elif y is None:
 				raise Exception( 'The argument "y" is required!' )
 			else:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
 				# setup marker generator and color map
 				markers = ('o', 's', '^', 'v', '<')
 				colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
