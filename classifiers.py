@@ -777,6 +777,7 @@ class MultiLayerClassifier( Classifier ):
 	"""
 	multilayer_classifier: snn.MLPClassifier
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -825,10 +826,10 @@ class MultiLayerClassifier( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
+		return [ 'prediction', 'probability', 'max_depth', 'random_state', 'accuracy',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
-		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+		         'train', 'project', 'score', 'analyze', 'create_heatmap', 'predict_probability' ]
 
 
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MultiLayerClassifier | None:
@@ -890,6 +891,34 @@ class MultiLayerClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+
+			Purpose:
+			-----------
+			Applies all transformations in the pipeline to the text df.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+				np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.multilayer_classifier.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultilayerRegression'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
