@@ -868,7 +868,7 @@ class MultiLayerClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Applies all transformations in the pipeline to the text df.
+			Predict the class labels for the provided data.
 
 			Parameters:
 			-----------
@@ -897,15 +897,15 @@ class MultiLayerClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Applies all transformations in the pipeline to the text df.
+			Return probability estimates for the test data X.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Input feature matrix.
+			X (np.ndarray): Input feature matrix.
 
 			Returns:
 			-----------
-				np.ndarray: Transformed feature matrix.
+			np.ndarray: Transformed feature matrix.
 
 		"""
 		try:
@@ -915,8 +915,8 @@ class MultiLayerClassifier( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultilayerRegression'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.cause = 'MultilayerClassifier'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1748,6 +1748,7 @@ class NearestNeighborClassifier( Classifier ):
 	"""
 	neighbor_classifier: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -1863,6 +1864,35 @@ class NearestNeighborClassifier( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+
+			Purpose:
+			-----------
+			Return probability estimates for the test data X.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.neighbor_classifier.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultilayerClassifier'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2061,6 +2091,7 @@ class DecisionTreeClassifier( Classifier ):
 	'''
 	dt_classifier: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -2177,6 +2208,34 @@ class DecisionTreeClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+
+			Purpose:
+			-----------
+			Return probability estimates for the test data X.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.dt_classifier.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTreeClassifier'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
@@ -2381,6 +2440,7 @@ class RandomForestClassifier( Classifier ):
 	criterion: Optional[ Any ]
 	random_forest_classifier: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -2496,6 +2556,34 @@ class RandomForestClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+
+			Purpose:
+			-----------
+			Return probability estimates for the test data X.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.random_forest_classifier.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'RandomForestClassifier'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
+			error = ErrorDialog( exception )
+			error.show( )
 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
