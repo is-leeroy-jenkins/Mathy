@@ -233,6 +233,8 @@ class DataSource( ):
 	target_names: Optional[ np.ndarray ]
 	categorical_columns: Optional[ List[ str ] ]
 	numeric_columns: Optional[ List[ str ] ]
+	X: Optional[ np.ndarray ]
+	y: Optional[ np.ndarray ]
 	X_training: Optional[ np.ndarray ]
 	X_testing: Optional[ np.ndarray ]
 	y_training: Optional[ np.ndarray ]
@@ -275,20 +277,20 @@ class DataSource( ):
 
 		if target not in df.columns:
 			raise ArgumentError( None, f'target "{target}" not in dataframe' )
-		X = df.drop( columns = [ target ] )
-		y = df[ target ]
-		self.feature_names = list( X.columns )
-		self.numeric_columns = X.select_dtypes( include = [ 'number' ] ).columns.tolist( )
-		self.categorical_columns = X.select_dtypes(
+		self.X = df.drop( columns=[ target ] )
+		self.y = df[ target ]
+		self.feature_names = list( self.dataframe.columns )
+		self.numeric_columns = self.dataframe.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+		self.categorical_columns = self.dataframe.select_dtypes(
 			include = [ 'object', 'category' ] ).columns.tolist( )
-		self.data = X.to_numpy( )
+		self.data = self.dataframe.to_numpy( )
 		self.n_samples = len( df )
-		self.n_features = X.shape[ 1 ]
-		self.target = y.to_numpy( )
-		self.target_names = np.array( sorted( y.unique( ) ) )
+		self.n_features = self.dataframe.shape[ 1 ]
+		self.target = self.y.to_numpy( )
+		self.target_names = np.array( sorted( self.y.unique( ) ) )
 		self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split(
-			X, y, test_size=self.test_size, random_state=self.random_state, stratify=None)
-		num_df = df.select_dtypes( include = 'number' )
+			self.X, self.y, test_size=self.test_size, random_state=self.random_state, stratify=None)
+		num_df = df.select_dtypes( include='number' )
 		self.skew = num_df.skew( axis=0, numeric_only=True )
 		self.variance = num_df.var( axis=0, ddof=1, numeric_only=True )
 		self.kurtosis = num_df.kurt( axis=0, numeric_only=True )
@@ -340,7 +342,7 @@ class DataSource( ):
 			throw_if( 'name', name )
 			throw_if( 'encoder', encoder )
 			throw_if( 'columns', columns )
-			self.transtuple.append( (name, encoder, columns) )
+			self.transtuple.append( ( name, encoder, columns ) )
 			self.column_transformer = ColumnTransformer(
 				transformers=self.transtuple,
 				remainder='passthrough' )
