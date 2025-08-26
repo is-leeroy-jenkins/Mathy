@@ -292,12 +292,12 @@ class DataSource( ):
 		self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split(
 			self.X, self.y, test_size=self.test_size, random_state=self.random_state, stratify=None)
 		self.numeric = df.select_dtypes( include='number' ).copy( )
-		self.skew = num_df.skew( axis=0, numeric_only=True )
-		self.variance = num_df.var( axis=0, ddof=1, numeric_only=True )
-		self.kurtosis = num_df.kurt( axis=0, numeric_only=True )
-		self.average = num_df.mean( axis=0, numeric_only=True )
-		self.mean_standard_error = num_df.sem( axis=0, ddof = 1, numeric_only=True )
-		self.standard_deviation = num_df.std( axis = 0, ddof = 1, numeric_only=True )
+		self.skew = self.numeric.skew( axis=0, numeric_only=True )
+		self.variance = self.numeric.var( axis=0, ddof=1, numeric_only=True )
+		self.kurtosis = self.numeric.kurt( axis=0, numeric_only=True )
+		self.average = self.numeric.mean( axis=0, numeric_only=True )
+		self.mean_standard_error = self.numeric.sem( axis=0, ddof = 1, numeric_only=True )
+		self.standard_deviation = self.numeric.std( axis = 0, ddof = 1, numeric_only=True )
 		self.transtuple: list[ tuple[ str, Preprocessor, list[ str ] ] ]=[ ]
 		self.numeric_metrics = None
 		self.categorical_metrics = None
@@ -311,9 +311,9 @@ class DataSource( ):
 			This function retuns a list of strings (members of the class)
 
 		'''
-		return [ 'dataframe', 'n_samples', 'n_features', 'target_names',
+		return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'X', 'y',
 		         'feature_names', 'test_size', 'random_state', 'categorical_metrics',
-		         'categorical_columns', 'transtuple', 'numeric_metrics',
+		         'categorical_columns', 'transtuple', 'numeric_metrics', 'numeric'
 		         'pivot_table', 'calculate_statistics', 'numeric_columns', 'mean_standard_error',
 		         'X_training', 'X_testing', 'y_training', 'average', 'kurtosis', 'variance',
 		         'y_testing', 'transform_columns', 'create_pivot_table', 'standard_deviation',
