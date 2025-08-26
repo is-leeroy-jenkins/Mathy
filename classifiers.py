@@ -493,6 +493,263 @@ class PerceptronClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+class LogisticRegression( Classifier ):
+	"""
+
+		Purpose:
+		--------
+		This class implements regularized logistic regression using the ‘liblinear’ library,
+		‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’ solvers. Note that alpha is
+		applied by default. It can handle both dense and sparse input. Use C-ordered arrays or
+		CSR matrices containing 64-bit floats for optimal performance;
+		any other input format will be converted (and copied). The ‘newton-cg’, ‘sag’, and
+		‘lbfgs’ solvers support only L2 alpha with primal formulation, or no
+		alpha. The ‘liblinear’ solver supports both L1 and L2 alpha,
+		with a dual formulation only for the L2 alpha. The Elastic-Net alpha
+		is only supported by the ‘saga’ solver.
+
+	"""
+	logistic_regression: skc.LogisticRegression
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	random_state: int
+	penalty: str
+	multi_class: str
+	alpha: float
+	max_iter: int
+	solver: str
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+
+	def __init__( self, C: float=1.0, penalty: str='l2', max: int=1000,
+	              multi_class: str='multinomial', solver: str='lbfgs' ) -> None:
+		"""
+
+			Purpose:
+			--------
+			Initialize the Logistic Regression linerar_model.
+
+			Parameters:
+			-----------
+				max (int): Maximum number of iterations. Default is 1000.
+				solver (str): Algorithm to use in optimization. Default is 'lbfgs'.
+
+		"""
+		super( ).__init__( )
+		self.alpha = C
+		self.penalty = penalty
+		self.max_iter = max
+		self.multi_class = multi_class
+		self.solver = solver
+		self.logistic_regression = skc.LogisticRegression( C=self.alpha,
+			max_iter=self.max_iter, multi_class=self.multi_class,
+			solver=self.solver, penalty=self.penalty )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction', 'accuracy', 'penalty',
+		         'solver', 'multi_class', 'random_state', 'alpha', 'max_iter',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error',
+		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
+
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegression | None:
+		"""
+
+			Purpose:
+			-----------
+			Fit the logistic regression linerar_model.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			--------
+			self
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.logistic_regression.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			-----------
+			Predict class target_names using the logistic regression linerar_model.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			-----------
+				np.ndarray: Predicted class target_names.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.prediction = self.logistic_regression.predict( X )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+		"""
+
+			Purpose:
+			-----------
+			Compute classification accuracy.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-----------
+				float: Accuracy accuracy.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regression.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+
+			Purpose:
+			-----------
+			Evaluate the classifier using multiple classification metrics.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+				y (np.ndarray): True target_names of shape (n_samples,).
+
+			Returns:
+			-----------
+				dict: Dictionary containing:
+					- Accuracy (float)
+					- Precision (float)
+					- Recall (float)
+					- F1 Score (float)
+					- ROC AUC (float)
+					- Matthews Corrcoef (float)
+					- Confusion Matrix (List[List[int]])
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regression.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
+				squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction,
+				squared=False )
+			return \
+			{
+					'MSE': self.mean_squared_error,
+					'RMSE': self.r_mean_squared_error,
+					'R2': self.r2_score,
+					'Explained Variance': self.explained_variance_score,
+					'Median Absolute Error': self.median_absolute_error,
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-----------
+				None
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regression.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
 class MultiLayerClassifier( Classifier ):
 	"""
 
