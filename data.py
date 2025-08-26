@@ -531,7 +531,7 @@ class DataSource( ):
 				_correlation = self.dataframe.corr( method=strategy, numeric_only=numbers_only )
 				plt.figure( figsize = (10, 6) )
 				sns.heatmap( _correlation, cmap = "coolwarm", annot = True )
-				plt.title( "Pearson Correlation" )
+				plt.title( "Correlation Analysis" )
 				plt.show( )
 		except Exception as e:
 			exception = Error( e )
