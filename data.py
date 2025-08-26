@@ -233,7 +233,7 @@ class DataSource( ):
 	target_names: Optional[ np.ndarray ]
 	categorical_columns: Optional[ List[ str ] ]
 	numeric_columns: Optional[ List[ str ] ]
-	numeric: Optional[ pd.Dataframe ]
+	numeric: Optional[ pd.DataFrame ]
 	X: Optional[ np.ndarray ]
 	y: Optional[ np.ndarray ]
 	X_training: Optional[ np.ndarray ]
