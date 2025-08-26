@@ -1440,23 +1440,19 @@ class ElasticNetRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LogisticRegressor( Regressor ):
+class LeastAngleRegressor( Regressor ):
 	"""
 
 		Purpose:
 		--------
-		This class implements regularized logistic regression using the ‘liblinear’ library,
-		‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’ solvers. Note that alpha is
-		applied by default. It can handle both dense and sparse input. Use C-ordered arrays or
-		CSR matrices containing 64-bit floats for optimal performance;
-		any other input format will be converted (and copied). The ‘newton-cg’, ‘sag’, and
-		‘lbfgs’ solvers support only L2 alpha with primal formulation, or no
-		alpha. The ‘liblinear’ solver supports both L1 and L2 alpha,
-		with a dual formulation only for the L2 alpha. The Elastic-Net alpha
-		is only supported by the ‘saga’ solver.
+		Least-angle regression (LARS) is a regression algorithm for high-dimensional data.
+		LARS is similar to forward stepwise regression. At each step, it finds the feature most
+		correlated with the target. When there are multiple features having equal correlation,
+		instead of continuing along the same feature, it proceeds in a direction equiangular
+		between the features.
 
 	"""
-	logistic_regressor: skl.LogisticRegression
+	lars_regressor: skl.Lars
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1466,38 +1462,37 @@ class LogisticRegressor( Regressor ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	random_state: int
-	penalty: str
-	multi_class: str
-	alpha: float
-	max_iter: int
-	solver: str
+	eps: float
+	n_nonzero_coefs: int
+	fit_intercept: bool
+	normalize: bool
+	precompute: bool
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 
-	def __init__( self, C: float=1.0, penalty: str='l2', max: int=1000,
-	              multi_class: str='multinomial',  solver: str='lbfgs' ) -> None:
+	def __init__( self, coeffs: int = 500, fit: bool=True, normal: bool=True,
+	               precompute: bool=True ) -> None:
 		"""
 
 			Purpose:
 			--------
-			Initialize the Logistic Regression linerar_model.
+			Initialize the Least Angle Regression model.
 
 			Parameters:
 			-----------
-				max (int): Maximum number of iterations. Default is 1000.
-				solver (str): Algorithm to use in optimization. Default is 'lbfgs'.
+			coeffs (int): Maximum number of non-zero coefficients. 500 default
+			fit (bool): fit the intercept
+			normal (bool): Normalize
+			precompute (bool): Precompute coefficients
 
 		"""
 		super( ).__init__( )
-		self.alpha = C
-		self.penalty = penalty
-		self.max_iter = max
-		self.multi_class = multi_class
-		self.solver = solver
-		self.logistic_regressor = skl.LogisticRegression( C=self.alpha,
-			max_iter=self.max_iter, multi_class=self.multi_class,
-			solver=self.solver, penalty=self.penalty )
+		self.fit_intercept = fit
+		self.normalize = normal
+		self.nonzero_coefficients = coeffs
+		self.precompute = precompute
+		self.lars_regressor = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
+			precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients  )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1515,19 +1510,20 @@ class LogisticRegressor( Regressor ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction', 'accuracy', 'penalty',
-		         'solver', 'multi_class', 'random_state', 'alpha', 'max_iter','mean_absolute_error',
+		return [ 'prediction', 'accuracy', 'fit_intercept',
+		         'normalize',  'mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngleRegressor | None:
 		"""
 
 			Purpose:
 			-----------
-			Fit the logistic regression linerar_model.
+			Fit the least angle
+			 regression linerar_model.
 
 			Parameters:
 			-----------
@@ -1542,12 +1538,12 @@ class LogisticRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.logistic_regressor.fit( X, y )
+			self.lars_regressor.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegressor'
+			exception.cause = 'LeastAngleRegressor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1558,7 +1554,7 @@ class LogisticRegressor( Regressor ):
 
 			Purpose:
 			-----------
-			Predict class target_names using the logistic regression linerar_model.
+			Predict class target_names using the least angle regression linerar_model.
 
 			Parameters:
 			-----------
@@ -1571,12 +1567,12 @@ class LogisticRegressor( Regressor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.logistic_regressor.predict( X )
+			self.prediction = self.lars_regressor.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegressor'
+			exception.cause = 'LeastAngleRegressor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1588,7 +1584,7 @@ class LogisticRegressor( Regressor ):
 
 			Purpose:
 			-----------
-			Compute classification accuracy.
+			Compute regression accuracy.
 
 			Parameters:
 			-----------
@@ -1603,13 +1599,13 @@ class LogisticRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_regressor.predict( X )
+			self.prediction = self.lars_regressor.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegressor'
+			exception.cause = 'LeastAngleRegressor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1620,7 +1616,7 @@ class LogisticRegressor( Regressor ):
 
 			Purpose:
 			-----------
-			Evaluate the classifier using multiple classification metrics.
+			Evaluate the regression using multiple classification metrics.
 
 			Parameters:
 			-----------
@@ -1642,7 +1638,7 @@ class LogisticRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_regressor.predict( X )
+			self.prediction = self.lars_regressor.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1662,7 +1658,7 @@ class LogisticRegressor( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegressor'
+			exception.cause = 'LeastAngleRegressor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1672,7 +1668,7 @@ class LogisticRegressor( Regressor ):
 
 			Purpose:
 			-----------
-			Plot confusion matrix for classifier predictions.
+			Plot confusion matrix for regression predictions.
 
 			Parameters:
 			-----------
@@ -1687,7 +1683,7 @@ class LogisticRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_regressor.predict( X )
+			self.prediction = self.lars_regressor.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			ConfusionMatrixDisplay( confusion_matrix=cm )
 			plt.title( 'Logistic Regression Confusion Matrix' )
@@ -1696,7 +1692,7 @@ class LogisticRegressor( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegressor'
+			exception.cause = 'LeastAngleRegressor'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
