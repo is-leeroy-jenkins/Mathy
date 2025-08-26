@@ -2866,7 +2866,7 @@ class GradientBoostingClassifier( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostClassification'
+			exception.cause = 'GradientBoostClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassifier'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2895,7 +2895,7 @@ class GradientBoostingClassifier( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostClassification'
+			exception.cause = 'GradientBoostClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2984,7 +2984,7 @@ class GradientBoostingClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared = False )
+				squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
@@ -3025,7 +3025,7 @@ class GradientBoostingClassifier( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.gradient_boost_classifier.predict( X )
 			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
+			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
 			plt.ylabel( 'Actual' )
 			plt.title( 'Confusion Matrix' )
@@ -3039,8 +3039,7 @@ class GradientBoostingClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx = None,
-	                           resolution = 0.02 ):
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
 		'''
 
 			Purpose:
