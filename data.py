@@ -233,6 +233,7 @@ class DataSource( ):
 	target_names: Optional[ np.ndarray ]
 	categorical_columns: Optional[ List[ str ] ]
 	numeric_columns: Optional[ List[ str ] ]
+	numeric: Optional[ pd.Dataframe ]
 	X: Optional[ np.ndarray ]
 	y: Optional[ np.ndarray ]
 	X_training: Optional[ np.ndarray ]
@@ -290,7 +291,7 @@ class DataSource( ):
 		self.target_names = np.array( sorted( self.y.unique( ) ) )
 		self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split(
 			self.X, self.y, test_size=self.test_size, random_state=self.random_state, stratify=None)
-		num_df = df.select_dtypes( include='number' )
+		self.numeric = df.select_dtypes( include='number' ).copy( )
 		self.skew = num_df.skew( axis=0, numeric_only=True )
 		self.variance = num_df.var( axis=0, ddof=1, numeric_only=True )
 		self.kurtosis = num_df.kurt( axis=0, numeric_only=True )
