@@ -2877,7 +2877,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Purpose:
 			________
-				Predict class target_names.
+			Predict class target_names.
 
 			Parameters:
 			__________
