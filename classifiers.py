@@ -498,6 +498,12 @@ class LogisticRegression( Classifier ):
 
 		Purpose:
 		--------
+		Logistic regression, despite its name, is a linear model for classification rather
+		than regression. Logistic regression is also known in the literature as logit regression,
+		maximum-entropy classification (MaxEnt) or the log-linear classifier. In this model,
+		the probabilities describing the possible outcomes of a single trial are modeled
+		using a logistic function.
+
 		This class implements regularized logistic regression using the ‘liblinear’ library,
 		‘newton-cg’, ‘sag’, ‘saga’ and ‘lbfgs’ solvers. Note that alpha is
 		applied by default. It can handle both dense and sparse input. Use C-ordered arrays or
