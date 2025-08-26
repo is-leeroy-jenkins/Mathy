@@ -1115,7 +1115,7 @@ class RidgeClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StochasticGradientClassifier( Classifier ):
+class GradientDescentClassifier( Classifier ):
 	"""
 
 		Purpose:
@@ -1138,7 +1138,7 @@ class StochasticGradientClassifier( Classifier ):
 		 models and achieve online feature selection.
 
 	"""
-	stochastic_classifier: skc.SGDClassifier
+	sgd_classifier: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
@@ -1175,7 +1175,7 @@ class StochasticGradientClassifier( Classifier ):
 		self.max_iter = max
 		self.regularization = reg
 		self.alpha = alpha
-		self.stochastic_classifier = skc.SGDClassifier( loss=self.loss,
+		self.sgd_classifier = skc.SGDClassifier( loss=self.loss,
 			max_iter=self.max_iter, penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1196,13 +1196,13 @@ class StochasticGradientClassifier( Classifier ):
 
 		'''
 		return [ 'prediction', 'max_iter', 'random_state', 'accuracy',
-		         'loss', 'regularization', 'alpha', 'stochastic_classifier',
+		         'loss', 'regularization', 'alpha', 'sgd_classifier',
 		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_heatmap' ]
 
 
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientClassifier | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescentClassifier | None:
 		"""
 
 			Purpose:
@@ -1222,12 +1222,12 @@ class StochasticGradientClassifier( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.stochastic_classifier.fit( X, y )
+			self.sgd_classifier.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientClassifier'
+			exception.cause = 'GradientDescentClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1251,12 +1251,12 @@ class StochasticGradientClassifier( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.stochastic_classifier.predict( X )
+			self.prediction = self.sgd_classifier.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientClassifier'
+			exception.cause = 'GradientDescentClassifier'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1282,13 +1282,13 @@ class StochasticGradientClassifier( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stochastic_classifier.predict( X )
+			self.prediction = self.sgd_classifier.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientClassifier'
+			exception.cause = 'GradientDescentClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1320,7 +1320,7 @@ class StochasticGradientClassifier( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stochastic_classifier.predict( X )
+			self.prediction = self.sgd_classifier.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
@@ -1341,7 +1341,7 @@ class StochasticGradientClassifier( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientClassifier'
+			exception.cause = 'GradientDescentClassifier'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 			                    'float ]')
 			error = ErrorDialog( exception )
@@ -1367,7 +1367,7 @@ class StochasticGradientClassifier( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stochastic_classifier.predict( X )
+			self.prediction = self.sgd_classifier.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot = True, fmt = 'd', cmap = 'Blues' )
 			plt.xlabel( 'Predicted' )
@@ -1378,7 +1378,7 @@ class StochasticGradientClassifier( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientClassifier'
+			exception.cause = 'GradientDescentClassifier'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1434,7 +1434,7 @@ class StochasticGradientClassifier( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientClassifier'
+			exception.cause = 'GradientDescentClassifier'
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )

@@ -1468,6 +1468,7 @@ class LogisticRegressor( Regressor ):
 	median_absolute_error: Optional[ float ]
 	random_state: int
 	penalty: str
+	multi_class: str
 	alpha: float
 	max_iter: int
 	solver: str
@@ -1475,7 +1476,7 @@ class LogisticRegressor( Regressor ):
 	training_score: Optional[ float ]
 
 	def __init__( self, C: float=1.0, penalty: str='l2', max: int=1000,
-	              solver: str='lbfgs' ) -> None:
+	              multi_class: str='multinomial',  solver: str='lbfgs' ) -> None:
 		"""
 
 			Purpose:
@@ -1492,9 +1493,11 @@ class LogisticRegressor( Regressor ):
 		self.alpha = C
 		self.penalty = penalty
 		self.max_iter = max
+		self.multi_class = multi_class
 		self.solver = solver
 		self.logistic_regressor = skl.LogisticRegression( C=self.alpha,
-			max_iter=self.max_iter, solver=self.solver, penalty=self.penalty )
+			max_iter=self.max_iter, multi_class=self.multi_class,
+			solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1513,7 +1516,7 @@ class LogisticRegressor( Regressor ):
 
 		'''
 		return [ 'prediction', 'accuracy', 'penalty',
-		         'solver', 'random_state', 'alpha', 'max_iter','mean_absolute_error',
+		         'solver', 'multi_class', 'random_state', 'alpha', 'max_iter','mean_absolute_error',
 		         'mean_squared_error', 'r_mean_squared_error',
 		         'r2_score', 'explained_variance_score', 'median_absolute_error',
 		         'train', 'project', 'score', 'analyze', 'create_scatter' ]
