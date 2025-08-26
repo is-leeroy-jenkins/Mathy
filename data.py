@@ -278,8 +278,8 @@ class DataSource( ):
 
 		if target not in df.columns:
 			raise ArgumentError( None, f'target "{target}" not in dataframe' )
-		self.X = df.drop( columns=[ target ] ).values
-		self.y = df[ target ].to_numpy( )
+		self.X = df.drop( columns=[ target ] )
+		self.y = df[ target ]
 		self.feature_names = list( self.dataframe.columns )
 		self.numeric_columns = self.dataframe.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 		self.categorical_columns = self.dataframe.select_dtypes(
@@ -287,7 +287,7 @@ class DataSource( ):
 		self.data = self.dataframe.values
 		self.n_samples = len( df )
 		self.n_features = self.dataframe.shape[ 1 ]
-		self.target = self.y.to_numpy( )
+		self.target = self.y
 		self.target_names = np.array( sorted( self.y.unique( ) ) )
 		self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split(
 			self.X, self.y, test_size=self.test_size, random_state=self.random_state, stratify=None)
