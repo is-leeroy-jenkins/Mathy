@@ -2585,6 +2585,7 @@ class RandomForestClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -4244,6 +4245,7 @@ class SupportVectorClassifier:
 	regulation: float
 	degree: int
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -4347,6 +4349,36 @@ class SupportVectorClassifier:
 			exception.module = 'mathy'
 			exception.cause = 'SupportVectorClassifier'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassifier'
+			error = ErrorDialog( exception )
+			error.show( )
+
+
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+
+			Purpose:
+			-----------
+			Return probability estimates for the test data X.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.svc_classifier.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SupportVectorClassifier'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )
 			error.show( )
 
