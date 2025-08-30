@@ -1,6 +1,6 @@
 '''
   ******************************************************************************************
-      Assembly:                Mathy
+      Assembly:                mathy
       Filename:                booger.py
       Author:                  Terry D. Eppler
       Created:                 05-31-2022
@@ -10,7 +10,7 @@
   ******************************************************************************************
   <copyright file="booger.py" company="Terry D. Eppler">
 
-	     Mathy Booger
+	     mathy Booger
 
      Permission is hereby granted, free of charge, to any person obtaining a copy
      of this software and associated documentation files (the “Software”),
@@ -222,7 +222,7 @@ class ErrorDialog( Dark ):
 		self.scrollbar_color = '#755600'
 		sg.set_global_icon( icon = self.icon_path )
 		sg.set_options( font = self.theme_font )
-		sg.user_settings_save( 'Mathy', r'\resources\theme' )
+		sg.user_settings_save( 'mathy', r'\resources\theme' )
 		self.form_size = (500, 300)
 		self.error = error
 		self.heading = error.heading
@@ -308,7 +308,7 @@ class ErrorDialog( Dark ):
 		            [ sg.Text( size=(20, 1) ), sg.Cancel( size=(15, 1), key='-CANCEL-' ),
 		              sg.Text( size=(10, 1) ), sg.Ok( size=(15, 1), key='-OK-' ) ] ]
 
-		_window = sg.Window( r' Mathy', _layout,
+		_window = sg.Window( r' mathy', _layout,
 			icon=self.icon_path,
 			font=self.theme_font,
 			size=self.form_size,

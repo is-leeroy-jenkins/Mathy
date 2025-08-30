@@ -1,6 +1,6 @@
 '''
 	******************************************************************************************
-	  Assembly:                Mathy
+	  Assembly:                mathy
 	  Filename:                data.py
 	  Author:                  Terry D. Eppler
 	  Created:                 05-31-2022
@@ -10,7 +10,7 @@
 	******************************************************************************************
 	<copyright file="data.py" company="Terry D. Eppler">
 
-		     Mathy Data
+		     mathy Data
 
 		 Permission is hereby granted, free of charge, to any person obtaining a copy
 		 of this software and associated documentation files (the “Software”),

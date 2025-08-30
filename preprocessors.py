@@ -1,6 +1,6 @@
 '''
 ******************************************************************************************
-  Assembly:                Mathy
+  Assembly:                mathy
   Filename:                transformers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
@@ -10,7 +10,7 @@
 ******************************************************************************************
 <copyright file="preprocessors.py" company="Terry D. Eppler">
 
-     Mathy Preprocessing
+     mathy Preprocessing
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),
@@ -781,7 +781,7 @@ class StandardScaler( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = ('fit( self, X: np.ndarray, y: Optional[np.ndarray]=None ) -> '
 			                    'Pipeline')
@@ -813,7 +813,7 @@ class StandardScaler( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -895,7 +895,7 @@ class MinMaxScaler( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MinMaxScaler'
 			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
 			                    'Pipeline')
@@ -928,7 +928,7 @@ class MinMaxScaler( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MinMaxScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1015,7 +1015,7 @@ class RobustScaler( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RobustScaler'
 			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
 			                    'Pipeline')
@@ -1047,7 +1047,7 @@ class RobustScaler( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'RobustScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1127,7 +1127,7 @@ class NormalScaler( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'Normalizer'
 			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
 			                    'Pipeline')
@@ -1160,7 +1160,7 @@ class NormalScaler( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'Normalizer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1218,7 +1218,7 @@ class OneHotEncoder( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
 			                    'Pipeline')
@@ -1250,7 +1250,7 @@ class OneHotEncoder( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1276,7 +1276,7 @@ class OneHotEncoder( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1333,7 +1333,7 @@ class OrdinalEncoder( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline'
 			error = ErrorDialog( exception )
@@ -1364,7 +1364,7 @@ class OrdinalEncoder( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1390,7 +1390,7 @@ class OrdinalEncoder( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1468,7 +1468,7 @@ class LabelEncoder( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'fit( self, X: list[ str ], y: np.ndarray ) -> LabelEncoder'
 			error = ErrorDialog( exception )
@@ -1496,7 +1496,7 @@ class LabelEncoder( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1524,7 +1524,7 @@ class LabelEncoder( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'fit_transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1632,7 +1632,7 @@ class PolynomialFeatures( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1658,7 +1658,7 @@ class PolynomialFeatures( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1709,7 +1709,7 @@ class MeanImputer( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MeanImputer'
 			error = ErrorDialog( exception )
@@ -1740,7 +1740,7 @@ class MeanImputer( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1849,7 +1849,7 @@ class NearestNeighborImputer( Preprocessor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'fit( self, X: np.ndarray ) -> NearestNeighborImputer'
 			error = ErrorDialog( exception )
@@ -1880,7 +1880,7 @@ class NearestNeighborImputer( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1905,7 +1905,7 @@ class NearestNeighborImputer( Preprocessor ):
 			return self.knn_imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1970,7 +1970,7 @@ class IterativeImputer( Preprocessor ):
 			return self.iterative_imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -1996,7 +1996,7 @@ class IterativeImputer( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
 			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2020,7 +2020,7 @@ class IterativeImputer( Preprocessor ):
 			return self.iterative_imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
@@ -2076,7 +2076,7 @@ class SimpleImputer( Preprocessor ):
 			return self.simple_imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
 			exception.method = 'fit( X: np.ndarray ) -> self'
 			error = ErrorDialog( exception )
@@ -2102,7 +2102,7 @@ class SimpleImputer( Preprocessor ):
 			return self.simple_imputer.transform( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
 			exception.method = 'fit( X: np.ndarray ) -> self'
 			error = ErrorDialog( exception )
@@ -2128,7 +2128,7 @@ class SimpleImputer( Preprocessor ):
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'Mathy'
+			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )

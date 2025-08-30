@@ -1,6 +1,6 @@
 '''
 ******************************************************************************************
-  Assembly:                Mathy
+  Assembly:                mathy
   Filename:                regressors.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
@@ -10,7 +10,7 @@
 ******************************************************************************************
 <copyright file="regressors.py" company="Terry D. Eppler">
 
-     Mathy Models
+     mathy Models
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),
