@@ -467,6 +467,7 @@ class DataSource( ):
     data: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
     n_features: Optional[ int ]
+    scaling_factor: Optional[ int ]
     feature_names: Optional[ List[ str ] ]
     target_names: Optional[ np.ndarray ]
     categorical_columns: Optional[ List[ str ] ]
@@ -1026,7 +1027,7 @@ class DataSource( ):
             error.show( )
     
     
-    def scale_values( self, df: pd.DataFrame, amount: int=1000000 ):
+    def scale_values( self, df: pd.DataFrame, amount: int ):
         """
         
             Purpose:
@@ -1043,9 +1044,20 @@ class DataSource( ):
             pd.DataFrame: The transformed DataFrame.
         
         """
-        numeric_cols = df.select_dtypes( include='number' ).columns
-        df[ numeric_cols ] = df[ numeric_cols ].div( amount ).round( 2 )
-        return df
+        try:
+            throw_if( 'df', df )
+            throw_if( 'amount', amount )
+            self.scaling_factor = amount
+            numeric_cols = df.select_dtypes( include='number' ).columns
+            df[ numeric_cols ] = df[ numeric_cols ].div( self.scaling_factor ).round( 2 )
+            return df
+        except Exception as e:
+            exception = Error( e )
+            exception.module = 'mathy'
+            exception.cause = 'Data'
+            exception.method = 'scale_values( df, include )'
+            error = ErrorDialog( exception )
+            error.show( )
 
 
 class VarianceThreshold( ):
