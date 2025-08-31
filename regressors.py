@@ -100,7 +100,7 @@ class Regressor( ):
 
 			Purpose:
 			---------
-			Fits the model to the training data
+			Fits the model to the training db
 
 			Parameters:
 			-----------
@@ -431,7 +431,7 @@ class LinearRegressor( Regressor ):
 		linear dependence, the design matrix becomes close to singular and as a result,
 		the least-squares estimate becomes highly sensitive to random errors in the observed target,
 		producing a large variance. This situation of multicollinearity can arise, for example,
-		when data are collected without an experimental design.
+		when db are collected without an experimental design.
 
 	"""
 	linear_regressor: skl.LinearRegression
@@ -1445,7 +1445,7 @@ class LeastAngleRegressor( Regressor ):
 
 		Purpose:
 		--------
-		Least-angle regression (LARS) is a regression algorithm for high-dimensional data.
+		Least-angle regression (LARS) is a regression algorithm for high-dimensional db.
 		LARS is similar to forward stepwise regression. At each step, it finds the feature most
 		correlated with the target. When there are multiple features having equal correlation,
 		instead of continuing along the same feature, it proceeds in a direction equiangular
@@ -1972,7 +1972,7 @@ class StochasticGradientRegressor( Regressor ):
 		because of the regularizer, the update is truncated to 0.0 to allow for learning sparse
 		models and achieve online feature selection.
 
-		This implementation works with data represented as dense numpy arrays of floating point
+		This implementation works with db represented as dense numpy arrays of floating point
 		values for the feature_names.
 
 	"""
@@ -2474,9 +2474,9 @@ class DecisionTreeRegressor( Regressor ):
 		--------
 		Decision Trees (DTs) are a non-parametric supervised learning method used for
 		regression. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the data feature_names.
+		target variable by learning simple decision rules inferred from the db feature_names.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from data
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from db
 		to approximate a sine curve with a set of if-then-else decision rules.
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
@@ -4264,7 +4264,7 @@ class SupportVectorRegressor:
 
 			Purpose:
 			--------
-			Fit the SVR model to the data.
+			Fit the SVR model to the db.
 
 			Parameters:
 			___________
