@@ -82,9 +82,6 @@ Below is a list of supported classifiers in Mathy:
 | SupportVectorClassifier     | Support Vector Machine (SVC) classifier.                     |
 
 
-
-
-
 ### 📈 Regression Models
 - Regression models predict continuous numerical outcomes and are crucial in applications like
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
@@ -137,7 +134,6 @@ irregular cluster shapes:
 
 
 
-
 ### 📁 Data
 - Encapsulates datasets and implements dimensionality reduction, correlation analysis, and feature
 selection.
@@ -151,8 +147,6 @@ selection.
   | CorrelationAnalysis | Analyzes relationships using Canonical Correlation Analysis. |
   | ComponentAnalysis | Performs PCA or similar for dimensionality reduction. |
   | Dataset | Encapsulates data loading, transformation, and partitioning. |
-
-
 
 
 
