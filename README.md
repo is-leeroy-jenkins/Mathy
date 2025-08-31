@@ -18,6 +18,7 @@ interpretable tools for building intelligent models—especially within governme
 - **`models.py`**: Wrappers for common classifiers/regressors such as:
 - Perceptron, Ridge, SGD, MLP (Multilayer Perceptron)
 - Decision Trees, KNN, Logistic Regression, SVMs, Ensemble Methods
+- `forecasting.py` Time-Series Modeling: ARIMA, SARIMA, LaggedTimeSeries, ExpandingWindowSplitter
 - **`clusters.py`**: Unified interface for clustering techniques including:
 - `KMeans`, `DBSCAN`, `Agglomerative`, and other sklearn-based clustering algorithms
 - **`processors.py`**: Scalers and transformers for preprocessing:
