@@ -62,12 +62,12 @@ def throw_if( name: str, value: object ):
         raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 
-class OrdinaryLeastSquares( ):
+class LaggedTimeSeries( ):
     """
-
-	Purpose:
-	--------
-	Wraps statsmodels.OLS for univariate time-series forecasting using lag features.
+    
+        Purpose:
+        --------
+        Wraps statsmodels.OLS for univariate time-series forecasting using lag features.
 
 	"""
     
@@ -131,7 +131,7 @@ class OrdinaryLeastSquares( ):
         return X, y
     
     
-    def train( self, series: np.ndarray ) -> OrdinaryLeastSquares | None:
+    def train( self, series: np.ndarray ) -> LaggedTimeSeries | None:
         """
 
 		Purpose:
