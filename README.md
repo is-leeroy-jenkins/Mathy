@@ -8,8 +8,9 @@
 ## 🧠 Overview
 
 **Mathy** is a library of clustering algorithms, preprocessing tools, 
-and classification/regression models with custom wrappers, error handling, and diagnostic tools for 
-machine-learning workflows. Mathy targets professionals in data science and analytics who require reusable, robust, and 
+and classification/regression models and diagnostic tools for 
+machine-learning workflows in the federal finance domain. 
+Mathy targets professionals in data science and analytics who require reusable, robust, and 
 interpretable tools for building intelligent models—especially within government and research domains.
 
 ## 🧰 Core Modules
