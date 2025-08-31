@@ -1063,7 +1063,7 @@ class VarianceThreshold( ):
     threshold: Optional[ float ]
     
     
-    def __init__( self, thresh: float = 0.0 ) -> None:
+    def __init__( self, thresh: float=0.0 ) -> None:
         """
 
             Purpose:
