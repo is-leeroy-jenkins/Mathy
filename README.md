@@ -66,6 +66,7 @@ Below is a list of supported classifiers in Mathy:
 |-----------------------------|--------------------------------------------------------------|
 | Model                       | Base wrapper for all classification models.                  |
 | PerceptronClassifier        | Linear classifier using the perceptron learning rule.        |
+| LogisticRegression          | Logistic regression for binary outcomes.                         |
 | MultilayerClassifier        | Multi-layer perceptron (MLP) for non-linear classification.  |
 | RidgeClassifier             | Classifier with L2 regularization to prevent overfitting.    |
 | StochasticDescentClassifier | Learns model using stochastic gradient descent.         |
@@ -98,7 +99,7 @@ models, listed below:
 | RidgeRegressor             | Linear regression with L2 regularization.                         |
 | LassoRegressor             | Linear regression with L1 penalty for sparsity.                   |
 | ElasticNetRegressor        | Combines L1 and L2 penalties for robustness.                      |
-| LogisticRegressor          | Logistic regression for binary outcomes.                          |
+| GaussianProcessRegressor   | Logistic regression for binary outcomes.                          |
 | BayesianRidgeRegressor     | Bayesian linear model with priors on coefficients.               |
 | StochasticDescentRegressor | Optimizes regression with stochastic gradient descent.            |
 | NearestNeighborRegressor   | Instance-based regression using k-nearest neighbors.              |
@@ -109,7 +110,7 @@ models, listed below:
 | BaggingRegressor           | Bagging ensemble to reduce variance.                             |
 | VotingRegressor            | Aggregates predictions from multiple regressors.                  |
 | StackRegressor             | Trains meta-regressor on top of base models.                      |
-| SupportVectorRegressor      | Support Vector Regression (SVR) for high-dimensional data.        |
+| SupportVectorRegressor     | Support Vector Regression (SVR) for high-dimensional data.        |
 
 
 
@@ -165,7 +166,7 @@ usage across pipelines.
 
 | Class Name               | Description                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
-| Metric                   | Abstract base class for all preprocessors with methods like `fit`, `transform`, and `fit_transform`. |
+| Metric                   | Abstract base class for all preprocessors `fit`, `transform`, and `fit_transform`. |
 | LabelBinarizer           | Binarize labels in a one-vs-all fashion.                                  |            
 | TfidfTransformer         | Converts a count matrix to a normalized TF-IDF representation.              |
 | TfidfVectorizer          | Converts raw documents to TF-IDF features using vocabulary learning.        |
@@ -183,6 +184,24 @@ usage across pipelines.
 | NearestNeighborImputer   | Imputes missing values using the nearest neighbor algorithm.                |
 | IterativeImputer         | Imputes missing values by modeling them as a function of other features.    |
 | SimpleImputer            | Provides basic strategies for imputing missing values (mean, median, etc.). |
+
+
+
+
+### 🔍 Forecasting
+
+- This module provides a unified collection of time-series forecasting tools.
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/forecasting.py)
+
+
+
+| Class Name              | Description                                                                  |
+|-------------------------|------------------------------------------------------------------------------|
+| ArimaModel              | autoregressive integrated moving average                                     |
+| SarimaModel             | seasonal autoregressive integrated moving average                            |            
+| ExpandingWindowSplitter | Custom expanding-window time series cross-validator                          |
+| LaggedTimeSeries        | time-series regressor that uses lagged features                              |
+
 
 
 ## 📦 Dependencies

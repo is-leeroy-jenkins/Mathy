@@ -65,7 +65,7 @@ from preprocessors import Preprocessor
 
 
 def throw_if( name: str, value: object ):
-    if not value:
+    if value is None:
         raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 
@@ -491,7 +491,7 @@ class DataSource( ):
     standard_deviation: Optional[ pd.Series ]
     
     
-    def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
+    def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
         """
 
             Purpose:
@@ -586,7 +586,7 @@ class DataSource( ):
             throw_if( 'name', name )
             throw_if( 'encoder', encoder )
             throw_if( 'columns', columns )
-            self.transtuple.append( (name, encoder, columns) )
+            self.transtuple.append( ( name, encoder, columns ) )
             self.column_transformer = ColumnTransformer(
                 transformers=self.transtuple,
                 remainder='passthrough' )
@@ -652,8 +652,8 @@ class DataSource( ):
             error.show( )
     
     
-    def create_pivot_table( self, df: pd.DataFrame, cols: list, vals: list,
-            idx: list ) -> pd.DataFrame | None:
+    def create_pivot_table( self, df: pd.DataFrame, cols: List, vals: List,
+            idx: List ) -> pd.DataFrame | None:
         '''
 
             Purpose:
@@ -690,7 +690,7 @@ class DataSource( ):
             error.show( )
     
     
-    def export_excel( self, filepath: str = None ) -> None:
+    def export_excel( self, filepath: str=None ) -> None:
         '''
 
             Purpose:
@@ -727,7 +727,7 @@ class DataSource( ):
         try:
             _col_means = self.dataframe.select_dtypes( 'number' ).mean( axis=0 )
             plt.figure( figsize=(10, 6) )
-            sns.histplot( col_means, bins=20, kde=True )
+            sns.histplot( _col_means, bins=20, kde=True )
             plt.title( "Histogram of Column Means" )
             plt.xlabel( "Mean Value" )
             plt.ylabel( "Frequency" )
@@ -741,7 +741,7 @@ class DataSource( ):
             error.show( )
     
     
-    def create_histogram( self, df: pd.DataFrame, axes: int = 0, numbers_only=True ):
+    def create_histogram( self, df: pd.DataFrame, axes: int=0, numbers_only=True ):
         '''
 
             Purpose:
@@ -754,7 +754,7 @@ class DataSource( ):
             throw_if( 'df', df )
             _df = df.select_dtypes( 'number' ) if numbers_only else df
             series = _df.mean( axis=axes )
-            plt.figure( figsize=(8, 6) )
+            plt.figure( figsize=( 8, 6 ) )
             sns.histplot( series, bins=20, kde=True )
             plt.title( "Histogram of Means" )
             plt.xlabel( "Mean Value" )
@@ -769,7 +769,7 @@ class DataSource( ):
             error.show( )
     
     
-    def show_correlation_analysis( self, strategy='pearson', numbers_only: bool = True ):
+    def show_correlation_analysis( self, strategy='pearson', numeric: bool=True ):
         '''
 
             Purpose:
@@ -780,8 +780,8 @@ class DataSource( ):
             if strategy is None:
                 raise Exception( 'Argument "strategy" cannot be None' )
             else:
-                _correlation = self.dataframe.corr( method=strategy, numeric_only=numbers_only )
-                plt.figure( figsize=(10, 6) )
+                _correlation = self.dataframe.corr( method=strategy, numeric_only=numeric )
+                plt.figure( figsize=( 10, 6 ) )
                 sns.heatmap( _correlation, cmap="coolwarm", annot=True )
                 plt.title( "Correlation Analysis" )
                 plt.show( )
@@ -795,7 +795,7 @@ class DataSource( ):
     
     
     def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson',
-            numbers_only: bool = True ):
+            numeric: bool=True ):
         '''
 
             Purpose:
@@ -806,7 +806,7 @@ class DataSource( ):
         try:
             throw_if( 'df', df )
             _dataframe = df.copy( )
-            _correlation = _dataframe.corr( method=strategy, numeric_only=numbers_only )
+            _correlation = _dataframe.corr( method=strategy, numeric_only=numeric )
             plt.figure( figsize=(10, 6) )
             sns.heatmap( _correlation, cmap='coolwarm', annot=True )
             plt.title( 'Pearson Correlation' )
@@ -820,8 +820,8 @@ class DataSource( ):
             error.show( )
     
     
-    def calculate_average( self, df: pd.DataFrame, axes: int = 0,
-            numeric: bool = True ) -> pd.Series | None:
+    def calculate_average( self, df: pd.DataFrame, axes: int=0,
+            numeric: bool=True ) -> pd.Series | None:
         '''
 
             Purpose:
@@ -891,8 +891,8 @@ class DataSource( ):
             error.show( )
     
     
-    def calculate_skew( self, df: pd.DataFrame, axes: int = 0,
-            numeric: bool = True ) -> pd.Series | None:
+    def calculate_skew( self, df: pd.DataFrame, axes: int=0,
+            numeric: bool=True ) -> pd.Series | None:
         '''
 
             Purpose:
@@ -923,8 +923,8 @@ class DataSource( ):
             error.show( )
     
     
-    def calculate_kurtosis( self, df: pd.DataFrame, axes: int = 0,
-            numeric: bool = True ) -> pd.Series | None:
+    def calculate_kurtosis( self, df: pd.DataFrame, axes: int=0,
+            numeric: bool=True ) -> pd.Series | None:
         '''
 
             Purpose:
@@ -1026,6 +1026,38 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
+    
+    def scale_down( self, amount: int ):
+        """
+
+            Purpose:
+            --------
+            Divides all numeric columns in the DataFrame by 1000 and rounds to 2 decimal places.
+
+            Parameters:
+            ---------
+            df (pd.DataFrame): The input DataFrame with numeric columns to be scaled.
+            amount (int):  The scaling factor ex. 1000000 converts values into millions
+
+            Returns:
+            --------
+            pd.DataFrame: The transformed DataFrame.
+
+        """
+        try:
+            throw_if( 'amount', amount )
+            self.scaling_factor = amount
+            numeric_cols = self.dataframe.select_dtypes( include='number' ).columns
+            self.dataframe[ numeric_cols ] = (self.dataframe[ numeric_cols ]
+                                              .div( self.scaling_factor ).round( 2 ) )
+            return self.dataframe
+        except Exception as e:
+            exception = Error( e )
+            exception.module = 'mathy'
+            exception.cause = 'Data'
+            exception.method = 'scale_values( df, include )'
+            error = ErrorDialog( exception )
+            error.show( )
     
     def scale_values( self, df: pd.DataFrame, amount: int ):
         """
