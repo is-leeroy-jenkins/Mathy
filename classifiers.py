@@ -104,8 +104,8 @@ class Classifier( ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-				y (np.ndarray): Target vector w/shape ( n_samples, ).
+            X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+            y (np.ndarray): Target vector w/shape ( n_samples, ).
 
 			Returns:
 			--------

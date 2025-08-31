@@ -153,7 +153,6 @@ class Cluster( ):
 		raise NotImplementedError
 
 
-
 class KMeansCluster( Cluster ):
 	"""
 
@@ -182,7 +181,7 @@ class KMeansCluster( Cluster ):
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 
-	def __init__( self, num: int=8, rando: int=42, max: int=300 ) -> None:
+	def __init__( self, num: int=8, rando: int=42, max_iter: int=300 ) -> None:
 		"""
 			Purpose:
 			---------
@@ -198,7 +197,7 @@ class KMeansCluster( Cluster ):
 		super( ).__init__( )
 		self.n_clusters = num
 		self.random_state = rando
-		self.max_iter = max
+		self.max_iter = max_iter
 		self.kmeans_cluster = skc.KMeans( n_clusters=self.n_clusters,
 			random_state=self.random_state, max_iter=self.max_iter, n_init='auto' )
 		self.prediction = None
@@ -346,7 +345,7 @@ class DbscanCluster( Cluster ):
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 
-	def __init__( self, eps: float=0.5, min: int=5, algo: str='auto' ) -> None:
+	def __init__( self, eps: float=0.5, size: int=5, algo: str='auto' ) -> None:
 		"""
 
 			Purpose:
@@ -356,12 +355,12 @@ class DbscanCluster( Cluster ):
 			Parameters:
 			----------
 			eps: float
-			min: int
+			size: int
 
 		"""
 		super( ).__init__( )
 		self.eps = eps
-		self.min_samples = min
+		self.min_samples = size
 		self.algorithm = algo
 		self.db_scan = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
 			algorithm=self.algorithm )
@@ -871,7 +870,7 @@ class MeanShiftCluster( Cluster ):
 			error.show( )
 
 
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -948,7 +947,7 @@ class MeanShiftCluster( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.mean_shift.fit_predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c = labels, cmap = 'Set1' )
+			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Set1' )
 			plt.title( 'MeanShift Cluster' )
 			plt.show( )
 		except Exception as e:
