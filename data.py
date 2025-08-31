@@ -1026,7 +1026,7 @@ class DataSource( ):
             error.show( )
     
     
-    def scale_values( self, df: pd.DataFrame ):
+    def scale_values( self, df: pd.DataFrame, amount: int=1000000 ):
         """
         
             Purpose:
@@ -1036,6 +1036,7 @@ class DataSource( ):
             Parameters:
             ---------
             df (pd.DataFrame): The input DataFrame with numeric columns to be scaled.
+            amount (int):  The scaling factor ex. 1000000 converts values into millions
         
             Returns:
             --------
@@ -1043,7 +1044,7 @@ class DataSource( ):
         
         """
         numeric_cols = df.select_dtypes( include='number' ).columns
-        df[ numeric_cols ] = df[ numeric_cols ].div( 1000 ).round( 2 )
+        df[ numeric_cols ] = df[ numeric_cols ].div( amount ).round( 2 )
         return df
 
 
