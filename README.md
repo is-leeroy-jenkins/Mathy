@@ -207,7 +207,7 @@ usage across pipelines.
 - [pydantic](https://docs.pydantic.dev/latest/)
 
 
-- To install all dependencies:
+#### 🧰  To install all dependencies:
 
 ```
 bash
