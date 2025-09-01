@@ -83,7 +83,7 @@ Below is a list of supported classifiers in Mathy:
 - Regression models predict continuous numerical outcomes and are crucial in applications like
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
 models, listed below:
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressors.py))
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressors.py)
 
 
 | Class Name                 | Description                                                        |
