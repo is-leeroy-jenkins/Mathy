@@ -200,12 +200,11 @@ usage across pipelines.
 
 ###### Mathy requires Python 3.9+ and the following libraries:
 
-- `numpy`
-- `pandas`
-- `matplotlib`
-- `scikit-learn`
-- `pydantic`
-- `boogr` (custom error handler module)
+- [numpy](https://numpy.org/)
+- [pandas](https://pandas.pydata.org/)
+- [matplotlib](https://matplotlib.org/)
+- [scikit-learn](https://scikit-learn.org/stable/)
+- [pydantic](https://docs.pydantic.dev/latest/)
 
 
 - To install all dependencies:
