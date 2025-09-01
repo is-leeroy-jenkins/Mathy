@@ -7,11 +7,8 @@
 
 ## 🧠 Overview
 
-**Mathy** is a library of clustering algorithms, preprocessing tools, 
-and classification/regression models and diagnostic tools for 
-machine-learning workflows in the federal finance domain. 
-Mathy targets professionals in data science and analytics who require reusable, robust, and 
-interpretable tools for building intelligent models—especially within government and research domains.
+**Mathy** algorithms for pre-processing, classification, regression, time-series models for Machine-Learning workflows
+in the federal finance domain.
 
 ## 🧰 Core Modules
 - **`data.py`**: Abstract base classes (`Model`, `Metric`) and the `Dataset` class for loading and splitting data.
@@ -86,7 +83,7 @@ Below is a list of supported classifiers in Mathy:
 - Regression models predict continuous numerical outcomes and are crucial in applications like
 forecasting, pricing, and trend analysis. Mathy provides a range of linear and non-linear regression
 models, listed below:
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressors.py))
 
 
 | Class Name                 | Description                                                        |
@@ -155,7 +152,7 @@ selection.
 - This module provides a unified collection of data preprocessing tools for scaling, encoding, and
 imputing. All classes extend the Metric interface, ensuring consistency in method signatures and
 usage across pipelines.
-- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/data.py)
+- [Code](https://github.com/is-leeroy-jenkins/Mathy/blob/main/preprocessors.py)
 
 
 
