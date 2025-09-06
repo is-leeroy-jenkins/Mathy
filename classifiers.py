@@ -1592,14 +1592,14 @@ class GradientDescentClassifier( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
 				squared=False )
 			return \
-				{
-						'MAE': self.mean_absolute_error,
-						'MSE': self.mean_squared_error,
-						'RMSE': self.r_mean_squared_error,
-						'R2': self.r2_score,
-						'Explained Variance': self.explained_variance_score,
-						'Median Absolute Error': self.median_absolute_error,
-				}
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
