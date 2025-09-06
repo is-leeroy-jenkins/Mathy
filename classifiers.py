@@ -1422,7 +1422,7 @@ class GradientDescentClassifier( Classifier ):
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
 	
-	def __init__( self, loss: str='hinge', size: int=5, reg: str='l2',alpha: float=0.0001 ) -> None:
+	def __init__( self, loss: str='hinge', size: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
 		"""
 
 			Purpose:
