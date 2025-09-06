@@ -63,14 +63,12 @@ from pydantic import BaseModel, Field, validator
 from booger import Error, ErrorDialog
 from preprocessors import Preprocessor
 
-
 def throw_if( name: str, value: object ):
-    if value is None:
-        raise ValueError( f'Argument "{name}" cannot be empty!' )
-
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 def entropy( y: np.ndarray ) -> float | None:
-    """
+	"""
         
         Purpose:
         --------
@@ -91,22 +89,21 @@ def entropy( y: np.ndarray ) -> float | None:
         Entropy value (non-negative scalar).
     
     """
-    try:
-        throw_if( 'y', y )
-        unique, counts = np.unique( y, return_counts=True )
-        probs = counts / len( y )
-        return -np.sum( probs * np.log2( probs + 1e-9 ) )  # 1e-9 avoids log(0)
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'entropy( y: np.ndarray ) -> float '
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		throw_if( 'y', y )
+		unique, counts = np.unique( y, return_counts=True )
+		probs = counts / len( y )
+		return -np.sum( probs * np.log2( probs + 1e-9 ) )  # 1e-9 avoids log(0)
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'entropy( y: np.ndarray ) -> float '
+		error = ErrorDialog( exception )
+		error.show( )
 
 def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float | None:
-    """
+	"""
     
         Compute the information gain from splitting the data at a given threshold.
         Information gain quantifies the reduction in entropy after a dataset is split.
@@ -125,30 +122,30 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
         Information gain value (higher is better). Returns 0 if no valid split is found.
     
     """
-    try:
-        parent_entropy = entropy( y )
-        left_idx = X_column <= threshold
-        right_idx = X_column > threshold
-        if sum( left_idx ) == 0 or sum( right_idx ) == 0:
-            return 0  # Avoid splits with empty subset
-        left_entropy = entropy( y[ left_idx ] )
-        right_entropy = entropy( y[ right_idx ] )
-        num_left, num_right = sum( left_idx ), sum( right_idx )
-        weighted_entropy = (num_left / len( y )) * left_entropy + (
-                num_right / len( y )) * right_entropy
-        return parent_entropy - weighted_entropy
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = ('information_gain( X_column: np.ndarray, y: np.ndarray, threshold: '
-                            'float ) -> float')
-        error = ErrorDialog( exception )
-        error.show( )
+	try:
+		parent_entropy = entropy( y )
+		left_idx = X_column <= threshold
+		right_idx = X_column > threshold
+		if sum( left_idx ) == 0 or sum( right_idx ) == 0:
+			return 0  # Avoid splits with empty subset
+		left_entropy = entropy( y[ left_idx ] )
+		right_entropy = entropy( y[ right_idx ] )
+		num_left, num_right = sum( left_idx ), sum( right_idx )
+		weighted_entropy = (num_left / len( y )) * left_entropy + (
+				num_right / len( y )) * right_entropy
+		return parent_entropy - weighted_entropy
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = ('information_gain( X_column: np.ndarray, y: np.ndarray, threshold: '
+		                    'float ) -> float')
+		error = ErrorDialog( exception )
+		error.show( )
 
-
-def best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> Tuple[ int, float ] | None:
-    """
+def best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 ) -> Tuple[
+	                                                                            int, float ] | None:
+	"""
         
         Purpose:
         -------
@@ -167,31 +164,30 @@ def best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> Tuple[
         yield the highest information gain. If no split improves entropy, returns (None, None).
     
     """
-    try:
-        best_gain = 0
-        best_feature = None
-        best_threshold = None
-        for feature in range( X.shape[ 1 ] ):
-            thresholds = np.linspace( X[ :, feature ].min( ), X[ :, feature ].max( ),
-                num_thresholds )
-            for threshold in thresholds:
-                gain = information_gain( X[ :, feature ], y, threshold )
-                if gain > best_gain:
-                    best_gain, best_feature, best_threshold = gain, feature, threshold
-        
-        return best_feature, best_threshold
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = ('best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> '
-                            'Tuple[ int, float ]')
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		best_gain = 0
+		best_feature = None
+		best_threshold = None
+		for feature in range( X.shape[ 1 ] ):
+			thresholds = np.linspace( X[ :, feature ].min( ), X[ :, feature ].max( ),
+				num_thresholds )
+			for threshold in thresholds:
+				gain = information_gain( X[ :, feature ], y, threshold )
+				if gain > best_gain:
+					best_gain, best_feature, best_threshold = gain, feature, threshold
+		
+		return best_feature, best_threshold
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = ('best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> '
+		                    'Tuple[ int, float ]')
+		error = ErrorDialog( exception )
+		error.show( )
 
 def gini_impurity( p: float ) -> float | None:
-    '''
+	'''
 
         Purpose:
         _______
@@ -206,22 +202,21 @@ def gini_impurity( p: float ) -> float | None:
         float | None: Gini impurity, or None on error.
 
     '''
-    try:
-        throw_if( 'p', p )
-        if p < 0 or p > 1:
-            raise Exception( 'Argument "p" must be in [0, 1]' )
-        return 1.0 - max( p, 1.0 - p )
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'gini_impurity( p: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		throw_if( 'p', p )
+		if p < 0 or p > 1:
+			raise Exception( 'Argument "p" must be in [0, 1]' )
+		return 1.0 - max( p, 1.0 - p )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'gini_impurity( p: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
 
 def decision_tree_stump( X, y, num_thresholds=10 ):
-    """
+	"""
         
         Purpose:
         --------
@@ -250,27 +245,23 @@ def decision_tree_stump( X, y, num_thresholds=10 ):
             - 'right_label': int, majority class for right split
         
     """
-    feature, threshold = best_split( X, y, num_thresholds )
-    if feature is None:
-        return None
-    
-    left_idx = X[ :, feature ] <= threshold
-    right_idx = X[ :, feature ] > threshold
-    
-    left_label = np.bincount( y[ left_idx ] ).argmax( )
-    right_label = np.bincount( y[ right_idx ] ).argmax( )
-    
-    return \
-    {
-        'feature': feature,
-        'threshold': threshold,
-        'left_label': left_label,
-        'right_label': right_label
-    }
-
+	feature, threshold = best_split( X, y, num_thresholds )
+	if feature is None:
+		return None
+	
+	left_idx = X[ :, feature ] <= threshold
+	right_idx = X[ :, feature ] > threshold
+	
+	left_label = np.bincount( y[ left_idx ] ).argmax( )
+	right_label = np.bincount( y[ right_idx ] ).argmax( )
+	
+	return {
+		'feature': feature, 'threshold': threshold, 'left_label': left_label,
+		'right_label': right_label
+	}
 
 def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | None:
-    """
+	"""
     
         Purpose:
         -----------
@@ -294,25 +285,24 @@ def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | No
             Euclidean distance between sample i and centroid j.
             
     """
-    try:
-        throw_if( 'X', X )
-        throw_if( 'centroids', centroids )
-        distances = np.zeros( (X.shape[ 0 ], centroids.shape[ 0 ]) )  # Preallocate for speed
-        for i in range( centroids.shape[ 0 ] ):
-            # Compute Euclidean distance: ||x - c|| for all x
-            distances[ :, i ] = np.linalg.norm( X - centroids[ i ], axis=1 )
-        return distances
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		throw_if( 'X', X )
+		throw_if( 'centroids', centroids )
+		distances = np.zeros( (X.shape[ 0 ], centroids.shape[ 0 ]) )  # Preallocate for speed
+		for i in range( centroids.shape[ 0 ] ):
+			# Compute Euclidean distance: ||x - c|| for all x
+			distances[ :, i ] = np.linalg.norm( X - centroids[ i ], axis=1 )
+		return distances
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
+		error = ErrorDialog( exception )
+		error.show( )
 
 def k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple[ np.ndarray, np.ndarray ] | None:
-    """
+	"""
     
         Purpose:
         --------
@@ -350,28 +340,27 @@ def k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple[ np.ndarray, np.ndar
         - No convergence tolerance is used; it only checks for exact centroid stability.
     
     """
-    try:
-        centroids = X[ np.random.choice( X.shape[ 0 ], k, replace=False ) ]
-        for _ in range( max_iters ):
-            distances = compute_distances( X, centroids )
-            labels = np.argmin( distances, axis=1 )
-            new_centroids = np.array( [ X[ labels == i ].mean( axis=0 ) for i in range( k ) ] )
-            if np.all( centroids == new_centroids ):
-                break
-            centroids = new_centroids
-            return labels, centroids
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10) -> Tuple[ np.ndarray, '
-                            'np.ndarray ] ')
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		centroids = X[ np.random.choice( X.shape[ 0 ], k, replace=False ) ]
+		for _ in range( max_iters ):
+			distances = compute_distances( X, centroids )
+			labels = np.argmin( distances, axis=1 )
+			new_centroids = np.array( [ X[ labels == i ].mean( axis=0 ) for i in range( k ) ] )
+			if np.all( centroids == new_centroids ):
+				break
+			centroids = new_centroids
+			return labels, centroids
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10) -> Tuple[ np.ndarray, '
+		                    'np.ndarray ] ')
+		error = ErrorDialog( exception )
+		error.show( )
 
 def misclassification_error( p: float ) -> float | None:
-    '''
+	'''
 
         Purpose:
         ________
@@ -386,20 +375,19 @@ def misclassification_error( p: float ) -> float | None:
         float | None: Error rate, or None on error.
 
     '''
-    try:
-        throw_if( 'p', p )
-        return 1 - np.max( [ p, 1 - p ] )
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'db'
-        exception.method = 'misclassification_error( p: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		throw_if( 'p', p )
+		return 1 - np.max( [ p, 1 - p ] )
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'db'
+		exception.method = 'misclassification_error( p: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
 
 def sigmoid( z: float ) -> float | None:
-    '''
+	'''
 
         Purpose:
         _________
@@ -418,21 +406,20 @@ def sigmoid( z: float ) -> float | None:
         float | None: σ(z), or None on error.
 
     '''
-    try:
-        throw_if( 'z', z )
-        z = float( np.clip( z, -709, 709 ) )
-        return 1.0 / (1.0 + np.exp( -z ))
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'db'
-        exception.method = 'sigmoid( z: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
-
+	try:
+		throw_if( 'z', z )
+		z = float( np.clip( z, -709, 709 ) )
+		return 1.0 / (1.0 + np.exp( -z ))
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'db'
+		exception.method = 'sigmoid( z: float ) -> float'
+		error = ErrorDialog( exception )
+		error.show( )
 
 class DataSource( ):
-    """
+	"""
 
         Purpose:
         -----------
@@ -457,39 +444,38 @@ class DataSource( ):
         y_testing
 
     """
-    dataframe: pd.DataFrame
-    target: np.ndarray
-    test_size: float
-    random_state: int
-    data: Optional[ np.ndarray ]
-    n_samples: Optional[ int ]
-    n_features: Optional[ int ]
-    scaling_factor: Optional[ int ]
-    feature_names: Optional[ List[ str ] ]
-    target_names: Optional[ np.ndarray ]
-    categorical_columns: Optional[ List[ str ] ]
-    numeric_columns: Optional[ List[ str ] ]
-    numeric: Optional[ pd.DataFrame ]
-    X: Optional[ np.ndarray ]
-    y: Optional[ np.ndarray ]
-    X_training: Optional[ np.ndarray ]
-    X_testing: Optional[ np.ndarray ]
-    y_training: Optional[ np.ndarray ]
-    y_testing: Optional[ np.ndarray ]
-    transtuple: Optional[ List[ Tuple[ str, Preprocessor, List[ str ] ] ] ]
-    numeric_metrics: Optional[ pd.DataFrame ]
-    categorical_metrics: Optional[ pd.DataFrame ]
-    pivot_table: Optional[ pd.DataFrame ]
-    mean_standard_error: Optional[ pd.DataFrame ]
-    average: Optional[ pd.Series ]
-    kurtosis: Optional[ pd.Series ]
-    skew: Optional[ pd.Series ]
-    variance: Optional[ pd.Series ]
-    standard_deviation: Optional[ pd.Series ]
-    
-    
-    def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
-        """
+	dataframe: pd.DataFrame
+	target: np.ndarray
+	test_size: float
+	random_state: int
+	data: Optional[ np.ndarray ]
+	n_samples: Optional[ int ]
+	n_features: Optional[ int ]
+	scaling_factor: Optional[ int ]
+	feature_names: Optional[ List[ str ] ]
+	target_names: Optional[ np.ndarray ]
+	categorical_columns: Optional[ List[ str ] ]
+	numeric_columns: Optional[ List[ str ] ]
+	numeric: Optional[ pd.DataFrame ]
+	X: Optional[ np.ndarray ]
+	y: Optional[ np.ndarray ]
+	X_training: Optional[ np.ndarray ]
+	X_testing: Optional[ np.ndarray ]
+	y_training: Optional[ np.ndarray ]
+	y_testing: Optional[ np.ndarray ]
+	transtuple: Optional[ List[ Tuple[ str, Preprocessor, List[ str ] ] ] ]
+	numeric_metrics: Optional[ pd.DataFrame ]
+	categorical_metrics: Optional[ pd.DataFrame ]
+	pivot_table: Optional[ pd.DataFrame ]
+	mean_standard_error: Optional[ pd.DataFrame ]
+	average: Optional[ pd.Series ]
+	kurtosis: Optional[ pd.Series ]
+	skew: Optional[ pd.Series ]
+	variance: Optional[ pd.Series ]
+	standard_deviation: Optional[ pd.Series ]
+	
+	def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
+		"""
 
             Purpose:
             -----------
@@ -507,62 +493,59 @@ class DataSource( ):
                 None
 
         """
-        self.dataframe = df.copy( )
-        self.test_size = size
-        self.random_state = rando
-        
-        if target not in df.columns:
-            raise ArgumentError( None, f'target "{target}" not in dataframe' )
-        self.X = df.drop( columns=[ target ] )
-        self.y = df[ target ]
-        self.feature_names = list( self.dataframe.columns )
-        self.numeric_columns = self.dataframe.select_dtypes(
-            include=[ 'number' ] ).columns.tolist( )
-        self.categorical_columns = self.dataframe.select_dtypes(
-            include=[ 'object', 'category' ] ).columns.tolist( )
-        self.data = self.dataframe.values
-        self.n_samples = len( df )
-        self.n_features = self.dataframe.shape[ 1 ]
-        self.target = self.y
-        self.target_names = np.array( sorted( self.y.unique( ) ) )
-        self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split(
-            self.X, self.y, test_size=self.test_size, random_state=self.random_state,
-            stratify=None )
-        self.numeric = df.select_dtypes( include='number' ).copy( )
-        self.skew = self.numeric.skew( axis=0, numeric_only=True )
-        self.variance = self.numeric.var( axis=0, ddof=1, numeric_only=True )
-        self.kurtosis = self.numeric.kurt( axis=0, numeric_only=True )
-        self.average = self.numeric.mean( axis=0, numeric_only=True )
-        self.mean_standard_error = self.numeric.sem( axis=0, ddof=1, numeric_only=True )
-        self.standard_deviation = self.numeric.std( axis=0, ddof=1, numeric_only=True )
-        self.transtuple: List[ Tuple[ str, Preprocessor, list[ str ] ] ] = [ ]
-        self.numeric_metrics = None
-        self.categorical_metrics = None
-        self.pivot_table = None
-    
-    
-    def __dir__( self ):
-        '''
+		self.dataframe = df.copy( )
+		self.test_size = size
+		self.random_state = rando
+		
+		if target not in df.columns:
+			raise ArgumentError( None, f'target "{target}" not in dataframe' )
+		self.X = df.drop( columns=[ target ] ).to_numpy( )
+		self.y = df[ target ]
+		self.feature_names = list( self.dataframe.columns )
+		self.numeric_columns = self.dataframe.select_dtypes(
+			include=[ 'number' ] ).columns.tolist( )
+		self.categorical_columns = self.dataframe.select_dtypes(
+			include=[ 'object', 'category' ] ).columns.tolist( )
+		self.data = self.dataframe.values
+		self.n_samples = len( df )
+		self.n_features = self.dataframe.shape[ 1 ]
+		self.target = self.y
+		self.target_names = np.array( sorted( np.unique( self.target ) ) )
+		self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split( self.X,
+			self.y, test_size=self.test_size, random_state=self.random_state, stratify=None )
+		self.numeric = df.select_dtypes( include='number' ).copy( )
+		self.skew = self.numeric.skew( axis=0, numeric_only=True )
+		self.variance = self.numeric.var( axis=0, ddof=1, numeric_only=True )
+		self.kurtosis = self.numeric.kurt( axis=0, numeric_only=True )
+		self.average = self.numeric.mean( axis=0, numeric_only=True )
+		self.mean_standard_error = self.numeric.sem( axis=0, ddof=1, numeric_only=True )
+		self.standard_deviation = self.numeric.std( axis=0, ddof=1, numeric_only=True )
+		self.transtuple: List[ Tuple[ str, Preprocessor, list[ str ] ] ] = [ ]
+		self.numeric_metrics = None
+		self.categorical_metrics = None
+		self.pivot_table = None
+	
+	def __dir__( self ):
+		'''
 
             Purpose:
             -----------
             This function retuns a list of strings (members of the class)
 
         '''
-        return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'X', 'y',
-                 'feature_names', 'test_size', 'random_state', 'categorical_metrics',
-                 'categorical_columns', 'transtuple', 'numeric_metrics', 'numeric'
-                                                                         'pivot_table',
-                 'calculate_statistics', 'numeric_columns', 'mean_standard_error',
-                 'X_training', 'X_testing', 'y_training', 'average', 'kurtosis', 'variance',
-                 'y_testing', 'transform_columns', 'create_pivot_table', 'standard_deviation',
-                 'export_excel', 'create_histogram', 'calculate_skew', 'calculate_average',
-                 'calculate_deviation', 'calculate_kurtosis', 'calculate_standard_error',
-                 'show_correlation_analysis', 'create_correlation_analysis' ]
-    
-    
-    def transform_columns( self, name: str, encoder: Preprocessor, columns: List[ str ] ) -> None:
-        """
+		return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'X', 'y', 'feature_names',
+		         'test_size', 'random_state', 'categorical_metrics', 'categorical_columns',
+		         'transtuple', 'numeric_metrics', 'numeric'
+		                                          'pivot_table', 'calculate_statistics',
+		         'numeric_columns', 'mean_standard_error', 'X_training', 'X_testing', 'y_training',
+		         'average', 'kurtosis', 'variance', 'y_testing', 'transform_columns',
+		         'create_pivot_table', 'standard_deviation', 'export_excel', 'create_histogram',
+		         'calculate_skew', 'calculate_average', 'calculate_deviation', 'calculate_kurtosis',
+		         'calculate_standard_error', 'show_correlation_analysis',
+		         'create_correlation_analysis' ]
+	
+	def transform_columns( self, name: str, encoder: Preprocessor, columns: List[ str ] ) -> None:
+		"""
 
             Purpose:
             -----------
@@ -579,28 +562,26 @@ class DataSource( ):
             None
 
         """
-        try:
-            throw_if( 'name', name )
-            throw_if( 'encoder', encoder )
-            throw_if( 'columns', columns )
-            self.transtuple.append( ( name, encoder, columns ) )
-            self.column_transformer = ColumnTransformer(
-                transformers=self.transtuple,
-                remainder='passthrough' )
-            X = self.dataframe[ self.feature_names ]
-            _ = self.column_transformer.fit_transform( X )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('transform_columns( self, name: str, encoder: object, n_features: '
-                                'List[ str ] )')
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_numeric_statistics( self ) -> pd.DataFrame | None:
-        """
+		try:
+			throw_if( 'name', name )
+			throw_if( 'encoder', encoder )
+			throw_if( 'columns', columns )
+			self.transtuple.append( (name, encoder, columns) )
+			self.column_transformer = ColumnTransformer( transformers=self.transtuple,
+				remainder='passthrough' )
+			X = self.dataframe[ self.feature_names ]
+			_ = self.column_transformer.fit_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = ('transform_columns( self, name: str, encoder: object, n_features: '
+			                    'List[ str ] )')
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_numeric_statistics( self ) -> pd.DataFrame | None:
+		"""
 
             Purpose:
             -----------
@@ -611,22 +592,20 @@ class DataSource( ):
             pd.DataFrame
 
         """
-        try:
-            self.numeric_metrics = self.dataframe.describe(
-                percentiles=[ .05, .1, .25, .3, .5, .75, .8, .9, .95 ],
-                include=[ np.number ] )
-            return self.numeric_metrics
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_categorical_statistics( self ) -> pd.DataFrame | None:
-        """
+		try:
+			self.numeric_metrics = self.dataframe.describe(
+				percentiles=[ .05, .1, .25, .3, .5, .75, .8, .9, .95 ], include=[ np.number ] )
+			return self.numeric_metrics
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_categorical_statistics( self ) -> pd.DataFrame | None:
+		"""
 
             Purpose:
             -----------
@@ -637,21 +616,20 @@ class DataSource( ):
             pd.DataFrame
 
         """
-        try:
-            self.categorical_metrics = self.dataframe.describe( include=[ object ] )
-            return self.categorical_metrics
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def create_pivot_table( self, df: pd.DataFrame, cols: List, vals: List,
-            idx: List ) -> pd.DataFrame | None:
-        '''
+		try:
+			self.categorical_metrics = self.dataframe.describe( include=[ object ] )
+			return self.categorical_metrics
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_pivot_table( self, df: pd.DataFrame, cols: List, vals: List,
+		idx: List ) -> pd.DataFrame | None:
+		'''
 
             Purpose:
             _______
@@ -669,26 +647,25 @@ class DataSource( ):
             pd.DataFrame | None: Pivot table or None on error.
 
         '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'cols', cols )
-            throw_if( 'vals', vals )
-            throw_if( 'idx', idx )
-            self.dataframe = df.copy( )
-            self.pivot_table = pd.pivot_table( data=self.dataframe, index=idx, columns=cols,
-                values=vals, aggfun='sum', dropna=True, margins=True )
-            return self.pivot_table
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def export_excel( self, filepath: str=None ) -> None:
-        '''
+		try:
+			throw_if( 'df', df )
+			throw_if( 'cols', cols )
+			throw_if( 'vals', vals )
+			throw_if( 'idx', idx )
+			self.dataframe = df.copy( )
+			self.pivot_table = pd.pivot_table( data=self.dataframe, index=idx, columns=cols,
+				values=vals, aggfun='sum', dropna=True, margins=True )
+			return self.pivot_table
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def export_excel( self, filepath: str = None ) -> None:
+		'''
 
             Purpose:
             --------
@@ -700,20 +677,19 @@ class DataSource( ):
             :return:
             :rtype:
         '''
-        try:
-            throw_if( 'filepath', filepath )
-            self.dataframe.to_excel( filepath )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'export_excel( self, filepath: str=None ) -> None'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def show_histogram( self ):
-        '''
+		try:
+			throw_if( 'filepath', filepath )
+			self.dataframe.to_excel( filepath )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'export_excel( self, filepath: str=None ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def show_histogram( self ):
+		'''
 
             Purpose:
             ________
@@ -721,25 +697,24 @@ class DataSource( ):
             Method to create histogram of numeric n_features.
 
         '''
-        try:
-            _col_means = self.dataframe.select_dtypes( 'number' ).mean( axis=0 )
-            plt.figure( figsize=(10, 6) )
-            sns.histplot( _col_means, bins=20, kde=True )
-            plt.title( "Histogram of Column Means" )
-            plt.xlabel( "Mean Value" )
-            plt.ylabel( "Frequency" )
-            plt.show( )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'db'
-            exception.method = 'show_histogram( self )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def create_histogram( self, df: pd.DataFrame, axes: int=0, numbers_only=True ):
-        '''
+		try:
+			_col_means = self.dataframe.select_dtypes( 'number' ).mean( axis=0 )
+			plt.figure( figsize=(10, 6) )
+			sns.histplot( _col_means, bins=20, kde=True )
+			plt.title( "Histogram of Column Means" )
+			plt.xlabel( "Mean Value" )
+			plt.ylabel( "Frequency" )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'db'
+			exception.method = 'show_histogram( self )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_histogram( self, df: pd.DataFrame, axes: int = 0, numbers_only=True ):
+		'''
 
             Purpose:
             ________
@@ -747,79 +722,76 @@ class DataSource( ):
             Method to create histogram of from a dataframe.
 
         '''
-        try:
-            throw_if( 'df', df )
-            _df = df.select_dtypes( 'number' ) if numbers_only else df
-            series = _df.mean( axis=axes )
-            plt.figure( figsize=( 8, 6 ) )
-            sns.histplot( series, bins=20, kde=True )
-            plt.title( "Histogram of Means" )
-            plt.xlabel( "Mean Value" )
-            plt.ylabel( "Frequency" )
-            plt.show( )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'db'
-            exception.method = 'create_histogram( self, df: pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def show_correlation_analysis( self, strategy='pearson', numeric: bool=True ):
-        '''
+		try:
+			throw_if( 'df', df )
+			_df = df.select_dtypes( 'number' ) if numbers_only else df
+			series = _df.mean( axis=axes )
+			plt.figure( figsize=(8, 6) )
+			sns.histplot( series, bins=20, kde=True )
+			plt.title( "Histogram of Means" )
+			plt.xlabel( "Mean Value" )
+			plt.ylabel( "Frequency" )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'db'
+			exception.method = 'create_histogram( self, df: pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def show_correlation_analysis( self, strategy='pearson', numeric: bool = True ):
+		'''
 
             Purpose:
             --------
             Method to show the pearson-correlation analysis of the dataset.
         '''
-        try:
-            if strategy is None:
-                raise Exception( 'Argument "strategy" cannot be None' )
-            else:
-                _correlation = self.dataframe.corr( method=strategy, numeric_only=numeric )
-                plt.figure( figsize=( 10, 6 ) )
-                sns.heatmap( _correlation, cmap="coolwarm", annot=True )
-                plt.title( "Correlation Analysis" )
-                plt.show( )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'db'
-            exception.method = 'show_correlation_analysis( self )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson',
-            numeric: bool=True ):
-        '''
+		try:
+			if strategy is None:
+				raise Exception( 'Argument "strategy" cannot be None' )
+			else:
+				_correlation = self.dataframe.corr( method=strategy, numeric_only=numeric )
+				plt.figure( figsize=(10, 6) )
+				sns.heatmap( _correlation, cmap="coolwarm", annot=True )
+				plt.title( "Correlation Analysis" )
+				plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'db'
+			exception.method = 'show_correlation_analysis( self )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_correlation_analysis( self, df: pd.DataFrame, strategy='pearson',
+		numeric: bool = True ):
+		'''
 
             Purpose:
             --------
             Method to show the pearson-correlation analysis of the dataset.
 
         '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _correlation = _dataframe.corr( method=strategy, numeric_only=numeric )
-            plt.figure( figsize=(10, 6) )
-            sns.heatmap( _correlation, cmap='coolwarm', annot=True )
-            plt.title( 'Pearson Correlation' )
-            plt.show( )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'db'
-            exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_average( self, df: pd.DataFrame, axes: int=0,
-            numeric: bool=True ) -> pd.Series | None:
-        '''
+		try:
+			throw_if( 'df', df )
+			_dataframe = df.copy( )
+			_correlation = _dataframe.corr( method=strategy, numeric_only=numeric )
+			plt.figure( figsize=(10, 6) )
+			sns.heatmap( _correlation, cmap='coolwarm', annot=True )
+			plt.title( 'Pearson Correlation' )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'db'
+			exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_average( self, df: pd.DataFrame, axes: int = 0,
+		numeric: bool = True ) -> pd.Series | None:
+		'''
 
             Purpose:
             ________
@@ -836,24 +808,23 @@ class DataSource( ):
             pd.Series | None: Means by axis, or None on error.
 
         '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
-            return _deviation
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('calculate_average( self, df: pd.DataFrame, axes: int=0, '
-                                'numeric: bool=True ) -> pd.Series ')
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_variance( self, df: pd.DataFrame, axes: int = 0, degree: int = 1,
-            numeric: bool = True ) -> pd.Series | None:
-        '''
+		try:
+			throw_if( 'df', df )
+			_dataframe = df.copy( )
+			_deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
+			return _deviation
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = ('calculate_average( self, df: pd.DataFrame, axes: int=0, '
+			                    'numeric: bool=True ) -> pd.Series ')
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_variance( self, df: pd.DataFrame, axes: int = 0, degree: int = 1,
+		numeric: bool = True ) -> pd.Series | None:
+		'''
 
             Purpose:
             _______
@@ -871,26 +842,25 @@ class DataSource( ):
             pd.Series | None: Variances by axis, or None on error.
 
         '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'axex', axes )
-            throw_if( 'degree', degree )
-            throw_if( 'numeric', numeric )
-            _dataframe = df.copy( )
-            _variance = _dataframe.var( axis=axes, ddof=degree, numeric_only=numeric )
-            return _variance
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_skew( self, df: pd.DataFrame, axes: int=0,
-            numeric: bool=True ) -> pd.Series | None:
-        '''
+		try:
+			throw_if( 'df', df )
+			throw_if( 'axex', axes )
+			throw_if( 'degree', degree )
+			throw_if( 'numeric', numeric )
+			_dataframe = df.copy( )
+			_variance = _dataframe.var( axis=axes, ddof=degree, numeric_only=numeric )
+			return _variance
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_skew( self, df: pd.DataFrame, axes: int = 0,
+		numeric: bool = True ) -> pd.Series | None:
+		'''
 
             Purpose:
             --------
@@ -904,25 +874,24 @@ class DataSource( ):
             :return: pd.Series
             :rtype: pd.Series | None
         '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'axes', axes )
-            throw_if( 'numeric', numeric )
-            _dataframe = df.copy( )
-            _skew = _dataframe.skew( axis=axes, numeric_only=numeric )
-            return _skew
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_kurtosis( self, df: pd.DataFrame, axes: int=0,
-            numeric: bool=True ) -> pd.Series | None:
-        '''
+		try:
+			throw_if( 'df', df )
+			throw_if( 'axes', axes )
+			throw_if( 'numeric', numeric )
+			_dataframe = df.copy( )
+			_skew = _dataframe.skew( axis=axes, numeric_only=numeric )
+			return _skew
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_kurtosis( self, df: pd.DataFrame, axes: int = 0,
+		numeric: bool = True ) -> pd.Series | None:
+		'''
 
             Purpose:
             --------
@@ -934,25 +903,24 @@ class DataSource( ):
             :return: pd.Series
             :rtype: pd.Series | None
         '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'axes', axes )
-            throw_if( 'numeric', numeric )
-            _dataframe = df.copy( )
-            _kurtosis = _dataframe.kurt( axis=axes, numeric_only=numeric )
-            return _kurtosis
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_standard_error( self, df: pd.DataFrame, axes: int=0, degree: int=1,
-            numeric: bool=True ) -> pd.Series | None:
-        '''
+		try:
+			throw_if( 'df', df )
+			throw_if( 'axes', axes )
+			throw_if( 'numeric', numeric )
+			_dataframe = df.copy( )
+			_kurtosis = _dataframe.kurt( axis=axes, numeric_only=numeric )
+			return _kurtosis
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_standard_error( self, df: pd.DataFrame, axes: int = 0, degree: int = 1,
+		numeric: bool = True ) -> pd.Series | None:
+		'''
 
             Purpose:
             --------
@@ -971,25 +939,23 @@ class DataSource( ):
             pd.Series
             
         '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _error = _dataframe.sem( axis=axes, ddof=degree,
-                numeric_only=numeric )
-            return _error
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('calculate_standard_error( self, axes: int=0, degree: int=1 ) -> '
-                                'pd.Series')
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def calculate_deviation( self, df: pd.DataFrame, axes: int=0, degree: int=1,
-            numeric: bool=True ) -> pd.Series | None:
-        '''
+		try:
+			throw_if( 'df', df )
+			_dataframe = df.copy( )
+			_error = _dataframe.sem( axis=axes, ddof=degree, numeric_only=numeric )
+			return _error
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = ('calculate_standard_error( self, axes: int=0, degree: int=1 ) -> '
+			                    'pd.Series')
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def calculate_deviation( self, df: pd.DataFrame, axes: int = 0, degree: int = 1,
+		numeric: bool = True ) -> pd.Series | None:
+		'''
 
             Purpose:
             --------
@@ -1008,24 +974,22 @@ class DataSource( ):
             pd.Series
             
         '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _deviation = _dataframe.std( axis=axes,
-                ddof=degree, numeric_only=numeric )
-            return _deviation
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('calculate_standard_deviation( self, axes: int=0, degree: int=1 ) '
-                                '-> pd.Series')
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def scale_down( self, amount: int ):
-        """
+		try:
+			throw_if( 'df', df )
+			_dataframe = df.copy( )
+			_deviation = _dataframe.std( axis=axes, ddof=degree, numeric_only=numeric )
+			return _deviation
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DataSource'
+			exception.method = ('calculate_standard_deviation( self, axes: int=0, degree: int=1 ) '
+			                    '-> pd.Series')
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def scale_down( self, amount: int ):
+		"""
 
             Purpose:
             --------
@@ -1041,23 +1005,23 @@ class DataSource( ):
             pd.DataFrame: The transformed DataFrame.
 
         """
-        try:
-            throw_if( 'amount', amount )
-            self.scaling_factor = amount
-            numeric_cols = self.dataframe.select_dtypes( include='number' ).columns
-            self.dataframe[ numeric_cols ] = (self.dataframe[ numeric_cols ]
-                                              .div( self.scaling_factor ).round( 2 ) )
-            return self.dataframe
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = 'scale_values( df, include )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def scale_values( self, df: pd.DataFrame, amount: int ):
-        """
+		try:
+			throw_if( 'amount', amount )
+			self.scaling_factor = amount
+			numeric_cols = self.dataframe.select_dtypes( include='number' ).columns
+			self.dataframe[ numeric_cols ] = (
+				self.dataframe[ numeric_cols ].div( self.scaling_factor ).round( 2 ))
+			return self.dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Data'
+			exception.method = 'scale_values( df, include )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def scale_values( self, df: pd.DataFrame, amount: int ):
+		"""
         
             Purpose:
             --------
@@ -1073,24 +1037,23 @@ class DataSource( ):
             pd.DataFrame: The transformed DataFrame.
         
         """
-        try:
-            throw_if( 'df', df )
-            throw_if( 'amount', amount )
-            self.scaling_factor = amount
-            numeric_cols = df.select_dtypes( include='number' ).columns
-            df[ numeric_cols ] = df[ numeric_cols ].div( self.scaling_factor ).round( 2 )
-            return df
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = 'scale_values( df, include )'
-            error = ErrorDialog( exception )
-            error.show( )
-
+		try:
+			throw_if( 'df', df )
+			throw_if( 'amount', amount )
+			self.scaling_factor = amount
+			numeric_cols = df.select_dtypes( include='number' ).columns
+			df[ numeric_cols ] = df[ numeric_cols ].div( self.scaling_factor ).round( 2 )
+			return df
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Data'
+			exception.method = 'scale_values( df, include )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class VarianceThreshold( ):
-    """
+	"""
 
         Purpose:
         ---------
@@ -1099,13 +1062,12 @@ class VarianceThreshold( ):
         zero-variance feature_names, i.e. feature_names that have the same value in all samples.
 
     """
-    variance_selector: sf.VarianceThreshold
-    transformed_data: Optional[ np.ndarray ]
-    threshold: Optional[ float ]
-    
-    
-    def __init__( self, thresh: float=0.0 ) -> None:
-        """
+	variance_selector: sf.VarianceThreshold
+	transformed_data: Optional[ np.ndarray ]
+	threshold: Optional[ float ]
+	
+	def __init__( self, thresh: float = 0.0 ) -> None:
+		"""
 
             Purpose:
             ---------
@@ -1114,13 +1076,12 @@ class VarianceThreshold( ):
             :param threshold: Features with variance below this are removed.
             :type threshold: float
         """
-        self.threshold = thresh
-        self.variance_selector = sf.VarianceThreshold( threshold=self.threshold )
-        self.transformed_data = None
-    
-    
-    def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
-        """
+		self.threshold = thresh
+		self.variance_selector = sf.VarianceThreshold( threshold=self.threshold )
+		self.transformed_data = None
+	
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+		"""
 
             Purpose:
             ---------
@@ -1132,21 +1093,20 @@ class VarianceThreshold( ):
             y (np.ndarray): Target vector w/shape ( n_samples, ).
 
         """
-        try:
-            throw_if( 'X', X )
-            self.variance_selector.fit( X )
-            return self
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = 'fit( self, X: np.ndarray ) -> object | None'
-            error = ErrorDialog( exception )
-            error.show( )
-
-
-    def transform( self, X: np.ndarray ) -> np.ndarray | None:
-        """
+		try:
+			throw_if( 'X', X )
+			self.variance_selector.fit( X )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Data'
+			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
     
             Purpose:
             ---------
@@ -1157,21 +1117,20 @@ class VarianceThreshold( ):
             X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
 
         """
-        try:
-            throw_if( 'X', X )
-            self.transformed_data = self.variance_selector.transform( X )
-            return self.transformed_data
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = ''
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
-        """
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.variance_selector.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
     
             Purpose:
             ---------
@@ -1188,36 +1147,34 @@ class VarianceThreshold( ):
 
     
         """
-        try:
-            throw_if( 'X', X )
-            self.transformed_data = self.variance_selector.fit_transform( X )
-            return self.transformed_data
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = ''
-            error = ErrorDialog( exception )
-            error.show( )
-
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.variance_selector.fit_transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Data'
+			exception.method = ''
+			error = ErrorDialog( exception )
+			error.show( )
 
 class CorrelationAnalysis( ):
-    """
+	"""
 
         Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
         i.e. the components of each datasets that explain the most shared variance
         between both datasets.
 
     """
-    correlation_analysis: CCA
-    n_components: Optional[ int ]
-    scale: bool
-    max_iter: Optional[ int ]
-    transformed_data: (np.ndarray, np.ndarray)
-    
-    
-    def __init__( self, num: int=2, scale: bool=True, max: int=500 ) -> None:
-        """
+	correlation_analysis: CCA
+	n_components: Optional[ int ]
+	scale: bool
+	max_iter: Optional[ int ]
+	transformed_data: (np.ndarray, np.ndarray)
+	
+	def __init__( self, num: int = 2, scale: bool = True, max: int = 500 ) -> None:
+		"""
 
             Purpose:
             ---------
@@ -1230,16 +1187,15 @@ class CorrelationAnalysis( ):
             max (int): The maximum number of components to extract.
             
         """
-        self.scale = scale
-        self.n_components = num
-        self.max_iter = max
-        self.correlation_analysis = CCA( n_components=self.n_components,
-            scale=self.scale, max_iter=self.max_iter )
-        self.transformed_data = None
-    
-    
-    def fit( self, X: np.ndarray, y: np.ndarray ) -> CCA | None:
-        """
+		self.scale = scale
+		self.n_components = num
+		self.max_iter = max
+		self.correlation_analysis = CCA( n_components=self.n_components, scale=self.scale,
+			max_iter=self.max_iter )
+		self.transformed_data = None
+	
+	def fit( self, X: np.ndarray, y: np.ndarray ) -> CCA | None:
+		"""
 
             Purpose:
             ---------
@@ -1255,22 +1211,21 @@ class CorrelationAnalysis( ):
             CCA or None
             
         """
-        try:
-            throw_if( 'X', X )
-            throw_if( 'y', y )
-            self.correlation_analysis.fit( X, Y )
-            return self
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
-            exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def transform( self, X: np.ndarray, y: np.ndarray ) -> ( np.ndarray, np.ndarray ):
-        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.correlation_analysis.fit( X, Y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CorrelationAnalysis'
+			exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def transform( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray):
+		"""
 
             Purpose:
             ---------
@@ -1286,22 +1241,21 @@ class CorrelationAnalysis( ):
             (np.ndarray, np.ndarray): Transformed X and Y.
             
         """
-        try:
-            throw_if( 'X', X )
-            throw_if( 'y', y )
-            self.transformed_data = self.correlation_analysis.transform( X, y )
-            return self.transformed_data
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
-            exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray):
-        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.transformed_data = self.correlation_analysis.transform( X, y )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CorrelationAnalysis'
+			exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray):
+		"""
 
             Purpose:
             ---------
@@ -1314,22 +1268,21 @@ class CorrelationAnalysis( ):
 
 
         """
-        try:
-            throw_if( 'X', X )
-            throw_if( 'y', y )
-            self.transformed_data = self.correlation_analysis.fit( X, y ).transform( X, y )
-            return self.transformed_data
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
-            exception.method = 'fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
-            error = ErrorDialog( exception )
-            error.show( )
-
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.transformed_data = self.correlation_analysis.fit( X, y ).transform( X, y )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CorrelationAnalysis'
+			exception.method = 'fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class ComponentAnalysis( ):
-    """
+	"""
 
         Purpose:
         ---------
@@ -1341,14 +1294,13 @@ class ComponentAnalysis( ):
         the number of components to extract.
 
     """
-    component_analysis: sd.PCA
-    svd_solver: Optional[ str ]
-    n_components: Optional[ int ]
-    transformed_data: Optional[ np.ndarray ]
-    
-    
-    def __init__( self, num: int=2, solver: str='auto' ) -> None:
-        """
+	component_analysis: sd.PCA
+	svd_solver: Optional[ str ]
+	n_components: Optional[ int ]
+	transformed_data: Optional[ np.ndarray ]
+	
+	def __init__( self, num: int = 2, solver: str = 'auto' ) -> None:
+		"""
 
             Purpose:
             ---------
@@ -1358,14 +1310,13 @@ class ComponentAnalysis( ):
             :type n_components: int
 
         """
-        self.n_components = num
-        self.svd_solver = solver
-        self.component_analysis = sd.PCA( n_components=num, svd_solver=self.svd_solver )
-        self.transformed_data = None
-    
-    
-    def fit( self, X: np.ndarray ) -> sd.PCA | None:
-        """
+		self.n_components = num
+		self.svd_solver = solver
+		self.component_analysis = sd.PCA( n_components=num, svd_solver=self.svd_solver )
+		self.transformed_data = None
+	
+	def fit( self, X: np.ndarray ) -> sd.PCA | None:
+		"""
 
             Purpose:
             ---------
@@ -1380,21 +1331,20 @@ class ComponentAnalysis( ):
             sd.PCA
 
         """
-        try:
-            throw_if( 'X', X )
-            self.component_analysis.fit( X )
-            return self
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'ComponentAnalysis'
-            exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def transform( self, X: np.ndarray ) -> np.ndarray | None:
-        """
+		try:
+			throw_if( 'X', X )
+			self.component_analysis.fit( X )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ComponentAnalysis'
+			exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
 
             Purpose:
             ---------
@@ -1411,21 +1361,20 @@ class ComponentAnalysis( ):
 
 
         """
-        try:
-            throw_if( 'X', X )
-            self.transformed_data = self.component_analysis.transform( X )
-            return self.transformed_data
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'ComponentAnalysis'
-            exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    
-    def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
-        """
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.component_analysis.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ComponentAnalysis'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
 
             Purpose:
             ---------
@@ -1441,14 +1390,14 @@ class ComponentAnalysis( ):
 
 
         """
-        try:
-            throw_if( 'X', X )
-            self.transformed_data = self.component_analysis.fit_transform( X )
-            return self.transformed_data
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'ComponentAnalysis'
-            exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-            error = ErrorDialog( exception )
-            error.show( )
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.component_analysis.fit_transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ComponentAnalysis'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
