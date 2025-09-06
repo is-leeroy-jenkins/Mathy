@@ -1422,8 +1422,7 @@ class GradientDescentClassifier( Classifier ):
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
 	
-	def __init__( self, loss: str = 'hinge', max: int = 5, reg: str = 'l2',
-	              alpha: float = 0.0001 ) -> None:
+	def __init__( self, loss: str='hinge', size: int=5, reg: str='l2',alpha: float=0.0001 ) -> None:
 		"""
 
 			Purpose:
@@ -1439,7 +1438,7 @@ class GradientDescentClassifier( Classifier ):
 		"""
 		super( ).__init__( )
 		self.loss = loss
-		self.max_iter = max
+		self.max_iter = size
 		self.regularization = reg
 		self.alpha = alpha
 		self.sgd_classifier = skc.SGDClassifier( loss=self.loss,
