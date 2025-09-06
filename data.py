@@ -147,8 +147,7 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
         error.show( )
 
 
-def best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 ) -> Tuple[
-                                                                                int, float ] | None:
+def best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> Tuple[ int, float ] | None:
     """
         
         Purpose:
