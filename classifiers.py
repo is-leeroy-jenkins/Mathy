@@ -2074,7 +2074,7 @@ class DecisionTreeClassifier( Classifier ):
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
 	
-	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int = 42 ) -> None:
+	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
 		"""
 
 
@@ -2236,7 +2236,6 @@ class DecisionTreeClassifier( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-
 			Purpose:
 			-----------
 			Evaluate classification performance using various metrics.
@@ -2272,14 +2271,14 @@ class DecisionTreeClassifier( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
 				squared=False )
 			return \
-				{
-						'MAE': self.mean_absolute_error,
-						'MSE': self.mean_squared_error,
-						'RMSE': self.r_mean_squared_error,
-						'R2': self.r2_score,
-						'Explained Variance': self.explained_variance_score,
-						'Median Absolute Error': self.median_absolute_error,
-				}
+			{
+					'MAE': self.mean_absolute_error,
+					'MSE': self.mean_squared_error,
+					'RMSE': self.r_mean_squared_error,
+					'R2': self.r2_score,
+					'Explained Variance': self.explained_variance_score,
+					'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2415,7 +2414,7 @@ class RandomForestClassifier( Classifier ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, est: int = 10, crit: Any = 'gini', max: Any = None,
+	def __init__( self, est: int = 10, crit: Any = 'gini', size: Any = None,
 	              rando: int = 42 ) -> None:
 		"""
 
@@ -2427,7 +2426,7 @@ class RandomForestClassifier( Classifier ):
 		super( ).__init__( )
 		self.n_estimators = est
 		self.criterion = crit
-		self.max_depth = max
+		self.max_depth = size
 		self.random_state = rando
 		self.random_forest_classifier = ske.RandomForestClassifier(
 			n_estimators=self.n_estimators,
