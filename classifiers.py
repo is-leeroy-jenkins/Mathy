@@ -225,7 +225,7 @@ class PerceptronClassifier( Classifier ):
 		self.shuffle = shuffle
 		self.penalty = penalty
 		self.perceptron_classifier = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
-			shuffle=self.shuffle, penalty=self.penalty, )
+		                                             shuffle=self.shuffle, penalty=self.penalty, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -369,11 +369,11 @@ class PerceptronClassifier( Classifier ):
 			self.prediction = self.perceptron_classifier.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MSE': self.mean_squared_error,
@@ -455,7 +455,7 @@ class PerceptronClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -465,15 +465,15 @@ class PerceptronClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -545,8 +545,10 @@ class LogisticRegression( Classifier ):
 		self.multi_class = multi_class
 		self.solver = solver
 		self.logistic_regression = skc.LogisticRegression( C=self.alpha,
-			max_iter=self.max_iter, multi_class=self.multi_class,
-			solver=self.solver, penalty=self.penalty )
+		                                                   max_iter=self.max_iter,
+		                                                   multi_class=self.multi_class,
+		                                                   solver=self.solver,
+		                                                   penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -689,7 +691,7 @@ class LogisticRegression( Classifier ):
 			self.prediction = self.logistic_regression.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
@@ -794,8 +796,10 @@ class MultiLayerClassifier( Classifier ):
 		self.alpha = alpha
 		self.random_state = rando
 		self.multilayer_classifier = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
-			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
-			learning_rate=self.learning_rate, random_state=self.random_state )
+		                                                activation=self.activation_function,
+		                                                solver=self.solver, alpha=self.alpha,
+		                                                learning_rate=self.learning_rate,
+		                                                random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1045,7 +1049,7 @@ class MultiLayerClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -1055,15 +1059,15 @@ class MultiLayerClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1130,7 +1134,8 @@ class RidgeClassifier( Classifier ):
 		self.max_iter = size
 		self.random_state = rando
 		self.ridge_classifier = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
-			max_iter=self.max_iter, random_state=self.random_state )
+		                                             max_iter=self.max_iter,
+		                                             random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1271,20 +1276,20 @@ class RidgeClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
-			{
-				'MAE': self.mean_absolute_error,
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
-				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
-			}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1330,7 +1335,7 @@ class RidgeClassifier( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None,  resolution=0.02 ):
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
 		'''
 
 			Purpose:
@@ -1355,7 +1360,7 @@ class RidgeClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -1365,15 +1370,15 @@ class RidgeClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1422,7 +1427,8 @@ class GradientDescentClassifier( Classifier ):
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
 	
-	def __init__( self, loss: str='hinge', size: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
+	def __init__( self, loss: str = 'hinge', size: int = 5, reg: str = 'l2',
+	              alpha: float = 0.0001 ) -> None:
 		"""
 
 			Purpose:
@@ -1442,7 +1448,8 @@ class GradientDescentClassifier( Classifier ):
 		self.regularization = reg
 		self.alpha = alpha
 		self.sgd_classifier = skc.SGDClassifier( loss=self.loss,
-			max_iter=self.max_iter, penalty=self.regularization, alpha=self.alpha )
+		                                         max_iter=self.max_iter,
+		                                         penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1586,20 +1593,20 @@ class GradientDescentClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
-			{
-				'MAE': self.mean_absolute_error,
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
-				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
-			}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1674,7 +1681,7 @@ class GradientDescentClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -1684,15 +1691,15 @@ class GradientDescentClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1752,7 +1759,8 @@ class NearestNeighborClassifier( Classifier ):
 		self.algorithm = algorithm
 		self.metric = metric
 		self.neighbor_classifier = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
-			algorithm=self.algorithm, metric=self.metric )
+		                                                     algorithm=self.algorithm,
+		                                                     metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1928,20 +1936,20 @@ class NearestNeighborClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
-			{
-				'MAE': self.mean_absolute_error,
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
-				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
-			}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2016,7 +2024,7 @@ class NearestNeighborClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -2026,15 +2034,15 @@ class NearestNeighborClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2074,7 +2082,7 @@ class DecisionTreeClassifier( Classifier ):
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
 	
-	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
+	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int = 42 ) -> None:
 		"""
 
 
@@ -2089,7 +2097,9 @@ class DecisionTreeClassifier( Classifier ):
 		self.max_depth = depth
 		self.random_state = rando
 		self.dt_classifier = skd.DecisionTreeClassifier( criterion=self.criterion,
-			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
+		                                                 splitter=self.splitter,
+		                                                 max_depth=self.max_depth,
+		                                                 random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2265,20 +2275,20 @@ class DecisionTreeClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
-			{
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
-			}
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.r_mean_squared_error,
+						'R2': self.r2_score,
+						'Explained Variance': self.explained_variance_score,
+						'Median Absolute Error': self.median_absolute_error,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2349,7 +2359,7 @@ class DecisionTreeClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -2359,15 +2369,15 @@ class DecisionTreeClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2490,18 +2500,18 @@ class RandomForestClassifier( Classifier ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-				Purpose:
-				-------
-				Predict class target_names
-				using the SGD classifier.
+			Purpose:
+			-------
+			Predict class target_names
+			using the SGD classifier.
 
-				Parameters:
-				----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			Parameters:
+			----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
-				Returns:
-				---------
-					np.ndarray: Predicted class target_names.
+			Returns:
+			---------
+			np.ndarray: Predicted class target_names.
 
 		"""
 		try:
@@ -2600,11 +2610,11 @@ class RandomForestClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MAE': self.mean_absolute_error,
@@ -2688,7 +2698,7 @@ class RandomForestClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -2698,15 +2708,15 @@ class RandomForestClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2749,7 +2759,7 @@ class GradientBoostingClassifier( Classifier ):
 	training_score: Optional[ float ]
 	
 	def __init__( self, lss: str = 'deviance', rate: int = 0.1,
-	              est: int = 100, max: int = 3, rando: int = 42 ) -> None:
+	              est: int = 100, size: int = 3, rando: int = 42 ) -> None:
 		"""
 
 			Purpose:
@@ -2769,11 +2779,13 @@ class GradientBoostingClassifier( Classifier ):
 		self.loss = lss
 		self.learning_rate = rate
 		self.n_estimators = est
-		self.max_depth = max
+		self.max_depth = size
 		self.random_state = rando
 		self.gradient_boost_classifier = ske.GradientBoostingClassifier( loss=self.loss,
-			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
-			max_depth=self.max_depth, random_state=self.random_state )
+		                                                                 learning_rate=self.learning_rate,
+		                                                                 n_estimators=self.n_estimators,
+		                                                                 max_depth=self.max_depth,
+		                                                                 random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2940,11 +2952,11 @@ class GradientBoostingClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MAE': self.mean_absolute_error,
@@ -3022,7 +3034,7 @@ class GradientBoostingClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -3031,14 +3043,14 @@ class GradientBoostingClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ], marker=markers[ idx ],
-					label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ], marker=markers[ idx ],
+				             label=f'Class {cl}', edgecolor='black' )
 			# plot all examples
 			if test_idx:
 				X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 				plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-					alpha=1.0,
-					linewidth=1, marker='o', s=100, label='Test set' )
+				             alpha=1.0,
+				             linewidth=1, marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3086,7 +3098,8 @@ class AdaBoostClassifier( Classifier ):
 		self.n_estimators = num
 		self.learning_rate = learning
 		self.ada_boost_classifier = ske.AdaBoostClassifier( estimator=self.estimator,
-			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
+		                                                    n_estimators=self.n_estimators,
+		                                                    learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3221,11 +3234,11 @@ class AdaBoostClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MAE': self.mean_absolute_error,
@@ -3308,7 +3321,7 @@ class AdaBoostClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -3318,15 +3331,15 @@ class AdaBoostClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3368,7 +3381,8 @@ class BaggingClassifier( Classifier ):
 	base_estimator: Optional[ Any ]
 	n_estimators: Optional[ int ]
 	
-	def __init__( self, base: object = None, num: int = 10, max: int = 1, rando: int = 42 ) -> None:
+	def __init__( self, base: object = None, num: int = 10, max: int = 1, rando: int = 42 ) -> \
+			None:
 		"""
 
 			Initialize the BaggingClassifier.
@@ -3380,8 +3394,9 @@ class BaggingClassifier( Classifier ):
 		self.max_features = max
 		self.random_state = rando
 		self.bagging_classifier = ske.BaggingClassifier( estimator=self.base_estimator,
-			n_estimators=self.n_estimators, max_features=self.max_features,
-			random_state=self.random_state )
+		                                                 n_estimators=self.n_estimators,
+		                                                 max_features=self.max_features,
+		                                                 random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3513,11 +3528,11 @@ class BaggingClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				square=False )
+			                                                square=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MAE': self.mean_absolute_error,
@@ -3602,7 +3617,7 @@ class BaggingClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -3612,15 +3627,15 @@ class BaggingClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3668,7 +3683,7 @@ class VotingClassifier( Classifier ):
 		self.estimators = estimators
 		self.voting = vote
 		self.voting_classifier = ske.VotingClassifier( estimators=self.estimators,
-			voting=self.voting )
+		                                               voting=self.voting )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3801,11 +3816,11 @@ class VotingClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MAE': self.mean_absolute_error,
@@ -3888,7 +3903,7 @@ class VotingClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -3898,15 +3913,15 @@ class VotingClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3954,7 +3969,7 @@ class StackingClassifier( Classifier ):
 		self.estimators = est
 		self.final_estimator = final
 		self.stacking_classifier = ske.StackingClassifier( estimators=self.estimators,
-			final_estimator=self.final_estimator )
+		                                                   final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4087,11 +4102,11 @@ class StackingClassifier( Classifier ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction,
-				squared=False )
+			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction,
-				squared=False )
+			                                                    squared=False )
 			return \
 				{
 						'MAE': self.mean_absolute_error,
@@ -4173,7 +4188,7 @@ class StackingClassifier( Classifier ):
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -4183,15 +4198,15 @@ class StackingClassifier( Classifier ):
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4243,7 +4258,7 @@ class SupportVectorClassifier:
 		self.regulation = C
 		self.degree = degree
 		self.svc_classifier = skv.SVC( kernel=self.kernel, C=self.regulation,
-			random_state=self.random_state, degree=self.degree )
+		                               random_state=self.random_state, degree=self.degree )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4463,7 +4478,7 @@ class SupportVectorClassifier:
 			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
+			                        np.arange( x2_min, x2_max, resolution ) )
 			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -4473,15 +4488,15 @@ class SupportVectorClassifier:
 			# plot class examples
 			for idx, cl in enumerate( np.unique( y ) ):
 				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				             c=colors[ idx ],
+				             marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
 				
 				# plot all examples
 				if test_idx:
 					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
 					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
+					             edgecolor='black', alpha=1.0, linewidth=1,
+					             marker='o', s=100, label='Test set' )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
