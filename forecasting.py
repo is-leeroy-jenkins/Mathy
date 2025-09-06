@@ -41,19 +41,15 @@
 ******************************************************************************************
 '''
 from __future__ import annotations
-from typing import Optional, Dict
+from typing import Optional, Dict, Generator, Tuple
 import numpy as np
 from statsmodels.tsa.statespace.sarimax import SARIMAX, SARIMAXResults
 from statsmodels.tsa.arima.model import ARIMA, ARIMAResults
 import statsmodels.tsa.arima.model as am
 import statsmodels.api as sm
-from sklearn.metrics import (
-	mean_squared_error,
-	mean_absolute_error,
-	median_absolute_error,
-	explained_variance_score,
-	r2_score
-)
+from matplotlib import pyplot as plt
+from sklearn.metrics import (mean_squared_error, mean_absolute_error, median_absolute_error,
+                             explained_variance_score, r2_score)
 from booger import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -159,7 +155,7 @@ class LaggedTimeSeries( ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, n_steps: int=1 ) -> np.ndarray | None:
+	def project( self, n_steps: int = 1 ) -> np.ndarray | None:
 		"""
 
             Purpose:
@@ -238,12 +234,12 @@ class LaggedTimeSeries( ):
 			throw_if( 'y_train', self.y_train )
 			y_pred = self.model.predict( self.X_train )
 			return {
-					'MSE': mean_squared_error( self.y_train, y_pred ),
-					'RMSE': np.sqrt( mean_squared_error( self.y_train, y_pred ) ),
-					'MAE': mean_absolute_error( self.y_train, y_pred ),
-					'MedianAE': median_absolute_error( self.y_train, y_pred ),
-					'R2': r2_score( self.y_train, y_pred ),
-					'ExplainedVariance': explained_variance_score( self.y_train, y_pred )
+				'MSE': mean_squared_error( self.y_train, y_pred ),
+				'RMSE': np.sqrt( mean_squared_error( self.y_train, y_pred ) ),
+				'MAE': mean_absolute_error( self.y_train, y_pred ),
+				'MedianAE': median_absolute_error( self.y_train, y_pred ),
+				'R2': r2_score( self.y_train, y_pred ),
+				'ExplainedVariance': explained_variance_score( self.y_train, y_pred )
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -268,7 +264,7 @@ class ExpandingWindowSplitter:
 	max_splits: Optional[ int ]
 	
 	def __init__( self, initial_window: int = 30, test_window: int = 10,
-	              max_splits: Optional[ int ] = None ) -> None:
+		max_splits: Optional[ int ] = None ) -> None:
 		"""
     
             Purpose:
@@ -298,7 +294,8 @@ class ExpandingWindowSplitter:
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def split( self, series: np.ndarray ) -> Generator[Tuple[ np.ndarray, np.ndarray ], None, None ]:
+	def split( self, series: np.ndarray ) -> Generator[
+		Tuple[ np.ndarray, np.ndarray ], None, None ]:
 		"""
     
                 Purpose:
@@ -386,15 +383,15 @@ class ExpandingWindowSplitter:
 		try:
 			throw_if( 'series', series )
 			n_splits = self.get_n_splits( series )
-			fig, ax = plt.subplots( n_splits, 1, figsize = (10, 2 * n_splits), sharex = True )
+			fig, ax = plt.subplots( n_splits, 1, figsize=(10, 2 * n_splits), sharex=True )
 			
 			for i, (train, test) in enumerate( self.split( series ) ):
-				ax[ i ].scatter( train, [ i + 0.5 ] * len( train ), c = "blue",
-					label = "Train", marker = "|" )
-				ax[ i ].scatter( test, [ i + 0.5 ] * len( test ), c = "orange",
-					label = "Test", marker = "|" )
+				ax[ i ].scatter( train, [ i + 0.5 ] * len( train ), c="blue", label="Train",
+					marker="|" )
+				ax[ i ].scatter( test, [ i + 0.5 ] * len( test ), c="orange", label="Test",
+					marker="|" )
 				ax[ i ].set_ylabel( f"Split {i + 1}" )
-				ax[ i ].legend( loc = 'upper right' )
+				ax[ i ].legend( loc='upper right' )
 			
 			plt.xlabel( "Time Step Index" )
 			plt.suptitle( "Expanding Window Cross-Validation" )
@@ -471,7 +468,7 @@ class ArimaModel( ):
 		try:
 			throw_if( 'series', series )
 			self.train_data = series
-			self.model = am.ARIMA( series, order = self.order )
+			self.model = am.ARIMA( series, order=self.order )
 			self.results = self.model.fit( )
 			return self
 		except Exception as e:
@@ -500,7 +497,7 @@ class ArimaModel( ):
         """
 		try:
 			throw_if( 'results', self.results )
-			forecast = self.results.forecast( steps = n_steps )
+			forecast = self.results.forecast( steps=n_steps )
 			self.prediction = forecast
 			return forecast
 		except Exception as e:
@@ -551,15 +548,14 @@ class ArimaModel( ):
 			throw_if( 'train_data', self.train_data )
 			y_true = self.train_data[ self.order[ 1 ]: ]
 			y_pred = self.results.fittedvalues
-			return \
-				{
-						'MSE': mean_squared_error( y_true, y_pred ),
-						'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
-						'MAE': mean_absolute_error( y_true, y_pred ),
-						'MedianAE': median_absolute_error( y_true, y_pred ),
-						'R2': r2_score( y_true, y_pred ),
-						'ExplainedVariance': explained_variance_score( y_true, y_pred )
-				}
+			return {
+				'MSE': mean_squared_error( y_true, y_pred ),
+				'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
+				'MAE': mean_absolute_error( y_true, y_pred ),
+				'MedianAE': median_absolute_error( y_true, y_pred ),
+				'R2': r2_score( y_true, y_pred ),
+				'ExplainedVariance': explained_variance_score( y_true, y_pred )
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -585,7 +581,7 @@ class SarimaModel( ):
 	prediction: Optional[ np.ndarray ]
 	
 	def __init__( self, order: Tuple[ int, int, int ] = (1, 1, 1),
-	              seasonal_order: Tuple[ int, int, int, int ] = (0, 0, 0, 0) ) -> None:
+		seasonal_order: Tuple[ int, int, int, int ] = (0, 0, 0, 0) ) -> None:
 		"""
     
             Purpose:
@@ -636,14 +632,10 @@ class SarimaModel( ):
 		try:
 			throw_if( 'series', series )
 			self.train_data = series
-			self.model = SARIMAX(
-				endog = series,
-				order = self.order,
-				seasonal_order = self.seasonal_order,
-				enforce_stationarity = False,
-				enforce_invertibility = False
-			)
-			self.results = self.model.fit( disp = False )
+			self.model = SARIMAX( endog=series, order=self.order,
+				seasonal_order=self.seasonal_order, enforce_stationarity=False,
+				enforce_invertibility=False )
+			self.results = self.model.fit( disp=False )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -671,7 +663,7 @@ class SarimaModel( ):
         """
 		try:
 			throw_if( 'results', self.results )
-			self.prediction = self.results.forecast( steps = n_steps )
+			self.prediction = self.results.forecast( steps=n_steps )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -722,15 +714,14 @@ class SarimaModel( ):
 			throw_if( 'train_data', self.train_data )
 			y_true = self.train_data[ self.order[ 1 ]: ]
 			y_pred = self.results.fittedvalues[ self.order[ 1 ]: ]
-			return \
-				{
-						'MSE': mean_squared_error( y_true, y_pred ),
-						'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
-						'MAE': mean_absolute_error( y_true, y_pred ),
-						'MedianAE': median_absolute_error( y_true, y_pred ),
-						'R2': r2_score( y_true, y_pred ),
-						'ExplainedVariance': explained_variance_score( y_true, y_pred )
-				}
+			return {
+				'MSE': mean_squared_error( y_true, y_pred ),
+				'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
+				'MAE': mean_absolute_error( y_true, y_pred ),
+				'MedianAE': median_absolute_error( y_true, y_pred ),
+				'R2': r2_score( y_true, y_pred ),
+				'ExplainedVariance': explained_variance_score( y_true, y_pred )
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'

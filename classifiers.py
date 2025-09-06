@@ -2758,8 +2758,8 @@ class GradientBoostingClassifier( Classifier ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, lss: str = 'deviance', rate: int = 0.1,
-	              est: int = 100, size: int = 3, rando: int = 42 ) -> None:
+	def __init__( self, lss: str='deviance', rate: int=0.1, est: int=100,
+		size: int=3, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -2782,10 +2782,8 @@ class GradientBoostingClassifier( Classifier ):
 		self.max_depth = size
 		self.random_state = rando
 		self.gradient_boost_classifier = ske.GradientBoostingClassifier( loss=self.loss,
-		                                                                 learning_rate=self.learning_rate,
-		                                                                 n_estimators=self.n_estimators,
-		                                                                 max_depth=self.max_depth,
-		                                                                 random_state=self.random_state )
+			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
+			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2814,7 +2812,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Purpose:
 			________
-				Fit the model to the training df.
+			Fit the model to the training df.
 
 			Parameters:
 			__________
@@ -2823,7 +2821,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Returns:
 			--------
-				Pipeline
+			Pipeline
 
 		"""
 		try:
@@ -2853,7 +2851,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Returns:
 			________
-				np.ndarray: Predicted target_names.
+			np.ndarray: Predicted target_names.
 
 		"""
 		try:
@@ -2902,7 +2900,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Purpose:
 			_______
-				Compute classification accuracy.
+			Compute classification accuracy.
 
 			Parameters:
 			__________
@@ -2911,7 +2909,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Returns:
 			________
-				float: Accuracy accuracy.
+			float: Accuracy accuracy.
 
 		"""
 		try:
@@ -2933,7 +2931,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Purpose:
 			--------
-				Evaluate classifier using multiple metrics.
+			Evaluate classifier using multiple metrics.
 
 			Parameters:
 			-----------
@@ -2955,17 +2953,16 @@ class GradientBoostingClassifier( Classifier ):
 			                                                squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction,
-			                                                    squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
 			return \
-				{
-						'MAE': self.mean_absolute_error,
-						'MSE': self.mean_squared_error,
-						'RMSE': self.r_mean_squared_error,
-						'R2': self.r2_score,
-						'Explained Variance': self.explained_variance_score,
-						'Median Absolute Error': self.median_absolute_error,
-				}
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2980,7 +2977,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Purpose:
 			--------
-				Display the confusion matrix.
+			Display the confusion matrix.
 
 			Parameters:
 			-----------

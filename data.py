@@ -214,7 +214,7 @@ def gini_impurity( p: float ) -> float | None:
     except Exception as e:
         exception = Error( e )
         exception.module = 'mathy'
-        exception.cause = 'db'
+        exception.cause = 'data'
         exception.method = 'gini_impurity( p: float ) -> float'
         error = ErrorDialog( exception )
         error.show( )
@@ -261,12 +261,12 @@ def decision_tree_stump( X, y, num_thresholds=10 ):
     right_label = np.bincount( y[ right_idx ] ).argmax( )
     
     return \
-        {
-                "feature": feature,
-                "threshold": threshold,
-                "left_label": left_label,
-                "right_label": right_label
-        }
+    {
+        'feature': feature,
+        'threshold': threshold,
+        'left_label': left_label,
+        'right_label': right_label
+    }
 
 
 def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | None:
@@ -305,7 +305,7 @@ def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | No
     except Exception as e:
         exception = Error( e )
         exception.module = 'mathy'
-        exception.cause = 'db'
+        exception.cause = 'data'
         exception.method = 'compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
         error = ErrorDialog( exception )
         error.show( )
@@ -358,14 +358,12 @@ def k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple[ np.ndarray, np.ndar
             new_centroids = np.array( [ X[ labels == i ].mean( axis=0 ) for i in range( k ) ] )
             if np.all( centroids == new_centroids ):
                 break
-            
             centroids = new_centroids
-        
-        return labels, centroids
+            return labels, centroids
     except Exception as e:
         exception = Error( e )
         exception.module = 'mathy'
-        exception.cause = 'db'
+        exception.cause = 'data'
         exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10) -> Tuple[ np.ndarray, '
                             'np.ndarray ] ')
         error = ErrorDialog( exception )
