@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="493761cf-06bb-44db-af01-d8d526614459" name="Changes" comment="updated forecasting;">
-      <change beforePath="$PROJECT_DIR$/classifiers.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifiers.py" afterDir="false" />
-    </list>
+    <list default="true" id="493761cf-06bb-44db-af01-d8d526614459" name="Changes" comment="updated;" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,7 +33,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "last_opened_file_path": "C:/Users/terry/source/repos/mathy",
-    "settings.editor.selected.configurable": "preferences.sourceCode.Python"
+    "settings.editor.selected.configurable": "preferences.sourceCode.CSV/TSV/PSV"
   }
 }]]></component>
   <component name="PyConsoleOptionsProvider">
@@ -83,11 +81,52 @@
       <option name="project" value="LOCAL" />
       <updated>1757165574670</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="updated;">
+      <option name="closed" value="true" />
+      <created>1757165680094</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1757165680094</updated>
+    </task>
+    <task id="LOCAL-00004" summary="updated;">
+      <option name="closed" value="true" />
+      <created>1757165700478</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1757165700478</updated>
+    </task>
+    <task id="LOCAL-00005" summary="updated;">
+      <option name="closed" value="true" />
+      <created>1757165794788</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1757165794788</updated>
+    </task>
+    <task id="LOCAL-00006" summary="updated;">
+      <option name="closed" value="true" />
+      <created>1757165843760</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1757165843760</updated>
+    </task>
+    <task id="LOCAL-00007" summary="updated;">
+      <option name="closed" value="true" />
+      <created>1757165975024</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1757165975024</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="updated forecasting;" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated forecasting;" />
+    <MESSAGE value="updated;" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated;" />
   </component>
 </project>
