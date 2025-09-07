@@ -914,7 +914,7 @@ class LassoRegression( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, alpha: float = 1.0, iters: int = 500, rando: int = 42 ) -> None:
+	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42 ) -> None:
 		"""
 
 	        Purpose:
@@ -926,7 +926,8 @@ class LassoRegression( Regressor ):
 		self.alpha = alpha
 		self.max_iter = iters
 		self.random_state = rando
-		self.lasso_regressor = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter, random_state=self.random_state )
+		self.lasso_regressor = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
+			random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -944,7 +945,10 @@ class LassoRegression( Regressor ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'random_state', 'alpha', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'prediction', 'accuracy', 'random_state', 'alpha', 'max_iter',
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
+			'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoRegression | None:
 		"""
@@ -1145,7 +1149,8 @@ class ElasticNetRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, max: int = 200, rando: int = None, select: str = 'random', ) -> None:
+	def __init__( self, alpha: float=1.0, ratio: float=0.5, max: int=200,
+		rando: int=None, select: str='random', ) -> None:
 		"""
 	
 	        Purpose:
@@ -1168,7 +1173,8 @@ class ElasticNetRegressor( Regressor ):
 		self.random_state = rando
 		self.selection = select
 		self.max_iter = max
-		self.elasticnet_regressor = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio, random_state=self.random_state, max_iter=self.max_iter, selection=self.selection, )
+		self.elasticnet_regressor = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
+			random_state=self.random_state, max_iter=self.max_iter, selection=self.selection, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1186,7 +1192,10 @@ class ElasticNetRegressor( Regressor ):
         Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'alpha', 'ratio', 'random_state', 'selection', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'prediction', 'accuracy', 'alpha', 'ratio', 'random_state',
+			'selection', 'max_iter', 'mean_absolute_error', 'mean_squared_error',
+			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegressor | None:
 		"""
@@ -1388,7 +1397,8 @@ class LeastAngleRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, coeffs: int = 500, fit: bool = True, normal: bool = True, precompute: bool = True, ) -> None:
+	def __init__( self, coeffs: int=500, fit: bool=True, normal: bool=True,
+		precompute: bool=True, ) -> None:
 		"""
 
 	        Purpose:
@@ -1427,9 +1437,10 @@ class LeastAngleRegressor( Regressor ):
 	        Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "fit_intercept", "normalize", "mean_absolute_error",
-			"mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score",
-			"median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'fit_intercept', 'normalize',
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'train', 'project',
+			'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngleRegressor | None:
 		"""
@@ -1456,9 +1467,9 @@ class LeastAngleRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LeastAngleRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'LeastAngleRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1624,7 +1635,6 @@ class BayesianRidgeRegressor( Regressor ):
     is increasing between two consecutive iterations of the optimization.
 
     """
-	
 	bayesian_ridge_regressor: skl.BayesianRidge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1644,7 +1654,8 @@ class BayesianRidgeRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, max: int = 300, shape_alpha: float = 1e-06, scale_alpha: float = 1e-06, shape_lambda: float = 1e-06, scale_lambda: float = 1e-06, ) -> None:
+	def __init__( self, max: int=300, shape_alpha: float=1e-06, scale_alpha: float=1e-06, 
+		shape_lambda: float=1e-06, scale_lambda: float=1e-06, ) -> None:
 		"""
 
         Purpose:
@@ -1658,7 +1669,8 @@ class BayesianRidgeRegressor( Regressor ):
 		self.scale_alpha = scale_alpha
 		self.shape_lambda = shape_lambda
 		self.scale_lambda = scale_lambda
-		self.bayesian_ridge_regressor = skl.BayesianRidge( alpha_1=self.shape_alpha, alpha_2=self.scale_alpha, lambda_1=self.shape_lambda, lambda_2=self.scale_lambda, )
+		self.bayesian_ridge_regressor = skl.BayesianRidge( alpha_1=self.shape_alpha, 
+			alpha_2=self.scale_alpha, lambda_1=self.shape_lambda, lambda_2=self.scale_lambda, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1676,7 +1688,10 @@ class BayesianRidgeRegressor( Regressor ):
         Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "shape_alpha", "scale_alpha", "shape_lambda", "random_state", "scale_lambda", "max_iter", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'shape_alpha', 'scale_alpha', 'shape_lambda', 
+			'random_state', 'scale_lambda', 'max_iter', 'mean_absolute_error', 
+			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidgeRegressor | None:
 		"""
@@ -1763,29 +1778,29 @@ class BayesianRidgeRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BayesianRidgeRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'BayesianRidgeRegressor'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Evaluate the Bayesian model with regression metrics.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	                dict: Dictionary of evaluation metrics.
 
-        Purpose:
-        -----------
-        Evaluate the Bayesian model with regression metrics.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                dict: Dictionary of evaluation metrics.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -1793,21 +1808,21 @@ class BayesianRidgeRegressor( Regressor ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction, average="binary" )
+			self.r2_score = f1_score( y, self.prediction, average='binary' )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BayesianRidgeRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'BayesianRidgeRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1829,17 +1844,17 @@ class BayesianRidgeRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.bayesian_ridge_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Bayesian-Ridge Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Bayesian-Ridge Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BayesianRidgeRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'BayesianRidgeRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1868,8 +1883,7 @@ class StochasticGradientDescent( Regressor ):
     This implementation works with db represented as dense numpy arrays of floating point
     values for the feature_names.
 
-    """
-	
+    """	
 	stochastic_regressor = skl.SGDRegressor
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1887,27 +1901,29 @@ class StochasticGradientDescent( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, loss: str = "squared_loss", iters: int = 1000, penalty: str = "l2", alpha: float = 0.0001, rando: int = 42, ) -> None:
-		"""
+	def __init__( self, loss: str='squared_loss', iters: int=1000, penalty: str='l2', 
+		alpha: float=0.0001, rando: int=42, ) -> None:
+		'''
+	
+	        Purpose:
+	        -----------
+	        Initialize the SGDRegressor
+	
+	        Parameters:
+	        -----------
+	        - alpha (float): Regulation
+	        - reg (str): Regularization term. Default is 'l2'.
+	        - max (int): Maximum number of passes. Default is 1000.
 
-        Purpose:
-        -----------
-        Initialize the SGDRegressor
-
-        Parameters:
-        -----------
-        - alpha (float): Regulation
-        - reg (str): Regularization term. Default is 'l2'.
-        - max (int): Maximum number of passes. Default is 1000.
-
-        """
+        '''
 		super( ).__init__( )
 		self.loss = loss
 		self.max_iter = iters
 		self.alpha = alpha
 		self.random_state = rando
 		self.penalty = penalty
-		self.stochastic_regressor = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter, penalty=self.penalty )
+		self.stochastic_regressor = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter, 
+			penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1925,7 +1941,10 @@ class StochasticGradientDescent( Regressor ):
         Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "penalty", "max_iter", "random_state", "loss", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'penalty', 'max_iter', 'random_state', 'loss', 
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 
+			'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
 		"""
@@ -1951,9 +1970,9 @@ class StochasticGradientDescent( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "StochasticGradientRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'StochasticGradientRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1979,29 +1998,29 @@ class StochasticGradientDescent( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "StochasticGradientRegressor"
-			exception.method = ""
+			exception.module = 'mathy'
+			exception.cause = 'StochasticGradientRegressor'
+			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
+		'''
 
-        Purpose:
-        -----------
-        Compute R^2 accuracy for the SGDRegressor.
+	        Purpose:
+	        -----------
+	        Compute R^2 accuracy for the SGDRegressor.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	                float: R^2 accuracy.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R^2 accuracy.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2010,29 +2029,29 @@ class StochasticGradientDescent( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = ""
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
+		'''
 
-        Purpose:
-        -----------
-        Evaluate regression model performance.
+	        Purpose:
+	        -----------
+	        Evaluate regression model performance.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        dict: Evaluation metrics dictionary.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                dict: Evaluation metrics dictionary.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2044,49 +2063,49 @@ class StochasticGradientDescent( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "StochasticGradientRegressor"
-			exception.method = ""
+			exception.module = 'mathy'
+			exception.cause = 'StochasticGradientRegressor'
+			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		'''
 
-        Purpose:
-        -----------
-        Plot predicted vs. actual target_names.
+	        Purpose:
+	        -----------
+	        Plot predicted vs. actual target_names.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.stochastic_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Stochastic Gradient Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Stochastic Gradient Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "StochasticGradientRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'StochasticGradientRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2123,18 +2142,17 @@ class NearestNeighborRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, num: int = 5, algo: str = "auto", power: float = 2.0, metric: str = "minkowski", ) -> None:
+	def __init__( self, num: int=5, algo: str='auto', power: float=2.0, metric: str='minkowski', ) -> None:
 		"""
 
-
-        Purpose:
-        -----------
-        Initialize the linerar_model (KNeighborsRegressor): Internal non-parametric regressor.
-
-        Parameters:
-        -----------
-                        Parameters:
-                                num: Number of neighbors to use. Default is 5.
+	
+	        Purpose:
+	        -----------
+	        Initialize the linerar_model (KNeighborsRegressor): Internal non-parametric regressor.
+	
+	        Parameters:
+	        -----------
+	        num: Number of neighbors to use. Default is 5.
 
         """
 		super( ).__init__( )
@@ -2142,7 +2160,8 @@ class NearestNeighborRegressor( Regressor ):
 		self.algorithm = algo
 		self.power = power
 		self.metric = metric
-		self.neighbor_regressor = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors, algorithm=self.algorithm, p=self.power, metric=self.metric, )
+		self.neighbor_regressor = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors, 
+			algorithm=self.algorithm, p=self.power, metric=self.metric, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2153,14 +2172,17 @@ class NearestNeighborRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
+	
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
-        Purpose:
-        -------
-        Provides a list of strings representing class members
-
-        """
-		return [ "prediction", "accuracy", "algorithm", "n_neighbors", "random_state", "power", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'accuracy', 'algorithm', 'n_neighbors', 'random_state', 'power', 
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
+			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
+			'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborRegressor | None:
 		"""
@@ -2187,28 +2209,28 @@ class NearestNeighborRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "NearestNeighborRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighborRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		'''
 
-        Purpose:
-        -----------
-        Predict target_names using the KNN regressor.
+	        Purpose:
+	        -----------
+	        Predict target_names using the KNN regressor.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target_names.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target_names.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			self.prediction = self.neighbor_regressor.predict( X )
@@ -2224,18 +2246,18 @@ class NearestNeighborRegressor( Regressor ):
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
-        Purpose:
-        -----------
-        Compute R^2 accuracy for k-NN regressor.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R-squared accuracy.
+	        Purpose:
+	        -----------
+	        Compute R^2 accuracy for k-NN regressor.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
@@ -2246,30 +2268,30 @@ class NearestNeighborRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "NearestNeighborRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighborRegressor'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Evaluate k-NN regression performance with multiple metrics.
+	
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        dict: Dictionary of evaluation scores.
 
-        Purpose:
-        -----------
-        Evaluate k-NN regression performance with multiple metrics.
-
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                dict: Dictionary of evaluation scores.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2281,17 +2303,17 @@ class NearestNeighborRegressor( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "NearestNeighborRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighborRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2317,34 +2339,34 @@ class NearestNeighborRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.neighbor_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Nearest-Neighbor Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Nearest-Neighbor Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RandomForestRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'RandomForestRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
 class DecisionTreeRegressor( Regressor ):
-	"""
+	'''
 
-    Purpose:
-    --------
-    Decision Trees (DTs) are a non-parametric supervised learning method used for
-    regression. The goal is to create a model that predicts the value of a
-    target variable by learning simple decision rules inferred from the db feature_names.
+	    Purpose:
+	    --------
+	    Decision Trees (DTs) are a non-parametric supervised learning method used for
+	    regression. The goal is to create a model that predicts the value of a
+	    target variable by learning simple decision rules inferred from the db feature_names.
+	
+	    A tree can be seen as a piecewise constant approximation. Decision trees learn from db
+	    to approximate a sine curve with a set of if-then-else decision rules.
+	    The deeper the tree, the more complex the decision rules and the fitter the model.
 
-    A tree can be seen as a piecewise constant approximation. Decision trees learn from db
-    to approximate a sine curve with a set of if-then-else decision rules.
-    The deeper the tree, the more complex the decision rules and the fitter the model.
-
-    """
+    '''
 	
 	dt_regressor: skd.DecisionTreeRegressor
 	prediction: Optional[ np.ndarray ]
@@ -2363,21 +2385,22 @@ class DecisionTreeRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, criterion="squared_error", splitter="best", depth=3, rando: int = 42 ) -> None:
-		"""
+	def __init__( self, criterion='squared_error', splitter='best', depth=3, rando: int=42 ) -> None:
+		'''
 
 
         Purpose:
         -----------
         Initialize the KNeighborsClassifier linerar_model.
 
-        """
+        '''
 		super( ).__init__( )
 		self.criterion = criterion
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.dt_regresssor = skd.DecisionTreeRegressor( criterion=self.criterion, splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
+		self.dt_regresssor = skd.DecisionTreeRegressor( criterion=self.criterion,
+			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2388,33 +2411,36 @@ class DecisionTreeRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
 
         Purpose:
         -------
         Provides a list of strings representing class members
 
-        """
-		return [ "prediction", "accuracy", "criterion", "splitter", "random_state", "max_depth", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'accuracy', 'criterion', 'splitter', 'random_state', 'max_depth',
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
+			'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeRegressor | None:
-		"""
+		'''
+	
+	
+	        Purpose:
+	        -----------
+	        Fit the Decision-Tree regressor linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        --------
+	        self
 
-
-        Purpose:
-        -----------
-        Fit the Decision-Tree regressor linerar_model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        --------
-        self
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2422,57 +2448,57 @@ class DecisionTreeRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "DecisionTreeRegression"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTreeRegression'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Predict target_names using the KNN regressor.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target_names.
 
-        Purpose:
-        -----------
-        Predict target_names using the KNN regressor.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target_names.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			self.prediction = self.dt_regresssor.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "DecisionTreeRegression"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTreeRegression'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Compute R^2 accuracy for k-NN regressor.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
-        Purpose:
-        -----------
-        Compute R^2 accuracy for k-NN regressor.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R-squared accuracy.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2481,30 +2507,30 @@ class DecisionTreeRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "DecisionTreeRegression"
-			exception.method = "score( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTreeRegression'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Evaluate k-NN regression performance with multiple metrics.
+	
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        dict: Dictionary of evaluation scores.
 
-        Purpose:
-        -----------
-        Evaluate k-NN regression performance with multiple metrics.
-
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                dict: Dictionary of evaluation scores.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2515,78 +2541,80 @@ class DecisionTreeRegressor( Regressor ):
 			self.r2_score = f1_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+			return \
+			{
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ),
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "DecisionTreeRegression"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTreeRegression'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Plot predicted vs actual target_names.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        None
 
-        Purpose:
-        -----------
-                Plot predicted vs actual target_names.
-
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                None
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.dt_regresssor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Decision Tree Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Decision Tree Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "DecisionTreeRegression"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTreeRegression'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
 class RandomForestRegressor( Regressor ):
-	"""
+	'''
 
-    Purpose:
-    --------
-    In random forests, each tree in the ensemble is built from a sample drawn with replacement
-    (i.e., a bootstrap sample) from the training set.
+	    Purpose:
+	    --------
+	    In random forests, each tree in the ensemble is built from a sample drawn with replacement
+	    (i.e., a bootstrap sample) from the training set.
+	
+	    Furthermore, when splitting each node during the construction of a tree,
+	    the best split is found either from all input feature_names or a random subset of
+	    size max_features.
+	
+	    The purpose of these two sources of randomness is to decrease the variance
+	    of the forest estimator. Individual decision trees typically exhibit high variance
+	    and tend to overfit. The injected randomness in forests yield decision trees with
+	    decoupled prediction errors. By taking an average of those predictions,
+	    some errors can cancel out. Random forests achieve a reduced variance
+	    by combining diverse trees, sometimes at the cost of a slight increase in bias.
+	    The variance reduction is often significant hence yielding an overall better model.
 
-    Furthermore, when splitting each node during the construction of a tree,
-    the best split is found either from all input feature_names or a random subset of
-    size max_features.
-
-    The purpose of these two sources of randomness is to decrease the variance
-    of the forest estimator. Individual decision trees typically exhibit high variance
-    and tend to overfit. The injected randomness in forests yield decision trees with
-    decoupled prediction errors. By taking an average of those predictions,
-    some errors can cancel out. Random forests achieve a reduced variance
-    by combining diverse trees, sometimes at the cost of a slight increase in bias.
-    The variance reduction is often significant hence yielding an overall better model.
-
-    """
+    '''
 	
 	random_forest_regressor: ske.RandomForestRegressor
 	n_estimators: int
@@ -2606,27 +2634,28 @@ class RandomForestRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, est: int = 10, crit: str = "gini", max: int = 3, rando: int = 42 ) -> None:
-		"""
+	def __init__( self, est: int=10, crit: str='gini', max: int=3, rando: int=42 ) -> None:
+		'''
+	
+	        Purpose:
+	        -----------
+	        Initialize the RidgeRegressor linerar_model.
+	
+	        Parameters:
+	        -----------
+	        alpha (float): Regularization strength. Default is 1.0.
+	        solver (str): Solver to use. Default is 'gini'.
+	        max (int): maximum iterations
+	        rando (int): random seed value
 
-        Purpose:
-        -----------
-        Initialize the RidgeRegressor linerar_model.
-
-        Parameters:
-        -----------
-        alpha (float): Regularization strength. Default is 1.0.
-        solver (str): Solver to use. Default is 'gini'.
-        max (int): maximum iterations
-        rando (int): random seed value
-
-        """
+        '''
 		super( ).__init__( )
 		self.n_estimators = est
 		self.criterion = crit
 		self.max_depth = max
 		self.random_state = rando
-		self.random_forest_regressor = ske.RandomForestRegressor( n_estimators=self.n_estimators, criterion=self.criterion, random_state=self.random_state, )
+		self.random_forest_regressor = ske.RandomForestRegressor( n_estimators=self.n_estimators,
+			criterion=self.criterion, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2637,32 +2666,35 @@ class RandomForestRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
 
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
-        """
-		return [ "prediction", "accuracy", "criterion", "n_estimators", "random_state", "loss", "max_depth", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'accuracy', 'criterion', 'n_estimators', 'random_state',
+			'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
+			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestRegressor | None:
-		"""
+		'''
+	
+	        Purpose:
+	        -----------
+	        Fit the RidgeRegressor regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        --------
+	        self
 
-        Purpose:
-        -----------
-        Fit the RidgeRegressor regression linerar_model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        --------
-        self
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2763,17 +2795,17 @@ class RandomForestRegressor( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RandomForestRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'RandomForestRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2799,17 +2831,17 @@ class RandomForestRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.random_forest_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Random Forest Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Random Forest Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RandomForestRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'RandomForestRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2844,7 +2876,7 @@ class GradientBoostingRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, lss: str = "deviance", rate: float = 0.1, est: int = 100, max: int = 3, rando: int = 42, ) -> None:
+	def __init__( self, lss: str='deviance', rate: float=0.1, est: int=100, max: int=3, rando: int=42, ) -> None:
 		"""
 
         Purpose:
@@ -2866,7 +2898,9 @@ class GradientBoostingRegressor( Regressor ):
 		self.n_estimators = est
 		self.max_depth = max
 		self.random_state = rando
-		self.gradient_boost_regressor = ske.GradientBoostingRegressor( loss=self.loss, learning_rate=self.learning_rate, n_estimators=self.n_estimators, max_depth=self.max_depth, random_state=self.random_state, )
+		self.gradient_boost_regressor = ske.GradientBoostingRegressor( loss=self.loss, 
+			learning_rate=self.learning_rate, n_estimators=self.n_estimators, 
+			max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -2877,14 +2911,17 @@ class GradientBoostingRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
 
         Purpose:
         -------
         Provides a list of strings representing class members
 
-        """
-		return [ "prediction", "accuracy", "learning_rate", "n_estimators", "random_state", "loss", "max_depth", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state', 
+			'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error', 
+			'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegressor | None:
 		"""
@@ -2910,9 +2947,9 @@ class GradientBoostingRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GradientBoostingRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2938,14 +2975,14 @@ class GradientBoostingRegressor( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
+		'''
 
         Purpose:
         ________
@@ -2960,7 +2997,7 @@ class GradientBoostingRegressor( Regressor ):
         _______
         float: R² accuracy.
 
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2969,9 +3006,9 @@ class GradientBoostingRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2997,17 +3034,17 @@ class GradientBoostingRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.gradient_boost_regressor.predict( X )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GradientBoostingRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3029,17 +3066,17 @@ class GradientBoostingRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.gradient_boost_regressor.predict( X )
 			plt.scatter( y, self.prediction, alpha=0.6 )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Gradient-Boosting Regression: Observed vs Projected" )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GradientBoostingRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoostingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3076,7 +3113,7 @@ class AdaBoostRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, est: int = 50, rando: int = 42, loss: str = "linear", learning: float = 1.0, ) -> None:
+	def __init__( self, est: int=50, rando: int=42, loss: str='linear', learning: float=1.0, ) -> None:
 		"""
 
         Purpose:
@@ -3095,7 +3132,8 @@ class AdaBoostRegressor( Regressor ):
 		self.random_state = rando
 		self.loss = loss
 		self.learning_rate = learning
-		self.ada_boost_regressor = ske.AdaBoostRegressor( n_estimators=self.n_estimators, random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate, )
+		self.ada_boost_regressor = ske.AdaBoostRegressor( n_estimators=self.n_estimators, 
+			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3106,14 +3144,17 @@ class AdaBoostRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
 
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
-        """
-		return [ "prediction", "kernel", "accuracy", "n_estimators", "random_state", "loss", "learning_rate", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'kernel', 'accuracy', 'n_estimators', 'random_state', 'loss', 
+			'learning_rate', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
+			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
+			'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostRegressor | None:
 		"""
@@ -3139,36 +3180,36 @@ class AdaBoostRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		'''
 
-        Project target target_names
-        using the RidgeRegressor linerar_model.
+	        Project target target_names
+	        using the RidgeRegressor linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target target_names.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target target_names.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			self.prediction = self.ada_boost_regressor.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3198,9 +3239,9 @@ class AdaBoostRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3231,52 +3272,52 @@ class AdaBoostRegressor( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		'''
 
-        Plot predicted vs
-        actual target_names.
+	        Plot predicted vs
+	        actual target_names.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        None
 
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                None
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.ada_boost_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "ADA Boost Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'ADA Boost Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "AdaBoostRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'AdaBoostRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3312,7 +3353,7 @@ class BaggingRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, base: object = None, num: int = 10, max: int = 1, rando: int = 42 ) -> None:
+	def __init__( self, base: object=None, num: int=10, max: int=1, rando: int=42 ) -> None:
 		"""
 
         Purpose:
@@ -3330,7 +3371,8 @@ class BaggingRegressor( Regressor ):
 		self.n_estimators = num
 		self.max_features = max
 		self.random_state = rando
-		self.bagging_regressor = ske.BaggingRegressor( estimator=self.base_estimator, max_features=self.max_features, random_state=self.random_state, )
+		self.bagging_regressor = ske.BaggingRegressor( estimator=self.base_estimator, 
+			max_features=self.max_features, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3341,14 +3383,17 @@ class BaggingRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
+	
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
-        Purpose:
-        -------
-        Provides a list of strings representing class members
-
-        """
-		return [ "prediction", "base_estimator", "n_estimators", "max_features", "accuracy", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", "random_state", ]
+        '''
+		return [ 'prediction', 'base_estimator', 'n_estimators', 'max_features', 
+			'accuracy', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
+			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
+			'project', 'score', 'analyze', 'create_scatter', 'random_state', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingRegressor | None:
 		"""
@@ -3374,9 +3419,9 @@ class BaggingRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BaggingRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'BaggingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3401,9 +3446,9 @@ class BaggingRegressor( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BaggingRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'BaggingRegressor'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3431,9 +3476,9 @@ class BaggingRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BaggingRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'BaggingRegressor'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3464,17 +3509,17 @@ class BaggingRegressor( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BaggingRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'BaggingRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3499,17 +3544,17 @@ class BaggingRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.bagging_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Bagging Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Bagging Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BaggingRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'BaggingRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3565,32 +3610,34 @@ class VotingRegressor( Regressor ):
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
 
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
-        """
-		return [ "prediction", "kernel", "C", "epsilon", "accuracy", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy', 'mean_absolute_error', 
+			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingRegressor | None:
-		"""
+		'''
+	
+	        Purpose:
+	        --------
+	        Fit the RidgeRegressor regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        --------
+	        self
 
-        Purpose:
-        --------
-        Fit the RidgeRegressor regression linerar_model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        --------
-        self
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -3598,57 +3645,57 @@ class VotingRegressor( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "VotingRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'VotingRegressor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		'''
 
-        Purpose:
-        ---------
-        Project target target_names
-        using the RidgeRegressor linerar_model.
+	        Purpose:
+	        ---------
+	        Project target target_names
+	        using the RidgeRegressor linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	
+	        Returns:
+	        -------
+	        np.ndarray: Predicted target target_names.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
-        Returns:
-        -------
-        np.ndarray: Predicted target target_names.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			self.prediction = self.voting_regressor.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "VotingRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'VotingRegressor'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
-
-        Compute the R-squared
-        accuracy for the Ridge model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
+		'''
+	
+	        Compute the R-squared
+	        accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
                 float: R-squared accuracy.
 
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -3657,9 +3704,9 @@ class VotingRegressor( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "VotingRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'VotingRegressor'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3690,17 +3737,17 @@ class VotingRegressor( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "VotingRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'VotingRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3795,7 +3842,8 @@ class StackingRegressor( Regressor ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_regressor = ske.StackingRegressor( estimators=self.estimators, final_estimator=self.final_estimator )
+		self.stacking_regressor = ske.StackingRegressor( estimators=self.estimators, 
+			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3813,7 +3861,10 @@ class StackingRegressor( Regressor ):
 	        Provides a list of strings representing class members
 
         """
-		return [ "prediction", "estimators", "final_estimator", "accuracy", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'estimators', 'final_estimator', 'accuracy', 
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
+			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
+			'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingRegressor | None:
 		"""
@@ -3929,17 +3980,17 @@ class StackingRegressor( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "StackingRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'StackingRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3965,17 +4016,17 @@ class StackingRegressor( Regressor ):
 			throw_if( 'y', y )
 			self.prediction = self.stacking_regressor.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Stacking Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Stacking Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "StackingRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'StackingRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3997,21 +4048,21 @@ class SupportVectorRegressor:
 	regulation: float
 	epsilon: float
 	
-	def __init__( self, kernel: str = "rbf", C: float = 1.0, epsilon: float = 0.1 ) -> None:
-		"""
+	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1 ) -> None:
+		'''
 
-        Purpose:
-        ---------
-        Initialize the SVR model.
+	        Purpose:
+	        ---------
+	        Initialize the SVR model.
+	
+	        :param kernel: Kernel type to be used in the algorithm.
+	        :type kernel: str
+	        :param C: Regularization parameter.
+	        :type C: float
+	        :param epsilon: Epsilon in the epsilon-SVR model.
+	        :type epsilon: float
 
-        :param kernel: Kernel type to be used in the algorithm.
-        :type kernel: str
-        :param C: Regularization parameter.
-        :type C: float
-        :param epsilon: Epsilon in the epsilon-SVR model.
-        :type epsilon: float
-
-        """
+        '''
 		self.kernel = kernel
 		self.regulation = C
 		self.epsilon = epsilon
@@ -4026,14 +4077,17 @@ class SupportVectorRegressor:
 		self.median_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		'''
 
         Purpose:
         -------
         Provides a list of strings representing class members
 
-        """
-		return [ "prediction", "kernel", "regulation", "epsilon", "accuracy", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+        '''
+		return [ 'prediction', 'kernel', 'regulation', 'epsilon', 'accuracy', 
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
+			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
+			'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorRegressor | None:
 		"""
@@ -4059,9 +4113,9 @@ class SupportVectorRegressor:
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "SupportVectorRegressor"
-			exception.method = "project( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'SupportVectorRegressor'
+			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -4084,31 +4138,31 @@ class SupportVectorRegressor:
 			return self.svr_model.predict( X )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "SupportVectorRegressor"
-			exception.method = "project( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'SupportVectorRegressor'
+			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
+		'''
+	
+	        Purpose:
+	        --------
+	
+	        Compute the R-squared
+	        accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
-        Purpose:
-        --------
-
-        Compute the R-squared
-        accuracy for the Ridge model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R-squared accuracy.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -4117,9 +4171,9 @@ class SupportVectorRegressor:
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "SupportVectorRegressor"
-			exception.method = "score( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'SupportVectorRegressor'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -4147,17 +4201,17 @@ class SupportVectorRegressor:
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "NearestNeighborRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighborRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -4179,29 +4233,29 @@ class SupportVectorRegressor:
 			throw_if( 'y', y )
 			self.prediction = self.svr_model.predict( X )
 			plt.scatter( y, self.prediction, color="blue", edgecolor="k" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
-			plt.xlabel( "True Values" )
-			plt.ylabel( "Predicted Values" )
-			plt.title( "SVR: True vs Predicted" )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.xlabel( 'True Values' )
+			plt.ylabel( 'Predicted Values' )
+			plt.title( 'SVR: True vs Predicted' )
 			plt.grid( True )
 			plt.tight_layout( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "NearestNeighborRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighborRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 
 class GaussianProcessRegressor:
-	"""
+	'''
 
-    Purpose:
-    --------
-    Wraps sklearn's GaussianProcessRegressor to provide a clean interface
-    for model training, prediction, and performance evaluation.
+	    Purpose:
+	    --------
+	    Wraps sklearn's GaussianProcessRegressor to provide a clean interface
+	    for model training, prediction, and performance evaluation.
 
-    """
+    '''
 	
 	model: gpr.GaussianProcessRegressor
 	prediction: Optional[ np.ndarray ]
@@ -4234,9 +4288,9 @@ class GaussianProcessRegressor:
 			self.model = GaussianProcessRegressor( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GaussianProcessRegressorWrapper"
-			exception.method = "__init__"
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.method = '__init__'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -4264,28 +4318,28 @@ class GaussianProcessRegressor:
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GaussianProcessRegressorWrapper"
-			exception.method = "train"
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		'''
 
-        Purpose:
-        --------
-        Predict using the trained model.
+	        Purpose:
+	        --------
+	        Predict using the trained model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+	
+	        Returns:
+	        --------
+	        np.ndarray: Predicted values.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-
-        Returns:
-        --------
-        np.ndarray: Predicted values.
-
-        """
+        '''
 		try:
 			throw_if( 'X', X )
 			self.prediction = self.model.predict( X )
@@ -4321,9 +4375,9 @@ class GaussianProcessRegressor:
 			return self.model.score( X, y )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GaussianProcessRegressorWrapper"
-			exception.method = "score"
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -4353,17 +4407,19 @@ class GaussianProcessRegressor:
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			return {
-				"MSE": self.mean_squared_error,
-				"RMSE": np.sqrt( self.mean_squared_error ),
-				"MAE": self.mean_absolute_error,
-				"MedianAE": self.median_absolute_error,
-				"R2": self.r2_score,
-				"ExplainedVariance": self.explained_variance_score, }
+			return \
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': np.sqrt( self.mean_squared_error ),
+				'MAE': self.mean_absolute_error,
+				'MedianAE': self.median_absolute_error,
+				'R2': self.r2_score,
+				'ExplainedVariance': self.explained_variance_score,
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "GaussianProcessRegressorWrapper"
-			exception.method = "analyze"
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )

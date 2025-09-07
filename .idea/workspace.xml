@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="493761cf-06bb-44db-af01-d8d526614459" name="Changes" comment="updated;">
+      <change beforePath="$PROJECT_DIR$/.idea/PylintPlugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PylintPlugin.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/regressors.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressors.py" afterDir="false" />
     </list>
@@ -61,10 +62,12 @@
     "last_opened_file_path": "C:/Users/terry/source/repos/mathy",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.stylelint": "true",
+    "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.stylelint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "settings.editor.selected.configurable": "preferences.sourceCode.Python",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -100,7 +103,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1757114192498</updated>
-      <workItem from="1757257786080" duration="938000" />
+      <workItem from="1757257786080" duration="988000" />
+      <workItem from="1757258908741" duration="84000" />
+      <workItem from="1757259254340" duration="1560000" />
     </task>
     <task id="LOCAL-00001" summary="updated forecasting;">
       <option name="closed" value="true" />
@@ -206,7 +211,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757252061731</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="updated;">
+      <option name="closed" value="true" />
+      <created>1757258788724</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1757258788724</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
