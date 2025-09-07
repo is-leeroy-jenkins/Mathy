@@ -602,7 +602,7 @@ class SarimaModel( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'SARIMAWrapper'
+            exception.cause = 'SarimaModel'
             exception.method = '__init__'
             error = ErrorDialog( exception )
             error.show( )
