@@ -74,7 +74,6 @@ class Regressor:
     Abstract base class that defines the interface for all linerar_model wrappers.
 
     """
-	
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -91,56 +90,56 @@ class Regressor:
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
-
-        Purpose:
-        ---------
-        Fits the model to the training db
-
-        Parameters:
-        -----------
-                X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-                y (np.ndarray): Target vector w/shape ( n_samples, ).
-
-        Returns:
-        --------
-                None
+	
+	        Purpose:
+	        ---------
+	        Fits the model to the training db
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+	        y (np.ndarray): Target vector w/shape ( n_samples, ).
+	
+	        Returns:
+	        --------
+	        None
 
         """
 		raise NotImplementedError
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-
-        Purpose:
-        ---------
-        Predictions using the trained model.
-
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target_names or class target_names.
+	
+	        Purpose:
+	        ---------
+	        Predictions using the trained model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target_names or class target_names.
 
         """
 		raise NotImplementedError
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
-
-        Purpose:
-        ---------
-        Return the core regression metric (e.g., R²).
-
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: Score value (e.g., R² for regressors).
+	
+	        Purpose:
+	        ---------
+	        Return the core regression metric (e.g., R²).
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+	        Returns:
+	        -----------
+	        float: Score value (e.g., R² for regressors).
 
         """
 		raise NotImplementedError
@@ -148,18 +147,18 @@ class Regressor:
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-        Purpose:
-        ---------
-        Return regression diagnostics (MAE, MSE, RMSE, R², etc.).
-
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                dict: Dictionary containing multiple evaluation metrics.
+	        Purpose:
+	        ---------
+	        Return regression diagnostics (MAE, MSE, RMSE, R², etc.).
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        
+	        Returns:
+	        -----------
+	        dict: Dictionary containing multiple evaluation metrics.
 
         """
 		raise NotImplementedError
@@ -167,23 +166,22 @@ class Regressor:
 class MultiLayerRegressor( Regressor ):
 	"""
 
-    Purpose:
-    -----------
-    This model optimizes the squared error using LBFGS or stochastic gradient descent.
-
-    Activation function for the hidden layers:
-            - ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
-            - ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
-            - ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
-            - ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
-
-    The solver for weight optimization:
-            - ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
-            - ‘sgd’ refers to stochastic gradient descent.
-            - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
+		Purpose:
+		-----------
+		This model optimizes the squared error using LBFGS or stochastic gradient descent.
+		
+		Activation function for the hidden layers:
+        - ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
+        - ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
+        - ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
+        - ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
+		
+		The solver for weight optimization:
+        - ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
+        - ‘sgd’ refers to stochastic gradient descent.
+        - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
     """
-	
 	multilayer_regressor: skn.MLPRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -203,8 +201,7 @@ class MultiLayerRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, hidden: tuple = (100,), activ='relu', solver='adam', alpha=0.0001,
-		learning: str = 'constant', rando: int = 42, ) -> None:
+	def __init__( self, hidden: tuple = (100,), activ='relu', solver='adam', alpha=0.0001, learning: str = 'constant', rando: int = 42, ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activ
@@ -212,24 +209,19 @@ class MultiLayerRegressor( Regressor ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
-			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
-			learning_rate=self.learning, random_state=self.random_state, )
+		self.multilayer_regressor = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers, activation=self.activation_function, solver=self.solver, alpha=self.alpha, learning_rate=self.learning, random_state=self.random_state, )
 		self.prediction = None
 	
 	# ... keep metric fields as before
 	def __dir__( self ) -> List[ str ]:
 		"""
 
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "learning", "activation_function", "hidden_layers",
-			"random_state", "alpha", "max_depth", "mean_absolute_error", "mean_squared_error",
-			"r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error",
-			"train", "project", "score", "analyze", "create_scatter", ]
+		return [ "prediction", "accuracy", "learning", "activation_function", "hidden_layers", "random_state", "alpha", "max_depth", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerRegressor | None:
 		"""
@@ -366,14 +358,14 @@ class MultiLayerRegressor( Regressor ):
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
-        Purpose:
-        -----------
-                Plot actual vs predicted target_names.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
+	        Purpose:
+	        -----------
+	        Plot actual vs predicted target_names.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 
         """
 		try:
@@ -398,18 +390,18 @@ class MultiLayerRegressor( Regressor ):
 class LinearRegressor( Regressor ):
 	"""
 
-    Purpose:
-    -----------
-    Ordinary Least Squares Regression fits a linear model with coefficients to minimize the
-    residual sum of squares between the observed targets in the dataset, and the targets
-    predicted by the linear approximation. The coefficient estimates for Ordinary Least Squares
-    rely on the independence of the feature_names.
-
-    When feature_names are correlated and the n_features of the design matrix have an approximately
-    linear dependence, the design matrix becomes close to singular and as a result,
-    the least-squares estimate becomes highly sensitive to random errors in the observed target,
-    producing a large variance. This situation of multicollinearity can arise, for example,
-    when db are collected without an experimental design.
+	    Purpose:
+	    -----------
+	    Ordinary Least Squares Regression fits a linear model with coefficients to minimize the
+	    residual sum of squares between the observed targets in the dataset, and the targets
+	    predicted by the linear approximation. The coefficient estimates for Ordinary Least Squares
+	    rely on the independence of the feature_names.
+	
+	    When feature_names are correlated and the n_features of the design matrix have an approximately
+	    linear dependence, the design matrix becomes close to singular and as a result,
+	    the least-squares estimate becomes highly sensitive to random errors in the observed target,
+	    producing a large variance. This situation of multicollinearity can arise, for example,
+	    when db are collected without an experimental design.
 
     """
 	
@@ -428,15 +420,15 @@ class LinearRegressor( Regressor ):
 	
 	def __init__( self, fit: bool = True, copy: bool = True ) -> None:
 		"""
-
-        Purpose:
-        -----------
-        Initialize the Linear Regression linerar_model.
-
-        Parameters:
-        -----------
-        fit_intercept (bool): Whether to include an intercept term. Default is True.
-        copy_X (bool): Whether to copy the feature matrix. Default is True.
+	
+	        Purpose:
+	        -----------
+	        Initialize the Linear Regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        fit_intercept (bool): Whether to include an intercept term. Default is True.
+	        copy_X (bool): Whether to copy the feature matrix. Default is True.
 
         """
 		super( ).__init__( )
@@ -456,29 +448,29 @@ class LinearRegressor( Regressor ):
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
-
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "learning_rate", "n_estimators", "random_state", "loss", "max_depth", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state', 'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegressor | None:
 		"""
-
-        Purpose:
-        -----------
-        Fit the OLS regression linerar_model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        --------
-        self
+	
+	        Purpose:
+	        -----------
+	        Fit the OLS regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        --------
+	        self
 
         """
 		try:
@@ -497,18 +489,18 @@ class LinearRegressor( Regressor ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Predict target target_names using the OLS linerar_model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): Input feature matrix.
-
-        Returns:
-        -----------
-        np.ndarray: Predicted target target_names.
+	
+	        Purpose:
+	        -----------
+	        Predict target target_names using the OLS linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): Input feature matrix.
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target target_names.
 
         """
 		try:
@@ -526,19 +518,19 @@ class LinearRegressor( Regressor ):
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Compute the R-squared accuracy of the OLS model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-        float: R-squared accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
@@ -557,20 +549,20 @@ class LinearRegressor( Regressor ):
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-
-        Purpose:
-        -----------
-        Evaluate the model using multiple regression metrics.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-        dict: Dictionary of MAE, MSE, RMSE, R², etc.
+	
+	
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        dict: Dictionary of MAE, MSE, RMSE, R², etc.
 
         """
 		try:
@@ -600,14 +592,14 @@ class LinearRegressor( Regressor ):
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
-        Purpose:
-        -----------
-        Plot actual vs predicted target_names.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): Input feature matrix.
-        y ( n_samples, ): True target target_names.
+	        Purpose:
+	        -----------
+	        Plot actual vs predicted target_names.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): Input feature matrix.
+	        y ( n_samples, ): True target target_names.
 
         """
 		try:
@@ -631,27 +623,26 @@ class LinearRegressor( Regressor ):
 
 class RidgeRegressor( Regressor ):
 	"""
-
-    Purpose:
-    --------
-    Solves a regression model where the loss function is the linear least squares function and
-    alpha is given by the l2-norm. Also known as Ridge Regression
-    or Tikhonov alpha. This estimator has built-in support for
-    multi-variate regression (i.e., when y is a 2d-array of shape (n_samples, n_targets))
-
-    The complexity parameter  controls the amount of shrinkage: the larger the value of alpha,
-    the greater the amount of shrinkage and thus the coefficients become
-    more robust to collinearity.
-
-    The algorithm used to fit the model is coordinate descent. To avoid unnecessary memory
-    duplication the X argument of the fit method should be directly passed as a
-    Fortran-contiguous numpy array. Regularization improves the conditioning of the problem
-    and reduces the variance of the estimates. Larger values specify stronger alpha.
-    Alpha corresponds to 1 / (2C) in other linear models such as LogisticRegression or LinearSVC.
-    If an array is passed, penalties are assumed to be specific to the targets.
+	
+	    Purpose:
+	    --------
+	    Solves a regression model where the loss function is the linear least squares function and
+	    alpha is given by the l2-norm. Also known as Ridge Regression
+	    or Tikhonov alpha. This estimator has built-in support for
+	    multi-variate regression (i.e., when y is a 2d-array of shape (n_samples, n_targets))
+	
+	    The complexity parameter  controls the amount of shrinkage: the larger the value of alpha,
+	    the greater the amount of shrinkage and thus the coefficients become
+	    more robust to collinearity.
+	
+	    The algorithm used to fit the model is coordinate descent. To avoid unnecessary memory
+	    duplication the X argument of the fit method should be directly passed as a
+	    Fortran-contiguous numpy array. Regularization improves the conditioning of the problem
+	    and reduces the variance of the estimates. Larger values specify stronger alpha.
+	    Alpha corresponds to 1 / (2C) in other linear models such as LogisticRegression or LinearSVC.
+	    If an array is passed, penalties are assumed to be specific to the targets.
 
     """
-	
 	ridge_regressor: skl.Ridge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -674,16 +665,18 @@ class RidgeRegressor( Regressor ):
 		"""
 
 
-        Purpose:
-        -----------
-        Initialize the RidgeRegressor linerar_model.
-
-        Attributes:
-        -----------
-                linerar_model (Ridge): Internal RidgeRegressor regression linerar_model.
-                        Parameters:
-                                alpha (float): Regularization strength. Default is 1.0.
-                                solver (str): Solver to use. Default is 'auto'.
+	        Purpose:
+	        -----------
+	        Initialize the RidgeRegressor linerar_model.
+	
+	        Attributes:
+	        -----------
+	        linerar_model (Ridge): Internal RidgeRegressor regression linerar_model.
+	        
+	        Parameters:
+	        -----------
+	        alpha (float): Regularization strength. Default is 1.0.
+	        solver (str): Solver to use. Default is 'auto'.
 
         """
 		super( ).__init__( )
@@ -709,24 +702,24 @@ class RidgeRegressor( Regressor ):
         Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "alpha", "solver", "random_state", "max_iter", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'alpha', 'solver', 'random_state', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeRegressor | None:
 		"""
-
-
-        Purpose:
-        -----------
-        Fit the RidgeRegressor regression linerar_model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        --------
-                self
+	
+	
+	        Purpose:
+	        -----------
+	        Fit the RidgeRegressor regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        --------
+	        self
 
         """
 		try:
@@ -745,18 +738,18 @@ class RidgeRegressor( Regressor ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Project target target_names using the RidgeRegressor linerar_model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target target_names.
+	
+	        Purpose:
+	        -----------
+	        Project target target_names using the RidgeRegressor linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target target_names.
 
         """
 		try:
@@ -774,19 +767,19 @@ class RidgeRegressor( Regressor ):
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Compute the R-squared accuracy for the Ridge model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                float: R-squared accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
@@ -805,20 +798,20 @@ class RidgeRegressor( Regressor ):
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-        Purpose:
-        -----------
-        Evaluates the Ridge model
-        using multiple metrics.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-        dict: Evaluation metrics including MAE, RMSE, R², etc.
+	
+	        Purpose:
+	        -----------
+	        Evaluates the Ridge model
+	        using multiple metrics.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        dict: Evaluation metrics including MAE, RMSE, R², etc.
 
         """
 		try:
@@ -850,18 +843,18 @@ class RidgeRegressor( Regressor ):
 		"""
 
 
-        Purpose:
-        -----------
-        Plot predicted vs actual target_names.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                None
+	        Purpose:
+	        -----------
+	        Plot predicted vs actual target_names.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        None
 
         """
 		try:
@@ -885,21 +878,21 @@ class RidgeRegressor( Regressor ):
 
 class LassoRegression( Regressor ):
 	"""
-
-    Purpose:
-    --------
-    Linear Classifier trained with L1 for the regularizer. Regularization improves the
-    conditioning of the problem and reduces the variance of the estimates. Larger values
-    specify stronger alpha. Technically the Lasso model is optimizing the same
-    objective function as the Elastic Net with l1_ratio=1.0 (no L2 penalty).
-    The algorithm used to fit the model is coordinate descent.
-
-    To avoid unnecessary memory duplication the X argument of the fit method should be directly
-    passed as a Fortran-contiguous numpy array. Regularization improves the conditioning of the
-    problem and reduces the variance of the estimates. Larger values specify stronger
-    alpha. Alpha corresponds to 1 / (2C) in other linear models such as
-    LogisticRegression or LinearSVC. If an array is passed, penalties are assumed to be
-    specific to the targets. Hence they must correspond in number.
+	
+	    Purpose:
+	    --------
+	    Linear Classifier trained with L1 for the regularizer. Regularization improves the
+	    conditioning of the problem and reduces the variance of the estimates. Larger values
+	    specify stronger alpha. Technically the Lasso model is optimizing the same
+	    objective function as the Elastic Net with l1_ratio=1.0 (no L2 penalty).
+	    The algorithm used to fit the model is coordinate descent.
+	
+	    To avoid unnecessary memory duplication the X argument of the fit method should be directly
+	    passed as a Fortran-contiguous numpy array. Regularization improves the conditioning of the
+	    problem and reduces the variance of the estimates. Larger values specify stronger
+	    alpha. Alpha corresponds to 1 / (2C) in other linear models such as
+	    LogisticRegression or LinearSVC. If an array is passed, penalties are assumed to be
+	    specific to the targets. Hence they must correspond in number.
 
     """
 	
@@ -924,10 +917,10 @@ class LassoRegression( Regressor ):
 	def __init__( self, alpha: float = 1.0, iters: int = 500, rando: int = 42 ) -> None:
 		"""
 
-
-        Purpose:
-        -----------
-        Initialize the LassoRegression linerar_model.
+	        Purpose:
+	        -----------
+	        Initialize the LassoRegression linerar_model.
+	        
         """
 		super( ).__init__( )
 		self.alpha = alpha
@@ -945,29 +938,29 @@ class LassoRegression( Regressor ):
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
-
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "random_state", "alpha", "max_iter", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'random_state', 'alpha', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoRegression | None:
 		"""
 
-        Purpose:
-        --------
-        Fit the LassoRegression.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        --------
-        self
+	        Purpose:
+	        --------
+	        Fit the LassoRegression.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        --------
+	        self
 
         """
 		try:
@@ -986,18 +979,18 @@ class LassoRegression( Regressor ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-        Purpose:
-        -----------
-        Predict target target_names using the LassoRegression linerar_model.
-
-
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target target_names.
+	        Purpose:
+	        -----------
+	        Predict target target_names using the LassoRegression linerar_model.
+	
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target target_names.
 
         """
 		try:
@@ -1014,19 +1007,19 @@ class LassoRegression( Regressor ):
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Compute R^2 accuracy for the Lasso model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                float: R^2 accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute R^2 accuracy for the Lasso model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R^2 accuracy.
 
         """
 		try:
@@ -1046,20 +1039,20 @@ class LassoRegression( Regressor ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Evaluate the Lasso model using multiple regression metrics.
-
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                dict: Dictionary of MAE, RMSE, R², etc.
+	
+	        Purpose:
+	        -----------
+	        Evaluate the Lasso model using multiple regression metrics.
+	
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        dict: Dictionary of MAE, RMSE, R², etc.
 
         """
 		try:
@@ -1091,14 +1084,14 @@ class LassoRegression( Regressor ):
 		"""
 
 
-        Purpose:
-        -----------
-        Plot actual vs. predicted target_names.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
+	        Purpose:
+	        -----------
+	        Plot actual vs. predicted target_names.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 
         """
 		try:
@@ -1123,18 +1116,17 @@ class LassoRegression( Regressor ):
 class ElasticNetRegressor( Regressor ):
 	"""
 
-    Purpose:
-    --------
-    ElasticNet is a linear regression model trained with both L1 and L2-norm regularization of the
-    coefficients. This combination allows for learning a sparse model where few of the weights
-    are non-zero like Lasso, while still maintaining the regularization properties of Ridge.
-    We control the convex combination of and using the l1_ratio parameter.
-
-    Elastic-net is useful when there are multiple feature_names that are correlated with one another.
-    Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
+	    Purpose:
+	    --------
+	    ElasticNet is a linear regression model trained with both L1 and L2-norm regularization of the
+	    coefficients. This combination allows for learning a sparse model where few of the weights
+	    are non-zero like Lasso, while still maintaining the regularization properties of Ridge.
+	    We control the convex combination of and using the l1_ratio parameter.
+	
+	    Elastic-net is useful when there are multiple feature_names that are correlated with one another.
+	    Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
     """
-	
 	elasticnet_regressor: skl.ElasticNet
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1153,21 +1145,21 @@ class ElasticNetRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, max: int = 200, rando: int = None, select: str = "random", ) -> None:
+	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, max: int = 200, rando: int = None, select: str = 'random', ) -> None:
 		"""
-
-        Purpose:
-        -----------
-        Initialize the ElasticNet Regressor linerar_model.
-
-
-        Parameters:
-        ----------
-        alpha (float): Overall alpha strength. Default is 1.0.
-        ratio (float): Mixing parameter (0 = RidgeRegressor, 1 = LassoRegression). Default is 0.5.
-        max (int): Maximum number of iterations. Default is 200.
-        rando (int): Number of random iterations. Default is 42.
-        select (str): selection
+	
+	        Purpose:
+	        -----------
+	        Initialize the ElasticNet Regressor linerar_model.
+	
+	
+	        Parameters:
+	        ----------
+	        alpha (float): Overall alpha strength. Default is 1.0.
+	        ratio (float): Mixing parameter (0 = RidgeRegressor, 1 = LassoRegression). Default is 0.5.
+	        max (int): Maximum number of iterations. Default is 200.
+	        rando (int): Number of random iterations. Default is 42.
+	        select (str): selection
 
         """
 		super( ).__init__( )
@@ -1194,24 +1186,24 @@ class ElasticNetRegressor( Regressor ):
         Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "alpha", "ratio", "random_state", "selection", "max_iter", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ 'prediction', 'accuracy', 'alpha', 'ratio', 'random_state', 'selection', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegressor | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Fit the ElasticNetRegressor regression linerar_model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        --------
-        self
+	
+	        Purpose:
+	        -----------
+	        Fit the ElasticNetRegressor regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        --------
+	        self
 
         """
 		try:
@@ -1229,20 +1221,20 @@ class ElasticNetRegressor( Regressor ):
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-
-
-        Purpose:
-        -----------
-        Predict target target_names using the ElasticNetRegressor linerar_model.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                np.ndarray: Predicted target target_names.
+	
+	
+	        Purpose:
+	        -----------
+	        Predict target target_names using the ElasticNetRegressor linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        np.ndarray: Predicted target target_names.
 
         """
 		try:
@@ -1260,19 +1252,19 @@ class ElasticNetRegressor( Regressor ):
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Compute R^2 accuracy on the test set.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                float: R^2 accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute R^2 accuracy on the test set.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R^2 accuracy.
 
         """
 		try:
@@ -1292,20 +1284,20 @@ class ElasticNetRegressor( Regressor ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-
-        Purpose:
-        -----------
-        Evaluate model performance using regression metrics.
-
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
-
-        Returns:
-        -----------
-                dict: Evaluation metrics.
+	
+	        Purpose:
+	        -----------
+	        Evaluate model performance using regression metrics.
+	
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        dict: Evaluation metrics.
 
         """
 		try:
@@ -1335,15 +1327,15 @@ class ElasticNetRegressor( Regressor ):
 	
 	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
-
-        Purpose:
-        -----------
-        Plot actual vs. predicted regression output.
-
-        Parameters:
-        -----------
-        X ( n_samples, n_features ): np.ndarray - feature matrix.
-        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Purpose:
+	        -----------
+	        Plot actual vs. predicted regression output.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 
         """
 		try:
@@ -1368,13 +1360,13 @@ class ElasticNetRegressor( Regressor ):
 class LeastAngleRegressor( Regressor ):
 	"""
 
-    Purpose:
-    --------
-    Least-angle regression (LARS) is a regression algorithm for high-dimensional db.
-    LARS is similar to forward stepwise regression. At each step, it finds the feature most
-    correlated with the target. When there are multiple features having equal correlation,
-    instead of continuing along the same feature, it proceeds in a direction equiangular
-    between the features.
+	    Purpose:
+	    --------
+	    Least-angle regression (LARS) is a regression algorithm for high-dimensional db.
+	    LARS is similar to forward stepwise regression. At each step, it finds the feature most
+	    correlated with the target. When there are multiple features having equal correlation,
+	    instead of continuing along the same feature, it proceeds in a direction equiangular
+	    between the features.
 
     """
 	
@@ -1399,16 +1391,16 @@ class LeastAngleRegressor( Regressor ):
 	def __init__( self, coeffs: int = 500, fit: bool = True, normal: bool = True, precompute: bool = True, ) -> None:
 		"""
 
-        Purpose:
-        --------
-        Initialize the Least Angle Regression model.
-
-        Parameters:
-        -----------
-        coeffs (int): Maximum number of non-zero coefficients. 500 default
-        fit (bool): fit the intercept
-        normal (bool): Normalize
-        precompute (bool): Precompute coefficients
+	        Purpose:
+	        --------
+	        Initialize the Least Angle Regression model.
+	
+	        Parameters:
+	        -----------
+	        coeffs (int): Maximum number of non-zero coefficients. 500 default
+	        fit (bool): fit the intercept
+	        normal (bool): Normalize
+	        precompute (bool): Precompute coefficients
 
         """
 		super( ).__init__( )
@@ -1416,7 +1408,8 @@ class LeastAngleRegressor( Regressor ):
 		self.normalize = normal
 		self.nonzero_coefficients = coeffs
 		self.precompute = precompute
-		self.lars_regressor = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize, precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients, )
+		self.lars_regressor = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
+			precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -1428,13 +1421,15 @@ class LeastAngleRegressor( Regressor ):
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
-
-        Purpose:
-        -------
-        Provides a list of strings representing class members
+	
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
         """
-		return [ "prediction", "accuracy", "fit_intercept", "normalize", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
+		return [ "prediction", "accuracy", "fit_intercept", "normalize", "mean_absolute_error",
+			"mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score",
+			"median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngleRegressor | None:
 		"""
