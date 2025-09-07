@@ -702,9 +702,9 @@ class DataSource( ):
             _col_means = self.dataframe.select_dtypes( 'number' ).mean( axis=0 )
             plt.figure( figsize=(10, 6) )
             sns.histplot( _col_means, bins=20, kde=True )
-            plt.title( "Histogram of Column Means" )
-            plt.xlabel( "Mean Value" )
-            plt.ylabel( "Frequency" )
+            plt.title( 'Histogram of Column Means' )
+            plt.xlabel( 'Mean Value' )
+            plt.ylabel( 'Frequency' )
             plt.show( )
         except Exception as e:
             exception = Error( e )
@@ -729,9 +729,9 @@ class DataSource( ):
             series = _df.mean( axis=axes )
             plt.figure( figsize=(8, 6) )
             sns.histplot( series, bins=20, kde=True )
-            plt.title( "Histogram of Means" )
-            plt.xlabel( "Mean Value" )
-            plt.ylabel( "Frequency" )
+            plt.title( 'Histogram of Means' )
+            plt.xlabel( 'Mean Value' )
+            plt.ylabel( 'Frequency' )
             plt.show( )
         except Exception as e:
             exception = Error( e )
@@ -786,7 +786,8 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_average( self, df: pd.DataFrame, axes: int=0, numeric: bool=True ) -> pd.Series | None:
+    def calculate_average( self, df: pd.DataFrame, axes: int=0, 
+	    numeric: bool=True ) -> pd.Series | None:
         '''
 
             Purpose:
@@ -818,7 +819,8 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_variance( self, df: pd.DataFrame, axe: int=0, deg: int=1, numeric: bool=True ) -> pd.Series | None:
+    def calculate_variance( self, df: pd.DataFrame, axe: int=0, deg: int=1, 
+	    numeric: bool=True ) -> pd.Series | None:
         '''
 
             Purpose:
