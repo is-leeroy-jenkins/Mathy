@@ -55,7 +55,6 @@ from sklearn.compose import ColumnTransformer
 import sklearn.decomposition as sd
 import sklearn.feature_selection as sf
 from torch.backends.opt_einsum import strategy
-
 from static import Scaler
 from sklearn.metrics import silhouette_score
 from sklearn.cross_decomposition import CCA
@@ -477,7 +476,7 @@ class DataSource( ):
     standard_deviation: Optional[ pd.Series ]
     column_transformer: Optional[ ColumnTransformer ]
     
-    def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
+    def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
         """
 
             Purpose:
@@ -505,8 +504,7 @@ class DataSource( ):
         self.X = df.drop( columns=[ target ] ).to_numpy( )
         self.y = df[ target ]
         self.feature_names = list( self.dataframe.columns )
-        self.numeric_columns = self.dataframe.select_dtypes(
-            include=[ 'number' ] ).columns.tolist( )
+        self.numeric_columns = self.dataframe.select_dtypes( include=[ 'number' ] ).columns.tolist( )
         self.categorical_columns = self.dataframe.select_dtypes(
             include=[ 'object', 'category' ] ).columns.tolist( )
         self.data = self.dataframe.values
@@ -1192,7 +1190,7 @@ class CorrelationAnalysis( ):
             max_iter=self.max_iter )
         self.transformed_data = None
     
-    def fit( self, X: np.ndarray, y: np.ndarray ) -> CCA | None:
+    def fit( self, X: np.ndarray, y: np.ndarray ) -> CorrelationAnalysis | None:
         """
 
             Purpose:
@@ -1313,7 +1311,7 @@ class ComponentAnalysis( ):
         self.component_analysis = sd.PCA( n_components=num, svd_solver=self.svd_solver )
         self.transformed_data = None
     
-    def fit( self, X: np.ndarray ) -> sd.PCA | None:
+    def fit( self, X: np.ndarray ) -> ComponentAnalysis | None:
         """
 
             Purpose:
