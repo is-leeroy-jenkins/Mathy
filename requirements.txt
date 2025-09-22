@@ -4,7 +4,6 @@ pandas
 matplotlib
 seaborn
 scipy
-typing
 scikit-learn
 pydantic
 FreeSimpleGUI
