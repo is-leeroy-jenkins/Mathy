@@ -106,6 +106,8 @@ def entropy( y: np.ndarray ) -> float | None:
 def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float | None:
     """
     
+        Purpose:
+        ---------
         Compute the information gain from splitting the data at a given threshold.
         Information gain quantifies the reduction in entropy after a dataset is split.
         It is calculated as:
@@ -144,48 +146,45 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
         error = ErrorDialog( exception )
         error.show( )
 
-def best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 ) -> Tuple[
-                                                                                int, float ] | None:
-    """
-        
-        Purpose:
-        -------
-        Identify the best feature and threshold to split data for maximum information gain.
-    
-        Parameters
-        ----------
-        X : np.ndarray - 2D array of shape (n_samples, n_features) representing the input features.
-        y : np.ndarray - 1D array of target labels.
-        num_thresholds : int, optional - Number of equally spaced thresholds to
-                        test per feature (default is 10).
-    
-        Returns
-        -------
-        tuple (best_feature_index: int, best_threshold: float) — the feature and threshold that
-        yield the highest information gain. If no split improves entropy, returns (None, None).
-    
-    """
-    try:
-        best_gain = 0
-        best_feature = None
-        best_threshold = None
-        for feature in range( X.shape[ 1 ] ):
-            thresholds = np.linspace( X[ :, feature ].min( ), X[ :, feature ].max( ),
-                num_thresholds )
-            for threshold in thresholds:
-                gain = information_gain( X[ :, feature ], y, threshold )
-                if gain > best_gain:
-                    best_gain, best_feature, best_threshold = gain, feature, threshold
-        
-        return best_feature, best_threshold
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = ('best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> '
-                            'Tuple[ int, float ]')
-        error = ErrorDialog( exception )
-        error.show( )
+def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, float ] | None:
+	'''
+
+			Purpose:
+			-------
+			Identify the best feature and threshold to split data for maximum information gain.
+
+			Parameters
+			----------
+			X : np.ndarray - 2D array of shape (n_samples, n_features) representing the input features.
+			y : np.ndarray - 1D array of target labels.
+			number : int, optional - Number of equally spaced thresholds to
+							test per feature (default is 10).
+
+			Returns
+			-------
+			tuple (best_feature_index: int, best_threshold: float) — the feature and threshold that
+			yield the highest information gain. If no split improves entropy, returns (None, None).
+
+	'''
+	try:
+		best_gain = 0
+		best_feature = None
+		best_threshold = None
+		for feature in range( X.shape[ 1 ] ):
+			thresholds = np.linspace( X[ :, feature ].min( ), X[ :, feature ].max( ), number )
+			for threshold in thresholds:
+				gain = information_gain( X[ :, feature ], y, number )
+				if gain > best_gain:
+					best_gain, best_feature, best_threshold = gain, feature, number
+					return (best_feature, best_threshold)
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = ('best_split( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 ) -> '
+		                    'Tuple[ int, float ]')
+		error = ErrorDialog( exception )
+		error.show( )
 
 def gini_impurity( p: float ) -> float | None:
     '''
@@ -216,7 +215,7 @@ def gini_impurity( p: float ) -> float | None:
         error = ErrorDialog( exception )
         error.show( )
 
-def decision_tree_stump( X, y, num_thresholds=10 ):
+def decision_tree_stump( X: np.ndarray, y: np.ndarray,  num_thresholds: int=10 ):
     """
         
         Purpose:
@@ -230,11 +229,13 @@ def decision_tree_stump( X, y, num_thresholds=10 ):
         Parameters
         ----------
         X : np.ndarray
-            2D array of shape (n_samples, n_features) containing normalized feature values.
+        2D array of shape (n_samples, n_features) containing normalized feature values.
+        
         y : np.ndarray
-            1D array of integer class labels.
+        1D array of integer class labels.
+        
         num_thresholds : int, optional
-            Number of threshold points to evaluate per feature (default is 10).
+        Number of threshold points to evaluate per feature (default is 10).
     
         Returns
         -------
@@ -246,19 +247,22 @@ def decision_tree_stump( X, y, num_thresholds=10 ):
             - 'right_label': int, majority class for right split
         
     """
-    feature, threshold = best_split( X, y, num_thresholds )
-    if feature is None:
+    field, depth = best_split( X, y, num_thresholds )
+    if field is None:
         return None
     
-    left_idx = X[ :, feature ] <= threshold
-    right_idx = X[ :, feature ] > threshold
+    left_idx = X[ :, field ] <= depth
+    right_idx = X[ :, field ] > depth
     
     left_label = np.bincount( y[ left_idx ] ).argmax( )
     right_label = np.bincount( y[ right_idx ] ).argmax( )
     
-    return {
-        'feature': feature, 'threshold': threshold, 'left_label': left_label,
-        'right_label': right_label
+    return \
+    {
+		    'feature': field,
+		    'threshold': threshold,
+		    'left_label': left_label,
+		    'right_label': right_label
     }
 
 def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | None:
@@ -580,31 +584,31 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_numeric_statistics( self ) -> pd.DataFrame | None:
-        """
+    def calculate_numeric_statistics( self ) -> pd.DataFrame:
+	    """
 
-            Purpose:
-            -----------
-            Method calculating descriptive statistics for the datasets numeric n_features.
+			Purpose:
+			-----------
+			Method calculating descriptive statistics for the datasets numeric n_features.
 
-            Returns:
-            -----------
-            pd.DataFrame
+			Returns:
+			-----------
+			pd.DataFrame
 
-        """
-        try:
-            self.numeric_metrics = self.dataframe.describe(
-                percentiles=[ .05, .1, .25, .3, .5, .75, .8, .9, .95 ], include=[ np.number ] )
-            return self.numeric_metrics
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
-            error = ErrorDialog( exception )
-            error.show( )
+		"""
+	    try:
+		    percentiles = [ .05, .1, .25, .3, .5, .75, .8, .9, .95 ]
+		    self.numeric_metrics = self.dataframe.describe( percentiles, include=[ np.number ] )
+		    return self.numeric_metrics
+	    except Exception as e:
+		    exception = Error( e )
+		    exception.module = 'mathy'
+		    exception.cause = 'DataSource'
+		    exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
+		    error = ErrorDialog( exception )
+		    error.show( )
     
-    def calculate_categorical_statistics( self ) -> pd.DataFrame | None:
+    def calculate_categorical_statistics( self ) -> pd.DataFrame:
         """
 
             Purpose:
@@ -627,7 +631,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def create_pivot_table( self, df: pd.DataFrame, cols: List, vals: List, idx: List ) -> pd.DataFrame | None:
+    def create_pivot_table( self, df: pd.DataFrame, cols: List, vals: List, idx: List ) -> pd.DataFrame:
         '''
 
             Purpose:
@@ -652,8 +656,8 @@ class DataSource( ):
             throw_if( 'vals', vals )
             throw_if( 'idx', idx )
             self.dataframe = df.copy( )
-            self.pivot_table = pd.pivot_table( data=self.dataframe, index=idx, columns=cols,
-                values=vals, aggfun='sum', dropna=True, margins=True )
+            self.pivot_table = df.pivot_table( index=idx, columns=cols, values=vals,
+	            dropna=True, margins=True )
             return self.pivot_table
         except Exception as e:
             exception = Error( e )

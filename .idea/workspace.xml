@@ -4,20 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="07a572cc-4a40-4c81-a120-3bef639ddf2a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/PylintPlugin.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/fileColors.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/icon.svg" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/icon.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/mathy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mathy.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="07a572cc-4a40-4c81-a120-3bef639ddf2a" name="Changes" comment="update;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classifiers.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifiers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,11 +83,32 @@
       <updated>1758491026936</updated>
       <workItem from="1758491035783" duration="624000" />
       <workItem from="1758500540091" duration="92000" />
-      <workItem from="1758500768989" duration="7487000" />
+      <workItem from="1758500768989" duration="8668000" />
     </task>
+    <task id="LOCAL-00001" summary="update;">
+      <option name="closed" value="true" />
+      <created>1758546087535</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1758546087535</updated>
+    </task>
+    <task id="LOCAL-00002" summary="update;">
+      <option name="closed" value="true" />
+      <created>1758546103847</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1758546103847</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="update;" />
+    <option name="LAST_COMMIT_MESSAGE" value="update;" />
   </component>
 </project>
