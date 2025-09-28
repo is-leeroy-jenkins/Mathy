@@ -45,7 +45,7 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Optional, Dict
-from booger import Error, ErrorDialog
+from boogr import Error, ErrorDialog
 import sklearn.cluster as skc
 from sklearn.metrics import silhouette_score
 

@@ -61,7 +61,7 @@ from sklearn.cross_decomposition import CCA
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
-from booger import Error, ErrorDialog
+from boogr import Error, ErrorDialog
 from preprocessors import Preprocessor
 
 def throw_if( name: str, value: object ):

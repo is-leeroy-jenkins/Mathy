@@ -60,7 +60,7 @@ import sklearn.neural_network as snn
 from sklearn.pipeline import Pipeline
 import sklearn.svm as skv
 import sklearn.tree as skd
-from booger import Error, ErrorDialog
+from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
     if not value:

@@ -60,7 +60,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score
 from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error, explained_variance_score, median_absolute_error, )
 
-from booger import Error, ErrorDialog
+from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
 	if not value:

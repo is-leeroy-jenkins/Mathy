@@ -49,7 +49,7 @@ import sklearn.feature_extraction.text as sk
 import sklearn.impute as ski
 import sklearn.preprocessing as skp
 
-from booger import Error, ErrorDialog
+from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
 	if not value:

@@ -50,7 +50,7 @@ import statsmodels.api as sm
 from matplotlib import pyplot as plt
 from sklearn.metrics import (mean_squared_error, mean_absolute_error,
                              median_absolute_error, explained_variance_score, r2_score)
-from booger import Error, ErrorDialog
+from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
     if not value:

@@ -1,14 +1,14 @@
 '''
   ******************************************************************************************
       Assembly:                mathy
-      Filename:                booger.py
+      Filename:                boogr.py
       Author:                  Terry D. Eppler
       Created:                 05-31-2022
 
       Last Modified By:        Terry D. Eppler
       Last Modified On:        05-01-2025
   ******************************************************************************************
-  <copyright file="booger.py" company="Terry D. Eppler">
+  <copyright file="boogr.py" company="Terry D. Eppler">
 
 	     mathy Booger
 
@@ -36,7 +36,7 @@
 
   </copyright>
   <summary>
-    booger.py
+    boogr.py
   </summary>
   ******************************************************************************************
   '''
