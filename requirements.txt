@@ -4,6 +4,8 @@ pandas
 matplotlib
 seaborn
 scipy
-scikit-learn
+scikit-learn==1.5.2
 pydantic
 FreeSimpleGUI
+torch
+typing

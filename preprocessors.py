@@ -88,7 +88,7 @@ class Preprocessor( ):
 		"""
 		raise NotImplementedError
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -107,7 +107,7 @@ class Preprocessor( ):
 		"""
 		raise NotImplementedError
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -126,7 +126,7 @@ class Preprocessor( ):
 		"""
 		raise NotImplementedError
 	
-	def inverse_transform( self, text: list[ str ] ) -> np.ndarray | None:
+	def inverse_transform( self, text: list[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -203,7 +203,7 @@ class LabelBinarizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -234,7 +234,7 @@ class LabelBinarizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -261,7 +261,7 @@ class LabelBinarizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, y: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -311,7 +311,6 @@ class TfidfTransformer( Preprocessor ):
 
 	"""
 	tfidf_transformer: sk.TfidfTransformer
-	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		"""
@@ -324,7 +323,7 @@ class TfidfTransformer( Preprocessor ):
 		self.tfidf_transformer = sk.TfidfTransformer( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> TfidfTransformer | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> TfidfTransformer | None:
 		"""
 
 			Purpose:
@@ -353,7 +352,7 @@ class TfidfTransformer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -378,11 +377,11 @@ class TfidfTransformer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None  ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -403,7 +402,7 @@ class TfidfTransformer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
+			exception.method = 'fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -446,7 +445,7 @@ class TfidfVectorizer( Preprocessor ):
 		self.tfidf_vectorizer = sk.TfidfVectorizer( )
 		self.transformed_data = None
 	
-	def fit( self, text: list[ str ], y: Optional[ np.ndarray ] = None ) -> TfidfVectorizer | None:
+	def fit( self, text: list[ str ], y: np.ndarray=None ) -> TfidfVectorizer | None:
 		"""
 
 			Purpose:
@@ -470,7 +469,7 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, text: list[ str ], y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, text: list[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -496,8 +495,7 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, text: list[ str ], y: Optional[
-		np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, text: list[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -572,7 +570,7 @@ class CountVectorizer( Preprocessor ):
 		self.count_vectorizer = sk.CountVectorizer( )
 		self.transformed_data = None
 	
-	def fit( self, text: List[ str ], y: Optional[ np.ndarray ] = None ) -> CountVectorizer | None:
+	def fit( self, text: List[ str ], y: np.ndarray=None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
@@ -597,7 +595,7 @@ class CountVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, text: List[ str ], y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -626,8 +624,7 @@ class CountVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, text: List[ str ], y: Optional[
-		np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -686,7 +683,7 @@ class HashingVectorizer( Preprocessor ):
 	hash_vectorizer: sk.HashingVectorizer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 1048576 ) -> None:
+	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
 			Purpose:
@@ -697,7 +694,7 @@ class HashingVectorizer( Preprocessor ):
 		super( ).__init__( )
 		self.hash_vectorizer = sk.HashingVectorizer( n_features=num )
 	
-	def transform( self, text: List[ str ], y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -719,7 +716,7 @@ class HashingVectorizer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'HashingVectorizer'
-			exception.method = 'transform( self, text: List[ str ], y: Optional[ np.ndarray ]=None ) -> np.ndarray'
+			exception.method = 'transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -742,7 +739,7 @@ class StandardScaler( Preprocessor ):
 		self.standard_scaler = skp.StandardScaler( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> StandardScaler | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> StandardScaler | None:
 		"""
 
 
@@ -753,7 +750,7 @@ class StandardScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ). IGNORED
 
 			Returns:
 			--------
@@ -773,7 +770,7 @@ class StandardScaler( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -802,17 +799,16 @@ class StandardScaler( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, X: np.ndarray  ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Transforms into standardized db.
+			Transforms into a standardized np.ndarray
 
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -852,7 +848,7 @@ class MinMaxScaler( Preprocessor ):
 		self.minmax_scaler = skp.MinMaxScaler( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MinMaxScaler | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> MinMaxScaler | None:
 		"""
 
 			Purpose:
@@ -877,12 +873,12 @@ class MinMaxScaler( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MinMaxScaler'
-			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
+			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -912,7 +908,7 @@ class MinMaxScaler( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -966,7 +962,7 @@ class RobustScaler( Preprocessor ):
 		self.robust_scaler = skp.RobustScaler( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> RobustScaler | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> RobustScaler | None:
 		"""
 
 
@@ -992,12 +988,12 @@ class RobustScaler( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RobustScaler'
-			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
+			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1026,7 +1022,7 @@ class RobustScaler( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1074,7 +1070,7 @@ class NormalScaler( Preprocessor ):
 		self.normal_scaler = skp.Normalizer( norm=reg )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> NormalScaler | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> NormalScaler | None:
 		"""
 
 
@@ -1100,12 +1096,12 @@ class NormalScaler( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Normalizer'
-			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
+			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -1161,7 +1157,7 @@ class OneHotEncoder( Preprocessor ):
 		super( ).__init__( )
 		self.hot_encoder = skp.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> OneHotEncoder | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> OneHotEncoder | None:
 		"""
 
 
@@ -1187,12 +1183,12 @@ class OneHotEncoder( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
-			exception.method = ('fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> '
+			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -1222,7 +1218,7 @@ class OneHotEncoder( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1273,7 +1269,7 @@ class OrdinalEncoder( Preprocessor ):
 		super( ).__init__( )
 		self.ordinal_encoder = skp.OrdinalEncoder( )
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> OrdinalEncoder | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> OrdinalEncoder | None:
 		"""
 
 			Purpose:
@@ -1298,11 +1294,11 @@ class OrdinalEncoder( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Pipeline'
+			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1332,7 +1328,7 @@ class OrdinalEncoder( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1357,7 +1353,7 @@ class OrdinalEncoder( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1432,7 +1428,7 @@ class LabelEncoder( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: list[ str ], y: np.ndarray ) -> np.ndarray | None:
+	def transform( self, X: list[ str ], y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1459,7 +1455,7 @@ class LabelEncoder( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: list[ str ], y: np.ndarray ) -> np.ndarray | None:
+	def fit_transform( self, X: list[ str ], y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1486,7 +1482,7 @@ class LabelEncoder( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, y: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1539,7 +1535,7 @@ class PolynomialFeatures( Preprocessor ):
 		super( ).__init__( )
 		self.polynomial_features = skp.PolynomialFeatures( degree=degree )
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> PolynomialFeatures | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> PolynomialFeatures | None:
 		"""
 
 			Purpose:
@@ -1564,7 +1560,7 @@ class PolynomialFeatures( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1589,7 +1585,7 @@ class PolynomialFeatures( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1632,7 +1628,7 @@ class MeanImputer( Preprocessor ):
 		self.mean_imputer = ski.SimpleImputer( strategy=self.strategy )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MeanImputer | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> MeanImputer | None:
 		"""
 
 
@@ -1658,11 +1654,11 @@ class MeanImputer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MeanImputer'
+			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> MeanImputer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -1691,7 +1687,7 @@ class MeanImputer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1715,7 +1711,7 @@ class MeanImputer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, X: np.ndarray ) -> np.ndarray | None:
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1796,7 +1792,7 @@ class NearestNeighborImputer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1822,11 +1818,11 @@ class NearestNeighborImputer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1869,7 +1865,7 @@ class IterativeImputer( Preprocessor ):
 	random_state: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, max: int = 10, rando: int = 0 ) -> None:
+	def __init__( self, max: int=10, rando: int=0 ) -> None:
 		"""
 
 			Purpose:
@@ -1887,7 +1883,7 @@ class IterativeImputer( Preprocessor ):
 		self.random_state = rando
 		self.iterative_imputer = ski.IterativeImputer( max_iter=self.max_iter, random_state=self.random_state )
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -1911,7 +1907,7 @@ class IterativeImputer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1932,11 +1928,11 @@ class IterativeImputer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1971,7 +1967,7 @@ class SimpleImputer( Preprocessor ):
 	strategy: Optional[ str ]
 	fill_value: Optional[ float ]
 	
-	def __init__( self, strategy: str = 'mean', fill_value: float = 0.0 ) -> None:
+	def __init__( self, strategy: str='mean', fill_value: float=0.0 ) -> None:
 		"""
 
 			Purpose:
@@ -1990,7 +1986,7 @@ class SimpleImputer( Preprocessor ):
 		self.simple_imputer = ski.SimpleImputer( strategy=self.strategy, fill_value=self.fill_value )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> object | None:
 		"""
 
 			Purpose:
@@ -2014,7 +2010,7 @@ class SimpleImputer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -2038,7 +2034,7 @@ class SimpleImputer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:

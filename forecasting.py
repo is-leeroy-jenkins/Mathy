@@ -1,43 +1,43 @@
 '''
-******************************************************************************************
-  Assembly:                Mathy
-  Filename:                forecasting.py
-  Author:                  Terry D. Eppler
-  Created:                 08-31-2025
-
-  Last Modified By:        Terry D. Eppler
-  Last Modified On:        08-31-2025
-******************************************************************************************
-<copyright file="forecasting.py" company="Terry D. Eppler">
-
-	 Mathy Models
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the “Software”),
- to deal in the Software without restriction,
- including without limitation the rights to use,
- copy, modify, merge, publish, distribute, sublicense,
- and/or sell copies of the Software,
- and to permit persons to whom the Software is furnished to do so,
- subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- DEALINGS IN THE SOFTWARE.
-
- You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-
-</copyright>
-<summary>
-	forecasting.py
-</summary>
+	******************************************************************************************
+	  Assembly:                Mathy
+	  Filename:                forecasting.py
+	  Author:                  Terry D. Eppler
+	  Created:                 08-31-2025
+	
+	  Last Modified By:        Terry D. Eppler
+	  Last Modified On:        08-31-2025
+	******************************************************************************************
+	<copyright file="forecasting.py" company="Terry D. Eppler">
+	
+		 Mathy Models
+	
+	 Permission is hereby granted, free of charge, to any person obtaining a copy
+	 of this software and associated documentation files (the “Software”),
+	 to deal in the Software without restriction,
+	 including without limitation the rights to use,
+	 copy, modify, merge, publish, distribute, sublicense,
+	 and/or sell copies of the Software,
+	 and to permit persons to whom the Software is furnished to do so,
+	 subject to the following conditions:
+	
+	 The above copyright notice and this permission notice shall be included in all
+	 copies or substantial portions of the Software.
+	
+	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	 DEALINGS IN THE SOFTWARE.
+	
+	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+	
+	</copyright>
+	<summary>
+		forecasting.py
+	</summary>
 ******************************************************************************************
 '''
 from __future__ import annotations
@@ -48,12 +48,13 @@ from statsmodels.tsa.arima.model import ARIMA, ARIMAResults
 import statsmodels.tsa.arima.model as am
 import statsmodels.api as sm
 from matplotlib import pyplot as plt
-from sklearn.metrics import (mean_squared_error, mean_absolute_error, median_absolute_error, explained_variance_score, r2_score)
+from sklearn.metrics import (mean_squared_error, mean_absolute_error,
+                             median_absolute_error, explained_variance_score, r2_score)
 from booger import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
     if not value:
-        raise ValueError( f'Argument "{name}" cannot be empty!' )
+        raise Exception( f'Argument "{name}" cannot be empty!' )
 
 class LaggedTimeSeries( ):
     """
@@ -86,34 +87,26 @@ class LaggedTimeSeries( ):
             None
 
 		"""
-        try:
-            self.lag = lag
-            self.model = None
-            self.prediction = None
-            self.X_train = None
-            self.y_train = None
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'OrdinaryLeastSquares'
-            exception.method = '__init__'
-            error = ErrorDialog( exception )
-            error.show( )
+        self.lag = lag
+        self.model = None
+        self.prediction = None
+        self.X_train = None
+        self.y_train = None
     
     def _lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
         """
-
-		Purpose:
-		--------
-		Constructs lagged feature matrix and target vector.
-
-		Parameters:
-		-----------
-		series (np.ndarray): 1D array of time-series values.
-
-		Returns:
-		--------
-		Tuple[ X (np.ndarray), y (np.ndarray) ]
+	
+			Purpose:
+			--------
+			Constructs lagged feature matrix and target vector.
+	
+			Parameters:
+			-----------
+			series (np.ndarray): 1D array of time-series values.
+	
+			Returns:
+			--------
+			Tuple[ X (np.ndarray), y (np.ndarray) ]
 
 		"""
         n = len( series )
@@ -123,18 +116,18 @@ class LaggedTimeSeries( ):
     
     def train( self, series: np.ndarray ) -> LaggedTimeSeries | None:
         """
-
-		Purpose:
-		--------
-		Transform univariate series into lagged features and fit OLS model.
-
-		Parameters:
-		-----------
-		series (np.ndarray): 1D time-series array.
-
-		Returns:
-		--------
-		self
+	
+			Purpose:
+			--------
+			Transform univariate series into lagged features and fit OLS model.
+	
+			Parameters:
+			-----------
+			series (np.ndarray): 1D time-series array.
+	
+			Returns:
+			--------
+			self
 
 		"""
         try:
@@ -154,7 +147,7 @@ class LaggedTimeSeries( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def project( self, n_steps: int = 1 ) -> np.ndarray | None:
+    def project( self, n_steps: int = 1 ) -> np.ndarray:
         """
 
             Purpose:
@@ -172,9 +165,8 @@ class LaggedTimeSeries( ):
 		"""
         try:
             throw_if( 'X_train', self.X_train )
-            last_window = self.X_train[ -1, 1: ].copy( )  # drop constant column
+            last_window = self.X_train[ -1, 1: ].copy( )
             preds = [ ]
-            
             for _ in range( n_steps ):
                 X_input = sm.add_constant( last_window.reshape( 1, -1 ) )
                 y_pred = self.model.predict( X_input )[ 0 ]
@@ -187,7 +179,7 @@ class LaggedTimeSeries( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OrdinaryLeastSquares'
+            exception.cause = 'LaggedTimeSeries'
             exception.method = 'project'
             error = ErrorDialog( exception )
             error.show( )
@@ -211,7 +203,7 @@ class LaggedTimeSeries( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OrdinaryLeastSquares'
+            exception.cause = 'LaggedTimeSeries'
             exception.method = 'score'
             error = ErrorDialog( exception )
             error.show( )
@@ -232,12 +224,19 @@ class LaggedTimeSeries( ):
             throw_if( 'X_train', self.X_train )
             throw_if( 'y_train', self.y_train )
             y_pred = self.model.predict( self.X_train )
-            return {
-                'MSE': mean_squared_error( self.y_train, y_pred ), 'RMSE': np.sqrt( mean_squared_error( self.y_train, y_pred ) ), 'MAE': mean_absolute_error( self.y_train, y_pred ), 'MedianAE': median_absolute_error( self.y_train, y_pred ), 'R2': r2_score( self.y_train, y_pred ), 'ExplainedVariance': explained_variance_score( self.y_train, y_pred ) }
+            return \
+	        {
+		        'MSE': mean_squared_error( self.y_train, y_pred ),
+		        'RMSE': np.sqrt( mean_squared_error( self.y_train, y_pred ) ),
+		        'MAE': mean_absolute_error( self.y_train, y_pred ),
+		        'MedianAE': median_absolute_error( self.y_train, y_pred ),
+		        'R2': r2_score( self.y_train, y_pred ),
+		        'ExplainedVariance': explained_variance_score( self.y_train, y_pred )
+	        }
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OrdinaryLeastSquares'
+            exception.cause = 'LaggedTimeSeries'
             exception.method = 'analyze'
             error = ErrorDialog( exception )
             error.show( )
@@ -256,8 +255,7 @@ class ExpandingWindowSplitter:
     test_window: int
     max_splits: Optional[ int ]
     
-    def __init__( self, initial_window: int = 30, test_window: int = 10, max_splits: Optional[
-        int ] = None ) -> None:
+    def __init__( self, initial: int=30, windows: int=10, splits: int=None ) -> None:
         """
     
             Purpose:
@@ -275,20 +273,11 @@ class ExpandingWindowSplitter:
             None
 
         """
-        try:
-            self.initial_window = initial_window
-            self.test_window = test_window
-            self.max_splits = max_splits
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'ExpandingWindowSplitter'
-            exception.method = '__init__'
-            error = ErrorDialog( exception )
-            error.show( )
+        self.initial_window = initial
+        self.test_window = windows
+        self.max_splits = splits
     
-    def split( self, series: np.ndarray ) -> Generator[
-        Tuple[ np.ndarray, np.ndarray ], None, None ]:
+    def split( self, series: np.ndarray ) -> Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
         """
     
                 Purpose:
@@ -306,11 +295,10 @@ class ExpandingWindowSplitter:
         """
         try:
             throw_if( 'series', series )
+            count = 0
             n = len( series )
             start = self.initial_window
-            count = 0
-            
-            while (start + self.test_window) <= n:
+            while ( start + self.test_window ) <= n:
                 train_idx = np.arange( 0, start )
                 test_idx = np.arange( start, start + self.test_window )
                 yield train_idx, test_idx
@@ -326,7 +314,7 @@ class ExpandingWindowSplitter:
             error = ErrorDialog( exception )
             error.show( )
     
-    def get_n_splits( self, series: np.ndarray ) -> int | None:
+    def get_splits( self, series: np.ndarray ) -> int | None:
         """
     
             Purpose:
@@ -353,7 +341,7 @@ class ExpandingWindowSplitter:
             exception = Error( e )
             exception.module = 'mathy'
             exception.cause = 'ExpandingWindowSplitter'
-            exception.method = 'get_n_splits'
+            exception.method = 'get_splits'
             error = ErrorDialog( exception )
             error.show( )
     
@@ -375,19 +363,16 @@ class ExpandingWindowSplitter:
         """
         try:
             throw_if( 'series', series )
-            n_splits = self.get_n_splits( series )
+            n_splits = self.get_splits( series )
             fig, ax = plt.subplots( n_splits, 1, figsize=(10, 2 * n_splits), sharex=True )
-            
             for i, (train, test) in enumerate( self.split( series ) ):
-                ax[ i ].scatter( train, [ i + 0.5 ] * len( train ),
-                    c="blue", label="Train", marker="|" )
-                ax[i ].scatter( test, [ i + 0.5 ] * len( test ),
-                    c="orange", label="Test", marker="|" )
-                ax[ i ].set_ylabel( f"Split {i + 1}" )
+                ax[ i ].scatter( train, [ i + 0.5 ] * len( train ), c='blue', label='Train', marker='|' )
+                ax[i ].scatter( test, [ i + 0.5 ] * len( test ), c='orange', label='Test', marker='|' )
+                ax[ i ].set_ylabel( f'Split {i + 1}' )
                 ax[ i ].legend( loc='upper right' )
             
-            plt.xlabel( "Time Step Index" )
-            plt.suptitle( "Expanding Window Cross-Validation" )
+            plt.xlabel( 'Time Step Index' )
+            plt.suptitle( 'Expanding Window Cross-Validation' )
             plt.tight_layout( )
             plt.show( )
         except Exception as e:
@@ -428,34 +413,26 @@ class ArimaModel( ):
             None
 
         """
-        try:
-            self.order = order
-            self.model = None
-            self.results = None
-            self.prediction = None
-            self.train_data = None
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'ArimaModel'
-            exception.method = '__init__'
-            error = ErrorDialog( exception )
-            error.show( )
+        self.order = order
+        self.model = None
+        self.results = None
+        self.prediction = None
+        self.train_data = None
     
     def train( self, series: np.ndarray ) -> ArimaModel | None:
         """
 
-        Purpose:
-        --------
-        Fit ARIMA model to univariate time-series data.
-
-        Parameters:
-        -----------
-        series (np.ndarray): 1D time-series array.
-
-        Returns:
-        --------
-        self
+	        Purpose:
+	        --------
+	        Fit ARIMA model to univariate time-series data.
+	
+	        Parameters:
+	        -----------
+	        series (np.ndarray): 1D time-series array.
+	
+	        Returns:
+	        --------
+	        self
 
         """
         try:
@@ -472,7 +449,7 @@ class ArimaModel( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def project( self, n_steps: int = 1 ) -> np.ndarray | None:
+    def project( self, n_steps: int = 1 ) -> np.ndarray:
         """
 
             Purpose:
@@ -563,7 +540,8 @@ class SarimaModel( ):
 
         Purpose:
         --------
-        Wrapper for seasonal ARIMA (SARIMA) models using statsmodels' SARIMAX engine.
+        Wrapper for seasonal ARIMA (SARIMA)
+        models using statsmodels' SARIMAX engine.
 
     """
     
@@ -575,7 +553,7 @@ class SarimaModel( ):
     prediction: Optional[ np.ndarray ]
     
     def __init__( self, order: Tuple[ int, int, int ]=( 1, 1, 1 ),
-        seasonal_order: Tuple[ int, int, int, int ]=(0, 0, 0, 0) ) -> None:
+        seasonal: Tuple[ int, int, int, int ]=( 0, 0, 0, 0 ) ) -> None:
         """
     
             Purpose:
@@ -592,20 +570,12 @@ class SarimaModel( ):
             None
 
         """
-        try:
-            self.order = order
-            self.seasonal_order = seasonal_order
-            self.model = None
-            self.results = None
-            self.train_data = None
-            self.prediction = None
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'SarimaModel'
-            exception.method = '__init__'
-            error = ErrorDialog( exception )
-            error.show( )
+        self.order = order
+        self.seasonal_order = seasonal
+        self.model = None
+        self.results = None
+        self.train_data = None
+        self.prediction = None
     
     def train( self, series: np.ndarray ) -> SarimaModel | None:
         """
@@ -639,20 +609,20 @@ class SarimaModel( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def project( self, n_steps: int = 1 ) -> np.ndarray | None:
+    def project( self, n_steps: int=1 ) -> np.ndarray:
         """
 
-        Purpose:
-        --------
-        Forecast future time steps using SARIMA.
-
-        Parameters:
-        -----------
-        n_steps (int): Number of periods to forecast.
-
-        Returns:
-        --------
-        np.ndarray: Predicted future values.
+	        Purpose:
+	        --------
+	        Forecast future time steps using SARIMA.
+	
+	        Parameters:
+	        -----------
+	        n_steps (int): Number of periods to forecast.
+	
+	        Returns:
+	        --------
+	        np.ndarray: Predicted future values.
 
         """
         try:
@@ -708,8 +678,15 @@ class SarimaModel( ):
             throw_if( 'train_data', self.train_data )
             y_true = self.train_data[ self.order[ 1 ]: ]
             y_pred = self.results.fittedvalues[ self.order[ 1 ]: ]
-            return {
-                'MSE': mean_squared_error( y_true, y_pred ), 'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ), 'MAE': mean_absolute_error( y_true, y_pred ), 'MedianAE': median_absolute_error( y_true, y_pred ), 'R2': r2_score( y_true, y_pred ), 'ExplainedVariance': explained_variance_score( y_true, y_pred ) }
+            return \
+	        {
+		        'MSE': mean_squared_error( y_true, y_pred ),
+		        'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
+		        'MAE': mean_absolute_error( y_true, y_pred ),
+		        'MedianAE': median_absolute_error( y_true, y_pred ),
+		        'R2': r2_score( y_true, y_pred ),
+		        'ExplainedVariance': explained_variance_score( y_true, y_pred )
+	        }
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'

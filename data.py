@@ -265,7 +265,7 @@ def decision_tree_stump( X: np.ndarray, y: np.ndarray,  num_thresholds: int=10 )
 		    'right_label': right_label
     }
 
-def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | None:
+def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
     """
     
         Purpose:
@@ -293,9 +293,8 @@ def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray | No
     try:
         throw_if( 'X', X )
         throw_if( 'centroids', centroids )
-        distances = np.zeros( (X.shape[ 0 ], centroids.shape[ 0 ]) )  # Preallocate for speed
+        distances = np.zeros( (X.shape[ 0 ], centroids.shape[ 0 ]) )
         for i in range( centroids.shape[ 0 ] ):
-            # Compute Euclidean distance: ||x - c|| for all x
             distances[ :, i ] = np.linalg.norm( X - centroids[ i ], axis=1 )
         return distances
     except Exception as e:
@@ -502,7 +501,6 @@ class DataSource( ):
         self.dataframe = df.copy( )
         self.test_size = size
         self.random_state = rando
-        
         if target not in df.columns:
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
         self.X = df.drop( columns=[ target ] ).to_numpy( )
@@ -789,7 +787,7 @@ class DataSource( ):
             error.show( )
     
     def calculate_average( self, df: pd.DataFrame, axes: int=0, 
-	    numeric: bool=True ) -> pd.Series | None:
+	    numeric: bool=True ) -> pd.Series:
         '''
 
             Purpose:
@@ -822,7 +820,7 @@ class DataSource( ):
             error.show( )
     
     def calculate_variance( self, df: pd.DataFrame, axe: int=0, deg: int=1, 
-	    numeric: bool=True ) -> pd.Series | None:
+	    numeric: bool=True ) -> pd.Series:
         '''
 
             Purpose:
@@ -857,7 +855,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_skew( self, df: pd.DataFrame, axe: int=0, numeric: bool=True ) -> pd.Series | None:
+    def calculate_skew( self, df: pd.DataFrame, axe: int=0, numeric: bool=True ) -> pd.Series:
         '''
 
             Purpose:
@@ -892,7 +890,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_kurtosis( self, df: pd.DataFrame, axe: int=0, numeric: bool=True ) -> pd.Series | None:
+    def calculate_kurtosis( self, df: pd.DataFrame, axe: int=0, numeric: bool=True ) -> pd.Series:
         '''
 
             Purpose:
@@ -921,7 +919,7 @@ class DataSource( ):
             error.show( )
     
     def calculate_standard_error( self, df: pd.DataFrame, axes: int=0, degree: int=1,
-        numeric: bool=True ) -> pd.Series | None:
+        numeric: bool=True ) -> pd.Series:
         '''
 
             Purpose:
@@ -955,7 +953,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_deviation( self, df: pd.DataFrame, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series | None:
+    def calculate_deviation( self, df: pd.DataFrame, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series:
         '''
 
             Purpose:
@@ -1066,7 +1064,7 @@ class VarianceThreshold( ):
     transformed_data: Optional[ np.ndarray ]
     threshold: Optional[ float ]
     
-    def __init__( self, thresh: float = 0.0 ) -> None:
+    def __init__( self, thresh: float=0.0 ) -> None:
         """
 
             Purpose:
@@ -1075,12 +1073,13 @@ class VarianceThreshold( ):
 
             :param threshold: Features with variance below this are removed.
             :type threshold: float
+            
         """
         self.threshold = thresh
         self.variance_selector = sf.VarianceThreshold( threshold=self.threshold )
         self.transformed_data = None
     
-    def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+    def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
         """
 
             Purpose:
@@ -1100,12 +1099,12 @@ class VarianceThreshold( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'Data'
+            exception.cause = 'VarianceThreshold'
             exception.method = 'fit( self, X: np.ndarray ) -> object | None'
             error = ErrorDialog( exception )
             error.show( )
     
-    def transform( self, X: np.ndarray ) -> np.ndarray | None:
+    def transform( self, X: np.ndarray ) -> np.ndarray:
         """
     
             Purpose:
@@ -1124,12 +1123,12 @@ class VarianceThreshold( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = ''
+            exception.cause = 'VarianceThreshold'
+            exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
     
-    def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
+    def fit_transform( self, X: np.ndarray ) -> np.ndarray:
         """
     
             Purpose:
@@ -1154,12 +1153,12 @@ class VarianceThreshold( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'Data'
+            exception.cause = 'VarianceThreshold'
             exception.method = ''
             error = ErrorDialog( exception )
             error.show( )
 
-class CorrelationAnalysis( ):
+class Correlation( ):
     """
 
         Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
@@ -1167,13 +1166,13 @@ class CorrelationAnalysis( ):
         between both datasets.
 
     """
-    correlation_analysis: CCA
+    analysis: Optional[ CCA ]
     n_components: Optional[ int ]
-    scale: bool
+    scale: Optional[ bool ]
     max_iter: Optional[ int ]
-    transformed_data: (np.ndarray, np.ndarray)
+    transformed_data: Optional[ Tuple[ np.ndarray, np.ndarray ] ]
     
-    def __init__( self, num: int = 2, scale: bool = True, max: int = 500 ) -> None:
+    def __init__( self, num: int=2, scale: bool=True, size: int=500 ) -> None:
         """
 
             Purpose:
@@ -1189,12 +1188,11 @@ class CorrelationAnalysis( ):
         """
         self.scale = scale
         self.n_components = num
-        self.max_iter = max
-        self.correlation_analysis = CCA( n_components=self.n_components, scale=self.scale,
-            max_iter=self.max_iter )
+        self.max_iter = size
+        self.analysis = CCA( n_components=self.n_components, scale=self.scale, max_iter=self.max_iter )
         self.transformed_data = None
     
-    def fit( self, X: np.ndarray, y: np.ndarray ) -> CorrelationAnalysis | None:
+    def fit( self, X: np.ndarray, y: np.ndarray ) -> CCA:
         """
 
             Purpose:
@@ -1214,17 +1212,17 @@ class CorrelationAnalysis( ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.correlation_analysis.fit( X, Y )
+            self.analysis.fit( X, y )
             return self
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
+            exception.cause = 'Correlation'
             exception.method = 'fit( self, X: np.ndarray, Y: np.ndarray ) -> object'
             error = ErrorDialog( exception )
             error.show( )
     
-    def transform( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray):
+    def transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
         """
 
             Purpose:
@@ -1244,17 +1242,17 @@ class CorrelationAnalysis( ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.transformed_data = self.correlation_analysis.transform( X, y )
+            self.transformed_data = self.analysis.transform( X, y )
             return self.transformed_data
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
+            exception.cause = 'Correlation'
             exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
             error = ErrorDialog( exception )
             error.show( )
     
-    def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray):
+    def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
         """
 
             Purpose:
@@ -1271,12 +1269,12 @@ class CorrelationAnalysis( ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.transformed_data = self.correlation_analysis.fit( X, y ).transform( X, y )
+            self.transformed_data = self.analysis.fit( X, y ).transform( X, y )
             return self.transformed_data
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
+            exception.cause = 'Correlation'
             exception.method = 'fit_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
             error = ErrorDialog( exception )
             error.show( )
@@ -1299,7 +1297,7 @@ class ComponentAnalysis( ):
     n_components: Optional[ int ]
     transformed_data: Optional[ np.ndarray ]
     
-    def __init__( self, num: int = 2, solver: str = 'auto' ) -> None:
+    def __init__( self, num: int=2, solver: str='auto' ) -> None:
         """
 
             Purpose:
@@ -1315,7 +1313,7 @@ class ComponentAnalysis( ):
         self.component_analysis = sd.PCA( n_components=num, svd_solver=self.svd_solver )
         self.transformed_data = None
     
-    def fit( self, X: np.ndarray ) -> ComponentAnalysis | None:
+    def fit( self, X: np.ndarray ) -> sd.PCA:
         """
 
             Purpose:
@@ -1343,7 +1341,7 @@ class ComponentAnalysis( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def transform( self, X: np.ndarray ) -> np.ndarray | None:
+    def transform( self, X: np.ndarray ) -> np.ndarray:
         """
 
             Purpose:
@@ -1373,7 +1371,7 @@ class ComponentAnalysis( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def fit_transform( self, X: np.ndarray ) -> np.ndarray | None:
+    def fit_transform( self, X: np.ndarray ) -> np.ndarray:
         """
 
             Purpose:
