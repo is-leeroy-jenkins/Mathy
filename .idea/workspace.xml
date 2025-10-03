@@ -5,20 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="251ca5f5-c391-493e-b2b3-fcf5dc3cb3a7" name="Changes" comment="updates">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/mathy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mathy.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/boogr.py" beforeDir="false" afterPath="$PROJECT_DIR$/boogr.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classifiers.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifiers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clusters.py" beforeDir="false" afterPath="$PROJECT_DIR$/clusters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/stores/excel/Account Balances.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/stores/excel/Account Balances.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/stores/excel/CombinedSchedules.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/stores/excel/CombinedSchedules.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/stores/sqlite/Data.db" beforeDir="false" afterPath="$PROJECT_DIR$/stores/sqlite/Data.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ipynb/board.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ipynb/board.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/minion.py" beforeDir="false" afterPath="$PROJECT_DIR$/minion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocessors.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocessors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/regressors.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static.py" beforeDir="false" afterPath="$PROJECT_DIR$/enums.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stores/excel/CombinedSchedules.xlsx" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +56,11 @@
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "editor.preferences.appearance",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "sqlite"
+    ]
   }
 }]]></component>
   <component name="PyConsoleOptionsProvider">
@@ -99,7 +94,7 @@
       <workItem from="1759099031055" duration="1579000" />
       <workItem from="1759152333032" duration="42000" />
       <workItem from="1759152464024" duration="721000" />
-      <workItem from="1759518111147" duration="5460000" />
+      <workItem from="1759518111147" duration="6284000" />
     </task>
     <task id="LOCAL-00001" summary="updates">
       <option name="closed" value="true" />
@@ -133,7 +128,23 @@
       <option name="project" value="LOCAL" />
       <updated>1759153540765</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="updates">
+      <option name="closed" value="true" />
+      <created>1759528595307</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1759528595307</updated>
+    </task>
+    <task id="LOCAL-00006" summary="updates">
+      <option name="closed" value="true" />
+      <created>1759528648876</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1759528648876</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
