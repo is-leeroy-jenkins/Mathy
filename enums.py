@@ -1,14 +1,14 @@
 '''
 ******************************************************************************************
   Assembly:                mathy
-  Filename:                static.py
+  Filename:                enums.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="static.py" company="Terry D. Eppler">
+<copyright file="enums.py" company="Terry D. Eppler">
 
      Boo
 
@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-	static.py
+	enums.py
 </summary>
 ******************************************************************************************
 '''

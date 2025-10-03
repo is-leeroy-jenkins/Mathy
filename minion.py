@@ -42,7 +42,7 @@
 '''
 import subprocess as sp
 import os
-from static import *
+from enums import *
 
 class App( ):
 	'''

@@ -60,6 +60,20 @@ class Dark( ):
 		Class representing the theme
 
     '''
+	theme_background: Optional[ str ]
+	theme_textcolor: Optional[ str ]
+	element_forecolor: Optional[ str ]
+	text_backcolor: Optional[ str ]
+	text_forecolor: Optional[ str ]
+	input_forecolor: Optional[ str ]
+	input_backcolor: Optional[ str ]
+	button_backcolor: Optional[ str ]
+	button_forecolor: Optional[ str ]
+	button_color: Optional[ Tuple[ str, str ] ]
+	icon_path: Optional[ str ]
+	theme_font: Optional[ Tuple[ str, int ] ]
+	scrollbar_color: Optional[ str ]
+	form_size: Optional[ Tuple[ int, int ] ]
 
 	def __init__( self ):
 		sg.theme( 'DarkGrey15' )
@@ -77,13 +91,13 @@ class Dark( ):
 		self.button_backcolor = sg.theme_button_color_background( )
 		self.button_forecolor = sg.theme_button_color_text( )
 		self.button_color = sg.theme_button_color( )
-		self.icon_path = r'/\resources\ico\ninja.ico'
+		self.icon_path = r'\resources\ico\mathy_icon.ico'
 		self.theme_font = ('Roboto', 11)
 		self.scrollbar_color = '#755600'
 		self.form_size = (400, 200)
 		sg.set_global_icon( icon=self.icon_path )
 		sg.set_options( font=self.theme_font )
-		sg.user_settings_save( 'Boo', r'/\resources\theme' )
+		sg.user_settings_save( 'Boo', r'\resources\theme' )
 
 
 	def __dir__( self ) -> List[ str ] | None:
@@ -179,16 +193,17 @@ class Error( Exception ):
 			List[ str ] | None
 
 		'''
-		return [ 'message', 'cause',  'method', 'module', 'scaler', 'stack_trace', 'info' ]
+		return [ 'message', 'cause',  'method', 'module',
+		         'scaler', 'stack_trace', 'info' ]
 
 
 
 class ErrorDialog( Dark ):
 	'''
 
-	    Construcotr:  ErrorDialog( error )
-
-	    Purpose:  Class that displays excetption target_names that accepts
+	    Purpose:
+	    ---------
+	    Class that displays excetption target_names that accepts
             a single, optional argument 'error' of scaler Error
 
     '''
@@ -217,7 +232,7 @@ class ErrorDialog( Dark ):
 		self.button_backcolor = sg.theme_button_color_background( )
 		self.button_forecolor = sg.theme_button_color_text( )
 		self.button_color = sg.theme_button_color( )
-		self.icon_path = r'\resources\ico\ninja.ico'
+		self.icon_path = r'\resources\ico\mathy_icon.ico'
 		self.theme_font = ('Roboto', 11)
 		self.scrollbar_color = '#755600'
 		sg.set_global_icon( icon = self.icon_path )
@@ -312,7 +327,7 @@ class ErrorDialog( Dark ):
 			icon=self.icon_path,
 			font=self.theme_font,
 			size=self.form_size,
-			keep_on_top=True)
+			keep_on_top=True )
 
 		while True:
 			_event, _values = _window.read( )

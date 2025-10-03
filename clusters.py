@@ -161,7 +161,7 @@ class KMeansCluster( Cluster ):
 
         Purpose:
         ---------
-        The KMeans algorithm clusters db by trying to separate samples in n groups of equal
+        The KMeans algorithm clusters stores by trying to separate samples in n groups of equal
         variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares.
         This algorithm requires the number of clusters to be specified.
         It scales well to large number of samples and has been used across a
@@ -378,7 +378,7 @@ class DbscanCluster( Cluster ):
 
             Purpose:
             ---------
-            Fit the DBSCAN model to the db.
+            Fit the DBSCAN model to the stores.
 
             Parameters:
             -----------
@@ -543,7 +543,7 @@ class AgglomerativeCluster( Cluster ):
 
             Purpose:
             ---------
-            Fit Agglomerative model to db.
+            Fit Agglomerative model to stores.
 
             Parameters:
             -----------
@@ -856,7 +856,7 @@ class MeanShiftCluster( Cluster ):
 
             Purpose:
             ---------
-            Fit MeanShift model to the db.
+            Fit MeanShift model to the stores.
 
             Parameters:
             -----------
@@ -1005,7 +1005,7 @@ class AffinityPropagationCluster( Cluster ):
 
             Purpose:
             ---------
-            Fit the model to db.
+            Fit the model to stores.
 
             Parameters:
             -----------
@@ -1120,8 +1120,8 @@ class BirchCluster( Cluster ):
 
         Purpose:
         ---------
-        The Birch builds a tree called the Clustering Feature Tree (CFT) for the given db.
-        The db is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
+        The Birch builds a tree called the Clustering Feature Tree (CFT) for the given stores.
+        The stores is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
         The CF Nodes have a number of subclusters called Clustering Feature subclusters
         (CF Subclusters) and these CF Subclusters located in the non-terminal
         CF Nodes can have CF Nodes as children.
@@ -1130,9 +1130,9 @@ class BirchCluster( Cluster ):
         The branching factor limits the number of subclusters in a node and the threshold limits
         the distance between the entering sample and the existing subclusters.
 
-        This algorithm can be viewed as an instance or db reduction method, since it reduces the
-        input db to a set of subclusters which are obtained directly from the leaves of the CFT.
-        This reduced db can be further processed by feeding it into a global clusterer.
+        This algorithm can be viewed as an instance or stores reduction method, since it reduces the
+        input stores to a set of subclusters which are obtained directly from the leaves of the CFT.
+        This reduced stores can be further processed by feeding it into a global clusterer.
         This global clusterer can be set by n_clusters. If n_clusters is set to None,
         the subclusters from the leaves are directly read off, otherwise a global clustering step
         target_names these subclusters into global clusters (target_names) and the samples are

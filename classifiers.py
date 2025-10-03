@@ -1,44 +1,44 @@
 '''
-******************************************************************************************
-  Assembly:                mathy
-  Filename:                classifiers.py
-  Author:                  Terry D. Eppler
-  Created:                 05-31-2022
-
-  Last Modified By:        Terry D. Eppler
-  Last Modified On:        05-01-2025
-******************************************************************************************
-<copyright file="classifiers.py" company="Terry D. Eppler">
-
-     mathy Models
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the “Software”),
- to deal in the Software without restriction,
- including without limitation the rights to use,
- copy, modify, merge, publish, distribute, sublicense,
- and/or sell copies of the Software,
- and to permit persons to whom the Software is furnished to do so,
- subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- DEALINGS IN THE SOFTWARE.
-
- You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-
-</copyright>
-<summary>
-	classifiers.py
-</summary>
-******************************************************************************************
+	******************************************************************************************
+	  Assembly:                mathy
+	  Filename:                classifiers.py
+	  Author:                  Terry D. Eppler
+	  Created:                 05-31-2022
+	
+	  Last Modified By:        Terry D. Eppler
+	  Last Modified On:        05-01-2025
+	******************************************************************************************
+	<copyright file="classifiers.py" company="Terry D. Eppler">
+	
+	     mathy Models
+	
+	 Permission is hereby granted, free of charge, to any person obtaining a copy
+	 of this software and associated documentation files (the “Software”),
+	 to deal in the Software without restriction,
+	 including without limitation the rights to use,
+	 copy, modify, merge, publish, distribute, sublicense,
+	 and/or sell copies of the Software,
+	 and to permit persons to whom the Software is furnished to do so,
+	 subject to the following conditions:
+	
+	 The above copyright notice and this permission notice shall be included in all
+	 copies or substantial portions of the Software.
+	
+	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	 DEALINGS IN THE SOFTWARE.
+	
+	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+	
+	</copyright>
+	<summary>
+		classifiers.py
+	</summary>
+	******************************************************************************************
 '''
 from __future__ import annotations
 
@@ -841,7 +841,7 @@ class MultiLayerClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Predict the class labels for the provided db.
+			Predict the class labels for the provided stores.
 
 			Parameters:
 			-----------
@@ -870,7 +870,7 @@ class MultiLayerClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Return probability estimates for the test db X.
+			Return probability estimates for the test stores X.
 
 			Parameters:
 			-----------
@@ -1087,7 +1087,7 @@ class RidgeClassifier( Classifier ):
     alpha: Optional[ float ]
     solver: Optional[ str ]
     
-    def __init__( self, alpha: float = 1.0, solver: str = 'auto', size: int = 1000, rando: int = 42 ) -> None:
+    def __init__( self, alpha: float=1.0, solver: str='auto', size: int=1000, rando: int=42 ) -> None:
         """
 
 
@@ -1108,7 +1108,8 @@ class RidgeClassifier( Classifier ):
         self.solver = solver
         self.max_iter = size
         self.random_state = rando
-        self.ridge_classifier = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver, max_iter=self.max_iter, random_state=self.random_state )
+        self.ridge_classifier = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
+	        max_iter=self.max_iter, random_state=self.random_state )
         self.prediction = None
         self.accuracy = 0.0
         self.mean_absolute_error = 0.0
@@ -1126,7 +1127,11 @@ class RidgeClassifier( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'alpha', 'solver', 'ridge_classifier', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'alpha',
+                 'solver', 'ridge_classifier', 'mean_absolute_error', 'mean_squared_error',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+                 'median_absolute_error', 'train', 'project', 'score',
+                 'analyze', 'create_heatmap' ]
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeClassifier | None:
         """
@@ -1170,10 +1175,11 @@ class RidgeClassifier( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): IGNORED
 
 			Returns:
 			-----------
-				np.ndarray: Predicted target target_names.
+			np.ndarray: Predicted target names.
 
 		"""
         try:
@@ -1361,9 +1367,9 @@ class GradientDescentClassifier( Classifier ):
 		the gradient of the loss is estimated each sample at a time and the model is updated along
 		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
 		(online/out-of-core) learning via the partial_fit method. For best results using the
-		default learning rate schedule, the db should have zero mean and unit variance.
+		default learning rate schedule, the stores should have zero mean and unit variance.
 
-		This implementation works with db represented as dense or sparse arrays of floating point
+		This implementation works with stores represented as dense or sparse arrays of floating point
 		 values for the feature_names. The model it fits can be controlled with the loss parameter;
 		 by default, it fits a linear support vector machine (SVM).
 
@@ -1794,7 +1800,7 @@ class NearestNeighborClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Return probability estimates for the test db X.
+			Return probability estimates for the test stores X.
 
 			Parameters:
 			-----------
@@ -1989,9 +1995,9 @@ class DecisionTreeClassifier( Classifier ):
 		--------
 		Decision Trees (DTs) are a non-parametric supervised learning method used for
 		classification. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the db feature_names.
+		target variable by learning simple decision rules inferred from the stores feature_names.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from db
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from stores
 		to approximate a sine curve with a set of if-then-else decision rules.
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
@@ -2116,7 +2122,7 @@ class DecisionTreeClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Return probability estimates for the test db X.
+			Return probability estimates for the test stores X.
 
 			Parameters:
 			-----------
@@ -2444,7 +2450,7 @@ class RandomForestClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Return probability estimates for the test db X.
+			Return probability estimates for the test stores X.
 
 			Parameters:
 			-----------
@@ -2636,7 +2642,7 @@ class GradientBoostingClassifier( Classifier ):
 
 		The feature_names are always randomly permuted at each split. Therefore, the best found
 		split
-		may vary, even with the same training db and max_features=n_features, if the improvement
+		may vary, even with the same training stores and max_features=n_features, if the improvement
 		of the criterion is identical for several splits enumerated during the search of the best
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
@@ -2770,7 +2776,7 @@ class GradientBoostingClassifier( Classifier ):
 
 			Purpose:
 			-----------
-			Return probability estimates for the test db X.
+			Return probability estimates for the test stores X.
 
 			Parameters:
 			-----------
@@ -4116,7 +4122,7 @@ class SupportVectorClassifier:
 		
 			Purpose:
 			---------
-			Fit the SVC model to the db.
+			Fit the SVC model to the stores.
 
 			Parameters:
 			-----------
@@ -4168,7 +4174,7 @@ class SupportVectorClassifier:
 
 			Purpose:
 			-----------
-			Return probability estimates for the test db X.
+			Return probability estimates for the test stores X.
 
 			Parameters:
 			-----------

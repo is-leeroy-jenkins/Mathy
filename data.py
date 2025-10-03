@@ -1,14 +1,14 @@
 '''
     ******************************************************************************************
       Assembly:                mathy
-      Filename:                db.py
+      Filename:                data.py
       Author:                  Terry D. Eppler
       Created:                 05-31-2022
 
       Last Modified By:        Terry D. Eppler
       Last Modified On:        05-01-2025
     ******************************************************************************************
-    <copyright file="db.py" company="Terry D. Eppler">
+    <copyright file="data.py" company="Terry D. Eppler">
 
              mathy Data
 
@@ -36,7 +36,7 @@
 
     </copyright>
     <summary>
-        db.py
+        data.py
     </summary>
 ******************************************************************************************
 '''
@@ -55,7 +55,7 @@ from sklearn.compose import ColumnTransformer
 import sklearn.decomposition as sd
 import sklearn.feature_selection as sf
 from torch.backends.opt_einsum import strategy
-from static import Scaler
+from enums import Scaler
 from sklearn.metrics import silhouette_score
 from sklearn.cross_decomposition import CCA
 from sklearn.base import BaseEstimator
@@ -253,14 +253,13 @@ def decision_tree_stump( X: np.ndarray, y: np.ndarray,  num_thresholds: int=10 )
     
     left_idx = X[ :, field ] <= depth
     right_idx = X[ :, field ] > depth
-    
     left_label = np.bincount( y[ left_idx ] ).argmax( )
     right_label = np.bincount( y[ right_idx ] ).argmax( )
     
     return \
     {
 		    'feature': field,
-		    'threshold': threshold,
+		    'threshold': num_thresholds,
 		    'left_label': left_label,
 		    'right_label': right_label
     }
@@ -385,7 +384,7 @@ def misclassification_error( p: float ) -> float | None:
     except Exception as e:
         exception = Error( e )
         exception.module = 'mathy'
-        exception.cause = 'db'
+        exception.cause = 'stores'
         exception.method = 'misclassification_error( p: float ) -> float'
         error = ErrorDialog( exception )
         error.show( )
@@ -417,7 +416,7 @@ def sigmoid( z: float ) -> float | None:
     except Exception as e:
         exception = Error( e )
         exception.module = 'mathy'
-        exception.cause = 'db'
+        exception.cause = 'data'
         exception.method = 'sigmoid( z: float ) -> float'
         error = ErrorDialog( exception )
         error.show( )
@@ -432,7 +431,7 @@ class DataSource( ):
         Members:
         ------------
         dataframe: pd.DataFrame
-        db: np.ndarray
+        stores: np.ndarray
         n_samples: int
         n_features: int
         target: str
@@ -709,7 +708,7 @@ class DataSource( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'db'
+            exception.cause = 'stores'
             exception.method = 'show_histogram( self )'
             error = ErrorDialog( exception )
             error.show( )
@@ -736,7 +735,7 @@ class DataSource( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'db'
+            exception.cause = 'stores'
             exception.method = 'create_histogram( self, df: pd.DataFrame '
             error = ErrorDialog( exception )
             error.show( )
@@ -757,7 +756,7 @@ class DataSource( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'db'
+            exception.cause = 'stores'
             exception.method = 'show_correlation_analysis( self )'
             error = ErrorDialog( exception )
             error.show( )
@@ -781,7 +780,7 @@ class DataSource( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'db'
+            exception.cause = 'stores'
             exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
             error = ErrorDialog( exception )
             error.show( )
@@ -808,8 +807,8 @@ class DataSource( ):
         try:
             throw_if( 'df', df )
             _dataframe = df.copy( )
-            _deviation = _dataframe.mean( axis=axes, numeric_only=numeric )
-            return _deviation
+            self.average = _dataframe.mean( axis=axes, numeric_only=numeric )
+            return self.average
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
@@ -1007,8 +1006,8 @@ class DataSource( ):
         try:
             throw_if( 'amount', amount )
             self.scaling_factor = amount
-            numeric_cols = self.dataframe.select_dtypes( include='number' ).columns
-            self.dataframe[ numeric_cols ] = self.dataframe[ numeric_cols ].div( self.scaling_factor ).round( 2 )
+            _num = self.dataframe.select_dtypes( include='number' ).columns
+            self.dataframe[ _num ] = self.dataframe[ _num ].div( self.scaling_factor ).round( 2 )
             return self.dataframe
         except Exception as e:
             exception = Error( e )
@@ -1133,7 +1132,7 @@ class VarianceThreshold( ):
     
             Purpose:
             ---------
-            Fit and transform the db using variance thresholding.
+            Fit and transform the stores using variance thresholding.
 
             Parameters:
             -----------
@@ -1285,10 +1284,10 @@ class ComponentAnalysis( ):
         Purpose:
         ---------
         Principal Component Analysis (PCA). Linear dimensionality reduction using
-        Singular Value Decomposition of the db to project it to a lower dimensional space.
-        The input db is centered but not scaled for each feature before applying the SVD.
+        Singular Value Decomposition of the stores to project it to a lower dimensional space.
+        The input stores is centered but not scaled for each feature before applying the SVD.
         It uses the LAPACK implementation of the full SVD or a randomized truncated SVD
-        by the method of Halko et al. 2009, depending on the shape of the input db and
+        by the method of Halko et al. 2009, depending on the shape of the input stores and
         the number of components to extract.
 
     """
@@ -1318,7 +1317,7 @@ class ComponentAnalysis( ):
 
             Purpose:
             ---------
-            Fit PCA to the input db.
+            Fit PCA to the input stores.
 
             Parameters:
             -----------
@@ -1376,7 +1375,7 @@ class ComponentAnalysis( ):
 
             Purpose:
             ---------
-            Fit PCA and transform input db.
+            Fit PCA and transform input stores.
 
             Parameters:
             -----------
