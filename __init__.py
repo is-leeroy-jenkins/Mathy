@@ -40,8 +40,8 @@
 </summary>
 ******************************************************************************************
 '''
-from .classifications import *
-from .regressions import *
+from .classifiers import *
+from .regressors import *
 from .clusters import *
 from .preprocessors import *
 from .data import *

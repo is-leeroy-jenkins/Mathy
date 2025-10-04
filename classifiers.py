@@ -1,14 +1,14 @@
 '''
 	******************************************************************************************
 	  Assembly:                mathy
-	  Filename:                classifications.py
+	  Filename:                classifiers.py
 	  Author:                  Terry D. Eppler
 	  Created:                 05-31-2022
 	
 	  Last Modified By:        Terry D. Eppler
 	  Last Modified On:        05-01-2025
 	******************************************************************************************
-	<copyright file="classifications.py" company="Terry D. Eppler">
+	<copyright file="classifiers.py" company="Terry D. Eppler">
 	
 	     mathy Models
 	
@@ -36,7 +36,7 @@
 	
 	</copyright>
 	<summary>
-		classifications.py
+		classifiers.py
 	</summary>
 	******************************************************************************************
 '''
