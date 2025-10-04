@@ -1303,13 +1303,16 @@ class ComponentAnalysis( ):
             ---------
             Initialize PCA.
 
-            :param n_components: Number of components.
-            :type n_components: int
+            :param num: Number of components.
+            :type num: int
+            
+            :param solver: The solver used by the model
+            :type solver: str
 
         """
         self.n_components = num
         self.svd_solver = solver
-        self.component_analysis = sd.PCA( n_components=num, svd_solver=self.svd_solver )
+        self.component_analysis = sd.PCA( n_components=self.n_components, svd_solver=self.svd_solver )
         self.transformed_data = None
     
     def fit( self, X: np.ndarray ) -> sd.PCA:

@@ -1,44 +1,44 @@
 '''
-******************************************************************************************
-  Assembly:                mathy
-  Filename:                transformers.py
-  Author:                  Terry D. Eppler
-  Created:                 05-31-2022
-
-  Last Modified By:        Terry D. Eppler
-  Last Modified On:        05-01-2025
-******************************************************************************************
-<copyright file="preprocessors.py" company="Terry D. Eppler">
-
-     mathy Preprocessing
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the “Software”),
- to deal in the Software without restriction,
- including without limitation the rights to use,
- copy, modify, merge, publish, distribute, sublicense,
- and/or sell copies of the Software,
- and to permit persons to whom the Software is furnished to do so,
- subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- DEALINGS IN THE SOFTWARE.
-
- You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-
-</copyright>
-<summary>
-	preprocessors.py
-</summary>
-******************************************************************************************
+	******************************************************************************************
+	  Assembly:                mathy
+	  Filename:                transformers.py
+	  Author:                  Terry D. Eppler
+	  Created:                 05-31-2022
+	
+	  Last Modified By:        Terry D. Eppler
+	  Last Modified On:        05-01-2025
+	******************************************************************************************
+	<copyright file="preprocessors.py" company="Terry D. Eppler">
+	
+	     mathy Preprocessing
+	
+	 Permission is hereby granted, free of charge, to any person obtaining a copy
+	 of this software and associated documentation files (the “Software”),
+	 to deal in the Software without restriction,
+	 including without limitation the rights to use,
+	 copy, modify, merge, publish, distribute, sublicense,
+	 and/or sell copies of the Software,
+	 and to permit persons to whom the Software is furnished to do so,
+	 subject to the following conditions:
+	
+	 The above copyright notice and this permission notice shall be included in all
+	 copies or substantial portions of the Software.
+	
+	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	 DEALINGS IN THE SOFTWARE.
+	
+	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+	
+	</copyright>
+	<summary>
+		preprocessors.py
+	</summary>
+	******************************************************************************************
 '''
 from __future__ import annotations
 
@@ -88,7 +88,7 @@ class Preprocessor( ):
 		"""
 		raise NotImplementedError
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -151,11 +151,12 @@ class LabelBinarizer( Preprocessor ):
 
 		At learning time, this simply consists in learning one regressor or binary classifier
 		per class. In doing so, one needs to convert multi-class target_names to binary target_names
-		(belong or does not belong to the class). LabelBinarizer makes this process easy
-		with the transform method.
+		(belong or does not belong to the class). LabelBinarizer does this process with
+		the transform method.
 
 		At prediction time, one assigns the class for which the corresponding model gave
-		the greatest confidence. LabelBinarizer makes this easy with the inverse_transform method.
+		the greatest confidence. LabelBinarizer does this process with
+		the inverse_transform method.
 
 
 	"""
@@ -173,8 +174,15 @@ class LabelBinarizer( Preprocessor ):
 		super( ).__init__( )
 		self.label_binarizer = skp.LabelBinarizer( )
 		self.transformed_data = None
+		
+	@property
+	def classes( self ) -> List[ str ]:
+		if self.label_binarizer.classes_ is None:
+			raise AttributeError( 'LabelBinarizer has not been initialized.' )
+		else:
+			return self.label_binarizer.classes_
 	
-	def fit( self, X: np.ndarray, y: np.ndarray ) -> LabelBinarizer | None:
+	def fit( self, y: np.ndarray ) -> LabelBinarizer | None:
 		"""
 
 			Purpose:
@@ -183,8 +191,7 @@ class LabelBinarizer( Preprocessor ):
 
 			Parameters:
 			-----------
-			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( np.ndarray ): Optional target array  of shape ( n_features ).
+			y ( np.ndarray ): target array  of shape ( n_features ).
 
 			Returns:
 			-----------
@@ -199,11 +206,11 @@ class LabelBinarizer( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
+			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -212,15 +219,12 @@ class LabelBinarizer( Preprocessor ):
 
 			Args:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
 			y ( np.ndarray ): Target vector of shape ( n_features ).
 
 			Returns:
 				np.ndarray: Binary-encoded label matrix.
 				:param y:
 				:type y:
-				:param X:
-				:type X:
 		"""
 		try:
 			throw_if( 'y', y )
@@ -234,20 +238,21 @@ class LabelBinarizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
 			Fit on y then transform y to binary matrix.
 
-			Args:
+			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
 			y ( np.ndarray ): Target vector of shape ( n_features ).
 
 			Returns:
-				np.ndarray: Binary-encoded label matrix.
+			--------
+			np.ndarray: Binary-encoded label matrix.
+			
 		"""
 		try:
 			throw_if( 'y', y )
@@ -261,7 +266,7 @@ class LabelBinarizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
+	def inverse_transform( self, Y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -270,14 +275,15 @@ class LabelBinarizer( Preprocessor ):
 
 			Parameters:
 			----------
-			y (np.ndarray): Binary-encoded label matrix.
+			Y (np.ndarray): Binary-encoded label matrix.
 
 			Returns:
 			np.ndarray: Original target_names.
+			
 		"""
 		try:
-			throw_if( 'y', y )
-			return self.label_binarizer.inverse_transform( y )
+			throw_if( 'Y', Y )
+			return self.label_binarizer.inverse_transform( Y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -311,6 +317,7 @@ class TfidfTransformer( Preprocessor ):
 
 	"""
 	tfidf_transformer: sk.TfidfTransformer
+	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		"""
@@ -323,7 +330,14 @@ class TfidfTransformer( Preprocessor ):
 		self.tfidf_transformer = sk.TfidfTransformer( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> TfidfTransformer | None:
+	@property
+	def idf_vector( self ) -> np.ndarray:
+		if self.tfidf_transformer.idf_ is None:
+			raise AttributeError( 'TfidfTransformer must be initialized' )
+		else:
+			return self.tfidf_transformer.idf_
+		
+	def fit( self, X: np.ndarray ) -> TfidfTransformer | None:
 		"""
 
 			Purpose:
@@ -333,7 +347,6 @@ class TfidfTransformer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			---------
@@ -352,7 +365,7 @@ class TfidfTransformer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -362,16 +375,15 @@ class TfidfTransformer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
-			np.ndarray: Dense matrix of token counts.
+			np.ndarray: Dense matrix of tokens of shape ( n_samples, n_features )
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.tfidf_transformer.transform( X ).toarray( )
+			self.transformed_data = self.tfidf_transformer.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -381,7 +393,7 @@ class TfidfTransformer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -391,7 +403,6 @@ class TfidfTransformer( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -455,6 +466,7 @@ class TfidfVectorizer( Preprocessor ):
 			Parameters:
 			-----------
 			text: list[str]
+			y: np.ndarray - IGNORED
 
 		"""
 		try:
@@ -469,7 +481,7 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, text: list[ str ], y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, text: list[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -495,7 +507,7 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, text: list[ str ], y: np.ndarray=None ) -> np.ndarray:
+	def fit_transform( self, text: list[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -575,12 +587,10 @@ class CountVectorizer( Preprocessor ):
 
 			Purpose:
 			---------
-			Convert a collection of text text to a matrix of token counts.
+			Convert a collection of tokens to a matrix of token counts.
 
-			:param y:
-			:type y:
-			:param text: List of input text text.
-			:type text: List[str]
+			:param text:
+			:type List[ str ]:
 
 		"""
 		try:
@@ -595,7 +605,7 @@ class CountVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, text: List[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -604,9 +614,8 @@ class CountVectorizer( Preprocessor ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-
+			text (List[ str ]): Feature matrix
+		
 			Returns:
 			-----------
 			np.ndarray | None
@@ -693,20 +702,46 @@ class HashingVectorizer( Preprocessor ):
 		"""
 		super( ).__init__( )
 		self.hash_vectorizer = sk.HashingVectorizer( n_features=num )
+		self.transformed_data = None
 	
-	def transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray:
+	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> CountVectorizer | None:
+		"""
+
+			Purpose:
+			---------
+			Convert a collection of text text to a matrix of token counts.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.hash_vectorizer.fit( X )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'HashingVectorizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+			
+	def transform( self, text: List[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
 			Transform text into hashed token vectors.
 
-			:param y:
-			:type y:
-			:param text: List of input text text.
+			:param text: List of input text.
 			:type text: List[str]
+			
 			:return: Matrix of hashed feature_names.
 			:rtype: np.ndarray
+			
 		"""
 		try:
 			throw_if( 'text', text )
@@ -780,7 +815,7 @@ class StandardScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ). IGNORED
 
 			Returns:
 			-----------
@@ -858,7 +893,7 @@ class MinMaxScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ). IGNORED
 
 			Returns:
 			--------
@@ -888,7 +923,7 @@ class MinMaxScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): Target vector of shape ( n_samples, ). IGNORED
 
 			Returns:
 			-----------
@@ -908,6 +943,36 @@ class MinMaxScaler( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
+	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Fits & Transforms the df using the fitted MinMaxScaler.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ). IGNORED
+
+			Returns:
+			-----------
+			np.ndarray
+
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.minmax_scaler.fit_transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MinMaxScaler'
+			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+			
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
@@ -1062,12 +1127,14 @@ class NormalScaler( Preprocessor ):
 		of the vectors and is the base similarity metric for the Vector Space Model.
 
 	"""
+	norm: Optional[ str ]
 	normal_scaler: skp.Normalizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, reg: str = 'l2' ) -> None:
 		super( ).__init__( )
-		self.normal_scaler = skp.Normalizer( norm=reg )
+		self.norm = reg
+		self.normal_scaler = skp.Normalizer( norm=self.norm)
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> NormalScaler | None:
@@ -1130,6 +1197,37 @@ class NormalScaler( Preprocessor ):
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
+	
+	def fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+		"""
+
+
+			Purpose:
+			---------
+			Applies normalization to each sample.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
+			Returns:
+			-----------
+			np.ndarray: Normalized df.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.normal_scaler.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Normalizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
 
 class OneHotEncoder( Preprocessor ):
 	"""
@@ -1150,12 +1248,23 @@ class OneHotEncoder( Preprocessor ):
 		LabelBinarizer instead.
 
 	"""
+	unknown: Optional[ str ]
+	sparse: Optional[ bool ]
 	hot_encoder: skp.OneHotEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, unknown: str = 'ignore' ) -> None:
+	def __init__( self, sparse: bool=False, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
-		self.hot_encoder = skp.OneHotEncoder( sparse_output=False, handle_unknown=unknown )
+		self.unknown = unknown
+		self.sparse = sparse
+		self.hot_encoder = skp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
+	
+	@property
+	def categories( self ):
+		if self.hot_encoder.categories_ is None:
+			raise AttributeError( 'Hot Encoder data is untrained' )
+		else:
+			return self.hot_encoder.categories_
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> OneHotEncoder | None:
 		"""
@@ -1268,6 +1377,14 @@ class OrdinalEncoder( Preprocessor ):
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.ordinal_encoder = skp.OrdinalEncoder( )
+		self.transformed_data = None
+	
+	@property
+	def categories( self ):
+		if self.hot_encoder.categories_ is None:
+			raise AttributeError( 'Hot Encoder data is untrained' )
+		else:
+			return self.hot_encoder.categories_
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> OrdinalEncoder | None:
 		"""
@@ -1402,7 +1519,14 @@ class LabelEncoder( Preprocessor ):
 		super( ).__init__( )
 		self.label_encoder = skp.LabelEncoder( )
 	
-	def fit( self, X: list[ str ], y: np.ndarray ) -> LabelEncoder | None:
+	@property
+	def classes( self ):
+		if self.label_encoder.classes_ is None:
+			raise AttributeError( 'The label encoder data is untrained.' )
+		else:
+			return self.label_encoder.classes_
+		
+	def fit( self, y: np.ndarray ) -> LabelEncoder | None:
 		"""
 
 			Purpose:
@@ -1416,7 +1540,6 @@ class LabelEncoder( Preprocessor ):
 
 		"""
 		try:
-			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.label_encoder.fit( y )
 			return self
@@ -1424,11 +1547,11 @@ class LabelEncoder( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
-			exception.method = 'fit( self, X: list[ str ], y: np.ndarray ) -> LabelEncoder'
+			exception.method = 'fit( self, y: np.ndarray ) -> LabelEncoder'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: list[ str ], y: np.ndarray ) -> np.ndarray:
+	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1443,7 +1566,6 @@ class LabelEncoder( Preprocessor ):
 		"""
 		
 		try:
-			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.transformed_data = self.label_encoder.transform( y )
 			return self.transformed_data
@@ -1451,11 +1573,11 @@ class LabelEncoder( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
-			exception.method = 'transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray'
+			exception.method = 'transform( self, y: np.ndarray  ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: list[ str ], y: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1470,7 +1592,6 @@ class LabelEncoder( Preprocessor ):
 		"""
 		
 		try:
-			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.transformed_data = self.label_encoder.fit_transform( y )
 			return self.transformed_data
@@ -1478,7 +1599,7 @@ class LabelEncoder( Preprocessor ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
-			exception.method = 'fit_transform( self, X: list[ str ], y: np.ndarray  ) -> np.ndarray'
+			exception.method = 'fit_transform( self, y: np.ndarray  ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1519,10 +1640,12 @@ class PolynomialFeatures( Preprocessor ):
 
 
 	"""
+	degree: Optional[ int ]
+	interaction_only: Optional[ bool ]
 	polynomial_features: skp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, degree: int = 2 ) -> None:
+	def __init__( self, degree: int=2, interaction: bool=True ) -> None:
 		"""
 
 			Purpose:
@@ -1533,8 +1656,18 @@ class PolynomialFeatures( Preprocessor ):
 			:type degree: int
 		"""
 		super( ).__init__( )
-		self.polynomial_features = skp.PolynomialFeatures( degree=degree )
+		self.degree = degree
+		self.interaction_only = interaction
+		self.polynomial_features = skp.PolynomialFeatures( degree=self.degree,
+			interaction_only=self.interaction_only )
 	
+	@property
+	def powers( self ):
+		if self.polynomial_features.powers_ is None:
+			raise AttributeError( 'The polynomial data is untrained.' )
+		else:
+			return self.polynomial_features.powers_
+		
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> PolynomialFeatures | None:
 		"""
 
@@ -1622,7 +1755,7 @@ class MeanImputer( Preprocessor ):
 	mean_imputer: ski.SimpleImputer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, strategy: str = 'mean' ) -> None:
+	def __init__( self, strategy: str='mean' ) -> None:
 		super( ).__init__( )
 		self.strategy = strategy
 		self.mean_imputer = ski.SimpleImputer( strategy=self.strategy )
@@ -1756,14 +1889,13 @@ class NearestNeighborImputer( Preprocessor ):
 	knn_imputer: ski.KNNImputer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, neighbors: int = 5 ) -> None:
+	def __init__( self, neighbors: int=5 ) -> None:
 		super( ).__init__( )
 		self.n_neighbors = neighbors
 		self.knn_imputer = ski.KNNImputer( n_neighbors=self.n_neighbors )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[
-		np.ndarray ] = None ) -> NearestNeighborImputer | None:
+	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NearestNeighborImputer | None:
 		"""
 
 			Purpose:

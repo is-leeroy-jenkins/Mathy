@@ -1,44 +1,44 @@
 """
-******************************************************************************************
-  Assembly:                mathy
-  Filename:                regressors.py
-  Author:                  Terry D. Eppler
-  Created:                 05-31-2022
-
-  Last Modified By:        Terry D. Eppler
-  Last Modified On:        05-01-2025
-******************************************************************************************
-<copyright file="regressors.py" company="Terry D. Eppler">
-
-         mathy Models
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the “Software”),
- to deal in the Software without restriction,
- including without limitation the rights to use,
- copy, modify, merge, publish, distribute, sublicense,
- and/or sell copies of the Software,
- and to permit persons to whom the Software is furnished to do so,
- subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- DEALINGS IN THE SOFTWARE.
-
- You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-
-</copyright>
-<summary>
-        regressors.py
-</summary>
-******************************************************************************************
+	******************************************************************************************
+	  Assembly:                mathy
+	  Filename:                regressions.py
+	  Author:                  Terry D. Eppler
+	  Created:                 05-31-2022
+	
+	  Last Modified By:        Terry D. Eppler
+	  Last Modified On:        05-01-2025
+	******************************************************************************************
+	<copyright file="regressions.py" company="Terry D. Eppler">
+	
+	         mathy Models
+	
+	 Permission is hereby granted, free of charge, to any person obtaining a copy
+	 of this software and associated documentation files (the “Software”),
+	 to deal in the Software without restriction,
+	 including without limitation the rights to use,
+	 copy, modify, merge, publish, distribute, sublicense,
+	 and/or sell copies of the Software,
+	 and to permit persons to whom the Software is furnished to do so,
+	 subject to the following conditions:
+	
+	 The above copyright notice and this permission notice shall be included in all
+	 copies or substantial portions of the Software.
+	
+	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	 DEALINGS IN THE SOFTWARE.
+	
+	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+	
+	</copyright>
+	<summary>
+	        regressions.py
+	</summary>
+	******************************************************************************************
 """
 
 from __future__ import annotations
@@ -75,6 +75,8 @@ class Regressor:
 
     """
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
+	decision: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -163,7 +165,7 @@ class Regressor:
         """
 		raise NotImplementedError
 
-class MultiLayerRegressor( Regressor ):
+class MultiLayerPerceptron( Regressor ):
 	"""
 
 		Purpose:
@@ -182,7 +184,7 @@ class MultiLayerRegressor( Regressor ):
         - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
     """
-	multilayer_regressor: skn.MLPRegressor
+	multilayer_perceptron: skn.MLPRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -201,7 +203,8 @@ class MultiLayerRegressor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, hidden: tuple = (100,), activ='relu', solver='adam', alpha=0.0001, learning: str = 'constant', rando: int = 42, ) -> None:
+	def __init__( self, hidden: tuple=(100,), activ='relu', solver='adam', alpha=0.0001, 
+			learning: str='constant', rando: int=42, ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activ
@@ -209,21 +212,10 @@ class MultiLayerRegressor( Regressor ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_regressor = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers, activation=self.activation_function, solver=self.solver, alpha=self.alpha, learning_rate=self.learning, random_state=self.random_state, )
+		self.multilayer_perceptron = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers, activation=self.activation_function, solver=self.solver, alpha=self.alpha, learning_rate=self.learning, random_state=self.random_state, )
 		self.prediction = None
 	
-	# ... keep metric fields as before
-	def __dir__( self ) -> List[ str ]:
-		"""
-
-	        Purpose:
-	        -------
-	        Provides a list of strings representing class members
-
-        """
-		return [ "prediction", "accuracy", "learning", "activation_function", "hidden_layers", "random_state", "alpha", "max_depth", "mean_absolute_error", "mean_squared_error", "r_mean_squared_error", "r2_score", "explained_variance_score", "median_absolute_error", "train", "project", "score", "analyze", "create_scatter", ]
-	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
 
 	        Purpose:
@@ -243,7 +235,7 @@ class MultiLayerRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.multilayer_regressor.fit( X, y )
+			self.multilayer_perceptron.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -272,7 +264,7 @@ class MultiLayerRegressor( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.multilayer_regressor.predict( X )
+			self.prediction = self.multilayer_perceptron.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -302,7 +294,7 @@ class MultiLayerRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_regressor.predict( X )
+			self.prediction = self.multilayer_perceptron.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -371,7 +363,7 @@ class MultiLayerRegressor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_regressor.predict( X )
+			self.prediction = self.multilayer_perceptron.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( "Observed" )
 			plt.ylabel( "Projected" )
@@ -386,8 +378,36 @@ class MultiLayerRegressor( Regressor ):
 			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
 			error = ErrorDialog( exception )
 			error.show( )
+	
+	def __dir__( self ) -> List[ str ]:
+		"""
 
-class LinearRegressor( Regressor ):
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
+
+        """
+		return [ 'prediction',
+		         'accuracy',
+		         'learning',
+		         'activation_function',
+		         'hidden_layers',
+		         'random_state',
+		         'alpha',
+		         'max_depth',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter', ]
+
+class LinearModel( Regressor ):
 	"""
 
 	    Purpose:
@@ -456,7 +476,7 @@ class LinearRegressor( Regressor ):
         """
 		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state', 'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearModel | None:
 		"""
 	
 	        Purpose:
@@ -621,7 +641,7 @@ class LinearRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RidgeRegressor( Regressor ):
+class RidgeModel( Regressor ):
 	"""
 	
 	    Purpose:
@@ -704,7 +724,7 @@ class RidgeRegressor( Regressor ):
         """
 		return [ 'prediction', 'accuracy', 'alpha', 'solver', 'random_state', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeModel | None:
 		"""
 	
 	
@@ -876,7 +896,7 @@ class RidgeRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LassoRegression( Regressor ):
+class LassoModel( Regressor ):
 	"""
 	
 	    Purpose:
@@ -950,7 +970,7 @@ class LassoRegression( Regressor ):
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
 			'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel | None:
 		"""
 
 	        Purpose:
@@ -1117,7 +1137,7 @@ class LassoRegression( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class ElasticNetRegressor( Regressor ):
+class ElasticNet( Regressor ):
 	"""
 
 	    Purpose:
@@ -1197,7 +1217,7 @@ class ElasticNetRegressor( Regressor ):
 			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNetRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNet | None:
 		"""
 
 	
@@ -1366,7 +1386,7 @@ class ElasticNetRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LeastAngleRegressor( Regressor ):
+class LeastAngle( Regressor ):
 	"""
 
 	    Purpose:
@@ -1381,6 +1401,7 @@ class LeastAngleRegressor( Regressor ):
 	
 	lars_regressor: skl.Lars
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -1442,7 +1463,7 @@ class LeastAngleRegressor( Regressor ):
 			'explained_variance_score', 'median_absolute_error', 'train', 'project',
 			'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngleRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngle | None:
 		"""
 
         Purpose:
@@ -1615,7 +1636,7 @@ class LeastAngleRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class BayesianRidgeRegressor( Regressor ):
+class BayesianRidge( Regressor ):
 	"""
 
     Purpose:
@@ -1693,7 +1714,7 @@ class BayesianRidgeRegressor( Regressor ):
 			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidgeRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidge | None:
 		"""
 
         Purpose:
@@ -2109,7 +2130,7 @@ class StochasticGradientDescent( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class NearestNeighborRegressor( Regressor ):
+class NearestNeighbor( Regressor ):
 	"""
 
     Purpose:
@@ -2184,7 +2205,7 @@ class NearestNeighborRegressor( Regressor ):
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
 			'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
 
 
@@ -2353,7 +2374,7 @@ class NearestNeighborRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class DecisionTreeRegressor( Regressor ):
+class DecisionTree( Regressor ):
 	'''
 
 	    Purpose:
@@ -2423,7 +2444,7 @@ class DecisionTreeRegressor( Regressor ):
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
 			'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		'''
 	
 	
@@ -2594,7 +2615,7 @@ class DecisionTreeRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RandomForestRegressor( Regressor ):
+class RandomForest( Regressor ):
 	'''
 
 	    Purpose:
@@ -2678,7 +2699,7 @@ class RandomForestRegressor( Regressor ):
 			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		'''
 	
 	        Purpose:
@@ -2845,7 +2866,7 @@ class RandomForestRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GradientBoostingRegressor( Regressor ):
+class GradientBoost( Regressor ):
 	"""
 
     Purpose:
@@ -2923,7 +2944,7 @@ class GradientBoostingRegressor( Regressor ):
 			'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
 
         Purpose:
@@ -3080,7 +3101,7 @@ class GradientBoostingRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class AdaBoostRegressor( Regressor ):
+class AdaptiveBoost( Regressor ):
 	"""
 
     Purpose:
@@ -3156,7 +3177,7 @@ class AdaBoostRegressor( Regressor ):
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
 			'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
 
         Purpose:
@@ -3321,7 +3342,7 @@ class AdaBoostRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class BaggingRegressor( Regressor ):
+class BaggingModel( Regressor ):
 	"""
 
     Purpose:
@@ -3395,7 +3416,7 @@ class BaggingRegressor( Regressor ):
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
 			'project', 'score', 'analyze', 'create_scatter', 'random_state', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
 
         Purpose:
@@ -3558,7 +3579,7 @@ class BaggingRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class VotingRegressor( Regressor ):
+class VotingModel( Regressor ):
 	"""
 
     Purpose:
@@ -3621,7 +3642,7 @@ class VotingRegressor( Regressor ):
 			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		'''
 	
 	        Purpose:
@@ -3791,7 +3812,7 @@ class VotingRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StackingRegressor( Regressor ):
+class StackingModel( Regressor ):
 	"""
 
 	    Purpose:
@@ -3866,7 +3887,7 @@ class StackingRegressor( Regressor ):
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
 			'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
 
 	        Purpose:
@@ -4030,7 +4051,7 @@ class StackingRegressor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SupportVectorRegressor:
+class SupportVectorMachine( Regressor ):
 	"""
     Wrapper for sklearn's Support Vector Regression (SVR).
     """
@@ -4089,7 +4110,7 @@ class SupportVectorRegressor:
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
 			'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorMachine | None:
 		"""
 
         Purpose:
@@ -4247,7 +4268,7 @@ class SupportVectorRegressor:
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GaussianProcessRegressor:
+class GaussianProcess( Regressor ):
 	'''
 
 	    Purpose:
@@ -4285,7 +4306,7 @@ class GaussianProcessRegressor:
         """
 		try:
 			self.kernel = kernel or C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
-			self.model = GaussianProcessRegressor( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
+			self.model = GaussianProces( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4294,7 +4315,7 @@ class GaussianProcessRegressor:
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcessRegressor | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProces | None:
 		"""
 
         Purpose:

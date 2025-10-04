@@ -1,14 +1,14 @@
 '''
 	******************************************************************************************
 	  Assembly:                mathy
-	  Filename:                classifiers.py
+	  Filename:                classifications.py
 	  Author:                  Terry D. Eppler
 	  Created:                 05-31-2022
 	
 	  Last Modified By:        Terry D. Eppler
 	  Last Modified On:        05-01-2025
 	******************************************************************************************
-	<copyright file="classifiers.py" company="Terry D. Eppler">
+	<copyright file="classifications.py" company="Terry D. Eppler">
 	
 	     mathy Models
 	
@@ -36,7 +36,7 @@
 	
 	</copyright>
 	<summary>
-		classifiers.py
+		classifications.py
 	</summary>
 	******************************************************************************************
 '''
@@ -44,7 +44,6 @@ from __future__ import annotations
 
 from typing import Dict
 from typing import Optional, List, Tuple, Any
-
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np
@@ -54,7 +53,9 @@ from scipy import stats
 from sklearn.base import ClassifierMixin
 import sklearn.ensemble as ske
 import sklearn.linear_model as skc
-from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score, mean_squared_error, mean_absolute_error, explained_variance_score, median_absolute_error)
+from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score,
+                             mean_squared_error, mean_absolute_error,
+                             explained_variance_score, median_absolute_error)
 import sklearn.neighbors as skn
 import sklearn.neural_network as snn
 from sklearn.pipeline import Pipeline
@@ -75,6 +76,8 @@ class Classifier( ):
 
 	"""
     prediction: Optional[ np.ndarray ]
+    probability: Optional[ np.ndarray ]
+    decision: Optional[ np.ndarray ]
     max_depth: Optional[ int ]
     random_state: Optional[ int ]
     accuracy: Optional[ float ]
@@ -166,7 +169,7 @@ class Classifier( ):
 		"""
         raise NotImplementedError
 
-class PerceptronClassifier( Classifier ):
+class Perceptron( Classifier ):
     """
 
 
@@ -186,6 +189,7 @@ class PerceptronClassifier( Classifier ):
 	"""
     perceptron_classifier: skc.Perceptron
     prediction: Optional[ np.ndarray ]
+    decision: Optional[ np.ndarray ]
     max_depth: Optional[ int ]
     random_state: Optional[ int ]
     accuracy: Optional[ float ]
@@ -224,6 +228,7 @@ class PerceptronClassifier( Classifier ):
         self.perceptron_classifier = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
 	        shuffle=self.shuffle, penalty=self.penalty, )
         self.prediction = None
+        self.decision = None
         self.accuracy = 0.0
         self.mean_absolute_error = 0.0
         self.mean_squared_error = 0.0
@@ -231,21 +236,47 @@ class PerceptronClassifier( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
+	    
+    @property
+    def weights( self ) -> np.ndarray | None:
+	    if self.perceptron_classifier.coef_ is None:
+		    raise AttributeError( 'The Perceptron data is untrained.' )
+	    else:
+		    return self.perceptron_classifier.coef_
     
-    def __dir__( self ) -> List[ str ]:
-        '''
+    def decision_function( self, X: np.ndarray ) -> np.ndarray:
+        """
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
+            Purpose:
+            ---------
+            Predict confidence scores for samples. The confidence score for a sample is proportional
+            to the signed distance of that sample to the hyperplane.
 
-		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'mean_absolute_error', 
-                 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
-                 'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-                 'score', 'analyze', 'create_heatmap' ]
+            Parameters
+            ----------
+            X (np.ndarray) of shape (n_samples, n_features)
+            The data matrix for which we want to get the confidence scores.
+
+            Returns
+            -------
+            np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+            Confidence scores per (n_samples, n_classes) combination. In the binary case,
+            confidence score for self.classes_[1] where >0 means this class would be predicted.
+
+        """
+        try:
+	        throw_if( 'X', X )
+	        self.decision = self.perceptron_classifier.decision_function( X )
+	        return self.decision
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'PerceptronClassifier'
+	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> PerceptronClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> Perceptron | None:
         """
 
 			Purpose:
@@ -468,6 +499,21 @@ class PerceptronClassifier( Classifier ):
                                 'resolution=0.02 )')
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'mean_absolute_error',
+                 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'penalty', 'alpha',
+                 'explained_variance_score', 'median_absolute_error', 'train', 'project',
+                 'score', 'analyze', 'create_heatmap', 'weights', 'density_function',
+                 'weights', ]
+    
 
 class LogisticRegression( Classifier ):
     """
@@ -493,6 +539,8 @@ class LogisticRegression( Classifier ):
 	"""
     logistic_regression: skc.LogisticRegression
     prediction: Optional[ np.ndarray ]
+    decision: Optional[ np.ndarray ]
+    probability: Optional[ np.ndarray ]
     transformed_data: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     mean_absolute_error: Optional[ float ]
@@ -533,6 +581,8 @@ class LogisticRegression( Classifier ):
         self.logistic_regression = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
 	        multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
         self.prediction = None
+        self.decision = None
+        self.probability = None
         self.accuracy = 0.0
         self.mean_absolute_error = 0.0
         self.mean_squared_error = 0.0
@@ -540,19 +590,82 @@ class LogisticRegression( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
+	    
+    @property
+    def weights( self ) -> np.ndarray | None:
+	    if self.logistic_regression.coef_ is None:
+		    raise AttributeError( 'The Regression data is untrained.' )
+	    else:
+		    return self.logistic_regression.coef_
     
-    def __dir__( self ) -> List[ str ]:
-        '''
+    def decision_function( self, X: np.ndarray ) -> np.ndarray:
+        """
+
+            Purpose:
+            ---------
+            Predict confidence scores for samples. The confidence score for a sample is proportional
+            to the signed distance of that sample to the hyperplane.
+
+            Parameters
+            ----------
+            X (np.ndarray) of shape (n_samples, n_features)
+            The data matrix for which we want to get the confidence scores.
+
+            Returns
+            -------
+            np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+            Confidence scores per (n_samples, n_classes) combination. In the binary case,
+            confidence score for self.classes_[1] where >0 means this class would be predicted.
+
+        """
+        try:
+	        throw_if( 'X', X )
+	        self.decision = self.logistic_regression.decision_function( X )
+	        return self.decision
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'LogisticRegression'
+	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
+        
+    def predict_probability( self, X: np.ndarray ) -> np.ndarray:
+        """
 
 			Purpose:
-			-------
-			Provides a list of strings representing class members
+			---------
+			Probability estimates. The returned estimates for all classes are ordered
+			by the label of classes. For a multi_class problem, if multi_class is
+			set to be “multinomial” the softmax function is used to find the
+			predicted probability of each class. Else use a one-vs-rest approach,
+			i.e. calculate the probability of each class assuming it to be positive
+			using the logistic function and normalize these values across all the classes.
 
-		'''
-        return [ 'prediction', 'accuracy', 'penalty', 'solver', 'multi_class', 'random_state',
-                 'alpha', 'max_iter', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter' ]
+			Parameters
+			----------
+			X (np.ndarray) of shape (n_samples, n_features)
+			Vector to be scored, where n_samples is the number of samples
+			and n_features is the number of features.
+
+			Returns
+			-------
+			np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+			Returns the probability of the sample for each class in the model,
+			where classes are ordered as they are in self.classes_.
+
+		"""
+        try:
+	        throw_if( 'X', X )
+	        self.probability = self.logistic_regression.predict_proba( X )
+	        return self.probability
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'LogisticRegression'
+	        exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegression | None:
         """
@@ -729,8 +842,22 @@ class LogisticRegression( Classifier ):
             exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
 
-class MultiLayerClassifier( Classifier ):
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'accuracy', 'penalty', 'solver', 'multi_class', 'random_state',
+                 'alpha', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'predict_probabilty',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'decision_function',
+                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'weights' ]
+    
+
+class MultiLayerPerceptron( Classifier ):
     """
 
 		Purpose:
@@ -749,7 +876,7 @@ class MultiLayerClassifier( Classifier ):
         - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
-    multilayer_classifier: snn.MLPClassifier
+    multilayer_perceptron: snn.MLPClassifier
     prediction: Optional[ np.ndarray ]
     probability: Optional[ np.ndarray ]
     max_depth: Optional[ int ]
@@ -779,7 +906,7 @@ class MultiLayerClassifier( Classifier ):
         self.solver = solver
         self.alpha = alpha
         self.random_state = rando
-        self.multilayer_classifier = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers, 
+        self.multilayer_perceptron = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
 	        activation=self.activation_function, solver=self.solver, alpha=self.alpha, 
 	        learning_rate=self.learning_rate, random_state=self.random_state )
         self.prediction = None
@@ -790,22 +917,29 @@ class MultiLayerClassifier( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
+        
+    @property
+    def loss( self ) -> float:
+        if self.multilayer_perceptron.loss_ is None:
+	        raise AttributeError( 'The data is untrained.' )
+        else:
+	        return self.multilayer_perceptron.loss_
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'probability', 'max_depth', 'random_state',
-                 'accuracy', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze',
-                 'create_heatmap', 'predict_probability' ]
+    @property
+    def classes( self ) -> np.ndarray:
+	    if self.multilayer_perceptron.classes_ is None:
+		    raise AttributeError( 'The data is untrained.' )
+	    else:
+		    return self.multilayer_perceptron.classes_
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerClassifier | None:
+    @property
+    def weights( self ) -> np.ndarray:
+	    if self.multilayer_perceptron.coefs_ is None:
+		    raise AttributeError( 'The data is untrained.' )
+	    else:
+		    return self.multilayer_perceptron.coefs_
+    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
         """
 
 			Purpose:
@@ -825,7 +959,7 @@ class MultiLayerClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.multilayer_classifier.fit( X, y )
+            self.multilayer_perceptron.fit( X, y )
             return self
         except Exception as e:
             exception = Error( e )
@@ -854,7 +988,7 @@ class MultiLayerClassifier( Classifier ):
 		"""
         try:
             throw_if( 'X', X )
-            self.prediction = self.multilayer_classifier.predict( X )
+            self.prediction = self.multilayer_perceptron.predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -883,7 +1017,7 @@ class MultiLayerClassifier( Classifier ):
 		"""
         try:
             throw_if( 'X', X )
-            self.probability = self.multilayer_classifier.predict_proba( X )
+            self.probability = self.multilayer_perceptron.predict_proba( X )
             return self.probability
         except Exception as e:
             exception = Error( e )
@@ -913,7 +1047,7 @@ class MultiLayerClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.prediction = self.multilayer_classifier.predict( X )
+            self.prediction = self.multilayer_perceptron.predict( X )
             self.accuracy = accuracy_score( y, self.prediction )
             return self.accuracy
         except Exception as e:
@@ -945,7 +1079,7 @@ class MultiLayerClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.prediction = self.multilayer_classifier.predict( X )
+            self.prediction = self.multilayer_perceptron.predict( X )
             self.mean_squared_error = mean_squared_error( y, self.prediction )
             self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
             self.r2_score = r2_score( y, self.prediction )
@@ -988,7 +1122,7 @@ class MultiLayerClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.prediction = self.multilayer_classifier.predict( X )
+            self.prediction = self.multilayer_perceptron.predict( X )
             cm = confusion_matrix( y, self.prediction )
             sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
             plt.xlabel( 'Predicted' )
@@ -1051,8 +1185,23 @@ class MultiLayerClassifier( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
 
-class RidgeClassifier( Classifier ):
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'probability', 'max_depth', 'random_state',
+                 'accuracy', 'mean_absolute_error', 'mean_squared_error',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+                 'median_absolute_error', 'train', 'project', 'score', 'analyze',
+                 'create_heatmap', 'predict_probability', 'weights', 'classes', 'loss' ]
+    
+
+class RidgeModel( Classifier ):
     """
 
 		Purpose:
@@ -1073,6 +1222,8 @@ class RidgeClassifier( Classifier ):
 	"""
     ridge_classifier: skc.RidgeClassifier
     prediction: Optional[ np.ndarray ]
+    probability: Optional[ np.ndarray ]
+    decision: Optional[ np.ndarray ]
     max_depth: Optional[ int ]
     random_state: Optional[ int ]
     accuracy: Optional[ float ]
@@ -1111,6 +1262,7 @@ class RidgeClassifier( Classifier ):
         self.ridge_classifier = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
 	        max_iter=self.max_iter, random_state=self.random_state )
         self.prediction = None
+        self.probability = None
         self.accuracy = 0.0
         self.mean_absolute_error = 0.0
         self.mean_squared_error = 0.0
@@ -1119,21 +1271,14 @@ class RidgeClassifier( Classifier ):
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
     
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'alpha',
-                 'solver', 'ridge_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score',
-                 'analyze', 'create_heatmap' ]
-    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeClassifier | None:
+    @property
+    def weights( self ) -> np.ndarray | None:
+	    if self.ridge_classifier.coef_ is None:
+		    raise AttributeError( 'The Regression data is untrained.' )
+	    else:
+		    return self.ridge_classifier.coef_
+	    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeModel | None:
         """
 
 
@@ -1270,6 +1415,38 @@ class RidgeClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
     
+    def decision_function( self, X: np.ndarray ) -> np.ndarray:
+        """
+
+            Purpose:
+            ---------
+            Predict confidence scores for samples. The confidence score for a sample is proportional
+            to the signed distance of that sample to the hyperplane.
+
+            Parameters
+            ----------
+            X (np.ndarray) of shape (n_samples, n_features)
+            The data matrix for which we want to get the confidence scores.
+
+            Returns
+            -------
+            np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+            Confidence scores per (n_samples, n_classes) combination. In the binary case,
+            confidence score for self.classes_[1] where >0 means this class would be predicted.
+
+        """
+        try:
+	        throw_if( 'X', X )
+	        self.decision = self.ridge_classifier.decision_function( X )
+	        return self.decision
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'RidgeClassifier'
+	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
+        	
     def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
         """
 
@@ -1331,7 +1508,8 @@ class RidgeClassifier( Classifier ):
             # plot the decision surface
             x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
             x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-            xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
+            xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+	            np.arange( x2_min, x2_max, resolution ) )
             lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
             lab = lab.reshape( xx1.shape )
             plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
@@ -1346,9 +1524,8 @@ class RidgeClassifier( Classifier ):
                 # plot all examples
                 if test_idx:
                     X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-                    plt.scatter(
-                        X_test[ :, 0 ], X_test[
-                            :, 1 ], c='none', edgecolor='black', alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
+                    plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
+	                    alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
@@ -1356,8 +1533,22 @@ class RidgeClassifier( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
 
-class GradientDescentClassifier( Classifier ):
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'alpha',
+                 'solver', 'ridge_classifier', 'mean_absolute_error', 'mean_squared_error',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+                 'median_absolute_error', 'train', 'project', 'score', 'decision_function',
+                 'analyze', 'create_heatmap', 'weights' ]
+    
+class StochasticGradientDescent( Classifier ):
     """
 
 		Purpose:
@@ -1382,6 +1573,8 @@ class GradientDescentClassifier( Classifier ):
 	"""
     sgd_classifier: skc.SGDClassifier
     prediction: Optional[ np.ndarray ]
+    probability: Optional[ np.ndarray ]
+    decision: Optional[ np.ndarray ]
     max_iter: Optional[ int ]
     random_state: Optional[ int ]
     accuracy: Optional[ float ]
@@ -1419,6 +1612,7 @@ class GradientDescentClassifier( Classifier ):
         self.sgd_classifier = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
 	        penalty=self.regularization, alpha=self.alpha )
         self.prediction = None
+        self.probability = None
         self.accuracy = 0.0
         self.mean_absolute_error = 0.0
         self.mean_squared_error = 0.0
@@ -1427,20 +1621,14 @@ class GradientDescentClassifier( Classifier ):
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
     
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'loss', 'regularization',
-                 'alpha', 'sgd_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescentClassifier | None:
+    @property
+    def weights( self ) -> np.ndarray | None:
+	    if self.sgd_classifier.coef_ is None:
+		    raise AttributeError( 'The data is untrained.' )
+	    else:
+		    return self.sgd_classifier.coef_
+	    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
         """
 
 			Purpose:
@@ -1465,7 +1653,7 @@ class GradientDescentClassifier( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'GradientDescentClassifier'
+            exception.cause = 'StochasticGradientDescent'
             exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
             error = ErrorDialog( exception )
             error.show( )
@@ -1493,7 +1681,7 @@ class GradientDescentClassifier( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'GradientDescentClassifier'
+            exception.cause = 'StochasticGradientDescent'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -1524,7 +1712,7 @@ class GradientDescentClassifier( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'GradientDescentClassifier'
+            exception.cause = 'StochasticGradientDescent'
             exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
@@ -1574,11 +1762,80 @@ class GradientDescentClassifier( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'GradientDescentClassifier'
+            exception.cause = 'StochasticGradientDescent'
             exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
                                 'float ]')
             error = ErrorDialog( exception )
             error.show( )
+    
+    def decision_function( self, X: np.ndarray ) -> np.ndarray:
+        """
+
+            Purpose:
+            ---------
+            Predict confidence scores for samples. The confidence score for a sample is proportional
+            to the signed distance of that sample to the hyperplane.
+
+            Parameters
+            ----------
+            X (np.ndarray) of shape (n_samples, n_features)
+            The data matrix for which we want to get the confidence scores.
+
+            Returns
+            -------
+            np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+            Confidence scores per (n_samples, n_classes) combination. In the binary case,
+            confidence score for self.classes_[1] where >0 means this class would be predicted.
+
+        """
+        try:
+	        throw_if( 'X', X )
+	        self.decision = self.sgd_classifier.decision_function( X )
+	        return self.decision
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'StocasticGradientDescent'
+	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
+        
+    def predict_probability( self, X: np.ndarray ) -> np.ndarray:
+        """
+
+			Purpose:
+			---------
+			Probability estimates. The returned estimates for all classes are ordered
+			by the label of classes. For a multi_class problem, if multi_class is
+			set to be “multinomial” the softmax function is used to find the
+			predicted probability of each class. Else use a one-vs-rest approach,
+			i.e. calculate the probability of each class assuming it to be positive
+			using the logistic function and normalize these values across all the classes.
+
+			Parameters
+			----------
+			X (np.ndarray) of shape (n_samples, n_features)
+			Vector to be scored, where n_samples is the number of samples
+			and n_features is the number of features.
+
+			Returns
+			-------
+			np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+			Returns the probability of the sample for each class in the model,
+			where classes are ordered as they are in self.classes_.
+
+		"""
+        try:
+	        throw_if( 'X', X )
+	        self.probability = self.sgd_classifer.predict_proba( X )
+	        return self.probability
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'StochasticGradientDescent'
+	        exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
     
     def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
         """
@@ -1611,7 +1868,7 @@ class GradientDescentClassifier( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'GradientDescentClassifier'
+            exception.cause = 'StochasticGradientDescent'
             exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -1656,12 +1913,26 @@ class GradientDescentClassifier( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'GradientDescentClassifier'
+            exception.cause = 'StochasticGradientDescent'
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
 
-class NearestNeighborClassifier( Classifier ):
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'loss', 'regularization',
+                 'alpha', 'sgd_classifier', 'mean_absolute_error', 'mean_squared_error',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'weights',
+                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+    
+
+class NearestNeighbor( Classifier ):
     """
 
 		Purpose:
@@ -1676,7 +1947,7 @@ class NearestNeighborClassifier( Classifier ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
-    neighbor_classifier: skn.KNeighborsClassifier
+    nearest_neighbor: skn.KNeighborsClassifier
     prediction: Optional[ np.ndarray ]
     probability: Optional[ np.ndarray ]
     n_neighbors: Optional[ int ]
@@ -1711,7 +1982,7 @@ class NearestNeighborClassifier( Classifier ):
         self.n_neighbors = num
         self.algorithm = algorithm
         self.metric = metric
-        self.neighbor_classifier = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
+        self.nearest_neighbor = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 	        algorithm=self.algorithm, metric=self.metric )
         self.prediction = None
         self.accuracy = 0.0
@@ -1721,21 +1992,8 @@ class NearestNeighborClassifier( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'n_neigbors', 'algorithm',
-                 'metric', 'neighbor_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighborClassifier | None:
+	    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
         """
 
 			Purpose:
@@ -1755,7 +2013,7 @@ class NearestNeighborClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.neighbor_classifier.fit( X, y )
+            self.nearest_neighbor.fit( X, y )
             return self
         except Exception as e:
             exception = Error( e )
@@ -1784,7 +2042,7 @@ class NearestNeighborClassifier( Classifier ):
 		"""
         try:
             throw_if( 'X', X )
-            self.prediction = self.neighbor_classifier.predict( X )
+            self.prediction = self.nearest_neighbor.predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -1813,7 +2071,7 @@ class NearestNeighborClassifier( Classifier ):
 		"""
         try:
             throw_if( 'X', X )
-            self.probability = self.neighbor_classifier.predict_proba( X )
+            self.probability = self.nearest_neighbor.predict_proba( X )
             return self.probability
         except Exception as e:
             exception = Error( e )
@@ -1844,7 +2102,7 @@ class NearestNeighborClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.prediction = self.neighbor_classifier.predict( X )
+            self.prediction = self.nearest_neighbor.predict( X )
             return accuracy_score( y, self.prediction )
         except Exception as e:
             exception = Error( e )
@@ -1883,7 +2141,7 @@ class NearestNeighborClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.prediction = self.neighbor_classifier.predict( X )
+            self.prediction = self.nearest_neighbor.predict( X )
             self.mean_absolute_error = mean_absolute_error( y, self.prediction )
             self.mean_squared_error = mean_squared_error( y, self.prediction )
             self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1927,7 +2185,7 @@ class NearestNeighborClassifier( Classifier ):
         try:
             throw_if( 'X', X )
             throw_if( 'y', y )
-            self.prediction = self.neighbor_classifier.predict( X )
+            self.prediction = self.nearest_neighbor.predict( X )
             cm = confusion_matrix( y, self.prediction )
             sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
             plt.xlabel( 'Predicted' )
@@ -1987,8 +2245,22 @@ class NearestNeighborClassifier( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
 
-class DecisionTreeClassifier( Classifier ):
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'n_neigbors', 'algorithm',
+                 'metric', 'neighbor_classifier', 'mean_absolute_error', 'mean_squared_error',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'predict_probabilty',
+                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+    
+
+class DecisionTree( Classifier ):
     '''
 
 		Purpose:
@@ -2057,7 +2329,7 @@ class DecisionTreeClassifier( Classifier ):
                  'r_mean_squared_error', 'r2_score', 'explained_variance_score',
                  'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTreeClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
         """
 
 			Purpose:
@@ -2308,7 +2580,7 @@ class DecisionTreeClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
 
-class RandomForestClassifier( Classifier ):
+class RandomForest( Classifier ):
     """
 
 		Purpose:
@@ -2383,7 +2655,7 @@ class RandomForestClassifier( Classifier ):
                  'r2_score', 'explained_variance_score', 'median_absolute_error',
                  'train', 'project', 'score', 'analyze', 'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForestClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
         """
 
 			Purpose:
@@ -2629,7 +2901,7 @@ class RandomForestClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
 
-class GradientBoostingClassifier( Classifier ):
+class GradientBoost( Classifier ):
     """
 
 		Purpose:
@@ -2711,7 +2983,7 @@ class GradientBoostingClassifier( Classifier ):
                  'explained_variance_score', 'median_absolute_error', 'train', 'project', 
                  'score', 'analyze', 'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoostingClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
         """
 
 			Purpose:
@@ -2952,7 +3224,7 @@ class GradientBoostingClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
 
-class AdaBoostClassifier( Classifier ):
+class AdaptiveBoost( Classifier ):
     """
 
 		Purpose:
@@ -3016,7 +3288,7 @@ class AdaBoostClassifier( Classifier ):
                  'explained_variance_score', 'median_absolute_error', 'train', 
                  'project', 'score', 'analyze', 'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> AdaBoostClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
         """
 
 			Purpose:
@@ -3226,7 +3498,7 @@ class AdaBoostClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
 
-class BaggingClassifier( Classifier ):
+class BaggingModel( Classifier ):
     """
 
 		Purpose:
@@ -3295,7 +3567,7 @@ class BaggingClassifier( Classifier ):
                  'r2_score', 'explained_variance_score', 'median_absolute_error',
                  'train', 'project', 'score', 'analyze', 'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
         """
 
 			Purpose:
@@ -3507,7 +3779,7 @@ class BaggingClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
 
-class VotingClassifier( Classifier ):
+class VotingModel( Classifier ):
     """
 
 		Purpose:
@@ -3568,7 +3840,7 @@ class VotingClassifier( Classifier ):
                  'explained_variance_score', 'median_absolute_error', 'train',
                  'project', 'score', 'analyze', 'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> VotingClassifier | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
         """
 
 			Purpose:
@@ -3780,7 +4052,7 @@ class VotingClassifier( Classifier ):
             error = ErrorDialog( exception )
             error.show( )
 
-class StackingClassifier( Classifier ):
+class StackingModel( Classifier ):
     """
 
 		Purpose:
@@ -3827,21 +4099,8 @@ class StackingClassifier( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'accuracy', 'final_estimator', 'estimators', 'stacking_classifier',
-                 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
-                 'explained_variance_score', 'median_absolute_error', 'train',
-                 'project', 'score', 'analyze', 'create_heatmap' ]
-    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> StackingClassifier | None:
+	    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
         """
 
 			Purpose:
@@ -4050,8 +4309,22 @@ class StackingClassifier( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
 
-class SupportVectorClassifier:
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'accuracy', 'final_estimator', 'estimators', 'stacking_classifier',
+                 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
+                 'explained_variance_score', 'median_absolute_error', 'train',
+                 'project', 'score', 'analyze', 'create_heatmap' ]
+    
+
+class SupportVectorMachine( Classifier ):
     """
 
 		Support Vector Classifier (SVC).The implementation is based on libsvm. The fit time scales
@@ -4103,21 +4376,8 @@ class SupportVectorClassifier:
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'svc_classifier', 'kernel',
-                 'regulation', 'degree', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorClassifier | None:
+	    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorMachine | None:
         """
 		
 			Purpose:
@@ -4336,3 +4596,17 @@ class SupportVectorClassifier:
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
+    
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'svc_classifier', 'kernel',
+                 'regulation', 'degree', 'mean_absolute_error', 'mean_squared_error',
+                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+    

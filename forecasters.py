@@ -1,14 +1,14 @@
 '''
 	******************************************************************************************
 	  Assembly:                Mathy
-	  Filename:                forecasting.py
+	  Filename:                forecasters.py
 	  Author:                  Terry D. Eppler
 	  Created:                 08-31-2025
 	
 	  Last Modified By:        Terry D. Eppler
 	  Last Modified On:        08-31-2025
 	******************************************************************************************
-	<copyright file="forecasting.py" company="Terry D. Eppler">
+	<copyright file="forecasters.py" company="Terry D. Eppler">
 	
 		 Mathy Models
 	
@@ -36,7 +36,7 @@
 	
 	</copyright>
 	<summary>
-		forecasting.py
+		forecasters.py
 	</summary>
 ******************************************************************************************
 '''

@@ -3,6 +3,7 @@ numpy
 pandas
 matplotlib
 seaborn
+openpyxl
 scipy
 scikit-learn==1.5.2
 pydantic
