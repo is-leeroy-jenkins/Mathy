@@ -2005,7 +2005,7 @@ class LassoModel( Classifier ):
 		if self.lasso_classifier.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.logistic_regression.coef_
+			return self.lasso_classifier.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel | None:
 		try:
@@ -2253,7 +2253,7 @@ class StochasticGradientDescent( Classifier ):
 		    return self.sgd_classifier.coef_
 	    
     @property
-    def class_labels( self ) -> np.ndarray:
+    def labels( self ) -> np.ndarray:
 	    '''
 
 			Returns
@@ -2265,7 +2265,7 @@ class StochasticGradientDescent( Classifier ):
 	    if self.sgd_classifier.classes_ is None:
 		    raise AttributeError( 'The model labels have not been initialized!' )
 	    else:
-		    return self.logistic_regression.classes_
+		    return self.sgd_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
         """
@@ -2645,10 +2645,11 @@ class NearestNeighbor( Classifier ):
                  'project',
                  'score',
                  'analyze',
-                 'create_heatmap' ]
+                 'create_heatmap',
+                 'labels' ]
     
     @property
-    def class_labels( self ) -> np.ndarray | None:
+    def labels( self ) -> np.ndarray | None:
         if self.nearest_neighbor.classes_ is None:
 	        raise AttributeError( 'The model weights have not been initialized!' )
         else:
@@ -3685,7 +3686,8 @@ class GradientBoost( Classifier ):
                  'project',
                  'score',
                  'analyze',
-                 'create_heatmap' ]
+                 'create_heatmap',
+                 'labels' ]
     
     @property
     def labels( self ) -> np.ndarray:
@@ -3700,7 +3702,7 @@ class GradientBoost( Classifier ):
         if self.gradient_boost_classifier.classes_ is None:
 	        raise AttributeError( 'The model labels have not been initialized!' )
         else:
-	        return self.ada_boost_classifier.classes_
+	        return self.gradient_boost_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
         """
@@ -4350,10 +4352,10 @@ class BaggingModel( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-        if self.ada_boost_classifier.classes_ is None:
+        if self.bagging_classifier.classes_ is None:
 	        raise AttributeError( 'The model labels have not been initialized!' )
         else:
-	        return self.ada_boost_classifier.classes_
+	        return self.bagging_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
         """

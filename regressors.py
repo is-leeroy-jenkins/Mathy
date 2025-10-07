@@ -165,248 +165,6 @@ class Regressor:
         """
 		raise NotImplementedError
 
-class MultiLayerPerceptron( Regressor ):
-	"""
-
-		Purpose:
-		-----------
-		This model optimizes the squared error using LBFGS or stochastic gradient descent.
-		
-		Activation function for the hidden layers:
-        - ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
-        - ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
-        - ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
-        - ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
-		
-		The solver for weight optimization:
-        - ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
-        - ‘sgd’ refers to stochastic gradient descent.
-        - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
-
-    """
-	multilayer_perceptron: skn.MLPRegressor
-	prediction: Optional[ np.ndarray ]
-	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	random_state: Optional[ int ]
-	alpha: Optional[ float ]
-	learning: str
-	activation_function: str
-	solver: str
-	hidden_layers: tuple
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
-	
-	def __init__( self, hidden: tuple=(100,), activ='relu', solver='adam', alpha=0.0001, 
-			learning: str='constant', rando: int=42, ) -> None:
-		super( ).__init__( )
-		self.hidden_layers = hidden
-		self.activation_function = activ
-		self.learning = learning
-		self.solver = solver
-		self.alpha = alpha
-		self.random_state = rando
-		self.multilayer_perceptron = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers, activation=self.activation_function, solver=self.solver, alpha=self.alpha, learning_rate=self.learning, random_state=self.random_state, )
-		self.prediction = None
-	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
-		"""
-
-	        Purpose:
-	        -----------
-	        Fits all pipeline steps to the text df.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
-	
-	        Returns:
-	        --------
-	        self
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.multilayer_perceptron.fit( X, y )
-			return self
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ""
-			exception.method = (
-				'train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline')
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
-	
-	        Purpose:
-	        -----------
-	        Applies all transformations in the pipeline to the text df.
-	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Input feature matrix.
-	
-	        Returns:
-	        -----------
-	        np.ndarray: Transformed feature matrix.
-
-        """
-		try:
-			throw_if( 'X', X )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			return self.prediction
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ""
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
-
-	        Purpose:
-	        -----------
-	        Compute the R^2 accuracy of the model on the given test df.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
-	
-	        Returns:
-	        -----------
-	        float: R-squared accuracy.
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ""
-			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
-
-	        Purpose:
-	        -----------
-	        Evaluate the model using multiple regression metrics.
-	
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
-	
-	        Returns:
-	        -----------
-	        dict: Dictionary of MAE, MSE, RMSE, R², etc.
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
-		except Exception as e:
-			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = ""
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
-
-	        Purpose:
-	        -----------
-	        Plot actual vs predicted target_names.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "MLP: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
-			plt.grid( True )
-			plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = ""
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def __dir__( self ) -> List[ str ]:
-		"""
-
-	        Purpose:
-	        -------
-	        Provides a list of strings representing class members
-
-        """
-		return [ 'prediction',
-		         'accuracy',
-		         'learning',
-		         'activation_function',
-		         'hidden_layers',
-		         'random_state',
-		         'alpha',
-		         'max_depth',
-		         'mean_absolute_error',
-		         'mean_squared_error',
-		         'r_mean_squared_error',
-		         'r2_score',
-		         'explained_variance_score',
-		         'median_absolute_error',
-		         'train',
-		         'project',
-		         'score',
-		         'analyze',
-		         'create_scatter', ]
-
 class LinearModel( Regressor ):
 	"""
 
@@ -474,7 +232,17 @@ class LinearModel( Regressor ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state', 'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state',
+		         'weights', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
+		         'r_mean_squared_error', 'r2_score', 'explained_variance_score',
+		         'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.linear_regressor.coef_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.linear_regressor.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearModel | None:
 		"""
@@ -681,7 +449,7 @@ class RidgeModel( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, alpha: float = 1.0, solver: str = "auto", iters: int = 1000, rando: int = 42, ) -> None:
+	def __init__( self, alpha: float=1.0, solver: str='auto', iters: int=1000, rando: int=42, ) -> None:
 		"""
 
 
@@ -704,7 +472,8 @@ class RidgeModel( Regressor ):
 		self.solver = solver
 		self.max_iter = iters
 		self.random_state = rando
-		self.ridge_regressor = skl.Ridge( alpha=self.alpha, solver=self.solver, max_iter=self.max_iter, random_state=self.random_state, )
+		self.ridge_regressor = skl.Ridge( alpha=self.alpha, solver=self.solver,
+			max_iter=self.max_iter, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -722,7 +491,10 @@ class RidgeModel( Regressor ):
         Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'alpha', 'solver', 'random_state', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'prediction', 'accuracy', 'alpha', 'solver', 'random_state', 'max_iter',
+		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+		         'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
+		         'project', 'score', 'analyze', 'create_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeModel | None:
 		"""
@@ -754,6 +526,13 @@ class RidgeModel( Regressor ):
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
 			error = ErrorDialog( exception )
 			error.show( )
+	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.ridge_regressor.coef_ is None:
+			raise AttributeError( 'The classification data is untrained.' )
+		else:
+			return self.ridge_regressor.coef_
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -969,6 +748,13 @@ class LassoModel( Regressor ):
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
 			'project', 'score', 'analyze', 'create_scatter', ]
+	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.lasso_regressor.coef_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.lasso_regressor.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel | None:
 		"""
@@ -1967,6 +1753,28 @@ class StochasticGradientDescent( Regressor ):
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 
 			'analyze', 'create_scatter', ]
 	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.stochastic_regressor.coef_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.stochastic_regressor.coef_
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.stochastic_regressor.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized!' )
+		else:
+			return self.stochastic_regressor.classes_
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
 		"""
 
@@ -2203,7 +2011,14 @@ class NearestNeighbor( Regressor ):
 		return [ 'prediction', 'accuracy', 'algorithm', 'n_neighbors', 'random_state', 'power', 
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-			'score', 'analyze', 'create_scatter', ]
+			'score', 'analyze', 'create_scatter', 'labels' ]
+	
+	@property
+	def labels( self ) -> np.ndarray | None:
+		if self.neighbor_regressor.classes_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.neighbor_regressor.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2944,6 +2759,21 @@ class GradientBoost( Regressor ):
 			'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
 	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.gradient_boost_regressor.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized!' )
+		else:
+			return self.gradient_boost_regressor.classes_
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
 
@@ -3176,6 +3006,35 @@ class AdaptiveBoost( Regressor ):
 			'learning_rate', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
 			'project', 'score', 'analyze', 'create_scatter', ]
+	
+	@property
+	def errors( self ) -> np.ndarray | None:
+		if self.ada_boost_regressor.estimator_errors_ is None:
+			raise AttributeError( 'The model errors have not been initialized!' )
+		else:
+			return self.ada_boost_regressor.estimator_errors_
+	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.ada_boost_regressor.estimator_weights_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.ada_boost_regressor.estimator_weights_
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.ada_boost_regressor.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized!' )
+		else:
+			return self.ada_boost_regressor.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -3414,7 +3273,22 @@ class BaggingModel( Regressor ):
 		return [ 'prediction', 'base_estimator', 'n_estimators', 'max_features', 
 			'accuracy', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
-			'project', 'score', 'analyze', 'create_scatter', 'random_state', ]
+			'project', 'score', 'analyze', 'create_scatter', 'random_state', 'labels' ]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.bagging_regressor.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized!' )
+		else:
+			return self.bagging_regressor.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
@@ -3640,7 +3514,23 @@ class VotingModel( Regressor ):
         '''
 		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy', 'mean_absolute_error', 
 			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
+		    'labels' ]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.voting_regressor.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized!' )
+		else:
+			return self.voting_regressor.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		'''
@@ -3885,7 +3775,22 @@ class StackingModel( Regressor ):
 		return [ 'prediction', 'estimators', 'final_estimator', 'accuracy', 
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-			'score', 'analyze', 'create_scatter', ]
+			'score', 'analyze', 'create_scatter', 'labels' ]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.stacking_regressor.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized!' )
+		else:
+			return self.stacking_regressor.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -4066,7 +3971,7 @@ class SupportVectorMachine( Regressor ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	kernel: str
-	regulation: float
+	regularization: float
 	epsilon: float
 	
 	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1 ) -> None:
@@ -4084,8 +3989,9 @@ class SupportVectorMachine( Regressor ):
 	        :type epsilon: float
 
         '''
+		super( ).__init__( )
 		self.kernel = kernel
-		self.regulation = C
+		self.regularization = C
 		self.epsilon = epsilon
 		self.svr_model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
 		self.prediction = None
@@ -4268,6 +4174,276 @@ class SupportVectorMachine( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+class MultiLayerPerceptron( Regressor ):
+	"""
+
+		Purpose:
+		-----------
+		This model optimizes the squared error using LBFGS or stochastic gradient descent.
+
+		Activation function for the hidden layers:
+        - ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
+        - ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
+        - ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
+        - ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
+
+		The solver for weight optimization:
+        - ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
+        - ‘sgd’ refers to stochastic gradient descent.
+        - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
+
+    """
+	multilayer_perceptron: skn.MLPRegressor
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	random_state: Optional[ int ]
+	alpha: Optional[ float ]
+	learning: str
+	activation_function: str
+	solver: str
+	hidden_layers: tuple
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+	
+	def __init__( self, hidden: tuple = (100,), activ='relu', solver='adam', alpha=0.0001,
+			learning: str = 'constant', rando: int = 42, ) -> None:
+		super( ).__init__( )
+		self.hidden_layers = hidden
+		self.activation_function = activ
+		self.learning = learning
+		self.solver = solver
+		self.alpha = alpha
+		self.random_state = rando
+		self.multilayer_perceptron = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
+			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
+			learning_rate=self.learning, random_state=self.random_state, )
+		self.prediction = None
+	
+	def __dir__( self ) -> List[ str ]:
+		"""
+
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
+
+        """
+		return [ 'prediction',
+		         'accuracy',
+		         'learning',
+		         'activation_function',
+		         'hidden_layers',
+		         'random_state',
+		         'alpha',
+		         'max_depth',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'loss',
+		         'classes',
+		         'weights' ]
+	
+	@property
+	def loss( self ) -> float:
+		if self.multilayer_perceptron.loss_ is None:
+			raise AttributeError( 'The model loss has not been initialized!' )
+		else:
+			return self.multilayer_perceptron.loss_
+	
+	@property
+	def classes( self ) -> np.ndarray:
+		if self.multilayer_perceptron.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized' )
+		else:
+			return self.multilayer_perceptron.classes_
+	
+	@property
+	def weights( self ) -> np.ndarray:
+		if self.multilayer_perceptron.coefs_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.multilayer_perceptron.coefs_
+	
+	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
+		"""
+
+	        Purpose:
+	        -----------
+	        Fits all pipeline steps to the text df.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        --------
+	        self
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.multilayer_perceptron.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ""
+			exception.method = (
+					'train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline')
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+	        Purpose:
+	        -----------
+	        Applies all transformations in the pipeline to the text df.
+
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Input feature matrix.
+
+	        Returns:
+	        -----------
+	        np.ndarray: Transformed feature matrix.
+
+        """
+		try:
+			throw_if( 'X', X )
+			self.prediction = self.multilayer_perceptron.predict( X )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ""
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+		"""
+
+	        Purpose:
+	        -----------
+	        Compute the R^2 accuracy of the model on the given test df.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_perceptron.predict( X )
+			self.accuracy = r2_score( y, self.prediction )
+			return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ""
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        dict: Dictionary of MAE, MSE, RMSE, R², etc.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			return {
+					"MAE": mean_absolute_error( y, self.prediction ),
+					"MSE": mean_squared_error( y, self.prediction ),
+					"RMSE": mean_squared_error( y, self.prediction, squared=False ),
+					"R2": r2_score( y, self.prediction ),
+					"Explained Variance": explained_variance_score( y, self.prediction ),
+					"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+		except Exception as e:
+			exception = Error( e )
+			exception.module = "mathy"
+			exception.cause = ""
+			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+
+	        Purpose:
+	        -----------
+	        Plot actual vs predicted target_names.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_perceptron.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( "Observed" )
+			plt.ylabel( "Projected" )
+			plt.title( "MLP: Observed vs Projected" )
+			plt.plot( [ y.min( ),
+			            y.max( ) ], [ y.min( ),
+			                          y.max( ) ], "r--" )
+			plt.grid( True )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = "mathy"
+			exception.cause = ""
+			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			error = ErrorDialog( exception )
+			error.show( )
+
 class GaussianProcess( Regressor ):
 	'''
 
@@ -4278,15 +4454,16 @@ class GaussianProcess( Regressor ):
 
     '''
 	
-	model: gpr.GaussianProcessRegressor
+	gauss_model: gpr.GaussianProcessRegressor
 	prediction: Optional[ np.ndarray ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	r2_score: Optional[ float ]
+	alpha: Optional[ float ]
 	
-	def __init__( self, kernel=None, alpha: float = 1e-10, normalize_y: bool = True ) -> None:
+	def __init__( self, alpha: float=1e-10, normalize_y: bool=True ) -> None:
 		"""
 
         Purpose:
@@ -4304,16 +4481,9 @@ class GaussianProcess( Regressor ):
         None
 
         """
-		try:
-			self.kernel = kernel or C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
-			self.model = GaussianProces( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'GaussianProcessRegressorWrapper'
-			exception.method = '__init__'
-			error = ErrorDialog( exception )
-			error.show( )
+		super( ).__init__( )
+		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
+		self.gauss_model = GaussianProces( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProces | None:
 		"""
@@ -4335,7 +4505,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.model.fit( X, y )
+			self.gauss_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4363,7 +4533,7 @@ class GaussianProcess( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.project( X )
+			self.prediction = self.gauss_model.project( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4393,7 +4563,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return self.model.score( X, y )
+			return self.gauss_model.score( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4422,7 +4592,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.project( X )
+			self.prediction = self.gauss_model.project( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
