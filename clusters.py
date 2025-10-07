@@ -1,44 +1,44 @@
 '''
-******************************************************************************************
-  Assembly:                mathy
-  Filename:                clusters.py
-  Author:                  Terry D. Eppler
-  Created:                 05-31-2022
-
-  Last Modified By:        Terry D. Eppler
-  Last Modified On:        05-01-2025
-******************************************************************************************
-<copyright file="clusters.py" company="Terry D. Eppler">
-
-     mathy Clusters
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the “Software”),
- to deal in the Software without restriction,
- including without limitation the rights to use,
- copy, modify, merge, publish, distribute, sublicense,
- and/or sell copies of the Software,
- and to permit persons to whom the Software is furnished to do so,
- subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- DEALINGS IN THE SOFTWARE.
-
- You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-
-</copyright>
-<summary>
-	clusters.py
-</summary>
-******************************************************************************************
+	******************************************************************************************
+	  Assembly:                mathy
+	  Filename:                clusters.py
+	  Author:                  Terry D. Eppler
+	  Created:                 05-31-2022
+	
+	  Last Modified By:        Terry D. Eppler
+	  Last Modified On:        05-01-2025
+	******************************************************************************************
+	<copyright file="clusters.py" company="Terry D. Eppler">
+	
+	     mathy Clusters
+	
+	 Permission is hereby granted, free of charge, to any person obtaining a copy
+	 of this software and associated documentation files (the “Software”),
+	 to deal in the Software without restriction,
+	 including without limitation the rights to use,
+	 copy, modify, merge, publish, distribute, sublicense,
+	 and/or sell copies of the Software,
+	 and to permit persons to whom the Software is furnished to do so,
+	 subject to the following conditions:
+	
+	 The above copyright notice and this permission notice shall be included in all
+	 copies or substantial portions of the Software.
+	
+	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	 DEALINGS IN THE SOFTWARE.
+	
+	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+	
+	</copyright>
+	<summary>
+		clusters.py
+	</summary>
+	******************************************************************************************
 '''
 from __future__ import annotations
 
@@ -71,6 +71,11 @@ class Cluster( ):
         analyze(X, y=None) -> Dict | None
 
     """
+    n_clusters: Optional[ int ]
+    random_state: Optional[ int ]
+    max_iter: Optional[ int ]
+    prediction: Optional[ np.ndarray ]
+    accuracy: Optional[ float ]
     
     
     def __init__( self ):
@@ -156,7 +161,7 @@ class Cluster( ):
         raise NotImplementedError
 
 
-class KMeansCluster( Cluster ):
+class KMeans( Cluster ):
     """
 
         Purpose:
@@ -177,7 +182,7 @@ class KMeansCluster( Cluster ):
         significantly.
 
     """
-    kmeans_cluster: skc.KMeans
+    kmeans_model: skc.KMeans
     n_clusters: Optional[ int ]
     random_state: Optional[ int ]
     max_iter: Optional[ int ]
@@ -185,7 +190,7 @@ class KMeansCluster( Cluster ):
     accuracy: Optional[ float ]
     
     
-    def __init__( self, num: int = 8, rando: int = 42, max_iter: int = 300 ) -> None:
+    def __init__( self, num: int=8, rando: int=42, max_iter: int=300 ) -> None:
         """
             Purpose:
             ---------
@@ -202,13 +207,13 @@ class KMeansCluster( Cluster ):
         self.n_clusters = num
         self.random_state = rando
         self.max_iter = max_iter
-        self.kmeans_cluster = skc.KMeans( n_clusters=self.n_clusters,
+        self.kmeans_model = skc.KMeans( n_clusters=self.n_clusters,
             random_state=self.random_state, max_iter=self.max_iter, n_init='auto' )
         self.prediction = None
         self.accuracy = 0.0
     
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> KMeansCluster | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> KMeans | None:
         """
 
             Purpose:
@@ -223,7 +228,7 @@ class KMeansCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.kmeans_cluster.fit( X )
+            self.kmeans_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -253,7 +258,7 @@ class KMeansCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.kmeans_cluster.fit_predict( X )
+            self.prediction = self.kmeans_model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -264,7 +269,7 @@ class KMeansCluster( Cluster ):
             error.show( )
     
     
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
             Purpose:
@@ -283,7 +288,7 @@ class KMeansCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.kmeans_cluster.predict( X )
+            labels = self.kmeans_model.predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -295,7 +300,7 @@ class KMeansCluster( Cluster ):
             error.show( )
     
     
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
         """
 
             Purpose:
@@ -311,7 +316,7 @@ class KMeansCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.kmeans_cluster.predict( X )
+            labels = self.kmeans_model.predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
             plt.title( "KMeans Cluster" )
             plt.show( )
@@ -324,7 +329,7 @@ class KMeansCluster( Cluster ):
             error.show( )
 
 
-class DbscanCluster( Cluster ):
+class DBSCAN( Cluster ):
     """
 
         Purpose:
@@ -342,7 +347,7 @@ class DbscanCluster( Cluster ):
         min_samples or lower eps indicate higher density necessary to form a cluster.
 
     """
-    db_scan: skc.DBSCAN
+    dbscan_model: skc.DBSCAN
     eps: Optional[ float ]
     min_samples: Optional[ int ]
     algorithm: Optional[ str ]
@@ -350,7 +355,7 @@ class DbscanCluster( Cluster ):
     accuracy: Optional[ float ]
     
     
-    def __init__( self, eps: float = 0.5, size: int = 5, algo: str = 'auto' ) -> None:
+    def __init__( self, eps: float=0.5, size: int=5, algo: str='auto' ) -> None:
         """
 
             Purpose:
@@ -367,13 +372,13 @@ class DbscanCluster( Cluster ):
         self.eps = eps
         self.min_samples = size
         self.algorithm = algo
-        self.db_scan = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
+        self.dbscan_model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
             algorithm=self.algorithm )
         self.prediction = None
         self.accuracy = 0.0
     
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> DbscanCluster | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> DBSCAN | None:
         """
 
             Purpose:
@@ -388,7 +393,7 @@ class DbscanCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.db_scan.fit( X )
+            self.dbscan_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -418,7 +423,7 @@ class DbscanCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.db_scan.fit_predict( X )
+            self.prediction = self.dbscan_model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -448,7 +453,7 @@ class DbscanCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.db_scan.fit_predict( X )
+            labels = self.dbscan_model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -475,7 +480,7 @@ class DbscanCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.db_scan.fit_predict( X )
+            labels = self.dbscan_model.fit_predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='plasma' )
             plt.title( 'DBSCAN Cluster' )
             plt.show( )
@@ -488,7 +493,7 @@ class DbscanCluster( Cluster ):
             error.show( )
 
 
-class AgglomerativeCluster( Cluster ):
+class Agglomerative( Cluster ):
     """
 
         Purpose:
@@ -514,7 +519,7 @@ class AgglomerativeCluster( Cluster ):
         constraints are added between samples: it considers at each step all the possible merges.
 
     """
-    agg_cluster: skc.AgglomerativeClustering
+    agglomerative_model: skc.AgglomerativeClustering
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
@@ -532,13 +537,13 @@ class AgglomerativeCluster( Cluster ):
 
         """
         super( ).__init__( )
-        self.agg_cluster = skc.AgglomerativeClustering( n_clusters=num )
+        self.agglomerative_model = skc.AgglomerativeClustering( n_clusters=num )
         self.prediction = None
         self.accuracy = 0.0
     
     
     def train( self, X: np.ndarray,
-            y: Optional[ np.ndarray ] = None ) -> AgglomerativeCluster | None:
+            y: Optional[ np.ndarray ] = None ) -> Agglomerative | None:
         """
 
             Purpose:
@@ -554,7 +559,7 @@ class AgglomerativeCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.agg_cluster.fit( X )
+            self.agglomerative_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -584,7 +589,7 @@ class AgglomerativeCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.agg_cluster.fit_predict( X )
+            self.prediction = self.agglomerative_model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -614,7 +619,7 @@ class AgglomerativeCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.agg_cluster.fit_predict( X )
+            labels = self.agglomerative_model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -642,7 +647,7 @@ class AgglomerativeCluster( Cluster ):
         try:
             throw_if( 'X', X )
             Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-            labels = self.agg_cluster.fit_predict( X )
+            labels = self.agglomerative_model.fit_predict( X )
             plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='tab10' )
             plt.title( 'Agglomerative Cluster' )
             plt.show( )
@@ -655,7 +660,7 @@ class AgglomerativeCluster( Cluster ):
             error.show( )
 
 
-class SpectralCluster( Cluster ):
+class Spectral( Cluster ):
     """
 
         Purpose:
@@ -673,7 +678,7 @@ class SpectralCluster( Cluster ):
         graph are a function of the gradient of the image.
 
     """
-    spectral_clustering: skc.SpectralClustering
+    spectral_model: skc.SpectralClustering
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
@@ -691,12 +696,12 @@ class SpectralCluster( Cluster ):
 
         """
         super( ).__init__( )
-        self.spectral_clustering = skc.SpectralClustering( n_clusters=num )
+        self.spectral_model = skc.SpectralClustering( n_clusters=num )
         self.prediction = None
         self.accuracy = 0.0
     
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> SpectralCluster | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Spectral | None:
         """
 
             Purpose:
@@ -711,7 +716,7 @@ class SpectralCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.spectral_clustering.fit( X )
+            self.spectral_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -742,7 +747,7 @@ class SpectralCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.spectral_clustering.fit_predict( X )
+            self.prediction = self.spectral_model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -772,7 +777,7 @@ class SpectralCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.spectral_clustering.fit_predict( X )
+            labels = self.spectral_model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -799,7 +804,7 @@ class SpectralCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.spectral_clustering.fit_predict( X )
+            labels = self.spectral_model.fit_predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Accent' )
             plt.title( 'Spectral Cluster' )
             plt.show( )
@@ -812,7 +817,7 @@ class SpectralCluster( Cluster ):
             error.show( )
 
 
-class MeanShiftCluster( Cluster ):
+class MeanShift( Cluster ):
     """
 
         Purpose:
@@ -832,7 +837,7 @@ class MeanShiftCluster( Cluster ):
         however the algorithm will stop iterating when the change in centroids is small.
 
     """
-    mean_shift: skc.MeanShift
+    meanshift_model: skc.MeanShift
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
@@ -846,12 +851,12 @@ class MeanShiftCluster( Cluster ):
 
         """
         super( ).__init__( )
-        self.mean_shift = skc.MeanShift( )
+        self.meanshift_model = skc.MeanShift( )
         self.prediction = None
         self.accuracy = 0.0
     
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MeanShiftCluster | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MeanShift | None:
         """
 
             Purpose:
@@ -866,7 +871,7 @@ class MeanShiftCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.mean_shift.fit( X )
+            self.meanshift_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -896,7 +901,7 @@ class MeanShiftCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.mean_shift.predict( X )
+            self.prediction = self.meanshift_model.predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -926,7 +931,7 @@ class MeanShiftCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.mean_shift.fit_predict( X )
+            labels = self.meanshift_model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -953,7 +958,7 @@ class MeanShiftCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.mean_shift.fit_predict( X )
+            labels = self.meanshift_model.fit_predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Set1' )
             plt.title( 'MeanShift Cluster' )
             plt.show( )
@@ -966,7 +971,7 @@ class MeanShiftCluster( Cluster ):
             error.show( )
 
 
-class AffinityPropagationCluster( Cluster ):
+class AffinityPropagation( Cluster ):
     """
 
         Purpose:
@@ -980,7 +985,7 @@ class AffinityPropagationCluster( Cluster ):
         and hence the final clustering is given.
 
     """
-    affinity_propagation: skc.AffinityPropagation
+    propagation_model: skc.AffinityPropagation
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
@@ -994,13 +999,13 @@ class AffinityPropagationCluster( Cluster ):
 
         """
         super( ).__init__( )
-        self.affinity_propagation = skc.AffinityPropagation( )
+        self.propagation_model = skc.AffinityPropagation( )
         self.prediction = None
         self.accuracy = 0.0
     
     
     def train( self, X: np.ndarray,
-            y: Optional[ np.ndarray ] = None ) -> AffinityPropagationCluster | None:
+            y: Optional[ np.ndarray ] = None ) -> AffinityPropagation | None:
         """
 
             Purpose:
@@ -1015,7 +1020,7 @@ class AffinityPropagationCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.affinity_propagation.fit( X )
+            self.propagation_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -1026,7 +1031,7 @@ class AffinityPropagationCluster( Cluster ):
             error.show( )
     
     
-    def project( self, X: np.ndarray ) -> ndarray | None:
+    def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
 
             Purpose:
@@ -1045,7 +1050,7 @@ class AffinityPropagationCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.affinity_propagation.fit( X ).labels_
+            labels = self.propagation_model.fit( X ).labels_
             return np.ndarray( labels )
         except Exception as e:
             exception = Error( e )
@@ -1055,67 +1060,66 @@ class AffinityPropagationCluster( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
 
+	def score( self, X: np.ndarray, y: np.ndarray=None ) -> float | None:
+	    """
+	
+	        Purpose:
+	        ---------
+	        Evaluate clustering result.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+	        y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+	
+	        Return:
+	        --------
+	        float
+	
+	    """
+	    try:
+	        throw_if( 'X', X )
+	        labels = self.propagation_model.fit( X ).labels_
+	        self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+	        return self.accuracy
+	    except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'AffinityPropagationCluster'
+	        exception.method = 'score( self, X: np.ndarray ) -> float'
+	        error = ErrorDialog( exception )
+	        error.show( )
+	
+	
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+	    """
+	
+	        Purpose:
+	        ---------
+	        Visualize clustering with AffinityPropagation.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+	        y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+	
+	    """
+	    try:
+	        throw_if( 'X', X )
+	        labels = self.propagation_model.fit( X ).labels_
+	        plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
+	        plt.title( 'AffinityPropagation Cluster' )
+	        plt.show( )
+	    except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'AffinityPropagationCluster'
+	        exception.method = 'analyze( self, X: np.ndarray ) -> None'
+	        error = ErrorDialog( exception )
+	        error.show( )
 
-def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
-    """
 
-        Purpose:
-        ---------
-        Evaluate clustering result.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-        y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-
-        Return:
-        --------
-        float
-
-    """
-    try:
-        throw_if( 'X', X )
-        labels = self.affinity_propagation.fit( X ).labels_
-        self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-        return self.accuracy
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'AffinityPropagationCluster'
-        exception.method = 'score( self, X: np.ndarray ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
-
-
-def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
-    """
-
-        Purpose:
-        ---------
-        Visualize clustering with AffinityPropagation.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-        y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-
-    """
-    try:
-        throw_if( 'X', X )
-        labels = self.affinity_propagation.fit( X ).labels_
-        plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
-        plt.title( 'AffinityPropagation Cluster' )
-        plt.show( )
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'AffinityPropagationCluster'
-        exception.method = 'analyze( self, X: np.ndarray ) -> None'
-        error = ErrorDialog( exception )
-        error.show( )
-
-
-class BirchCluster( Cluster ):
+class Birch( Cluster ):
     """
 
         Purpose:
@@ -1139,12 +1143,12 @@ class BirchCluster( Cluster ):
         mapped to the global label of the nearest subcluster.
 
     """
-    birch_clustering: skc.Birch
+    birch_model: skc.Birch
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
     
-    def __init__( self, num: int = 3 ) -> None:
+    def __init__( self, num: int=3 ) -> None:
         """
 
             Purpose:
@@ -1157,12 +1161,12 @@ class BirchCluster( Cluster ):
 
         """
         super( ).__init__( )
-        self.birch_clustering = skc.Birch( n_clusters=num )
+        self.birch_model = skc.Birch( n_clusters=num )
         self.prediction = None
         self.accuracy = 0.0
     
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> BirchCluster | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Birch | None:
         """
 
             Purpose:
@@ -1177,7 +1181,7 @@ class BirchCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.birch_clustering.fit( X )
+            self.birch_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -1207,7 +1211,7 @@ class BirchCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.birch_clustering.fit_predict( X )
+            self.prediction = self.birch_model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -1237,7 +1241,7 @@ class BirchCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.birch_clustering.predict( X )
+            labels = self.birch_model.predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -1264,7 +1268,7 @@ class BirchCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.birch_clustering.predict( X )
+            labels = self.birch_model.predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Dark2' )
             plt.title( 'Birch Cluster' )
             plt.show( )
@@ -1277,7 +1281,7 @@ class BirchCluster( Cluster ):
             error.show( )
 
 
-class OpticsCluster( Cluster ):
+class OPTICS( Cluster ):
     """
 
         Purpose:
@@ -1295,7 +1299,7 @@ class OpticsCluster( Cluster ):
         each point to find other potential reachable points.
 
     """
-    optics_clustering: skc.OPTICS
+    optics_model: skc.OPTICS
     min_samples: Optional[ int ]
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
@@ -1315,12 +1319,12 @@ class OpticsCluster( Cluster ):
         """
         super( ).__init__( )
         self.min_samples = samples
-        self.optics_clustering = skc.OPTICS( min_samples=self.min_samples )
+        self.optics_model = skc.OPTICS( min_samples=self.min_samples )
         self.prediction = None
         self.accuracy = 0.0
     
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OpticsCluster | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OPTICS | None:
         """
 
             Purpose:
@@ -1335,7 +1339,7 @@ class OpticsCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.optics_clustering.fit( X )
+            self.optics_model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -1365,7 +1369,7 @@ class OpticsCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.optics_clustering.fit_predict( X )
+            self.prediction = self.optics_model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -1395,7 +1399,7 @@ class OpticsCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.optics_clustering.fit_predict( X )
+            labels = self.optics_model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -1423,7 +1427,7 @@ class OpticsCluster( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.optics_clustering.fit_predict( X )
+            labels = self.optics_model.fit_predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='rainbow' )
             plt.title( 'OPTICS Cluster' )
             plt.show( )
