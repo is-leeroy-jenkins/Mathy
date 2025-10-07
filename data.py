@@ -569,9 +569,9 @@ class DataSource( ):
             throw_if( 'encoder', encoder )
             throw_if( 'columns', columns )
             self.transtuple.append( (name, encoder, columns) )
-            _transformer = ColumnTransformer( transformers=self.transtuple, remainder='passthrough' )
-            X = self.dataframe[ self.feature_names ]
-            _ = _transformer.fit_transform( X )
+            self.column_transformer = ColumnTransformer( transformers=self.transtuple, remainder='passthrough' )
+            self.X = self.dataframe[ self.feature_names ]
+            _ = self.column_transformer.fit_transform( self.X )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
@@ -664,7 +664,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def export_excel( self, filepath: str = None ) -> None:
+    def export_excel( self, filepath: str=None ) -> None:
         '''
 
             Purpose:
