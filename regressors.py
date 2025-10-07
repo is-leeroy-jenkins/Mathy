@@ -4363,7 +4363,7 @@ class GaussianProcess( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.model.project( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4422,7 +4422,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.model.project( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )

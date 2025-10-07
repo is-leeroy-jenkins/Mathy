@@ -1078,7 +1078,7 @@ class VarianceThreshold( ):
         self.variance_selector = sf.VarianceThreshold( threshold=self.threshold )
         self.transformed_data = None
     
-    def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+    def fit( self, X: np.ndarray ) -> object | None:
         """
 
             Purpose:

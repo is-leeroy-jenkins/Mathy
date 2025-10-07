@@ -1148,7 +1148,7 @@ class NormalScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1179,7 +1179,7 @@ class NormalScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1209,7 +1209,7 @@ class NormalScaler( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1277,7 +1277,7 @@ class OneHotEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -1308,7 +1308,7 @@ class OneHotEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1337,7 +1337,7 @@ class OneHotEncoder( Preprocessor ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
 
 		"""
 		try:
@@ -1382,7 +1382,7 @@ class OrdinalEncoder( Preprocessor ):
 	@property
 	def categories( self ):
 		if self.hot_encoder.categories_ is None:
-			raise AttributeError( 'Hot Encoder data is untrained' )
+			raise AttributeError( 'Encoder data is untrained' )
 		else:
 			return self.hot_encoder.categories_
 	

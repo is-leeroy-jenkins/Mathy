@@ -59,6 +59,7 @@ from sklearn.metrics import (accuracy_score, confusion_matrix, classification_re
 import sklearn.neighbors as skn
 import sklearn.neural_network as snn
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import Binarizer
 import sklearn.svm as skv
 import sklearn.tree as skd
 from boogr import Error, ErrorDialog
@@ -514,6 +515,331 @@ class Perceptron( Classifier ):
                  'score', 'analyze', 'create_heatmap', 'weights', 'density_function',
                  'weights', ]
     
+class LinearModel( Classifier ):
+	"""
+	
+		Purpose:
+		--------
+		Wrapper class for sklearn.linear_model.LinearRegression to enable its use in binary
+		classification tasks. This includes conversion of continuous outputs to binary labels
+		via thresholding.
+		
+		
+		Parameters:
+		----------
+		threshold (float, optional):
+		Threshold above which predictions are considered class 1 (default: 0.5).
+		**kwargs:
+		Additional keyword arguments passed to sklearn's LinearRegression.
+		
+		
+		Attributes:
+		---------
+		model (SklearnLinearRegression):
+		Underlying scikit-learn linear regression model.
+		threshold (float):
+		Threshold for classification decision boundary.
+	
+	"""
+	linear_model: skc.LinearRegression
+	binarizer: Binarizer
+	y_prediction: Optional[ np.ndarray ]
+	threshold: float
+	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
+	decision: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+	alpha: Optional[ float ]
+	
+	def __init__( self, threshold: float=0.5 ) -> None:
+		super( ).__init__( )
+		self.threshold = threshold
+		self.linear_model = skc.LinearRegression( )
+		self.prediction = None
+		self.probability = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.linear_model.coef_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.linear_model.coef_
+	
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearModel:
+		"""
+		
+			Purpose:
+			--------
+			Train the linear regression model on input features and binary targets.
+			
+			
+			Parameters:
+			-----------
+			X (np.ndarray | pd.DataFrame):
+			Input features.
+			y (np.ndarray | pd.Series):
+			Binary class labels (0 or 1).
+			
+			
+			Returns:
+			None
+			
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.linear_model.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LinearModel'
+			exception.method = 'train'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def project( self, X: np.ndarray ) -> np.ndarray:
+		"""
+		
+			Purpose:
+			--------
+			Predict class labels from input features using the regression model.
+			
+			
+			Parameters:
+			---------
+			X (np.ndarray | pd.DataFrame):
+			Input features.
+			
+			
+			Returns:
+			--------
+			np.ndarray:
+			Predicted class labels (0 or 1).
+			
+		"""
+		try:
+			throw_if( 'X', X )
+			self.predictions = self.linear_model.predict( X )
+			self.binarizer = Binarizer( threshold=self.threshold )
+			_shape = self.predictions.reshape( -1, 1 )
+			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LinearModel'
+			exception.method = 'predict'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+		"""
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+			
+			Parameters:
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
+			Returns:
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
+		"""
+		try:
+			self.y_prediction = self.predict( X )
+			self.accuracy = accuracy_score( y, self.y_prediction )
+			return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LinearModel'
+			exception.method = 'score'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+	
+			Purpose:
+			-----------
+			Evaluate the classifier using multiple classification metrics.
+	
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): True target_names of shape (n_samples,).
+	
+			Returns:
+			-----------
+			dict: Dictionary containing:
+			- Accuracy (float)
+			- Precision (float)
+			- Recall (float)
+			- F1 Score (float)
+			- ROC AUC (float)
+			- Matthews Corrcoef (float)
+			- Confusion Matrix (List[List[int]])
+	
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.linear_model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			return \
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LinearModel'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+	
+	
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
+	
+			Parameters:
+			---------
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+			Returns:
+			---------
+				None
+	
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.linear_model.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, anno=True, fmt='d', cmap='Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LinearModel'
+			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+	
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+	
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min,
+				x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ),
+			                                xx2.ravel( ) ] ).T, y )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
+					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
+						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LinearModel'
+			exception.method = ('visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, '
+			                    'resolution=0.02 )')
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def __dir__( self ) -> List[ str ]:
+		'''
+	
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+	
+		'''
+		return [ 'prediction',
+		         'max_iter',
+		         'random_state',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'penalty',
+		         'alpha',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_heatmap',
+		         'weights',
+		         'density_function',
+		         'weights', ]
 
 class LogisticRegression( Classifier ):
     """
@@ -594,10 +920,25 @@ class LogisticRegression( Classifier ):
     @property
     def weights( self ) -> np.ndarray | None:
 	    if self.logistic_regression.coef_ is None:
-		    raise AttributeError( 'The Regression data is untrained.' )
+		    raise AttributeError( 'The model weights have not been initialized!' )
 	    else:
 		    return self.logistic_regression.coef_
     
+    @property
+    def class_labels( self ) -> np.ndarray:
+	    '''
+		    
+		    Returns
+		    -------
+		    classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+	    '''
+	    if self.logistic_regression.classes_ is None:
+		    raise AttributeError( 'The model labels have not been initialized!' )
+	    else:
+		    return self.logistic_regression.classes_
+	   
     def decision_function( self, X: np.ndarray ) -> np.ndarray:
         """
 
@@ -716,7 +1057,6 @@ class LogisticRegression( Classifier ):
 		"""
         try:
             throw_if( 'X', X )
-            throw_if( 'y', y )
             self.prediction = self.logistic_regression.predict( X )
             return self.prediction
         except Exception as e:
@@ -918,24 +1258,53 @@ class MultiLayerPerceptron( Classifier ):
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
         
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction',
+                 'probability',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap',
+                 'predict_probability',
+                 'weights',
+                 'classes',
+                 'loss' ]
+
     @property
     def loss( self ) -> float:
         if self.multilayer_perceptron.loss_ is None:
-	        raise AttributeError( 'The data is untrained.' )
+	        raise AttributeError( 'The model loss has not been initialized!' )
         else:
 	        return self.multilayer_perceptron.loss_
 
     @property
     def classes( self ) -> np.ndarray:
 	    if self.multilayer_perceptron.classes_ is None:
-		    raise AttributeError( 'The data is untrained.' )
+		    raise AttributeError( 'The model labels have not been initialized' )
 	    else:
 		    return self.multilayer_perceptron.classes_
     
     @property
     def weights( self ) -> np.ndarray:
 	    if self.multilayer_perceptron.coefs_ is None:
-		    raise AttributeError( 'The data is untrained.' )
+	        raise AttributeError( 'The model weights have not been initialized!' )
 	    else:
 		    return self.multilayer_perceptron.coefs_
     
@@ -1185,21 +1554,7 @@ class MultiLayerPerceptron( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'probability', 'max_depth', 'random_state',
-                 'accuracy', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze',
-                 'create_heatmap', 'predict_probability', 'weights', 'classes', 'loss' ]
-    
 
 class RidgeModel( Classifier ):
     """
@@ -1270,11 +1625,40 @@ class RidgeModel( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
+        
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction',
+                 'max_iter',
+                 'random_state',
+                 'accuracy',
+                 'alpha',
+                 'solver',
+                 'ridge_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'decision_function',
+                 'analyze',
+                 'create_heatmap',
+                 'weights' ]
     
     @property
     def weights( self ) -> np.ndarray | None:
 	    if self.ridge_classifier.coef_ is None:
-		    raise AttributeError( 'The Regression data is untrained.' )
+		    raise AttributeError( 'The classification data is untrained.' )
 	    else:
 		    return self.ridge_classifier.coef_
 	    
@@ -1401,11 +1785,11 @@ class RidgeModel( Classifier ):
             self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
             return \
 	        {
-			        'MSE': self.mean_squared_error,
-			        'RMSE': self.r_mean_squared_error,
-			        'R2': self.r2_score,
-			        'Explained Variance': self.explained_variance_score,
-			        'Median Absolute Error': self.median_absolute_error,
+		        'MSE': self.mean_squared_error,
+		        'RMSE': self.r_mean_squared_error,
+		        'R2': self.r2_score,
+		        'Explained Variance': self.explained_variance_score,
+		        'Median Absolute Error': self.median_absolute_error,
 	        }
         except Exception as e:
             exception = Error( e )
@@ -1533,21 +1917,232 @@ class RidgeModel( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
+
+class LassoModel( Classifier ):
+	"""
+	
+		Purpose:
+		---------
+		Wrapper class for sklearn.linear_model.Lasso to enable
+		its use in binary classification tasks.
+	
+		Parameters:
+		------------
+		threshold (float, optional):
+		Threshold above which predictions are considered class 1 (default: 0.5).
+		
+		Attributes:
+		-----------
+		model (SklearnLasso):
+		Underlying scikit-learn Lasso model.
+		threshold (float):
+		Threshold for classification decision boundary.
+	
+	"""
+	lasso_classifier: skc.Lasso
+	threshold: float
+	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
+	decision: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+	alpha: Optional[ float ]
+
+	def __init__( self, threshold: float=0.5 ) -> None:
+		super( ).__init__( )
+		self.threshold = threshold
+		self.lasso_classifier = skc.Lasso( threshold=self.threshold )
+		self.prediction = None
+		self.probability = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+	
+	def __dir__( self ) -> List[ str ]:
+		'''
 
 			Purpose:
 			-------
 			Provides a list of strings representing class members
 
 		'''
-        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'alpha',
-                 'solver', 'ridge_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'decision_function',
-                 'analyze', 'create_heatmap', 'weights' ]
-    
+		return [ 'prediction',
+		         'max_iter',
+		         'random_state',
+		         'accuracy',
+		         'loss',
+		         'regularization',
+		         'alpha',
+		         'sgd_classifier',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'weights',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_heatmap' ]
+	
+	@property
+	def weights( self ) -> np.ndarray | None:
+		if self.lasso_classifier.coef_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.logistic_regression.coef_
+	
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel | None:
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.lasso_classifier.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LassoModel'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel'
+			error = ErrorDialog( exception )
+			error.show()
+	
+	def project( self, X: np.ndarray ) -> np.ndarray:
+	    """
+		    
+		    Purpose:
+		    -------
+	        Predict class labels from input features using the Lasso model.
+		
+		    Parameters:
+			----------
+	        X (np.ndarray | pd.DataFrame): Input features.
+		
+		    Returns:
+		    --------
+	        np.ndarray: Predicted class labels (0 or 1).
+	        
+	    """
+	    try:
+		    throw_if( 'X', X )
+		    self.prediction = self.lasso_classifier.predict( X )
+		    self.binarizer = Binarizer( threshold=self.threshold )
+		    _shape = self.prediction.reshape( -1, 1 )
+		    return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+	    except Exception as e:
+		    exception = Error( e )
+		    exception.module = 'mathy'
+		    exception.cause = 'LassoModel'
+		    exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+		    error = ErrorDialog( exception )
+		    error.show( )
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+		try:
+			self.prediction = self.project( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LassoModel'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+	
+			Purpose:
+			-----------
+			Evaluate the model using multiple regression metrics.
+	
+	
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Ground truth target_names.
+	
+			Returns:
+			-----------
+			dict: Dictionary of MAE, MSE, RMSE, R², etc.
+	
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_perceptron.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			return \
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'Explained Variance': self.explained_variance_score,
+				'Median Absolute Error': self.median_absolute_error,
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LassoModel'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			error = ErrorDialog( exception )
+			error.show( )
+
+	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+	
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
+	
+			Parameters:
+			-----------
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
+	
+			Returns:
+			-----------
+				None
+	
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.logistic_regression.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LassoModel'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+
 class StochasticGradientDescent( Classifier ):
     """
 
@@ -1620,14 +2215,58 @@ class StochasticGradientDescent( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
+        
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction',
+                 'max_iter',
+                 'random_state',
+                 'accuracy',
+                 'loss',
+                 'regularization',
+                 'alpha',
+                 'sgd_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'weights',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
     
     @property
     def weights( self ) -> np.ndarray | None:
 	    if self.sgd_classifier.coef_ is None:
-		    raise AttributeError( 'The data is untrained.' )
+		    raise AttributeError( 'The model weights have not been initialized!' )
 	    else:
 		    return self.sgd_classifier.coef_
 	    
+    @property
+    def class_labels( self ) -> np.ndarray:
+	    '''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+	    if self.sgd_classifier.classes_ is None:
+		    raise AttributeError( 'The model labels have not been initialized!' )
+	    else:
+		    return self.logistic_regression.classes_
+    
     def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
         """
 
@@ -1917,20 +2556,6 @@ class StochasticGradientDescent( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'loss', 'regularization',
-                 'alpha', 'sgd_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'weights',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-    
 
 class NearestNeighbor( Classifier ):
     """
@@ -1992,7 +2617,43 @@ class NearestNeighbor( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-	    
+        
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'n_neigbors',
+                 'algorithm',
+                 'metric',
+                 'neighbor_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'predict_probabilty',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
+    @property
+    def class_labels( self ) -> np.ndarray | None:
+        if self.nearest_neighbor.classes_ is None:
+	        raise AttributeError( 'The model weights have not been initialized!' )
+        else:
+	        return self.nearest_neighbor.classes_
+    
     def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
         """
 
@@ -2037,7 +2698,7 @@ class NearestNeighbor( Classifier ):
 
 			Returns:
 			-----------
-				np.ndarray: Predicted class target_names.
+			np.ndarray: Predicted class target_names.
 
 		"""
         try:
@@ -2245,20 +2906,6 @@ class NearestNeighbor( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'n_neigbors', 'algorithm',
-                 'metric', 'neighbor_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'predict_probabilty',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-    
 
 class DecisionTree( Classifier ):
     '''
@@ -2315,7 +2962,7 @@ class DecisionTree( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
+        
     def __dir__( self ) -> List[ str ]:
         '''
 
@@ -2324,10 +2971,24 @@ class DecisionTree( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'criterion', 'splitter',
-                 'dt_classifier', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'criterion',
+                 'splitter',
+                 'dt_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
         """
@@ -2641,7 +3302,7 @@ class RandomForest( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
+        
     def __dir__( self ) -> List[ str ]:
         '''
 
@@ -2650,10 +3311,39 @@ class RandomForest( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'n_estimators', 'max_depth',
-                 'criterior', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
-                 'r2_score', 'explained_variance_score', 'median_absolute_error',
-                 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'n_estimators',
+                 'max_depth',
+                 'criterior',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
+    @property
+    def labels( self ) -> np.ndarray:
+        '''
+
+            Returns
+            -------
+            classes_ ndarray of shape (n_classes, )
+            A list of class labels known to the classifier.
+
+        '''
+        if self.random_forest_classifier.classes_ is None:
+	        raise AttributeError( 'The model labels have not been initialized!' )
+        else:
+	        return self.random_forest_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
         """
@@ -2968,7 +3658,7 @@ class GradientBoost( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
+        
     def __dir__( self ) -> List[ str ]:
         '''
 
@@ -2977,11 +3667,40 @@ class GradientBoost( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'loss', 'learning_rate', 
-                 'n_estimators', 'gradient_boost_classifier', 'mean_absolute_error', 
-                 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
-                 'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-                 'score', 'analyze', 'create_heatmap' ]
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'loss',
+                 'learning_rate',
+                 'n_estimators',
+                 'gradient_boost_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
+    @property
+    def labels( self ) -> np.ndarray:
+        '''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+        if self.gradient_boost_classifier.classes_ is None:
+	        raise AttributeError( 'The model labels have not been initialized!' )
+        else:
+	        return self.ada_boost_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
         """
@@ -3273,20 +3992,63 @@ class AdaptiveBoost( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
+        
     def __dir__( self ) -> List[ str ]:
         '''
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
+            Purpose:
+            -------
+            Provides a list of strings representing class members
 
-		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'X_scaled', 
-                 'n_estimators', 'learning_rate', 'ada_boost_classifier', 'mean_absolute_error', 
-                 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
-                 'explained_variance_score', 'median_absolute_error', 'train', 
-                 'project', 'score', 'analyze', 'create_heatmap' ]
+        '''
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'X_scaled',
+                 'n_estimators',
+                 'learning_rate',
+                 'ada_boost_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
+    @property
+    def errors( self ) -> np.ndarray | None:
+	    if self.ada_boost_classifier.estimator_errors_ is None:
+		    raise AttributeError( 'The model errors have not been initialized!' )
+	    else:
+		    return self.ada_boost_classifier.estimator_errors_
+	   
+    @property
+    def weights( self ) -> np.ndarray | None:
+        if self.ada_boost_classifier.estimator_weights_ is None:
+	        raise AttributeError( 'The model weights have not been initialized!' )
+        else:
+	        return self.ada_boost_classifier.estimator_weights_
+    
+    @property
+    def labels( self ) -> np.ndarray:
+        '''
+
+            Returns
+            -------
+            classes_ ndarray of shape (n_classes, )
+            A list of class labels known to the classifier.
+
+        '''
+        if self.ada_boost_classifier.classes_ is None:
+	        raise AttributeError( 'The model labels have not been initialized!' )
+        else:
+	        return self.ada_boost_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
         """
@@ -3497,7 +4259,7 @@ class AdaptiveBoost( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-
+    
 class BaggingModel( Classifier ):
     """
 
@@ -3555,17 +4317,43 @@ class BaggingModel( Classifier ):
         self.median_absolute_error = 0.0
     
     def __dir__( self ) -> List[ str ]:
-        '''
+	    '''
 
 			Purpose:
 			-------
 			Provides a list of strings representing class members
 
 		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy',
-                 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
-                 'r2_score', 'explained_variance_score', 'median_absolute_error',
-                 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
+	    return [ 'prediction',
+	             'max_depth',
+	             'random_state',
+	             'accuracy',
+	             'mean_absolute_error',
+	             'mean_squared_error',
+	             'r_mean_squared_error',
+	             'r2_score',
+	             'explained_variance_score',
+	             'median_absolute_error',
+	             'train',
+	             'project',
+	             'score',
+	             'analyze',
+	             'create_heatmap' ]
+        
+    @property
+    def labels( self ) -> np.ndarray:
+        '''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+        if self.ada_boost_classifier.classes_ is None:
+	        raise AttributeError( 'The model labels have not been initialized!' )
+        else:
+	        return self.ada_boost_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
         """
@@ -3826,19 +4614,45 @@ class VotingModel( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-    
+        
     def __dir__( self ) -> List[ str ]:
         '''
 
-			Purpose:
+            Purpose:
+            -------
+            Provides a list of strings representing class members
+
+        '''
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
+    @property
+    def labels( self ) -> np.ndarray:
+        '''
+
+			Returns
 			-------
-			Provides a list of strings representing class members
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
 
 		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'mean_absolute_error',
-                 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
-                 'explained_variance_score', 'median_absolute_error', 'train',
-                 'project', 'score', 'analyze', 'create_heatmap' ]
+        if self.voting_classifier.classes_ is None:
+	        raise AttributeError( 'The model labels have not been initialized!' )
+        else:
+	        return self.voting_classifier.classes_
     
     def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
         """
@@ -4051,7 +4865,7 @@ class VotingModel( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-
+   
 class StackingModel( Classifier ):
     """
 
@@ -4099,7 +4913,47 @@ class StackingModel( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-	    
+        
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction',
+                 'accuracy',
+                 'final_estimator',
+                 'estimators',
+                 'stacking_classifier',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
+    @property
+    def labels( self ) -> np.ndarray:
+        '''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+        if self.stacking_classifier.classes_ is None:
+	        raise AttributeError( 'The model labels have not been initialized!' )
+        else:
+	        return self.stacking_classifier.classes_
+    
     def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
         """
 
@@ -4309,20 +5163,7 @@ class StackingModel( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'accuracy', 'final_estimator', 'estimators', 'stacking_classifier',
-                 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
-                 'explained_variance_score', 'median_absolute_error', 'train',
-                 'project', 'score', 'analyze', 'create_heatmap' ]
-    
 
 class SupportVectorMachine( Classifier ):
     """
@@ -4363,6 +5204,7 @@ class SupportVectorMachine( Classifier ):
 			:type C: float
 			
 		"""
+        super( ).__init__( )
         self.kernel = kernel
         self.regulation = C
         self.degree = degree
@@ -4376,7 +5218,35 @@ class SupportVectorMachine( Classifier ):
         self.r2_score = 0.0
         self.explained_variance_score = 0.0
         self.median_absolute_error = 0.0
-	    
+        
+    def __dir__( self ) -> List[ str ]:
+        '''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+        return [ 'prediction',
+                 'max_depth',
+                 'random_state',
+                 'accuracy',
+                 'svc_classifier',
+                 'kernel',
+                 'regulation',
+                 'degree',
+                 'mean_absolute_error',
+                 'mean_squared_error',
+                 'r_mean_squared_error',
+                 'r2_score',
+                 'explained_variance_score',
+                 'median_absolute_error',
+                 'train',
+                 'project',
+                 'score',
+                 'analyze',
+                 'create_heatmap' ]
+    
     def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorMachine | None:
         """
 		
@@ -4596,17 +5466,4 @@ class SupportVectorMachine( Classifier ):
             exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def __dir__( self ) -> List[ str ]:
-        '''
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-        return [ 'prediction', 'max_depth', 'random_state', 'accuracy', 'svc_classifier', 'kernel',
-                 'regulation', 'degree', 'mean_absolute_error', 'mean_squared_error',
-                 'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-                 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_heatmap' ]
-    
