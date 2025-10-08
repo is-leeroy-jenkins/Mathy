@@ -1908,7 +1908,7 @@ class Ridge( Classifier ):
         except Exception as e:
 	        exception = Error( e )
 	        exception.module = 'mathy'
-            exception.cause = 'Ridge'
+	        exception.cause = 'Ridge'
 	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
 	        error = ErrorDialog( exception )
 	        error.show( )
@@ -2145,34 +2145,34 @@ class Lasso( Classifier ):
 			error.show()
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
-	    """
-		    
-		    Purpose:
-		    -------
-	        Predict class labels from input features using the Lasso model.
+		"""
+			
+			Purpose:
+			-------
+			Predict class labels from input features using the Lasso model.
 		
-		    Parameters:
+			Parameters:
 			----------
-	        X (np.ndarray | pd.DataFrame): Input features.
+			X (np.ndarray | pd.DataFrame): Input features.
 		
-		    Returns:
-		    --------
-	        np.ndarray: Predicted class labels (0 or 1).
-	        
-	    """
-	    try:
-		    throw_if( 'X', X )
-		    self.prediction = self.lasso_classifier.predict( X )
-		    self.binarizer = Binarizer( threshold=self.threshold )
-		    _shape = self.prediction.reshape( -1, 1 )
-		    return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
+			Returns:
+			--------
+			np.ndarray: Predicted class labels (0 or 1).
+			
+		"""
+		try:
+			throw_if( 'X', X )
+			self.prediction = self.lasso_classifier.predict( X )
+			self.binarizer = Binarizer( threshold=self.threshold )
+			_shape = self.prediction.reshape( -1, 1 )
+			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-		    exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-		    error = ErrorDialog( exception )
-		    error.show( )
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		try:
@@ -2527,7 +2527,8 @@ class GradientDescent( Classifier ):
             exception = Error( e )
             exception.module = 'mathy'
             exception.cause = 'GradientDescent'
-            exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
+            exception.method = (''
+                                'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
                                 'float ]')
             error = ErrorDialog( exception )
             error.show( )
