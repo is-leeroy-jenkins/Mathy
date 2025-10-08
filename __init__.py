@@ -43,7 +43,11 @@
 from .classifications import *
 from .regressions import *
 from .clusters import *
-from .preprocessors import *
+from .encoders import *
+from .transformers import *
+from .imputers import *
+from .vectorizers import  *
+from .scalers import *
 from .data import *
 
 __version__ = "0.1.0"

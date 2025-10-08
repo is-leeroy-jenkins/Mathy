@@ -42,14 +42,9 @@
   ******************************************************************************************
   '''
 from __future__ import annotations
-
 from typing import Optional, List
-
 import numpy as np
 import sklearn.feature_extraction.text as sk
-import sklearn.impute as im
-import sklearn.preprocessing as pp
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -70,7 +65,7 @@ class Vectorizer( ):
 	def __init__( self ):
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
 			Purpose:
@@ -108,7 +103,7 @@ class Vectorizer( ):
 		"""
 		raise NotImplementedError
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -180,7 +175,7 @@ class TfidfVectorizer( Vectorizer ):
 		self.vectorizer = sk.TfidfVectorizer( )
 		self.transformed_data = None
 	
-	def fit( self, tokens: list[ str ], y: np.ndarray = None ) -> TfidfVectorizer | None:
+	def train( self, tokens: list[ str ], y: np.ndarray = None ) -> TfidfVectorizer | None:
 		"""
 
 			Purpose:
@@ -231,7 +226,7 @@ class TfidfVectorizer( Vectorizer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, tokens: list[ str ] ) -> np.ndarray:
+	def train_transform( self, tokens: list[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -306,7 +301,7 @@ class CountVectorizer( Vectorizer ):
 		self.vectorizer = sk.CountVectorizer( )
 		self.transformed_data = None
 	
-	def fit( self, tokens: List[ str ], y: np.ndarray = None ) -> CountVectorizer | None:
+	def train( self, tokens: List[ str ], y: np.ndarray = None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
@@ -357,7 +352,7 @@ class CountVectorizer( Vectorizer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, tokens: List[ str ], y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, tokens: List[ str ], y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -384,15 +379,15 @@ class CountVectorizer( Vectorizer ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class HashingVectorizer( Vectorizer ):
+class HashVectorizer( Vectorizer ):
 	"""
 
 		Purpose:
 		---------
-		Convert a collection of text text to a matrix of token occurrences. It turns a
+		Convert a collection of text to a matrix of token occurrences. It turns a
 		collection of text into a scipy.sparse matrix holding token occurrence counts
 		(or binary occurrence information), possibly normalized as token frequencies
-		if norm=’l1’ or projected on the euclidean unit sphere if norm=’l2’.
+		if norm=’l1’ or projected on the Euclidean unit sphere if norm=’l2’.
 
 		This text vectorizer implementation uses the hashing trick to find the token
 		string name to feature integer index mapping. This strategy has several advantages it is
@@ -409,7 +404,7 @@ class HashingVectorizer( Vectorizer ):
 		important to a model.
 
 		There can be collisions: distinct tokens can be mapped to the same feature index.
-		However in practice this is rarely an issue if n_features is large enough (e.g. 2 ** 18
+		However, in practice this is rarely an issue if n_features is large enough (e.g. 2 ** 18
 		for text classification problems).
 
 	"""
@@ -428,7 +423,7 @@ class HashingVectorizer( Vectorizer ):
 		self.vectorizer = sk.HashingVectorizer( n_features=num )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> CountVectorizer | None:
+	def train( self, X: np.ndarray, y: np.ndarray = None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:

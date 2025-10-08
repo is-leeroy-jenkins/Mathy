@@ -69,7 +69,7 @@ class Transformer( ):
 	def __init__( self ):
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
 			Purpose:
@@ -107,7 +107,7 @@ class Transformer( ):
 		"""
 		raise NotImplementedError
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -160,7 +160,7 @@ class LabelBinarizer( Transformer ):
 
 
 	"""
-	label_model: pp.LabelBinarizer
+	transformer: pp.LabelBinarizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -172,17 +172,17 @@ class LabelBinarizer( Transformer ):
 
 		"""
 		super( ).__init__( )
-		self.label_model = pp.LabelBinarizer( )
+		self.transformer = pp.LabelBinarizer( )
 		self.transformed_data = None
 	
 	@property
 	def classes( self ) -> List[ str ]:
-		if self.label_model.classes_ is None:
+		if self.transformer.classes_ is None:
 			raise AttributeError( 'LabelBinarizer has not been initialized.' )
 		else:
-			return self.label_model.classes_
+			return self.transformer.classes_
 	
-	def fit( self, y: np.ndarray ) -> LabelBinarizer | None:
+	def train( self, y: np.ndarray ) -> LabelBinarizer | None:
 		"""
 
 			Purpose:
@@ -200,7 +200,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.label_model.fit( y )
+			self.transformer.fit( y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -228,7 +228,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.label_model.transform( y )
+			self.transformed_data = self.transformer.transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -238,7 +238,7 @@ class LabelBinarizer( Transformer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, y: np.ndarray ) -> np.ndarray:
+	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -256,7 +256,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.label_model.fit_transform( y )
+			self.transformed_data = self.transformer.fit_transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -283,7 +283,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'Y', Y )
-			return self.label_model.inverse_transform( Y )
+			return self.transformer.inverse_transform( Y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -337,7 +337,7 @@ class TfidfTransformer( Transformer ):
 		else:
 			return self.transformer.idf_
 	
-	def fit( self, X: np.ndarray ) -> TfidfTransformer | None:
+	def train( self, X: np.ndarray ) -> TfidfTransformer | None:
 		"""
 
 			Purpose:
@@ -393,7 +393,7 @@ class TfidfTransformer( Transformer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:

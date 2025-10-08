@@ -70,7 +70,7 @@ class Scaler( ):
 	def __init__( self ):
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
 			Purpose:
@@ -108,7 +108,7 @@ class Scaler( ):
 		"""
 		raise NotImplementedError
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -160,7 +160,7 @@ class StandardScaler( Scaler ):
 		self.scaler = pp.StandardScaler( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> StandardScaler | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> StandardScaler | None:
 		"""
 
 
@@ -191,7 +191,7 @@ class StandardScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -269,7 +269,7 @@ class MinMaxScaler( Scaler ):
 		self.scaler = pp.MinMaxScaler( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> MinMaxScaler | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> MinMaxScaler | None:
 		"""
 
 			Purpose:
@@ -299,7 +299,7 @@ class MinMaxScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -329,7 +329,7 @@ class MinMaxScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -413,7 +413,7 @@ class RobustScaler( Scaler ):
 		self.scaler = pp.RobustScaler( )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> RobustScaler | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> RobustScaler | None:
 		"""
 
 
@@ -444,7 +444,7 @@ class RobustScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -480,7 +480,7 @@ class RobustScaler( Scaler ):
 			---------
 			Transforms into robust stores.
 
-			:param X: List of text text.
+			:param X: List of text.
 			:type X: list[str]
 			:return: Standardized stores.
 			:rtype: np.ndarray
@@ -523,7 +523,7 @@ class NormalScaler( Scaler ):
 		self.scaler = pp.Normalizer( norm=self.norm )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> NormalScaler | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> NormalScaler | None:
 		"""
 
 
@@ -554,7 +554,7 @@ class NormalScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -584,7 +584,7 @@ class NormalScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 

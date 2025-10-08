@@ -4508,7 +4508,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.gauss_model.fit( X, y )
+			self.gauss_model.train( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )

@@ -43,13 +43,9 @@
   '''
 from __future__ import annotations
 
-from typing import Optional, List
-
+from typing import Optional
 import numpy as np
-import sklearn.feature_extraction.text as sk
 import sklearn.impute as im
-import sklearn.preprocessing as pp
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -70,7 +66,7 @@ class Imputer( ):
 	def __init__( self ):
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
 			Purpose:
@@ -108,7 +104,7 @@ class Imputer( ):
 		"""
 		raise NotImplementedError
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -159,7 +155,7 @@ class MeanImputer( Imputer ):
 		self.imputer = im.SimpleImputer( strategy=self.strategy )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> MeanImputer | None:
+	def train( self, X: np.ndarray, y: np.ndarray = None ) -> MeanImputer | None:
 		"""
 
 
@@ -218,7 +214,7 @@ class MeanImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -262,7 +258,7 @@ class MeanImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class NearestNeighborImputer( Imputer ):
+class NearestImputer( Imputer ):
 	"""
 
 		Purpose:
@@ -293,8 +289,8 @@ class NearestNeighborImputer( Imputer ):
 		self.imputer = im.KNNImputer( n_neighbors=self.n_neighbors )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[
-		np.ndarray ] = None ) -> NearestNeighborImputer | None:
+	def train( self, X: np.ndarray, y: Optional[
+		np.ndarray ] = None ) -> NearestImputer | None:
 		"""
 
 			Purpose:
@@ -353,7 +349,7 @@ class NearestNeighborImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -414,7 +410,7 @@ class IterativeImputer( Imputer ):
 		self.random_state = rando
 		self.imputer = im.IterativeImputer( max_iter=self.max_iter, random_state=self.random_state )
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray = None ) -> object | None:
 		"""
 
 			Purpose:
@@ -463,7 +459,7 @@ class IterativeImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -517,7 +513,7 @@ class SimpleImputer( Imputer ):
 		self.imputer = im.SimpleImputer( strategy=self.strategy, fill_value=self.fill_value )
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray = None ) -> object | None:
 		"""
 
 			Purpose:
@@ -565,7 +561,7 @@ class SimpleImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:

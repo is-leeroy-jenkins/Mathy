@@ -42,14 +42,9 @@
   ******************************************************************************************
   '''
 from __future__ import annotations
-
 from typing import Optional, List
-
 import numpy as np
-import sklearn.feature_extraction.text as sk
-import sklearn.impute as im
 import sklearn.preprocessing as pp
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -70,7 +65,7 @@ class Encoder( ):
 	def __init__( self ):
 		self.transformed_data = None
 	
-	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
 		"""
 
 			Purpose:
@@ -108,7 +103,7 @@ class Encoder( ):
 		"""
 		raise NotImplementedError
 	
-	def fit_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -165,7 +160,7 @@ class OneHotEncoder( Encoder ):
 	encoder: pp.OneHotEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, sparse: bool = False, unknown: str = 'ignore' ) -> None:
+	def __init__( self, sparse: bool=False, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
 		self.unknown = unknown
 		self.sparse = sparse
@@ -178,7 +173,7 @@ class OneHotEncoder( Encoder ):
 		else:
 			return self.encoder.categories_
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> OneHotEncoder | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> OneHotEncoder | None:
 		"""
 
 
@@ -209,7 +204,7 @@ class OneHotEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -239,7 +234,7 @@ class OneHotEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -298,7 +293,7 @@ class OrdinalEncoder( Encoder ):
 		else:
 			return self.encoder.categories_
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> OrdinalEncoder | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> OrdinalEncoder | None:
 		"""
 
 			Purpose:
@@ -327,7 +322,7 @@ class OrdinalEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -357,7 +352,7 @@ class OrdinalEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -438,7 +433,7 @@ class LabelEncoder( Encoder ):
 		else:
 			return self.encoder.classes_
 	
-	def fit( self, y: np.ndarray ) -> LabelEncoder | None:
+	def train( self, y: np.ndarray ) -> LabelEncoder | None:
 		"""
 
 			Purpose:
@@ -489,7 +484,7 @@ class LabelEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, y: np.ndarray ) -> np.ndarray:
+	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -580,7 +575,7 @@ class PolynomialFeatures( Encoder ):
 		else:
 			return self.encoder.powers_
 	
-	def fit( self, X: np.ndarray, y: np.ndarray = None ) -> PolynomialFeatures | None:
+	def train( self, X: np.ndarray, y: np.ndarray = None ) -> PolynomialFeatures | None:
 		"""
 
 			Purpose:
@@ -630,7 +625,7 @@ class PolynomialFeatures( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
