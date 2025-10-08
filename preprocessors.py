@@ -46,8 +46,8 @@ from typing import Optional, List
 
 import numpy as np
 import sklearn.feature_extraction.text as sk
-import sklearn.impute as ski
-import sklearn.preprocessing as skp
+import sklearn.impute as im
+import sklearn.preprocessing as pp
 
 from boogr import Error, ErrorDialog
 
@@ -160,7 +160,7 @@ class LabelBinarizer( Preprocessor ):
 
 
 	"""
-	label_binarizer: skp.LabelBinarizer
+	label_model: pp.LabelBinarizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -172,15 +172,15 @@ class LabelBinarizer( Preprocessor ):
 
 		"""
 		super( ).__init__( )
-		self.label_binarizer = skp.LabelBinarizer( )
+		self.label_model = pp.LabelBinarizer( )
 		self.transformed_data = None
 		
 	@property
 	def classes( self ) -> List[ str ]:
-		if self.label_binarizer.classes_ is None:
+		if self.label_model.classes_ is None:
 			raise AttributeError( 'LabelBinarizer has not been initialized.' )
 		else:
-			return self.label_binarizer.classes_
+			return self.label_model.classes_
 	
 	def fit( self, y: np.ndarray ) -> LabelBinarizer | None:
 		"""
@@ -200,7 +200,7 @@ class LabelBinarizer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.label_binarizer.fit( y )
+			self.label_model.fit( y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -228,7 +228,7 @@ class LabelBinarizer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.label_binarizer.transform( y )
+			self.transformed_data = self.label_model.transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -256,7 +256,7 @@ class LabelBinarizer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.label_binarizer.fit_transform( y )
+			self.transformed_data = self.label_model.fit_transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -283,7 +283,7 @@ class LabelBinarizer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'Y', Y )
-			return self.label_binarizer.inverse_transform( Y )
+			return self.label_model.inverse_transform( Y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -316,7 +316,7 @@ class TfidfTransformer( Preprocessor ):
 		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
 
 	"""
-	tfidf_transformer: sk.TfidfTransformer
+	transformer: sk.TfidfTransformer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -327,15 +327,15 @@ class TfidfTransformer( Preprocessor ):
 			Initialize TfidfTransformer.
 		"""
 		super( ).__init__( )
-		self.tfidf_transformer = sk.TfidfTransformer( )
+		self.transformer = sk.TfidfTransformer( )
 		self.transformed_data = None
 	
 	@property
 	def idf_vector( self ) -> np.ndarray:
-		if self.tfidf_transformer.idf_ is None:
+		if self.transformer.idf_ is None:
 			raise AttributeError( 'TfidfTransformer must be initialized' )
 		else:
-			return self.tfidf_transformer.idf_
+			return self.transformer.idf_
 		
 	def fit( self, X: np.ndarray ) -> TfidfTransformer | None:
 		"""
@@ -355,7 +355,7 @@ class TfidfTransformer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.tfidf_transformer.fit( X )
+			self.transformer.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -383,7 +383,7 @@ class TfidfTransformer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.tfidf_transformer.transform( X )
+			self.transformed_data = self.transformer.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -407,7 +407,7 @@ class TfidfTransformer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.tfidf_transformer.fit_transform( X ).toarray( )
+			self.transformed_data = self.transformer.fit_transform( X ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -441,7 +441,7 @@ class TfidfVectorizer( Preprocessor ):
 		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
 
 	"""
-	tfidf_vectorizer: sk.TfidfVectorizer
+	vectorizer: sk.TfidfVectorizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -453,10 +453,10 @@ class TfidfVectorizer( Preprocessor ):
 
 		"""
 		super( ).__init__( )
-		self.tfidf_vectorizer = sk.TfidfVectorizer( )
+		self.vectorizer = sk.TfidfVectorizer( )
 		self.transformed_data = None
 	
-	def fit( self, text: list[ str ], y: np.ndarray=None ) -> TfidfVectorizer | None:
+	def fit( self, tokens: list[ str ], y: np.ndarray=None ) -> TfidfVectorizer | None:
 		"""
 
 			Purpose:
@@ -470,8 +470,8 @@ class TfidfVectorizer( Preprocessor ):
 
 		"""
 		try:
-			throw_if( 'text', text )
-			self.tfidf_vectorizer.fit( text )
+			throw_if( 'tokens', tokens )
+			self.vectorizer.fit( tokens )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -481,7 +481,7 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, text: list[ str ] ) -> np.ndarray:
+	def transform( self, tokens: list[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -490,14 +490,14 @@ class TfidfVectorizer( Preprocessor ):
 
 			:param y:
 			:type y:
-			:param text: List of strings.
-			:type text: list[str]
+			:param tokens: List of strings.
+			:type tokens: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		try:
-			throw_if( 'text', text )
-			self.transformed_data = self.tfidf_vectorizer.transform( text ).toarray( )
+			throw_if( 'tokens', tokens )
+			self.transformed_data = self.vectorizer.transform( tokens ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -507,7 +507,7 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, text: list[ str ] ) -> np.ndarray:
+	def fit_transform( self, tokens: list[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -516,14 +516,14 @@ class TfidfVectorizer( Preprocessor ):
 
 			:param y:
 			:type y:
-			:param text: List of text text.
-			:type text: list[str]
+			:param tokens: List of text text.
+			:type tokens: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		try:
-			throw_if( 'text', text )
-			self.transformed_data = self.tfidf_vectorizer.fit_transform( text ).toarray( )
+			throw_if( 'tokens', tokens )
+			self.transformed_data = self.vectorizer.fit_transform( tokens ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -533,21 +533,21 @@ class TfidfVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, text: list[ str ] ) -> List[ List[ str ] ] | None:
+	def inverse_transform( self, tokens: list[ str ] ) -> List[ List[ str ] ] | None:
 		"""
 
 			Purpose:
 			---------
 			Transform text to TF-IDF vectors.
 
-			:param text: List of text text.
-			:type text: list[str]
+			:param tokens: List of text text.
+			:type tokens: list[str]
 			:return: TF-IDF vectorized output.
 			:rtype: np.ndarray
 		"""
 		try:
-			throw_if( 'text', text )
-			return self.tfidf_vectorizer.inverse_transform( text )
+			throw_if( 'tokens', tokens )
+			return self.vectorizer.inverse_transform( tokens )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -568,7 +568,7 @@ class CountVectorizer( Preprocessor ):
 		size found by analyzing the stores.
 
 	"""
-	count_vectorizer: sk.CountVectorizer
+	vectorizer: sk.CountVectorizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -579,23 +579,23 @@ class CountVectorizer( Preprocessor ):
 			Initialize the CountVectorizerWrapper with default parameters.
 		"""
 		super( ).__init__( )
-		self.count_vectorizer = sk.CountVectorizer( )
+		self.vectorizer = sk.CountVectorizer( )
 		self.transformed_data = None
 	
-	def fit( self, text: List[ str ], y: np.ndarray=None ) -> CountVectorizer | None:
+	def fit( self, tokens: List[ str ], y: np.ndarray=None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
 			---------
 			Convert a collection of tokens to a matrix of token counts.
 
-			:param text:
+			:param tokens:
 			:type List[ str ]:
 
 		"""
 		try:
-			throw_if( 'text', text )
-			self.count_vectorizer.fit( text )
+			throw_if( 'tokens', tokens )
+			self.vectorizer.fit( tokens )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -605,7 +605,7 @@ class CountVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, text: List[ str ] ) -> np.ndarray:
+	def transform( self, tokens: List[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -622,8 +622,8 @@ class CountVectorizer( Preprocessor ):
 
 		"""
 		try:
-			throw_if( 'text', text )
-			self.transformed_data = self.count_vectorizer.transform( text ).toarray( )
+			throw_if( 'tokens', tokens )
+			self.transformed_data = self.vectorizer.transform( tokens ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -633,7 +633,7 @@ class CountVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray:
+	def fit_transform( self, tokens: List[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -642,15 +642,15 @@ class CountVectorizer( Preprocessor ):
 
 			:param y:
 			:type y:
-			:param text: List of input text text.
-			:type text: List[str]
+			:param tokens: List of input text text.
+			:type tokens: List[str]
 			:return: Matrix of token counts.
 			:rtype: np.ndarray
 
 		"""
 		try:
-			throw_if( 'text', text )
-			self.transformed_data = self.count_vectorizer.fit_transform( text ).toarray( )
+			throw_if( 'tokens', tokens )
+			self.transformed_data = self.vectorizer.fit_transform( tokens ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -689,7 +689,7 @@ class HashingVectorizer( Preprocessor ):
 		for text classification problems).
 
 	"""
-	hash_vectorizer: sk.HashingVectorizer
+	vectorizer: sk.HashingVectorizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, num: int=1048576 ) -> None:
@@ -701,7 +701,7 @@ class HashingVectorizer( Preprocessor ):
 
 		"""
 		super( ).__init__( )
-		self.hash_vectorizer = sk.HashingVectorizer( n_features=num )
+		self.vectorizer = sk.HashingVectorizer( n_features=num )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> CountVectorizer | None:
@@ -719,7 +719,7 @@ class HashingVectorizer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.hash_vectorizer.fit( X )
+			self.vectorizer.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -729,23 +729,23 @@ class HashingVectorizer( Preprocessor ):
 			error = ErrorDialog( exception )
 			error.show( )
 			
-	def transform( self, text: List[ str ] ) -> np.ndarray:
+	def transform( self, tokens: List[ str ] ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
 			Transform text into hashed token vectors.
 
-			:param text: List of input text.
-			:type text: List[str]
+			:param tokens: List of input text.
+			:type tokens: List[str]
 			
 			:return: Matrix of hashed feature_names.
 			:rtype: np.ndarray
 			
 		"""
 		try:
-			throw_if( 'text', text )
-			self.transformed_data = self.hash_vectorizer.transform( text ).toarray( )
+			throw_if( 'tokens', tokens )
+			self.transformed_data = self.vectorizer.transform( tokens ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -766,12 +766,12 @@ class StandardScaler( Preprocessor ):
 		samples or one if with_std=False.
 
 	"""
-	standard_scaler: skp.StandardScaler
+	scaler: pp.StandardScaler
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.standard_scaler = skp.StandardScaler( )
+		self.scaler = pp.StandardScaler( )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> StandardScaler | None:
@@ -794,7 +794,7 @@ class StandardScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.standard_scaler.fit( X )
+			self.scaler.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -824,7 +824,7 @@ class StandardScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.standard_scaler.transform( X )
+			self.transformed_data = self.scaler.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -852,7 +852,7 @@ class StandardScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.standard_scaler.inverse_transform( X )
+			return self.scaler.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -875,12 +875,12 @@ class MinMaxScaler( Preprocessor ):
 		value and the smallest one corresponds to the minimum value
 
 	"""
-	minmax_scaler: skp.MinMaxScaler
+	scaler: pp.MinMaxScaler
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.minmax_scaler = skp.MinMaxScaler( )
+		self.scaler = pp.MinMaxScaler( )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> MinMaxScaler | None:
@@ -902,7 +902,7 @@ class MinMaxScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.minmax_scaler.fit( X )
+			self.scaler.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -933,7 +933,7 @@ class MinMaxScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.minmax_scaler.transform( X )
+			self.transformed_data = self.scaler.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -963,7 +963,7 @@ class MinMaxScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.minmax_scaler.fit_transform( X )
+			self.transformed_data = self.scaler.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -991,7 +991,7 @@ class MinMaxScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.minmax_scaler.inverse_transform( X )
+			return self.scaler.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1019,12 +1019,12 @@ class RobustScaler( Preprocessor ):
 		In such cases, using the median and the interquartile range often give better results.
 
 	"""
-	robust_scaler: skp.RobustScaler
+	scaler: pp.RobustScaler
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.robust_scaler = skp.RobustScaler( )
+		self.scaler = pp.RobustScaler( )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> RobustScaler | None:
@@ -1047,7 +1047,7 @@ class RobustScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.robust_scaler.fit( X )
+			self.scaler.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1077,7 +1077,7 @@ class RobustScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.robust_scaler.transform( X )
+			self.transformed_data = self.scaler.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1101,7 +1101,7 @@ class RobustScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.robust_scaler.inverse_transform( X )
+			self.transformed_data = self.scaler.inverse_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1128,13 +1128,13 @@ class NormalScaler( Preprocessor ):
 
 	"""
 	norm: Optional[ str ]
-	normal_scaler: skp.Normalizer
+	scaler: pp.Normalizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, reg: str = 'l2' ) -> None:
 		super( ).__init__( )
 		self.norm = reg
-		self.normal_scaler = skp.Normalizer( norm=self.norm)
+		self.scaler = pp.Normalizer( norm=self.norm )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> NormalScaler | None:
@@ -1157,7 +1157,7 @@ class NormalScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.normal_scaler.fit( X )
+			self.scaler.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1188,7 +1188,7 @@ class NormalScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.normal_scaler.transform( X )
+			self.transformed_data = self.scaler.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1218,7 +1218,7 @@ class NormalScaler( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.normal_scaler.transform( X )
+			self.transformed_data = self.scaler.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1250,21 +1250,21 @@ class OneHotEncoder( Preprocessor ):
 	"""
 	unknown: Optional[ str ]
 	sparse: Optional[ bool ]
-	hot_encoder: skp.OneHotEncoder
+	encoder: pp.OneHotEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, sparse: bool=False, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
 		self.unknown = unknown
 		self.sparse = sparse
-		self.hot_encoder = skp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
+		self.encoder = pp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
 	
 	@property
 	def categories( self ):
-		if self.hot_encoder.categories_ is None:
+		if self.encoder.categories_ is None:
 			raise AttributeError( 'Hot Encoder data is untrained' )
 		else:
-			return self.hot_encoder.categories_
+			return self.encoder.categories_
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> OneHotEncoder | None:
 		"""
@@ -1286,7 +1286,7 @@ class OneHotEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.hot_encoder.fit( X )
+			self.encoder.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1317,7 +1317,7 @@ class OneHotEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.hot_encoder.transform( X )
+			self.transformed_data = self.encoder.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1342,7 +1342,7 @@ class OneHotEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.hot_encoder.fit_transform( X )
+			self.transformed_data = self.encoder.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1371,20 +1371,20 @@ class OrdinalEncoder( Preprocessor ):
 			the missing values without the need to create a pipeline and using SimpleImputer.
 
 	"""
-	ordinal_encoder: skp.OrdinalEncoder
+	encoder: pp.OrdinalEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.ordinal_encoder = skp.OrdinalEncoder( )
+		self.encoder = pp.OrdinalEncoder( )
 		self.transformed_data = None
 	
 	@property
 	def categories( self ):
-		if self.hot_encoder.categories_ is None:
+		if self.encoder.categories_ is None:
 			raise AttributeError( 'Encoder data is untrained' )
 		else:
-			return self.hot_encoder.categories_
+			return self.encoder.categories_
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> OrdinalEncoder | None:
 		"""
@@ -1405,7 +1405,7 @@ class OrdinalEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.ordinal_encoder.fit( X )
+			self.encoder.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1435,7 +1435,7 @@ class OrdinalEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.ordinal_encoder.transform( X )
+			self.transformed_data = self.encoder.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1460,7 +1460,7 @@ class OrdinalEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.ordinal_encoder.fit_transform( X )
+			self.transformed_data = self.encoder.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1487,7 +1487,7 @@ class OrdinalEncoder( Preprocessor ):
 				raise Exception( '"X" cannot be None' )
 			else:
 				throw_if( 'X', X )
-				return self.ordinal_encoder.inverse_transform( X ).toarray( )
+				return self.encoder.inverse_transform( X ).toarray( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1505,7 +1505,7 @@ class LabelEncoder( Preprocessor ):
 		This transformer should be used to encode target values, i.e. y, and not the input X.
 
 	"""
-	label_encoder: skp.LabelEncoder
+	encoder: pp.LabelEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -1517,14 +1517,14 @@ class LabelEncoder( Preprocessor ):
 
 		"""
 		super( ).__init__( )
-		self.label_encoder = skp.LabelEncoder( )
+		self.encoder = pp.LabelEncoder( )
 	
 	@property
 	def classes( self ):
-		if self.label_encoder.classes_ is None:
+		if self.encoder.classes_ is None:
 			raise AttributeError( 'The label encoder data is untrained.' )
 		else:
-			return self.label_encoder.classes_
+			return self.encoder.classes_
 		
 	def fit( self, y: np.ndarray ) -> LabelEncoder | None:
 		"""
@@ -1541,7 +1541,7 @@ class LabelEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.label_encoder.fit( y )
+			self.encoder.fit( y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1567,7 +1567,7 @@ class LabelEncoder( Preprocessor ):
 		
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.label_encoder.transform( y )
+			self.transformed_data = self.encoder.transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1593,7 +1593,7 @@ class LabelEncoder( Preprocessor ):
 		
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.label_encoder.fit_transform( y )
+			self.transformed_data = self.encoder.fit_transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1617,7 +1617,7 @@ class LabelEncoder( Preprocessor ):
 		"""
 		try:
 			throw_if( 'y', y )
-			return self.label_encoder.inverse_transform( y )
+			return self.encoder.inverse_transform( y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1633,7 +1633,7 @@ class PolynomialFeatures( Preprocessor ):
 		--------
 		Generate a new feature matrix consisting of all polynomial combinations of the features
 		with degree less than or equal to the specified degree. For example, if an input sample is
-		two dimensional and of the form [a, b], the degree-2 polynomial
+		two-dimensional and of the form [a, b], the degree-2 polynomial
 		features are [1, a, b, a^2, ab, b^2].
 
 
@@ -1642,7 +1642,7 @@ class PolynomialFeatures( Preprocessor ):
 	"""
 	degree: Optional[ int ]
 	interaction_only: Optional[ bool ]
-	polynomial_features: skp.PolynomialFeatures
+	encoder: pp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, degree: int=2, interaction: bool=True ) -> None:
@@ -1658,15 +1658,15 @@ class PolynomialFeatures( Preprocessor ):
 		super( ).__init__( )
 		self.degree = degree
 		self.interaction_only = interaction
-		self.polynomial_features = skp.PolynomialFeatures( degree=self.degree,
+		self.encoder = pp.PolynomialFeatures( degree=self.degree,
 			interaction_only=self.interaction_only )
 	
 	@property
 	def powers( self ):
-		if self.polynomial_features.powers_ is None:
+		if self.encoder.powers_ is None:
 			raise AttributeError( 'The polynomial data is untrained.' )
 		else:
-			return self.polynomial_features.powers_
+			return self.encoder.powers_
 		
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> PolynomialFeatures | None:
 		"""
@@ -1683,7 +1683,7 @@ class PolynomialFeatures( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.polynomial_features.fit( X )
+			self.encoder.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1708,7 +1708,7 @@ class PolynomialFeatures( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.polynomial_features.transform( X )
+			self.transformed_data = self.encoder.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1733,7 +1733,7 @@ class PolynomialFeatures( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.polynomial_features.fit_transform( X )
+			self.transformed_data = self.encoder.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1752,13 +1752,13 @@ class MeanImputer( Preprocessor ):
 
 	"""
 	strategy: Optional[ str ]
-	mean_imputer: ski.SimpleImputer
+	imputer: im.SimpleImputer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, strategy: str='mean' ) -> None:
 		super( ).__init__( )
 		self.strategy = strategy
-		self.mean_imputer = ski.SimpleImputer( strategy=self.strategy )
+		self.imputer = im.SimpleImputer( strategy=self.strategy )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> MeanImputer | None:
@@ -1781,7 +1781,7 @@ class MeanImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.mean_imputer.fit( X )
+			self.imputer.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1810,7 +1810,7 @@ class MeanImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.mean_imputer.transform( X )
+			self.transformed_data = self.imputer.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1835,7 +1835,7 @@ class MeanImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.mean_imputer.fit_transform( X )
+			return self.imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1855,7 +1855,7 @@ class MeanImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.mean_imputer.inverse_transform( X )
+			return self.imputer.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1886,13 +1886,13 @@ class NearestNeighborImputer( Preprocessor ):
 
 	"""
 	n_neighbors: Optional[ int ]
-	knn_imputer: ski.KNNImputer
+	imputer: im.KNNImputer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, neighbors: int=5 ) -> None:
 		super( ).__init__( )
 		self.n_neighbors = neighbors
-		self.knn_imputer = ski.KNNImputer( n_neighbors=self.n_neighbors )
+		self.imputer = im.KNNImputer( n_neighbors=self.n_neighbors )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NearestNeighborImputer | None:
@@ -1914,7 +1914,7 @@ class NearestNeighborImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.knn_imputer.fit( X )
+			self.imputer.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1944,7 +1944,7 @@ class NearestNeighborImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.knn_imputer.transform( X )
+			self.transformed_data = self.imputer.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -1969,7 +1969,7 @@ class NearestNeighborImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.knn_imputer.fit_transform( X )
+			return self.imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1992,7 +1992,7 @@ class IterativeImputer( Preprocessor ):
 		The results of the final imputation round are returned.
 
 	"""
-	iterative_imputer: ski.IterativeImputer
+	imputer: im.IterativeImputer
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
@@ -2013,7 +2013,7 @@ class IterativeImputer( Preprocessor ):
 		super( ).__init__( )
 		self.max_iter = max
 		self.random_state = rando
-		self.iterative_imputer = ski.IterativeImputer( max_iter=self.max_iter, random_state=self.random_state )
+		self.imputer = im.IterativeImputer( max_iter=self.max_iter, random_state=self.random_state )
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> object | None:
 		"""
@@ -2030,7 +2030,7 @@ class IterativeImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.iterative_imputer.fit( X )
+			return self.imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2054,7 +2054,7 @@ class IterativeImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.iterative_imputer.transform( X )
+			self.transformed_data = self.imputer.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -2079,7 +2079,7 @@ class IterativeImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.iterative_imputer.fit_transform( X )
+			return self.imputer.fit_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2094,7 +2094,7 @@ class SimpleImputer( Preprocessor ):
 		Wrapper for sklearn's SimpleImputer.
 
 	"""
-	simple_imputer: ski.SimpleImputer
+	imputer: im.SimpleImputer
 	transformed_data: Optional[ np.ndarray ]
 	strategy: Optional[ str ]
 	fill_value: Optional[ float ]
@@ -2115,7 +2115,7 @@ class SimpleImputer( Preprocessor ):
 		super( ).__init__( )
 		self.strategy = strategy
 		self.fill_value = fill_value
-		self.simple_imputer = ski.SimpleImputer( strategy=self.strategy, fill_value=self.fill_value )
+		self.imputer = im.SimpleImputer( strategy=self.strategy, fill_value=self.fill_value )
 		self.transformed_data = None
 	
 	def fit( self, X: np.ndarray, y: np.ndarray=None ) -> object | None:
@@ -2133,7 +2133,7 @@ class SimpleImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.simple_imputer.fit( X )
+			return self.imputer.fit( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2157,7 +2157,7 @@ class SimpleImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.simple_imputer.transform( X )
+			return self.imputer.transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2181,7 +2181,7 @@ class SimpleImputer( Preprocessor ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.simple_imputer.fit_transform( X )
+			self.transformed_data = self.imputer.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )

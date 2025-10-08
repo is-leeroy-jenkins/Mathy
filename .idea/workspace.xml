@@ -4,11 +4,28 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="251ca5f5-c391-493e-b2b3-fcf5dc3cb3a7" name="Changes" comment="updates" />
+    <list default="true" id="251ca5f5-c391-493e-b2b3-fcf5dc3cb3a7" name="Changes" comment="updates">
+      <change afterPath="$PROJECT_DIR$/encoders.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/imputers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scalers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transformers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vectorizers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ipynb/board.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ipynb/board.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/preprocessors.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocessors.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -100,7 +117,8 @@
       <workItem from="1759599401425" duration="1145000" />
       <workItem from="1759603738180" duration="1216000" />
       <workItem from="1759837470598" duration="27387000" />
-      <workItem from="1759885094440" duration="10240000" />
+      <workItem from="1759885094440" duration="10285000" />
+      <workItem from="1759948988873" duration="4591000" />
     </task>
     <task id="LOCAL-00001" summary="updates">
       <option name="closed" value="true" />
@@ -278,7 +296,15 @@
       <option name="project" value="LOCAL" />
       <updated>1759932279836</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="updates">
+      <option name="closed" value="true" />
+      <created>1759933518175</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1759933518175</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

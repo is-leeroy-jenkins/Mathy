@@ -62,7 +62,7 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
 from boogr import Error, ErrorDialog
-from preprocessors import Preprocessor
+from encoders import Encoder
 
 def throw_if( name: str, value: object ):
     if value is None:
@@ -464,7 +464,7 @@ class DataSource( ):
     testing_data: Optional[ np.ndarray ]
     training_values: Optional[ np.ndarray ]
     testing_values: Optional[ np.ndarray ]
-    transtuple: Optional[ List[ Tuple[ str, Preprocessor, List[ str ] ] ] ]
+    transtuple: Optional[ List[ Tuple[ str, Encoder, List[ str ] ] ] ]
     numeric_metrics: Optional[ pd.DataFrame ]
     categorical_metrics: Optional[ pd.DataFrame ]
     pivot_table: Optional[ pd.DataFrame ]
@@ -524,7 +524,7 @@ class DataSource( ):
         self.average = self.numeric.mean( axis=0, numeric_only=True )
         self.mean_standard_error = self.numeric.sem( axis=0, ddof=1, numeric_only=True )
         self.standard_deviation = self.numeric.std( axis=0, ddof=1, numeric_only=True )
-        self.transtuple: List[ Tuple[ str, Preprocessor, list[ str ] ] ] = [ ]
+        self.transtuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = [ ]
         self.numeric_metrics = None
         self.categorical_metrics = None
         self.pivot_table = None
@@ -549,7 +549,7 @@ class DataSource( ):
                  'calculate_standard_error', 'show_correlation_analysis',
                  'create_correlation_analysis' ]
     
-    def transform_columns( self, name: str, encoder: Preprocessor, columns: List[ str ] ) -> None:
+    def transform_columns( self, name: str, encoder: Encoder, columns: List[ str ] ) -> None:
         """
 
             Purpose:
