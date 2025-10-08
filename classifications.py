@@ -1,14 +1,14 @@
 '''
 	******************************************************************************************
 	  Assembly:                mathy
-	  Filename:                classifiers.py
+	  Filename:                classifications.py
 	  Author:                  Terry D. Eppler
 	  Created:                 05-31-2022
 	
 	  Last Modified By:        Terry D. Eppler
 	  Last Modified On:        05-01-2025
 	******************************************************************************************
-	<copyright file="classifiers.py" company="Terry D. Eppler">
+	<copyright file="classifications.py" company="Terry D. Eppler">
 	
 	     mathy Models
 	
@@ -36,7 +36,7 @@
 	
 	</copyright>
 	<summary>
-		classifiers.py
+		classifications.py
 	</summary>
 	******************************************************************************************
 '''
@@ -240,10 +240,35 @@ class Perceptron( Classifier ):
 	    
     @property
     def weights( self ) -> np.ndarray | None:
+	    '''
+		    
+		    Returns
+		    -------
+		    Weights assigned to the features.
+		    ndarray of shape (n_features,) or (n_targets, n_features)
+
+	    '''
 	    if self.perceptron_classifier.coef_ is None:
 		    raise AttributeError( 'The Perceptron data is untrained.' )
 	    else:
 		    return self.perceptron_classifier.coef_
+    
+    @property
+    def iterations( self ) -> np.ndarray:
+	    '''
+
+			Returns
+			-------
+			classes_ is ndarray of shape (n_classes, )
+			Actual number of iterations for all classes.
+			If binary or multinomial, it returns only 1 element. For liblinear solver,
+			only the maximum number of iteration across all classes is given.
+
+		'''
+	    if self.perceptron_classifier.n_iter_ is None:
+		    raise AttributeError( 'The model iterations have not been initialized!' )
+	    else:
+		    return self.perceptron_classifier.n_iter_
     
     def decision_function( self, X: np.ndarray ) -> np.ndarray:
         """
@@ -515,7 +540,7 @@ class Perceptron( Classifier ):
                  'score', 'analyze', 'create_heatmap', 'weights', 'density_function',
                  'weights', ]
     
-class LinearModel( Classifier ):
+class LinearRegression( Classifier ):
 	"""
 	
 		Purpose:
@@ -582,7 +607,7 @@ class LinearModel( Classifier ):
 		else:
 			return self.linear_model.coef_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearModel:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression:
 		"""
 		
 			Purpose:
@@ -884,7 +909,7 @@ class LogisticRegression( Classifier ):
     testing_score: Optional[ float ]
     training_score: Optional[ float ]
     
-    def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
+    def __init__( self, C: float=1.0, penalty: str='l2', iters: int=100,
 		    multi_class: str='multinomial', solver: str='lbfgs' ) -> None:
         """
 
@@ -938,7 +963,24 @@ class LogisticRegression( Classifier ):
 		    raise AttributeError( 'The model labels have not been initialized!' )
 	    else:
 		    return self.logistic_regression.classes_
-	   
+    
+    @property
+    def iterations( self ) -> np.ndarray:
+	    '''
+
+			Returns
+			-------
+			classes_ is ndarray of shape (n_classes, )
+			Actual number of iterations for all classes.
+			If binary or multinomial, it returns only 1 element. For liblinear solver,
+			only the maximum number of iteration across all classes is given.
+
+		'''
+	    if self.logistic_regression.n_iter_ is None:
+		    raise AttributeError( 'The model iterations have not been initialized!' )
+	    else:
+		    return self.logistic_regression.n_iter_
+    
     def decision_function( self, X: np.ndarray ) -> np.ndarray:
         """
 
@@ -1556,7 +1598,7 @@ class MultiLayerPerceptron( Classifier ):
             error.show( )
 
 
-class RidgeModel( Classifier ):
+class Ridge( Classifier ):
     """
 
 		Purpose:
@@ -1657,12 +1699,52 @@ class RidgeModel( Classifier ):
     
     @property
     def weights( self ) -> np.ndarray | None:
+	    '''
+		    
+		    Returns
+		    -------
+		    Weights assigned to the features.
+		    ndarray of shape (n_features,) or (n_targets, n_features)
+
+	    '''
 	    if self.ridge_classifier.coef_ is None:
-		    raise AttributeError( 'The classification data is untrained.' )
+		    raise AttributeError( 'The model weights have not been initialized!' )
 	    else:
 		    return self.ridge_classifier.coef_
 	    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeModel | None:
+    @property
+    def iterations( self ) -> np.ndarray:
+	    '''
+
+			Returns
+			-------
+			classes_ is ndarray of shape (n_classes, )
+			Actual number of iterations for all classes.
+			If binary or multinomial, it returns only 1 element. For liblinear solver,
+			only the maximum number of iteration across all classes is given.
+
+		'''
+	    if self.ridge_classifier.n_iter_ is None:
+		    raise AttributeError( 'The model iterations have not been initialized!' )
+	    else:
+		    return self.ridge_classifier.n_iter_
+    
+    @property
+    def features( self ) -> np.ndarray:
+	    '''
+
+    		Returns
+    		-------
+    		n_features_in_
+    		The number of features seen during training
+
+    	'''
+	    if self.ridge_classifier.n_features_in_ is None:
+		    raise AttributeError( 'The model features have not been initialized!' )
+	    else:
+		    return self.ridge_classifier.n_features_in_
+    
+    def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
         """
 
 
@@ -1688,7 +1770,7 @@ class RidgeModel( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'RidgeClassifier'
+            exception.cause = 'Ridge'
             exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
             error = ErrorDialog( exception )
             error.show( )
@@ -1718,7 +1800,7 @@ class RidgeModel( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'RidgeClassifier'
+            exception.cause = 'Ridge'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -1750,7 +1832,7 @@ class RidgeModel( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'RidgeClassifier'
+            exception.cause = 'Ridge'
             exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
@@ -1794,7 +1876,7 @@ class RidgeModel( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'RidgeClassifier'
+            exception.cause = 'Ridge'
             exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
             error = ErrorDialog( exception )
             error.show( )
@@ -1826,7 +1908,7 @@ class RidgeModel( Classifier ):
         except Exception as e:
 	        exception = Error( e )
 	        exception.module = 'mathy'
-	        exception.cause = 'RidgeClassifier'
+            exception.cause = 'Ridge'
 	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
 	        error = ErrorDialog( exception )
 	        error.show( )
@@ -1863,62 +1945,63 @@ class RidgeModel( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'RidgeClassifier'
+            exception.cause = 'Ridge'
             exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-        '''
-
+	
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+	
 			Purpose:
 			--------
 			Visualize how well it separates the different sample
-
+	
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 			
 		'''
-        try:
-            throw_if( 'X', X )
-            throw_if( 'y', y )
-            # setup marker generator and color map
-            markers = ('o', 's', '^', 'v', '<')
-            colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-            cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-            
-            # plot the decision surface
-            x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-            x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-            xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-	            np.arange( x2_min, x2_max, resolution ) )
-            lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-            lab = lab.reshape( xx1.shape )
-            plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-            plt.xlim( xx1.min( ), xx1.max( ) )
-            plt.ylim( xx2.min( ), xx2.max( ) )
-            
-            # plot class examples
-            for idx, cl in enumerate( np.unique( y ) ):
-                plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
-                    idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-                
-                # plot all examples
-                if test_idx:
-                    X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-                    plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-	                    alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'RidgeClassifier'
-            exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-            error = ErrorDialog( exception )
-            error.show( )
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			# setup marker generator and color map
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
+				np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ),
+			                                xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
+			
+			# plot class examples
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
+					idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				
+				# plot all examples
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
+						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Ridge'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
-class LassoModel( Classifier ):
+class Lasso( Classifier ):
 	"""
 	
 		Purpose:
@@ -2002,12 +2085,52 @@ class LassoModel( Classifier ):
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
+		'''
+			
+			Returns
+			-------
+			Weights assigned to the features.
+			ndarray of shape (n_features,) or (n_targets, n_features)
+
+		'''
 		if self.lasso_classifier.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
 			return self.lasso_classifier.coef_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel | None:
+	@property
+	def iterations( self ) -> np.ndarray:
+		'''
+	
+			Returns
+			-------
+			classes_ is ndarray of shape (n_classes, )
+			Actual number of iterations for all classes.
+			If binary or multinomial, it returns only 1 element. For liblinear solver,
+			only the maximum number of iteration across all classes is given.
+	
+		'''
+		if self.lasso_classifier.n_iter_ is None:
+			raise AttributeError( 'The model iterations have not been initialized!' )
+		else:
+			return self.lasso_classifier.n_iter_
+	
+	@property
+	def features( self ) -> np.ndarray:
+		'''
+	
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+	
+		'''
+		if self.lasso_classifier.n_features_in_ is None:
+			raise AttributeError( 'The model features have not been initialized!' )
+		else:
+			return self.lasso_classifier.n_features_in_
+			
+	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -2016,7 +2139,7 @@ class LassoModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LassoModel'
+			exception.cause = 'Lasso'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel'
 			error = ErrorDialog( exception )
 			error.show()
@@ -2046,7 +2169,7 @@ class LassoModel( Classifier ):
 	    except Exception as e:
 		    exception = Error( e )
 		    exception.module = 'mathy'
-		    exception.cause = 'LassoModel'
+			exception.cause = 'Lasso'
 		    exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 		    error = ErrorDialog( exception )
 		    error.show( )
@@ -2059,7 +2182,7 @@ class LassoModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LassoModel'
+			exception.cause = 'Lasso'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2102,7 +2225,7 @@ class LassoModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LassoModel'
+			exception.cause = 'Lasso'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2138,18 +2261,20 @@ class LassoModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LassoModel'
+			exception.cause = 'Lasso'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StochasticGradientDescent( Classifier ):
+class GradientDescent( Classifier ):
     """
 
 		Purpose:
 		--------
-		Linear classifiers (SVM, logistic regression, etc.) with SGD training. This estimator
-		implements regularized linear models with stochastic gradient descent (SGD) learning:
+		Linear classifiers (SVM, logistic regression, etc.) with Stochastic Gradient Descent (SGD)
+		training.  This estimator implements regularized linear models with stochastic
+		gradient descent learning:
+		
 		the gradient of the loss is estimated each sample at a time and the model is updated along
 		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
 		(online/out-of-core) learning via the partial_fit method. For best results using the
@@ -2160,7 +2285,7 @@ class StochasticGradientDescent( Classifier ):
 		 by default, it fits a linear support vector machine (SVM).
 
 		The regularizer is a penalty added to the loss function that shrinks model parameters
-		towards the zero vector using either the squared euclidean norm L2 or the absolute norm
+		towards the zero vector using either the squared Euclidean norm L2 or the absolute norm
 		L1 or a combination of both (Elastic Net). If the parameter update crosses the 0.0 value
 		because of the regularizer, the update is truncated to 0.0 to allow for learning sparse
 		 models and achieve online feature selection.
@@ -2185,7 +2310,7 @@ class StochasticGradientDescent( Classifier ):
     regularization: Optional[ Any ]
     alpha: Optional[ float ]
     
-    def __init__( self, loss: str='hinge', size: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
+    def __init__( self, loss: str='log_loss', size: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
         """
 
 			Purpose:
@@ -2267,7 +2392,7 @@ class StochasticGradientDescent( Classifier ):
 	    else:
 		    return self.sgd_classifier.classes_
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
         """
 
 			Purpose:
@@ -2292,7 +2417,7 @@ class StochasticGradientDescent( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'StochasticGradientDescent'
+            exception.cause = 'GradientDescent'
             exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
             error = ErrorDialog( exception )
             error.show( )
@@ -2320,7 +2445,7 @@ class StochasticGradientDescent( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'StochasticGradientDescent'
+            exception.cause = 'GradientDescent'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -2351,7 +2476,7 @@ class StochasticGradientDescent( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'StochasticGradientDescent'
+            exception.cause = 'GradientDescent'
             exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
@@ -2401,47 +2526,48 @@ class StochasticGradientDescent( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'StochasticGradientDescent'
+            exception.cause = 'GradientDescent'
             exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
                                 'float ]')
             error = ErrorDialog( exception )
             error.show( )
     
     def decision_function( self, X: np.ndarray ) -> np.ndarray:
-        """
+	    """
 
-            Purpose:
-            ---------
-            Predict confidence scores for samples. The confidence score for a sample is proportional
-            to the signed distance of that sample to the hyperplane.
+			Purpose:
+			---------
+			Predict confidence scores for samples. The confidence score for a sample is
+			proportional
+			to the signed distance of that sample to the hyperplane.
 
-            Parameters
-            ----------
-            X (np.ndarray) of shape (n_samples, n_features)
-            The data matrix for which we want to get the confidence scores.
+			Parameters
+			----------
+			X (np.ndarray) of shape (n_samples, n_features)
+			The data matrix for which we want to get the confidence scores.
 
-            Returns
-            -------
-            np.ndarray of shape (n_samples,) or (n_samples, n_classes)
-            Confidence scores per (n_samples, n_classes) combination. In the binary case,
-            confidence score for self.classes_[1] where >0 means this class would be predicted.
+			Returns
+			-------
+			np.ndarray of shape (n_samples,) or (n_samples, n_classes)
+			Confidence scores per (n_samples, n_classes) combination. In the binary case,
+			confidence score for self.classes_[1] where >0 means this class would be predicted.
 
-        """
-        try:
-	        throw_if( 'X', X )
-	        self.decision = self.sgd_classifier.decision_function( X )
-	        return self.decision
-        except Exception as e:
-	        exception = Error( e )
-	        exception.module = 'mathy'
-	        exception.cause = 'StocasticGradientDescent'
-	        exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
-	        error = ErrorDialog( exception )
-	        error.show( )
-        
-    def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-        """
+		"""
+	    try:
+		    throw_if( 'X', X )
+		    self.decision = self.sgd_classifier.decision_function( X )
+		    return self.decision
+	    except Exception as e:
+		    exception = Error( e )
+		    exception.module = 'mathy'
+		    exception.cause = 'GradientDescent'
+		    exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+		    error = ErrorDialog( exception )
+		    error.show( )
 
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
+		"""
+	
 			Purpose:
 			---------
 			Probability estimates. The returned estimates for all classes are ordered
@@ -2450,32 +2576,32 @@ class StochasticGradientDescent( Classifier ):
 			predicted probability of each class. Else use a one-vs-rest approach,
 			i.e. calculate the probability of each class assuming it to be positive
 			using the logistic function and normalize these values across all the classes.
-
+	
 			Parameters
 			----------
 			X (np.ndarray) of shape (n_samples, n_features)
 			Vector to be scored, where n_samples is the number of samples
 			and n_features is the number of features.
-
+	
 			Returns
 			-------
 			np.ndarray of shape (n_samples,) or (n_samples, n_classes)
 			Returns the probability of the sample for each class in the model,
 			where classes are ordered as they are in self.classes_.
-
+	
 		"""
-        try:
-	        throw_if( 'X', X )
-	        self.probability = self.sgd_classifer.predict_proba( X )
-	        return self.probability
-        except Exception as e:
-	        exception = Error( e )
-	        exception.module = 'mathy'
-	        exception.cause = 'StochasticGradientDescent'
-	        exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
-	        error = ErrorDialog( exception )
-	        error.show( )
-    
+		try:
+			throw_if( 'X', X )
+			self.probability = self.sgd_classifer.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientDescent'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	   
     def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
         """
 
@@ -2507,18 +2633,18 @@ class StochasticGradientDescent( Classifier ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'StochasticGradientDescent'
+            exception.cause = 'GradientDescent'
             exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
-    def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-        '''
-
+	
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+	
 			Purpose:
 			--------
 			Visualize how well it separates the different sample
-
+	
 			:param X:
 			:type X: np.ndarray
 			:param y:
@@ -2528,34 +2654,36 @@ class StochasticGradientDescent( Classifier ):
 			:param resolution:
 			:type resolution: float
 		'''
-        try:
-            throw_if( 'X', X )
-            throw_if( 'y', y )
-            markers = ('o', 's', '^', 'v', '<')
-            colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-            cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-            x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-            x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-            xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-            lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-            lab = lab.reshape( xx1.shape )
-            plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-            plt.xlim( xx1.min( ), xx1.max( ) )
-            plt.ylim( xx2.min( ), xx2.max( ) )
-            for idx, cl in enumerate( np.unique( y ) ):
-                plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
-	                marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-                if test_idx:
-                    X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-                    plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-	                    edgecolor='black', alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'StochasticGradientDescent'
-            exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-            error = ErrorDialog( exception )
-            error.show( )
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min,
+				x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ),
+			                                xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
+					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
+						edgecolor='black', alpha=1.0, linewidth=1, marker='o', s=100, label='Test')
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientDescent'
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 
 class NearestNeighbor( Classifier ):
     """
@@ -2588,7 +2716,7 @@ class NearestNeighbor( Classifier ):
     algorithm: Any
     metric: str
     
-    def __init__( self, num: int=5, algorithm: Any='auto', metric: str='minkowski' ) -> None:
+    def __init__( self, num: int=5, algorithm: str='auto', metric: str='minkowski' ) -> None:
         """
 
 
@@ -5167,7 +5295,7 @@ class StackingModel( Classifier ):
             error.show( )
 
 
-class SupportVectorMachine( Classifier ):
+class SupportVector( Classifier ):
     """
 
 		Support Vector Classifier (SVC).The implementation is based on libsvm. The fit time scales
@@ -5176,9 +5304,9 @@ class SupportVectorMachine( Classifier ):
 
 	"""
     svc_classifier: skv.SVC
-    kernel: str
-    regulation: float
-    degree: int
+    multiclass: Optional[ str ]
+    regulation: Optional[ float ]
+    penalty: Optional[ str ]
     prediction: Optional[ np.ndarray ]
     probability: Optional[ np.ndarray ]
     max_depth: Optional[ int ]
@@ -5193,7 +5321,7 @@ class SupportVectorMachine( Classifier ):
     testing_score: Optional[ float ]
     training_score: Optional[ float ]
     
-    def __init__( self, kernel: str='rbf', C: float=1.0, degree: int=3 ) -> None:
+    def __init__( self, multi: str='ovr', C: float=1.0, penalty: str='l2', degree: int=3 ) -> None:
         """
 		
 			Purpose:
@@ -5207,11 +5335,11 @@ class SupportVectorMachine( Classifier ):
 			
 		"""
         super( ).__init__( )
-        self.kernel = kernel
+        self.multiclass = multi
         self.regulation = C
-        self.degree = degree
-        self.svc_classifier = skv.SVC( kernel=self.kernel, C=self.regulation,
-            random_state=self.random_state, degree=self.degree )
+        self.penalty = penalty
+        self.svc_classifier = skv.SVC( multi_class=self.multiclass, C=self.regulation,
+            random_state=self.random_state, penalty=self.penalty )
         self.prediction = None
         self.accuracy = 0.0
         self.mean_absolute_error = 0.0
@@ -5249,7 +5377,7 @@ class SupportVectorMachine( Classifier ):
                  'analyze',
                  'create_heatmap' ]
     
-    def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorMachine | None:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
         """
 		
 			Purpose:
