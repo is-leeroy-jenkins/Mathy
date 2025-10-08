@@ -448,10 +448,10 @@ class DataSource( ):
 
     """
     dataframe: pd.DataFrame
-    target: np.ndarray
     test_size: float
     random_state: int
     data: Optional[ np.ndarray ]
+    target: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
     n_features: Optional[ int ]
     scaling_factor: Optional[ int ]
@@ -460,12 +460,10 @@ class DataSource( ):
     categorical_columns: Optional[ List[ str ] ]
     numeric_columns: Optional[ List[ str ] ]
     numeric: Optional[ pd.DataFrame ]
-    X: Optional[ np.ndarray ]
-    y: Optional[ np.ndarray ]
-    X_training: Optional[ np.ndarray ]
-    X_testing: Optional[ np.ndarray ]
-    y_training: Optional[ np.ndarray ]
-    y_testing: Optional[ np.ndarray ]
+    training_data: Optional[ np.ndarray ]
+    testing_data: Optional[ np.ndarray ]
+    training_values: Optional[ np.ndarray ]
+    testing_values: Optional[ np.ndarray ]
     transtuple: Optional[ List[ Tuple[ str, Preprocessor, List[ str ] ] ] ]
     numeric_metrics: Optional[ pd.DataFrame ]
     categorical_metrics: Optional[ pd.DataFrame ]
@@ -511,8 +509,14 @@ class DataSource( ):
         self.n_features = self.dataframe.shape[ 1 ]
         self.target = df[ target ]
         self.target_names = np.array( sorted( np.unique( self.target ) ) )
-        self.X_training, self.X_testing, self.y_training, self.y_testing = train_test_split( self.X,
-            self.y, test_size=self.test_size, random_state=self.random_state, stratify=None )
+        self.training_data = train_test_split( self.data, self.target, test_size=self.test_size,
+			        random_state=self.random_state, stratify=None )[ 0 ]
+        self.testing_data = train_test_split( self.data, self.target, test_size=self.test_size,
+			        random_state=self.random_state, stratify=None )[ 1 ]
+        self.training_values = train_test_split( self.data, self.target, test_size=self.test_size,
+			        random_state=self.random_state, stratify=None )[ 2 ]
+        self.testing_values = train_test_split( self.data, self.target, test_size=self.test_size,
+			        random_state=self.random_state, stratify=None )[ 3 ]
         self.numeric = df.select_dtypes( include='number' ).copy( )
         self.skew = self.numeric.skew( axis=0, numeric_only=True )
         self.variance = self.numeric.var( axis=0, ddof=1, numeric_only=True )
@@ -534,10 +538,11 @@ class DataSource( ):
             This function retuns a list of strings (members of the class)
 
         '''
-        return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'X', 'y', 'feature_names',
+        return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'feature_names',
                  'test_size', 'random_state', 'categorical_metrics', 'categorical_columns',
                  'transtuple', 'numeric_metrics', 'numeric', 'pivot_table', 'calculate_statistics',
-                 'numeric_columns', 'mean_standard_error', 'X_training', 'X_testing', 'y_training',
+                 'numeric_columns', 'mean_standard_error', 'training_data', 'testing_data',
+                 'training_values', 'testing_values', 'data', 'target',
                  'average', 'kurtosis', 'variance', 'y_testing', 'transform_columns',
                  'create_pivot_table', 'standard_deviation', 'export_excel', 'create_histogram',
                  'calculate_skew', 'calculate_average', 'calculate_deviation', 'calculate_kurtosis',
