@@ -573,8 +573,8 @@ class DataSource( ):
             throw_if( 'columns', columns )
             self.transtuple.append( (name, encoder, columns) )
             self.column_transformer = ColumnTransformer( transformers=self.transtuple, remainder='passthrough' )
-            self.X = self.dataframe[ self.feature_names ]
-            _ = self.column_transformer.fit_transform( self.X )
+            self.data = self.dataframe[ self.feature_names ]
+            _ = self.column_transformer.fit_transform( self.data )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
