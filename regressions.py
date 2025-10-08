@@ -165,7 +165,7 @@ class Regressor:
         """
 		raise NotImplementedError
 
-class LinearModel( Regressor ):
+class LinearRegression( Regressor ):
 	"""
 
 	    Purpose:
@@ -183,7 +183,7 @@ class LinearModel( Regressor ):
 
     """
 	
-	linear_regressor: skl.LinearRegression
+	linear_model: skl.LinearRegression
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -212,7 +212,7 @@ class LinearModel( Regressor ):
 		super( ).__init__( )
 		self.fit_intercept = fit
 		self.copy_X = copy
-		self.linear_regressor = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X )
+		self.linear_model = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -234,17 +234,18 @@ class LinearModel( Regressor ):
         """
 		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state',
 		         'weights', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
-		         'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-		         'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		         'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'weights',
+		         'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
+		         'weights' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.linear_regressor.coef_ is None:
+		if self.linear_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.linear_regressor.coef_
+			return self.linear_model.coef_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearModel | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression | None:
 		"""
 	
 	        Purpose:
@@ -264,11 +265,11 @@ class LinearModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.linear_regressor.fit( X, y )
+			self.linear_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = "LinearRegressor"
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
 			error = ErrorDialog( exception )
@@ -293,11 +294,11 @@ class LinearModel( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.linear_regressor.predict( X )
+			self.prediction = self.linear_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = "LinearRegressor"
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
 			error = ErrorDialog( exception )
@@ -324,12 +325,12 @@ class LinearModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.linear_regressor.predict( X )
+			self.prediction = self.linear_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = "LinearRegressor"
 			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
 			error = ErrorDialog( exception )
@@ -362,18 +363,20 @@ class LinearModel( Regressor ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+			return \
+			{
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), 
+			}
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LinearRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'LinearRegressor'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -393,7 +396,7 @@ class LinearModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.linear_regressor.predict( X )
+			self.prediction = self.linear_model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( "Observed" )
 			plt.ylabel( "Projected" )
@@ -403,13 +406,13 @@ class LinearModel( Regressor ):
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = "LinearRegressor"
 			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RidgeModel( Regressor ):
+class Ridge( Regressor ):
 	"""
 	
 	    Purpose:
@@ -431,7 +434,7 @@ class RidgeModel( Regressor ):
 	    If an array is passed, penalties are assumed to be specific to the targets.
 
     """
-	ridge_regressor: skl.Ridge
+	ridge_model: skl.Ridge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -472,7 +475,7 @@ class RidgeModel( Regressor ):
 		self.solver = solver
 		self.max_iter = iters
 		self.random_state = rando
-		self.ridge_regressor = skl.Ridge( alpha=self.alpha, solver=self.solver,
+		self.ridge_model = skl.Ridge( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -496,7 +499,7 @@ class RidgeModel( Regressor ):
 		         'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
 		         'project', 'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> RidgeModel | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
 		"""
 	
 	
@@ -517,22 +520,22 @@ class RidgeModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.ridge_regressor.fit( X, y )
+			self.ridge_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RidgeRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'Ridge'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Ridge'
 			error = ErrorDialog( exception )
 			error.show( )
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.ridge_regressor.coef_ is None:
+		if self.ridge_model.coef_ is None:
 			raise AttributeError( 'The classification data is untrained.' )
 		else:
-			return self.ridge_regressor.coef_
+			return self.ridge_model.coef_
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -553,13 +556,13 @@ class RidgeModel( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.ridge_regressor.predict( X )
+			self.prediction = self.ridge_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RidgeRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'Ridge'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -584,14 +587,14 @@ class RidgeModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_regressor.predict( X )
+			self.prediction = self.ridge_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RidgeRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'Ridge'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -616,7 +619,7 @@ class RidgeModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_regressor.predict( X )
+			self.prediction = self.ridge_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -624,15 +627,15 @@ class RidgeModel( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = "RidgeRegressor"
 			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
 			error = ErrorDialog( exception )
@@ -659,23 +662,23 @@ class RidgeModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_regressor.predict( X )
+			self.prediction = self.ridge_model.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Ridge Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Ridge Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RidgeRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'RidgeRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LassoModel( Regressor ):
+class Lasso( Regressor ):
 	"""
 	
 	    Purpose:
@@ -695,7 +698,7 @@ class LassoModel( Regressor ):
 
     """
 	
-	lasso_regressor: skl.Lasso
+	lasso_model: skl.Lasso
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -725,7 +728,7 @@ class LassoModel( Regressor ):
 		self.alpha = alpha
 		self.max_iter = iters
 		self.random_state = rando
-		self.lasso_regressor = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
+		self.lasso_model = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -747,16 +750,16 @@ class LassoModel( Regressor ):
 		return [ 'prediction', 'accuracy', 'random_state', 'alpha', 'max_iter',
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
-			'project', 'score', 'analyze', 'create_scatter', ]
+			'project', 'score', 'analyze', 'create_scatter', 'weights' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.lasso_regressor.coef_ is None:
+		if self.lasso_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.lasso_regressor.coef_
+			return self.lasso_model.coef_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		"""
 
 	        Purpose:
@@ -776,13 +779,13 @@ class LassoModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.lasso_regressor.fit( X, y )
+			self.lasso_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LassoRegression"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'Lasso'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> self'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -804,13 +807,13 @@ class LassoModel( Regressor ):
 
         """
 		try:
-			self.prediction = self.lasso_regressor.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LassoRegression"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'Lasso'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -835,14 +838,14 @@ class LassoModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_regressor.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LassoRegression"
-			exception.method = "accuracy(self, X: np.ndarray, y: np.ndarray) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'Lasso'
+			exception.method = 'accuracy(self, X: np.ndarray, y: np.ndarray) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -868,7 +871,7 @@ class LassoModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_regressor.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -876,17 +879,17 @@ class LassoModel( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LassoRegression"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'LassoRegression'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -907,19 +910,19 @@ class LassoModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_regressor.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Lasso Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Lasso Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LassoRegression"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'Lasso'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -937,7 +940,7 @@ class ElasticNet( Regressor ):
 	    Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
     """
-	elasticnet_regressor: skl.ElasticNet
+	elasticnet_model: skl.ElasticNet
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -979,7 +982,7 @@ class ElasticNet( Regressor ):
 		self.random_state = rando
 		self.selection = select
 		self.max_iter = max
-		self.elasticnet_regressor = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
+		self.elasticnet_model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
 			random_state=self.random_state, max_iter=self.max_iter, selection=self.selection, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1024,13 +1027,13 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.elasticnet_regressor.fit( X, y )
+			self.elasticnet_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "ElasticNetRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'ElasticNet'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> self'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1054,13 +1057,13 @@ class ElasticNet( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.elasticnet_regressor.predict( X )
+			self.prediction = self.elasticnet_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "ElasticNetRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'ElasticNet'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1085,14 +1088,14 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.elasticnet_regressor.predict( X )
+			self.prediction = self.elasticnet_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "ElasticNetRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'ElasticNet'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1118,7 +1121,7 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.elasticnet_regressor.predict( X )
+			self.prediction = self.elasticnet_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1126,17 +1129,17 @@ class ElasticNet( Regressor ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return {
-				"MAE": mean_absolute_error( y, self.prediction ),
-				"MSE": mean_squared_error( y, self.prediction ),
-				"RMSE": mean_squared_error( y, self.prediction, squared=False ),
-				"R2": r2_score( y, self.prediction ),
-				"Explained Variance": explained_variance_score( y, self.prediction ),
-				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
+				'MAE': mean_absolute_error( y, self.prediction ),
+				'MSE': mean_squared_error( y, self.prediction ),
+				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
+				'R2': r2_score( y, self.prediction ),
+				'Explained Variance': explained_variance_score( y, self.prediction ),
+				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "ElasticNetRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'ElasticNet'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1156,19 +1159,19 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.elasticnet_regressor.predict( X )
+			self.prediction = self.elasticnet_model.predict( X )
 			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "ElasticNet Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'ElasticNet Regression: Observed vs Projected' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "ElasticNetRegressor"
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'ElasticNetRegressor'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1185,7 +1188,7 @@ class LeastAngle( Regressor ):
 
     """
 	
-	lars_regressor: skl.Lars
+	lars_model: skl.Lars
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1225,7 +1228,7 @@ class LeastAngle( Regressor ):
 		self.normalize = normal
 		self.nonzero_coefficients = coeffs
 		self.precompute = precompute
-		self.lars_regressor = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
+		self.lars_model = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
 			precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1270,12 +1273,12 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.lars_regressor.fit( X, y )
+			self.lars_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LeastAngleRegressor'
+			exception.cause = 'LeastAngle'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1298,13 +1301,13 @@ class LeastAngle( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.lars_regressor.predict( X )
+			self.prediction = self.lars_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LeastAngleRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'LeastAngle'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1328,14 +1331,14 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lars_regressor.predict( X )
+			self.prediction = self.lars_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LeastAngleRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'LeastAngle'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1366,7 +1369,7 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lars_regressor.predict( X )
+			self.prediction = self.lars_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1382,9 +1385,9 @@ class LeastAngle( Regressor ):
 				"Median Absolute Error": median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LeastAngleRegressor"
-			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
+			exception.module = 'mathy'
+			exception.cause = 'LeastAngle'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1408,17 +1411,17 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lars_regressor.predict( X )
+			self.prediction = self.lars_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			ConfusionMatrixDisplay( confusion_matrix=cm )
-			plt.title( "Logistic Regression Confusion Matrix" )
+			plt.title( 'Logistic Regression Confusion Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "LeastAngleRegressor"
-			exception.method = ("create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.module = 'mathy'
+			exception.cause = 'LeastAngle'
+			exception.method = ('create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1525,8 +1528,8 @@ class BayesianRidge( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BayesianRidgeRegressor"
+			exception.module = 'mathy'
+			exception.cause = 'BayesianRidge'
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1553,8 +1556,8 @@ class BayesianRidge( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "BayesianRidgeRegressor"
+			exception.module = 'mathy'
+			exception.cause = 'BayesianRidge'
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1586,7 +1589,7 @@ class BayesianRidge( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidgeRegressor'
+			exception.cause = 'BayesianRidge'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1628,7 +1631,7 @@ class BayesianRidge( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidgeRegressor'
+			exception.cause = 'BayesianRidge'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1660,12 +1663,12 @@ class BayesianRidge( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidgeRegressor'
+			exception.cause = 'BayesianRidge'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StochasticGradientDescent( Regressor ):
+class GradientDescent( Regressor ):
 	"""
 
     Purpose:
@@ -1691,7 +1694,7 @@ class StochasticGradientDescent( Regressor ):
     values for the feature_names.
 
     """	
-	stochastic_regressor = skl.SGDRegressor
+	sgd_model = skl.SGDRegressor
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -1729,7 +1732,7 @@ class StochasticGradientDescent( Regressor ):
 		self.alpha = alpha
 		self.random_state = rando
 		self.penalty = penalty
-		self.stochastic_regressor = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter, 
+		self.sgd_model = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1751,14 +1754,14 @@ class StochasticGradientDescent( Regressor ):
 		return [ 'prediction', 'accuracy', 'penalty', 'max_iter', 'random_state', 'loss', 
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 
-			'analyze', 'create_scatter', ]
+			'analyze', 'create_scatter', 'weights', 'labels' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.stochastic_regressor.coef_ is None:
+		if self.sgd_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.stochastic_regressor.coef_
+			return self.sgd_model.coef_
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -1770,12 +1773,12 @@ class StochasticGradientDescent( Regressor ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.stochastic_regressor.classes_ is None:
+		if self.sgd_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.stochastic_regressor.classes_
+			return self.sgd_model.classes_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> StochasticGradientDescent | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
 		"""
 
         Purpose:
@@ -1795,12 +1798,12 @@ class StochasticGradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.stochastic_regressor.fit( X, y )
+			self.sgd_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientRegressor'
+			exception.cause = 'StochasticGradient'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1823,12 +1826,12 @@ class StochasticGradientDescent( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.stochastic_regressor.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientRegressor'
+			exception.cause = 'StochasticGradient'
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1853,13 +1856,13 @@ class StochasticGradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stochastic_regressor.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'StochasticGradient'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1884,7 +1887,7 @@ class StochasticGradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stochastic_regressor.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1901,7 +1904,7 @@ class StochasticGradientDescent( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientRegressor'
+			exception.cause = 'StochasticGradient'
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1922,7 +1925,7 @@ class StochasticGradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stochastic_regressor.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
@@ -1933,7 +1936,7 @@ class StochasticGradientDescent( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradientRegressor'
+			exception.cause = 'StochasticGradient'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1971,7 +1974,7 @@ class NearestNeighbor( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, num: int=5, algo: str='auto', power: float=2.0, metric: str='minkowski', ) -> None:
+	def __init__( self, num: int=5, algo: str='auto', power: float=2.0, metric: str='minkowski' ) -> None:
 		"""
 
 	
@@ -2046,7 +2049,7 @@ class NearestNeighbor( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborRegressor'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2073,8 +2076,8 @@ class NearestNeighbor( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "NearestNeighborRegressor"
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighbor'
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2105,7 +2108,7 @@ class NearestNeighbor( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborRegressor'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2148,7 +2151,7 @@ class NearestNeighbor( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborRegressor'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2184,7 +2187,7 @@ class NearestNeighbor( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestRegressor'
+			exception.cause = 'NearestNeighbor'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2204,7 +2207,7 @@ class DecisionTree( Regressor ):
 
     '''
 	
-	dt_regressor: skd.DecisionTreeRegressor
+	decision_model: skd.DecisionTreeRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -2235,7 +2238,7 @@ class DecisionTree( Regressor ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.dt_regresssor = skd.DecisionTreeRegressor( criterion=self.criterion,
+		self.decision_model = skd.DecisionTreeRegressor( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2280,12 +2283,12 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.dt_regresssor.fit( X, y )
+			self.decision_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeRegression'
+			exception.cause = 'DecisionTree'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2308,7 +2311,7 @@ class DecisionTree( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.dt_regresssor.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2338,7 +2341,7 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.dt_regresssor.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2370,7 +2373,7 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.dt_regresssor.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -2414,7 +2417,7 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.dt_regresssor.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
@@ -2538,9 +2541,9 @@ class RandomForest( Regressor ):
 			return self
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RandomForestRegressor"
-			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
+			exception.module = 'mathy'
+			exception.cause = 'RandomForest'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2566,9 +2569,9 @@ class RandomForest( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RandomForestRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.module = 'mathy'
+			exception.cause = 'RandomForest'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2597,9 +2600,9 @@ class RandomForest( Regressor ):
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
-			exception.cause = "RandomForestRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.module = 'mathy'
+			exception.cause = 'RandomForest'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2640,7 +2643,7 @@ class RandomForest( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestRegressor'
+			exception.cause = 'RandomForest'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2676,7 +2679,7 @@ class RandomForest( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestRegressor'
+			exception.cause = 'RandomForest'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2799,7 +2802,7 @@ class GradientBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2827,7 +2830,7 @@ class GradientBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2858,7 +2861,7 @@ class GradientBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2894,7 +2897,7 @@ class GradientBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2926,7 +2929,7 @@ class GradientBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3061,7 +3064,7 @@ class AdaptiveBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3088,7 +3091,7 @@ class AdaptiveBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3120,7 +3123,7 @@ class AdaptiveBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3161,7 +3164,7 @@ class AdaptiveBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3196,7 +3199,7 @@ class AdaptiveBoost( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostRegressor'
+			exception.cause = 'GradientBoost'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3315,7 +3318,7 @@ class BaggingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingRegressor'
+			exception.cause = 'BaggingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3342,7 +3345,7 @@ class BaggingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingRegressor'
+			exception.cause = 'BaggingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3372,7 +3375,7 @@ class BaggingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingRegressor'
+			exception.cause = 'BaggingModel'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3413,7 +3416,7 @@ class BaggingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingRegressor'
+			exception.cause = 'BaggingModel'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3448,7 +3451,7 @@ class BaggingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingRegressor'
+			exception.cause = 'BaggingModel'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3557,7 +3560,7 @@ class VotingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingRegressor'
+			exception.cause = 'VotingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3586,7 +3589,7 @@ class VotingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingRegressor'
+			exception.cause = 'VotingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3616,7 +3619,7 @@ class VotingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingRegressor'
+			exception.cause = 'VotingModel'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3657,7 +3660,7 @@ class VotingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingRegressor'
+			exception.cause = 'VotingModel'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3697,7 +3700,7 @@ class VotingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingRegressor'
+			exception.cause = 'VotingModel'
 			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3817,7 +3820,7 @@ class StackingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingRegressor'
+			exception.cause = 'StackingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3844,7 +3847,7 @@ class StackingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingRegressor'
+			exception.cause = 'StackingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3874,7 +3877,7 @@ class StackingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingRegressor'
+			exception.cause = 'StackingModel'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3915,7 +3918,7 @@ class StackingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingRegressor'
+			exception.cause = 'StackingModel'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3951,12 +3954,12 @@ class StackingModel( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingRegressor'
+			exception.cause = 'StackingModel'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SupportVectorMachine( Regressor ):
+class SupportVector( Regressor ):
 	"""
     Wrapper for sklearn's Support Vector Regression (SVR).
     """
@@ -4016,7 +4019,7 @@ class SupportVectorMachine( Regressor ):
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
 			'score', 'analyze', 'create_scatter', ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVectorMachine | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
 
         Purpose:
@@ -4041,7 +4044,7 @@ class SupportVectorMachine( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVectorRegressor'
+			exception.cause = 'SupportVector'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4066,7 +4069,7 @@ class SupportVectorMachine( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVectorRegressor'
+			exception.cause = 'SupportVector'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4099,7 +4102,7 @@ class SupportVectorMachine( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVectorRegressor'
+			exception.cause = 'SupportVector'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4137,7 +4140,7 @@ class SupportVectorMachine( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborRegressor'
+			exception.cause = 'SupportVector'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4169,7 +4172,7 @@ class SupportVectorMachine( Regressor ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborRegressor'
+			exception.cause = 'SupportVector'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4404,7 +4407,7 @@ class MultiLayerPerceptron( Regressor ):
 					"Median Absolute Error": median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = ""
 			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
 			error = ErrorDialog( exception )
@@ -4438,7 +4441,7 @@ class MultiLayerPerceptron( Regressor ):
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = ""
 			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
 			error = ErrorDialog( exception )
@@ -4537,7 +4540,7 @@ class GaussianProcess( Regressor ):
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
-			exception.module = "mathy"
+			exception.module = 'mathy'
 			exception.cause = "GaussianProcessRegressorWrapper"
 			exception.method = "project"
 			error = ErrorDialog( exception )

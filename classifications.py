@@ -41,27 +41,24 @@
 	******************************************************************************************
 '''
 from __future__ import annotations
-
 from typing import Dict
 from typing import Optional, List, Tuple, Any
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from scipy import stats
-from sklearn.base import ClassifierMixin
 import sklearn.ensemble as ske
 import sklearn.linear_model as skc
-from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score,
-							 mean_squared_error, mean_absolute_error,
-							 explained_variance_score, median_absolute_error)
 import sklearn.neighbors as skn
 import sklearn.neural_network as snn
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import Binarizer
 import sklearn.svm as skv
 import sklearn.tree as skd
+from matplotlib.colors import ListedColormap
+from sklearn.base import ClassifierMixin
+from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score,
+                             mean_squared_error, mean_absolute_error,
+                             explained_variance_score, median_absolute_error)
+from sklearn.preprocessing import Binarizer
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -188,7 +185,7 @@ class Perceptron( Classifier ):
 			constant learning rate.
 
 	"""
-	perceptron_classifier: skc.Perceptron
+	perceptron_model: skc.Perceptron
 	prediction: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -226,7 +223,7 @@ class Perceptron( Classifier ):
 		self.max_iter = iters
 		self.shuffle = shuffle
 		self.penalty = penalty
-		self.perceptron_classifier = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
+		self.perceptron_model = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
 			shuffle=self.shuffle, penalty=self.penalty, )
 		self.prediction = None
 		self.decision = None
@@ -237,7 +234,37 @@ class Perceptron( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		
+	
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction',
+		         'max_iter',
+		         'random_state',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'penalty',
+		         'alpha',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_heatmap',
+		         'weights',
+		         'decision_function',
+		         'weights',
+		         'iterations' ]
+	
 	@property
 	def weights( self ) -> np.ndarray:
 		'''
@@ -248,10 +275,10 @@ class Perceptron( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.perceptron_classifier.coef_ is None:
+		if self.perceptron_model.coef_ is None:
 			raise AttributeError( 'The Perceptron data is untrained.' )
 		else:
-			return self.perceptron_classifier.coef_
+			return self.perceptron_model.coef_
 	
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -265,10 +292,10 @@ class Perceptron( Classifier ):
 			only the maximum number of iteration across all classes is given.
 
 		'''
-		if self.perceptron_classifier.n_iter_ is None:
+		if self.perceptron_model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.perceptron_classifier.n_iter_
+			return self.perceptron_model.n_iter_
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -292,7 +319,7 @@ class Perceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.perceptron_classifier.decision_function( X )
+			self.decision = self.perceptron_model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -322,7 +349,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.perceptron_classifier.fit( X, y )
+			self.perceptron_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -351,7 +378,7 @@ class Perceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.perceptron_classifier.predict( X )
+			self.prediction = self.perceptron_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -382,7 +409,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.perceptron_classifier.predict( X )
+			self.prediction = self.perceptron_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -421,7 +448,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.perceptron_classifier.predict( X )
+			self.prediction = self.perceptron_model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
@@ -432,8 +459,8 @@ class Perceptron( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -464,7 +491,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.perceptron_classifier.predict( X )
+			self.prediction = self.perceptron_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, anno=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -525,21 +552,7 @@ class Perceptron( Classifier ):
 								'resolution=0.02 )')
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def __dir__( self ) -> List[ str ]:
-		'''
 
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-		return [ 'prediction', 'max_iter', 'random_state', 'accuracy', 'mean_absolute_error',
-				 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'penalty', 'alpha',
-				 'explained_variance_score', 'median_absolute_error', 'train', 'project',
-				 'score', 'analyze', 'create_heatmap', 'weights', 'density_function',
-				 'weights', ]
-	
 class LinearRegression( Classifier ):
 	"""
 	
@@ -599,6 +612,35 @@ class LinearRegression( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+	
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction',
+		         'max_iter',
+		         'random_state',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'penalty',
+		         'alpha',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_heatmap',
+		         'weights',
+		         'density_function',
+		         'weights', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -749,8 +791,8 @@ class LinearRegression( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -843,35 +885,6 @@ class LinearRegression( Classifier ):
 								'resolution=0.02 )')
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def __dir__( self ) -> List[ str ]:
-		'''
-	
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-	
-		'''
-		return [ 'prediction',
-				 'max_iter',
-				 'random_state',
-				 'accuracy',
-				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
-				 'r2_score',
-				 'penalty',
-				 'alpha',
-				 'explained_variance_score',
-				 'median_absolute_error',
-				 'train',
-				 'project',
-				 'score',
-				 'analyze',
-				 'create_heatmap',
-				 'weights',
-				 'density_function',
-				 'weights', ]
 
 class LogisticRegression( Classifier ):
 	"""
@@ -895,7 +908,7 @@ class LogisticRegression( Classifier ):
 		is only supported by the ‘saga’ solver.
 
 	"""
-	logistic_regression: skc.LogisticRegression
+	logistic_model: skc.LogisticRegression
 	prediction: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -936,7 +949,7 @@ class LogisticRegression( Classifier ):
 		self.max_iter = iters
 		self.multi_class = multi_class
 		self.solver = solver
-		self.logistic_regression = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
+		self.logistic_model = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
@@ -948,7 +961,39 @@ class LogisticRegression( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		
+	
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction',
+		         'accuracy',
+		         'penalty',
+		         'solver',
+		         'multi_class',
+		         'random_state',
+		         'alpha',
+		         'max_iter',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'predict_probabilty',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'decision_function',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'weights',
+		         'iterations',
+		         'labels' ]
+	
 	@property
 	def weights( self ) -> np.ndarray:
 		'''
@@ -959,13 +1004,13 @@ class LogisticRegression( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.logistic_regression.coef_ is None:
+		if self.logistic_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.logistic_regression.coef_
+			return self.logistic_model.coef_
 	
 	@property
-	def class_labels( self ) -> np.ndarray:
+	def labels( self ) -> np.ndarray:
 		'''
 			
 			Returns
@@ -974,10 +1019,10 @@ class LogisticRegression( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.logistic_regression.classes_ is None:
+		if self.logistic_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.logistic_regression.classes_
+			return self.logistic_model.classes_
 	
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -991,10 +1036,10 @@ class LogisticRegression( Classifier ):
 			only the maximum number of iteration across all classes is given.
 
 		'''
-		if self.logistic_regression.n_iter_ is None:
+		if self.logistic_model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.logistic_regression.n_iter_
+			return self.logistic_model.n_iter_
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1018,7 +1063,7 @@ class LogisticRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.logistic_regression.decision_function( X )
+			self.decision = self.logistic_model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -1055,7 +1100,7 @@ class LogisticRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.logistic_regression.predict_proba( X )
+			self.probability = self.logistic_model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -1085,7 +1130,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.logistic_regression.fit( X, y )
+			self.logistic_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1114,7 +1159,7 @@ class LogisticRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.logistic_regression.predict( X )
+			self.prediction = self.logistic_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1144,7 +1189,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_regression.predict( X )
+			self.prediction = self.logistic_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -1182,7 +1227,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_regression.predict( X )
+			self.prediction = self.logistic_model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
@@ -1193,8 +1238,8 @@ class LogisticRegression( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1224,7 +1269,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_regression.predict( X )
+			self.prediction = self.logistic_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -1239,387 +1284,6 @@ class LogisticRegression( Classifier ):
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def __dir__( self ) -> List[ str ]:
-		'''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-		return [ 'prediction', 'accuracy', 'penalty', 'solver', 'multi_class', 'random_state',
-				 'alpha', 'max_iter', 'mean_absolute_error', 'mean_squared_error', 'predict_probabilty',
-				 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'decision_function',
-				 'median_absolute_error', 'train', 'project', 'score', 'analyze', 'weights' ]
-	
-
-class MultiLayerPerceptron( Classifier ):
-	"""
-
-		Purpose:
-		-----------
-		This model optimizes the squared error using LBFGS or stochastic gradient descent.
-
-		Activation function for the hidden layers:
-		- ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
-		- ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
-		- ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
-		- ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
-
-		The solver for weight optimization:
-		- ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
-		- ‘sgd’ refers to stochastic gradient descent.
-		- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
-
-	"""
-	multilayer_perceptron: snn.MLPClassifier
-	prediction: Optional[ np.ndarray ]
-	probability: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
-	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
-	hidden_layers: tuple[ int, ... ]
-	activation_function: str
-	solver: str
-	alpha: float
-	learning_rate: Any
-	
-	
-	def __init__( self, hidden=( 100, ), activation='relu', solver='adam', alpha=0.0001,
-			learning: str='constant', rando: int=42 ) -> None:
-		super( ).__init__( )
-		self.hidden_layers = hidden
-		self.activation_function = activation
-		self.learning_rate = learning
-		self.solver = solver
-		self.alpha = alpha
-		self.random_state = rando
-		self.multilayer_perceptron = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
-			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
-			learning_rate=self.learning_rate, random_state=self.random_state )
-		self.prediction = None
-		self.accuracy = 0.0
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
-		
-	def __dir__( self ) -> List[ str ]:
-		'''
-
-			Purpose:
-			-------
-			Provides a list of strings representing class members
-
-		'''
-		return [ 'prediction',
-				 'probability',
-				 'max_depth',
-				 'random_state',
-				 'accuracy',
-				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
-				 'train',
-				 'project',
-				 'score',
-				 'analyze',
-				 'create_heatmap',
-				 'predict_probability',
-				 'weights',
-				 'classes',
-				 'loss' ]
-
-	@property
-	def loss( self ) -> float:
-		if self.multilayer_perceptron.loss_ is None:
-			raise AttributeError( 'The model loss has not been initialized!' )
-		else:
-			return self.multilayer_perceptron.loss_
-
-	@property
-	def classes( self ) -> np.ndarray:
-		if self.multilayer_perceptron.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized' )
-		else:
-			return self.multilayer_perceptron.classes_
-	
-	@property
-	def weights( self ) -> np.ndarray:
-		'''
-			
-			Returns
-			-------
-			Weights assigned to the features.
-			ndarray of shape (n_features,) or (n_targets, n_features)
-
-		'''
-		if self.multilayer_perceptron.coefs_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
-		else:
-			return self.multilayer_perceptron.coefs_
-	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
-		"""
-
-			Purpose:
-			-----------
-			Fits all pipeline steps to the text df.
-
-			Parameters:
-			-----------
-				X (np.ndarray): Input feature matrix.
-				y (Optional[np.ndarray]): Optional target array.
-
-			Returns:
-			--------
-				Pipeline
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.multilayer_perceptron.fit( X, y )
-			return self
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'MultiLayerClassifier'
-			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def project( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray:
-		"""
-
-
-			Purpose:
-			-----------
-			Predict the class labels for the provided stores.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-
-			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
-
-		"""
-		try:
-			throw_if( 'X', X )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			return self.prediction
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'MultilayerRegression'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
-
-
-			Purpose:
-			-----------
-			Return probability estimates for the test stores X.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-
-			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
-
-		"""
-		try:
-			throw_if( 'X', X )
-			self.probability = self.multilayer_perceptron.predict_proba( X )
-			return self.probability
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'MultilayerClassifier'
-			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
-
-			Purpose:
-			-----------
-			Compute the R^2 accuracy of the model on the given test df.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True values.
-
-			Returns:
-			-----------
-			float: R-squared accuracy.
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'MultilayerRegression'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
-
-			Purpose:
-			-----------
-			Evaluate the model using multiple regression metrics.
-
-
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): Ground truth target_names.
-
-			Returns:
-			-----------
-				dict: Dictionary of MAE, MSE, RMSE, R², etc.
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
-			return \
-			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
-				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
-			}
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'MultiLayerClassifier'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
-
-
-			Purpose:
-			-----------
-			Plot confusion matrix for classifier predictions.
-
-			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-			Returns:
-			---------
-				None
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
-			plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'MultiLayerClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			# plot the decision surface
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
-					idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter(
-						X_test[ :, 0 ], X_test[
-							:, 1 ], c='none', edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
-
 
 class Ridge( Classifier ):
 	"""
@@ -1718,7 +1382,9 @@ class Ridge( Classifier ):
 				 'decision_function',
 				 'analyze',
 				 'create_heatmap',
-				 'weights' ]
+				 'weights',
+		         'iterations',
+		         'features' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1893,8 +1559,8 @@ class Ridge( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2045,7 +1711,7 @@ class Lasso( Classifier ):
 		Threshold for classification decision boundary.
 	
 	"""
-	lasso_classifier: skc.Lasso
+	lasso_model: skc.Lasso
 	threshold: float
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -2066,7 +1732,7 @@ class Lasso( Classifier ):
 	def __init__( self, threshold: float=0.5 ) -> None:
 		super( ).__init__( )
 		self.threshold = threshold
-		self.lasso_classifier = skc.Lasso( threshold=self.threshold )
+		self.lasso_model = skc.Lasso( threshold=self.threshold )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2104,7 +1770,10 @@ class Lasso( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'weights',
+		         'iterations',
+		         'features' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -2116,10 +1785,10 @@ class Lasso( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.lasso_classifier.coef_ is None:
+		if self.lasso_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.lasso_classifier.coef_
+			return self.lasso_model.coef_
 	
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -2133,10 +1802,10 @@ class Lasso( Classifier ):
 			only the maximum number of iteration across all classes is given.
 	
 		'''
-		if self.lasso_classifier.n_iter_ is None:
+		if self.lasso_model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.lasso_classifier.n_iter_
+			return self.lasso_model.n_iter_
 	
 	@property
 	def features( self ) -> np.ndarray:
@@ -2148,16 +1817,16 @@ class Lasso( Classifier ):
 			The number of features seen during training
 	
 		'''
-		if self.lasso_classifier.n_features_in_ is None:
+		if self.lasso_model.n_features_in_ is None:
 			raise AttributeError( 'The model features have not been trained!' )
 		else:
-			return self.lasso_classifier.n_features_in_
+			return self.lasso_model.n_features_in_
 			
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.lasso_classifier.fit( X, y )
+			self.lasso_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2185,7 +1854,7 @@ class Lasso( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.lasso_classifier.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			self.binarizer = Binarizer( threshold=self.threshold )
 			_shape = self.prediction.reshape( -1, 1 )
 			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
@@ -2231,7 +1900,7 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_classifier.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
@@ -2242,8 +1911,8 @@ class Lasso( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2273,7 +1942,7 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_classifier.predict( X )
+			self.prediction = self.lasso_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -2314,7 +1983,7 @@ class GradientDescent( Classifier ):
 		 models and achieve online feature selection.
 
 	"""
-	sgd_classifier: skc.SGDClassifier
+	sgd_model: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -2352,7 +2021,7 @@ class GradientDescent( Classifier ):
 		self.max_iter = size
 		self.regularization = reg
 		self.alpha = alpha
-		self.sgd_classifier = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
+		self.sgd_model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
@@ -2391,7 +2060,9 @@ class GradientDescent( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'weights',
+		         'iterations' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -2403,10 +2074,10 @@ class GradientDescent( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.sgd_classifier.coef_ is None:
+		if self.sgd_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.sgd_classifier.coef_
+			return self.sgd_model.coef_
 		
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -2420,10 +2091,10 @@ class GradientDescent( Classifier ):
 			only the maximum number of iteration across all classes is given.
 	
 		'''
-		if self.sgd_classifier.n_iter_ is None:
+		if self.sgd_model.n_iter_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
-			return self.sgd_classifier.n_iter_
+			return self.sgd_model.n_iter_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
 		"""
@@ -2445,7 +2116,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.sgd_classifier.fit( X, y )
+			self.sgd_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2473,7 +2144,7 @@ class GradientDescent( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.sgd_classifier.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2503,7 +2174,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_classifier.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2541,7 +2212,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_classifier.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -2553,8 +2224,8 @@ class GradientDescent( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2589,7 +2260,7 @@ class GradientDescent( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.sgd_classifier.decision_function( X )
+			self.decision = self.sgd_model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -2656,7 +2327,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_classifier.predict( X )
+			self.prediction = self.sgd_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -2698,8 +2369,7 @@ class GradientDescent( Classifier ):
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min,
 				x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ),
-											xx2.ravel( ) ] ).T )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
 			plt.xlim( xx1.min( ), xx1.max( ) )
@@ -2734,7 +2404,7 @@ class NearestNeighbor( Classifier ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
-	nearest_neighbor: skn.KNeighborsClassifier
+	neighbor_model: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
@@ -2769,7 +2439,7 @@ class NearestNeighbor( Classifier ):
 		self.n_neighbors = num
 		self.algorithm = algorithm
 		self.metric = metric
-		self.nearest_neighbor = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
+		self.neighbor_model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2830,7 +2500,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.nearest_neighbor.fit( X, y )
+			self.neighbor_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2859,7 +2529,7 @@ class NearestNeighbor( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.nearest_neighbor.predict( X )
+			self.prediction = self.neighbor_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2888,7 +2558,7 @@ class NearestNeighbor( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.nearest_neighbor.predict_proba( X )
+			self.probability = self.neighbor_model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -2919,7 +2589,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.nearest_neighbor.predict( X )
+			self.prediction = self.neighbor_model.predict( X )
 			return accuracy_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
@@ -2958,7 +2628,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.nearest_neighbor.predict( X )
+			self.prediction = self.neighbor_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -2970,8 +2640,8 @@ class NearestNeighbor( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3002,7 +2672,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.nearest_neighbor.predict( X )
+			self.prediction = self.neighbor_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -3077,7 +2747,7 @@ class DecisionTree( Classifier ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
-	dt_classifier: skd.DecisionTreeClassifier
+	decision_model: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -3108,7 +2778,7 @@ class DecisionTree( Classifier ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.dt_classifier = skd.DecisionTreeClassifier( criterion=self.criterion,
+		self.decision_model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3166,7 +2836,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.dt_classifier.fit( X, y )
+			self.decision_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3195,7 +2865,7 @@ class DecisionTree( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.dt_classifier.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3224,7 +2894,7 @@ class DecisionTree( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.dt_classifier.predict_proba( X )
+			self.probability = self.decision_model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -3255,7 +2925,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.dt_classifier.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3294,7 +2964,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.dt_classifier.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -3306,8 +2976,8 @@ class DecisionTree( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3338,7 +3008,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.dt_classifier.predict( X )
+			self.prediction = self.decision_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -3420,7 +3090,7 @@ class RandomForest( Classifier ):
 	"""
 	n_estimators: int
 	criterion: Optional[ Any ]
-	random_forest_classifier: ske.RandomForestClassifier
+	forest_model: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
@@ -3448,7 +3118,7 @@ class RandomForest( Classifier ):
 		self.criterion = crit
 		self.max_depth = size
 		self.random_state = rando
-		self.random_forest_classifier = ske.RandomForestClassifier( n_estimators=self.n_estimators,
+		self.forest_model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3484,7 +3154,8 @@ class RandomForest( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'labels' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3496,10 +3167,10 @@ class RandomForest( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.random_forest_classifier.classes_ is None:
+		if self.forest_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.random_forest_classifier.classes_
+			return self.forest_model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
@@ -3523,7 +3194,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.random_forest_classifier.fit( X, y )
+			self.forest_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3552,7 +3223,7 @@ class RandomForest( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.random_forest_classifier.predict( X )
+			self.prediction = self.forest_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3581,7 +3252,7 @@ class RandomForest( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.random_forest_classifier.predict_proba( X )
+			self.probability = self.forest_model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -3611,7 +3282,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.random_forest_classifier.predict( X )
+			self.prediction = self.forest_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3642,7 +3313,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.random_forest_classifier.predict( X )
+			self.prediction = self.forest_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -3654,8 +3325,8 @@ class RandomForest( Classifier ):
 					'MSE': self.mean_squared_error,
 					'RMSE': self.r_mean_squared_error,
 					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
+					'VAR': self.explained_variance_score,
+					'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3686,7 +3357,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.random_forest_classifier.predict( X )
+			self.prediction = self.forest_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -3765,7 +3436,7 @@ class GradientBoost( Classifier ):
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
 	"""
-	gradient_boost_classifier: ske.GradientBoostingClassifier
+	gradient_model: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -3803,7 +3474,7 @@ class GradientBoost( Classifier ):
 		self.n_estimators = est
 		self.max_depth = size
 		self.random_state = rando
-		self.gradient_boost_classifier = ske.GradientBoostingClassifier( loss=self.loss,
+		self.gradient_model = ske.GradientBoostingClassifier( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
@@ -3854,10 +3525,10 @@ class GradientBoost( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.gradient_boost_classifier.classes_ is None:
+		if self.gradient_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.gradient_boost_classifier.classes_
+			return self.gradient_model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -3879,7 +3550,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.gradient_boost_classifier.fit( X, y )
+			self.gradient_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3908,7 +3579,7 @@ class GradientBoost( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.gradient_boost_classifier.predict( X )
+			self.prediction = self.gradient_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3937,7 +3608,7 @@ class GradientBoost( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.gradient_boost_classifier.predict_proba( X )
+			self.probability = self.gradient_model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -3967,7 +3638,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_boost_classifier.predict( X )
+			self.prediction = self.gradient_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3998,7 +3669,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_boost_classifier.predict( X )
+			self.prediction = self.gradient_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -4010,8 +3681,8 @@ class GradientBoost( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4038,7 +3709,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_boost_classifier.predict( X )
+			self.prediction = self.gradient_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -4111,7 +3782,7 @@ class AdaptiveBoost( Classifier ):
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
-	ada_boost_classifier = ske.AdaBoostClassifier
+	adaptive_model = ske.AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
@@ -4138,7 +3809,7 @@ class AdaptiveBoost( Classifier ):
 		self.estimator = 'AdaBoostClassifier'
 		self.n_estimators = num
 		self.learning_rate = learning
-		self.ada_boost_classifier = ske.AdaBoostClassifier( estimator=self.estimator,
+		self.adaptive_model = ske.AdaBoostClassifier( estimator=self.estimator,
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
@@ -4176,14 +3847,17 @@ class AdaptiveBoost( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'errors',
+		         'weights',
+		         'labels' ]
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
-		if self.ada_boost_classifier.estimator_errors_ is None:
+		if self.adaptive_model.estimator_errors_ is None:
 			raise AttributeError( 'The model errors have not been initialized!' )
 		else:
-			return self.ada_boost_classifier.estimator_errors_
+			return self.adaptive_model.estimator_errors_
 	   
 	@property
 	def weights( self ) -> np.ndarray:
@@ -4195,10 +3869,10 @@ class AdaptiveBoost( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.ada_boost_classifier.estimator_weights_ is None:
+		if self.adaptive_model.estimator_weights_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.ada_boost_classifier.estimator_weights_
+			return self.adaptive_model.estimator_weights_
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4210,10 +3884,10 @@ class AdaptiveBoost( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.ada_boost_classifier.classes_ is None:
+		if self.adaptive_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.ada_boost_classifier.classes_
+			return self.adaptive_model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -4235,7 +3909,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.ada_boost_classifier.fit( X, y )
+			self.adaptive_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4262,7 +3936,7 @@ class AdaptiveBoost( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.ada_boost_classifier.predict( X )
+			self.prediction = self.adaptive_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4291,7 +3965,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ada_boost_classifier.predict( X )
+			self.prediction = self.adaptive_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -4321,7 +3995,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ada_boost_classifier.predict( X )
+			self.prediction = self.adaptive_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -4333,8 +4007,8 @@ class AdaptiveBoost( Classifier ):
 					'MSE': self.mean_squared_error,
 					'RMSE': self.r_mean_squared_error,
 					'R2': self.r2_score,
-					'Explained Variance': self.explained_variance_score,
-					'Median Absolute Error': self.median_absolute_error,
+					'VAR': self.explained_variance_score,
+					'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4364,7 +4038,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ada_boost_classifier.predict( X )
+			self.prediction = self.adaptive_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -4503,7 +4177,8 @@ class BaggingModel( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'labels' ]
 		
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4638,8 +4313,8 @@ class BaggingModel( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4744,7 +4419,7 @@ class VotingModel( Classifier ):
 		performing model in order to balance out their individual weaknesses.
 
 	"""
-	voting_classifier: ske.VotingClassifier
+	voting_model: ske.VotingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -4770,7 +4445,7 @@ class VotingModel( Classifier ):
 		super( ).__init__( )
 		self.estimators = estimators
 		self.voting = vote
-		self.voting_classifier = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
+		self.voting_model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4802,7 +4477,8 @@ class VotingModel( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'labels' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4814,10 +4490,10 @@ class VotingModel( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.voting_classifier.classes_ is None:
+		if self.voting_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.voting_classifier.classes_
+			return self.voting_model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		"""
@@ -4839,7 +4515,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.voting_classifier.fit( X, y )
+			self.voting_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4866,7 +4542,7 @@ class VotingModel( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.voting_classifier.predict( X )
+			self.prediction = self.voting_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4895,7 +4571,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_classifier.predict( X )
+			self.prediction = self.voting_model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -4925,7 +4601,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_classifier.predict( X )
+			self.prediction = self.voting_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -4938,8 +4614,8 @@ class VotingModel( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4969,7 +4645,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_classifier.predict( X )
+			self.prediction = self.voting_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -5045,7 +4721,7 @@ class StackingModel( Classifier ):
 		estimators using cross_val_predict.
 
 	"""
-	stacking_classifier: ske.StackingClassifier
+	stacking_model: ske.StackingClassifier
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
@@ -5068,7 +4744,7 @@ class StackingModel( Classifier ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_classifier = ske.StackingClassifier( estimators=self.estimators,
+		self.stacking_model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -5102,7 +4778,8 @@ class StackingModel( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'labels' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -5114,10 +4791,10 @@ class StackingModel( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.stacking_classifier.classes_ is None:
+		if self.stacking_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.stacking_classifier.classes_
+			return self.stacking_model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -5139,7 +4816,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.stacking_classifier.fit( X, y )
+			self.stacking_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -5166,7 +4843,7 @@ class StackingModel( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.stacking_classifier.predict( X )
+			self.prediction = self.stacking_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5195,7 +4872,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_classifier.predict( X )
+			self.prediction = self.stacking_model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -5225,7 +4902,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_classifier.predict( X )
+			self.prediction = self.stacking_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -5238,8 +4915,8 @@ class StackingModel( Classifier ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'Explained Variance': self.explained_variance_score,
-				'Median Absolute Error': self.median_absolute_error,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5268,7 +4945,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_classifier.predict( X )
+			self.prediction = self.stacking_model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -5338,7 +5015,7 @@ class SupportVector( Classifier ):
 		thousands of samples.
 
 	"""
-	svc_classifier: skv.SVC
+	svc_model: skv.SVC
 	multiclass: Optional[ str ]
 	regulation: Optional[ float ]
 	penalty: Optional[ str ]
@@ -5374,7 +5051,7 @@ class SupportVector( Classifier ):
 		self.regulation = C
 		self.penalty = penalty
 		self.degree = degree
-		self.svc_classifier = skv.SVC( multi_class=self.multiclass, C=self.regulation,
+		self.svc_model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -5411,7 +5088,9 @@ class SupportVector( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap',
+		         'vectors',
+		         'weights' ]
 	
 	@property
 	def vectors( self ) -> np.ndarray:
@@ -5422,10 +5101,10 @@ class SupportVector( Classifier ):
 			np.ndarray - array-like, shape = [n_SV, n_features]
 
 		'''
-		if self.svc_classifier.support_vectors_ is None:
+		if self.svc_model.support_vectors_ is None:
 			raise AttributeError( 'The models support vectors are uninitialized!' )
 		else:
-			return self.svc_classifier.support_vectors_
+			return self.svc_model.support_vectors_
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -5437,10 +5116,10 @@ class SupportVector( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.svc_classifier.coef_ is None:
+		if self.svc_model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.svc_classifier.coef_
+			return self.svc_model.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -5458,7 +5137,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.svc_classifier.fit( X, y )
+			self.svc_model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -5482,7 +5161,7 @@ class SupportVector( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.svc_classifier.predict( X )
+			self.prediction = self.svc_model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5512,7 +5191,7 @@ class SupportVector( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.svc_classifier.predict_proba( X )
+			self.probability = self.svc_model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -5539,7 +5218,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y_true', y_true )
-			self.prediction = self.svc_classifier.predict( X )
+			self.prediction = self.svc_model.predict( X )
 			self.accuracy = accuracy_score( y_true, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -5567,7 +5246,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y_true', y_true )
-			self.prediction = self.svc_classifier.predict( X )
+			self.prediction = self.svc_model.predict( X )
 			return classification_report( y_true, self.prediction )
 		except Exception as e:
 			exception = Error( e )
@@ -5594,7 +5273,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y_true', y_true )
-			self.prediction = self.svc_classifier.predict( X )
+			self.prediction = self.svc_model.predict( X )
 			cm = confusion_matrix( y_true, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Projected' )
@@ -5660,4 +5339,371 @@ class SupportVector( Classifier ):
 			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
+
+class MultiLayerPerceptron( Classifier ):
+	"""
+
+		Purpose:
+		-----------
+		This model optimizes the squared error using LBFGS or stochastic gradient descent.
+
+		Activation function for the hidden layers:
+		- ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
+		- ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
+		- ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
+		- ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
+
+		The solver for weight optimization:
+		- ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
+		- ‘sgd’ refers to stochastic gradient descent.
+		- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
+
+	"""
+	multilayer_model: snn.MLPClassifier
+	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
+	max_depth: Optional[ int ]
+	random_state: Optional[ int ]
+	accuracy: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	r_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+	hidden_layers: tuple[ int, ... ]
+	activation_function: str
+	solver: str
+	alpha: float
+	learning_rate: Any
+	
+	def __init__( self, hidden=(100,), activation='relu', solver='adam', alpha=0.0001,
+			learning: str = 'constant', rando: int = 42 ) -> None:
+		super( ).__init__( )
+		self.hidden_layers = hidden
+		self.activation_function = activation
+		self.learning_rate = learning
+		self.solver = solver
+		self.alpha = alpha
+		self.random_state = rando
+		self.multilayer_model = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
+			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
+			learning_rate=self.learning_rate, random_state=self.random_state )
+		self.prediction = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.r_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+	
+	def __dir__( self ) -> List[ str ]:
+		'''
+
+			Purpose:
+			-------
+			Provides a list of strings representing class members
+
+		'''
+		return [ 'prediction',
+		         'probability',
+		         'max_depth',
+		         'random_state',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_heatmap',
+		         'predict_probability',
+		         'weights',
+		         'classes',
+		         'loss' ]
+	
+	@property
+	def loss( self ) -> float:
+		if self.multilayer_model.loss_ is None:
+			raise AttributeError( 'The model loss has not been initialized!' )
+		else:
+			return self.multilayer_model.loss_
+	
+	@property
+	def classes( self ) -> np.ndarray:
+		if self.multilayer_model.classes_ is None:
+			raise AttributeError( 'The model labels have not been initialized' )
+		else:
+			return self.multilayer_model.classes_
+	
+	@property
+	def weights( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			Weights assigned to the features.
+			ndarray of shape (n_features,) or (n_targets, n_features)
+
+		'''
+		if self.multilayer_model.coefs_ is None:
+			raise AttributeError( 'The model weights have not been initialized!' )
+		else:
+			return self.multilayer_model.coefs_
+	
+	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
+		"""
+
+			Purpose:
+			-----------
+			Fits all pipeline steps to the text df.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Input feature matrix.
+				y (Optional[np.ndarray]): Optional target array.
+
+			Returns:
+			--------
+				Pipeline
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.multilayer_model.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultiLayerClassifier'
+			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""
+
+
+			Purpose:
+			-----------
+			Predict the class labels for the provided stores.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.prediction = self.multilayer_model.predict( X )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultilayerRegression'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+
+			Purpose:
+			-----------
+			Return probability estimates for the test stores X.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input feature matrix.
+
+			Returns:
+			-----------
+			np.ndarray: Transformed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.multilayer_model.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultilayerClassifier'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+		"""
+
+			Purpose:
+			-----------
+			Compute the R^2 accuracy of the model on the given test df.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True values.
+
+			Returns:
+			-----------
+			float: R-squared accuracy.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_model.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
+			return self.accuracy
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultilayerRegression'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+
+			Purpose:
+			-----------
+			Evaluate the model using multiple regression metrics.
+
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Ground truth target_names.
+
+			Returns:
+			-----------
+			dict: Dictionary of MAE, MSE, RMSE, R², etc.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			return \
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultiLayerClassifier'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+
+
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			---------
+				None
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.multilayer_model.predict( X )
+			cm = confusion_matrix( y, self.prediction )
+			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
+			plt.xlabel( 'Predicted' )
+			plt.ylabel( 'Actual' )
+			plt.title( 'Confusion Matrix' )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'MultiLayerClassifier'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			# plot the decision surface
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.array( [ xx1.ravel( ),
+			                                xx2.ravel( ) ] ).T )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
+					idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter(
+						X_test[ :, 0 ], X_test[
+							:, 1 ], c='none', edgecolor='black', alpha=1.0, linewidth=1,
+						marker='o', s=100, label='Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+
 

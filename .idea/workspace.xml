@@ -7,6 +7,9 @@
     <list default="true" id="251ca5f5-c391-493e-b2b3-fcf5dc3cb3a7" name="Changes" comment="updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classifications.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifications.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clusters.py" beforeDir="false" afterPath="$PROJECT_DIR$/clusters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/regressions.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +34,9 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/forecasting.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/regressions.py" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
@@ -100,7 +106,7 @@
       <workItem from="1759599401425" duration="1145000" />
       <workItem from="1759603738180" duration="1216000" />
       <workItem from="1759837470598" duration="27387000" />
-      <workItem from="1759885094440" duration="2620000" />
+      <workItem from="1759885094440" duration="7385000" />
     </task>
     <task id="LOCAL-00001" summary="updates">
       <option name="closed" value="true" />
@@ -246,7 +252,15 @@
       <option name="project" value="LOCAL" />
       <updated>1759884722969</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="updates">
+      <option name="closed" value="true" />
+      <created>1759887902283</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1759887902283</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

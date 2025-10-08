@@ -81,8 +81,7 @@ class Cluster( ):
     def __init__( self ):
         pass
     
-    
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+    def train( self, X: np.ndarray, y: np.ndarray=None ) -> object | None:
         """
 
             Purpose:
@@ -100,7 +99,6 @@ class Cluster( ):
 
         """
         raise NotImplementedError
-    
     
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
@@ -120,8 +118,7 @@ class Cluster( ):
         """
         raise NotImplementedError
     
-    
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: np.ndarray=None ) -> float | None:
         """
 
             Purpose:
@@ -139,9 +136,8 @@ class Cluster( ):
 
         """
         raise NotImplementedError
-    
-    
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict | None:
+        
+    def analyze( self, X: np.ndarray, y: np.ndarray=None ) -> Dict | None:
         """
 
             Purpose:
@@ -159,7 +155,6 @@ class Cluster( ):
 
         """
         raise NotImplementedError
-
 
 class KMeans( Cluster ):
     """
@@ -189,7 +184,6 @@ class KMeans( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    
     def __init__( self, num: int=8, rando: int=42, max_iter: int=300 ) -> None:
         """
             Purpose:
@@ -211,8 +205,7 @@ class KMeans( Cluster ):
             random_state=self.random_state, max_iter=self.max_iter, n_init='auto' )
         self.prediction = None
         self.accuracy = 0.0
-    
-    
+        
     def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> KMeans | None:
         """
 
@@ -237,8 +230,7 @@ class KMeans( Cluster ):
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
 
@@ -267,8 +259,7 @@ class KMeans( Cluster ):
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
@@ -298,8 +289,7 @@ class KMeans( Cluster ):
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+       
     def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
         """
 
@@ -328,7 +318,6 @@ class KMeans( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
 
-
 class DBSCAN( Cluster ):
     """
 
@@ -354,7 +343,6 @@ class DBSCAN( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    
     def __init__( self, eps: float=0.5, size: int=5, algo: str='auto' ) -> None:
         """
 
@@ -376,7 +364,6 @@ class DBSCAN( Cluster ):
             algorithm=self.algorithm )
         self.prediction = None
         self.accuracy = 0.0
-    
     
     def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> DBSCAN | None:
         """
@@ -402,8 +389,7 @@ class DBSCAN( Cluster ):
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
 
@@ -432,7 +418,6 @@ class DBSCAN( Cluster ):
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
         """
@@ -464,7 +449,6 @@ class DBSCAN( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    
     def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
         """
 
@@ -491,7 +475,6 @@ class DBSCAN( Cluster ):
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-
 
 class Agglomerative( Cluster ):
     """
@@ -523,7 +506,6 @@ class Agglomerative( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    
     def __init__( self, num: int = 2 ) -> None:
         """
 
@@ -540,7 +522,6 @@ class Agglomerative( Cluster ):
         self.agglomerative_model = skc.AgglomerativeClustering( n_clusters=num )
         self.prediction = None
         self.accuracy = 0.0
-    
     
     def train( self, X: np.ndarray,
             y: Optional[ np.ndarray ] = None ) -> Agglomerative | None:
@@ -568,7 +549,6 @@ class Agglomerative( Cluster ):
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
@@ -598,8 +578,7 @@ class Agglomerative( Cluster ):
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
         """
 
@@ -630,7 +609,6 @@ class Agglomerative( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    
     def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
         """
 
@@ -659,7 +637,6 @@ class Agglomerative( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
 
-
 class Spectral( Cluster ):
     """
 
@@ -682,7 +659,6 @@ class Spectral( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    
     def __init__( self, num: int = 8 ) -> None:
         """
 
@@ -699,7 +675,6 @@ class Spectral( Cluster ):
         self.spectral_model = skc.SpectralClustering( n_clusters=num )
         self.prediction = None
         self.accuracy = 0.0
-    
     
     def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Spectral | None:
         """
@@ -725,7 +700,6 @@ class Spectral( Cluster ):
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
@@ -756,8 +730,7 @@ class Spectral( Cluster ):
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
         """
 
@@ -788,7 +761,6 @@ class Spectral( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    
     def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
         """
 
@@ -816,7 +788,6 @@ class Spectral( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
 
-
 class MeanShift( Cluster ):
     """
 
@@ -841,7 +812,6 @@ class MeanShift( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    
     def __init__( self ) -> None:
         """
 
@@ -854,7 +824,6 @@ class MeanShift( Cluster ):
         self.meanshift_model = skc.MeanShift( )
         self.prediction = None
         self.accuracy = 0.0
-    
     
     def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MeanShift | None:
         """
@@ -876,11 +845,10 @@ class MeanShift( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'MeanShiftCluster'
+            exception.cause = 'MeanShift'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
         """
@@ -906,11 +874,10 @@ class MeanShift( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'MeanShiftCluster'
+            exception.cause = 'MeanShift'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
         """
@@ -937,11 +904,10 @@ class MeanShift( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'MeanShiftCluster'
+            exception.cause = 'MeanShift'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
         """
@@ -965,11 +931,10 @@ class MeanShift( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'MeanShiftCluster'
+            exception.cause = 'MeanShift'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-
 
 class AffinityPropagation( Cluster ):
     """
@@ -989,7 +954,6 @@ class AffinityPropagation( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    
     def __init__( self ) -> None:
         """
 
@@ -1002,7 +966,6 @@ class AffinityPropagation( Cluster ):
         self.propagation_model = skc.AffinityPropagation( )
         self.prediction = None
         self.accuracy = 0.0
-    
     
     def train( self, X: np.ndarray,
             y: Optional[ np.ndarray ] = None ) -> AffinityPropagation | None:
@@ -1025,11 +988,10 @@ class AffinityPropagation( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'AffinityPropagationCluster'
+            exception.cause = 'AffinityPropagation'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
     
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
@@ -1055,69 +1017,67 @@ class AffinityPropagation( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'AffinityPropagationCluster'
+            exception.cause = 'AffinityPropagation'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-
-	def score( self, X: np.ndarray, y: np.ndarray=None ) -> float | None:
+    
+    def score( self, X: np.ndarray, y: np.ndarray = None ) -> float | None:
 	    """
 	
-	        Purpose:
-	        ---------
-	        Evaluate clustering result.
+			Purpose:
+			---------
+			Evaluate clustering result.
 	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-	        y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 	
-	        Return:
-	        --------
-	        float
+			Return:
+			--------
+			float
 	
-	    """
+		"""
 	    try:
-	        throw_if( 'X', X )
-	        labels = self.propagation_model.fit( X ).labels_
-	        self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-	        return self.accuracy
+		    throw_if( 'X', X )
+		    labels = self.propagation_model.fit( X ).labels_
+		    self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+		    return self.accuracy
 	    except Exception as e:
-	        exception = Error( e )
-	        exception.module = 'mathy'
-	        exception.cause = 'AffinityPropagationCluster'
-	        exception.method = 'score( self, X: np.ndarray ) -> float'
-	        error = ErrorDialog( exception )
-	        error.show( )
-	
-	
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+		    exception = Error( e )
+		    exception.module = 'mathy'
+		    exception.cause = 'AffinityPropagation'
+		    exception.method = 'score( self, X: np.ndarray ) -> float'
+		    error = ErrorDialog( exception )
+		    error.show( )
+    
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
 	    """
 	
-	        Purpose:
-	        ---------
-	        Visualize clustering with AffinityPropagation.
+			Purpose:
+			---------
+			Visualize clustering with AffinityPropagation.
 	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-	        y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 	
-	    """
+		"""
 	    try:
-	        throw_if( 'X', X )
-	        labels = self.propagation_model.fit( X ).labels_
-	        plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
-	        plt.title( 'AffinityPropagation Cluster' )
-	        plt.show( )
+		    throw_if( 'X', X )
+		    labels = self.propagation_model.fit( X ).labels_
+		    plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
+		    plt.title( 'AffinityPropagation Cluster' )
+		    plt.show( )
 	    except Exception as e:
-	        exception = Error( e )
-	        exception.module = 'mathy'
-	        exception.cause = 'AffinityPropagationCluster'
-	        exception.method = 'analyze( self, X: np.ndarray ) -> None'
-	        error = ErrorDialog( exception )
-	        error.show( )
-
+		    exception = Error( e )
+		    exception.module = 'mathy'
+		    exception.cause = 'AffinityPropagation'
+		    exception.method = 'analyze( self, X: np.ndarray ) -> None'
+		    error = ErrorDialog( exception )
+		    error.show( )
 
 class Birch( Cluster ):
     """
@@ -1165,8 +1125,7 @@ class Birch( Cluster ):
         self.prediction = None
         self.accuracy = 0.0
     
-    
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Birch | None:
+    def train( self, X: np.ndarray, y: np.ndarray=None ) -> Birch | None:
         """
 
             Purpose:
@@ -1186,12 +1145,11 @@ class Birch( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'BirchCluster'
+            exception.cause = 'Birch'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
 
@@ -1216,13 +1174,12 @@ class Birch( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'BirchCluster'
+            exception.cause = 'Birch'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
     
-    
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: np.ndarray=None ) -> float | None:
         """
 
             Purpose:
@@ -1247,13 +1204,12 @@ class Birch( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'BirchCluster'
+            exception.cause = 'Birch'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
     
-    
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+    def analyze( self, X: np.ndarray, y: np.ndarray=None ) -> None:
         """
 
             Purpose:
@@ -1275,11 +1231,10 @@ class Birch( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'BirchCluster'
+            exception.cause = 'Birch'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-
 
 class OPTICS( Cluster ):
     """
@@ -1323,8 +1278,7 @@ class OPTICS( Cluster ):
         self.prediction = None
         self.accuracy = 0.0
     
-    
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OPTICS | None:
+    def train( self, X: np.ndarray, y: np.ndarray=None ) -> OPTICS | None:
         """
 
             Purpose:
@@ -1344,12 +1298,11 @@ class OPTICS( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OpticsCluster'
+            exception.cause = 'OPTICS'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def project( self, X: np.ndarray ) -> np.ndarray | None:
         """
 
@@ -1374,12 +1327,11 @@ class OPTICS( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OpticsCluster'
+            exception.cause = 'OPTICS'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
+        
     def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
@@ -1405,13 +1357,12 @@ class OPTICS( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OpticsCluster'
+            exception.cause = 'OPTICS'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
-    
-    
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
+       
+    def analyze( self, X: np.ndarray, y: np.ndarray=None ) -> None:
         """
 
             Purpose:
@@ -1434,7 +1385,7 @@ class OPTICS( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'OpticsCluster'
+            exception.cause = 'OPTICS'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
