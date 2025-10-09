@@ -175,7 +175,23 @@ class TfidfVectorizer( Vectorizer ):
 		self.vectorizer = sk.TfidfVectorizer( )
 		self.transformed_data = None
 	
-	def train( self, tokens: list[ str ], y: np.ndarray = None ) -> TfidfVectorizer | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'vectorizer',
+		  'transformed_data',
+		  'classes',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
+	
+	def train( self, tokens: list[ str ], y: np.ndarray=None ) -> TfidfVectorizer | None:
 		"""
 
 			Purpose:
@@ -196,7 +212,7 @@ class TfidfVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train( self, tokens: list[ str ] ) -> TfidfVectorizer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -222,7 +238,7 @@ class TfidfVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, tokens: list[ str ] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -248,7 +264,7 @@ class TfidfVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, tokens: list[ str ] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -301,7 +317,23 @@ class CountVectorizer( Vectorizer ):
 		self.vectorizer = sk.CountVectorizer( )
 		self.transformed_data = None
 	
-	def train( self, tokens: List[ str ], y: np.ndarray = None ) -> CountVectorizer | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'vectorizer',
+		  'transformed_data',
+		  'classes',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
+	
+	def train( self, tokens: List[ str ], y: np.ndarray=None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
@@ -320,7 +352,7 @@ class CountVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train( self, tokens: List[ str ] ) -> CountVectorizer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -348,11 +380,11 @@ class CountVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'transform( self, text: List[ str ] ) -> np.ndarray'
+			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, tokens: List[ str ], y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, tokens: List[ str ], y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -375,7 +407,7 @@ class CountVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, tokens: List[ str ] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -411,7 +443,7 @@ class HashVectorizer( Vectorizer ):
 	vectorizer: sk.HashingVectorizer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 1048576 ) -> None:
+	def __init__( self, num: int=1048576 ) -> None:
 		"""
 
 			Purpose:
@@ -423,7 +455,23 @@ class HashVectorizer( Vectorizer ):
 		self.vectorizer = sk.HashingVectorizer( n_features=num )
 		self.transformed_data = None
 	
-	def train( self, X: np.ndarray, y: np.ndarray = None ) -> CountVectorizer | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'vectorizer',
+		  'transformed_data',
+		  'classes',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
+	
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> CountVectorizer | None:
 		"""
 
 			Purpose:
@@ -444,7 +492,7 @@ class HashVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'HashingVectorizer'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -470,6 +518,6 @@ class HashVectorizer( Vectorizer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'HashingVectorizer'
-			exception.method = 'transform( self, text: List[ str ], y: np.ndarray=None ) -> np.ndarray'
+			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )

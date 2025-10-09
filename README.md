@@ -44,11 +44,20 @@ in the federal finance domain.
 ```plaintext
 mathy/
 ├── data.py           # Dataset handler and model interface
-├── regressors.py     # Encapsulated regression models
-├── classifiers.py    # Encapsulated classification models
+├── regressions.py     # Encapsulated regression models
+├── classifications.py    # Encapsulated classification models
 ├── clusters.py       # Clustering models (KMeans, DBSCAN, etc.)
-├── preprocessors.py  # Data preprocessing tools (scalers, encoders)
-├── static/           # Static constants, helpers
+├── encoders.py   
+├── scalers.py   
+├── transformers.py   
+├── vectorizers.py 
+├── imputers.py     
+├── forecasting.py   # Time-Series analysis functionality
+├── enums/           # Static constants, enumerations
+├── stores/sqlite   # database
+├── stores/excel    # datasets     
+├── minion.py     # helpers/utilities
+├── boogr.py       # error dialog 
 ├── README.md         # This file
 ```
 

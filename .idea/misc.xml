@@ -3,8 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.13 (mathy)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13 (mathy)" project-jdk-type="Python SDK" />
-  <component name="PythonCompatibilityInspectionAdvertiser">
-    <option name="version" value="3" />
-  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (Mathy)" project-jdk-type="Python SDK" />
 </project>

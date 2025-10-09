@@ -89,6 +89,7 @@ class Scaler( ):
 		"""
 		raise NotImplementedError
 	
+	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
@@ -159,6 +160,20 @@ class StandardScaler( Scaler ):
 		super( ).__init__( )
 		self.scaler = pp.StandardScaler( )
 		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'scaler',
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'inverse_transform' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray=None ) -> StandardScaler | None:
 		"""
@@ -268,6 +283,20 @@ class MinMaxScaler( Scaler ):
 		super( ).__init__( )
 		self.scaler = pp.MinMaxScaler( )
 		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'scaler',
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'inverse_transform' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray=None ) -> MinMaxScaler | None:
 		"""
@@ -413,6 +442,20 @@ class RobustScaler( Scaler ):
 		self.scaler = pp.RobustScaler( )
 		self.transformed_data = None
 	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'scaler',
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'inverse_transform' ]
+	
 	def train( self, X: np.ndarray, y: np.ndarray=None ) -> RobustScaler | None:
 		"""
 
@@ -522,6 +565,21 @@ class NormalScaler( Scaler ):
 		self.norm = reg
 		self.scaler = pp.Normalizer( norm=self.norm )
 		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'scaler',
+		  'transformed_data',
+		  'norm',
+		  'train',
+		  'transform',
+		  'inverse_transform' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray=None ) -> NormalScaler | None:
 		"""

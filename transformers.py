@@ -43,12 +43,9 @@
   '''
 from __future__ import annotations
 from typing import Optional, List
-
 import numpy as np
 import sklearn.feature_extraction.text as sk
-import sklearn.impute as im
 import sklearn.preprocessing as pp
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -175,6 +172,17 @@ class LabelBinarizer( Transformer ):
 		self.transformer = pp.LabelBinarizer( )
 		self.transformed_data = None
 	
+	def __dir__( self ):
+		'''
+			
+			Returns
+			-------
+			A list of strings comprised of class members.
+			
+		'''
+		[ 'transformer', 'transformed_data', 'classes', 'train',
+		  'transform', 'train_transform', 'inverse_transform', ]
+		
 	@property
 	def classes( self ) -> List[ str ]:
 		if self.transformer.classes_ is None:
@@ -330,6 +338,21 @@ class TfidfTransformer( Transformer ):
 		self.transformer = sk.TfidfTransformer( )
 		self.transformed_data = None
 	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'transformer',
+		  'transformed_data',
+		  'idf_vector',
+		  'train',
+		  'transform',
+		  'train_transform' ]
+	
 	@property
 	def idf_vector( self ) -> np.ndarray:
 		if self.transformer.idf_ is None:
@@ -361,7 +384,7 @@ class TfidfTransformer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray ) -> object'
+			exception.method = 'train( self, X: np.ndarray ) -> TfidfTransformer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -389,7 +412,7 @@ class TfidfTransformer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'transform( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -413,6 +436,6 @@ class TfidfTransformer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'fit_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )

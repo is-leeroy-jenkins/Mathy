@@ -149,13 +149,29 @@ class MeanImputer( Imputer ):
 	imputer: im.SimpleImputer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, strategy: str = 'mean' ) -> None:
+	def __init__( self, strategy: str='mean' ) -> None:
 		super( ).__init__( )
 		self.strategy = strategy
 		self.imputer = im.SimpleImputer( strategy=self.strategy )
 		self.transformed_data = None
 	
-	def train( self, X: np.ndarray, y: np.ndarray = None ) -> MeanImputer | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'imputer',
+		  'transformed_data',
+		  'strategy',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform' ]
+	
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> MeanImputer | None:
 		"""
 
 
@@ -185,7 +201,7 @@ class MeanImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -214,7 +230,7 @@ class MeanImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -283,14 +299,29 @@ class NearestImputer( Imputer ):
 	imputer: im.KNNImputer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, neighbors: int = 5 ) -> None:
+	def __init__( self, neighbors: int=5 ) -> None:
 		super( ).__init__( )
 		self.n_neighbors = neighbors
 		self.imputer = im.KNNImputer( n_neighbors=self.n_neighbors )
 		self.transformed_data = None
 	
-	def train( self, X: np.ndarray, y: Optional[
-		np.ndarray ] = None ) -> NearestImputer | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'imputer',
+		  'transformed_data',
+		  'n_neighbors',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform' ]
+	
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> NearestImputer | None:
 		"""
 
 			Purpose:
@@ -319,7 +350,7 @@ class NearestImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -349,7 +380,7 @@ class NearestImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -392,7 +423,7 @@ class IterativeImputer( Imputer ):
 	random_state: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, max: int = 10, rando: int = 0 ) -> None:
+	def __init__( self, max: int=10, rando: int=0 ) -> None:
 		"""
 
 			Purpose:
@@ -410,7 +441,23 @@ class IterativeImputer( Imputer ):
 		self.random_state = rando
 		self.imputer = im.IterativeImputer( max_iter=self.max_iter, random_state=self.random_state )
 	
-	def train( self, X: np.ndarray, y: np.ndarray = None ) -> object | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'imputer',
+		  'transformed_data',
+		  'max_iter',
+		  'random_state',
+		  'train',
+		  'transform',
+		  'train_transform', ]
+	
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> IterativeImputer | None:
 		"""
 
 			Purpose:
@@ -430,11 +477,11 @@ class IterativeImputer( Imputer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
-			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray=None ) -> IterativeImputer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -459,7 +506,7 @@ class IterativeImputer( Imputer ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -479,7 +526,7 @@ class IterativeImputer( Imputer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
-			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -494,7 +541,7 @@ class SimpleImputer( Imputer ):
 	strategy: Optional[ str ]
 	fill_value: Optional[ float ]
 	
-	def __init__( self, strategy: str = 'mean', fill_value: float = 0.0 ) -> None:
+	def __init__( self, strategy: str='mean', fill_value: float=0.0 ) -> None:
 		"""
 
 			Purpose:
@@ -513,7 +560,23 @@ class SimpleImputer( Imputer ):
 		self.imputer = im.SimpleImputer( strategy=self.strategy, fill_value=self.fill_value )
 		self.transformed_data = None
 	
-	def train( self, X: np.ndarray, y: np.ndarray = None ) -> object | None:
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'imputer',
+		  'transformed_data',
+		  'stratgey',
+		  'fill_value',
+		  'train',
+		  'transform',
+		  'train_transform', ]
+	
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> SimpleImputer | None:
 		"""
 
 			Purpose:
@@ -533,11 +596,11 @@ class SimpleImputer( Imputer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
-			exception.method = 'fit( X: np.ndarray ) -> self'
+			exception.method = 'train( self, X: np.ndarray ) -> SimpleImputer'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -557,11 +620,11 @@ class SimpleImputer( Imputer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
-			exception.method = 'fit( X: np.ndarray ) -> self'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -582,6 +645,6 @@ class SimpleImputer( Imputer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
-			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray '
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )

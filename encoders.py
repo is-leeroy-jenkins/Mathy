@@ -166,6 +166,24 @@ class OneHotEncoder( Encoder ):
 		self.sparse = sparse
 		self.encoder = pp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
 	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'unknown',
+		  'encoder',
+		  'categories',
+		  'transformed_data',
+		  'sparse',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
+	
 	@property
 	def categories( self ):
 		if self.encoder.categories_ is None:
@@ -285,6 +303,22 @@ class OrdinalEncoder( Encoder ):
 		super( ).__init__( )
 		self.encoder = pp.OrdinalEncoder( )
 		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'encoder',
+		  'categories',
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
 	
 	@property
 	def categories( self ):
@@ -425,6 +459,23 @@ class LabelEncoder( Encoder ):
 		"""
 		super( ).__init__( )
 		self.encoder = pp.LabelEncoder( )
+		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'encoder',
+		  'classes',
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
 	
 	@property
 	def classes( self ):
@@ -552,7 +603,7 @@ class PolynomialFeatures( Encoder ):
 	encoder: pp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, degree: int = 2, interaction: bool = True ) -> None:
+	def __init__( self, degree: int=2, interaction: bool=True ) -> None:
 		"""
 
 			Purpose:
@@ -568,6 +619,24 @@ class PolynomialFeatures( Encoder ):
 		self.encoder = pp.PolynomialFeatures( degree=self.degree,
 			interaction_only=self.interaction_only )
 	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'encoder',
+		  'degree',
+		  'powers',
+		  'interaction_only',
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
+	
 	@property
 	def powers( self ):
 		if self.encoder.powers_ is None:
@@ -575,7 +644,7 @@ class PolynomialFeatures( Encoder ):
 		else:
 			return self.encoder.powers_
 	
-	def train( self, X: np.ndarray, y: np.ndarray = None ) -> PolynomialFeatures | None:
+	def train( self, X: np.ndarray, y: np.ndarray=None ) -> PolynomialFeatures | None:
 		"""
 
 			Purpose:
@@ -600,7 +669,7 @@ class PolynomialFeatures( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -625,7 +694,7 @@ class PolynomialFeatures( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
