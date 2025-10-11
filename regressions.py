@@ -45,7 +45,6 @@ from __future__ import annotations
 
 from typing import Dict
 from typing import Optional, List, Tuple
-
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.ensemble as ske
@@ -59,7 +58,6 @@ from sklearn.gaussian_process import GaussianProcessRegressor as gpr
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score
 from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error, explained_variance_score, median_absolute_error, )
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -183,7 +181,7 @@ class LinearRegression( Regressor ):
 
     """
 	
-	linear_model: skl.LinearRegression
+	model: skl.LinearRegression
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -196,7 +194,7 @@ class LinearRegression( Regressor ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, fit: bool = True, copy: bool = True ) -> None:
+	def __init__( self, fit: bool=True, copy: bool=True ) -> None:
 		"""
 	
 	        Purpose:
@@ -212,7 +210,7 @@ class LinearRegression( Regressor ):
 		super( ).__init__( )
 		self.fit_intercept = fit
 		self.copy_X = copy
-		self.linear_model = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X )
+		self.model = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -240,10 +238,10 @@ class LinearRegression( Regressor ):
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.linear_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.linear_model.coef_
+			return self.model.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression | None:
 		"""
@@ -265,7 +263,7 @@ class LinearRegression( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.linear_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -294,7 +292,7 @@ class LinearRegression( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.linear_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -325,7 +323,7 @@ class LinearRegression( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.linear_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -396,12 +394,12 @@ class LinearRegression( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.linear_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( "Observed" )
 			plt.ylabel( "Projected" )
 			plt.title( "Linear Regression: Observed vs Projected" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], "r--" )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -434,7 +432,7 @@ class Ridge( Regressor ):
 	    If an array is passed, penalties are assumed to be specific to the targets.
 
     """
-	ridge_model: skl.Ridge
+	model: skl.Ridge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -475,7 +473,7 @@ class Ridge( Regressor ):
 		self.solver = solver
 		self.max_iter = iters
 		self.random_state = rando
-		self.ridge_model = skl.Ridge( alpha=self.alpha, solver=self.solver,
+		self.model = skl.Ridge( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -520,7 +518,7 @@ class Ridge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.ridge_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -532,10 +530,10 @@ class Ridge( Regressor ):
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.ridge_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The classification data is untrained.' )
 		else:
-			return self.ridge_model.coef_
+			return self.model.coef_
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -556,7 +554,7 @@ class Ridge( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.ridge_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -587,7 +585,7 @@ class Ridge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -619,7 +617,7 @@ class Ridge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -662,12 +660,12 @@ class Ridge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Ridge Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -698,7 +696,7 @@ class Lasso( Regressor ):
 
     """
 	
-	lasso_model: skl.Lasso
+	model: skl.Lasso
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -728,7 +726,7 @@ class Lasso( Regressor ):
 		self.alpha = alpha
 		self.max_iter = iters
 		self.random_state = rando
-		self.lasso_model = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
+		self.model = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -754,10 +752,10 @@ class Lasso( Regressor ):
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.lasso_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.lasso_model.coef_
+			return self.model.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		"""
@@ -779,7 +777,7 @@ class Lasso( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.lasso_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -807,7 +805,7 @@ class Lasso( Regressor ):
 
         """
 		try:
-			self.prediction = self.lasso_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -838,7 +836,7 @@ class Lasso( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -871,7 +869,7 @@ class Lasso( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -910,12 +908,12 @@ class Lasso( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Lasso Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -940,7 +938,7 @@ class ElasticNet( Regressor ):
 	    Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
 
     """
-	elasticnet_model: skl.ElasticNet
+	model: skl.ElasticNet
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -982,7 +980,7 @@ class ElasticNet( Regressor ):
 		self.random_state = rando
 		self.selection = select
 		self.max_iter = max
-		self.elasticnet_model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
+		self.model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
 			random_state=self.random_state, max_iter=self.max_iter, selection=self.selection, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1027,7 +1025,7 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.elasticnet_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1057,7 +1055,7 @@ class ElasticNet( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.elasticnet_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1088,7 +1086,7 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.elasticnet_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -1121,7 +1119,7 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.elasticnet_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1159,12 +1157,12 @@ class ElasticNet( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.elasticnet_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'ElasticNet Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -1188,7 +1186,7 @@ class LeastAngle( Regressor ):
 
     """
 	
-	lars_model: skl.Lars
+	model: skl.Lars
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1228,7 +1226,7 @@ class LeastAngle( Regressor ):
 		self.normalize = normal
 		self.nonzero_coefficients = coeffs
 		self.precompute = precompute
-		self.lars_model = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
+		self.model = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
 			precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1273,7 +1271,7 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.lars_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1301,7 +1299,7 @@ class LeastAngle( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.lars_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1331,7 +1329,7 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lars_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -1369,7 +1367,7 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lars_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1411,7 +1409,7 @@ class LeastAngle( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lars_model.predict( X )
+			self.prediction = self.model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			ConfusionMatrixDisplay( confusion_matrix=cm )
 			plt.title( 'Logistic Regression Confusion Matrix' )
@@ -1445,7 +1443,7 @@ class BayesianRidge( Regressor ):
     is increasing between two consecutive iterations of the optimization.
 
     """
-	bayesian_ridge_regressor: skl.BayesianRidge
+	model: skl.BayesianRidge
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1479,7 +1477,7 @@ class BayesianRidge( Regressor ):
 		self.scale_alpha = scale_alpha
 		self.shape_lambda = shape_lambda
 		self.scale_lambda = scale_lambda
-		self.bayesian_ridge_regressor = skl.BayesianRidge( alpha_1=self.shape_alpha, 
+		self.model = skl.BayesianRidge( alpha_1=self.shape_alpha,
 			alpha_2=self.scale_alpha, lambda_1=self.shape_lambda, lambda_2=self.scale_lambda, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1524,7 +1522,7 @@ class BayesianRidge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.bayesian_ridge_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1552,7 +1550,7 @@ class BayesianRidge( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1583,7 +1581,7 @@ class BayesianRidge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -1614,7 +1612,7 @@ class BayesianRidge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1652,12 +1650,12 @@ class BayesianRidge( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bayesian_ridge_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Bayesian-Ridge Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -1694,7 +1692,7 @@ class GradientDescent( Regressor ):
     values for the feature_names.
 
     """	
-	sgd_model = skl.SGDRegressor
+	model = skl.SGDRegressor
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -1732,7 +1730,7 @@ class GradientDescent( Regressor ):
 		self.alpha = alpha
 		self.random_state = rando
 		self.penalty = penalty
-		self.sgd_model = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter,
+		self.model = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.penalty )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -1758,10 +1756,10 @@ class GradientDescent( Regressor ):
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.sgd_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.sgd_model.coef_
+			return self.model.coef_
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -1773,10 +1771,10 @@ class GradientDescent( Regressor ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.sgd_model.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.sgd_model.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
 		"""
@@ -1798,12 +1796,12 @@ class GradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.sgd_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradient'
+			exception.cause = 'GradientDescent'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1826,12 +1824,12 @@ class GradientDescent( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradient'
+			exception.cause = 'GradientDescent'
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1856,13 +1854,13 @@ class GradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradient'
+			exception.cause = 'GradientDescent'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1887,24 +1885,26 @@ class GradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return {
+			return \
+			{
 				'MAE': mean_absolute_error( y, self.prediction ),
 				'MSE': mean_squared_error( y, self.prediction ),
 				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
 				'R2': r2_score( y, self.prediction ),
 				'Explained Variance': explained_variance_score( y, self.prediction ),
-				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
+				'Median Absolute Error': median_absolute_error( y, self.prediction ),
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradient'
+			exception.cause = 'GradientDescent'
 			exception.method = ''
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1925,18 +1925,18 @@ class GradientDescent( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Stochastic Gradient Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.title( 'Gradient Descent: Observed vs Projected' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StochasticGradient'
+			exception.cause = 'GradientDescent'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1957,7 +1957,7 @@ class NearestNeighbor( Regressor ):
 
     """
 	
-	neighbor_regressor: skn.KNeighborsRegressor
+	model: skn.KNeighborsRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -1992,7 +1992,7 @@ class NearestNeighbor( Regressor ):
 		self.algorithm = algo
 		self.power = power
 		self.metric = metric
-		self.neighbor_regressor = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors, 
+		self.model = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, p=self.power, metric=self.metric, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2018,10 +2018,10 @@ class NearestNeighbor( Regressor ):
 	
 	@property
 	def labels( self ) -> np.ndarray | None:
-		if self.neighbor_regressor.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.neighbor_regressor.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2044,7 +2044,7 @@ class NearestNeighbor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.neighbor_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2072,7 +2072,7 @@ class NearestNeighbor( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.neighbor_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2102,7 +2102,7 @@ class NearestNeighbor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.neighbor_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2134,20 +2134,22 @@ class NearestNeighbor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.neighbor_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = f1_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return {
+			return \
+			{
 				'MAE': mean_absolute_error( y, self.prediction ),
 				'MSE': mean_squared_error( y, self.prediction ),
 				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
 				'R2': r2_score( y, self.prediction ),
 				'Explained Variance': explained_variance_score( y, self.prediction ),
-				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
+				'Median Absolute Error': median_absolute_error( y, self.prediction ),
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2176,12 +2178,12 @@ class NearestNeighbor( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.neighbor_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Nearest-Neighbor Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -2207,7 +2209,7 @@ class DecisionTree( Regressor ):
 
     '''
 	
-	decision_model: skd.DecisionTreeRegressor
+	model: skd.DecisionTreeRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -2238,7 +2240,7 @@ class DecisionTree( Regressor ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.decision_model = skd.DecisionTreeRegressor( criterion=self.criterion,
+		self.model = skd.DecisionTreeRegressor( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2283,7 +2285,7 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.decision_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2311,7 +2313,7 @@ class DecisionTree( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.decision_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2341,7 +2343,7 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.decision_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2373,7 +2375,7 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.decision_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -2417,12 +2419,12 @@ class DecisionTree( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.decision_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Decision Tree Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -2455,7 +2457,7 @@ class RandomForest( Regressor ):
 
     '''
 	
-	random_forest_regressor: ske.RandomForestRegressor
+	model: ske.RandomForestRegressor
 	n_estimators: int
 	random_state: int
 	max_depth: int
@@ -2493,7 +2495,7 @@ class RandomForest( Regressor ):
 		self.criterion = crit
 		self.max_depth = max
 		self.random_state = rando
-		self.random_forest_regressor = ske.RandomForestRegressor( n_estimators=self.n_estimators,
+		self.model = ske.RandomForestRegressor( n_estimators=self.n_estimators,
 			criterion=self.criterion, random_state=self.random_state, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2537,7 +2539,7 @@ class RandomForest( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.random_forest_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2565,7 +2567,7 @@ class RandomForest( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.random_forest_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2595,7 +2597,7 @@ class RandomForest( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.random_forest_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2626,7 +2628,7 @@ class RandomForest( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.random_forest_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -2668,12 +2670,12 @@ class RandomForest( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.random_forest_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Random Forest Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -2697,7 +2699,7 @@ class GradientBoost( Regressor ):
 
     """
 	
-	gradient_boost_regressor: ske.GradientBoostingRegressor
+	model: ske.GradientBoostingRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -2737,7 +2739,7 @@ class GradientBoost( Regressor ):
 		self.n_estimators = est
 		self.max_depth = max
 		self.random_state = rando
-		self.gradient_boost_regressor = ske.GradientBoostingRegressor( loss=self.loss, 
+		self.model = ske.GradientBoostingRegressor( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators, 
 			max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
@@ -2772,10 +2774,10 @@ class GradientBoost( Regressor ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.gradient_boost_regressor.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.gradient_boost_regressor.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -2797,7 +2799,7 @@ class GradientBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.gradient_boost_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2825,7 +2827,7 @@ class GradientBoost( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.gradient_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2855,7 +2857,7 @@ class GradientBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2886,7 +2888,7 @@ class GradientBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return {
 				'MAE': mean_absolute_error( y, self.prediction ),
 				'MSE': mean_squared_error( y, self.prediction ),
@@ -2918,9 +2920,9 @@ class GradientBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction, alpha=0.6 )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
@@ -2951,7 +2953,7 @@ class AdaptiveBoost( Regressor ):
 
     """
 	
-	ada_boost_regressor: ske.AdaBoostRegressor
+	model: ske.AdaBoostRegressor
 	n_estimators: int
 	random_state: int
 	loss: str
@@ -2986,7 +2988,7 @@ class AdaptiveBoost( Regressor ):
 		self.random_state = rando
 		self.loss = loss
 		self.learning_rate = learning
-		self.ada_boost_regressor = ske.AdaBoostRegressor( n_estimators=self.n_estimators, 
+		self.model = ske.AdaBoostRegressor( n_estimators=self.n_estimators,
 			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate, )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3012,17 +3014,17 @@ class AdaptiveBoost( Regressor ):
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
-		if self.ada_boost_regressor.estimator_errors_ is None:
+		if self.model.estimator_errors_ is None:
 			raise AttributeError( 'The model errors have not been initialized!' )
 		else:
-			return self.ada_boost_regressor.estimator_errors_
+			return self.model.estimator_errors_
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
-		if self.ada_boost_regressor.estimator_weights_ is None:
+		if self.model.estimator_weights_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.ada_boost_regressor.estimator_weights_
+			return self.model.estimator_weights_
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3034,10 +3036,10 @@ class AdaptiveBoost( Regressor ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.ada_boost_regressor.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.ada_boost_regressor.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -3059,7 +3061,7 @@ class AdaptiveBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.ada_boost_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3086,7 +3088,7 @@ class AdaptiveBoost( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.ada_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3117,7 +3119,7 @@ class AdaptiveBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ada_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3147,7 +3149,7 @@ class AdaptiveBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ada_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -3188,12 +3190,12 @@ class AdaptiveBoost( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ada_boost_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'ADA Boost Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.title( 'ADA Boost: Observed vs Projected' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -3223,7 +3225,7 @@ class BaggingModel( Regressor ):
 
     """
 	
-	bagging_estimator: ske.BaggingRegressor
+	model: ske.BaggingRegressor
 	base_estimator: object
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -3445,7 +3447,7 @@ class BaggingModel( Regressor ):
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Bagging Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -3468,7 +3470,7 @@ class VotingModel( Regressor ):
 
     """
 	
-	voting_regressor: ske.VotingRegressor
+	model: ske.VotingRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -3497,7 +3499,7 @@ class VotingModel( Regressor ):
         """
 		super( ).__init__( )
 		self.estimators = est
-		self.voting_regressor = ske.VotingRegressor( estimators=self.estimators )
+		self.model = ske.VotingRegressor( estimators=self.estimators )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -3530,10 +3532,10 @@ class VotingModel( Regressor ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.voting_regressor.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.voting_regressor.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		'''
@@ -3555,7 +3557,7 @@ class VotingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.voting_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3584,7 +3586,7 @@ class VotingModel( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.voting_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3613,7 +3615,7 @@ class VotingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3643,7 +3645,7 @@ class VotingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -3689,12 +3691,12 @@ class VotingModel( Regressor ):
 			else:
 				throw_if( 'X', X )
 				throw_if( 'y', y )
-				self.prediction = self.voting_regressor.predict( X )
+				self.prediction = self.model.predict( X )
 				plt.scatter( y, self.prediction )
 				plt.xlabel( 'Observed' )
 				plt.ylabel( 'Projected' )
 				plt.title( 'Voting Regression: Observed vs Projected' )
-				plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 				plt.grid( True )
 				plt.show( )
 		except Exception as e:
@@ -3718,7 +3720,7 @@ class StackingModel( Regressor ):
 	    the base estimators using cross_val_predict.
 
     """
-	stacking_regressor: ske.StackingRegressor
+	model: ske.StackingRegressor
 	final_estimator: ClassifierMixin
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	prediction: Optional[ np.ndarray ]
@@ -3756,7 +3758,7 @@ class StackingModel( Regressor ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_regressor = ske.StackingRegressor( estimators=self.estimators, 
+		self.model = ske.StackingRegressor( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3790,10 +3792,10 @@ class StackingModel( Regressor ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.stacking_regressor.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.stacking_regressor.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -3815,7 +3817,7 @@ class StackingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.stacking_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3842,7 +3844,7 @@ class StackingModel( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.stacking_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3871,7 +3873,7 @@ class StackingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3901,7 +3903,7 @@ class StackingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -3943,12 +3945,12 @@ class StackingModel( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_regressor.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Stacking Regression: Observed vs Projected' )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -3964,7 +3966,7 @@ class SupportVector( Regressor ):
     Wrapper for sklearn's Support Vector Regression (SVR).
     """
 	
-	svr_model: skv.SVR
+	model: skv.SVR
 	prediction: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -3996,7 +3998,7 @@ class SupportVector( Regressor ):
 		self.kernel = kernel
 		self.regularization = C
 		self.epsilon = epsilon
-		self.svr_model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
+		self.model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
 		self.prediction = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
@@ -4039,7 +4041,7 @@ class SupportVector( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.svr_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4065,7 +4067,7 @@ class SupportVector( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return self.svr_model.predict( X )
+			return self.model.predict( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4096,7 +4098,7 @@ class SupportVector( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.svr_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -4123,7 +4125,7 @@ class SupportVector( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.svr_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -4161,9 +4163,9 @@ class SupportVector( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.svr_model.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction, color="blue", edgecolor="k" )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.xlabel( 'True Values' )
 			plt.ylabel( 'Predicted Values' )
 			plt.title( 'SVR: True vs Predicted' )
@@ -4196,7 +4198,7 @@ class MultiLayerPerceptron( Regressor ):
         - ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
     """
-	multilayer_perceptron: skn.MLPRegressor
+	model: skn.MLPRegressor
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -4216,7 +4218,7 @@ class MultiLayerPerceptron( Regressor ):
 	training_score: Optional[ float ]
 	
 	def __init__( self, hidden: tuple = (100,), activ='relu', solver='adam', alpha=0.0001,
-			learning: str = 'constant', rando: int = 42, ) -> None:
+			learning: str='constant', rando: int=42, ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activ
@@ -4224,7 +4226,7 @@ class MultiLayerPerceptron( Regressor ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_perceptron = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
+		self.model = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning, random_state=self.random_state, )
 		self.prediction = None
@@ -4262,24 +4264,24 @@ class MultiLayerPerceptron( Regressor ):
 	
 	@property
 	def loss( self ) -> float:
-		if self.multilayer_perceptron.loss_ is None:
+		if self.model.loss_ is None:
 			raise AttributeError( 'The model loss has not been initialized!' )
 		else:
-			return self.multilayer_perceptron.loss_
+			return self.model.loss_
 	
 	@property
 	def classes( self ) -> np.ndarray:
-		if self.multilayer_perceptron.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized' )
 		else:
-			return self.multilayer_perceptron.classes_
+			return self.model.classes_
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		if self.multilayer_perceptron.coefs_ is None:
+		if self.model.coefs_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.multilayer_perceptron.coefs_
+			return self.model.coefs_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
@@ -4301,7 +4303,7 @@ class MultiLayerPerceptron( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.multilayer_perceptron.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4330,7 +4332,7 @@ class MultiLayerPerceptron( Regressor ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.multilayer_perceptron.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4360,7 +4362,7 @@ class MultiLayerPerceptron( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -4429,14 +4431,12 @@ class MultiLayerPerceptron( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_perceptron.predict( X )
+			self.prediction = self.model.predict( X )
 			plt.scatter( y, self.prediction )
 			plt.xlabel( "Observed" )
 			plt.ylabel( "Projected" )
-			plt.title( "MLP: Observed vs Projected" )
-			plt.plot( [ y.min( ),
-			            y.max( ) ], [ y.min( ),
-			                          y.max( ) ], "r--" )
+			plt.title( "MultiLayerPerceptron: Observed vs Projected" )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( True )
 			plt.show( )
 		except Exception as e:
@@ -4457,7 +4457,7 @@ class GaussianProcess( Regressor ):
 
     '''
 	
-	gauss_model: gpr.GaussianProcessRegressor
+	model: gpr.GaussianProcessRegressor
 	prediction: Optional[ np.ndarray ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -4486,7 +4486,7 @@ class GaussianProcess( Regressor ):
         """
 		super( ).__init__( )
 		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
-		self.gauss_model = GaussianProces( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
+		self.model = GaussianProces( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProces | None:
 		"""
@@ -4508,7 +4508,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.gauss_model.train( X, y )
+			self.model.train( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4536,7 +4536,7 @@ class GaussianProcess( Regressor ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.gauss_model.project( X )
+			self.prediction = self.model.project( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4566,7 +4566,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return self.gauss_model.score( X, y )
+			return self.model.score( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4595,7 +4595,7 @@ class GaussianProcess( Regressor ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gauss_model.project( X )
+			self.prediction = self.model.project( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )

@@ -452,8 +452,8 @@ class DataSource( ):
     dataframe: pd.DataFrame
     test_size: float
     random_state: int
-    data: Optional[ np.ndarray ]
-    targets: Optional[ np.ndarray ]
+    data: Optional[ pd.DataFrame ]
+    targets: Optional[ pd.Series ]
     n_samples: Optional[ int ]
     n_features: Optional[ int ]
     scaling_factor: Optional[ int ]
@@ -570,7 +570,7 @@ class DataSource( ):
             throw_if( 'name', name )
             throw_if( 'encoder', encoder )
             throw_if( 'columns', columns )
-            self.transtuple.append( (name, encoder, columns) )
+            self.transtuple.append( ( name, encoder, columns ) )
             self.column_transformer = ColumnTransformer( transformers=self.transtuple, remainder='passthrough' )
             self.data = self.dataframe[ self.feature_names ]
             _ = self.column_transformer.fit_transform( self.data )

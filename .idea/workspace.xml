@@ -4,20 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3a568e4a-19ee-4dbb-a0bb-de914e85cd35" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/mathy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mathy.iml" afterDir="false" />
+    <list default="true" id="c36181d0-5e3a-4e14-9759-9cde8cba1d43" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classifications.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifications.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/encoders.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/imputers.py" beforeDir="false" afterPath="$PROJECT_DIR$/imputers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ipynb/board.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ipynb/board.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scalers.py" beforeDir="false" afterPath="$PROJECT_DIR$/scalers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transformers.py" beforeDir="false" afterPath="$PROJECT_DIR$/transformers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vectorizers.py" beforeDir="false" afterPath="$PROJECT_DIR$/vectorizers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/regressions.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +26,17 @@
     &quot;assignee&quot;: &quot;is-leeroy-jenkins&quot;
   }
 }</component>
+  <component name="GitToolBoxStore">
+    <option name="largeFiles">
+      <LargeFiles>
+        <option name="unlockedFilePaths">
+          <set>
+            <option value="$PROJECT_DIR$/classifications.py" />
+          </set>
+        </option>
+      </LargeFiles>
+    </option>
+  </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/is-leeroy-jenkins/Mathy.git&quot;,
@@ -42,7 +46,7 @@
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;930000aa&quot;
 }</component>
-  <component name="ProjectId" id="33qQWu0ENOF6Gx17guObTUs9g4T" />
+  <component name="ProjectId" id="33tT9fRfQnm4KGLblcVM0lv1nkQ" />
   <component name="ProjectViewState">
     <option name="foldersAlwaysOnTop" value="false" />
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -61,7 +65,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "configurable.group.appearance",
+    "settings.editor.selected.configurable": "database.data.views.appearance",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -75,13 +79,13 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="3a568e4a-19ee-4dbb-a0bb-de914e85cd35" name="Changes" comment="" />
-      <created>1760042170899</created>
+      <changelist id="c36181d0-5e3a-4e14-9759-9cde8cba1d43" name="Changes" comment="" />
+      <created>1760135234059</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1760042170899</updated>
-      <workItem from="1760042174238" duration="177000" />
-      <workItem from="1760042403020" duration="2405000" />
+      <updated>1760135234059</updated>
+      <workItem from="1760135237468" duration="1084000" />
+      <workItem from="1760136367268" duration="14155000" />
     </task>
     <servers />
   </component>

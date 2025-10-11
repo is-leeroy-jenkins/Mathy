@@ -57,13 +57,14 @@ from matplotlib.colors import ListedColormap
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score,
                              mean_squared_error, mean_absolute_error,
-                             explained_variance_score, median_absolute_error)
+                             explained_variance_score, median_absolute_error,
+                             ConfusionMatrixDisplay)
 from sklearn.preprocessing import Binarizer
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
-	if not value:
-		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	if value is None:
+		raise Exception( f'Argument "{name}" cannot be empty!' )
 
 class Classifier( ):
 	"""
@@ -185,7 +186,7 @@ class Perceptron( Classifier ):
 			constant learning rate.
 
 	"""
-	perceptron_model: skc.Perceptron
+	model: skc.Perceptron
 	prediction: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -209,7 +210,7 @@ class Perceptron( Classifier ):
 
 			Purpose:
 			---------
-			Initialize the PerceptronClassifier linerar_model.
+			Initialize the Perceptron linerar model.
 
 
 			Parameters:
@@ -223,7 +224,7 @@ class Perceptron( Classifier ):
 		self.max_iter = iters
 		self.shuffle = shuffle
 		self.penalty = penalty
-		self.perceptron_model = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
+		self.model = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
 			shuffle=self.shuffle, penalty=self.penalty, )
 		self.prediction = None
 		self.decision = None
@@ -275,10 +276,10 @@ class Perceptron( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.perceptron_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The Perceptron data is untrained.' )
 		else:
-			return self.perceptron_model.coef_
+			return self.model.coef_
 	
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -292,10 +293,10 @@ class Perceptron( Classifier ):
 			only the maximum number of iteration across all classes is given.
 
 		'''
-		if self.perceptron_model.n_iter_ is None:
+		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.perceptron_model.n_iter_
+			return self.model.n_iter_
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -319,7 +320,7 @@ class Perceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.perceptron_model.decision_function( X )
+			self.decision = self.model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -349,7 +350,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.perceptron_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -378,7 +379,7 @@ class Perceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.perceptron_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -409,7 +410,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.perceptron_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -448,7 +449,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.perceptron_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
@@ -491,7 +492,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.perceptron_model.predict( X )
+			self.prediction = self.model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, anno=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -579,10 +580,8 @@ class LinearRegression( Classifier ):
 		Threshold for classification decision boundary.
 	
 	"""
-	linear_model: skc.LinearRegression
+	model: skc.LinearRegression
 	binarizer: Binarizer
-	y_prediction: Optional[ np.ndarray ]
-	threshold: float
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -599,10 +598,9 @@ class LinearRegression( Classifier ):
 	training_score: Optional[ float ]
 	alpha: Optional[ float ]
 	
-	def __init__( self, threshold: float=0.5 ) -> None:
+	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.threshold = threshold
-		self.linear_model = skc.LinearRegression( )
+		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -652,10 +650,10 @@ class LinearRegression( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.linear_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.linear_model.coef_
+			return self.model.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression:
 		"""
@@ -670,7 +668,7 @@ class LinearRegression( Classifier ):
 			X (np.ndarray | pd.DataFrame):
 			Input features.
 			y (np.ndarray | pd.Series):
-			Binary class labels (0 or 1).
+			
 			
 			
 			Returns:
@@ -680,7 +678,7 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.linear_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -707,15 +705,12 @@ class LinearRegression( Classifier ):
 			Returns:
 			--------
 			np.ndarray:
-			Predicted class labels (0 or 1).
 			
 		"""
 		try:
 			throw_if( 'X', X )
-			self.predictions = self.linear_model.predict( X )
-			self.binarizer = Binarizer( threshold=self.threshold )
-			_shape = self.predictions.reshape( -1, 1 )
-			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -742,8 +737,8 @@ class LinearRegression( Classifier ):
 		
 		"""
 		try:
-			self.y_prediction = self.predict( X )
-			self.accuracy = accuracy_score( y, self.y_prediction )
+			self.prediction = self.model.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
@@ -780,12 +775,12 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.linear_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -812,8 +807,8 @@ class LinearRegression( Classifier ):
 	
 			Parameters:
 			---------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): True class target vector of shape ( n_samples, ).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 	
 			Returns:
 			---------
@@ -823,13 +818,11 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.linear_model.predict( X )
+			self.prediction = self.model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, anno=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			ConfusionMatrixDisplay( confusion_matrix=cm )
+			plt.title( 'Linear Regression Confusion Matrix' )
+			plt.grid( False )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -908,7 +901,7 @@ class LogisticRegression( Classifier ):
 		is only supported by the ‘saga’ solver.
 
 	"""
-	logistic_model: skc.LogisticRegression
+	model: skc.LogisticRegression
 	prediction: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -949,7 +942,7 @@ class LogisticRegression( Classifier ):
 		self.max_iter = iters
 		self.multi_class = multi_class
 		self.solver = solver
-		self.logistic_model = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
+		self.model = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
@@ -1004,10 +997,10 @@ class LogisticRegression( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.logistic_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.logistic_model.coef_
+			return self.model.coef_
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -1019,10 +1012,10 @@ class LogisticRegression( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.logistic_model.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.logistic_model.classes_
+			return self.model.classes_
 	
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -1036,10 +1029,10 @@ class LogisticRegression( Classifier ):
 			only the maximum number of iteration across all classes is given.
 
 		'''
-		if self.logistic_model.n_iter_ is None:
+		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.logistic_model.n_iter_
+			return self.model.n_iter_
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1063,7 +1056,7 @@ class LogisticRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.logistic_model.decision_function( X )
+			self.decision = self.model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -1100,7 +1093,7 @@ class LogisticRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.logistic_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -1130,7 +1123,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.logistic_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1159,7 +1152,7 @@ class LogisticRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.logistic_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1189,7 +1182,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -1227,12 +1220,12 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -1249,7 +1242,7 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
 			Purpose:
@@ -1269,19 +1262,101 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.logistic_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.project( X, y )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Logistic Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+
+
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			---------
+				None
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X, y )
+			cm = confusion_matrix( y, self.prediction )
+			ConfusionMatrixDisplay( confusion_matrix=cm )
+			plt.title( 'Logistic Regression Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
+		'''
+
+			Purpose:
+			--------
+			Visualize how well it separates the different sample
+
+			:param X:
+			:type X: np.ndarray
+			:param y:
+			:type y: np.ndarray
+			:param test_idx:
+			:type test_idx: int
+			:param resolution:
+			:type resolution: float
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			markers = ('o', 's', '^', 'v', '<')
+			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
+			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
+			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
+			lab = self.project( np.ndarray( [ xx1.ravel( ), xx2.ravel( ) ] ).T, y )
+			lab = lab.reshape( xx1.shape )
+			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
+			plt.xlim( xx1.min( ), xx1.max( ) )
+			plt.ylim( xx2.min( ), xx2.max( ) )
+			for idx, cl in enumerate( np.unique( y ) ):
+				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
+					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
+				if test_idx:
+					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
+					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
+						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = (
+				'visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, '
+				'resolution=0.02 )')
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -1304,7 +1379,7 @@ class Ridge( Classifier ):
 		distinct computational performance profiles.
 
 	"""
-	ridge_classifier: skc.RidgeClassifier
+	model: skc.RidgeClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -1343,7 +1418,7 @@ class Ridge( Classifier ):
 		self.solver = solver
 		self.max_iter = size
 		self.random_state = rando
-		self.ridge_classifier = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
+		self.model = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
@@ -1396,10 +1471,10 @@ class Ridge( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.ridge_classifier.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.ridge_classifier.coef_
+			return self.model.coef_
 		
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -1413,10 +1488,10 @@ class Ridge( Classifier ):
 			only the maximum number of iteration across all classes is given.
 
 		'''
-		if self.ridge_classifier.n_iter_ is None:
+		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.ridge_classifier.n_iter_
+			return self.model.n_iter_
 	
 	@property
 	def features( self ) -> np.ndarray:
@@ -1428,10 +1503,10 @@ class Ridge( Classifier ):
 			The number of features seen during training
 
 		'''
-		if self.ridge_classifier.n_features_in_ is None:
+		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model features have not been initialized!' )
 		else:
-			return self.ridge_classifier.n_features_in_
+			return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
 		"""
@@ -1454,7 +1529,7 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.ridge_classifier.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1484,7 +1559,7 @@ class Ridge( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.ridge_classifier.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1515,7 +1590,7 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_classifier.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -1547,7 +1622,7 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_classifier.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -1592,7 +1667,7 @@ class Ridge( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.ridge_classifier.decision_function( X )
+			self.decision = self.model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -1623,7 +1698,7 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.ridge_classifier.predict( X )
+			self.prediction = self.model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
@@ -3782,7 +3857,7 @@ class AdaptiveBoost( Classifier ):
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
-	adaptive_model = ske.AdaBoostClassifier
+	model = ske.AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
@@ -3809,7 +3884,7 @@ class AdaptiveBoost( Classifier ):
 		self.estimator = 'AdaBoostClassifier'
 		self.n_estimators = num
 		self.learning_rate = learning
-		self.adaptive_model = ske.AdaBoostClassifier( estimator=self.estimator,
+		self.model = ske.AdaBoostClassifier( estimator=self.estimator,
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
@@ -3854,10 +3929,10 @@ class AdaptiveBoost( Classifier ):
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
-		if self.adaptive_model.estimator_errors_ is None:
+		if self.model.estimator_errors_ is None:
 			raise AttributeError( 'The model errors have not been initialized!' )
 		else:
-			return self.adaptive_model.estimator_errors_
+			return self.model.estimator_errors_
 	   
 	@property
 	def weights( self ) -> np.ndarray:
@@ -3869,10 +3944,10 @@ class AdaptiveBoost( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.adaptive_model.estimator_weights_ is None:
+		if self.model.estimator_weights_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.adaptive_model.estimator_weights_
+			return self.model.estimator_weights_
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3884,10 +3959,10 @@ class AdaptiveBoost( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.adaptive_model.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.adaptive_model.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -3909,7 +3984,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.adaptive_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3936,7 +4011,7 @@ class AdaptiveBoost( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.adaptive_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3965,7 +4040,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.adaptive_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3995,7 +4070,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.adaptive_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
@@ -4038,7 +4113,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.adaptive_model.predict( X )
+			self.prediction = self.model.predict( X )
 			cm = confusion_matrix( y, self.prediction )
 			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
 			plt.xlabel( 'Predicted' )
