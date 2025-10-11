@@ -1344,8 +1344,7 @@ class LogisticRegression( Classifier ):
 			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
 			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
 				np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ),
-											xx2.ravel( ) ] ).T )
+			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
 			plt.xlim( xx1.min( ), xx1.max( ) )
