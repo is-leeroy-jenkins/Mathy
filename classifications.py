@@ -55,10 +55,11 @@ import sklearn.svm as skv
 import sklearn.tree as skd
 from matplotlib import markers
 from matplotlib.colors import ListedColormap
+import seaborn as sns
 from seaborn import colors
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score,
-                             mean_squared_error, mean_absolute_error,
+                             mean_squared_error, mean_absolute_error, confusion_matrix,
                              explained_variance_score, median_absolute_error,
                              ConfusionMatrixDisplay)
 from sklearn.preprocessing import Binarizer
@@ -453,10 +454,10 @@ class Perceptron( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -1244,7 +1245,7 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ):
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
 			Purpose:
@@ -1264,13 +1265,14 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y )
-			plt.scatter( y, self.prediction )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=( 8, 6 ) )
+			plt.scatter( y, self.prediction, alpha=0.5  )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Logistic Regression: Observed vs Projected' )
 			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -1280,96 +1282,6 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
-
-
-			Purpose:
-			-----------
-			Plot confusion matrix for classifier predictions.
-
-			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-			Returns:
-			---------
-				None
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.project( X, y )
-			cm = confusion_matrix( y, self.prediction )
-			ConfusionMatrixDisplay( confusion_matrix=cm )
-			plt.title( 'Logistic Regression Confusion Matrix' )
-			plt.grid( False )
-			plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LogisticRegression'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			# setup marker generator and color map
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			
-			# plot the decision surface
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			
-			# plot class examples
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
-					idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				
-				# plot all examples
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LogisticRegression'
-			exception.method = (
-				'visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, '
-				'resolution=0.02 )')
-			error = ErrorDialog( exception )
-			error.show( )
-
 class Ridge( Classifier ):
 	"""
 
@@ -1635,10 +1547,10 @@ class Ridge( Classifier ):
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -1686,19 +1598,18 @@ class Ridge( Classifier ):
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-			
-	def create_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-
 
 			Purpose:
 			-----------
-			Plot predicted vs actual target_names.
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1709,72 +1620,24 @@ class Ridge( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			plt.figure( figsize=( 8, 6 ) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Ridge Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),
+			            X.max( ) ], [ y.min( ),
+			                          y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'create_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-	
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-	
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
 			
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			# setup marker generator and color map
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			
-			# plot the decision surface
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ),
-											xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			
-			# plot class examples
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
-					idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				
-				# plot all examples
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'Ridge'
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
-
 class Lasso( Classifier ):
 	"""
 	
@@ -1796,7 +1659,7 @@ class Lasso( Classifier ):
 		Threshold for classification decision boundary.
 	
 	"""
-	lasso_model: skc.Lasso
+	model: skc.Lasso
 	threshold: float
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -1817,7 +1680,7 @@ class Lasso( Classifier ):
 	def __init__( self, threshold: float=0.5 ) -> None:
 		super( ).__init__( )
 		self.threshold = threshold
-		self.lasso_model = skc.Lasso( threshold=self.threshold )
+		self.model = skc.Lasso( threshold=self.threshold )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -1870,10 +1733,10 @@ class Lasso( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.lasso_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.lasso_model.coef_
+			return self.model.coef_
 	
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -1887,10 +1750,10 @@ class Lasso( Classifier ):
 			only the maximum number of iteration across all classes is given.
 	
 		'''
-		if self.lasso_model.n_iter_ is None:
+		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model iterations have not been initialized!' )
 		else:
-			return self.lasso_model.n_iter_
+			return self.model.n_iter_
 	
 	@property
 	def features( self ) -> np.ndarray:
@@ -1902,16 +1765,16 @@ class Lasso( Classifier ):
 			The number of features seen during training
 	
 		'''
-		if self.lasso_model.n_features_in_ is None:
+		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model features have not been trained!' )
 		else:
-			return self.lasso_model.n_features_in_
+			return self.model.n_features_in_
 			
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.lasso_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1939,7 +1802,7 @@ class Lasso( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.lasso_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.binarizer = Binarizer( threshold=self.threshold )
 			_shape = self.prediction.reshape( -1, 1 )
 			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
@@ -1985,12 +1848,12 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -2006,40 +1869,43 @@ class Lasso( Classifier ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
-
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
 	
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+		"""
+
 			Purpose:
 			-----------
 			Plot confusion matrix for classifier predictions.
-	
+
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 				y (np.ndarray): True class target vector of shape ( n_samples, ).
-	
+
 			Returns:
 			-----------
 				None
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.lasso_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Lasso Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),
+			            X.max( ) ], [ y.min( ),
+			                          y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2068,7 +1934,7 @@ class GradientDescent( Classifier ):
 		 models and achieve online feature selection.
 
 	"""
-	sgd_model: skc.SGDClassifier
+	model: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -2106,7 +1972,7 @@ class GradientDescent( Classifier ):
 		self.max_iter = size
 		self.regularization = reg
 		self.alpha = alpha
-		self.sgd_model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
+		self.model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
@@ -2159,10 +2025,10 @@ class GradientDescent( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.sgd_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.sgd_model.coef_
+			return self.model.coef_
 		
 	@property
 	def iterations( self ) -> np.ndarray:
@@ -2176,10 +2042,10 @@ class GradientDescent( Classifier ):
 			only the maximum number of iteration across all classes is given.
 	
 		'''
-		if self.sgd_model.n_iter_ is None:
+		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
-			return self.sgd_model.n_iter_
+			return self.model.n_iter_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
 		"""
@@ -2201,7 +2067,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.sgd_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2229,7 +2095,7 @@ class GradientDescent( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2259,7 +2125,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -2297,13 +2163,13 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -2345,7 +2211,7 @@ class GradientDescent( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.decision = self.sgd_model.decision_function( X )
+			self.decision = self.model.decision_function( X )
 			return self.decision
 		except Exception as e:
 			exception = Error( e )
@@ -2391,8 +2257,8 @@ class GradientDescent( Classifier ):
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-	   
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
 			Purpose:
@@ -2412,65 +2278,22 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.sgd_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Gradient Descent Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),
+			            X.max( ) ], [ y.min( ),
+			                          y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-	
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-	
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min,
-				x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1, marker='o', s=100, label='Test')
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'GradientDescent'
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -2489,7 +2312,7 @@ class NearestNeighbor( Classifier ):
 		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
 
 	"""
-	neighbor_model: skn.KNeighborsClassifier
+	model: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
@@ -2524,7 +2347,7 @@ class NearestNeighbor( Classifier ):
 		self.n_neighbors = num
 		self.algorithm = algorithm
 		self.metric = metric
-		self.neighbor_model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
+		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -2585,7 +2408,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.neighbor_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2614,7 +2437,7 @@ class NearestNeighbor( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.neighbor_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2643,7 +2466,7 @@ class NearestNeighbor( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.neighbor_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -2674,7 +2497,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.neighbor_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return accuracy_score( y, self.prediction )
 		except Exception as e:
 			exception = Error( e )
@@ -2713,13 +2536,13 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.neighbor_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -2736,9 +2559,8 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-
 
 			Purpose:
 			-----------
@@ -2746,8 +2568,8 @@ class NearestNeighbor( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): True class target vector of shape ( n_samples, ).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -2757,64 +2579,22 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.neighbor_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'K-Nearest Neighbor Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),
+			            X.max( ) ], [ y.min( ),
+			                          y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighbotClassifier'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[:, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborClassifier'
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.cause = 'NearestNeighbor'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3052,10 +2832,10 @@ class DecisionTree( Classifier ):
 			self.prediction = self.decision_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -3072,9 +2852,8 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-
 
 			Purpose:
 			-----------
@@ -3093,62 +2872,22 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.decision_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Decision Tree Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),
+			            X.max( ) ], [ y.min( ),
+			                          y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			Parmeters:
-			----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-			
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter(
-						X_test[ :, 0 ], X_test[:, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.cause = 'DecisionTree'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3175,7 +2914,7 @@ class RandomForest( Classifier ):
 	"""
 	n_estimators: int
 	criterion: Optional[ Any ]
-	forest_model: ske.RandomForestClassifier
+	model: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
@@ -3203,7 +2942,7 @@ class RandomForest( Classifier ):
 		self.criterion = crit
 		self.max_depth = size
 		self.random_state = rando
-		self.forest_model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
+		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -3252,10 +2991,10 @@ class RandomForest( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.forest_model.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.forest_model.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
@@ -3279,7 +3018,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.forest_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3308,7 +3047,7 @@ class RandomForest( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.forest_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3337,7 +3076,7 @@ class RandomForest( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.forest_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -3367,7 +3106,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.forest_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
@@ -3398,13 +3137,13 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.forest_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 					'MSE': self.mean_squared_error,
@@ -3422,7 +3161,7 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
 			Purpose:
@@ -3442,64 +3181,20 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.forest_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Random Forest Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter(  X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.cause = 'RandomForest'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -3757,10 +3452,10 @@ class GradientBoost( Classifier ):
 			self.prediction = self.gradient_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -3777,82 +3472,41 @@ class GradientBoost( Classifier ):
 								'float ]')
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
 			Purpose:
-			--------
-			Display the confusion matrix.
+			-----------
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
+			Returns:
+			-----------
+				None
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Gradient Boost Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingClassifier'
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min,
-				x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-			if test_idx:
-				X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-				plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-					alpha=1.0, linewidth=1,  marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.cause = 'GradientBoost'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4083,10 +3737,10 @@ class AdaptiveBoost( Classifier ):
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 					'MSE': self.mean_squared_error,
@@ -4104,11 +3758,12 @@ class AdaptiveBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-			Plot confusion matrix
-			for classifier predictions.
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
@@ -4124,66 +3779,22 @@ class AdaptiveBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Adaptive Boost Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.cause = 'AdaptiveBoost'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
 
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
-	
 class BaggingModel( Classifier ):
 	"""
 
@@ -4391,7 +4002,7 @@ class BaggingModel( Classifier ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, square=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MAE': self.mean_absolute_error,
@@ -4410,85 +4021,40 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
 			Purpose:
-			--------
-			Plot confusion matrix
-			for classifier predictions.
+			-----------
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
-			------------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): True class target vector of shape ( n_samples, ).
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			---------
+			-----------
 				None
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bagging_classifier.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Bagging Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, index=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param index:
-			:type index: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if index:
-					X_test, y_test = X[ index, : ], y[ index ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.cause = 'BaggingModel'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4689,10 +4255,10 @@ class VotingModel( Classifier ):
 			self.prediction = self.voting_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MAE': self.mean_absolute_error,
@@ -4711,11 +4277,12 @@ class VotingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-			Plot confusion matrix
-			for classifier predictions.
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
@@ -4730,68 +4297,23 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Voting Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.cause = 'VotingModel'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
 
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8,
-					c=colors[ idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none',
-						edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
-   
 class StackingModel( Classifier ):
 	"""
 
@@ -4990,10 +4512,10 @@ class StackingModel( Classifier ):
 			self.prediction = self.stacking_model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MAE': self.mean_absolute_error,
@@ -5012,9 +4534,12 @@ class StackingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
+			Purpose:
+			-----------
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
@@ -5023,74 +4548,28 @@ class StackingModel( Classifier ):
 
 			Returns:
 			-----------
-			None
-			
+				None
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Stacking Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.cause = 'StackingModel'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
-
 
 class SupportVector( Classifier ):
 	"""
@@ -5341,87 +4820,40 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_heatmap( self, X: np.ndarray, y_true: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-		
+
 			Purpose:
-			---------
-			Generate and display a confusion matrix.
-	
+			-----------
+			Plot confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y_true (np.ndarray): True class target vector of shape ( n_samples, ).
-			
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-----------
+				None
+
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y_true', y_true )
-			self.prediction = self.svc_model.predict( X )
-			cm = confusion_matrix( y_true, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Projected' )
-			plt.ylabel( 'Observed' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			throw_if( 'y', y )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Support Vector Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y_true: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Optional target array  of shape ( n_samples, ).
-			test_idx: Opional[ int ]
-			resolution: Optional[ float ]
-
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			# setup marker generator and color map
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			
-			# plot the decision surface
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			
-			# plot class examples
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				
-				# plot all examples
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -5685,10 +5117,10 @@ class MultiLayerPerceptron( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.multilayer_model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction, squared=False )
+			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -5705,90 +5137,42 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-
 
 			Purpose:
 			-----------
 			Plot confusion matrix for classifier predictions.
 
 			Parameters:
-			---------
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			---------
+			-----------
 				None
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, annot=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			self.prediction = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Multi-Layer Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultiLayerClassifier'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.cause = 'MultiLayerPerceptron'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
 
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			# plot the decision surface
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ),
-			                                xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[
-					idx ], marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter(
-						X_test[ :, 0 ], X_test[
-							:, 1 ], c='none', edgecolor='black', alpha=1.0, linewidth=1,
-						marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'visualize( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
 
 
