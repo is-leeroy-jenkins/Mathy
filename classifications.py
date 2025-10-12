@@ -53,6 +53,7 @@ import sklearn.neighbors as skn
 import sklearn.neural_network as snn
 import sklearn.svm as skv
 import sklearn.tree as skd
+from sklearn.model_selection import train_test_split as split
 from matplotlib import markers
 from matplotlib.colors import ListedColormap
 import seaborn as sns
@@ -194,7 +195,6 @@ class Perceptron( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -208,7 +208,7 @@ class Perceptron( Classifier ):
 	shuffle: Optional[ bool ]
 	penalty: Optional[ str ]
 	
-	def __init__( self, reg: float=0.0001, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
+	def __init__( self, alpha: float=0.0001, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
 		"""
 
 			Purpose:
@@ -223,7 +223,7 @@ class Perceptron( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.alpha = reg
+		self.alpha = alpha
 		self.max_iter = iters
 		self.shuffle = shuffle
 		self.penalty = penalty
@@ -231,13 +231,14 @@ class Perceptron( Classifier ):
 			shuffle=self.shuffle, penalty=self.penalty, )
 		self.prediction = None
 		self.decision = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -250,7 +251,6 @@ class Perceptron( Classifier ):
 		return [ 'prediction',
 		         'max_iter',
 		         'random_state',
-		         'accuracy',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
@@ -259,6 +259,8 @@ class Perceptron( Classifier ):
 		         'alpha',
 		         'explained_variance_score',
 		         'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -392,34 +394,39 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-
+		
 			Purpose:
-			---------
-			Compute accuracy of the PerceptronClassifier classifier.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			---------
-			float
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'Perceptron'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -474,21 +481,20 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-
 
 			Purpose:
 			-----------
 			Plot confusion matrix for classifier predictions.
 
 			Parameters:
-			---------
+			-----------
 				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 				y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			---------
+			-----------
 				None
 
 		"""
@@ -496,64 +502,19 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			sns.heatmap( cm, anno=True, fmt='d', cmap='Blues' )
-			plt.xlabel( 'Predicted' )
-			plt.ylabel( 'Actual' )
-			plt.title( 'Confusion Matrix' )
-			plt.tight_layout( )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Linear Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
-
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min, x2_max, resolution ) )
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T, y )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[:, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
-			exception.method = ('visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, '
-								'resolution=0.02 )')
+			exception.cause = 'Linear Regression'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -590,7 +551,6 @@ class LinearRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -606,13 +566,14 @@ class LinearRegression( Classifier ):
 		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -634,6 +595,8 @@ class LinearRegression( Classifier ):
 		         'alpha',
 		         'explained_variance_score',
 		         'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -654,7 +617,7 @@ class LinearRegression( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The weights have not been initialized!' )
 		else:
 			return self.model.coef_
 	
@@ -686,7 +649,7 @@ class LinearRegression( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearModel'
+			exception.cause = 'LinearRegression'
 			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -717,12 +680,12 @@ class LinearRegression( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearModel'
+			exception.cause = 'LinearRegression'
 			exception.method = 'predict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 		
 			Purpose:
@@ -742,13 +705,19 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearModel'
+			exception.cause = 'LinearRegression'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -788,11 +757,11 @@ class LinearRegression( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MSE': float( f'{ self.mean_squared_error }' ),
+				'RMSE': float( f'{ self.r_mean_squared_error }' ),
+				'R2': float( f'{ self.r2_score }' ),
+				'EVS': float( f'{ self.explained_variance_score }' ),
+				'MAE': float( f'{ self.median_absolute_error }' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -802,88 +771,43 @@ class LinearRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-	
-	
+
 			Purpose:
 			-----------
 			Plot confusion matrix for classifier predictions.
-	
+
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-	
+			-----------
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (np.ndarray): True class target vector of shape ( n_samples, ).
+
 			Returns:
-			---------
+			-----------
 				None
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			ConfusionMatrixDisplay( confusion_matrix=cm )
-			plt.title( 'Linear Regression Confusion Matrix' )
-			plt.grid( False )
+			plt.figure( figsize=(8, 6) )
+			plt.scatter( y, self.prediction, alpha=0.5 )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Linear Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearModel'
-			exception.method = 'create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.cause = 'Linear Regression'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-
-	def visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ):
-		'''
 	
-			Purpose:
-			--------
-			Visualize how well it separates the different sample
-	
-			:param X:
-			:type X: np.ndarray
-			:param y:
-			:type y: np.ndarray
-			:param test_idx:
-			:type test_idx: int
-			:param resolution:
-			:type resolution: float
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			markers = ('o', 's', '^', 'v', '<')
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			x1_min, x1_max = X[ :, 0 ].min( ) - 1, X[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X[ :, 1 ].min( ) - 1, X[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid( np.arange( x1_min, x1_max, resolution ), np.arange( x2_min,
-				x2_max, resolution ) )
-			lab = self.project( np.ndarray( [ xx1.ravel( ), xx2.ravel( ) ] ).T, y )
-			lab = lab.reshape( xx1.shape )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			for idx, cl in enumerate( np.unique( y ) ):
-				plt.scatter( x=X[ y == cl, 0 ], y=X[ y == cl, 1 ], alpha=0.8, c=colors[ idx ],
-					marker=markers[ idx ], label=f'Class {cl}', edgecolor='black' )
-				if test_idx:
-					X_test, y_test = X[ test_idx, : ], y[ test_idx ]
-					plt.scatter( X_test[ :, 0 ], X_test[ :, 1 ], c='none', edgecolor='black',
-						alpha=1.0, linewidth=1, marker='o', s=100, label='Test set' )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LinearModel'
-			exception.method = ('visualize( self, X: np.ndarray, y: np.ndarray, test_idx=None, '
-								'resolution=0.02 )')
-			error = ErrorDialog( exception )
-			error.show( )
-
 class LogisticRegression( Classifier ):
 	"""
 
@@ -911,7 +835,6 @@ class LogisticRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -952,13 +875,14 @@ class LogisticRegression( Classifier ):
 		self.prediction = None
 		self.decision = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -969,7 +893,6 @@ class LogisticRegression( Classifier ):
 
 		'''
 		return [ 'prediction',
-		         'accuracy',
 		         'penalty',
 		         'solver',
 		         'multi_class',
@@ -984,6 +907,8 @@ class LogisticRegression( Classifier ):
 		         'explained_variance_score',
 		         'decision_function',
 		         'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -1167,34 +1092,40 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
+		
 			Purpose:
-			-----------
-			Compute classification accuracy.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: Accuracy accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1309,7 +1240,6 @@ class Ridge( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -1346,13 +1276,14 @@ class Ridge( Classifier ):
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1365,7 +1296,6 @@ class Ridge( Classifier ):
 		return [ 'prediction',
 				 'max_iter',
 				 'random_state',
-				 'accuracy',
 				 'alpha',
 				 'solver',
 				 'ridge_classifier',
@@ -1375,6 +1305,8 @@ class Ridge( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -1493,30 +1425,35 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-
+		
 			Purpose:
-			-----------
-			Compute the R-squared accuracy for the Ridge model.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: R-squared accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1627,9 +1564,7 @@ class Ridge( Classifier ):
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Ridge Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),
-			            X.max( ) ], [ y.min( ),
-			                          y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
@@ -1668,7 +1603,6 @@ class Lasso( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -1685,13 +1619,14 @@ class Lasso( Classifier ):
 		self.model = skc.Lasso( threshold=self.threshold )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1704,7 +1639,6 @@ class Lasso( Classifier ):
 		return [ 'prediction',
 				 'max_iter',
 				 'random_state',
-				 'accuracy',
 				 'loss',
 				 'regularization',
 				 'alpha',
@@ -1716,6 +1650,8 @@ class Lasso( Classifier ):
 				 'explained_variance_score',
 				 'weights',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -1816,11 +1752,35 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+			
+			Parameters:
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
+			Returns:
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
+		"""
 		try:
-			self.prediction = self.project( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1942,7 +1902,6 @@ class GradientDescent( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -1978,13 +1937,14 @@ class GradientDescent( Classifier ):
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1997,7 +1957,6 @@ class GradientDescent( Classifier ):
 		return [ 'prediction',
 				 'max_iter',
 				 'random_state',
-				 'accuracy',
 				 'loss',
 				 'regularization',
 				 'alpha',
@@ -2009,6 +1968,8 @@ class GradientDescent( Classifier ):
 				 'explained_variance_score',
 				 'weights',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -2107,29 +2068,35 @@ class GradientDescent( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
+		
 			Purpose:
-			-----------
-			Compute R^2 accuracy for the SGDRegressor.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-			float: R^2 accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2318,7 +2285,6 @@ class NearestNeighbor( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -2352,13 +2318,14 @@ class NearestNeighbor( Classifier ):
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2371,7 +2338,6 @@ class NearestNeighbor( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'n_neigbors',
 				 'algorithm',
 				 'metric',
@@ -2383,6 +2349,8 @@ class NearestNeighbor( Classifier ):
 				 'explained_variance_score',
 				 'predict_probabilty',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -2478,29 +2446,35 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-
+		
 			Purpose:
-			-----------
-			Compute classification accuracy for k-NN.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: Accuracy accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			return accuracy_score( y, self.prediction )
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2614,12 +2588,11 @@ class DecisionTree( Classifier ):
 		The deeper the tree, the more complex the decision rules and the fitter the model.
 
 	'''
-	decision_model: skd.DecisionTreeClassifier
+	model: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -2645,16 +2618,17 @@ class DecisionTree( Classifier ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
-		self.decision_model = skd.DecisionTreeClassifier( criterion=self.criterion,
+		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2667,7 +2641,6 @@ class DecisionTree( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'criterion',
 				 'splitter',
 				 'dt_classifier',
@@ -2677,6 +2650,8 @@ class DecisionTree( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -2703,7 +2678,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.decision_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -2732,7 +2707,7 @@ class DecisionTree( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.decision_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2761,7 +2736,7 @@ class DecisionTree( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.decision_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -2771,30 +2746,35 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-
+		
 			Purpose:
-			-----------
-			Compute classification accuracy for k-NN.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: Accuracy accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.decision_model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2831,7 +2811,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.decision_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
@@ -2880,9 +2860,7 @@ class DecisionTree( Classifier ):
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Decision Tree Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),
-			            X.max( ) ], [ y.min( ),
-			                          y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
@@ -2921,7 +2899,6 @@ class RandomForest( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -2947,13 +2924,14 @@ class RandomForest( Classifier ):
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2966,7 +2944,6 @@ class RandomForest( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'n_estimators',
 				 'max_depth',
 				 'criterior',
@@ -2976,6 +2953,8 @@ class RandomForest( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3088,29 +3067,35 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
+		
 			Purpose:
-			-----------
-			Compute R^2 accuracy for the SGDRegressor.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: R^2 accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3148,11 +3133,11 @@ class RandomForest( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
-					'R2': self.r2_score,
-					'VAR': self.explained_variance_score,
-					'MAE': self.median_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.r_mean_squared_error,
+				'R2': self.r2_score,
+				'VAR': self.explained_variance_score,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3218,12 +3203,11 @@ class GradientBoost( Classifier ):
 		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
 
 	"""
-	gradient_model: ske.GradientBoostingClassifier
+	model: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -3256,17 +3240,18 @@ class GradientBoost( Classifier ):
 		self.n_estimators = est
 		self.max_depth = size
 		self.random_state = rando
-		self.gradient_model = ske.GradientBoostingClassifier( loss=self.loss,
+		self.model = ske.GradientBoostingClassifier( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3279,7 +3264,6 @@ class GradientBoost( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'loss',
 				 'learning_rate',
 				 'n_estimators',
@@ -3290,6 +3274,8 @@ class GradientBoost( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3307,10 +3293,10 @@ class GradientBoost( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.gradient_model.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.gradient_model.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -3332,14 +3318,14 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.gradient_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostClassifier'
+			exception.cause = 'GradientBoost'
 			exception.method = ('train( self, X: np.ndarray, y: np.ndarray ) -> '
-								'GradientBoostingClassifier')
+								'GradientBoost')
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -3361,12 +3347,12 @@ class GradientBoost( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.gradient_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostClassifier'
+			exception.cause = 'GradientBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3390,43 +3376,49 @@ class GradientBoost( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.gradient_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingClassifier'
+			exception.cause = 'GradientBoost'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
+		
 			Purpose:
-			_______
-			Compute classification accuracy.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
-			__________
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			________
-			float: Accuracy accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingClassifier'
+			exception.cause = 'GradientBoost'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3451,7 +3443,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.gradient_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
@@ -3469,7 +3461,7 @@ class GradientBoost( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GradientBoostingClassifier'
+			exception.cause = 'GradientBoost'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
 			error = ErrorDialog( exception )
@@ -3527,7 +3519,6 @@ class AdaptiveBoost( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -3554,13 +3545,14 @@ class AdaptiveBoost( Classifier ):
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3573,7 +3565,6 @@ class AdaptiveBoost( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'X_scaled',
 				 'n_estimators',
 				 'learning_rate',
@@ -3584,6 +3575,8 @@ class AdaptiveBoost( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3655,7 +3648,7 @@ class AdaptiveBoost( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostClassifier'
+			exception.cause = 'AdaptiveBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3682,37 +3675,44 @@ class AdaptiveBoost( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostClassifier'
+			exception.cause = 'AdaptiveBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-			Compute R^2 accuracy
-			for the SGDRegressor.
-
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-			float: R^2 accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostClassifier'
+			exception.cause = 'AdaptiveBoost'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3754,7 +3754,7 @@ class AdaptiveBoost( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'AdaBoostClassifier'
+			exception.cause = 'AdaptiveBoost'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
 			error = ErrorDialog( exception )
@@ -3814,11 +3814,10 @@ class BaggingModel( Classifier ):
 		 which usually work best with weak models (e.g., shallow decision trees).
 
 	"""
-	bagging_classifier: ske.BaggingClassifier
+	model: ske.BaggingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -3841,17 +3840,18 @@ class BaggingModel( Classifier ):
 		self.n_estimators = num
 		self.max_features = size
 		self.random_state = rando
-		self.bagging_classifier = ske.BaggingClassifier( estimator=self.base_estimator,
+		self.model = ske.BaggingClassifier( estimator=self.base_estimator,
 			n_estimators=self.n_estimators, max_features=self.max_features,
 			random_state=self.random_state )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3864,13 +3864,14 @@ class BaggingModel( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'mean_absolute_error',
 				 'mean_squared_error',
 				 'r_mean_squared_error',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3888,10 +3889,10 @@ class BaggingModel( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.bagging_classifier.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.bagging_classifier.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
@@ -3913,7 +3914,7 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.bagging_classifier.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -3940,7 +3941,7 @@ class BaggingModel( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.bagging_classifier.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3950,28 +3951,35 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-			Compute R^2 accuracy
-			for the SGDRegressor.
-
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: R^2 accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bagging_classifier.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4017,7 +4025,7 @@ class BaggingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingClassifier'
+			exception.cause = 'BaggingModel'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
 			error = ErrorDialog( exception )
@@ -4072,11 +4080,10 @@ class VotingModel( Classifier ):
 		performing model in order to balance out their individual weaknesses.
 
 	"""
-	voting_model: ske.VotingClassifier
+	model: ske.VotingClassifier
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -4098,15 +4105,16 @@ class VotingModel( Classifier ):
 		super( ).__init__( )
 		self.estimators = estimators
 		self.voting = vote
-		self.voting_model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
+		self.model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4119,13 +4127,14 @@ class VotingModel( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'mean_absolute_error',
 				 'mean_squared_error',
 				 'r_mean_squared_error',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -4143,10 +4152,10 @@ class VotingModel( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.voting_model.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.voting_model.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		"""
@@ -4168,12 +4177,12 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.voting_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingClassifier'
+			exception.cause = 'VotingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4195,42 +4204,49 @@ class VotingModel( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.voting_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingClassifier'
+			exception.cause = 'VotingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-			Compute R^2 accuracy
-			for the SGDRegressor.
-
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: R^2 accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingClassifier'
+			exception.cause = 'VotingModel'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4254,7 +4270,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.voting_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
@@ -4273,7 +4289,7 @@ class VotingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'VotingClassifier'
+			exception.cause = 'VotingModel'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
 			error = ErrorDialog( exception )
@@ -4330,11 +4346,10 @@ class StackingModel( Classifier ):
 		estimators using cross_val_predict.
 
 	"""
-	stacking_model: ske.StackingClassifier
+	model: ske.StackingClassifier
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -4353,16 +4368,17 @@ class StackingModel( Classifier ):
 		super( ).__init__( )
 		self.estimators = est
 		self.final_estimator = final
-		self.stacking_model = ske.StackingClassifier( estimators=self.estimators,
+		self.model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4373,7 +4389,6 @@ class StackingModel( Classifier ):
 
 		'''
 		return [ 'prediction',
-				 'accuracy',
 				 'final_estimator',
 				 'estimators',
 				 'stacking_classifier',
@@ -4383,6 +4398,8 @@ class StackingModel( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -4400,10 +4417,10 @@ class StackingModel( Classifier ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.stacking_model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+		if self.model.classes_ is None:
+			raise AttributeError( 'The data has not been trained!' )
 		else:
-			return self.stacking_model.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -4425,12 +4442,12 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.stacking_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingClassifier'
+			exception.cause = 'StackingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4452,38 +4469,45 @@ class StackingModel( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.stacking_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingClassifier'
+			exception.cause = 'StackingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
-			Compute R^2 accuracy
-			for the SGDRegressor.
-
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-				float: R^2 accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4511,7 +4535,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.stacking_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
@@ -4530,7 +4554,7 @@ class StackingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'StackingClassifier'
+			exception.cause = 'StackingModel'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
 			error = ErrorDialog( exception )
@@ -4581,7 +4605,7 @@ class SupportVector( Classifier ):
 		thousands of samples.
 
 	"""
-	svc_model: skv.SVC
+	model: skv.SVC
 	multiclass: Optional[ str ]
 	regulation: Optional[ float ]
 	penalty: Optional[ str ]
@@ -4589,7 +4613,6 @@ class SupportVector( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -4617,7 +4640,7 @@ class SupportVector( Classifier ):
 		self.regulation = C
 		self.penalty = penalty
 		self.degree = degree
-		self.svc_model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
+		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
 		self.accuracy = 0.0
@@ -4627,6 +4650,8 @@ class SupportVector( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4639,7 +4664,6 @@ class SupportVector( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'accuracy',
 				 'svc_classifier',
 				 'kernel',
 				 'regulation',
@@ -4650,6 +4674,8 @@ class SupportVector( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -4667,10 +4693,10 @@ class SupportVector( Classifier ):
 			np.ndarray - array-like, shape = [n_SV, n_features]
 
 		'''
-		if self.svc_model.support_vectors_ is None:
+		if self.model.support_vectors_ is None:
 			raise AttributeError( 'The models support vectors are uninitialized!' )
 		else:
-			return self.svc_model.support_vectors_
+			return self.model.support_vectors_
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -4682,10 +4708,10 @@ class SupportVector( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.svc_model.coef_ is None:
+		if self.model.coef_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.svc_model.coef_
+			return self.model.coef_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -4703,7 +4729,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.svc_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4727,7 +4753,7 @@ class SupportVector( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.svc_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4757,7 +4783,7 @@ class SupportVector( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.svc_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -4767,26 +4793,35 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y_true: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 		
 			Purpose:
-			---------
-			Evaluate the model using accuracy score.
-	
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
 			
+			Returns:
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y_true', y_true )
-			self.prediction = self.svc_model.predict( X )
-			self.accuracy = accuracy_score( y_true, self.prediction )
-			return self.accuracy
+			throw_if( 'y', y )
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4812,7 +4847,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y_true', y_true )
-			self.prediction = self.svc_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return classification_report( y_true, self.prediction )
 		except Exception as e:
 			exception = Error( e )
@@ -4878,12 +4913,11 @@ class MultiLayerPerceptron( Classifier ):
 		- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
 
 	"""
-	multilayer_model: snn.MLPClassifier
+	model: snn.MLPClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -4898,8 +4932,8 @@ class MultiLayerPerceptron( Classifier ):
 	alpha: float
 	learning_rate: Any
 	
-	def __init__( self, hidden=(100,), activation='relu', solver='adam', alpha=0.0001,
-			learning: str = 'constant', rando: int = 42 ) -> None:
+	def __init__( self, hidden=( 100, ), activation='relu', solver='adam', alpha=0.0001,
+			learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
 		self.activation_function = activation
@@ -4907,17 +4941,18 @@ class MultiLayerPerceptron( Classifier ):
 		self.solver = solver
 		self.alpha = alpha
 		self.random_state = rando
-		self.multilayer_model = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
+		self.model = snn.MLPClassifier( hidden_layer_sizes=self.hidden_layers,
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.prediction = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4931,13 +4966,14 @@ class MultiLayerPerceptron( Classifier ):
 		         'probability',
 		         'max_depth',
 		         'random_state',
-		         'accuracy',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
 		         'r2_score',
 		         'explained_variance_score',
 		         'median_absolute_error',
+		         'training_score',
+		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -4950,18 +4986,17 @@ class MultiLayerPerceptron( Classifier ):
 	
 	@property
 	def loss( self ) -> float:
-		if self.multilayer_model.loss_ is None:
-			raise AttributeError( 'The model loss has not been initialized!' )
+		if self.model.loss_ is None:
+			raise AttributeError( 'The data has not been trained!' )
 		else:
-			return self.multilayer_model.loss_
+			return self.model.loss_
 	
 	@property
 	def classes( self ) -> np.ndarray:
-		if self.multilayer_model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized' )
-		
+		if self.model.classes_ is None:
+			raise AttributeError( 'The data has not been trained!' )
 		else:
-			return self.multilayer_model.classes_
+			return self.model.classes_
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -4973,10 +5008,10 @@ class MultiLayerPerceptron( Classifier ):
 			ndarray of shape (n_features,) or (n_targets, n_features)
 
 		'''
-		if self.multilayer_model.coefs_ is None:
+		if self.model.coefs_ is None:
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
-			return self.multilayer_model.coefs_
+			return self.model.coefs_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
@@ -4998,17 +5033,17 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.multilayer_model.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultiLayerClassifier'
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 
@@ -5027,12 +5062,12 @@ class MultiLayerPerceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.multilayer_model.predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5056,7 +5091,7 @@ class MultiLayerPerceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.probability = self.multilayer_model.predict_proba( X )
+			self.probability = self.model.predict_proba( X )
 			return self.probability
 		except Exception as e:
 			exception = Error( e )
@@ -5066,33 +5101,39 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
+		
 			Purpose:
-			-----------
-			Compute the R^2 accuracy of the model on the given test df.
-
+			--------
+			Compute the classification accuracy of the model.
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True values.
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-			float: R-squared accuracy.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			_score = { }
+			X_train, y_train, X_test, y_test = split( X, y )
+			train_prediction = self.model.predict( X_train )
+			test_prediction = self.model.predict( X_test )
+			self.training_score = mean_squared_error( y_train, train_prediction )
+			self.testing_score = mean_squared_error( y_test, test_prediction)
+			_score[ 'Train' ] = self.training_score
+			_score[ 'Test' ] = self.testing_score
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultilayerRegression'
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5118,7 +5159,7 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.multilayer_model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
@@ -5135,7 +5176,7 @@ class MultiLayerPerceptron( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultiLayerClassifier'
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5165,7 +5206,7 @@ class MultiLayerPerceptron( Classifier ):
 			plt.scatter( y, self.prediction, alpha=0.5 )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Multi-Layer Regression: Observed vs Projected' )
+			plt.title( 'Multi-Layer Perceptron: Observed vs Projected' )
 			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.show( )

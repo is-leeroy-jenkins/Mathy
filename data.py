@@ -265,7 +265,7 @@ def decision_tree_stump( X: np.ndarray, y: np.ndarray,  num_thresholds: int=10 )
 	    'right_label': right_label
     }
 
-def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
+def euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
     """
     
         Purpose:
@@ -301,7 +301,7 @@ def compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
         exception = Error( e )
         exception.module = 'mathy'
         exception.cause = 'data'
-        exception.method = 'compute_distances( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
+        exception.method = 'euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
         error = ErrorDialog( exception )
         error.show( )
 
@@ -347,7 +347,7 @@ def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray 
 	try:
 		centroids = X[ np.random.choice( X.shape[ 0 ], k, replace=False ) ]
 		for _ in range( iters ):
-			distances = compute_distances( X, centroids )
+			distances = euclidian_distance( X, centroids )
 			labels = np.argmin( distances, axis=1 )
 			new_centroids = np.array( [ X[ labels == i ].mean( axis=0 ) for i in range( k ) ] )
 			if np.all( centroids == new_centroids ):
