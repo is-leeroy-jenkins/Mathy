@@ -44,17 +44,15 @@
 from __future__ import annotations
 
 from typing import Optional, List
-
 import numpy as np
 import sklearn.feature_extraction.text as sk
 import sklearn.impute as im
 import sklearn.preprocessing as pp
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
-	if not value:
-		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	if value is None:
+		raise Exception( f'Argument "{name}" cannot be empty!' )
 
 class Scaler( ):
 	"""
@@ -88,9 +86,8 @@ class Scaler( ):
 
 		"""
 		raise NotImplementedError
-	
-	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+		
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]  ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -153,12 +150,12 @@ class StandardScaler( Scaler ):
 		samples or one if with_std=False.
 
 	"""
-	scaler: pp.StandardScaler
+	model: pp.StandardScaler
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.scaler = pp.StandardScaler( )
+		self.model = pp.StandardScaler( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -173,6 +170,7 @@ class StandardScaler( Scaler ):
 		  'transformed_data',
 		  'train',
 		  'transform',
+		  'train_transform',
 		  'inverse_transform' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray=None ) -> StandardScaler | None:
@@ -195,7 +193,7 @@ class StandardScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.scaler.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -225,13 +223,44 @@ class StandardScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Fits & Transforms the df using the fitted MinMaxScaler.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
+			y (np.ndarray): Target vector of shape ( n_samples, ). IGNORED
+
+			Returns:
+			-----------
+			np.ndarray
+
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X )
+			self.transformed_data = self.model.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'StandardScaler'
+			exception.method = 'fit_transform( self, X: np.ndarray, y:np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -253,7 +282,7 @@ class StandardScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.scaler.inverse_transform( X )
+			return self.model.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -276,12 +305,12 @@ class MinMaxScaler( Scaler ):
 		value and the smallest one corresponds to the minimum value
 
 	"""
-	scaler: pp.MinMaxScaler
+	model: pp.MinMaxScaler
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.scaler = pp.MinMaxScaler( )
+		self.model = pp.MinMaxScaler( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -317,7 +346,7 @@ class MinMaxScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.scaler.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -348,7 +377,7 @@ class MinMaxScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -378,7 +407,7 @@ class MinMaxScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.fit_transform( X )
+			self.transformed_data = self.model.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -406,7 +435,7 @@ class MinMaxScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.scaler.inverse_transform( X )
+			return self.model.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -434,12 +463,12 @@ class RobustScaler( Scaler ):
 		In such cases, using the median and the interquartile range often give better results.
 
 	"""
-	scaler: pp.RobustScaler
+	model: pp.RobustScaler
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.scaler = pp.RobustScaler( )
+		self.model = pp.RobustScaler( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -476,7 +505,7 @@ class RobustScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.scaler.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -506,7 +535,7 @@ class RobustScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -530,7 +559,7 @@ class RobustScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.inverse_transform( X )
+			self.transformed_data = self.model.inverse_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -557,13 +586,13 @@ class NormalScaler( Scaler ):
 
 	"""
 	norm: Optional[ str ]
-	scaler: pp.Normalizer
+	model: pp.Normalizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, reg: str = 'l2' ) -> None:
 		super( ).__init__( )
 		self.norm = reg
-		self.scaler = pp.Normalizer( norm=self.norm )
+		self.model = pp.Normalizer( norm=self.norm )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -601,7 +630,7 @@ class NormalScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.scaler.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -632,7 +661,7 @@ class NormalScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -662,7 +691,7 @@ class NormalScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.scaler.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )

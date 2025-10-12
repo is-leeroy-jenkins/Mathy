@@ -658,7 +658,7 @@ class LinearRegression( Classifier ):
 		else:
 			return self.model.coef_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression | None:
 		"""
 		
 			Purpose:
@@ -691,7 +691,7 @@ class LinearRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 		
 			Purpose:
@@ -740,8 +740,10 @@ class LinearRegression( Classifier ):
 		
 		"""
 		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.accuracy = accuracy_score( y, self.prediction )
+			self.accuracy = r2_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
