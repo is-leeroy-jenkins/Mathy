@@ -133,7 +133,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -152,7 +152,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -4957,6 +4957,7 @@ class MultiLayerPerceptron( Classifier ):
 	def classes( self ) -> np.ndarray:
 		if self.multilayer_model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized' )
+		
 		else:
 			return self.multilayer_model.classes_
 	
