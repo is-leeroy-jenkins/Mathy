@@ -64,7 +64,7 @@ def throw_if( name: str, value: object ):
 	if not value:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
-class Regressor:
+class Regression:
 	"""
 
     Purpose:
@@ -163,7 +163,7 @@ class Regressor:
         """
 		raise NotImplementedError
 
-class LinearRegression( Regressor ):
+class LinearRegression( Regression ):
 	"""
 
 	    Purpose:
@@ -410,7 +410,7 @@ class LinearRegression( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class Ridge( Regressor ):
+class Ridge( Regression ):
 	"""
 	
 	    Purpose:
@@ -676,7 +676,7 @@ class Ridge( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class Lasso( Regressor ):
+class Lasso( Regression ):
 	"""
 	
 	    Purpose:
@@ -924,7 +924,7 @@ class Lasso( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class ElasticNet( Regressor ):
+class ElasticNet( Regression ):
 	"""
 
 	    Purpose:
@@ -1173,7 +1173,7 @@ class ElasticNet( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LeastAngle( Regressor ):
+class LeastAngle( Regression ):
 	"""
 
 	    Purpose:
@@ -1423,7 +1423,7 @@ class LeastAngle( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class BayesianRidge( Regressor ):
+class BayesianRidge( Regression ):
 	"""
 
     Purpose:
@@ -1666,7 +1666,7 @@ class BayesianRidge( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GradientDescent( Regressor ):
+class GradientDescent( Regression ):
 	"""
 
     Purpose:
@@ -1941,7 +1941,7 @@ class GradientDescent( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class NearestNeighbor( Regressor ):
+class NearestNeighbor( Regression ):
 	"""
 
     Purpose:
@@ -2194,7 +2194,7 @@ class NearestNeighbor( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class DecisionTree( Regressor ):
+class DecisionTree( Regression ):
 	'''
 
 	    Purpose:
@@ -2435,7 +2435,7 @@ class DecisionTree( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RandomForest( Regressor ):
+class RandomForest( Regression ):
 	'''
 
 	    Purpose:
@@ -2686,7 +2686,7 @@ class RandomForest( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GradientBoost( Regressor ):
+class GradientBoost( Regression ):
 	"""
 
     Purpose:
@@ -2936,7 +2936,7 @@ class GradientBoost( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class AdaptiveBoost( Regressor ):
+class AdaptiveBoost( Regression ):
 	"""
 
     Purpose:
@@ -3206,7 +3206,7 @@ class AdaptiveBoost( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class BaggingModel( Regressor ):
+class BaggingModel( Regression ):
 	"""
 
     Purpose:
@@ -3458,7 +3458,7 @@ class BaggingModel( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class VotingModel( Regressor ):
+class VotingModel( Regression ):
 	"""
 
     Purpose:
@@ -3707,7 +3707,7 @@ class VotingModel( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class StackingModel( Regressor ):
+class StackingModel( Regression ):
 	"""
 
 	    Purpose:
@@ -3961,7 +3961,7 @@ class StackingModel( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SupportVector( Regressor ):
+class SupportVector( Regression ):
 	"""
     Wrapper for sklearn's Support Vector Regression (SVR).
     """
@@ -4179,7 +4179,7 @@ class SupportVector( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class MultiLayerPerceptron( Regressor ):
+class MultiLayerPerceptron( Regression ):
 	"""
 
 		Purpose:
@@ -4447,7 +4447,7 @@ class MultiLayerPerceptron( Regressor ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class GaussianProcess( Regressor ):
+class GaussianProcess( Regression ):
 	'''
 
 	    Purpose:

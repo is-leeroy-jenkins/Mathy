@@ -90,8 +90,6 @@ class Classifier( ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	
 	def __init__( self ):
 		pass
@@ -134,7 +132,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 
 			Purpose:
@@ -201,8 +199,6 @@ class Perceptron( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	alpha: Optional[ float ]
 	max_iter: Optional[ int ]
 	shuffle: Optional[ bool ]
@@ -259,8 +255,6 @@ class Perceptron( Classifier ):
 		         'alpha',
 		         'explained_variance_score',
 		         'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -394,7 +388,7 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -414,15 +408,9 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -557,8 +545,6 @@ class LinearRegression( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	alpha: Optional[ float ]
 	
 	def __init__( self ) -> None:
@@ -572,8 +558,6 @@ class LinearRegression( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -595,8 +579,6 @@ class LinearRegression( Classifier ):
 		         'alpha',
 		         'explained_variance_score',
 		         'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -685,7 +667,7 @@ class LinearRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -705,15 +687,9 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -847,8 +823,6 @@ class LogisticRegression( Classifier ):
 	alpha: float
 	max_iter: int
 	solver: str
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	
 	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=100,
 			multi_class: str='multinomial', solver: str='lbfgs' ) -> None:
@@ -881,8 +855,6 @@ class LogisticRegression( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -907,8 +879,6 @@ class LogisticRegression( Classifier ):
 		         'explained_variance_score',
 		         'decision_function',
 		         'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -1092,7 +1062,7 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -1112,15 +1082,9 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1246,8 +1210,6 @@ class Ridge( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	alpha: Optional[ float ]
 	solver: Optional[ str ]
 	
@@ -1282,8 +1244,6 @@ class Ridge( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1305,8 +1265,6 @@ class Ridge( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -1425,7 +1383,7 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -1445,15 +1403,9 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1609,8 +1561,6 @@ class Lasso( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	alpha: Optional[ float ]
 
 	def __init__( self, threshold: float=0.5 ) -> None:
@@ -1625,8 +1575,6 @@ class Lasso( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1650,8 +1598,6 @@ class Lasso( Classifier ):
 				 'explained_variance_score',
 				 'weights',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -1752,7 +1698,7 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -1772,15 +1718,9 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1908,8 +1848,6 @@ class GradientDescent( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	loss: Optional[ str ]
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
@@ -1943,8 +1881,6 @@ class GradientDescent( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2068,7 +2004,7 @@ class GradientDescent( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -2088,15 +2024,9 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2291,8 +2221,6 @@ class NearestNeighbor( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	algorithm: Any
 	metric: str
 	
@@ -2324,8 +2252,6 @@ class NearestNeighbor( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2446,7 +2372,7 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -2466,15 +2392,9 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2599,8 +2519,6 @@ class DecisionTree( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
 	
@@ -2627,8 +2545,6 @@ class DecisionTree( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2746,7 +2662,7 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -2766,15 +2682,9 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2905,8 +2815,6 @@ class RandomForest( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	
 	def __init__( self, est: int=10, crit: Any='gini', size: Any=None, rando: int=42 ) -> None:
 		"""
@@ -2930,8 +2838,6 @@ class RandomForest( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2953,8 +2859,6 @@ class RandomForest( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3067,7 +2971,7 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -3087,15 +2991,9 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3214,8 +3112,6 @@ class GradientBoost( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	
 	def __init__( self, lss: str='deviance', rate: int=0.1, est: int=100,
 			size: int=3, rando: int=42 ) -> None:
@@ -3250,8 +3146,6 @@ class GradientBoost( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3274,8 +3168,6 @@ class GradientBoost( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3386,7 +3278,7 @@ class GradientBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -3406,15 +3298,9 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3526,8 +3412,6 @@ class AdaptiveBoost( Classifier ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
 	
@@ -3551,8 +3435,6 @@ class AdaptiveBoost( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3575,8 +3457,6 @@ class AdaptiveBoost( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3680,7 +3560,7 @@ class AdaptiveBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -3700,15 +3580,9 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3824,8 +3698,6 @@ class BaggingModel( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	base_estimator: Optional[ Any ]
 	n_estimators: Optional[ int ]
 	
@@ -3850,8 +3722,6 @@ class BaggingModel( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3870,8 +3740,6 @@ class BaggingModel( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -3951,7 +3819,7 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -3971,15 +3839,9 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4091,9 +3953,6 @@ class VotingModel( Classifier ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	estimators: List[ (str, object) ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
-	estimators: List[ (str, object) ]
 	vote: str
 	
 	def __init__( self, estimators: List[ ( str, object ) ], vote='hard' ) -> None:
@@ -4113,8 +3972,6 @@ class VotingModel( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4133,8 +3990,6 @@ class VotingModel( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -4214,7 +4069,7 @@ class VotingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -4234,15 +4089,9 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4356,8 +4205,6 @@ class StackingModel( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ], final: ClassifierMixin=None ) -> None:
 		"""
@@ -4377,8 +4224,6 @@ class StackingModel( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4398,8 +4243,6 @@ class StackingModel( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -4479,7 +4322,7 @@ class StackingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -4499,15 +4342,9 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4619,8 +4456,6 @@ class SupportVector( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	
 	def __init__( self, multi: str='ovr', C: float=1.0, penalty: str='l2', degree: int=3 ) -> None:
 		"""
@@ -4650,8 +4485,6 @@ class SupportVector( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4674,8 +4507,6 @@ class SupportVector( Classifier ):
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
@@ -4793,7 +4624,7 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -4813,15 +4644,9 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4924,8 +4749,6 @@ class MultiLayerPerceptron( Classifier ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
 	hidden_layers: tuple[ int, ... ]
 	activation_function: str
 	solver: str
@@ -4951,8 +4774,6 @@ class MultiLayerPerceptron( Classifier ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4972,8 +4793,6 @@ class MultiLayerPerceptron( Classifier ):
 		         'r2_score',
 		         'explained_variance_score',
 		         'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 		         'train',
 		         'project',
 		         'score',
@@ -4992,9 +4811,17 @@ class MultiLayerPerceptron( Classifier ):
 			return self.model.loss_
 	
 	@property
-	def classes( self ) -> np.ndarray:
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The data has not been trained!' )
+			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
 			return self.model.classes_
 	
@@ -5101,7 +4928,7 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 		
 			Purpose:
@@ -5121,15 +4948,9 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_score = { }
-			X_train, y_train, X_test, y_test = split( X, y )
-			train_prediction = self.model.predict( X_train )
-			test_prediction = self.model.predict( X_test )
-			self.training_score = mean_squared_error( y_train, train_prediction )
-			self.testing_score = mean_squared_error( y_test, test_prediction)
-			_score[ 'Train' ] = self.training_score
-			_score[ 'Test' ] = self.testing_score
-			return _score
+			self.prediction = self.model.predict( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			return self.mean_squared_error
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
