@@ -113,7 +113,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
 			Purpose:

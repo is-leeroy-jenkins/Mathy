@@ -57,12 +57,13 @@ from sklearn.base import ClassifierMixin
 from sklearn.gaussian_process import GaussianProcessRegressor as gpr
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score
-from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error, explained_variance_score, median_absolute_error, )
+from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error,
+                             explained_variance_score, median_absolute_error, )
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
-	if not value:
-		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	if value is None:
+		raise Exception( f'Argument "{name}" cannot be empty!' )
 
 class Regression:
 	"""
@@ -107,7 +108,7 @@ class Regression:
         """
 		raise NotImplementedError
 	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
 	
 	        Purpose:
@@ -125,7 +126,7 @@ class Regression:
         """
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
 		"""
 	
 	        Purpose:
@@ -162,6 +163,7 @@ class Regression:
 
         """
 		raise NotImplementedError
+
 
 class LinearRegression( Regression ):
 	"""
@@ -219,8 +221,6 @@ class LinearRegression( Regression ):
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.median_absolute_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -234,14 +234,28 @@ class LinearRegression( Regression ):
 		         'weights', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
 		         'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'weights',
 		         'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
-		         'weights' ]
+		         'weights', 'features' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
+		else:			return self.model.coef_
+	
+	@property
+	def features( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
-			return self.model.coef_
+			return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression | None:
 		"""
@@ -629,12 +643,12 @@ class Ridge( Regression ):
 				'MSE': mean_squared_error( y, self.prediction ),
 				'RMSE': mean_squared_error( y, self.prediction, squared=False ),
 				'R2': r2_score( y, self.prediction ),
-				'Explained Variance': explained_variance_score( y, self.prediction ),
-				'Median Absolute Error': median_absolute_error( y, self.prediction ), }
+				'EVS': explained_variance_score( y, self.prediction ),
+				'MAE': median_absolute_error( y, self.prediction ), }
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = "RidgeRegressor"
+			exception.cause = "Ridge"
 			exception.method = "analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict"
 			error = ErrorDialog( exception )
 			error.show( )
