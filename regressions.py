@@ -40,9 +40,8 @@
 	</summary>
 	******************************************************************************************
 """
-
+from boogr import Error, ErrorDialog
 from __future__ import annotations
-
 from typing import Dict
 from typing import Optional, List, Tuple
 import matplotlib.pyplot as plt
@@ -56,10 +55,9 @@ import sklearn.tree as skd
 from sklearn.base import ClassifierMixin
 from sklearn.gaussian_process import GaussianProcessRegressor as gpr
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score
 from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error,
-                             explained_variance_score, median_absolute_error, )
-from boogr import Error, ErrorDialog
+                             explained_variance_score, median_absolute_error,
+                             accuracy_score, confusion_matrix, ConfusionMatrixDisplay, f1_score )
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -239,8 +237,9 @@ class LinearRegression( Regression ):
 	@property
 	def weights( self ) -> np.ndarray | None:
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:			return self.model.coef_
+			raise AttributeError( 'The data has not been trained!' )
+		else:
+			return self.model.coef_
 	
 	@property
 	def features( self ) -> np.ndarray:
@@ -253,7 +252,7 @@ class LinearRegression( Regression ):
 
 		'''
 		if self.model.n_features_in_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.n_features_in_
 	
@@ -338,7 +337,7 @@ class LinearRegression( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
 			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
