@@ -492,10 +492,10 @@ class Perceptron( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'MSE': float( f'{self.mean_squared_error:.2f}' ),
+				'RMSE': float( f'{ self.root_mean_squared_error:.2f}' ),
+				'MEAE': float( f'{self.mean_absolute_error:.2f}' ),
+				'MDAE': float( f'{self.median_absolute_error:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
