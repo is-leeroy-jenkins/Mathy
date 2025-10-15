@@ -755,33 +755,7 @@ class LinearRegression( Classifier ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
-
-
-			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
-
-			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
-
-			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
-
-		"""
-		try:
-	
+			
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
