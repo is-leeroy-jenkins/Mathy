@@ -59,7 +59,7 @@ from matplotlib.colors import ListedColormap
 import seaborn as sns
 from seaborn import colors
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import (recall_score, precision_score, confusion_matrix, classification_report, f1_score,
+from sklearn.metrics import ( recall_score, precision_score, confusion_matrix, classification_report, f1_score,
                              confusion_matrix, auc, average_precision_score, balanced_accuracy_score,
                              ConfusionMatrixDisplay, accuracy_score, top_k_accuracy_score,
                              hinge_loss, log_loss )
@@ -136,7 +136,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None
 		"""
 
 			Purpose:
@@ -276,6 +276,7 @@ class Perceptron( Classifier ):
 		         'score',
 		         'analyze',
 		         'penalty',
+		         'shuffle',
 		         'alpha',
 		         'create_heatmap',
 		         'weights',
@@ -409,7 +410,7 @@ class Perceptron( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'Perceptron'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -434,7 +435,7 @@ class Perceptron( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -489,6 +490,7 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
+			self.accuracy = accuracy_score( y, self.prediction )
 			self.area_under_curve = auc( y, self.prediction )
 			self.average_precision = average_precision_score( y, self.prediction  )
 			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
@@ -496,9 +498,10 @@ class Perceptron( Classifier ):
 			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'AUC': self.area_under_curve,
-				'APS': self.average_precision,
-				'Top-K': self.top_k_accuracy,
+				'Accuracy Score': self.accuracy,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
 				'Hinge-Loss': self.hinge_loss,
 				'Log-Loss': self.log_loss,
 			}
@@ -598,7 +601,7 @@ class LinearRegression( Classifier ):
 		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -606,8 +609,6 @@ class LinearRegression( Classifier ):
 		self.top_k_accuracy = 0.0
 		self.log_loss = 0.0
 		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -617,19 +618,23 @@ class LinearRegression( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction',
-		         'mean_absolute_error',
-		         'area_under_curve',
-		         'r_area_under_curve',
-		         'r2_score',
-		         'explained_variance_score',
-		         'median_absolute_error',
+		return [ 'model',
+				 'prediction',
 		         'train',
 		         'project',
 		         'score',
 		         'analyze',
 		         'weights',
-		         'scatter_plot', ]
+		         'scatter_plot',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -733,7 +738,7 @@ class LinearRegression( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -758,52 +763,51 @@ class LinearRegression( Classifier ):
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
-
+	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-	
+
+
 			Purpose:
 			-----------
-			Evaluate the classifier using multiple classification metrics.
-	
+			Evaluate classifier performance using standard classification metrics.
+
 			Parameters:
-			-----------
+			---------
 			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): True target_names of shape (n_samples,).
-	
+			y (np.ndarray): Ground truth class target_names.
+
 			Returns:
-			-----------
-			dict: Dictionary containing:
-			- Accuracy (float)
-			- Precision (float)
-			- Recall (float)
-			- F1 Score (float)
-			- ROC AUC (float)
-			- Matthews Corrcoef (float)
-			- Confusion Matrix (List[List[int]])
-	
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': float( f'{ self.area_under_curve }' ),
-				'RMSE': float( f'{ self.r_area_under_curve }' ),
-				'R2': float( f'{ self.r2_score }' ),
-				'EVS': float( f'{ self.explained_variance_score }' ),
-				'MAE': float( f'{ self.median_absolute_error }' ),
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearModel'
+			exception.cause = 'LinearRegression'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -841,7 +845,7 @@ class LinearRegression( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'Linear Regression'
+			exception.cause = 'LinearRegression'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -901,8 +905,8 @@ class LogisticRegression( Classifier ):
 
 			Parameters:
 			-----------
-				max (int): Maximum number of iterations. Default is 1000.
-				solver (str): Algorithm to use in optimization. Default is 'lbfgs'.
+			max (int): Maximum number of iterations. Default is 1000.
+			solver (str): Algorithm to use in optimization. Default is 'lbfgs'.
 
 		"""
 		super( ).__init__( )
@@ -915,7 +919,7 @@ class LogisticRegression( Classifier ):
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -923,8 +927,6 @@ class LogisticRegression( Classifier ):
 		self.top_k_accuracy = 0.0
 		self.log_loss = 0.0
 		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -941,21 +943,24 @@ class LogisticRegression( Classifier ):
 		         'random_state',
 		         'alpha',
 		         'max_iter',
-		         'mean_absolute_error',
-		         'area_under_curve',
 		         'predict_probabilty',
-		         'r_area_under_curve',
-		         'r2_score',
-		         'explained_variance_score',
 		         'decision_function',
-		         'median_absolute_error',
 		         'train',
 		         'project',
 		         'score',
 		         'analyze',
 		         'weights',
 		         'iterations',
-		         'labels' ]
+		         'labels'
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1103,43 +1108,45 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-		
+
+
 			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
-			
-			
-			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			Evaluate classifier performance using standard classification metrics.
+
+			Parameters:
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
 			Returns:
-			--------
-			float: Accuracy score (0.0 to 1.0).
-		
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1149,77 +1156,48 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
-		"""
-		
-			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-			
-			Parameters:
-			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
-			Returns:
-			--------
-			float: Accuracy score (0.0 to 1.0).
-		
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LogisticRegression'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
-	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
+
 			Purpose:
 			-----------
-			Evaluate the classifier using multiple classification metrics.
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
+			---------
 			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): True target_names of shape (n_samples,).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-			dict: Dictionary containing:
-			- Accuracy (float)
-			- Precision (float)
-			- Recall (float)
-			- F1 Score (float)
-			- ROC AUC (float)
-			- Matthews Corrcoef (float)
-			- Confusion Matrix (List[List[int]])
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Accuracy Score': self.accuracy,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1330,7 +1308,7 @@ class Ridge( Classifier ):
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -1354,13 +1332,7 @@ class Ridge( Classifier ):
 				 'random_state',
 				 'alpha',
 				 'solver',
-				 'ridge_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
+				 'model',
 				 'train',
 				 'project',
 				 'score',
@@ -1369,7 +1341,16 @@ class Ridge( Classifier ):
 				 'create_heatmap',
 				 'weights',
 		         'iterations',
-		         'features' ]
+		         'features',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1479,43 +1460,45 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-		
+
+
 			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
-			
-			
-			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			Evaluate classifier performance using standard classification metrics.
+
+			Parameters:
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
 			Returns:
-			--------
-			float: Accuracy score (0.0 to 1.0).
-		
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1525,41 +1508,48 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
+
 
 			Purpose:
 			-----------
-				Evaluates the Ridge model
-				using multiple metrics.
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Evaluation metrics including MAE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Accuracy Score': self.accuracy,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1685,7 +1675,7 @@ class Lasso( Classifier ):
 		self.model = skc.Lasso( threshold=self.threshold )
 		self.prediction = None
 		self.probability = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -1710,14 +1700,8 @@ class Lasso( Classifier ):
 				 'loss',
 				 'regularization',
 				 'alpha',
-				 'sgd_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
+				 'model',
 				 'weights',
-				 'median_absolute_error',
 				 'train',
 				 'project',
 				 'score',
@@ -1725,7 +1709,16 @@ class Lasso( Classifier ):
 				 'create_heatmap',
 		         'weights',
 		         'iterations',
-		         'features' ]
+		         'features',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1818,43 +1811,48 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-		
+
+
 			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
-			
-			
-			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			Evaluate classifier performance using standard classification metrics.
+
+			Parameters:
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
 			Returns:
-			--------
-			float: Accuracy score (0.0 to 1.0).
-		
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'Accuracy Score': self.accuracy,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1866,38 +1864,43 @@ class Lasso( Classifier ):
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-	
+
+
 			Purpose:
 			-----------
-			Evaluate the model using multiple regression metrics.
-	
-	
+			Evaluate classifier performance using standard classification metrics.
+
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground truth target_names.
-	
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
 			Returns:
-			-----------
-			dict: Dictionary of MAE, MSE, RMSE, R², etc.
-	
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2015,7 +2018,7 @@ class GradientDescent( Classifier ):
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -2040,23 +2043,24 @@ class GradientDescent( Classifier ):
 				 'loss',
 				 'regularization',
 				 'alpha',
-				 'sgd_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
+				 'model',
 				 'weights',
-				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
 		         'weights',
-		         'iterations' ]
+		         'iterations',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -2168,7 +2172,7 @@ class GradientDescent( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -2197,52 +2201,48 @@ class GradientDescent( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
+
 			Purpose:
 			-----------
-			Evaluate the classifier using standard metrics.
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-			dict: Dictionary containing:
-			- Accuracy (float)
-			- Precision (float)
-			- Recall (float)
-			- F1 Score (float)
-			- ROC AUC (float)
-			- Matthews Corrcoef (float)
-			- Confusion Matrix (List[List[int]])
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = (''
-								'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
-								'float ]')
+			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[str,float ]')
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2410,7 +2410,7 @@ class NearestNeighbor( Classifier ):
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -2436,21 +2436,22 @@ class NearestNeighbor( Classifier ):
 				 'algorithm',
 				 'metric',
 				 'model',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
 				 'predict_probabilty',
-				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-				 'labels' ]
+				 'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2560,7 +2561,7 @@ class NearestNeighbor( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -2586,49 +2587,45 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 
 			Purpose:
 			-----------
-			Evaluate classification performance using various metrics.
-
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Dictionary containing:
-					- Accuracy (float)
-					- Precision (float)
-					- Recall (float)
-					- F1 Score (float)
-					- ROC AUC (float)
-					- Matthews Corrcoef (float)
-					- Confusion Matrix (List[List[int]])
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2725,7 +2722,7 @@ class DecisionTree( Classifier ):
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -2749,20 +2746,21 @@ class DecisionTree( Classifier ):
 				 'random_state',
 				 'criterion',
 				 'splitter',
-				 'dt_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
-		         'training_score',
-		         'testing_score',
+				 'model',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap' ]
+				 'create_heatmap'
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		"""
@@ -2872,7 +2870,7 @@ class DecisionTree( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -2901,45 +2899,42 @@ class DecisionTree( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
+
 			Purpose:
 			-----------
-			Evaluate classification performance using various metrics.
-
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Dictionary containing:
-					- Accuracy (float)
-					- Precision (float)
-					- Recall (float)
-					- F1 Score (float)
-					- ROC AUC (float)
-					- Matthews Corrcoef (float)
-					- Confusion Matrix (List[List[int]])
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3042,7 +3037,7 @@ class RandomForest( Classifier ):
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -3067,18 +3062,21 @@ class RandomForest( Classifier ):
 				 'n_estimators',
 				 'max_depth',
 				 'criterior',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-		         'labels' ]
+		         'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3220,7 +3218,7 @@ class RandomForest( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -3249,37 +3247,42 @@ class RandomForest( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
+
 			Purpose:
 			-----------
-			Evaluate the Lasso model using multiple regression metrics.
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Dictionary of MAE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3389,7 +3392,7 @@ class GradientBoost( Classifier ):
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -3414,19 +3417,22 @@ class GradientBoost( Classifier ):
 				 'loss',
 				 'learning_rate',
 				 'n_estimators',
-				 'gradient_boost_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
+				 'model',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-				 'labels' ]
+				 'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3551,7 +3557,7 @@ class GradientBoost( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -3580,37 +3586,42 @@ class GradientBoost( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
+
 			Purpose:
-			--------
-			Evaluate classifier using multiple metrics.
+			-----------
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			--------
-				Dict[str, float]: Evaluation scores.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3702,7 +3713,7 @@ class AdaptiveBoost( Classifier ):
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -3727,13 +3738,7 @@ class AdaptiveBoost( Classifier ):
 				 'X_scaled',
 				 'n_estimators',
 				 'learning_rate',
-				 'ada_boost_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
+				 'model',
 				 'train',
 				 'project',
 				 'score',
@@ -3741,7 +3746,16 @@ class AdaptiveBoost( Classifier ):
 				 'create_heatmap',
 		         'errors',
 		         'weights',
-		         'labels' ]
+		         'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
@@ -3857,7 +3871,7 @@ class AdaptiveBoost( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -3886,36 +3900,42 @@ class AdaptiveBoost( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-			Evaluate the Lasso model
-			using multiple regression metrics.
+
+			Purpose:
+			-----------
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Dictionary of MAE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-					'MSE': self.area_under_curve,
-					'RMSE': self.r_area_under_curve,
-					'R2': self.r2_score,
-					'VAR': self.explained_variance_score,
-					'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4013,7 +4033,7 @@ class BaggingModel( Classifier ):
 			n_estimators=self.n_estimators, max_features=self.max_features,
 			random_state=self.random_state )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -4035,18 +4055,21 @@ class BaggingModel( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-		         'labels' ]
+		         'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 		
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4140,7 +4163,7 @@ class BaggingModel( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -4169,36 +4192,42 @@ class BaggingModel( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-			Evaluate the Lasso model
-			using multiple regression metrics.
+
+			Purpose:
+			-----------
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-			dict: Dictionary of MAE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction, square=False )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.prediction = self.model.predict( X )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MAE': self.mean_absolute_error,
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4287,7 +4316,7 @@ class VotingModel( Classifier ):
 		self.voting = vote
 		self.model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -4306,21 +4335,25 @@ class VotingModel( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction',
+		return [ 'model',
+				 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-		         'labels' ]
+		         'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4414,7 +4447,7 @@ class VotingModel( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -4443,37 +4476,42 @@ class VotingModel( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-			Evaluate the Lasso model
-			using multiple regression metrics.
+
+			Purpose:
+			-----------
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Dictionary of MAE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MAE': self.mean_absolute_error,
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4563,7 +4601,7 @@ class StackingModel( Classifier ):
 		self.model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -4585,19 +4623,22 @@ class StackingModel( Classifier ):
 		return [ 'prediction',
 				 'final_estimator',
 				 'estimators',
-				 'stacking_classifier',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
+				 'model',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-		         'labels' ]
+		         'labels',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4691,7 +4732,7 @@ class StackingModel( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -4720,37 +4761,42 @@ class StackingModel( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
-			Evaluate the Stack Classifier model
-			using multiple regression metrics.
+
+			Purpose:
+			-----------
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-				dict: Dictionary of MAE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MAE': self.mean_absolute_error,
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4847,7 +4893,7 @@ class SupportVector( Classifier ):
 		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -4869,23 +4915,26 @@ class SupportVector( Classifier ):
 		return [ 'prediction',
 				 'max_depth',
 				 'random_state',
-				 'svc_classifier',
+				 'model',
 				 'kernel',
 				 'regulation',
 				 'degree',
-				 'mean_absolute_error',
-				 'area_under_curve',
-				 'r_area_under_curve',
-				 'r2_score',
-				 'explained_variance_score',
-				 'median_absolute_error',
 				 'train',
 				 'project',
 				 'score',
 				 'analyze',
 				 'create_heatmap',
 		         'vectors',
-		         'weights' ]
+		         'weights',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def vectors( self ) -> np.ndarray:
@@ -4996,43 +5045,45 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-		
+
+
 			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
-			
-			
-			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			Evaluate classifier performance using standard classification metrics.
+
+			Parameters:
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
 			Returns:
-			--------
-			float: Accuracy score (0.0 to 1.0).
-		
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5042,25 +5093,49 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y_true: np.ndarray ) -> str | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-		
+
+
 			Purpose:
-			----------
-			Generate classification report.
-	
+			-----------
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-			
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
+			Returns:
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y_true', y_true )
+			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			return classification_report( y_true, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
+			return \
+			{
+				'Accuracy Score': self.accuracy,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5160,7 +5235,7 @@ class MultiLayerPerceptron( Classifier ):
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.prediction = None
-		self.precision_score = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
 		self.recall_score = 0.0
 		self.f1_score = 0.0
@@ -5179,16 +5254,11 @@ class MultiLayerPerceptron( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction',
+		return [ 'model',
+				 'prediction',
 		         'probability',
 		         'max_depth',
 		         'random_state',
-		         'mean_absolute_error',
-		         'area_under_curve',
-		         'r_area_under_curve',
-		         'r2_score',
-		         'explained_variance_score',
-		         'median_absolute_error',
 		         'train',
 		         'project',
 		         'score',
@@ -5197,7 +5267,16 @@ class MultiLayerPerceptron( Classifier ):
 		         'predict_probability',
 		         'weights',
 		         'classes',
-		         'loss' ]
+		         'loss',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'area_under_curve',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss' ]
 	
 	@property
 	def loss( self ) -> float:
@@ -5344,7 +5423,7 @@ class MultiLayerPerceptron( Classifier ):
 			
 			Returns:
 			--------
-			float: Accuracy score (0.0 to 1.0).
+			Dict[ str, float]
 		
 		"""
 		try:
@@ -5373,37 +5452,42 @@ class MultiLayerPerceptron( Classifier ):
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
+
 			Purpose:
 			-----------
-			Evaluate the model using multiple regression metrics.
-
+			Evaluate classifier performance using standard classification metrics.
 
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground truth target_names.
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
 
 			Returns:
-			-----------
-			dict: Dictionary of MAE, MSE, RMSE, R², etc.
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'Area Under Curve': self.area_under_curve,
+				'Average Precision': self.average_precision,
+				'Top-K Accuracy': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
