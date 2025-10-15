@@ -205,20 +205,19 @@ class Perceptron( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	max_iter: Optional[ int ]
 	shuffle: Optional[ bool ]
 	penalty: Optional[ str ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	f1_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
-	mean_absolute_error: Optional[ float ]
 	
 	def __init__( self, alpha: float=0.0001, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
 		"""
@@ -410,17 +409,17 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -443,10 +442,10 @@ class Perceptron( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -472,12 +471,10 @@ class Perceptron( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
@@ -490,10 +487,10 @@ class Perceptron( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE':  self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': float( f'{self.mean_squared_error:.2f}' ),
+				'Root Mean Squared Error': float( f'{ self.root_mean_squared_error:.2f}' ),
+				'Mean Absolute Error': float( f'{ self.mean_absolute_error:.2f}' ),
+				'Median Absolute Error': float( f'{ self.median_absolute_error:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -512,12 +509,12 @@ class Perceptron( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): True class target vector of shape ( n_samples, ).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class labels target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
-				None
+			None
 
 		"""
 		try:
@@ -579,7 +576,6 @@ class LinearRegression( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -621,11 +617,10 @@ class LinearRegression( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -641,7 +636,7 @@ class LinearRegression( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The weights have not been initialized!!' )
 		else:
 			return self.model.coef_
 	
@@ -699,7 +694,10 @@ class LinearRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0.5 )
+			_shape = y_pred.reshape( 1, -1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -709,17 +707,17 @@ class LinearRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -736,16 +734,16 @@ class LinearRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
+			self.precision = precision_score( y, self.prediction )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -771,12 +769,10 @@ class LinearRegression( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
@@ -789,10 +785,10 @@ class LinearRegression( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': float( f'{self.mean_squared_error:.2f}' ),
+				'Root Mean Squared Error': float( f'{ self.root_mean_squared_error:.2f}' ),
+				'Mean Absolute Error': float( f'{ self.mean_absolute_error:.2f}' ),
+				'Median Absolute Error': float( f'{ self.median_absolute_error:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -908,7 +904,6 @@ class LogisticRegression( Classifier ):
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -946,11 +941,10 @@ class LogisticRegression( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1136,10 +1130,10 @@ class LogisticRegression( Classifier ):
 			--------
 			Compute the classification accuracy of the model.
 				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -1162,10 +1156,10 @@ class LogisticRegression( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-					'F1': self.f1_score,
-					'PRE': self.precision,
-					'ACC': self.accuracy,
-					'REC': self.recall
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1191,12 +1185,10 @@ class LogisticRegression( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
@@ -1209,10 +1201,10 @@ class LogisticRegression( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': float( f'{self.mean_squared_error:.2f}' ),
+				'Root Mean Squared Error': float( f'{ self.root_mean_squared_error:.2f}' ),
+				'Mean Absolute Error': float( f'{ self.mean_absolute_error:.2f}' ),
+				'Median Absolute Error': float( f'{ self.median_absolute_error:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1290,7 +1282,6 @@ class Ridge( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	solver: Optional[ str ]
@@ -1323,7 +1314,6 @@ class Ridge( Classifier ):
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -1360,11 +1350,10 @@ class Ridge( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1474,13 +1463,13 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
+			
 			F1-Score - F1 Score
 			Precision - Prescision Score
 			Accuracy - Accuracy Score
@@ -1507,10 +1496,10 @@ class Ridge( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1554,10 +1543,10 @@ class Ridge( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1668,7 +1657,6 @@ class Lasso( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -1685,7 +1673,6 @@ class Lasso( Classifier ):
 			random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -1723,11 +1710,10 @@ class Lasso( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1821,17 +1807,17 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -1854,10 +1840,10 @@ class Lasso( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1901,10 +1887,10 @@ class Lasso( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1990,7 +1976,6 @@ class GradientDescent( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	loss: Optional[ str ]
 	regularization: Optional[ Any ]
@@ -2058,11 +2043,10 @@ class GradientDescent( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -2154,17 +2138,17 @@ class GradientDescent( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -2187,10 +2171,10 @@ class GradientDescent( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2234,10 +2218,10 @@ class GradientDescent( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2381,7 +2365,6 @@ class NearestNeighbor( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	algorithm: Any
 	metric: str
@@ -2446,11 +2429,10 @@ class NearestNeighbor( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2540,17 +2522,17 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -2573,10 +2555,10 @@ class NearestNeighbor( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2620,10 +2602,10 @@ class NearestNeighbor( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2752,11 +2734,10 @@ class DecisionTree( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		"""
@@ -2846,17 +2827,17 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -2879,10 +2860,10 @@ class DecisionTree( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2926,10 +2907,10 @@ class DecisionTree( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3010,7 +2991,6 @@ class RandomForest( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -3065,11 +3045,10 @@ class RandomForest( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3191,17 +3170,17 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -3224,10 +3203,10 @@ class RandomForest( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3271,10 +3250,10 @@ class RandomForest( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3418,11 +3397,10 @@ class GradientBoost( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3527,17 +3505,17 @@ class GradientBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -3560,10 +3538,10 @@ class GradientBoost( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3607,10 +3585,10 @@ class GradientBoost( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3736,11 +3714,10 @@ class AdaptiveBoost( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
@@ -3836,17 +3813,17 @@ class AdaptiveBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -3869,10 +3846,10 @@ class AdaptiveBoost( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3916,10 +3893,10 @@ class AdaptiveBoost( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4047,11 +4024,10 @@ class BaggingModel( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 		
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4125,17 +4101,17 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -4158,10 +4134,10 @@ class BaggingModel( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4205,10 +4181,10 @@ class BaggingModel( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4278,7 +4254,6 @@ class VotingModel( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	estimators: List[ (str, object) ]
 	vote: str
@@ -4328,11 +4303,10 @@ class VotingModel( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4406,17 +4380,17 @@ class VotingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -4439,10 +4413,10 @@ class VotingModel( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4486,10 +4460,10 @@ class VotingModel( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4561,7 +4535,6 @@ class StackingModel( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -4610,11 +4583,10 @@ class StackingModel( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4688,17 +4660,17 @@ class StackingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -4721,10 +4693,10 @@ class StackingModel( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4768,10 +4740,10 @@ class StackingModel( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4841,7 +4813,6 @@ class SupportVector( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -4903,11 +4874,10 @@ class SupportVector( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def vectors( self ) -> np.ndarray:
@@ -5018,17 +4988,17 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -5051,10 +5021,10 @@ class SupportVector( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5098,10 +5068,10 @@ class SupportVector( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5178,7 +5148,6 @@ class MultiLayerPerceptron( Classifier ):
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	hidden_layers: tuple[ int, ... ]
 	activation_function: str
@@ -5220,6 +5189,11 @@ class MultiLayerPerceptron( Classifier ):
 
 		'''
 		return [ 'model',
+		         'hidden_layers',
+		         'activation_function',
+		         'learning_rate',
+		         'solver',
+		         'alpha',
 				 'prediction',
 		         'probability',
 		         'max_depth',
@@ -5231,17 +5205,16 @@ class MultiLayerPerceptron( Classifier ):
 		         'create_heatmap',
 		         'predict_probability',
 		         'weights',
-		         'classes',
+		         'labels',
 		         'loss',
 		         'precision',
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss' ]
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error' ]
 	
 	@property
 	def loss( self ) -> float:
@@ -5276,7 +5249,7 @@ class MultiLayerPerceptron( Classifier ):
 
 		'''
 		if self.model.coefs_ is None:
-			raise AttributeError( 'The data has not been trained!' )
+			raise AttributeError( 'The weights have not been initialized!' )
 		else:
 			return self.model.coefs_
 	
@@ -5368,17 +5341,17 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -5401,10 +5374,10 @@ class MultiLayerPerceptron( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': self.f1_score,
-				'PRE': self.precision,
-				'ACC': self.accuracy,
-				'REC': self.recall,
+				'F1 Score': self.f1_score,
+				'Recall': self.recall,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5448,10 +5421,10 @@ class MultiLayerPerceptron( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.root_mean_squared_error,
-				'MEAE': self.mean_absolute_error,
-				'MDAE': self.median_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
