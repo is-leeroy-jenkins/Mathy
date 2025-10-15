@@ -243,7 +243,6 @@ class Perceptron( Classifier ):
 			shuffle=self.shuffle, penalty=self.penalty, )
 		self.decision = None
 		self.prediction = None
-		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
@@ -592,7 +591,6 @@ class LinearRegression( Classifier ):
 		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
-		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
@@ -910,7 +908,6 @@ class LogisticRegression( Classifier ):
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
-		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
@@ -1326,7 +1323,6 @@ class Ridge( Classifier ):
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
@@ -1689,7 +1685,6 @@ class Lasso( Classifier ):
 			random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
@@ -2027,10 +2022,8 @@ class GradientDescent( Classifier ):
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
-		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
-		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
 		self.mean_squared_error = 0.0
@@ -2418,8 +2411,6 @@ class NearestNeighbor( Classifier ):
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -2729,8 +2720,6 @@ class DecisionTree( Classifier ):
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -3043,8 +3032,6 @@ class RandomForest( Classifier ):
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -3397,8 +3384,6 @@ class GradientBoost( Classifier ):
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -3715,8 +3700,6 @@ class AdaptiveBoost( Classifier ):
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -4035,9 +4018,6 @@ class BaggingModel( Classifier ):
 			random_state=self.random_state )
 		self.prediction = None
 		self.precision = 0.0
-		self.recall = 0.0
-		self.accuracy = 0.0
-		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
@@ -4318,15 +4298,13 @@ class VotingModel( Classifier ):
 		self.model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
 		self.prediction = None
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4601,8 +4579,6 @@ class StackingModel( Classifier ):
 		self.model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -4892,8 +4868,6 @@ class SupportVector( Classifier ):
 		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
-		self.recall = 0.0
-		self.accuracy = 0.0
 		self.precision = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
@@ -5229,15 +5203,13 @@ class MultiLayerPerceptron( Classifier ):
 			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.prediction = None
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -5289,7 +5261,7 @@ class MultiLayerPerceptron( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -5304,7 +5276,7 @@ class MultiLayerPerceptron( Classifier ):
 
 		'''
 		if self.model.coefs_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.coefs_
 	
