@@ -59,9 +59,8 @@ from matplotlib.colors import ListedColormap
 import seaborn as sns
 from seaborn import colors
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report, r2_score,
-                             mean_squared_error, mean_absolute_error, confusion_matrix,
-                             explained_variance_score, median_absolute_error,
+from sklearn.metrics import (recall_score, precision_score, confusion_matrix, classification_report, f1_score,
+                             confusion_matrix, auc, average_precision_score, balanced_accuracy_score,
                              ConfusionMatrixDisplay)
 from sklearn.preprocessing import Binarizer
 from boogr import Error, ErrorDialog
@@ -83,13 +82,17 @@ class Classifier( ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	precision_score: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
+	area_under_curve: Optional[ float ]
 	
 	def __init__( self ):
 		pass
@@ -158,14 +161,23 @@ class Classifier( ):
 			---------
 			Evaluate the model using multiple performance metrics.
 
+			Area Under Curve - AUC,
+			Average Precision Score - APS,
+			Precision Score - PRS,
+			Recall Score - RCS,
+			F1 Score - F1S,
+			Hinge Loss - HLS,
+			Log Loss - LLS,
+			Top-K Accuracy - TKA
+			
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): Ground truth target_names.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Ground truth target_names.
 
 			Returns:
 			-----------
-				dict: Dictionary containing multiple evaluation metrics.
+			dict: Dictionary containing multiple evaluation metrics.
 
 		"""
 		raise NotImplementedError
@@ -193,16 +205,20 @@ class Perceptron( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	precision_score: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	alpha: Optional[ float ]
 	max_iter: Optional[ int ]
 	shuffle: Optional[ bool ]
 	penalty: Optional[ str ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
+	area_under_curve: Optional[ float ]
 	
 	def __init__( self, alpha: float=0.0001, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
 		"""
@@ -227,12 +243,14 @@ class Perceptron( Classifier ):
 			shuffle=self.shuffle, penalty=self.penalty, )
 		self.prediction = None
 		self.decision = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -248,8 +266,8 @@ class Perceptron( Classifier ):
 		         'max_iter',
 		         'random_state',
 		         'mean_absolute_error',
-		         'mean_squared_error',
-		         'r_mean_squared_error',
+		         'area_under_curve',
+		         'r_area_under_curve',
 		         'r2_score',
 		         'penalty',
 		         'alpha',
@@ -409,8 +427,8 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -448,15 +466,15 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -539,27 +557,33 @@ class LinearRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ np.ndarray ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	precision_score: Optional[ np.ndarray ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	alpha: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -571,8 +595,8 @@ class LinearRegression( Classifier ):
 		'''
 		return [ 'prediction',
 		         'mean_absolute_error',
-		         'mean_squared_error',
-		         'r_mean_squared_error',
+		         'area_under_curve',
+		         'r_area_under_curve',
 		         'r2_score',
 		         'explained_variance_score',
 		         'median_absolute_error',
@@ -724,15 +748,15 @@ class LinearRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': float( f'{ self.mean_squared_error }' ),
-				'RMSE': float( f'{ self.r_mean_squared_error }' ),
+				'MSE': float( f'{ self.area_under_curve }' ),
+				'RMSE': float( f'{ self.r_area_under_curve }' ),
 				'R2': float( f'{ self.r2_score }' ),
 				'EVS': float( f'{ self.explained_variance_score }' ),
 				'MAE': float( f'{ self.median_absolute_error }' ),
@@ -810,18 +834,21 @@ class LogisticRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	random_state: int
 	penalty: str
 	multi_class: str
 	alpha: float
 	max_iter: int
 	solver: str
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=100,
 			multi_class: str='multinomial', solver: str='lbfgs' ) -> None:
@@ -847,13 +874,16 @@ class LogisticRegression( Classifier ):
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
-		self.probability = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -871,9 +901,9 @@ class LogisticRegression( Classifier ):
 		         'alpha',
 		         'max_iter',
 		         'mean_absolute_error',
-		         'mean_squared_error',
+		         'area_under_curve',
 		         'predict_probabilty',
-		         'r_mean_squared_error',
+		         'r_area_under_curve',
 		         'r2_score',
 		         'explained_variance_score',
 		         'decision_function',
@@ -1082,8 +1112,8 @@ class LogisticRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1120,15 +1150,15 @@ class LogisticRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -1203,14 +1233,17 @@ class Ridge( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	alpha: Optional[ float ]
 	solver: Optional[ str ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, alpha: float=1.0, solver: str='auto', size: int=1000, rando: int=42 ) -> None:
 		"""
@@ -1237,12 +1270,16 @@ class Ridge( Classifier ):
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1259,8 +1296,8 @@ class Ridge( Classifier ):
 				 'solver',
 				 'ridge_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -1403,8 +1440,8 @@ class Ridge( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1436,15 +1473,15 @@ class Ridge( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -1554,13 +1591,16 @@ class Lasso( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	alpha: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 
 	def __init__( self, threshold: float=0.5 ) -> None:
 		super( ).__init__( )
@@ -1568,12 +1608,16 @@ class Lasso( Classifier ):
 		self.model = skc.Lasso( threshold=self.threshold )
 		self.prediction = None
 		self.probability = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1591,8 +1635,8 @@ class Lasso( Classifier ):
 				 'alpha',
 				 'sgd_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'weights',
@@ -1718,8 +1762,8 @@ class Lasso( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1750,15 +1794,15 @@ class Lasso( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -1841,15 +1885,18 @@ class GradientDescent( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	loss: Optional[ str ]
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, loss: str='log_loss', size: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
 		"""
@@ -1874,12 +1921,16 @@ class GradientDescent( Classifier ):
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1897,8 +1948,8 @@ class GradientDescent( Classifier ):
 				 'alpha',
 				 'sgd_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'weights',
@@ -2024,8 +2075,8 @@ class GradientDescent( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2063,15 +2114,15 @@ class GradientDescent( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -2214,14 +2265,17 @@ class NearestNeighbor( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	algorithm: Any
 	metric: str
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, neighbors: int=5, algorithm: str='auto', metric: str='minkowski' ) -> None:
 		"""
@@ -2245,12 +2299,16 @@ class NearestNeighbor( Classifier ):
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2268,8 +2326,8 @@ class NearestNeighbor( Classifier ):
 				 'metric',
 				 'model',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'predict_probabilty',
@@ -2392,8 +2450,8 @@ class NearestNeighbor( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2433,15 +2491,15 @@ class NearestNeighbor( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -2510,14 +2568,17 @@ class DecisionTree( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
 		"""
@@ -2536,12 +2597,16 @@ class DecisionTree( Classifier ):
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2558,8 +2623,8 @@ class DecisionTree( Classifier ):
 				 'splitter',
 				 'dt_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -2680,8 +2745,8 @@ class DecisionTree( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2720,15 +2785,15 @@ class DecisionTree( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -2806,12 +2871,15 @@ class RandomForest( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, est: int=10, crit: Any='gini', size: Any=None, rando: int=42 ) -> None:
 		"""
@@ -2829,12 +2897,16 @@ class RandomForest( Classifier ):
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2851,8 +2923,8 @@ class RandomForest( Classifier ):
 				 'max_depth',
 				 'criterior',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -3004,8 +3076,8 @@ class RandomForest( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3036,15 +3108,15 @@ class RandomForest( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -3118,12 +3190,15 @@ class GradientBoost( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, lss: str='deviance', rate: int=0.1, est: int=100,
 			size: int=3, rando: int=42 ) -> None:
@@ -3152,12 +3227,16 @@ class GradientBoost( Classifier ):
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3175,8 +3254,8 @@ class GradientBoost( Classifier ):
 				 'n_estimators',
 				 'gradient_boost_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -3311,8 +3390,8 @@ class GradientBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3343,15 +3422,15 @@ class GradientBoost( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -3417,15 +3496,18 @@ class AdaptiveBoost( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
 	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, num: int=100, learning: float=1.0 ) -> None:
 		"""
@@ -3441,12 +3523,16 @@ class AdaptiveBoost( Classifier ):
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3464,8 +3550,8 @@ class AdaptiveBoost( Classifier ):
 				 'learning_rate',
 				 'ada_boost_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -3593,8 +3679,8 @@ class AdaptiveBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3624,15 +3710,15 @@ class AdaptiveBoost( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-					'MSE': self.mean_squared_error,
-					'RMSE': self.r_mean_squared_error,
+					'MSE': self.area_under_curve,
+					'RMSE': self.r_area_under_curve,
 					'R2': self.r2_score,
 					'VAR': self.explained_variance_score,
 					'MAE': self.median_absolute_error,
@@ -3704,14 +3790,17 @@ class BaggingModel( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	base_estimator: Optional[ Any ]
 	n_estimators: Optional[ int ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, base: object=None, num: int=10, size: int=1, rando: int=42 ) -> None:
 		"""
@@ -3728,12 +3817,16 @@ class BaggingModel( Classifier ):
 			n_estimators=self.n_estimators, max_features=self.max_features,
 			random_state=self.random_state )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3747,8 +3840,8 @@ class BaggingModel( Classifier ):
 				 'max_depth',
 				 'random_state',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -3852,8 +3945,8 @@ class BaggingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3882,16 +3975,16 @@ class BaggingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, square=False )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction, square=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MAE': self.mean_absolute_error,
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -3958,14 +4051,17 @@ class VotingModel( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	estimators: List[ (str, object) ]
 	vote: str
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, estimators: List[ ( str, object ) ], vote='hard' ) -> None:
 		"""
@@ -3978,12 +4074,16 @@ class VotingModel( Classifier ):
 		self.voting = vote
 		self.model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3997,8 +4097,8 @@ class VotingModel( Classifier ):
 				 'max_depth',
 				 'random_state',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -4102,8 +4202,8 @@ class VotingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4133,16 +4233,16 @@ class VotingModel( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MAE': self.mean_absolute_error,
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -4211,12 +4311,15 @@ class StackingModel( Classifier ):
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ], final: ClassifierMixin=None ) -> None:
 		"""
@@ -4230,12 +4333,16 @@ class StackingModel( Classifier ):
 		self.model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4250,8 +4357,8 @@ class StackingModel( Classifier ):
 				 'estimators',
 				 'stacking_classifier',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -4355,8 +4462,8 @@ class StackingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4386,16 +4493,16 @@ class StackingModel( Classifier ):
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
 				'MAE': self.mean_absolute_error,
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
@@ -4462,12 +4569,15 @@ class SupportVector( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, multi: str='ovr', C: float=1.0, penalty: str='l2', degree: int=3 ) -> None:
 		"""
@@ -4490,13 +4600,16 @@ class SupportVector( Classifier ):
 		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
-		self.accuracy = 0.0
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4514,8 +4627,8 @@ class SupportVector( Classifier ):
 				 'regulation',
 				 'degree',
 				 'mean_absolute_error',
-				 'mean_squared_error',
-				 'r_mean_squared_error',
+				 'area_under_curve',
+				 'r_area_under_curve',
 				 'r2_score',
 				 'explained_variance_score',
 				 'median_absolute_error',
@@ -4657,8 +4770,8 @@ class SupportVector( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4755,17 +4868,20 @@ class MultiLayerPerceptron( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
-	r2_score: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	recall_score: Optional[ float ]
+	area_under_curve: Optional[ float ]
+	average_precision_score: Optional[ float ]
+	f1_score: Optional[ float ]
+	hinge_loss: Optional[ float ]
+	top_k_accuracy: Optional[ float ]
 	hidden_layers: tuple[ int, ... ]
 	activation_function: str
 	solver: str
 	alpha: float
 	learning_rate: Any
+	log_loss: Optional[ float ]
+	classification_report: Optional[ Dict[ str, Any ] ]
+	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, hidden=( 100, ), activation='relu', solver='adam', alpha=0.0001,
 			learning: str='constant', rando: int=42 ) -> None:
@@ -4780,12 +4896,16 @@ class MultiLayerPerceptron( Classifier ):
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.prediction = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.precision_score = 0.0
+		self.area_under_curve = 0.0
+		self.recall_score = 0.0
+		self.f1_score = 0.0
+		self.average_precision_score = 0.0
+		self.top_k_accuracy = 0.0
+		self.log_loss = 0.0
+		self.hinge_loss = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4800,8 +4920,8 @@ class MultiLayerPerceptron( Classifier ):
 		         'max_depth',
 		         'random_state',
 		         'mean_absolute_error',
-		         'mean_squared_error',
-		         'r_mean_squared_error',
+		         'area_under_curve',
+		         'r_area_under_curve',
 		         'r2_score',
 		         'explained_variance_score',
 		         'median_absolute_error',
@@ -4961,8 +5081,8 @@ class MultiLayerPerceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			return self.area_under_curve
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4993,15 +5113,15 @@ class MultiLayerPerceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction  )
+			self.area_under_curve = area_under_curve( y, self.prediction )
+			self.r_area_under_curve = area_under_curve( y, self.prediction  )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction  )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
+				'MSE': self.area_under_curve,
+				'RMSE': self.r_area_under_curve,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
 				'MAE': self.median_absolute_error,
