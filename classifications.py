@@ -246,14 +246,13 @@ class Perceptron( Classifier ):
 		self.recall = 0.0
 		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -284,10 +283,10 @@ class Perceptron( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'average_precision',
-		         'top_k_accuracy',
-		         'log_loss',
-		         'hinge_loss']
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'median_absolute_error',
+		         'mean_abosolute_error']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -593,14 +592,16 @@ class LinearRegression( Classifier ):
 		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -909,14 +910,16 @@ class LogisticRegression( Classifier ):
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1323,16 +1326,16 @@ class Ridge( Classifier ):
 			max_iter=self.max_iter, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1686,14 +1689,16 @@ class Lasso( Classifier ):
 			random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2022,16 +2027,16 @@ class GradientDescent( Classifier ):
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2413,16 +2418,16 @@ class NearestNeighbor( Classifier ):
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2724,16 +2729,16 @@ class DecisionTree( Classifier ):
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3038,16 +3043,16 @@ class RandomForest( Classifier ):
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3392,16 +3397,16 @@ class GradientBoost( Classifier ):
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3687,9 +3692,7 @@ class AdaptiveBoost( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
 	estimator: Optional[ Any ]
@@ -3712,16 +3715,16 @@ class AdaptiveBoost( Classifier ):
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4032,15 +4035,16 @@ class BaggingModel( Classifier ):
 			random_state=self.random_state )
 		self.prediction = None
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.recall = 0.0
+		self.accuracy = 0.0
+		self.precision = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4597,16 +4601,16 @@ class StackingModel( Classifier ):
 		self.model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4888,16 +4892,16 @@ class SupportVector( Classifier ):
 		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
 		self.precision = 0.0
-		self.area_under_curve = 0.0
-		self.recall_score = 0.0
+		self.accuracy = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
-		self.top_k_accuracy = 0.0
-		self.log_loss = 0.0
-		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.recall = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.median_absolute_error = 0.0
+		self.mean_absolute_error = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
