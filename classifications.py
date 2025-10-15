@@ -59,10 +59,11 @@ from matplotlib.colors import ListedColormap
 import seaborn as sns
 from seaborn import colors
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import ( recall_score, precision_score, confusion_matrix, classification_report, f1_score,
-                             confusion_matrix, auc, average_precision_score, balanced_accuracy_score,
-                             ConfusionMatrixDisplay, accuracy_score, top_k_accuracy_score,
-                             hinge_loss, log_loss )
+from sklearn.metrics import ( recall_score, precision_score, confusion_matrix, classification_report,
+                             auc, average_precision_score, balanced_accuracy_score,
+                             ConfusionMatrixDisplay, accuracy_score, top_k_accuracy_score, f1_score,
+                             hinge_loss, log_loss, mean_squared_error, root_mean_squared_error,
+                             mean_absolute_error, median_absolute_error)
 from sklearn.preprocessing import Binarizer
 from boogr import Error, ErrorDialog
 
@@ -86,12 +87,12 @@ class Classifier( ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -209,16 +210,15 @@ class Perceptron( Classifier ):
 	precision: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	max_iter: Optional[ int ]
 	shuffle: Optional[ bool ]
 	penalty: Optional[ str ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	
 	def __init__( self, alpha: float=0.0001, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
 		"""
@@ -438,23 +438,23 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -474,34 +474,29 @@ class Perceptron( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy (float)
-			- Precision (float)
-			- Recall (float)
-			- F1 Score (float)
-			- ROC AUC (float)
-			- Matthews Corrcoef (float)
-			- Confusion Matrix (List[List[int]])
+			- Accuracy Scoe (float)
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.project( X, y )
+			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
-			{
-				'Accuracy Score': self.accuracy,
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
-			}
+				{
+						'F1-Score': self.f1_score,
+						'Precision': self.precision,
+						'Accuracy': self.accuracy,
+						'Recall': self.recall,
+				}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -535,7 +530,7 @@ class Perceptron( Classifier ):
 			plt.scatter( y, self.prediction, alpha=0.5 )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Preceptron Regression: Observed vs Projected' )
+			plt.title( 'Preceptron Classification: Observed vs Projected' )
 			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.show( )
@@ -583,13 +578,13 @@ class LinearRegression( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ np.ndarray ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -741,23 +736,23 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
-			exception.method = 'score'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -777,6 +772,7 @@ class LinearRegression( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -787,24 +783,22 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
+			exception.cause = 'LogisticRegression'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -875,25 +869,24 @@ class LogisticRegression( Classifier ):
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	random_state: int
 	penalty: str
 	multi_class: str
 	alpha: float
 	max_iter: int
 	solver: str
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=100,
-			multi_class: str='multinomial', solver: str='lbfgs' ) -> None:
+			multi_class: str='ovr', solver: str='lbfgs' ) -> None:
 		"""
 
 			Purpose:
@@ -923,7 +916,7 @@ class LogisticRegression( Classifier ):
 		self.average_precision_score = 0.0
 		self.top_k_accuracy = 0.0
 		self.log_loss = 0.0
-		self.hinge_loss = 0.0
+		self.root_mean_squared_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1105,45 +1098,74 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
 
-
 			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
+			--------
+			Predict class labels from input features using the regression model.
+
 
 			Parameters:
 			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
+			X (np.ndarray | pd.DataFrame):
+			Input features.
+
 
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			--------
+			np.ndarray:
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'project'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+		"""
+		
+			Purpose:
+			--------
+			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
+			
+			Parameters:
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
+			Returns:
+			--------
+			Dict[ str, float]
+		
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1180,21 +1202,17 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Accuracy Score': self.accuracy,
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1269,14 +1287,14 @@ class Ridge( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	solver: Optional[ str ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -1483,17 +1501,17 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1519,7 +1537,7 @@ class Ridge( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Score (float)
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -1530,21 +1548,17 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Accuracy Score': self.accuracy,
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1652,21 +1666,22 @@ class Lasso( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 
-	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42 ) -> None:
+	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42, threshold: float=0.5 ) -> None:
 		super( ).__init__( )
 		self.alpha = alpha
 		self.max_iter = iters
 		self.random_state = rando
+		self.threshold = threshold
 		self.model = skc.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
@@ -1793,10 +1808,11 @@ class Lasso( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_pred = self.model.predict( X )
 			self.binarizer = Binarizer( threshold=self.threshold )
-			_shape = self.prediction.reshape( -1, 1 )
-			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			_shape = y_pred.reshape( 1, -1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1831,17 +1847,17 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1867,6 +1883,7 @@ class Lasso( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -1877,19 +1894,17 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1972,15 +1987,15 @@ class GradientDescent( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	loss: Optional[ str ]
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -2167,17 +2182,17 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2203,6 +2218,7 @@ class GradientDescent( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -2213,19 +2229,17 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2366,14 +2380,14 @@ class NearestNeighbor( Classifier ):
 	recall: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	algorithm: Any
 	metric: str
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -2556,17 +2570,17 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2592,6 +2606,7 @@ class NearestNeighbor( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -2602,19 +2617,17 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2683,14 +2696,14 @@ class DecisionTree( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -2865,17 +2878,17 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2901,6 +2914,7 @@ class DecisionTree( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -2911,19 +2925,17 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3001,12 +3013,12 @@ class RandomForest( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
-	log_loss: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -3213,17 +3225,17 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3249,6 +3261,7 @@ class RandomForest( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -3259,19 +3272,17 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3345,12 +3356,12 @@ class GradientBoost( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
-	log_loss: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -3552,17 +3563,17 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3588,6 +3599,7 @@ class GradientBoost( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -3598,19 +3610,17 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3676,15 +3686,15 @@ class AdaptiveBoost( Classifier ):
 	recall: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
 	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -3866,17 +3876,17 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3902,6 +3912,7 @@ class AdaptiveBoost( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -3912,19 +3923,17 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3996,14 +4005,14 @@ class BaggingModel( Classifier ):
 	recall: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	base_estimator: Optional[ Any ]
 	n_estimators: Optional[ int ]
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4158,17 +4167,17 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4194,6 +4203,7 @@ class BaggingModel( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -4204,19 +4214,17 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4283,14 +4291,14 @@ class VotingModel( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	estimators: List[ (str, object) ]
 	vote: str
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4442,17 +4450,17 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4478,6 +4486,7 @@ class VotingModel( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -4488,19 +4497,17 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4569,12 +4576,12 @@ class StackingModel( Classifier ):
 	recall: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
-	log_loss: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4727,17 +4734,17 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4763,6 +4770,7 @@ class StackingModel( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -4773,19 +4781,17 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4852,12 +4858,12 @@ class SupportVector( Classifier ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
-	log_loss: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -5034,45 +5040,43 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
-
-
+		
 			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
-
+			--------
+			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
+			
 			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
-
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
-
+			--------
+			Dict[ str, float]
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5109,21 +5113,17 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Accuracy Score': self.accuracy,
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5197,17 +5197,17 @@ class MultiLayerPerceptron( Classifier ):
 	recall: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	top_k_accuracy: Optional[ float ]
+	median_absolute_error: Optional[ float ]
 	hidden_layers: tuple[ int, ... ]
 	activation_function: str
 	solver: str
 	alpha: float
 	learning_rate: Any
-	log_loss: Optional[ float ]
+	mean_squared_error: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -5418,17 +5418,17 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.precision = precision_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RSME': self.root_mean_squared_error,
+				'AAE': self.mean_absolute_error,
+				'MAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5454,6 +5454,7 @@ class MultiLayerPerceptron( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -5464,19 +5465,17 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
