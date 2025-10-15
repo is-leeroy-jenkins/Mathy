@@ -61,7 +61,8 @@ from seaborn import colors
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import (recall_score, precision_score, confusion_matrix, classification_report, f1_score,
                              confusion_matrix, auc, average_precision_score, balanced_accuracy_score,
-                             ConfusionMatrixDisplay)
+                             ConfusionMatrixDisplay, accuracy_score, top_k_accuracy_score,
+                             hinge_loss, log_loss )
 from sklearn.preprocessing import Binarizer
 from boogr import Error, ErrorDialog
 
@@ -82,17 +83,17 @@ class Classifier( ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	precision_score: Optional[ float ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
 	log_loss: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
-	area_under_curve: Optional[ float ]
 	
 	def __init__( self ):
 		pass
@@ -161,6 +162,7 @@ class Classifier( ):
 			---------
 			Evaluate the model using multiple performance metrics.
 
+			Accuracy Score - ACC
 			Area Under Curve - AUC,
 			Average Precision Score - APS,
 			Precision Score - PRS,
@@ -205,9 +207,10 @@ class Perceptron( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
-	precision_score: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -241,13 +244,14 @@ class Perceptron( Classifier ):
 		self.penalty = penalty
 		self.model = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
 			shuffle=self.shuffle, penalty=self.penalty, )
-		self.prediction = None
 		self.decision = None
-		self.precision_score = 0.0
+		self.prediction = None
+		self.recall = 0.0
+		self.accuracy = 0.0
+		self.precision = 0.0
 		self.area_under_curve = 0.0
-		self.recall_score = 0.0
 		self.f1_score = 0.0
-		self.average_precision_score = 0.0
+		self.average_precision = 0.0
 		self.top_k_accuracy = 0.0
 		self.log_loss = 0.0
 		self.hinge_loss = 0.0
@@ -262,26 +266,30 @@ class Perceptron( Classifier ):
 			Provides a list of strings representing class members
 
 		'''
-		return [ 'prediction',
+		return [ 'model',
+				 'prediction',
 		         'max_iter',
 		         'random_state',
-		         'mean_absolute_error',
-		         'area_under_curve',
-		         'r_area_under_curve',
-		         'r2_score',
-		         'penalty',
-		         'alpha',
-		         'explained_variance_score',
-		         'median_absolute_error',
+		         'decision',
 		         'train',
 		         'project',
 		         'score',
 		         'analyze',
+		         'penalty',
+		         'alpha',
 		         'create_heatmap',
 		         'weights',
 		         'decision_function',
 		         'weights',
-		         'iterations' ]
+		         'iterations',
+		         'precision',
+		         'accuracy',
+		         'f1_score',
+		         'recall',
+		         'average_precision',
+		         'top_k_accuracy',
+		         'log_loss',
+		         'hinge_loss']
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -342,7 +350,7 @@ class Perceptron( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'Perceptron'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -372,7 +380,7 @@ class Perceptron( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'Perceptron'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -406,12 +414,18 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -427,8 +441,17 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -466,23 +489,23 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			self.r_area_under_curve = area_under_curve( y, self.prediction  )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction  )
+			self.area_under_curve = auc( y, self.prediction )
+			self.average_precision = average_precision_score( y, self.prediction  )
+			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
+			self.hinge_loss = hinge_loss( y, self.prediction )
+			self.log_loss = log_loss( y, self.prediction  )
 			return \
 			{
-				'MSE': self.area_under_curve,
-				'RMSE': self.r_area_under_curve,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'AUC': self.area_under_curve,
+				'APS': self.average_precision,
+				'Top-K': self.top_k_accuracy,
+				'Hinge-Loss': self.hinge_loss,
+				'Log-Loss': self.log_loss,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'PerceptronClassifier'
+			exception.cause = 'Perceptron'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -512,14 +535,14 @@ class Perceptron( Classifier ):
 			plt.scatter( y, self.prediction, alpha=0.5 )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Linear Regression: Observed vs Projected' )
+			plt.title( 'Preceptron Regression: Observed vs Projected' )
 			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'Linear Regression'
+			exception.cause = 'Perceptron'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -557,10 +580,11 @@ class LinearRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	precision_score: Optional[ np.ndarray ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -689,12 +713,18 @@ class LinearRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -710,8 +740,17 @@ class LinearRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.r2_score = r2_score( y, self.prediction )
-			return self.accuracy
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -834,9 +873,11 @@ class LogisticRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	recall_score: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -1062,27 +1103,44 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
-
+		
 			Purpose:
-			-----------
-			Predict class target_names using the logistic regression linerar_model.
-
+			--------
+			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
+			
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ). IGNORED
-
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			-----------
-			np.ndarray: Predicted class target_names.
-
+			--------
+			float: Accuracy score (0.0 to 1.0).
+		
 		"""
 		try:
 			throw_if( 'X', X )
+			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			return self.prediction
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1233,9 +1291,11 @@ class Ridge( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -1419,12 +1479,18 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -1440,8 +1506,17 @@ class Ridge( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1591,9 +1666,11 @@ class Lasso( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -1741,12 +1818,18 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -1762,8 +1845,17 @@ class Lasso( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1885,9 +1977,11 @@ class GradientDescent( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -2054,12 +2148,18 @@ class GradientDescent( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -2075,8 +2175,17 @@ class GradientDescent( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2265,9 +2374,11 @@ class NearestNeighbor( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
-	recall_score: Optional[ float ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -2429,12 +2540,18 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -2450,8 +2567,17 @@ class NearestNeighbor( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2568,9 +2694,11 @@ class DecisionTree( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -2724,12 +2852,18 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -2745,8 +2879,17 @@ class DecisionTree( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2871,9 +3014,11 @@ class RandomForest( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -3055,12 +3200,18 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -3076,8 +3227,17 @@ class RandomForest( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3190,9 +3350,11 @@ class GradientBoost( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -3369,12 +3531,18 @@ class GradientBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -3390,8 +3558,17 @@ class GradientBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3496,9 +3673,11 @@ class AdaptiveBoost( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -3658,12 +3837,18 @@ class AdaptiveBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -3679,8 +3864,17 @@ class AdaptiveBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3790,9 +3984,11 @@ class BaggingModel( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -3924,12 +4120,18 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -3945,8 +4147,17 @@ class BaggingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4051,9 +4262,11 @@ class VotingModel( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -4181,12 +4394,18 @@ class VotingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -4202,8 +4421,17 @@ class VotingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4311,9 +4539,11 @@ class StackingModel( Classifier ):
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
-	recall_score: Optional[ float ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -4441,12 +4671,18 @@ class StackingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -4462,8 +4698,17 @@ class StackingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4569,9 +4814,11 @@ class SupportVector( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
+	recall: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -4749,12 +4996,18 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -4770,8 +5023,17 @@ class SupportVector( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4868,9 +5130,11 @@ class MultiLayerPerceptron( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall_score: Optional[ float ]
+	recall: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ float ]
 	area_under_curve: Optional[ float ]
-	average_precision_score: Optional[ float ]
+	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	top_k_accuracy: Optional[ float ]
@@ -5060,12 +5324,18 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
 			
 			Parameters:
 			-----------
@@ -5081,8 +5351,17 @@ class MultiLayerPerceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = area_under_curve( y, self.prediction )
-			return self.area_under_curve
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
+			return \
+			{
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
