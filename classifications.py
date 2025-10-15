@@ -438,17 +438,17 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -485,18 +485,18 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
-				{
-						'F1-Score': self.f1_score,
-						'Precision': self.precision,
-						'Accuracy': self.accuracy,
-						'Recall': self.recall,
-				}
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -736,17 +736,17 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -781,19 +781,45 @@ class LinearRegression( Classifier ):
 
 		"""
 		try:
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+
+
+			Purpose:
+			-----------
+			Evaluate classifier performance using standard classification metrics.
+
+			Parameters:
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
+			Returns:
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Accuracy Scoe (float)
+			- Area Under the Curve (float)
+			- Average Precision Score (float)
+			- Top-K Accuracy Score (float)
+			- Hinge-Loss (float)
+			- Logarithmic-Loss (float)
+
+		"""
+		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1155,17 +1181,17 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1202,17 +1228,17 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1501,17 +1527,17 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1548,17 +1574,17 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1847,17 +1873,17 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1894,17 +1920,17 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2182,17 +2208,17 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2229,17 +2255,17 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2570,17 +2596,17 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2617,17 +2643,17 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2878,17 +2904,17 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2925,17 +2951,17 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3225,17 +3251,17 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3272,17 +3298,17 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3563,17 +3589,17 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3610,17 +3636,17 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3876,17 +3902,17 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3923,17 +3949,17 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4167,17 +4193,17 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4214,17 +4240,17 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4450,17 +4476,17 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4497,17 +4523,17 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4734,17 +4760,17 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4781,17 +4807,17 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5066,17 +5092,17 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5113,17 +5139,17 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5418,17 +5444,17 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.prediction = self.project( X, y  )
+			self.precision = precision_score( y, self.prediction, average=None )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'MSE': self.mean_squared_error,
-				'RSME': self.root_mean_squared_error,
-				'AAE': self.mean_absolute_error,
-				'MAE': self.median_absolute_error,
+				'F1': float( f'{self.f1_score:.2f}' ),
+				'PRE': float( f'{self.precision:.2f}' ),
+				'ACC': float( f'{self.accuracy:.2f}' ),
+				'REC': float( f'{self.recall:.2f}' ),
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5465,17 +5491,17 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.prediction = self.model.predict( X, )
+			self.mean_squared_error = mean_squared_error( y, self.prediction)
+			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'F1-Score': self.f1_score,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
-				'Recall': self.recall,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
