@@ -136,7 +136,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -162,11 +162,8 @@ class Classifier( ):
 			---------
 			Evaluate the model using multiple performance metrics.
 
-			Accuracy Score - ACC
 			Area Under Curve - AUC,
 			Average Precision Score - APS,
-			Precision Score - PRS,
-			Recall Score - RCS,
 			F1 Score - F1S,
 			Hinge Loss - HLS,
 			Log Loss - LLS,
@@ -1460,45 +1457,43 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
-
-
+		
 			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
-
+			--------
+			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
+			
 			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
-
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
-
+			--------
+			Dict[ str, float]
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.precision = precision_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
 			return \
 			{
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1524,7 +1519,7 @@ class Ridge( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
+			- Accuracy Score (float)
 			- Area Under the Curve (float)
 			- Average Precision Score (float)
 			- Top-K Accuracy Score (float)
@@ -1633,13 +1628,12 @@ class Lasso( Classifier ):
 	
 		Purpose:
 		---------
-		Wrapper class for sklearn.linear_model.Lasso to enable
-		its use in binary classification tasks.
+		
 	
 		Parameters:
 		------------
-		threshold (float, optional):
-		Threshold above which predictions are considered class 1 (default: 0.5).
+		alpha (float, optional):
+		Threshold above which predictions are considered class 1 (default: 0.1).
 		
 		Attributes:
 		-----------
@@ -1650,7 +1644,6 @@ class Lasso( Classifier ):
 	
 	"""
 	model: skc.Lasso
-	threshold: float
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -1669,10 +1662,13 @@ class Lasso( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 
-	def __init__( self, threshold: float=0.5 ) -> None:
+	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42 ) -> None:
 		super( ).__init__( )
-		self.threshold = threshold
-		self.model = skc.Lasso( threshold=self.threshold )
+		self.alpha = alpha
+		self.max_iter = iters
+		self.random_state = rando
+		self.model = skc.Lasso( alpha=self.alpha, max_iter=self.max_iter,
+			random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -1683,8 +1679,6 @@ class Lasso( Classifier ):
 		self.top_k_accuracy = 0.0
 		self.log_loss = 0.0
 		self.hinge_loss = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1811,48 +1805,43 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
 		"""
-
-
+		
 			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
-
+			--------
+			Compute the classification accuracy of the model.
+				
+				F1-Score - F1 Score
+				Precision - Prescision Score
+				Accuracy - Accuracy Score
+				Recall - Recall Score
+			
+			
 			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
-
+			-----------
+			X (np.ndarray ): Input features.
+			y (np.ndarray ): True binary class labels.
+			
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
-
+			--------
+			Dict[ str, float]
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
+			self.precision = precision_score( y, self.prediction )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.area_under_curve = auc( y, self.prediction )
-			self.average_precision = average_precision_score( y, self.prediction  )
-			self.top_k_accuracy = top_k_accuracy_score( y, self.prediction )
-			self.hinge_loss = hinge_loss( y, self.prediction )
-			self.log_loss = log_loss( y, self.prediction  )
+			self.recall = recall_score( y, self.prediction )
+			self.f1_score = f1_score( y, self.prediction )
 			return \
 			{
-				'Accuracy Score': self.accuracy,
-				'Area Under Curve': self.area_under_curve,
-				'Average Precision': self.average_precision,
-				'Top-K Accuracy': self.top_k_accuracy,
-				'Hinge-Loss': self.hinge_loss,
-				'Log-Loss': self.log_loss,
+				'F1-Score': self.f1_score,
+				'Precision': self.precision,
+				'Accuracy': self.accuracy,
+				'Recall': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
