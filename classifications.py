@@ -2266,7 +2266,7 @@ class NearestNeighbor( Classifier ):
 				 'n_neigbors',
 				 'algorithm',
 				 'metric',
-				 'neighbor_classifier',
+				 'model',
 				 'mean_absolute_error',
 				 'mean_squared_error',
 				 'r_mean_squared_error',

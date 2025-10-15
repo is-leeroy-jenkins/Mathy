@@ -1258,10 +1258,10 @@ class LeastAngle( Regression ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'fit_intercept', 'normalize',
+		return [  'model', 'prediction', 'accuracy', 'fit_intercept', 'normalize',
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
 			'explained_variance_score', 'median_absolute_error', 'train', 'project',
-			'score', 'analyze', 'create_scatter', ]
+			'score', 'analyze', 'plot_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngle | None:
 		"""
@@ -1509,10 +1509,10 @@ class BayesianRidge( Regression ):
         Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'shape_alpha', 'scale_alpha', 'shape_lambda', 
+		return [  'model', 'prediction', 'accuracy', 'shape_alpha', 'scale_alpha', 'shape_lambda',
 			'random_state', 'scale_lambda', 'max_iter', 'mean_absolute_error', 
 			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'plot_scatter', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidge | None:
 		"""
@@ -1762,7 +1762,7 @@ class GradientDescent( Regression ):
         Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'penalty', 'max_iter', 'random_state', 'loss', 
+		return [ 'model', 'prediction', 'accuracy', 'penalty', 'max_iter', 'random_state', 'loss',
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 
 			'analyze', 'create_scatter', 'weights', 'labels' ]
@@ -2273,7 +2273,7 @@ class DecisionTree( Regression ):
 
         '''
 		return [ 'prediction', 'accuracy', 'criterion', 'splitter', 'random_state', 'max_depth',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
+			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'model',
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
 			'project', 'score', 'analyze', 'create_scatter', ]
 	
@@ -2527,7 +2527,7 @@ class RandomForest( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'accuracy', 'criterion', 'n_estimators', 'random_state',
+		return [ 'model',  'prediction', 'accuracy', 'criterion', 'n_estimators', 'random_state',
 			'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
 			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
@@ -2772,7 +2772,7 @@ class GradientBoost( Regression ):
         Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state', 
+		return [ 'model', 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state',
 			'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error', 
 			'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
@@ -3020,7 +3020,7 @@ class AdaptiveBoost( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'kernel', 'accuracy', 'n_estimators', 'random_state', 'loss', 
+		return [ 'model', 'prediction', 'kernel', 'accuracy', 'n_estimators', 'random_state', 'loss',
 			'learning_rate', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
 			'project', 'score', 'analyze', 'create_scatter', ]
@@ -3288,7 +3288,7 @@ class BaggingModel( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'base_estimator', 'n_estimators', 'max_features', 
+		return [ 'model', 'prediction', 'base_estimator', 'n_estimators', 'max_features',
 			'accuracy', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
 			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
 			'project', 'score', 'analyze', 'create_scatter', 'random_state', 'labels' ]
@@ -3530,7 +3530,7 @@ class VotingModel( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'kernel', 'C', 'epsilon', 'accuracy', 'mean_absolute_error', 
+		return [ 'model', 'prediction', 'kernel', 'C', 'epsilon', 'accuracy', 'mean_absolute_error',
 			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
 			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
 		    'labels' ]
@@ -3790,7 +3790,7 @@ class StackingModel( Regression ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'estimators', 'final_estimator', 'accuracy', 
+		return [ 'model', 'prediction', 'estimators', 'final_estimator', 'accuracy',
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
 			'score', 'analyze', 'create_scatter', 'labels' ]
@@ -4029,7 +4029,7 @@ class SupportVector( Regression ):
         Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'kernel', 'regulation', 'epsilon', 'accuracy', 
+		return [ 'model', 'prediction', 'kernel', 'regulation', 'epsilon', 'accuracy',
 			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
 			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
 			'score', 'analyze', 'create_scatter', ]
@@ -4253,6 +4253,7 @@ class MultiLayerPerceptron( Regression ):
 
         """
 		return [ 'prediction',
+		         'model',
 		         'accuracy',
 		         'learning',
 		         'activation_function',
@@ -4471,6 +4472,8 @@ class GaussianProcess( Regression ):
     '''
 	
 	model: gpr.GaussianProcessRegressor
+	alpha: Optional[ float ]
+	normalize: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
@@ -4498,10 +4501,37 @@ class GaussianProcess( Regression ):
 
         """
 		super( ).__init__( )
+		self.normalize = normalize_y
+		self.alpha = alpha
 		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
-		self.model = GaussianProces( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
-	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProces | None:
+		self.model = GaussianProcess( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
+		
+		def __dir__( self ) -> List[ str ]:
+			"""
+
+		        Purpose:
+		        -------
+		        Provides a list of strings representing class members
+
+	        """
+			return [ 'prediction',
+			         'model',
+			         'accuracy',
+			         'alpha',
+			         'normalize',
+			         'mean_absolute_error',
+			         'mean_squared_error',
+			         'r_mean_squared_error',
+			         'r2_score',
+			         'explained_variance_score',
+			         'median_absolute_error',
+			         'train',
+			         'project',
+			         'score',
+			         'analyze',
+			         'create_scatter', ]
+		
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcess | None:
 		"""
 
         Purpose:
@@ -4526,7 +4556,7 @@ class GaussianProcess( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.cause = 'GaussianProcess'
 			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4554,7 +4584,7 @@ class GaussianProcess( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = "GaussianProcessRegressorWrapper"
+			exception.cause = 'GaussianProcess'
 			exception.method = "project"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4583,7 +4613,7 @@ class GaussianProcess( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.cause = 'GaussianProcess'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4621,12 +4651,44 @@ class GaussianProcess( Regression ):
 				'MAE': self.mean_absolute_error,
 				'MedianAE': self.median_absolute_error,
 				'R2': self.r2_score,
-				'ExplainedVariance': self.explained_variance_score,
+				'VAR': self.explained_variance_score,
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'GaussianProcessRegressorWrapper'
+			exception.cause = 'GaussianProcess'
 			exception.method = 'analyze'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+		'''
+
+	        Purpose:
+	        -----------
+	        Plot predicted vs. actual target_names.
+
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+        '''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.model.predict( X )
+			plt.scatter( y, self.prediction )
+			plt.xlabel( 'Observed' )
+			plt.ylabel( 'Projected' )
+			plt.title( 'Guassian Process Regression: Observed vs Projected' )
+			plt.plot( [ X.min( ),X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.grid( True )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientDescent'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
