@@ -56,8 +56,8 @@ from sklearn.base import ClassifierMixin
 from sklearn.gaussian_process import GaussianProcessRegressor as gpr
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error,
-                             explained_variance_score, median_absolute_error,
-                             accuracy_score, confusion_matrix, ConfusionMatrixDisplay, f1_score )
+                             explained_variance_score, median_absolute_error, max_error,
+                             accuracy_score, )
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -80,7 +80,7 @@ class Regression:
 	r_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	max_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
@@ -148,8 +148,14 @@ class Regression:
 
 	        Purpose:
 	        ---------
-	        Return regression diagnostics (MAE, MSE, RMSE, R², etc.).
-	
+	        
+				Mean Absolute Error - MAE
+				Mean Squared Error - MSE
+				Root MSE - RSME
+				R-squared - R2
+				Explained Varriance Score - EVS
+				Max_Error = MAX
+			
 	        Parameters:
 	        -----------
 	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
@@ -190,7 +196,7 @@ class LinearRegression( Regression ):
 	r_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
+	max_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
@@ -218,7 +224,7 @@ class LinearRegression( Regression ):
 		self.r_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -231,7 +237,7 @@ class LinearRegression( Regression ):
 		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state',
 		         'weights', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
 		         'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'weights',
-		         'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
+		         'max_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
 		         'weights', 'features' ]
 	
 	@property
@@ -314,7 +320,7 @@ class LinearRegression( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-	
+	 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
 		"""
 
@@ -379,8 +385,9 @@ class LinearRegression( Regression ):
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'EVS': self.explained_variance_score,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -635,14 +642,15 @@ class Ridge( Regression ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'EVS': self.explained_variance_score,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -888,14 +896,15 @@ class Lasso( Regression ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'EVS': self.explained_variance_score,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1139,14 +1148,15 @@ class ElasticNet( Regression ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1386,16 +1396,17 @@ class LeastAngle( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1404,40 +1415,38 @@ class LeastAngle( Regression ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def create_matrix( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		
+		def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+			"""
 
-        Purpose:
-        -----------
-        Plot confusion matrix for regression predictions.
+	        Purpose:
+	        -----------
+	        Plot predicted vs. actual target_names.
 
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	        y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Returns:
-        -----------
-                None
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			cm = confusion_matrix( y, self.prediction )
-			ConfusionMatrixDisplay( confusion_matrix=cm )
-			plt.title( 'Logistic Regression Confusion Matrix' )
-			plt.grid( False )
-			plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LeastAngle'
-			exception.method = ('create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+	        """
+			try:
+				throw_if( 'X', X )
+				throw_if( 'y', y )
+				self.prediction = self.model.predict( X )
+				plt.scatter( y, self.prediction )
+				plt.xlabel( 'Observed' )
+				plt.ylabel( 'Projected' )
+				plt.title( 'Least-Angle Regression: Observed vs Projected' )
+				plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+				plt.grid( True )
+				plt.show( )
+			except Exception as e:
+				exception = Error( e )
+				exception.module = 'mathy'
+				exception.cause = 'LeastAngle'
+				exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
+				error = ErrorDialog( exception )
+				error.show( )
 
 class BayesianRidge( Regression ):
 	"""
@@ -1632,16 +1641,17 @@ class BayesianRidge( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction, average='binary' )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1908,14 +1918,15 @@ class GradientDescent( Regression ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2154,16 +2165,17 @@ class NearestNeighbor( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2394,16 +2406,17 @@ class DecisionTree( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2646,16 +2659,17 @@ class RandomForest( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2904,13 +2918,20 @@ class GradientBoost( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3169,16 +3190,17 @@ class AdaptiveBoost( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3422,16 +3444,17 @@ class BaggingModel( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3667,16 +3690,17 @@ class VotingModel( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3926,16 +3950,17 @@ class StackingModel( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = f1_score( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			return  \
+			self.max_error = max_error( y, self.prediction )
+			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4151,14 +4176,15 @@ class SupportVector( Regression ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4421,14 +4447,15 @@ class MultiLayerPerceptron( Regression ):
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
 				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
-				'MAE': self.median_absolute_error,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4653,14 +4680,15 @@ class GaussianProcess( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
-				'RMSE': np.sqrt( self.mean_squared_error ),
-				'MAE': self.mean_absolute_error,
-				'MedianAE': self.median_absolute_error,
+				'RMSE': self.r_mean_squared_error,
 				'R2': self.r2_score,
 				'VAR': self.explained_variance_score,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
 			}
 		except Exception as e:
 			exception = Error( e )
