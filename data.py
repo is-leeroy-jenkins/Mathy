@@ -54,6 +54,7 @@ from sklearn.covariance import empirical_covariance
 from sklearn.compose import ColumnTransformer
 import sklearn.decomposition as sd
 import sklearn.feature_selection as sf
+from sklearn.feature_selection import chi2
 from torch.backends.opt_einsum import strategy
 from enums import Scaler
 from sklearn.metrics import silhouette_score
@@ -450,8 +451,8 @@ class DataSource( ):
 
     """
     dataframe: pd.DataFrame
-    test_size: float
-    random_state: int
+    size: float
+    state: int
     data: Optional[ pd.DataFrame ]
     targets: Optional[ pd.Series ]
     n_samples: Optional[ int ]
@@ -462,10 +463,10 @@ class DataSource( ):
     categorical_columns: Optional[ List[ str ] ]
     numeric_columns: Optional[ List[ str ] ]
     numeric_data: Optional[ pd.DataFrame ]
-    training_data: Optional[ np.ndarray ]
-    testing_data: Optional[ np.ndarray ]
-    training_values: Optional[ np.ndarray ]
-    testing_values: Optional[ np.ndarray ]
+    X_train: Optional[ np.ndarray ]
+    X_test: Optional[ np.ndarray ]
+    y_train: Optional[ np.ndarray ]
+    y_test: Optional[ np.ndarray ]
     transtuple: Optional[ List[ Tuple[ str, Encoder, List[ str ] ] ] ]
     numeric_metrics: Optional[ pd.DataFrame ]
     categorical_metrics: Optional[ pd.DataFrame ]
@@ -498,22 +499,22 @@ class DataSource( ):
 
         """
         self.dataframe = df.copy( )
-        self.test_size = size
-        self.random_state = rando
+        self.size = size
+        self.state = rando
         if target not in df.columns:
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
         self.feature_names = list( self.dataframe.columns )
         self.numeric_columns = self.dataframe.select_dtypes( include=[ 'number' ] ).columns.tolist( )
         self.categorical_columns = self.dataframe.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
         self.data = self.dataframe.values
-        self.n_samples = len( df )
+        self.n_samples = self.dataframe.shape[ 0 ]
         self.n_features = self.dataframe.shape[ 1 ]
         self.targets = df[ target ]
         self.target_names = np.array( sorted( np.unique( self.targets ) ) )
-        self.training_data = split( self.data, self.targets, test_size=self.test_size, random_state=self.random_state, stratify=None )[ 0 ]
-        self.testing_data = split( self.data, self.targets, test_size=self.test_size, random_state=self.random_state, stratify=None )[ 1 ]
-        self.training_values = split( self.data, self.targets, test_size=self.test_size, random_state=self.random_state, stratify=None )[ 2 ]
-        self.testing_values = split( self.data, self.targets, test_size=self.test_size, random_state=self.random_state, stratify=None )[ 3 ]
+        self.X_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 0 ]
+        self.X_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 1 ]
+        self.y_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 2 ]
+        self.y_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 3 ]
         self.numeric_data = df.select_dtypes( include='number' ).copy( )
         self.skew = self.numeric_data.skew( axis=0, numeric_only=True )
         self.variance = self.numeric_data.var( axis=0, ddof=1, numeric_only=True )
@@ -541,12 +542,9 @@ class DataSource( ):
                  'numeric_columns', 'mean_standard_error', 'training_data', 'testing_data',
                  'training_values', 'testing_values', 'data', 'target', 'scale_down', 'scale_values',
                  'average', 'kurtosis', 'variance', 'y_testing', 'transform_columns',
-                 'create_pivot_table', 'standard_deviation', 'export_excel', 'create_histogram',
-                 'calculate_skew', 'calculate_average', 'calculate_deviation', 'calculate_kurtosis',
-                 'calculate_standard_error', 'show_correlation_analysis', 'transform_columns',
-                 'calculate_numeric_statistics', 'create_correlation_analysis',
-                 'calculate_categorical_statistics', 'create_pivot_table', 'calculate_variance',
-                 'show_histogram', 'create_histogram', ]
+                 'create_pivot_table', 'standard_deviation', 'export_excel', 'plot_correlations',
+                 'transform_columns', 'calculate_numeric_statistics',
+                 'calculate_categorical_statistics', 'create_pivot_table', 'plot_histogram', ]
     
     def transform_columns( self, name: str, encoder: Encoder, columns: List[ str ] ) -> None:
         """
@@ -571,7 +569,8 @@ class DataSource( ):
             throw_if( 'encoder', encoder )
             throw_if( 'columns', columns )
             self.transtuple.append( ( name, encoder, columns ) )
-            self.column_transformer = ColumnTransformer( transformers=self.transtuple, remainder='passthrough' )
+            self.column_transformer = ColumnTransformer( transformers=self.transtuple,
+	            remainder='passthrough' )
             self.data = self.dataframe[ self.feature_names ]
             _ = self.column_transformer.fit_transform( self.data )
         except Exception as e:
@@ -690,7 +689,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def show_histogram( self ):
+    def plot_histogram( self ):
         '''
 
             Purpose:
@@ -703,8 +702,8 @@ class DataSource( ):
             _col_means = self.dataframe.select_dtypes( 'number' ).mean( axis=0 )
             plt.figure( figsize=( 10, 6 ) )
             sns.histplot( _col_means, bins=20, kde=True )
-            plt.title( 'Histogram of Column Means' )
-            plt.xlabel( 'Mean Value' )
+            plt.title( 'Column Means' )
+            plt.xlabel( 'Average' )
             plt.ylabel( 'Frequency' )
             plt.show( )
         except Exception as e:
@@ -715,34 +714,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def create_histogram( self, df: pd.DataFrame, axes: int=0, numbers_only=True ):
-        '''
-
-            Purpose:
-            ________
-
-            Method to create histogram of from a dataframe.
-
-        '''
-        try:
-            throw_if( 'df', df )
-            _df = df.select_dtypes( 'number' ) if numbers_only else df
-            series = _df.mean( axis=axes )
-            plt.figure( figsize=( 10, 6 ) )
-            sns.histplot( series, bins=20, kde=True )
-            plt.title( 'Histogram of Means' )
-            plt.xlabel( 'Mean Value' )
-            plt.ylabel( 'Frequency' )
-            plt.show( )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'stores'
-            exception.method = 'create_histogram( self, df: pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def show_correlation_analysis( self, numeric: bool=True ):
+    def plot_correlations( self, numeric: bool=True ):
         '''
 
             Purpose:
@@ -760,230 +732,6 @@ class DataSource( ):
             exception.module = 'mathy'
             exception.cause = 'stores'
             exception.method = 'show_correlation_analysis( self )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def create_correlation_analysis( self, df: pd.DataFrame, numeric: bool=True ):
-        '''
-
-            Purpose:
-            --------
-            Method to show the pearson-correlation analysis of the dataset.
-
-        '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _correlation = _dataframe.corr( 'pearson', numeric_only=numeric )
-            plt.figure( figsize=( 10, 6 ) )
-            sns.heatmap( _correlation, cmap='coolwarm', annot=True )
-            plt.title( 'Pearson Correlation' )
-            plt.show( )
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'stores'
-            exception.method = 'create_correlation_analysis( self, df: pd.DataFrame )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def calculate_average( self, df: pd.DataFrame, axes: int=0,  numeric: bool=True ) -> pd.Series:
-        '''
-
-            Purpose:
-            ________
-            Compute the mean along the specified axis.
-
-            Parameters:
-            __________
-            df (pd.DataFrame): Source dataframe.
-            axes (int): Axis over which to compute mean (0=columns, 1=rows).
-            numeric (bool): If True, restrict to numeric dtypes.
-
-            Returns:
-            ________
-            pd.Series | None: Means by axis, or None on error.
-
-        '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            self.average = _dataframe.mean( axis=axes, numeric_only=numeric )
-            return self.average
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('calculate_average( self, df: pd.DataFrame, axes: int=0, '
-                                'numeric: bool=True ) -> pd.Series ')
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def calculate_variance( self, df: pd.DataFrame, axe: int=0, deg: int=1,
-	    numeric: bool=True ) -> pd.Series:
-        '''
-
-            Purpose:
-            _______
-            Compute the variance along the specified axis.
-
-            Parameters:
-            _________
-            df (pd.DataFrame): Source dataframe.
-            axes (int): Axis over which to compute variance.
-            degree (int): Delta degrees of freedom (ddof).
-            numeric (bool): If True, restrict to numeric dtypes.
-
-            Returns:
-            _______
-            pd.Series | None: Variances by axis, or None on error.
-
-        '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'axex', axe )
-            throw_if( 'degree', deg )
-            throw_if( 'numeric', numeric )
-            _dataframe = df.copy( )
-            _variance = _dataframe.var( axis=axe, ddof=deg, numeric_only=numeric )
-            return _variance
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def calculate_skew( self, df: pd.DataFrame, axe: int=0, numeric: bool=True ) -> pd.Series:
-        '''
-
-            Purpose:
-            --------
-            Return unbiased skew over requested axis.
-            
-            Parameters:
-            ----------
-            df (DataFrame)
-            axe (int)
-            numeric (bool)
-            
-            
-            Returns:
-            _______
-            :return: pd.Series
-            :rtype: pd.Series | None
-            
-        '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'axes', axe )
-            throw_if( 'numeric', numeric )
-            _dataframe = df.copy( )
-            _skew = _dataframe.skew( axis=axe, numeric_only=numeric )
-            return _skew
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def calculate_kurtosis( self, df: pd.DataFrame, axe: int=0, numeric: bool=True ) -> pd.Series:
-        '''
-
-            Purpose:
-            --------
-            Return unbiased skutosis over requested axis.
-
-
-            :param axe:
-            :type axe: int
-            :return: pd.Series
-            :rtype: pd.Series | None
-        '''
-        try:
-            throw_if( 'df', df )
-            throw_if( 'axes', axe )
-            throw_if( 'numeric', numeric )
-            _dataframe = df.copy( )
-            _kurtosis = _dataframe.kurt( axis=axe, numeric_only=numeric )
-            return _kurtosis
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'create_kurtosis( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def calculate_standard_error( self, df: pd.DataFrame, axes: int=0, degree: int=1,
-        numeric: bool=True ) -> pd.Series:
-        '''
-
-            Purpose:
-            --------
-            Return unbiased standard error of the mean over requested axis. Normalized by N-1 by
-            default.
-            This can be changed using the degree argument.
-
-            Parameters:
-            -----------
-            df ( pd.Dataframe )
-            axes ( int )
-            degree ( int )
-            
-            Return:
-            -------
-            pd.Series
-            
-        '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _error = _dataframe.sem( axis=axes, ddof=degree, numeric_only=numeric )
-            return _error
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('calculate_standard_error( self, axes: int=0, degree: int=1 ) -> '
-                                'pd.Series')
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def calculate_deviation( self, df: pd.DataFrame, axes: int=0, degree: int=1, numeric: bool=True ) -> pd.Series:
-        '''
-
-            Purpose:
-            --------
-            Return unbiased standard deviation over requested axis. Normalized by N-1 by default.
-            This can be changed using the degree argument.
-            
-            Parameters:
-            ___________
-            df (pd.DataFrame)
-            axes (int)
-            degree (int)
-            numeric (bool)
-            
-            Return:
-            _______
-            pd.Series
-            
-        '''
-        try:
-            throw_if( 'df', df )
-            _dataframe = df.copy( )
-            _deviation = _dataframe.std( axis=axes, ddof=degree, numeric_only=numeric )
-            return _deviation
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = ('calculate_standard_deviation( self, axes: int=0, degree: int=1 ) '
-                                '-> pd.Series')
             error = ErrorDialog( exception )
             error.show( )
     
@@ -1060,7 +808,7 @@ class VarianceThreshold( ):
         zero-variance feature_names, i.e. feature_names that have the same value in all samples.
 
     """
-    selector: sf.VarianceThreshold
+    model: sf.VarianceThreshold
     transformed_data: Optional[ np.ndarray ]
     threshold: Optional[ float ]
     
@@ -1076,7 +824,7 @@ class VarianceThreshold( ):
             
         """
         self.threshold = thresh
-        self.selector = sf.VarianceThreshold( threshold=self.threshold )
+        self.model = sf.VarianceThreshold( threshold=self.threshold )
         self.transformed_data = None
     
     def __dir__( self ):
@@ -1087,7 +835,7 @@ class VarianceThreshold( ):
 			A list of strings representing class members
 			
 	    '''
-	    return [ 'threshold', 'selector', 'transformed_data',
+	    return [ 'threshold', 'model', 'transformed_data',
 	             'train', 'transform', 'train_transform' ]
 	    
     def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
@@ -1105,7 +853,7 @@ class VarianceThreshold( ):
         """
         try:
             throw_if( 'X', X )
-            self.selector.fit( X )
+            self.model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -1129,7 +877,7 @@ class VarianceThreshold( ):
         """
         try:
             throw_if( 'X', X )
-            self.transformed_data = self.selector.transform( X )
+            self.transformed_data = self.model.transform( X )
             return self.transformed_data
         except Exception as e:
             exception = Error( e )
@@ -1159,7 +907,7 @@ class VarianceThreshold( ):
         """
         try:
             throw_if( 'X', X )
-            self.transformed_data = self.selector.fit_transform( X )
+            self.transformed_data = self.model.fit_transform( X )
             return self.transformed_data
         except Exception as e:
             exception = Error( e )
@@ -1314,7 +1062,7 @@ class ComponentAnalysis( ):
         the number of components to extract.
 
     """
-    analysis: sd.PCA
+    model: sd.PCA
     svd_solver: Optional[ str ]
     n_components: Optional[ int ]
     transformed_data: Optional[ np.ndarray ]
@@ -1335,7 +1083,7 @@ class ComponentAnalysis( ):
         """
         self.n_components = num
         self.svd_solver = solver
-        self.analysis = sd.PCA( n_components=self.n_components, svd_solver=self.svd_solver )
+        self.model = sd.PCA( n_components=self.n_components, svd_solver=self.svd_solver )
         self.transformed_data = None
     
     def __dir__( self ):
@@ -1367,12 +1115,12 @@ class ComponentAnalysis( ):
         """
         try:
             throw_if( 'X', X )
-            self.analysis.fit( X )
+            self.model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'PrincipleComponentAnalysis'
+            exception.cause = 'ComponentAnalysis'
             exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
             error = ErrorDialog( exception )
             error.show( )
@@ -1397,12 +1145,12 @@ class ComponentAnalysis( ):
         """
         try:
             throw_if( 'X', X )
-            self.transformed_data = self.analysis.transform( X )
+            self.transformed_data = self.model.transform( X )
             return self.transformed_data
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'PrincipleComponentAnalysis'
+            exception.cause = 'ComponentAnalysis'
             exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -1426,12 +1174,255 @@ class ComponentAnalysis( ):
         """
         try:
             throw_if( 'X', X )
-            self.transformed_data = self.analysis.fit_transform( X )
+            self.transformed_data = self.model.fit_transform( X )
             return self.transformed_data
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'PrincipleComponentAnalysis'
+            exception.cause = 'ComponentAnalysis'
             exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
+
+class SelectBest( ):
+	"""
+
+		Purpose:
+		---------
+		
+
+	"""
+	model: sf.SelectKBest
+	transformed_data: Optional[ np.ndarray ]
+	threshold: Optional[ float ]
+	
+	def __init__( self, k: int=3 ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize SelectBest.
+
+			:param threshold: Features with variance below this are removed.
+			:type threshold: float
+
+		"""
+		self.k = k
+		self.model = sf.SelectKBest( score_func=chi2, k=self.k )
+		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings representing class members
+
+		'''
+		return [ 'k',
+		         'model',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform' ]
+	
+	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the model.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectBest'
+			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Apply selection.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectBest'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Fit and transform the data.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+
+
+			Return:
+			-------
+			np.ndarray
+
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.fit_transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectBest'
+			exception.method = \
+				''
+			error = ErrorDialog( exception )
+			error.show( )
+
+class SelectPercentage( ):
+	"""
+
+		Purpose:
+		---------
+
+
+	"""
+	model: sf.SelectPercentile
+	transformed_data: Optional[ np.ndarray ]
+	threshold: Optional[ float ]
+	
+	def __init__( self, percent: int=10 ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize SelectBest.
+
+			:param threshold: Features with variance below this are removed.
+			:type threshold: float
+
+		"""
+		self.percent = percent
+		self.model = sf.SelectPercentile( percentile=self.percent )
+		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings representing class members
+
+		'''
+		return [ 'k',
+		         'model',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform' ]
+	
+	def train( self, X: np.ndarray ) -> sf.SelectPercentile | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the model.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectPercentage'
+			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Apply selection.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectPercentage'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Fit and transform the data.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+
+
+			Return:
+			-------
+			np.ndarray
+
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.fit_transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectPercentage'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )

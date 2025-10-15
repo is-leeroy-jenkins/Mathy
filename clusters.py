@@ -54,7 +54,6 @@ def throw_if( name: str, value: object ):
     if not value:
         raise ValueError( f'Argument "{name}" cannot be empty!' )
 
-
 class Cluster( ):
     """
 
@@ -76,7 +75,6 @@ class Cluster( ):
     max_iter: Optional[ int ]
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
-    
     
     def __init__( self ):
         pass
@@ -177,7 +175,7 @@ class KMeans( Cluster ):
         significantly.
 
     """
-    kmeans_model: skc.KMeans
+    model: skc.KMeans
     n_clusters: Optional[ int ]
     random_state: Optional[ int ]
     max_iter: Optional[ int ]
@@ -201,7 +199,7 @@ class KMeans( Cluster ):
         self.n_clusters = num
         self.random_state = rando
         self.max_iter = max_iter
-        self.kmeans_model = skc.KMeans( n_clusters=self.n_clusters,
+        self.model = skc.KMeans( n_clusters=self.n_clusters,
             random_state=self.random_state, max_iter=self.max_iter, n_init='auto' )
         self.prediction = None
         self.accuracy = 0.0
@@ -221,7 +219,7 @@ class KMeans( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.kmeans_model.fit( X )
+            self.model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -250,7 +248,7 @@ class KMeans( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.kmeans_model.fit_predict( X )
+            self.prediction = self.model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -279,7 +277,7 @@ class KMeans( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.kmeans_model.predict( X )
+            labels = self.model.predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -306,7 +304,7 @@ class KMeans( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.kmeans_model.predict( X )
+            labels = self.model.predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
             plt.title( "KMeans Cluster" )
             plt.show( )
@@ -336,7 +334,7 @@ class DBSCAN( Cluster ):
         min_samples or lower eps indicate higher density necessary to form a cluster.
 
     """
-    dbscan_model: skc.DBSCAN
+    model: skc.DBSCAN
     eps: Optional[ float ]
     min_samples: Optional[ int ]
     algorithm: Optional[ str ]
@@ -360,12 +358,12 @@ class DBSCAN( Cluster ):
         self.eps = eps
         self.min_samples = size
         self.algorithm = algo
-        self.dbscan_model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
+        self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
             algorithm=self.algorithm )
         self.prediction = None
         self.accuracy = 0.0
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> DBSCAN | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> DBSCAN | None:
         """
 
             Purpose:
@@ -380,7 +378,7 @@ class DBSCAN( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.dbscan_model.fit( X )
+            self.model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
@@ -409,7 +407,7 @@ class DBSCAN( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.dbscan_model.fit_predict( X )
+            self.prediction = self.model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
@@ -419,7 +417,7 @@ class DBSCAN( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
             Purpose:
@@ -438,7 +436,7 @@ class DBSCAN( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.dbscan_model.fit_predict( X )
+            labels = self.model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
@@ -449,7 +447,7 @@ class DBSCAN( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
         """
 
             Purpose:
@@ -464,7 +462,7 @@ class DBSCAN( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.dbscan_model.fit_predict( X )
+            labels = self.model.fit_predict( X )
             plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='plasma' )
             plt.title( 'DBSCAN Cluster' )
             plt.show( )
@@ -486,15 +484,15 @@ class Agglomerative( Cluster ):
         successively merged together. The linkage criteria determines the metric used for the merge
         strategy:
 
-            Ward minimizes the sum of squared differences within all clusters. It is a
-            variance-minimizing approach and in this sense is similar to the k-means objective
-            function but tackled with an agglomerative hierarchical approach.
+        Minimizes the sum of squared differences within all clusters. It is a
+        variance-minimizing approach and in this sense is similar to the k-means objective
+        function but tackled with an agglomerative hierarchical approach.
 
-            Maximum or complete linkage minimizes the maximum distance between observations of
-            pairs of clusters.
+        Maximum or complete linkage minimizes the maximum distance between observations of
+        pairs of clusters.
 
-            Average linkage minimizes the average of the distances between all observations of
-            pairs of clusters.
+        Average linkage minimizes the average of the distances between all observations of
+        pairs of clusters.
 
         Single linkage minimizes the distance between the closest observations of pairs of clusters.
         AgglomerativeCluster can also scale to large number of samples when it is used jointly
@@ -502,7 +500,7 @@ class Agglomerative( Cluster ):
         constraints are added between samples: it considers at each step all the possible merges.
 
     """
-    agglomerative_model: skc.AgglomerativeClustering
+    model: skc.AgglomerativeClustering
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
@@ -519,12 +517,11 @@ class Agglomerative( Cluster ):
 
         """
         super( ).__init__( )
-        self.agglomerative_model = skc.AgglomerativeClustering( n_clusters=num )
+        self.model = skc.AgglomerativeClustering( n_clusters=num )
         self.prediction = None
         self.accuracy = 0.0
     
-    def train( self, X: np.ndarray,
-            y: Optional[ np.ndarray ] = None ) -> Agglomerative | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Agglomerative | None:
         """
 
             Purpose:
@@ -540,12 +537,12 @@ class Agglomerative( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.agglomerative_model.fit( X )
+            self.model.fit( X )
             return self
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'AgglomerativeClusteringModel'
+            exception.cause = 'Agglomerative'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -569,17 +566,17 @@ class Agglomerative( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.agglomerative_model.fit_predict( X )
+            self.prediction = self.model.fit_predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'AgglomerativeClusteringModel'
+            exception.cause = 'Agglomerative'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
         
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
             Purpose:
@@ -598,18 +595,18 @@ class Agglomerative( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            labels = self.agglomerative_model.fit_predict( X )
+            labels = self.model.fit_predict( X )
             self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
             return self.accuracy
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'AgglomerativeClusteringModel'
+            exception.cause = 'Agglomerative'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
     
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
         """
 
             Purpose:
@@ -625,14 +622,14 @@ class Agglomerative( Cluster ):
         try:
             throw_if( 'X', X )
             Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-            labels = self.agglomerative_model.fit_predict( X )
+            labels = self.model.fit_predict( X )
             plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='tab10' )
             plt.title( 'Agglomerative Cluster' )
             plt.show( )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'AgglomerativeClusteringModel'
+            exception.cause = 'Agglomerative'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -659,7 +656,7 @@ class Spectral( Cluster ):
     prediction: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    def __init__( self, num: int = 8 ) -> None:
+    def __init__( self, num: int=8 ) -> None:
         """
 
             Purpose:
@@ -676,7 +673,7 @@ class Spectral( Cluster ):
         self.prediction = None
         self.accuracy = 0.0
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Spectral | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Spectral | None:
         """
 
             Purpose:
@@ -696,7 +693,7 @@ class Spectral( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'SpectralClustering'
+            exception.cause = 'Spectral'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -726,12 +723,12 @@ class Spectral( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'SpectralClustering'
+            exception.cause = 'Spectral'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
         
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
             Purpose:
@@ -756,12 +753,12 @@ class Spectral( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'SpectralClustering'
+            exception.cause = 'Spectral'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
     
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
         """
 
             Purpose:
@@ -783,7 +780,7 @@ class Spectral( Cluster ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'SpectralClustering'
+            exception.cause = 'Spectral'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -825,7 +822,7 @@ class MeanShift( Cluster ):
         self.prediction = None
         self.accuracy = 0.0
     
-    def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> MeanShift | None:
+    def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> MeanShift | None:
         """
 
             Purpose:
@@ -850,7 +847,7 @@ class MeanShift( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+    def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
         """
 
             Purpose:
@@ -879,7 +876,7 @@ class MeanShift( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> float | None:
+    def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> float | None:
         """
 
             Purpose:
@@ -909,7 +906,7 @@ class MeanShift( Cluster ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
         """
 
             Purpose:
@@ -968,7 +965,7 @@ class AffinityPropagation( Cluster ):
         self.accuracy = 0.0
     
     def train( self, X: np.ndarray,
-            y: Optional[ np.ndarray ] = None ) -> AffinityPropagation | None:
+            y: Optional[ np.ndarray ]=None ) -> AffinityPropagation | None:
         """
 
             Purpose:
@@ -1052,7 +1049,7 @@ class AffinityPropagation( Cluster ):
 		    error = ErrorDialog( exception )
 		    error.show( )
     
-    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> None:
+    def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> None:
 	    """
 	
 			Purpose:

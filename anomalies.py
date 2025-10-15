@@ -1,16 +1,16 @@
 '''
   ******************************************************************************************
       Assembly:                Name
-      Filename:                outliers.py
+      Filename:                anomalies.py
       Author:                  Terry D. Eppler
       Created:                 05-31-2022
 
       Last Modified By:        Terry D. Eppler
       Last Modified On:        05-01-2025
   ******************************************************************************************
-  <copyright file="outliers.py" company="Terry D. Eppler">
+  <copyright file="anomalies.py" company="Terry D. Eppler">
 
-	     outliers.py
+	     anomalies.py
 	     Copyright ©  2022  Terry Eppler
 
      Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,7 +37,7 @@
 
   </copyright>
   <summary>
-    outliers.py
+    anomalies.py
   </summary>
   ******************************************************************************************
 '''
@@ -65,7 +65,6 @@ class Outlier( ):
 	"""
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	training_data: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -112,7 +111,7 @@ class Outlier( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float:
 		"""
 
 			Purpose:
@@ -149,19 +148,22 @@ class Outlier( ):
 
 		"""
 		raise NotImplementedError
-	
+
 class IsolationForest( Outlier ):
 	"""
 	
 		Purpose:
 		--------
-		Encapsulates scikit-learn's IsolationForest for unsupervised outlier detection.
-		Provides methods to train the model, identify anomalies, and evaluate results.
+		The IsolationForest ‘isolates’ observations by randomly selecting a feature and then
+		randomly selecting a split value between the maximum and minimum values of
+		the selected feature. Since recursive partitioning can be represented by a tree structure,
+		the number of splittings required to isolate a sample is equivalent to the path
+		length from the root node to the terminating node. This path length, averaged over a
+		forest of such random trees, is a measure of normality and our decision function.
 
 	"""
 	model: IsolationForest
 	contamination: float
-	training_data: Optional[ np.ndarray ]
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
 	
@@ -183,12 +185,11 @@ class IsolationForest( Outlier ):
 
 		"""
 		self.contamination = contamination
-		self.model = IsolationForest( contamination=contamination )
-		self.training_data = None
+		self.model = IsolationForest( contamination=self.contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray ) -> IsolationForest | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> IsolationForest | None:
 		"""
 
 			Purpose:
@@ -206,7 +207,6 @@ class IsolationForest( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.training_data = X
 			self.model.fit( X )
 			self.prediction = self.model.predict( X )  # -1 = outlier, 1 = inlier
 			self.anomaly_scores = self.model.decision_function( X )
@@ -219,7 +219,7 @@ class IsolationForest( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 	
 			Purpose:
@@ -247,7 +247,7 @@ class IsolationForest( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray  ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
 		"""
 	
 			Purpose:
@@ -271,37 +271,33 @@ class IsolationForest( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, true_labels: Optional[ np.ndarray ]=None ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
 			--------
-			Returns classification statistics, optionally against true labels.
+			Evaluates outlier detection results, optionally against ground-truth labels.
 	
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): True binary labels (1 = inlier, -1 = outlier).
+			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
 	
 			Returns:
 			--------
-			Dict: Dictionary of metrics or report from scikit-learn.
+			Dict: Classification report or descriptive summary.
 
 		"""
 		try:
-			throw_if( 'y_pred', self.prediction )
-			if true_labels is not None:
-				throw_if( 'true_labels', true_labels )
-				report = classification_report( true_labels, self.prediction, output_dict=True )
-				return report
-			
-			outliers = np.sum( self.prediction == -1 )
-			inliers = np.sum( self.prediction == 1 )
+			throw_if( 'X', X )
+			self.prediction = self.model.predict( X )
+			outliers = int( np.sum( self.prediction == -1 ) )
+			inliers = int( np.sum( self.prediction == 1 ) )
 			return \
 			{
-				'Outliers': int( outliers ),
-				'Inliers': int( inliers ),
-				'Contamination Rate': float( self.contamination ),
-				'Outlier Proportion': round( outliers / len( self.prediction ), 3 )
+				'Outliers': float( outliers ),
+				'Inliers': float( inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -311,7 +307,7 @@ class IsolationForest( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class OneClassVector( Outlier ):
+class OneClass( Outlier ):
 	"""
 	
 		Purpose:
@@ -321,9 +317,10 @@ class OneClassVector( Outlier ):
 
 	"""
 	model: Optional[ OneClassSVM ]
-	training_data: Optional[ np.ndarray ]
+	data: Optional[ np.ndarray ]
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
+	kernel: Optional[ str ]
 	
 	def __init__( self, kernel: str='rbf', nu: float=0.05, gamma: str='scale' ) -> None:
 		"""
@@ -345,11 +342,10 @@ class OneClassVector( Outlier ):
 
 		"""
 		self.model = OneClassSVM( kernel=kernel, nu=nu, gamma=gamma )
-		self.training_data = None
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray ) -> OneClassVector | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> OneClass | None:
 		"""
 
 			Purpose:
@@ -367,20 +363,18 @@ class OneClassVector( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.X_train = X
-			self.model.fit( X )
-			self.y_pred = self.model.predict( X )  # -1 = novel, 1 = known/inlier
+			self.model.fit( X )  # -1 = outlier, 1 = inlier
 			self.anomaly_scores = self.model.decision_function( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'OneClassVector'
+			exception.cause = 'SupportVector'
 			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -398,16 +392,18 @@ class OneClassVector( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.model.predict( X )
+			throw_if( 'y', y )
+			self.prediction = self.model.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'OneClassVector'
+			exception.cause = 'SupportVector'
 			exception.method = 'project'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
 		"""
 	
 			Purpose:
@@ -420,56 +416,55 @@ class OneClassVector( Outlier ):
 
 		"""
 		try:
-			throw_if( 'y_pred', self.y_pred )
-			return np.mean( self.y_pred == 1 )
+			throw_if( 'X', X )
+			self.prediction = self.model.predict( X )
+			_score = np.mean( self.prediction == 1 )
+			return _score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'OneClassVector'
+			exception.cause = 'SupportVector'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, true_labels: Optional[ np.ndarray ] = None ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-	
+
 			Purpose:
 			--------
-			Evaluates the novelty detection output against known labels (optional).
+			Evaluates outlier detection results, optionally against ground-truth labels.
 	
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): Ground-truth labels (1 = inlier, -1 = novel).
+			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
 	
 			Returns:
 			--------
-			Dict: Classification report or prediction summary.
+			Dict: Classification report or descriptive summary.
 
 		"""
 		try:
-			throw_if( 'y_pred', self.y_pred )
-			if true_labels is not None:
-				throw_if( 'true_labels', true_labels )
-				report = classification_report( true_labels, self.y_pred, output_dict=True )
-				return report
-			
-			outliers = np.sum( self.y_pred == -1 )
-			inliers = np.sum( self.y_pred == 1 )
+			throw_if( 'X', X )
+			self.prediction = self.model.predict( X )
+			outliers = int( np.sum( self.prediction == -1 ) )
+			inliers = int( np.sum( self.prediction == 1 ) )
 			return \
 			{
-				'Inlier Count': int( inliers ),
-				'Outlier Count': int( outliers ),
-				'Outlier Proportion': round( outliers / len( self.y_pred ), 4 )
+				'Outliers': float( outliers ),
+				'Inliers': float( inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'OneClassVector'
+			exception.cause = 'SupportVector'
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LocalOutlier( Outlier ):
+class OutlierFactor( Outlier ):
 	"""
 	
 		Purpose:
@@ -478,11 +473,11 @@ class LocalOutlier( Outlier ):
 		Provides decision function, prediction, and scoring interfaces.
 
 	"""
-	
 	model: LocalOutlierFactor
-	X_train: Optional[ np.ndarray ]
-	y_pred: Optional[ np.ndarray ]
+	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
+	neighbors: Optional[ int ]
+	containment: Optional[ float]
 	
 	def __init__( self, n_neighbors: int=20, contamination: float=0.1, novelty: bool=True ) -> None:
 		"""
@@ -503,13 +498,15 @@ class LocalOutlier( Outlier ):
 			None
 
 		"""
-		self.model = LocalOutlierFactor( n_neighbors=n_neighbors, contamination=contamination,
-			novelty=novelty )
-		self.X_train = None
-		self.y_pred = None
+		self.neighbors = n_neighbors
+		self.contamination = contamination
+		self.novelty = novelty
+		self.model = LocalOutlierFactor( n_neighbors=self.neighbors,
+			contamination=self.contamination, novelty=self.novelty )
+		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray ) -> LocalOutlierFactor | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> LocalOutlierFactor | None:
 		"""
 
 			Purpose:
@@ -527,20 +524,19 @@ class LocalOutlier( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.X_train = X
 			self.model.fit( X )
-			self.y_pred = self.model.predict( X )
+			self.prediction = self.model.predict( X )
 			self.anomaly_scores = self.model.decision_function( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LocalOutlier'
+			exception.cause = 'OutlierFactor'
 			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 	
 			Purpose:
@@ -558,16 +554,17 @@ class LocalOutlier( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.model.predict( X )
+			self.predicate = self.model.predict( X )
+			return self.predicate
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LocalOutlierFactorWrapper'
+			exception.cause = 'OutlierFactor'
 			exception.method = 'project'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
 		"""
 	
 			Purpose:
@@ -580,56 +577,54 @@ class LocalOutlier( Outlier ):
 
 		"""
 		try:
-			throw_if( 'y_pred', self.y_pred )
-			return np.mean( self.y_pred == 1 )
+			throw_if( 'predicate', self.predicate )
+			return np.mean( self.predicate == 1 )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LocalOutlierFactorWrapper'
+			exception.cause = 'OutlierFactor'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, true_labels: Optional[ np.ndarray ] = None ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
 			--------
-			Evaluates the predicted inlier/outlier labels.
+			Evaluates outlier detection results, optionally against ground-truth labels.
 	
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): Ground truth binary labels (1 = inlier, -1 = outlier).
+			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
 	
 			Returns:
 			--------
-			Dict: Summary of detection results or classification report.
+			Dict: Classification report or descriptive summary.
 
 		"""
 		try:
-			throw_if( 'y_pred', self.y_pred )
-			if true_labels is not None:
-				throw_if( 'true_labels', true_labels )
-				report = classification_report( true_labels, self.y_pred, output_dict=True )
-				return report
-			
-			outliers = np.sum( self.y_pred == -1 )
-			inliers = np.sum( self.y_pred == 1 )
-			return {
-					'Outlier Count': int( outliers ),
-					'Inlier Count': int( inliers ),
-					'Estimated Contamination': self.model.contamination,
-					'Inlier Proportion': round( inliers / len( self.y_pred ), 4 )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.model.predict( X )
+			outliers = int( np.sum( self.prediction == -1 ) )
+			inliers = int( np.sum( self.prediction == 1 ) )
+			return \
+			{
+				'Outliers': float( outliers ),
+				'Inliers': float( inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LocalOutlierFactorWrapper'
+			exception.cause = 'OutlierFactor'
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )
 
-class EllipticEnvelope( Outlier ):
+class EllipticSquare( Outlier ):
 	"""
 
 		Purpose:
@@ -639,7 +634,6 @@ class EllipticEnvelope( Outlier ):
 
 	"""
 	model: EllipticEnvelope
-	training_data: Optional[ np.ndarray ]
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
 	
@@ -660,20 +654,11 @@ class EllipticEnvelope( Outlier ):
 			None
 
 		"""
-		try:
-			self.model = EllipticEnvelope( contamination=contamination )
-			self.training_data = None
-			self.prediction = None
-			self.anomaly_scores = None
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'EllipticEnvelopeWrapper'
-			exception.method = '__init__'
-			error = ErrorDialog( exception )
-			error.show( )
+		self.model = EllipticEnvelope( contamination=contamination )
+		self.prediction = None
+		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray ) -> EllipticEnvelope | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]  ) -> EllipticSquare | None:
 		"""
 
 			Purpose:
@@ -691,7 +676,6 @@ class EllipticEnvelope( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.training_data = X
 			self.model.fit( X )
 			self.prediction = self.model.predict( X )
 			self.anomaly_scores = self.model.decision_function( X )
@@ -699,12 +683,12 @@ class EllipticEnvelope( Outlier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'EllipticEnvelopeWrapper'
+			exception.cause = 'EllipticSquare'
 			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
 
 			Purpose:
@@ -722,16 +706,17 @@ class EllipticEnvelope( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.model.predict( X )
+			self.prediction = self.model.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'EllipticEnvelopeWrapper'
+			exception.cause = 'EllipticSquare'
 			exception.method = 'project'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
 		"""
 	
 			Purpose:
@@ -744,17 +729,18 @@ class EllipticEnvelope( Outlier ):
 
 		"""
 		try:
-			throw_if( 'y_pred', self.prediction )
+			throw_if( 'X', X )
+			self.prediction = self.model.predict( X )
 			return np.mean( self.prediction == 1 )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'EllipticEnvelopeWrapper'
+			exception.cause = 'EllipticSquare'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, true_labels: Optional[ np.ndarray ] = None ) -> Dict | None:
+	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
 		"""
 
 			Purpose:
@@ -771,24 +757,21 @@ class EllipticEnvelope( Outlier ):
 
 		"""
 		try:
-			throw_if( 'y_pred', self.prediction )
-			if true_labels is not None:
-				throw_if( 'true_labels', true_labels )
-				return classification_report( true_labels, self.prediction, output_dict=True )
-			
+			throw_if( 'X', X )
+			self.prediction = self.model.predict( X )
 			outliers = int( np.sum( self.prediction == -1 ) )
 			inliers = int( np.sum( self.prediction == 1 ) )
 			return \
 			{
-				'Outlier Count': outliers,
-				'Inlier Count': inliers,
-				'Contamination Estimate': self.model.contamination,
-				'Inlier Proportion': round( inliers / len( self.prediction ), 4 )
+				'Outliers': float( outliers ),
+				'Inliers': float( inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'EllipticEnvelopeWrapper'
+			exception.cause = 'EllipticSquare'
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )

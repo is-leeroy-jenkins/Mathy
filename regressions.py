@@ -310,8 +310,8 @@ class LinearRegression( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = "LinearRegressor"
-			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
+			exception.cause = 'LinearRegression'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -342,8 +342,8 @@ class LinearRegression( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = "LinearRegressor"
-			exception.method = "accuracy( self, X: np.ndarray, y: np.ndarray ) -> float"
+			exception.cause = 'LinearRegression'
+			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -386,7 +386,7 @@ class LinearRegression( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegressor'
+			exception.cause = 'LinearRegression'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -418,7 +418,7 @@ class LinearRegression( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = "LinearRegressor"
+			exception.cause = 'LinearRegression'
 			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
 			error = ErrorDialog( exception )
 			error.show( )

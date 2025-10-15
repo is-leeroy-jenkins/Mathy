@@ -293,7 +293,7 @@ class Perceptron( Classifier ):
 
 		'''
 		if self.model.n_iter_ is None:
-			raise AttributeError( 'The model iterations have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_iter_
 	
@@ -539,6 +539,7 @@ class LinearRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
+	accuracy: Optional[ np.ndarray ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	r_mean_squared_error: Optional[ float ]
@@ -552,6 +553,7 @@ class LinearRegression( Classifier ):
 		self.model = skc.LinearRegression( )
 		self.prediction = None
 		self.probability = None
+		self.accuracy = None
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.r_mean_squared_error = 0.0
@@ -568,25 +570,18 @@ class LinearRegression( Classifier ):
 
 		'''
 		return [ 'prediction',
-		         'max_iter',
-		         'random_state',
-		         'accuracy',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
 		         'r2_score',
-		         'penalty',
-		         'alpha',
 		         'explained_variance_score',
 		         'median_absolute_error',
 		         'train',
 		         'project',
 		         'score',
 		         'analyze',
-		         'create_heatmap',
 		         'weights',
-		         'density_function',
-		         'weights', ]
+		         'scatter_plot', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -594,12 +589,15 @@ class LinearRegression( Classifier ):
 			
 			Returns
 			-------
-			Weights assigned to the features.
-			ndarray of shape (n_features,) or (n_targets, n_features)
+			np.ndarray - shape (n_features, ) or (n_targets, n_features)
+			Estimated coefficients for the linear regression problem.
+			If multiple targets are passed during the fit (y 2D),
+			this is a 2D array of shape (n_targets, n_features), while if only one target
+			is passed, this is a 1D array of length n_features.
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
 	
@@ -688,8 +686,8 @@ class LinearRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			return self.mean_squared_error
+			self.r2_score = r2_score( y, self.prediction )
+			return self.accuracy
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -775,6 +773,7 @@ class LinearRegression( Classifier ):
 			plt.title( 'Linear Regression: Observed vs Projected' )
 			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -898,7 +897,7 @@ class LogisticRegression( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
 	
@@ -913,7 +912,7 @@ class LogisticRegression( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -930,7 +929,7 @@ class LogisticRegression( Classifier ):
 
 		'''
 		if self.model.n_iter_ is None:
-			raise AttributeError( 'The model iterations have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_iter_
 	
@@ -1286,7 +1285,7 @@ class Ridge( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
 		
@@ -1303,7 +1302,7 @@ class Ridge( Classifier ):
 
 		'''
 		if self.model.n_iter_ is None:
-			raise AttributeError( 'The model iterations have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_iter_
 	
@@ -1318,7 +1317,7 @@ class Ridge( Classifier ):
 
 		'''
 		if self.model.n_features_in_ is None:
-			raise AttributeError( 'The model features have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_features_in_
 	
@@ -1618,7 +1617,7 @@ class Lasso( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
 	
@@ -1635,7 +1634,7 @@ class Lasso( Classifier ):
 	
 		'''
 		if self.model.n_iter_ is None:
-			raise AttributeError( 'The model iterations have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_iter_
 	
@@ -1650,7 +1649,7 @@ class Lasso( Classifier ):
 	
 		'''
 		if self.model.n_features_in_ is None:
-			raise AttributeError( 'The model features have not been trained!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_features_in_
 			
@@ -1925,7 +1924,7 @@ class GradientDescent( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
 		
@@ -2224,7 +2223,7 @@ class NearestNeighbor( Classifier ):
 	algorithm: Any
 	metric: str
 	
-	def __init__( self, num: int=5, algorithm: str='auto', metric: str='minkowski' ) -> None:
+	def __init__( self, neighbors: int=5, algorithm: str='auto', metric: str='minkowski' ) -> None:
 		"""
 
 
@@ -2236,11 +2235,11 @@ class NearestNeighbor( Classifier ):
 			-----------
 				linerar_model (KNeighborsClassifier): Internal non-parametric classifier.
 					Parameters:
-						num (int): Number of neighbors to use. Default is 5.
+						neighbors (int): Number of neighbors to use. Default is 5.
 
 		"""
 		super( ).__init__( )
-		self.n_neighbors = num
+		self.n_neighbors = neighbors
 		self.algorithm = algorithm
 		self.metric = metric
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
@@ -2481,9 +2480,7 @@ class NearestNeighbor( Classifier ):
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'K-Nearest Neighbor Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),
-			            X.max( ) ], [ y.min( ),
-			                          y.max( ) ], 'r--' )
+			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.show( )
 		except Exception as e:
@@ -2877,9 +2874,24 @@ class RandomForest( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
+	
+	@property
+	def features( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			ndarray of shape (n_features,)
+			The impurity-based feature importances.
+
+		'''
+		if self.model.feature_importances_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.feature_importances_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
@@ -2908,7 +2920,7 @@ class RandomForest( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestClassifier'
+			exception.cause = 'RandomForest'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2937,7 +2949,7 @@ class RandomForest( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestClassifier'
+			exception.cause = 'RandomForest'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2966,7 +2978,7 @@ class RandomForest( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestClassifier'
+			exception.cause = 'RandomForest'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2997,7 +3009,7 @@ class RandomForest( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestClassifier'
+			exception.cause = 'RandomForest'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3040,7 +3052,7 @@ class RandomForest( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RandomForestClassifier'
+			exception.cause = 'RandomForest'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
 			error = ErrorDialog( exception )
@@ -3186,7 +3198,7 @@ class GradientBoost( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -3469,7 +3481,7 @@ class AdaptiveBoost( Classifier ):
 	@property
 	def errors( self ) -> np.ndarray | None:
 		if self.model.estimator_errors_ is None:
-			raise AttributeError( 'The model errors have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.estimator_errors_
 	   
@@ -3484,7 +3496,7 @@ class AdaptiveBoost( Classifier ):
 
 		'''
 		if self.model.estimator_weights_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.estimator_weights_
 	
@@ -3499,7 +3511,7 @@ class AdaptiveBoost( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -3758,7 +3770,7 @@ class BaggingModel( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -4008,7 +4020,7 @@ class VotingModel( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -4525,7 +4537,7 @@ class SupportVector( Classifier ):
 
 		'''
 		if self.model.support_vectors_ is None:
-			raise AttributeError( 'The models support vectors are uninitialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.support_vectors_
 	
@@ -4540,7 +4552,7 @@ class SupportVector( Classifier ):
 
 		'''
 		if self.model.coef_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
 	
@@ -4821,7 +4833,7 @@ class MultiLayerPerceptron( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model labels have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.classes_
 	
@@ -4836,7 +4848,7 @@ class MultiLayerPerceptron( Classifier ):
 
 		'''
 		if self.model.coefs_ is None:
-			raise AttributeError( 'The model weights have not been initialized!' )
+			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coefs_
 	
