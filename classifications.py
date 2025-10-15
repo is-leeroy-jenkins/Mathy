@@ -443,10 +443,10 @@ class Perceptron( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -490,10 +490,10 @@ class Perceptron( Classifier ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			return \
 			{
-				'MSE': float( f'{self.mean_squared_error:.2f}' ),
-				'RMSE': float( f'{ self.root_mean_squared_error:.2f}' ),
-				'MEAE': float( f'{self.mean_absolute_error:.2f}' ),
-				'MDAE': float( f'{self.median_absolute_error:.2f}' ),
+				'MSE': self.mean_squared_error,
+				'RMSE':  self.root_mean_squared_error,
+				'MEAE': self.mean_absolute_error,
+				'MDAE': self.median_absolute_error,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -742,10 +742,10 @@ class LinearRegression( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1129,7 +1129,7 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
 		"""
 		
 			Purpose:
@@ -1162,10 +1162,10 @@ class LogisticRegression( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+					'F1': self.f1_score,
+					'PRE': self.precision,
+					'ACC': self.accuracy,
+					'REC': self.recall
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1481,10 +1481,10 @@ class Ridge( Classifier ):
 			--------
 			Compute the classification accuracy of the model.
 				
-				F1-Score - F1 Score
-				Precision - Prescision Score
-				Accuracy - Accuracy Score
-				Recall - Recall Score
+			F1-Score - F1 Score
+			Precision - Prescision Score
+			Accuracy - Accuracy Score
+			Recall - Recall Score
 			
 			
 			Parameters:
@@ -1507,10 +1507,10 @@ class Ridge( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -1854,10 +1854,10 @@ class Lasso( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2187,10 +2187,10 @@ class GradientDescent( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2573,10 +2573,10 @@ class NearestNeighbor( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -2879,10 +2879,10 @@ class DecisionTree( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3224,10 +3224,10 @@ class RandomForest( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3560,10 +3560,10 @@ class GradientBoost( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -3869,10 +3869,10 @@ class AdaptiveBoost( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4158,10 +4158,10 @@ class BaggingModel( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4439,10 +4439,10 @@ class VotingModel( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -4721,10 +4721,10 @@ class StackingModel( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5051,10 +5051,10 @@ class SupportVector( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
@@ -5401,10 +5401,10 @@ class MultiLayerPerceptron( Classifier ):
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			return \
 			{
-				'F1': float( f'{self.f1_score:.2f}' ),
-				'PRE': float( f'{self.precision:.2f}' ),
-				'ACC': float( f'{self.accuracy:.2f}' ),
-				'REC': float( f'{self.recall:.2f}' ),
+				'F1': self.f1_score,
+				'PRE': self.precision,
+				'ACC': self.accuracy,
+				'REC': self.recall,
 			}
 		except Exception as e:
 			exception = Error( e )
