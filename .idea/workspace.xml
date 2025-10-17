@@ -7,6 +7,9 @@
     <list default="true" id="c36181d0-5e3a-4e14-9759-9cde8cba1d43" name="Changes" comment="updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classifications.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifications.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ipynb/board.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ipynb/board.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scalers.py" beforeDir="false" afterPath="$PROJECT_DIR$/scalers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +93,8 @@
       <workItem from="1760135237468" duration="1084000" />
       <workItem from="1760136367268" duration="84404000" />
       <workItem from="1760530459584" duration="67938000" />
-      <workItem from="1760663306009" duration="2214000" />
+      <workItem from="1760663306009" duration="2256000" />
+      <workItem from="1760698736046" duration="12902000" />
     </task>
     <task id="LOCAL-00001" summary="updates">
       <option name="closed" value="true" />
@@ -356,7 +360,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760665149245</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="updates">
+      <option name="closed" value="true" />
+      <created>1760666110964</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1760666110964</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -463,6 +463,7 @@ class DataSource( ):
     categorical_columns: Optional[ List[ str ] ]
     numeric_columns: Optional[ List[ str ] ]
     numeric_data: Optional[ pd.DataFrame ]
+    categorical_data: Optional[ pd.DataFrame ]
     X_train: Optional[ np.ndarray ]
     X_test: Optional[ np.ndarray ]
     y_train: Optional[ np.ndarray ]
@@ -516,13 +517,14 @@ class DataSource( ):
         self.y_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 2 ]
         self.y_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 3 ]
         self.numeric_data = df.select_dtypes( include='number' ).copy( )
+        self.categorical_data = df.select_dtypes( include=[ 'object', 'category' ] ).copy( )
         self.skew = self.numeric_data.skew( axis=0, numeric_only=True )
         self.variance = self.numeric_data.var( axis=0, ddof=1, numeric_only=True )
         self.kurtosis = self.numeric_data.kurt( axis=0, numeric_only=True )
         self.average = self.numeric_data.mean( axis=0, numeric_only=True )
         self.mean_standard_error = self.numeric_data.sem( axis=0, ddof=1, numeric_only=True )
         self.standard_deviation = self.numeric_data.std( axis=0, ddof=1, numeric_only=True )
-        self.transtuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = [ ]
+        self.transtuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
         self.numeric_metrics = None
         self.categorical_metrics = None
         self.pivot_table = None
@@ -541,9 +543,9 @@ class DataSource( ):
                  'transtuple', 'numeric_metrics', 'numeric', 'pivot_table', 'calculate_statistics',
                  'numeric_columns', 'mean_standard_error', 'training_data', 'testing_data',
                  'training_values', 'testing_values', 'data', 'target', 'scale_down', 'scale_values',
-                 'average', 'kurtosis', 'variance', 'y_testing', 'transform_columns',
+                 'average', 'kurtosis', 'variance', 'y_testing', 'transform_columns', 'numeric_data',
                  'create_pivot_table', 'standard_deviation', 'export_excel', 'plot_correlations',
-                 'transform_columns', 'calculate_numeric_statistics',
+                 'transform_columns', 'calculate_numeric_statistics', 'categorical_data',
                  'calculate_categorical_statistics', 'create_pivot_table', 'plot_histogram', ]
     
     def transform_columns( self, name: str, encoder: Encoder, columns: List[ str ] ) -> None:
@@ -596,7 +598,7 @@ class DataSource( ):
 		"""
 	    try:
 		    percentiles = [ .05, .1, .25, .3, .5, .75, .8, .9, .95 ]
-		    self.numeric_metrics = self.dataframe.describe( percentiles, include=[ np.number ] )
+		    self.numeric_metrics = self.dataframe.describe( percentiles, include='all' )
 		    return self.numeric_metrics
 	    except Exception as e:
 		    exception = Error( e )

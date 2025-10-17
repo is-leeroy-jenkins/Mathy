@@ -253,8 +253,7 @@ class StandardScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
-			self.transformed_data = self.model.transform( X )
+			self.transformed_data = self.model.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -282,7 +281,8 @@ class StandardScaler( Scaler ):
 		"""
 		try:
 			throw_if( 'X', X )
-			return self.model.inverse_transform( X )
+			_original = self.model.inverse_transform( X )
+			return _original
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
