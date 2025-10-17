@@ -93,6 +93,8 @@ class Classifier( ):
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -216,6 +218,8 @@ class Perceptron( Classifier ):
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -251,6 +255,8 @@ class Perceptron( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -284,7 +290,9 @@ class Perceptron( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error']
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -379,23 +387,25 @@ class Perceptron( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def project( self, X: np.ndarray, y: np.ndarray=None  ) -> np.ndarray:
+
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Predict binary class target_names using the PerceptronClassifier.
-
+			--------
+			Predict class labels from input features using the regression model.
+			
+			
 			Parameters:
-			----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-			Returns:
 			---------
-			np.ndarray
-
+			X (np.ndarray | pd.DataFrame):
+			Input features.
+			
+			
+			Returns:
+			--------
+			np.ndarray:
+			
 		"""
 		try:
 			throw_if( 'X', X )
@@ -409,7 +419,7 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -435,18 +445,20 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -455,7 +467,7 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -480,18 +492,21 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
-				'Mean Squared Error': float( f'{self.mean_squared_error:.2f}' ),
-				'Root Mean Squared Error': float( f'{ self.root_mean_squared_error:.2f}' ),
-				'Mean Absolute Error': float( f'{ self.mean_absolute_error:.2f}' ),
-				'Median Absolute Error': float( f'{ self.median_absolute_error:.2f}' ),
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -520,8 +535,8 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
+			self.prediction = self.project( X )
+			plt.figure( figsize=(10, 6) )
 			plt.scatter( y, self.prediction, alpha=0.5 )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
@@ -579,6 +594,8 @@ class LinearRegression( Classifier ):
 	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -596,6 +613,8 @@ class LinearRegression( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -620,7 +639,9 @@ class LinearRegression( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error']
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -694,10 +715,7 @@ class LinearRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0.5 )
-			_shape = y_pred.reshape( 1, -1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -707,7 +725,7 @@ class LinearRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -733,27 +751,29 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
-			self.precision = precision_score( y, self.prediction )
+			self.prediction = self.project( X )
+			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction )
-			return \
+			self.recall = recall_score( y, self.prediction, average=None )
+			self.f1_score = f1_score( y, self.prediction, average=None )
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegression'
+			exception.cause = 'LinearRegression'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-			
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -778,18 +798,21 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
-				'Mean Squared Error': float( f'{self.mean_squared_error:.2f}' ),
-				'Root Mean Squared Error': float( f'{ self.root_mean_squared_error:.2f}' ),
-				'Mean Absolute Error': float( f'{ self.mean_absolute_error:.2f}' ),
-				'Median Absolute Error': float( f'{ self.median_absolute_error:.2f}' ),
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -807,8 +830,8 @@ class LinearRegression( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): True class target vector of shape ( n_samples, ).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -818,8 +841,8 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
+			self.prediction = self.project( X )
+			plt.figure( figsize=( 10, 6 ) )
 			plt.scatter( y, self.prediction, alpha=0.5 )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
@@ -877,11 +900,13 @@ class LogisticRegression( Classifier ):
 	max_iter: int
 	solver: str
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=100,
-			multi_class: str='ovr', solver: str='lbfgs' ) -> None:
+	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
+			multiclass: str= 'multinomial', solver: str= 'lbfgs' ) -> None:
 		"""
 
 			Purpose:
@@ -890,7 +915,7 @@ class LogisticRegression( Classifier ):
 
 			Parameters:
 			-----------
-			max (int): Maximum number of iterations. Default is 1000.
+			iters (int): Maximum number of iterations. Default is 1000.
 			solver (str): Algorithm to use in optimization. Default is 'lbfgs'.
 
 		"""
@@ -898,7 +923,7 @@ class LogisticRegression( Classifier ):
 		self.alpha = C
 		self.penalty = penalty
 		self.max_iter = iters
-		self.multi_class = multi_class
+		self.multi_class = multiclass
 		self.solver = solver
 		self.model = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
@@ -912,6 +937,8 @@ class LogisticRegression( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -944,7 +971,9 @@ class LogisticRegression( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error']
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -989,7 +1018,7 @@ class LogisticRegression( Classifier ):
 
 		'''
 		if self.model.n_iter_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The model has not been trained!' )
 		else:
 			return self.model.n_iter_
 	
@@ -1091,25 +1120,25 @@ class LogisticRegression( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
-	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
-		"""
 
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+		"""
+		
 			Purpose:
 			--------
 			Predict class labels from input features using the regression model.
-
-
+			
+			
 			Parameters:
 			---------
 			X (np.ndarray | pd.DataFrame):
 			Input features.
-
-
+			
+			
 			Returns:
 			--------
-			np.ndarray:
-
+			np.ndarray: vector contaiing class labels
+			
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1123,13 +1152,13 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
 			--------
 			Compute the classification accuracy of the model.
-				
+			
 			F1-Score - F1 Score
 			Precision - Prescision Score
 			Accuracy - Accuracy Score
@@ -1149,18 +1178,20 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1169,7 +1200,7 @@ class LogisticRegression( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -1194,18 +1225,21 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
-				'Mean Squared Error': float( f'{self.mean_squared_error:.2f}' ),
-				'Root Mean Squared Error': float( f'{ self.root_mean_squared_error:.2f}' ),
-				'Mean Absolute Error': float( f'{ self.mean_absolute_error:.2f}' ),
-				'Median Absolute Error': float( f'{ self.median_absolute_error:.2f}' ),
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1223,8 +1257,8 @@ class LogisticRegression( Classifier ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (np.ndarray): True class target vector of shape ( n_samples, ).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			-----------
@@ -1234,20 +1268,34 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
 			plt.figure( figsize=( 8, 6 ) )
-			plt.scatter( y, self.prediction, alpha=0.5  )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Logistic Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -1286,6 +1334,8 @@ class Ridge( Classifier ):
 	alpha: Optional[ float ]
 	solver: Optional[ str ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -1322,6 +1372,8 @@ class Ridge( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1353,7 +1405,9 @@ class Ridge( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error']
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1463,7 +1517,7 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -1489,18 +1543,20 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1509,7 +1565,7 @@ class Ridge( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -1525,29 +1581,30 @@ class Ridge( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1660,6 +1717,8 @@ class Lasso( Classifier ):
 	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 
@@ -1681,6 +1740,8 @@ class Lasso( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -1713,7 +1774,9 @@ class Lasso( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error']
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1775,29 +1838,29 @@ class Lasso( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel'
 			error = ErrorDialog( exception )
 			error.show()
-	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
-			
+		
 			Purpose:
-			-------
-			Predict class labels from input features using the Lasso model.
-		
+			--------
+			Predict class labels from input features using the regression model.
+			
+			
 			Parameters:
-			----------
-			X (np.ndarray | pd.DataFrame): Input features.
-		
+			---------
+			X (np.ndarray | pd.DataFrame):
+			Input features.
+			
+			
 			Returns:
 			--------
-			np.ndarray: Predicted class labels (0 or 1).
+			np.ndarray:
 			
 		"""
 		try:
 			throw_if( 'X', X )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=self.threshold )
-			_shape = y_pred.reshape( 1, -1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1807,7 +1870,7 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -1833,18 +1896,20 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1853,7 +1918,7 @@ class Lasso( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -1869,29 +1934,30 @@ class Lasso( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1981,6 +2047,8 @@ class GradientDescent( Classifier ):
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -2015,6 +2083,8 @@ class GradientDescent( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2046,7 +2116,9 @@ class GradientDescent( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error']
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -2138,7 +2210,7 @@ class GradientDescent( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -2164,18 +2236,20 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2184,7 +2258,7 @@ class GradientDescent( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -2200,29 +2274,30 @@ class GradientDescent( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2369,6 +2444,8 @@ class NearestNeighbor( Classifier ):
 	algorithm: Any
 	metric: str
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -2380,11 +2457,10 @@ class NearestNeighbor( Classifier ):
 			-----------
 			Initialize the KNeighborsClassifier linerar_model.
 
-			Attributes:
-			-----------
-				linerar_model (KNeighborsClassifier): Internal non-parametric classifier.
-					Parameters:
-						neighbors (int): Number of neighbors to use. Default is 5.
+	
+			Parameters:
+			---------
+			neighbors (int): Number of neighbors to use. Default is 5.
 
 		"""
 		super( ).__init__( )
@@ -2402,6 +2478,8 @@ class NearestNeighbor( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2432,7 +2510,9 @@ class NearestNeighbor( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2522,7 +2602,7 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -2548,18 +2628,20 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2568,7 +2650,7 @@ class NearestNeighbor( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -2584,29 +2666,30 @@ class NearestNeighbor( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2682,6 +2765,8 @@ class DecisionTree( Classifier ):
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -2710,6 +2795,8 @@ class DecisionTree( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2737,7 +2824,9 @@ class DecisionTree( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		"""
@@ -2827,7 +2916,7 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -2853,18 +2942,20 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2873,7 +2964,7 @@ class DecisionTree( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -2889,29 +2980,30 @@ class DecisionTree( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2993,6 +3085,8 @@ class RandomForest( Classifier ):
 	f1_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -3020,6 +3114,8 @@ class RandomForest( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3048,7 +3144,9 @@ class RandomForest( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3170,7 +3268,7 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -3196,18 +3294,20 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3216,7 +3316,7 @@ class RandomForest( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -3232,29 +3332,30 @@ class RandomForest( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3333,6 +3434,8 @@ class GradientBoost( Classifier ):
 	hinge_loss: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -3371,6 +3474,8 @@ class GradientBoost( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3400,7 +3505,9 @@ class GradientBoost( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3505,7 +3612,7 @@ class GradientBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -3531,18 +3638,20 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3551,7 +3660,7 @@ class GradientBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -3567,29 +3676,30 @@ class GradientBoost( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3661,6 +3771,8 @@ class AdaptiveBoost( Classifier ):
 	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -3686,6 +3798,8 @@ class AdaptiveBoost( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3717,7 +3831,9 @@ class AdaptiveBoost( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
@@ -3813,7 +3929,7 @@ class AdaptiveBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -3839,18 +3955,20 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3859,7 +3977,7 @@ class AdaptiveBoost( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -3875,29 +3993,30 @@ class AdaptiveBoost( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3976,6 +4095,8 @@ class BaggingModel( Classifier ):
 	base_estimator: Optional[ Any ]
 	n_estimators: Optional[ int ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4002,6 +4123,8 @@ class BaggingModel( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4027,7 +4150,9 @@ class BaggingModel( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 		
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4101,7 +4226,7 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -4127,18 +4252,20 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4147,7 +4274,7 @@ class BaggingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -4163,29 +4290,30 @@ class BaggingModel( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4258,6 +4386,8 @@ class VotingModel( Classifier ):
 	estimators: List[ (str, object) ]
 	vote: str
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4280,6 +4410,8 @@ class VotingModel( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4306,7 +4438,9 @@ class VotingModel( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4380,7 +4514,7 @@ class VotingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -4406,18 +4540,20 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4426,7 +4562,7 @@ class VotingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -4442,29 +4578,30 @@ class VotingModel( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4537,6 +4674,8 @@ class StackingModel( Classifier ):
 	f1_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4560,6 +4699,8 @@ class StackingModel( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4586,7 +4727,9 @@ class StackingModel( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4660,7 +4803,7 @@ class StackingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -4686,18 +4829,20 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4706,7 +4851,7 @@ class StackingModel( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -4722,29 +4867,30 @@ class StackingModel( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4815,6 +4961,8 @@ class SupportVector( Classifier ):
 	f1_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -4847,6 +4995,8 @@ class SupportVector( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 		
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4877,7 +5027,9 @@ class SupportVector( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def vectors( self ) -> np.ndarray:
@@ -4988,7 +5140,7 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray )  -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -5014,18 +5166,20 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5034,7 +5188,7 @@ class SupportVector( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -5050,29 +5204,30 @@ class SupportVector( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5155,6 +5310,8 @@ class MultiLayerPerceptron( Classifier ):
 	alpha: float
 	learning_rate: Any
 	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
@@ -5179,6 +5336,8 @@ class MultiLayerPerceptron( Classifier ):
 		self.root_mean_squared_error = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -5214,7 +5373,9 @@ class MultiLayerPerceptron( Classifier ):
 		         'mean_squared_error',
 		         'root_mean_squared_error',
 		         'median_absolute_error',
-		         'mean_abosolute_error' ]
+		         'mean_abosolute_error',
+		         'testing_score',
+		         'training_score', ]
 	
 	@property
 	def loss( self ) -> float:
@@ -5341,7 +5502,7 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, Any ]:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 		
 			Purpose:
@@ -5367,18 +5528,20 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X, y  )
+			self.prediction = self.project( X )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			return \
+			_scores = \
 			{
-				'F1 Score': self.f1_score,
+				'F1': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
-				'Accuracy': self.accuracy
+				'Accuracy': self.accuracy,
 			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5387,7 +5550,7 @@ class MultiLayerPerceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 
@@ -5403,29 +5566,30 @@ class MultiLayerPerceptron( Classifier ):
 			Returns:
 			---------
 			dict: Dictionary of evaluation metrics including:
-			- Accuracy Scoe (float)
-			- Area Under the Curve (float)
-			- Average Precision Score (float)
-			- Top-K Accuracy Score (float)
-			- Hinge-Loss (float)
-			- Logarithmic-Loss (float)
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X, )
-			self.mean_squared_error = mean_squared_error( y, self.prediction)
-			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			return \
+			self.prediction = self.project( X )
+			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
+			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
+			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
+			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
+			_analysis = \
 			{
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
 				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error,
+				'Median Absolute Error': self.median_absolute_error
 			}
+			
+			_data = pd.DataFrame( _analysis )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'

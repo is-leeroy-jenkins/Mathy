@@ -453,8 +453,8 @@ class DataSource( ):
     dataframe: pd.DataFrame
     size: float
     state: int
-    data: Optional[ pd.DataFrame ]
-    targets: Optional[ pd.Series ]
+    data: Optional[ np.ndarray ]
+    targets: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
     n_features: Optional[ int ]
     scaling_factor: Optional[ int ]
@@ -509,7 +509,7 @@ class DataSource( ):
         self.data = self.dataframe.values
         self.n_samples = self.dataframe.shape[ 0 ]
         self.n_features = self.dataframe.shape[ 1 ]
-        self.targets = df[ target ]
+        self.targets = df[ target ].to_numpy( )
         self.target_names = np.array( sorted( np.unique( self.targets ) ) )
         self.X_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 0 ]
         self.X_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 1 ]
