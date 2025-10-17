@@ -535,14 +535,28 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			plt.figure( figsize=(10, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Preceptron Classification: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.title( 'Perceptron: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -841,13 +855,26 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			plt.figure( figsize=( 10, 6 ) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Linear Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
 			plt.show( )
@@ -1665,14 +1692,28 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
 			plt.figure( figsize=( 8, 6 ) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Ridge Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.title( 'Ridge: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -1986,16 +2027,28 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Lasso Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),
-			            X.max( ) ], [ y.min( ),
-			                          y.max( ) ], 'r--' )
+			plt.title( 'LASSO: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -2396,16 +2449,28 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Gradient Descent Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),
-			            X.max( ) ], [ y.min( ),
-			                          y.max( ) ], 'r--' )
+			plt.title( 'Gradient Descent: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -2645,7 +2710,7 @@ class NearestNeighbor( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborClassifier'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2693,7 +2758,7 @@ class NearestNeighbor( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborClassifier'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2718,14 +2783,28 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'K-Nearest Neighbor Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.title( 'k-Nearest Neighbors: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -3032,14 +3111,28 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Decision Tree Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
+			plt.title( 'Decision Tree: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -3385,14 +3478,28 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Random Forest Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Random Forest: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -3729,14 +3836,28 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Gradient Boost Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Gradient Boost: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -4046,14 +4167,28 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Adaptive Boost Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Adaptive Boost: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -4343,14 +4478,28 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Bagging Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Bagging Model: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -4631,14 +4780,28 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Voting Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Voting Model: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -4920,14 +5083,28 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Stacking Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Stacking Model: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -5256,14 +5433,28 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
-			plt.title( 'Support Vector Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
+			plt.title( 'Support Vector: Observed vs Projected' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -5618,14 +5809,28 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.figure( figsize=(8, 6) )
-			plt.scatter( y, self.prediction, alpha=0.5 )
+			markers = ( 'o', 's', '^', 'v', '<' )
+			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
+			_pred = self.project( X )
+			_alph = self.alpha
+			_reg = self.model.C
+			_acc = np.round( self.accuracy, 2 ) * 100
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 100000000 else 0.0
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 100000000 else 0.0
+			_text = f'Score = {_acc}%\nRSME = {_rmse}\nMSE = {_mse}\nMAE = {_mae}\nAlpha = {_alph}\nC = {_reg}'
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Multi-Layer Perceptron: Observed vs Projected' )
-			plt.plot( [ X.min( ), X.max( ) ], [ y.min( ),  y.max( ) ], 'r--' )
 			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
