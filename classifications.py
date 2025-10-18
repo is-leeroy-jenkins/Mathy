@@ -203,6 +203,7 @@ class Perceptron( Classifier ):
 
 	"""
 	model: skc.Perceptron
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -211,13 +212,6 @@ class Perceptron( Classifier ):
 	max_iter: Optional[ int ]
 	shuffle: Optional[ bool ]
 	penalty: Optional[ str ]
-	recall: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -238,6 +232,7 @@ class Perceptron( Classifier ):
 
 		"""
 		super( ).__init__( )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.alpha = alpha
 		self.max_iter = iters
 		self.shuffle = shuffle
@@ -283,14 +278,6 @@ class Perceptron( Classifier ):
 		         'decision_function',
 		         'weights',
 		         'iterations',
-		         'precision',
-		         'accuracy',
-		         'f1_score',
-		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -448,23 +435,28 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = y_pred.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'Accuracy': self.accuracy,
-				'F-Score': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -498,24 +490,14 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = y_pred.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -580,29 +562,18 @@ class LeastSquares( Classifier ):
 	
 		Purpose:
 		--------
-		Wrapper class for sklearn.linear_model.LinearRegression to enable its use in binary
-		classification tasks. This includes conversion of continuous outputs to binary labels
-		via thresholding.
-		
+		Least Squares Regression fits a linear model with coefficients w = (w1, …, wp)
+		to minimize the residual sum of squares between the observed targets
+		in the dataset, and the targets predicted by the linear approximation.
 		
 		Parameters:
 		----------
 		threshold (float, optional):
 		Threshold above which predictions are considered class 1 (default: 0.5).
-		**kwargs:
-		Additional keyword arguments passed to sklearn's LinearRegression.
 		
-		
-		Attributes:
-		---------
-		model (SklearnLinearRegression):
-		Underlying scikit-learn linear regression model.
-		threshold (float):
-		Threshold for classification decision boundary.
-	
 	"""
 	model: skc.LinearRegression
-	binarizer: Binarizer
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -610,14 +581,9 @@ class LeastSquares( Classifier ):
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	precision: Optional[ np.ndarray ]
-	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
-	area_under_curve: Optional[ float ]
+	recall: Optional[ float ]
 	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	alpha: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -626,18 +592,14 @@ class LeastSquares( Classifier ):
 	def __init__( self ) -> None:
 		super( ).__init__( )
 		self.model = skc.LinearRegression( )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.precision = 0.0
-		self.accuracy = 0.0
-		self.f1_score = 0.0
-		self.recall = 0.0
-		self.area_under_curve = 0.0
-		self.average_precision = 0.0
 		self.balanced_accuracy = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.accuracy = 0.0
+		self.recall = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -657,13 +619,6 @@ class LeastSquares( Classifier ):
 		         'analyze',
 		         'weights',
 		         'scatter_plot',
-		         'precision',
-		         'accuracy',
-		         'f1_score',
-		         'recall',
-		         'area_under_curve',
-		         'average_precision',
-		         'balanced_accuracy',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -684,6 +639,21 @@ class LeastSquares( Classifier ):
 			raise AttributeError( 'The weights have not been initialized!!' )
 		else:
 			return self.model.coef_
+	
+	@property
+	def features( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
@@ -739,9 +709,8 @@ class LeastSquares( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = y_pred.reshape( -1, 1 )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
 			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
@@ -757,12 +726,18 @@ class LeastSquares( Classifier ):
 		
 			Purpose:
 			--------
-			Compute the classification accuracy of the model.
+			The coefficient of determination is defined as the residual
+			sum of squares ((y_true - y_pred)** 2).sum() and the total
+			sum of squares ((y_true - y_true.mean()) ** 2).sum().
+			The best possible score is 1.0 and it can be negative (because
+			the model can be arbitrarily worse). A constant model that
+			always predicts the expected value of y, disregarding the
+			input features, would get a score of 0.0.
 			
-			F1-Score - F1 Score
-			Precision - Prescision Score
-			Accuracy - Accuracy Score
-			Recall - Recall Score
+			- Training Score
+			- Testing Score
+			- Weights
+			- Features in
 			
 			
 			Parameters:
@@ -778,26 +753,28 @@ class LeastSquares( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = y_pred.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
 			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F-Score': np.round( np.argmax( self.f1_score ), 2 ),
-				'Recall Score': np.round( np.argmax( self.recall ), 2 ),
-				'Accuracy Score': np.round( np.argmax( self.accuracy ), 2 ),
-				'Precision Score': np.round( np.argmax( self.precision ), 2 ),
-				'Balanced Accuracy': np.round( np.argmax( self.balanced_accuracy ), 2 ),
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
 			
-			_data = pd.DataFrame( _scores )
-			return _data
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -806,7 +783,7 @@ class LeastSquares( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> str:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Any:
 		"""
 
 
@@ -831,12 +808,14 @@ class LeastSquares( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_prediction = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
-			_analysis = classification_report( y, self.prediction )
-			return _analysis
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -868,19 +847,16 @@ class LeastSquares( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			y_prediction = self.model.predict( X )
-			_acc = np.round( np.argmax( self.accuracy ), 2 )
-			_bac = np.round( np.argmax( self.balanced_accuracy ), 2 )
-			_rec = np.round( np.argmax( self.recall ), 2 )
-			_prec = np.round( np.argmax( self.precision ), 2 )
-			_fsc = np.round( np.argmax( self.f1_score ), 2 )
-			_text = f'accuracy = {_acc:.1%}\nf-score = {_fsc}%\nbac = {_bac}precision = {_prec}\n'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=y_prediction, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -916,24 +892,24 @@ class LogisticRegression( Classifier ):
 
 	"""
 	model: skc.LogisticRegression
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	recall: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	root_mean_squared_error: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	random_state: int
 	penalty: str
 	multi_class: str
 	C: float
 	max_iter: int
 	solver: str
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -954,6 +930,7 @@ class LogisticRegression( Classifier ):
 
 		"""
 		super( ).__init__( )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.C = C
 		self.penalty = penalty
 		self.max_iter = iters
@@ -967,10 +944,6 @@ class LogisticRegression( Classifier ):
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -1001,10 +974,6 @@ class LogisticRegression( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -1039,7 +1008,7 @@ class LogisticRegression( Classifier ):
 			return self.model.classes_
 	
 	@property
-	def iterations( self ) -> np.ndarray:
+	def iterations( self ) -> int:
 		'''
 
 			Returns
@@ -1214,23 +1183,28 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_prediction = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = _prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'Accuracy': self.accuracy,
-				'F1-Score': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1264,24 +1238,14 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_prediction = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = _prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1313,20 +1277,16 @@ class LogisticRegression( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			y_prediction = self.model.predict( X )
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 )
-			_fsc = np.round( np.argmax( self.f1_score ), 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2)
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 )
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 )
-			_text = f'score = {_acc:.1%}\nf1 = {_fsc}%\n'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=y_prediction, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -1364,16 +1324,13 @@ class Ridge( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
 	solver: Optional[ str ]
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -1408,10 +1365,6 @@ class Ridge( Classifier ):
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -1465,7 +1418,7 @@ class Ridge( Classifier ):
 			return self.model.coef_
 		
 	@property
-	def iterations( self ) -> np.ndarray:
+	def iterations( self ) -> int:
 		'''
 
 			Returns
@@ -1482,7 +1435,7 @@ class Ridge( Classifier ):
 			return self.model.n_iter_
 	
 	@property
-	def features( self ) -> np.ndarray:
+	def features( self ) -> int:
 		'''
 
 			Returns
@@ -1583,20 +1536,28 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1-Score': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1630,21 +1591,14 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1705,24 +1659,19 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph:.2f}\n'
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -1762,14 +1711,12 @@ class Lasso( Classifier ):
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
-	precision: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	alpha: Optional[ float ]
-	mean_squared_error: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -1789,10 +1736,6 @@ class Lasso( Classifier ):
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -1847,7 +1790,7 @@ class Lasso( Classifier ):
 			return self.model.coef_
 	
 	@property
-	def iterations( self ) -> np.ndarray:
+	def iterations( self ) -> int:
 		'''
 	
 			Returns
@@ -1864,7 +1807,7 @@ class Lasso( Classifier ):
 			return self.model.n_iter_
 	
 	@property
-	def features( self ) -> np.ndarray:
+	def features( self ) -> int:
 		'''
 	
 			Returns
@@ -1949,21 +1892,28 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			_pred = (self.prediction > 0.5).astype(int)
-			self.precision = precision_score( y, self.prediction )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1-Score': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1997,6 +1947,14 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 			self.prediction = self.project( X )
 			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
 			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
@@ -2040,25 +1998,19 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.model.predict( X )
-			_alph = self.alpha
-			_thr = self.threshold
-			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nThreshold = {_thr:.2f}'
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -2102,17 +2054,14 @@ class GradientDescent( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	loss: Optional[ str ]
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -2141,14 +2090,11 @@ class GradientDescent( Classifier ):
 			penalty=self.regularization, alpha=self.alpha )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.precision = 0.0
-		self.f1_score = 0.0
+		self.balanced_accuracy = 0.0
+		self.accuracy = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -2302,20 +2248,28 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1-Score': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2349,21 +2303,14 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2462,24 +2409,19 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\n'
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -2511,16 +2453,13 @@ class NearestNeighbor( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
-	recall: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	algorithm: Any
 	metric: str
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -2547,14 +2486,12 @@ class NearestNeighbor( Classifier ):
 		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, metric=self.metric )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -2705,20 +2642,28 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2752,21 +2697,14 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2795,25 +2733,19 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -2845,17 +2777,14 @@ class DecisionTree( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	classifier: Optional[ Any ]
 	splitter: Optional[ str ]
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -2878,14 +2807,12 @@ class DecisionTree( Classifier ):
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -3033,20 +2960,28 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3080,21 +3015,14 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3126,22 +3054,16 @@ class DecisionTree( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -3183,13 +3105,10 @@ class RandomForest( Classifier ):
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
-	precision: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -3211,14 +3130,12 @@ class RandomForest( Classifier ):
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -3399,20 +3316,28 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3446,21 +3371,14 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3493,22 +3411,16 @@ class RandomForest( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -3544,15 +3456,13 @@ class GradientBoost( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -3585,14 +3495,12 @@ class GradientBoost( Classifier ):
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
 			max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -3757,20 +3665,28 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3804,21 +3720,14 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3851,22 +3760,16 @@ class GradientBoost( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -3895,15 +3798,14 @@ class AdaptiveBoost( Classifier ):
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
 	recall: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
 	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -3923,14 +3825,12 @@ class AdaptiveBoost( Classifier ):
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
 		self.X_scaled = None
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -4088,20 +3988,28 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4135,21 +4043,14 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4182,22 +4083,16 @@ class AdaptiveBoost( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -4231,17 +4126,14 @@ class BaggingModel( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
-	recall: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	base_estimator: Optional[ Any ]
 	n_estimators: Optional[ int ]
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -4262,14 +4154,12 @@ class BaggingModel( Classifier ):
 			n_estimators=self.n_estimators, max_features=self.max_features,
 			random_state=self.random_state )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -4399,20 +4289,28 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4446,21 +4344,14 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4493,22 +4384,16 @@ class BaggingModel( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -4537,16 +4422,13 @@ class VotingModel( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	estimators: List[ (str, object) ]
 	vote: str
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -4563,14 +4445,12 @@ class VotingModel( Classifier ):
 		self.voting = vote
 		self.model = ske.VotingClassifier( estimators=self.estimators, voting=self.voting )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -4701,20 +4581,28 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4748,21 +4636,14 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4795,22 +4676,16 @@ class VotingModel( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -4841,14 +4716,11 @@ class StackingModel( Classifier ):
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
-	recall: Optional[ float ]
 	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
 	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -4866,14 +4738,12 @@ class StackingModel( Classifier ):
 		self.model = ske.StackingClassifier( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -5004,20 +4874,28 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5051,21 +4929,14 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5098,22 +4969,16 @@ class StackingModel( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -5143,13 +5008,10 @@ class SupportVector( Classifier ):
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
-	precision: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -5176,14 +5038,12 @@ class SupportVector( Classifier ):
 		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
 			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
@@ -5295,8 +5155,7 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = ('train( self, X: np.ndarray, y: np.ndarray ) -> '
-								'SupportVectorClassifier')
+			exception.method = ('train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector')
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -5355,20 +5214,28 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5402,21 +5269,14 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5448,22 +5308,16 @@ class SupportVector( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -5500,19 +5354,16 @@ class MultiLayerPerceptron( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	recall: Optional[ float ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
-	f1_score: Optional[ float ]
-	median_absolute_error: Optional[ float ]
 	hidden_layers: tuple[ int, ... ]
 	activation_function: str
 	solver: str
 	alpha: float
 	learning_rate: Any
-	mean_squared_error: Optional[ float ]
+	accuracy: Optional[ float ]
+	precision: Optional[ np.ndarray ]
+	balanced_accuracy: Optional[ float ]
+	recall: Optional[ float ]
+	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -5531,14 +5382,12 @@ class MultiLayerPerceptron( Classifier ):
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning_rate, random_state=self.random_state )
 		self.prediction = None
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -5731,20 +5580,28 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
-			_scores = \
+			
+			_metrics = \
 			{
-				'F1': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'Precision Score': self.precision,
+				'Accuracy Score': self.accuracy,
+				'Recall Score': self.recall,
+				'Balanced Accuracy': self.balanced_accuracy,
+				'F Score': self.f1_score,
 			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			
+			_dataframe = pd.DataFrame( _metrics )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5778,21 +5635,14 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_pred = self.project( X )
+			_analysis = confusion_matrix( y, y_pred )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5824,22 +5674,16 @@ class MultiLayerPerceptron( Classifier ):
 			_mrk = ( 'o', 's', '^', 'v', '<' )
 			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
 			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 ) * 100
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Accuracy = {_acc}%\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
