@@ -934,8 +934,9 @@ class LogisticRegression( Classifier ):
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
-		self.precision = 0.0
 		self.accuracy = 0.0
+		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
 		self.training_score = 0.0
@@ -963,9 +964,10 @@ class LogisticRegression( Classifier ):
 		         'analyze',
 		         'weights',
 		         'iterations',
-		         'labels'
-		         'precision',
+		         'labels',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
 		         'testing_score',
@@ -1385,14 +1387,11 @@ class Ridge( Classifier ):
 				 'weights',
 		         'iterations',
 		         'features',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -1757,14 +1756,11 @@ class Lasso( Classifier ):
 		         'weights',
 		         'iterations',
 		         'features',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -2115,14 +2111,11 @@ class GradientDescent( Classifier ):
 				 'create_heatmap',
 		         'weights',
 		         'iterations',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -2511,14 +2504,11 @@ class NearestNeighbor( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 				 'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -2828,15 +2818,12 @@ class DecisionTree( Classifier ):
 				 'project',
 				 'score',
 				 'analyze',
-				 'create_heatmap'
-		         'precision',
+				 'create_heatmap',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -3153,14 +3140,11 @@ class RandomForest( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -3519,14 +3503,11 @@ class GradientBoost( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 				 'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -3851,14 +3832,11 @@ class AdaptiveBoost( Classifier ):
 		         'errors',
 		         'weights',
 		         'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -4174,14 +4152,11 @@ class BaggingModel( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 		
@@ -4466,14 +4441,11 @@ class VotingModel( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -4759,14 +4731,11 @@ class StackingModel( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'labels',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -5063,14 +5032,11 @@ class SupportVector( Classifier ):
 				 'create_heatmap',
 		         'vectors',
 		         'weights',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -5412,14 +5378,11 @@ class MultiLayerPerceptron( Classifier ):
 		         'weights',
 		         'labels',
 		         'loss',
-		         'precision',
 		         'accuracy',
+		         'precision',
+		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
 		         'testing_score',
 		         'training_score', ]
 	
