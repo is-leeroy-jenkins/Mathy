@@ -79,6 +79,7 @@ class Classifier( ):
 		Abstract base class that defines the interface for all linerar_model wrappers.
 
 	"""
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -87,12 +88,7 @@ class Classifier( ):
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
-	mean_absolute_error: Optional[ float ]
-	root_mean_squared_error: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	area_under_curve: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -908,8 +904,6 @@ class LogisticRegression( Classifier ):
 	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
 	f1_score: Optional[ float ]
-	training_score: Optional[ float ]
-	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
