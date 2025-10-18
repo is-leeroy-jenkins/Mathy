@@ -511,7 +511,7 @@ class DataSource( ):
         self.n_samples = self.dataframe.shape[ 0 ]
         self.n_features = self.dataframe.shape[ 1 ]
         self.targets = df[ target ].to_numpy( )
-        self.target_names = np.array( sorted( np.unique( self.targets ) ) )
+        self.target_names = np.array( sorted( np.unique( df[ target ].to_numpy( ) ) ) )
         self.X_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 0 ]
         self.X_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 1 ]
         self.y_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 2 ]

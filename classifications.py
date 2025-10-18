@@ -92,7 +92,7 @@ class Classifier( ):
 	median_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
 	f1_score: Optional[ float ]
-	mean_squared_error: Optional[ float ]
+	area_under_curve: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -409,7 +409,10 @@ class Perceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_pred.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -445,6 +448,10 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_pred.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
@@ -452,7 +459,7 @@ class Perceptron( Classifier ):
 			_scores = \
 			{
 				'Accuracy': self.accuracy,
-				'F1-Score': self.f1_score,
+				'F-Score': self.f1_score,
 				'Recall': self.recall,
 				'Precision': self.precision,
 			}
@@ -491,7 +498,10 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_pred.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
 			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
 			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
@@ -541,9 +551,9 @@ class Perceptron( Classifier ):
 			_alph = self.alpha
 			_reg = self.model.C
 			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2)
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 )
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 )
 			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
 			plt.figure( figsize=( 8, 6 ) )
 			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
@@ -565,7 +575,7 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class LinearRegression( Classifier ):
+class LeastSquares( Classifier ):
 	"""
 	
 		Purpose:
@@ -603,10 +613,11 @@ class LinearRegression( Classifier ):
 	recall: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	average_precision: Optional[ float ]
+	balanced_accuracy: Optional[ float ]
+	area_under_curve: Optional[ float ]
 	f1_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	alpha: Optional[ float ]
-	mean_squared_error: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
@@ -622,8 +633,9 @@ class LinearRegression( Classifier ):
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
+		self.area_under_curve = 0.0
+		self.average_precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.median_absolute_error = 0.0
 		self.mean_absolute_error = 0.0
 		self.training_score = 0.0
@@ -649,10 +661,9 @@ class LinearRegression( Classifier ):
 		         'accuracy',
 		         'f1_score',
 		         'recall',
-		         'mean_squared_error',
-		         'root_mean_squared_error',
-		         'median_absolute_error',
-		         'mean_abosolute_error',
+		         'area_under_curve',
+		         'average_precision',
+		         'balanced_accuracy',
 		         'testing_score',
 		         'training_score', ]
 	
@@ -674,7 +685,7 @@ class LinearRegression( Classifier ):
 		else:
 			return self.model.coef_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
 		
 			Purpose:
@@ -702,7 +713,7 @@ class LinearRegression( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
+			exception.cause = 'LeastSquares'
 			exception.method = 'train'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -728,14 +739,15 @@ class LinearRegression( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.predictions = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=.5 )
-			_shape = self.predictions.reshape( -1, 1 )
-			return self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_pred.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
+			exception.cause = 'LeastSquares'
 			exception.method = 'predict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -766,29 +778,35 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_pred.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
 			self.f1_score = f1_score( y, self.prediction, average=None )
 			_scores = \
 			{
-				'F1-Score': self.f1_score,
-				'Recall': self.recall,
-				'Precision': self.precision,
-				'Accuracy': self.accuracy,
+				'F-Score': np.round( np.argmax( self.f1_score ), 2 ),
+				'Recall Score': np.round( np.argmax( self.recall ), 2 ),
+				'Accuracy Score': np.round( np.argmax( self.accuracy ), 2 ),
+				'Precision Score': np.round( np.argmax( self.precision ), 2 ),
+				'Balanced Accuracy': np.round( np.argmax( self.balanced_accuracy ), 2 ),
 			}
+			
 			_data = pd.DataFrame( _scores )
 			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
+			exception.cause = 'LeastSquares'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> str:
 		"""
 
 
@@ -813,26 +831,17 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
+			y_prediction = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			_analysis = classification_report( y, self.prediction )
+			return _analysis
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LogisticRegression'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			exception.cause = 'LeastSquares'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> str'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -856,21 +865,20 @@ class LinearRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 100000000 else 0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0
-			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\n'
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			y_prediction = self.model.predict( X )
+			_acc = np.round( np.argmax( self.accuracy ), 2 )
+			_bac = np.round( np.argmax( self.balanced_accuracy ), 2 )
+			_rec = np.round( np.argmax( self.recall ), 2 )
+			_prec = np.round( np.argmax( self.precision ), 2 )
+			_fsc = np.round( np.argmax( self.f1_score ), 2 )
+			_text = f'accuracy = {_acc:.1%}\nf-score = {_fsc}%\nbac = {_bac}precision = {_prec}\n'
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(x=y, y=y_prediction, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Observations vs Estimates' )
@@ -880,7 +888,7 @@ class LinearRegression( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
+			exception.cause = 'LeastSquares'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -922,7 +930,7 @@ class LogisticRegression( Classifier ):
 	random_state: int
 	penalty: str
 	multi_class: str
-	alpha: float
+	C: float
 	max_iter: int
 	solver: str
 	mean_squared_error: Optional[ float ]
@@ -932,7 +940,7 @@ class LogisticRegression( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
-			multiclass: str= 'multinomial', solver: str= 'lbfgs' ) -> None:
+			multiclass: str='multinomial', solver: str='lbfgs' ) -> None:
 		"""
 
 			Purpose:
@@ -946,12 +954,12 @@ class LogisticRegression( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.alpha = C
+		self.C = C
 		self.penalty = penalty
 		self.max_iter = iters
 		self.multi_class = multiclass
 		self.solver = solver
-		self.model = skc.LogisticRegression( C=self.alpha, max_iter=self.max_iter,
+		self.model = skc.LogisticRegression( C=self.C, max_iter=self.max_iter,
 			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
@@ -979,7 +987,6 @@ class LogisticRegression( Classifier ):
 		         'solver',
 		         'multi_class',
 		         'random_state',
-		         'alpha',
 		         'max_iter',
 		         'predict_probabilty',
 		         'decision_function',
@@ -1163,12 +1170,15 @@ class LogisticRegression( Classifier ):
 			
 			Returns:
 			--------
-			np.ndarray: vector contaiing class labels
+			np.ndarray:
 			
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			_prediction = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = _prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1204,7 +1214,10 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			_prediction = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = _prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			self.precision = precision_score( y, self.prediction, average=None )
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.recall = recall_score( y, self.prediction, average=None )
@@ -1251,7 +1264,10 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			_prediction = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = _prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
 			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
 			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
@@ -1294,23 +1310,21 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			y_prediction = self.model.predict( X )
 			_reg = self.model.C
 			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2) if self.root_mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 ) if self.mean_squared_error[ 0 ] < 1000000000 else 0.0
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 ) if self.mean_absolute_error[ 0 ] < 1000000000 else 0.0
-			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_fsc = np.round( np.argmax( self.f1_score ), 2 )
+			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2)
+			_mse = np.round( self.mean_squared_error[ 0 ], 2 )
+			_mae = np.round( self.mean_absolute_error[ 0 ], 2 )
+			_text = f'score = {_acc:.1%}\nf1 = {_fsc}%\n'
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(x=y, y=y_prediction, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observed' )
 			plt.ylabel( 'Projected' )
 			plt.title( 'Observations vs Estimates' )
