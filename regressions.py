@@ -217,7 +217,6 @@ class LeastSquares( Regression ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -247,7 +246,6 @@ class LeastSquares( Regression ):
 		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -268,7 +266,6 @@ class LeastSquares( Regression ):
 		return [ 'model',
 				 'prediction',
 		         'probability',
-		         'accuracy',
 		         'learning_rate',
 		         'n_estimators',
 		         'random_state',
@@ -365,9 +362,7 @@ class LeastSquares( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'X', X )
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -402,7 +397,6 @@ class LeastSquares( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -414,7 +408,6 @@ class LeastSquares( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -543,7 +536,6 @@ class Ridge( Regression ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -583,10 +575,8 @@ class Ridge( Regression ):
 		self.random_state = rando
 		self.model = skl.Ridge( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -607,7 +597,6 @@ class Ridge( Regression ):
 		return [ 'model',
 				 'prediction',
 		         'probability',
-		         'accuracy',
 		         'alpha',
 		         'solver',
 		         'random_state',
@@ -683,9 +672,7 @@ class Ridge( Regression ):
         """
 		try:
 			throw_if( 'X', X )
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -720,7 +707,6 @@ class Ridge( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -732,7 +718,6 @@ class Ridge( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -862,11 +847,9 @@ class Lasso( Regression ):
     """
 	
 	model: skl.Lasso
-	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -895,7 +878,6 @@ class Lasso( Regression ):
 		self.random_state = rando
 		self.model = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -919,7 +901,6 @@ class Lasso( Regression ):
 		return [ 'model',
 				 'prediction',
 		         'probability',
-		         'accuracy',
 		         'random_state',
 		         'alpha',
 		         'max_iter',
@@ -994,9 +975,7 @@ class Lasso( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1031,7 +1010,6 @@ class Lasso( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -1043,7 +1021,6 @@ class Lasso( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -1216,7 +1193,6 @@ class ElasticNet( Regression ):
 		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -1307,9 +1283,7 @@ class ElasticNet( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction  = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1344,7 +1318,6 @@ class ElasticNet( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -1356,7 +1329,6 @@ class ElasticNet( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -1522,7 +1494,6 @@ class LeastAngle( Regression ):
 		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -1544,7 +1515,6 @@ class LeastAngle( Regression ):
 		         'prediction',
 		         'probability',
 		         'binarizer',
-		         'accuracy',
 		         'fit_intercept',
 		         'precompute',
 		         'mean_absolute_error',
@@ -1609,9 +1579,7 @@ class LeastAngle( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1646,7 +1614,6 @@ class LeastAngle( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -1658,7 +1625,6 @@ class LeastAngle( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -1928,9 +1894,7 @@ class Bayesian( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1965,7 +1929,6 @@ class Bayesian( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
