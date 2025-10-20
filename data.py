@@ -58,7 +58,7 @@ from sklearn.feature_selection import chi2
 from torch.backends.opt_einsum import strategy
 from enums import Scaler
 from sklearn.metrics import silhouette_score
-from sklearn.cross_decomposition import CCA
+import sklearn.cross_decomposition as sd
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from pydantic import BaseModel, Field, validator
@@ -144,8 +144,7 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
         exception = Error( e )
         exception.module = 'mathy'
         exception.cause = 'data'
-        exception.method = ('information_gain( X_column: np.ndarray, y: np.ndarray, '
-                            'threshold: float ) -> float')
+        exception.method = 'information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float'
         error = ErrorDialog( exception )
         error.show( )
 
@@ -464,11 +463,7 @@ class DataSource( ):
     numeric_columns: Optional[ List[ str ] ]
     numeric_data: Optional[ pd.DataFrame ]
     categorical_data: Optional[ pd.DataFrame ]
-    X_train: Optional[ np.ndarray ]
-    X_test: Optional[ np.ndarray ]
-    y_train: Optional[ np.ndarray ]
-    y_test: Optional[ np.ndarray ]
-    transtuple: Optional[ List[ Tuple[ str, Encoder, List[ str ] ] ] ]
+    datatuple: Optional[ List[ Tuple[ str, Encoder, List[ str ] ] ] ]
     numeric_metrics: Optional[ pd.DataFrame ]
     categorical_metrics: Optional[ pd.DataFrame ]
     pivot_table: Optional[ pd.DataFrame ]
@@ -512,10 +507,6 @@ class DataSource( ):
         self.n_features = self.dataframe.shape[ 1 ]
         self.targets = df[ target ].to_numpy( )
         self.target_names = np.array( sorted( np.unique( df[ target ].to_numpy( ) ) ) )
-        self.X_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 0 ]
-        self.X_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 1 ]
-        self.y_train = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 2 ]
-        self.y_test = split( self.data, self.targets, test_size=self.size, random_state=self.state, stratify=None )[ 3 ]
         self.numeric_data = df.select_dtypes( include='number' ).copy( )
         self.categorical_data = df.select_dtypes( include=[ 'object', 'category' ] ).copy( )
         self.skew = self.numeric_data.skew( axis=0, numeric_only=True )
@@ -524,7 +515,7 @@ class DataSource( ):
         self.average = self.numeric_data.mean( axis=0, numeric_only=True )
         self.mean_standard_error = self.numeric_data.sem( axis=0, ddof=1, numeric_only=True )
         self.standard_deviation = self.numeric_data.std( axis=0, ddof=1, numeric_only=True )
-        self.transtuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
+        self.datatuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
         self.numeric_metrics = None
         self.categorical_metrics = None
         self.pivot_table = None
@@ -541,9 +532,8 @@ class DataSource( ):
         return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'feature_names',
                  'test_size', 'random_state', 'categorical_metrics', 'categorical_columns',
                  'transtuple', 'numeric_metrics', 'numeric', 'pivot_table', 'calculate_statistics',
-                 'numeric_columns', 'mean_standard_error', 'training_data', 'testing_data',
-                 'training_values', 'testing_values', 'data', 'target', 'scale_down', 'scale_values',
-                 'average', 'kurtosis', 'variance', 'y_testing', 'transform_columns', 'numeric_data',
+                 'numeric_columns', 'mean_standard_error', 'data', 'target',
+                 'average', 'kurtosis', 'variance', 'transform_columns', 'numeric_data',
                  'create_pivot_table', 'standard_deviation', 'export_excel', 'plot_correlations',
                  'transform_columns', 'calculate_numeric_statistics', 'categorical_data',
                  'calculate_categorical_statistics', 'create_pivot_table', 'plot_histogram', ]
@@ -570,8 +560,8 @@ class DataSource( ):
             throw_if( 'name', name )
             throw_if( 'encoder', encoder )
             throw_if( 'columns', columns )
-            self.transtuple.append( ( name, encoder, columns ) )
-            self.column_transformer = ColumnTransformer( transformers=self.transtuple,
+            self.datatuple.append( (name, encoder, columns) )
+            self.column_transformer = ColumnTransformer( transformers=self.datatuple,
 	            remainder='passthrough' )
             self.data = self.dataframe[ self.feature_names ]
             _ = self.column_transformer.fit_transform( self.data )
@@ -597,7 +587,7 @@ class DataSource( ):
 
 		"""
 	    try:
-		    percentiles = [ .05, .1, .25, .3, .5, .75, .8, .9, .95 ]
+		    percentiles = [ .05, .1, .25, .3, .5, .70, .8, .95 ]
 		    self.numeric_metrics = self.dataframe.describe( percentiles, include='all' )
 		    return self.numeric_metrics
 	    except Exception as e:
@@ -691,7 +681,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def plot_histogram( self ):
+    def plot_histogram( self ) -> None:
         '''
 
             Purpose:
@@ -701,7 +691,7 @@ class DataSource( ):
 
         '''
         try:
-            _col_means = self.dataframe.select_dtypes( 'number' ).mean( axis=0 )
+            _col_means = self.dataframe.select_dtypes( 'number' ).sum( axis=0 )
             plt.figure( figsize=( 10, 6 ) )
             sns.histplot( _col_means, bins=20, kde=True )
             plt.title( 'Column Means' )
@@ -716,7 +706,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def plot_correlations( self, numeric: bool=True ):
+    def plot_correlations( self, numeric: bool=True ) -> None:
         '''
 
             Purpose:
@@ -737,69 +727,6 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def scale_down( self, amount: int ):
-        """
-
-            Purpose:
-            --------
-            Divides all numeric columns in the DataFrame by 1000 and rounds to 2 decimal places.
-
-            Parameters:
-            ---------
-            df (pd.DataFrame): The input DataFrame with numeric columns to be scaled.
-            amount (int):  The scaling factor ex. 1000000 converts values into millions
-
-            Returns:
-            --------
-            pd.DataFrame: The transformed DataFrame.
-
-        """
-        try:
-            throw_if( 'amount', amount )
-            self.scaling_factor = amount
-            _num = self.dataframe.select_dtypes( include='number' ).columns
-            self.dataframe[ _num ] = self.dataframe[ _num ].div( self.scaling_factor ).round( 2 )
-            return self.dataframe
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = 'scale_values( df, include )'
-            error = ErrorDialog( exception )
-            error.show( )
-    
-    def scale_values( self, df: pd.DataFrame, amount: int ):
-        """
-        
-            Purpose:
-            --------
-            Divides all numeric columns in the DataFrame by 1000 and rounds to 2 decimal places.
-        
-            Parameters:
-            ---------
-            df (pd.DataFrame): The input DataFrame with numeric columns to be scaled.
-            amount (int):  The scaling factor ex. 1000000 converts values into millions
-        
-            Returns:
-            --------
-            pd.DataFrame: The transformed DataFrame.
-        
-        """
-        try:
-            throw_if( 'df', df )
-            throw_if( 'amount', amount )
-            self.scaling_factor = amount
-            numeric_cols = df.select_dtypes( include='number' ).columns
-            df[ numeric_cols ] = df[ numeric_cols ].div( self.scaling_factor ).round( 2 )
-            return df
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'Data'
-            exception.method = 'scale_values( df, include )'
-            error = ErrorDialog( exception )
-            error.show( )
-
 class VarianceThreshold( ):
     """
 
@@ -919,7 +846,7 @@ class VarianceThreshold( ):
             error = ErrorDialog( exception )
             error.show( )
 
-class CorrelationAnalysis( ):
+class CCA( ):
     """
 
         Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
@@ -927,7 +854,7 @@ class CorrelationAnalysis( ):
         between both datasets.
 
     """
-    analysis: Optional[ CCA ]
+    analysis: Optional[ sd.CCA ]
     n_components: Optional[ int ]
     scale: Optional[ bool ]
     max_iter: Optional[ int ]
@@ -950,7 +877,7 @@ class CorrelationAnalysis( ):
         self.scale = scale
         self.n_components = num
         self.max_iter = size
-        self.analysis = CCA( n_components=self.n_components, scale=self.scale, max_iter=self.max_iter )
+        self.analysis = sd.CCA( n_components=self.n_components, scale=self.scale, max_iter=self.max_iter )
         self.transformed_data = None
     
     def __dir__( self ):
@@ -961,10 +888,16 @@ class CorrelationAnalysis( ):
 			Returns a list of strings representing class members.
 			
 	    '''
-	    return [ 'analysis', 'n_components', 'max_iter', 'analysis',
-	             'transformed_data', 'train', 'transform', 'train_transform' ]
+	    return [ 'analysis',
+	             'n_components',
+	             'max_iter',
+	             'analysis',
+	             'transformed_data',
+	             'train',
+	             'transform',
+	             'train_transform' ]
 	    
-    def train( self, X: np.ndarray, y: np.ndarray ) -> CCA:
+    def train( self, X: np.ndarray, y: np.ndarray ) -> sd.CCA:
         """
 
             Purpose:
@@ -1019,7 +952,7 @@ class CorrelationAnalysis( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
+            exception.cause = 'CAA'
             exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
             error = ErrorDialog( exception )
             error.show( )
@@ -1046,12 +979,12 @@ class CorrelationAnalysis( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'CorrelationAnalysis'
+            exception.cause = 'CAA'
             exception.method = 'train_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
             error = ErrorDialog( exception )
             error.show( )
 
-class ComponentAnalysis( ):
+class PCA( ):
     """
 
         Purpose:
@@ -1096,8 +1029,13 @@ class ComponentAnalysis( ):
 			A list of strings representing class members.
 			
 	    '''
-	    return [ 'component_analysis', 'svd_solver', 'n_components', 'transformed_data',
-	             'train', 'transform', 'train_transform' ]
+	    return [ 'component_analysis',
+	             'svd_solver',
+	             'n_components',
+	             'transformed_data',
+	             'train',
+	             'transform',
+	             'train_transform' ]
     
     def train( self, X: np.ndarray ) -> sd.PCA:
         """
@@ -1122,7 +1060,7 @@ class ComponentAnalysis( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'ComponentAnalysis'
+            exception.cause = 'PCA'
             exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
             error = ErrorDialog( exception )
             error.show( )
@@ -1152,7 +1090,7 @@ class ComponentAnalysis( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'ComponentAnalysis'
+            exception.cause = 'PCA'
             exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -1181,7 +1119,7 @@ class ComponentAnalysis( ):
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'ComponentAnalysis'
+            exception.cause = 'PCA'
             exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -1195,6 +1133,7 @@ class SelectBest( ):
 
 	"""
 	model: sf.SelectKBest
+	k_best: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
 	threshold: Optional[ float ]
 	
@@ -1209,8 +1148,8 @@ class SelectBest( ):
 			:type threshold: float
 
 		"""
-		self.k = k
-		self.model = sf.SelectKBest( score_func=chi2, k=self.k )
+		self.k_best = k
+		self.model = sf.SelectKBest( score_func=chi2, k=self.k_best )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -1221,7 +1160,7 @@ class SelectBest( ):
 			A list of strings representing class members
 
 		'''
-		return [ 'k',
+		return [ 'k_best',
 		         'model',
 		         'transformed_data',
 		         'train',
@@ -1303,12 +1242,11 @@ class SelectBest( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = \
-				''
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SelectPercentage( ):
+class SelectPercent( ):
 	"""
 
 		Purpose:
@@ -1370,7 +1308,7 @@ class SelectPercentage( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SelectPercentage'
+			exception.cause = 'SelectPercent'
 			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1394,7 +1332,7 @@ class SelectPercentage( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SelectPercentage'
+			exception.cause = 'SelectPercent'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1424,7 +1362,7 @@ class SelectPercentage( ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SelectPercentage'
+			exception.cause = 'SelectPercent'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
