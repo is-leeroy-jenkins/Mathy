@@ -438,7 +438,7 @@ class DataSource( ):
     """
     dataframe: pd.DataFrame
     size: float
-    state: int
+    seed: int
     data: Optional[ np.ndarray ]
     targets: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
@@ -459,6 +459,7 @@ class DataSource( ):
     kurtosis: Optional[ pd.Series ]
     skew: Optional[ pd.Series ]
     variance: Optional[ pd.Series ]
+    covariance: Optional[ pd.Series ]
     standard_deviation: Optional[ pd.Series ]
     column_transformer: Optional[ ColumnTransformer ]
     
@@ -483,7 +484,7 @@ class DataSource( ):
         """
         self.dataframe = df.copy( )
         self.size = size
-        self.state = rando
+        self.seed = rando
         if target not in df.columns:
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
         self.feature_names = list( self.dataframe.columns )
@@ -503,6 +504,7 @@ class DataSource( ):
         self.mean_standard_error = self.numeric_data.sem( axis=0, ddof=1, numeric_only=True )
         self.standard_deviation = self.numeric_data.std( axis=0, ddof=1, numeric_only=True )
         self.datatuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
+        self.variance = self.numeric_data.cov( ddof=1, numeric_only=True )
         self.numeric_metrics = None
         self.categorical_metrics = None
         self.pivot_table = None
@@ -561,7 +563,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def calculate_numeric_statistics( self ) -> pd.DataFrame:
+    def numeric_statistics( self ) -> pd.DataFrame:
 	    """
 
 			Purpose:
@@ -585,7 +587,7 @@ class DataSource( ):
 		    error = ErrorDialog( exception )
 		    error.show( )
     
-    def calculate_categorical_statistics( self ) -> pd.DataFrame:
+    def categorical_statistics( self ) -> pd.DataFrame:
         """
 
             Purpose:
