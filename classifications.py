@@ -231,7 +231,8 @@ class Perceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.0001, eta: float=1.0, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
+	def __init__( self, alpha: float=0.0001, eta: float=1.0, iters: int=1000, 
+			shuffle: bool=True, penalty='l2' ) -> None:
 		"""
 
 			Purpose:
@@ -367,7 +368,7 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+				random_state=random )
 			return ( X_train, X_test, y_train, y_test )
 		except Exception as e:
 			exception = Error( e )
@@ -740,7 +741,7 @@ class LeastSquares( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -924,7 +925,7 @@ class LeastSquares( Classifier ):
 
 			Purpose:
 			-----------
-			Plot confusion matrix for classifier predictions.
+			Plot scatter diagram for regression predictions.
 
 			Parameters:
 			-----------
@@ -932,8 +933,8 @@ class LeastSquares( Classifier ):
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			-----------
-				None
+			-------
+			None
 
 		"""
 		try:
@@ -1146,7 +1147,7 @@ class LogisticRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=42, stratify=y )
+				random_state=42 )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -1605,7 +1606,7 @@ class Ridge( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -1872,6 +1873,7 @@ class Lasso( Classifier ):
 	"""
 	model: skc.Lasso
 	prediction: Optional[ np.ndarray ]
+	binarizer: Optional[ Binarizer ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -1895,6 +1897,7 @@ class Lasso( Classifier ):
 		self.random_state = rando
 		self.threshold = threshold
 		self.selection = selection
+		self.binarizer = Binarizer( threshold=self.threshold )
 		self.model = skc.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state, selection=self.selection )
 		self.prediction = None
@@ -2012,7 +2015,7 @@ class Lasso( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -2057,7 +2060,10 @@ class Lasso( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			_prediction = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = _prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2270,8 +2276,8 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str='squared_error', iters: int=1000,
-			reg: str='l2', alpha: float=0.0001, ave: bool=True, rate: str='constant' ) -> None:
+	def __init__( self, loss: str='hinge', iters: int=100,
+			reg: str='l2', alpha: float=0.00001, ave: bool=True, rate: str='optimal' ) -> None:
 		"""
 
 			Purpose:
@@ -2282,7 +2288,7 @@ class GradientDescent( Classifier ):
 			-----------
 			loss (str): Loss function to use. Defaults to 'hinge'.
 			reg (str): Regularization function to use. Default is 'l2'.
-			max (int): Maximum number of passes over the df. Default is 1000.
+			max (int): Maximum number of passes over the df. Default is 10000.
 
 		"""
 		super( ).__init__( )
@@ -2401,7 +2407,7 @@ class GradientDescent( Classifier ):
 			return self.model.n_features_in_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		'''
 
 			Purpose:
@@ -2426,7 +2432,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -2468,19 +2474,22 @@ class GradientDescent( Classifier ):
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			-----------
-			Predict class target_names using the SGD classifier.
-
+			--------
+			Predict class labels from input features using the regression model.
+			
+			
 			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
+			---------
+			X (np.ndarray | pd.DataFrame):
+			Input features.
+			
+			
 			Returns:
-			-----------
-				np.ndarray: Predicted class target_names.
-
+			--------
+			np.ndarray:
+			
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2875,7 +2884,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -3133,7 +3142,7 @@ class DecisionTree( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
-	min_split: Optional[ int ]
+	min_split: Optional[ float ]
 	random_state: Optional[ int ]
 	hinge_loss: Optional[ float ]
 	classifier: Optional[ Any ]
@@ -3148,7 +3157,7 @@ class DecisionTree( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, criterion='gini', splitter='best', depth=3, split: int=1, rando: int=42 ) -> None:
+	def __init__( self, criterion='gini', splitter='best', depth=5, split: float=0.8, rando: int=42 ) -> None:
 		"""
 
 
@@ -3310,7 +3319,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -3730,7 +3739,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -4181,7 +4190,7 @@ class GradientBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -4615,7 +4624,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -4981,7 +4990,7 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -5336,7 +5345,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -5707,7 +5716,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -6123,7 +6132,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -6545,7 +6554,7 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )

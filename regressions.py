@@ -45,7 +45,11 @@ from boogr import Error, ErrorDialog
 from typing import Dict
 from typing import Optional, List, Tuple
 import matplotlib.pyplot as plt
+from matplotlib import markers
+from matplotlib.colors import ListedColormap
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import sklearn.ensemble as ske
 import sklearn.linear_model as skl
 import sklearn.neighbors as skn
@@ -54,8 +58,10 @@ import sklearn.svm as skv
 import sklearn.tree as skd
 from sklearn.base import ClassifierMixin
 from sklearn.gaussian_process import GaussianProcessRegressor as gpr
+from sklearn.model_selection import train_test_split as split
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error,
+from sklearn.preprocessing import Binarizer
+from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error, root_mean_squared_error,
                              explained_variance_score, median_absolute_error, max_error,
                              accuracy_score, )
 
@@ -77,15 +83,33 @@ class Regression:
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	max_error: Optional[ float ]
-	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	
 	def __init__( self ):
 		pass
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray ) ->  (np.ndarray, np.ndarray, np.ndarray, np.ndarray ) | None:
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			__________
+
+
+			Returns:
+			________
+
+
+		'''
+		raise NotImplementedError
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -169,7 +193,7 @@ class Regression:
 		raise NotImplementedError
 
 
-class LinearRegression( Regression ):
+class LeastSquares( Regression ):
 	"""
 
 	    Purpose:
@@ -188,12 +212,14 @@ class LinearRegression( Regression ):
     """
 	
 	model: skl.LinearRegression
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	max_error: Optional[ float ]
@@ -217,14 +243,18 @@ class LinearRegression( Regression ):
 		self.fit_intercept = fit
 		self.copy_X = copy
 		self.model = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
 		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -234,11 +264,33 @@ class LinearRegression( Regression ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state',
-		         'weights', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
-		         'r_mean_squared_error', 'r2_score', 'explained_variance_score', 'weights',
-		         'max_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
-		         'weights', 'features' ]
+		return [ 'model',
+				 'prediction',
+		         'probability',
+		         'accuracy',
+		         'learning_rate',
+		         'n_estimators',
+		         'random_state',
+		         'weights',
+		         'max_depth',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'root_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'training_score',
+		         'testing_score',
+		         'weights',
+		         'max_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'weights',
+		         'features_in',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -248,7 +300,7 @@ class LinearRegression( Regression ):
 			return self.model.coef_
 	
 	@property
-	def features( self ) -> np.ndarray:
+	def features_in( self ) -> np.ndarray:
 		'''
 
 			Returns
@@ -262,7 +314,7 @@ class LinearRegression( Regression ):
 		else:
 			return self.model.n_features_in_
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> LinearRegression | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
 	
 	        Purpose:
@@ -287,7 +339,7 @@ class LinearRegression( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = "LinearRegressor"
+			exception.cause = 'LeastSquares'
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -311,17 +363,20 @@ class LinearRegression( Regression ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			throw_if( 'X', X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
+			exception.cause = 'LeastSquares'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	 
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 	
@@ -342,14 +397,38 @@ class LinearRegression( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
 			self.accuracy = accuracy_score( y, self.prediction )
-			return self.accuracy
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
-			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
+			exception.cause = 'LeastSquares'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -374,12 +453,6 @@ class LinearRegression( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			return \
 			{
 				'MSE': self.mean_squared_error,
@@ -397,35 +470,48 @@ class LinearRegression( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-	        Purpose:
-	        -----------
-	        Plot actual vs predicted target_names.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): Input feature matrix.
-	        y ( n_samples, ): True target target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        """
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "Linear Regression: Observed vs Projected" )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'LinearRegression'
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.cause = 'LeastSquares'
+			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -453,11 +539,12 @@ class Ridge( Regression ):
     """
 	model: skl.Ridge
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -495,13 +582,16 @@ class Ridge( Regression ):
 		self.model = skl.Ridge( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -511,10 +601,27 @@ class Ridge( Regression ):
         Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'alpha', 'solver', 'random_state', 'max_iter',
-		         'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
-		         'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
-		         'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'model',
+				 'prediction',
+		         'probability',
+		         'accuracy',
+		         'alpha',
+		         'solver',
+		         'random_state',
+		         'max_iter',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
 		"""
@@ -583,7 +690,7 @@ class Ridge( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 	
@@ -604,9 +711,33 @@ class Ridge( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -660,43 +791,51 @@ class Ridge( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-	        Purpose:
-	        -----------
-	        Plot predicted vs actual target_names.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
-	
-	        Returns:
-	        -----------
-	        None
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        """
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Ridge Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=( 8, 6 ) )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'RidgeRegressor'
-			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
+			exception.cause = 'Ridge'
+			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> self'
 			error = ErrorDialog( exception )
 			error.show( )
-
+			
 class Lasso( Regression ):
 	"""
 	
@@ -719,11 +858,12 @@ class Lasso( Regression ):
 	
 	model: skl.Lasso
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -735,7 +875,7 @@ class Lasso( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42 ) -> None:
+	def __init__( self, alpha: float=0.01, iters: int=500, rando: int=42 ) -> None:
 		"""
 
 	        Purpose:
@@ -750,13 +890,16 @@ class Lasso( Regression ):
 		self.model = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -766,10 +909,28 @@ class Lasso( Regression ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'random_state', 'alpha', 'max_iter',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error',
-			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
-			'project', 'score', 'analyze', 'create_scatter', 'weights' ]
+		return [ 'model',
+				 'prediction',
+		         'probability',
+		         'accuracy',
+		         'random_state',
+		         'alpha',
+		         'max_iter',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'max_error',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'weights',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -836,13 +997,13 @@ class Lasso( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 	
 	        Purpose:
 	        -----------
-	        Compute R^2 accuracy for the Lasso model.
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
@@ -851,15 +1012,39 @@ class Lasso( Regression ):
 	
 	        Returns:
 	        -----------
-	        float: R^2 accuracy.
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -914,39 +1099,52 @@ class Lasso( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-	        Purpose:
-	        -----------
-	        Plot actual vs. predicted target_names.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        """
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X.reshape( 1, -1 ) )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Lasso Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
+			exception.method = 'scatter_lot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
-
+			
 class ElasticNet( Regression ):
 	"""
 
@@ -963,11 +1161,12 @@ class ElasticNet( Regression ):
     """
 	model: skl.ElasticNet
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -1006,13 +1205,16 @@ class ElasticNet( Regression ):
 		self.model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
 			random_state=self.random_state, max_iter=self.max_iter, selection=self.selection, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1022,10 +1224,27 @@ class ElasticNet( Regression ):
         Provides a list of strings representing class members
 
         """
-		return [ 'prediction', 'accuracy', 'alpha', 'ratio', 'random_state',
-			'selection', 'max_iter', 'mean_absolute_error', 'mean_squared_error',
-			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'model',
+				 'prediction',
+		         'probability',
+		         'alpha',
+		         'ratio',
+		         'random_state',
+		         'selection',
+		         'max_iter',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'training_score',
+		         'training_score' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNet | None:
 		"""
@@ -1088,13 +1307,13 @@ class ElasticNet( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 	
 	        Purpose:
 	        -----------
-	        Compute R^2 accuracy on the test set.
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
@@ -1103,15 +1322,39 @@ class ElasticNet( Regression ):
 	
 	        Returns:
 	        -----------
-	        float: R^2 accuracy.
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1166,29 +1409,43 @@ class ElasticNet( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
-	
-	        Purpose:
-	        -----------
-	        Plot actual vs. predicted regression output.
-	
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
 
-        """
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'ElasticNet Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -1218,7 +1475,7 @@ class LeastAngle( Regression ):
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -1254,13 +1511,16 @@ class LeastAngle( Regression ):
 		self.model = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
 			precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1270,10 +1530,24 @@ class LeastAngle( Regression ):
 	        Provides a list of strings representing class members
 
         """
-		return [  'model', 'prediction', 'accuracy', 'fit_intercept', 'normalize',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
-			'explained_variance_score', 'median_absolute_error', 'train', 'project',
-			'score', 'analyze', 'plot_scatter', ]
+		return [ 'model',
+		         'prediction',
+		         'accuracy',
+		         'fit_intercept',
+		         'normalize',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'plot_scatter',
+		         'training_score',
+		         'training_score' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngle | None:
 		"""
@@ -1334,29 +1608,54 @@ class LeastAngle( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
-        Purpose:
-        -----------
-        Compute regression accuracy.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: Accuracy accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1448,7 +1747,7 @@ class LeastAngle( Regression ):
 				error = ErrorDialog( exception )
 				error.show( )
 
-class BayesianRidge( Regression ):
+class Bayesian( Regression ):
 	"""
 
     Purpose:
@@ -1470,11 +1769,12 @@ class BayesianRidge( Regression ):
     """
 	model: skl.BayesianRidge
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -1505,13 +1805,16 @@ class BayesianRidge( Regression ):
 		self.model = skl.BayesianRidge( alpha_1=self.shape_alpha,
 			alpha_2=self.scale_alpha, lambda_1=self.shape_lambda, lambda_2=self.scale_lambda, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1521,12 +1824,31 @@ class BayesianRidge( Regression ):
         Provides a list of strings representing class members
 
         """
-		return [  'model', 'prediction', 'accuracy', 'shape_alpha', 'scale_alpha', 'shape_lambda',
-			'random_state', 'scale_lambda', 'max_iter', 'mean_absolute_error', 
-			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'plot_scatter', ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'accuracy',
+		         'shape_alpha',
+		         'scale_alpha',
+		         'shape_lambda',
+		         'random_state',
+		         'scale_lambda',
+		         'max_iter',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'plot_scatter',
+		         'training_score',
+		         'training_score' ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidge | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> Bayesian | None:
 		"""
 
         Purpose:
@@ -1585,30 +1907,54 @@ class BayesianRidge( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
-        Purpose:
-        -----------
-                Compute the R^2 accuracy
-                of the model on test df.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R^2 accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1661,34 +2007,48 @@ class BayesianRidge( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Purpose:
-        -----------
-        Plot predicted vs. actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        """
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Bayesian-Ridge Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidge'
+			exception.cause = 'Bayesian'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1721,10 +2081,11 @@ class GradientDescent( Regression ):
     """	
 	model = skl.SGDRegressor
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -1760,13 +2121,16 @@ class GradientDescent( Regression ):
 		self.model = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.penalty )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1776,10 +2140,28 @@ class GradientDescent( Regression ):
         Provides a list of strings representing class members
 
         """
-		return [ 'model', 'prediction', 'accuracy', 'penalty', 'max_iter', 'random_state', 'loss',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score',
-			'explained_variance_score', 'median_absolute_error', 'train', 'project', 'score', 
-			'analyze', 'create_scatter', 'weights', 'labels' ]
+		return [ 'model',
+		         'prediction',
+		         'accuracy',
+		         'penalty',
+		         'max_iter',
+		         'random_state',
+		         'loss',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'weights',
+		         'labels',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -1861,29 +2243,54 @@ class GradientDescent( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		'''
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
 
+	
 	        Purpose:
 	        -----------
-	        Compute R^2 accuracy for the SGDRegressor.
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 	
 	        Returns:
 	        -----------
-	                float: R^2 accuracy.
+	        float: R-squared accuracy.
 
-        '''
+        """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1936,29 +2343,43 @@ class GradientDescent( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		'''
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+		"""
 
-	        Purpose:
-	        -----------
-	        Plot predicted vs. actual target_names.
-	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        '''
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Gradient Descent: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -1986,11 +2407,12 @@ class NearestNeighbor( Regression ):
 	
 	model: skn.KNeighborsRegressor
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -2022,13 +2444,16 @@ class NearestNeighbor( Regression ):
 		self.model = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, p=self.power, metric=self.metric, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2038,10 +2463,26 @@ class NearestNeighbor( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'accuracy', 'algorithm', 'n_neighbors', 'random_state', 'power', 
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
-			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-			'score', 'analyze', 'create_scatter', 'labels' ]
+		return [ 'prediction',
+		         'accuracy',
+		         'algorithm',
+		         'n_neighbors',
+		         'random_state',
+		         'power',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'labels',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def labels( self ) -> np.ndarray | None:
@@ -2109,17 +2550,18 @@ class NearestNeighbor( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
+	
 	        Purpose:
 	        -----------
-	        Compute R^2 accuracy for k-NN regressor.
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 	
 	        Returns:
 	        -----------
@@ -2129,9 +2571,33 @@ class NearestNeighbor( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2185,33 +2651,43 @@ class NearestNeighbor( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Purpose:
-        -----------
-                Plot predicted vs actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Returns:
-        -----------
-                None
+			Returns:
+			-------
+			None
 
-        """
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Nearest-Neighbor Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -2238,11 +2714,12 @@ class DecisionTree( Regression ):
 	
 	model: skd.DecisionTreeRegressor
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -2270,13 +2747,16 @@ class DecisionTree( Regression ):
 		self.model = skd.DecisionTreeRegressor( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2286,10 +2766,28 @@ class DecisionTree( Regression ):
         Provides a list of strings representing class members
 
         '''
-		return [ 'prediction', 'accuracy', 'criterion', 'splitter', 'random_state', 'max_depth',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'model',
-			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train',
-			'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'models',
+				 'prediction',
+		         'probability',
+		         'accuracy',
+		         'criterion',
+		         'splitter',
+		         'random_state',
+		         'max_depth',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'model',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		'''
@@ -2350,29 +2848,54 @@ class DecisionTree( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		'''
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
 	
 	        Purpose:
 	        -----------
-	        Compute R^2 accuracy for k-NN regressor.
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 	
 	        Returns:
 	        -----------
 	        float: R-squared accuracy.
 
-        '''
+        """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2426,33 +2949,43 @@ class DecisionTree( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		'''
-	
-	        Purpose:
-	        -----------
-	        Plot predicted vs actual target_names.
-	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
-	
-	        Returns:
-	        -----------
-	        None
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+		"""
 
-        '''
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Decision Tree Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -2491,11 +3024,12 @@ class RandomForest( Regression ):
 	criterion: str
 	learning_rate: float
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -2525,13 +3059,16 @@ class RandomForest( Regression ):
 		self.model = ske.RandomForestRegressor( n_estimators=self.n_estimators,
 			criterion=self.criterion, random_state=self.random_state, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2541,10 +3078,28 @@ class RandomForest( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'model',  'prediction', 'accuracy', 'criterion', 'n_estimators', 'random_state',
-			'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error',
-			'r_mean_squared_error', 'r2_score', 'explained_variance_score',
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'accuracy',
+		         'criterion',
+		         'n_estimators',
+		         'random_state',
+		         'loss',
+		         'max_depth',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		'''
@@ -2604,29 +3159,54 @@ class RandomForest( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
-        Purpose:
-        -----------
-        Compute the R-squared accuracy for the Ridge model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R-squared accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2679,33 +3259,43 @@ class RandomForest( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Purpose:
-        -----------
-        Plot predicted vs actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Returns:
-        -----------
-                None
+			Returns:
+			-------
+			None
 
-        """
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Random Forest Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -2730,11 +3320,12 @@ class GradientBoost( Regression ):
 	
 	model: ske.GradientBoostingRegressor
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -2772,13 +3363,16 @@ class GradientBoost( Regression ):
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators, 
 			max_depth=self.max_depth, random_state=self.random_state, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -2788,10 +3382,27 @@ class GradientBoost( Regression ):
         Provides a list of strings representing class members
 
         '''
-		return [ 'model', 'prediction', 'accuracy', 'learning_rate', 'n_estimators', 'random_state',
-			'loss', 'max_depth', 'mean_absolute_error', 'mean_squared_error', 
-			'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'model',
+		         'prediction',
+		         'accuracy',
+		         'learning_rate',
+		         'n_estimators',
+		         'random_state',
+		         'loss',
+		         'max_depth',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -2866,29 +3477,54 @@ class GradientBoost( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		'''
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
 
-        Purpose:
-        ________
-        Compute the coefficient of determination R².
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
-        Parameters:
-        ___________
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        _______
-        float: R² accuracy.
-
-        '''
+        """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2941,29 +3577,43 @@ class GradientBoost( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Purpose:
-        ________
-        Plot predicted vs actual target values.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        ___________
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        """
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction, alpha=0.6 )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Gradient-Boosting Regression: Observed vs Projected' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -2996,10 +3646,11 @@ class AdaptiveBoost( Regression ):
 	loss: str
 	learning_rate: float
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -3028,13 +3679,16 @@ class AdaptiveBoost( Regression ):
 		self.model = ske.AdaBoostRegressor( n_estimators=self.n_estimators,
 			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3044,10 +3698,28 @@ class AdaptiveBoost( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'model', 'prediction', 'kernel', 'accuracy', 'n_estimators', 'random_state', 'loss',
-			'learning_rate', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
-			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
-			'project', 'score', 'analyze', 'create_scatter', ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'kernel',
+		         'accuracy',
+		         'n_estimators',
+		         'random_state',
+		         'loss',
+		         'learning_rate',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def errors( self ) -> np.ndarray | None:
@@ -3135,30 +3807,54 @@ class AdaptiveBoost( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
-        Purpose:
-        --------
-        Compute the R-squared
-        accuracy for the Ridge model.
-
-        Parameters:
-        ----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        --------
-                float: R-squared accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3210,32 +3906,43 @@ class AdaptiveBoost( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		'''
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+		"""
 
-	        Plot predicted vs
-	        actual target_names.
-	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
-	
-	        Returns:
-	        -----------
-	        None
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        '''
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'ADA Boost: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -3267,10 +3974,11 @@ class BaggingModel( Regression ):
 	model: ske.BaggingRegressor
 	base_estimator: object
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -3298,13 +4006,16 @@ class BaggingModel( Regression ):
 		self.bagging_regressor = ske.BaggingRegressor( estimator=self.base_estimator, 
 			max_features=self.max_features, random_state=self.random_state, )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3314,10 +4025,29 @@ class BaggingModel( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'model', 'prediction', 'base_estimator', 'n_estimators', 'max_features',
-			'accuracy', 'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 
-			'r2_score', 'explained_variance_score', 'median_absolute_error', 'train', 
-			'project', 'score', 'analyze', 'create_scatter', 'random_state', 'labels' ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'base_estimator',
+		         'n_estimators',
+		         'max_features',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'random_state',
+		         'labels'
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3391,28 +4121,54 @@ class BaggingModel( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
-        Compute the R-squared
-        accuracy for the Ridge model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        Returns:
-        -----------
-                float: R-squared accuracy.
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bagging_regressor.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3464,32 +4220,43 @@ class BaggingModel( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Plot predicted vs
-        actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        -----------
-                X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-                y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Returns:
-        -----------
-                None
+			Returns:
+			-------
+			None
 
-        """
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.bagging_regressor.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Bagging Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -3513,11 +4280,12 @@ class VotingModel( Regression ):
 	
 	model: ske.VotingRegressor
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -3542,13 +4310,16 @@ class VotingModel( Regression ):
 		self.estimators = est
 		self.model = ske.VotingRegressor( estimators=self.estimators )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -3558,10 +4329,28 @@ class VotingModel( Regression ):
 	        Provides a list of strings representing class members
 
         '''
-		return [ 'model', 'prediction', 'kernel', 'C', 'epsilon', 'accuracy', 'mean_absolute_error',
-			'mean_squared_error', 'r_mean_squared_error', 'r2_score', 'explained_variance_score', 
-			'median_absolute_error', 'train', 'project', 'score', 'analyze', 'create_scatter',
-		    'labels' ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'kernel',
+		         'C',
+		         'epsilon',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'labels',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3637,28 +4426,54 @@ class VotingModel( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		'''
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
 	
-	        Compute the R-squared
-	        accuracy for the Ridge model.
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 	
 	        Returns:
 	        -----------
-                float: R-squared accuracy.
+	        float: R-squared accuracy.
 
-        '''
+        """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3710,38 +4525,44 @@ class VotingModel( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Plot predicted vs
-        actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Returns:
-        -----------
-                None
+			Returns:
+			-------
+			None
 
-        """
+		"""
 		try:
-			if X is None:
-				raise Exception( "The argument 'X' is required!" )
-			elif y is None:
-				raise Exception( "The argument 'y' is required!" )
-			else:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.model.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Voting Regression: Observed vs Projected' )
-				plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3767,10 +4588,11 @@ class StackingModel( Regression ):
 	final_estimator: ClassifierMixin
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -3804,13 +4626,16 @@ class StackingModel( Regression ):
 		self.model = ske.StackingRegressor( estimators=self.estimators,
 			final_estimator=self.final_estimator )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -3820,10 +4645,27 @@ class StackingModel( Regression ):
 	        Provides a list of strings representing class members
 
         """
-		return [ 'model', 'prediction', 'estimators', 'final_estimator', 'accuracy',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
-			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-			'score', 'analyze', 'create_scatter', 'labels' ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'estimators',
+		         'final_estimator',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'create_scatter',
+		         'labels',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -3897,16 +4739,18 @@ class StackingModel( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
+
 	
-	        Compute the R-squared
-	        accuracy for the Ridge model.
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 	
 	        Returns:
 	        -----------
@@ -3916,9 +4760,33 @@ class StackingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3970,33 +4838,43 @@ class StackingModel( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Purpose:
-        ---------
-        Plot predicted vs actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        Returns:
-        -----------
-                None
+			Returns:
+			-------
+			None
 
-        """
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Stacking Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -4013,10 +4891,11 @@ class SupportVector( Regression ):
 	
 	model: skv.SVR
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -4045,13 +4924,16 @@ class SupportVector( Regression ):
 		self.epsilon = epsilon
 		self.model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
 		self.prediction = None
+		self.probability = None
 		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
-		self.r_mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		'''
@@ -4061,10 +4943,26 @@ class SupportVector( Regression ):
         Provides a list of strings representing class members
 
         '''
-		return [ 'model', 'prediction', 'kernel', 'regulation', 'epsilon', 'accuracy',
-			'mean_absolute_error', 'mean_squared_error', 'r_mean_squared_error', 'r2_score', 
-			'explained_variance_score', 'median_absolute_error', 'train', 'project', 
-			'score', 'analyze', 'create_scatter', ]
+		return [ 'model',
+		         'prediction',
+		         'probability',
+		         'kernel',
+		         'regulation',
+		         'epsilon',
+		         'accuracy',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -4121,31 +5019,54 @@ class SupportVector( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		'''
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
 	
 	        Purpose:
-	        --------
-	
-	        Compute the R-squared
-	        accuracy for the Ridge model.
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
 	
 	        Parameters:
 	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 	
 	        Returns:
 	        -----------
 	        float: R-squared accuracy.
 
-        '''
+        """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4194,30 +5115,44 @@ class SupportVector( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-        Purpose:
-        --------
-        Visualize the true vs predicted values for regression.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-        Parameters:
-        ___________
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        """
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction, color="blue", edgecolor="k" )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.xlabel( 'True Values' )
-			plt.ylabel( 'Predicted Values' )
-			plt.title( 'SVR: True vs Predicted' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
 			plt.tight_layout( )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4226,6 +5161,297 @@ class SupportVector( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+class GaussianProcess( Regression ):
+	'''
+
+	    Purpose:
+	    --------
+	    Wraps sklearn's GaussianProcessRegressor to provide a clean interface
+	    for model training, prediction, and performance evaluation.
+
+    '''
+	
+	model: gpr.GaussianProcessRegressor
+	alpha: Optional[ float ]
+	normalize: Optional[ bool ]
+	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	r2_score: Optional[ float ]
+	alpha: Optional[ float ]
+	testing_score: Optional[ float ]
+	training_score: Optional[ float ]
+	
+	def __init__( self, alpha: float = 1e-10, normalize_y: bool = True ) -> None:
+		"""
+
+        Purpose:
+        --------
+        Initializes the Gaussian Process Regressor with a default RBF kernel.
+
+        Parameters:
+        -----------
+        kernel (sklearn.gaussian_process.kernels.Kernel): Kernel to use.
+        alpha (float): Value added to the diagonal of the kernel matrix.
+        normalize_y (bool): Whether to normalize the target values.
+
+        Returns:
+        --------
+        None
+
+        """
+		super( ).__init__( )
+		self.normalize = normalize_y
+		self.alpha = alpha
+		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
+		self.model = GaussianProcess( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
+		self.prediction = None
+		self.probability = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
+		
+		def __dir__( self ) -> List[ str ]:
+			"""
+
+		        Purpose:
+		        -------
+		        Provides a list of strings representing class members
+
+	        """
+			return [ 'prediction',
+			         'probability',
+			         'model',
+			         'accuracy',
+			         'alpha',
+			         'normalize',
+			         'mean_absolute_error',
+			         'mean_squared_error',
+			         'r_mean_squared_error',
+			         'r2_score',
+			         'explained_variance_score',
+			         'median_absolute_error',
+			         'train',
+			         'project',
+			         'score',
+			         'analyze',
+			         'scatter_plot',
+			         'training_score',
+			         'training_score' ]
+	
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcess | None:
+		"""
+
+        Purpose:
+        --------
+        Fit the Gaussian Process Regressor to the training data.
+
+        Parameters:
+        -----------
+        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+        y (np.ndarray): Target vector of shape (n_samples,).
+
+        Returns:
+        --------
+        self
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.model.train( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcess'
+			exception.method = 'train'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def project( self, X: np.ndarray ) -> np.ndarray | None:
+		'''
+
+	        Purpose:
+	        --------
+	        Predict using the trained model.
+
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+
+	        Returns:
+	        --------
+	        np.ndarray: Predicted values.
+
+        '''
+		try:
+			throw_if( 'X', X )
+			self.prediction = self.model.project( X )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcess'
+			exception.method = "project"
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+	
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy for the Ridge model.
+	
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+	
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcess'
+			exception.method = 'score'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+
+	        Purpose:
+	        --------
+	        Compute regression metrics: MSE, RMSE, MAE, R², Median AE, Explained Variance.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix.
+	        y (np.ndarray): True target values.
+	
+	        Returns:
+	        --------
+	        Dict[str, float]: Dictionary of metrics.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.model.project( X )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			return \
+			{
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'R2': self.r2_score,
+				'VAR': self.explained_variance_score,
+				'MAE': self.mean_absolute_error,
+				'MAX': self.max_error
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcess'
+			exception.method = 'analyze'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+		"""
+
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
+
+			Returns:
+			-------
+			None
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GaussianProcess'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
+			error = ErrorDialog( exception )
+			error.show( )
+			
 class MultiLayerPerceptron( Regression ):
 	"""
 
@@ -4247,11 +5473,12 @@ class MultiLayerPerceptron( Regression ):
     """
 	model: skn.MLPRegressor
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
-	r_mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
@@ -4277,6 +5504,16 @@ class MultiLayerPerceptron( Regression ):
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning, random_state=self.random_state, )
 		self.prediction = None
+		self.probability = None
+		self.accuracy = 0.0
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.max_error = 0.0
+		self.training_score = 0.0
+		self.testing_score = 0.0
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -4287,6 +5524,7 @@ class MultiLayerPerceptron( Regression ):
 
         """
 		return [ 'prediction',
+		         'probability',
 		         'model',
 		         'accuracy',
 		         'learning',
@@ -4308,7 +5546,10 @@ class MultiLayerPerceptron( Regression ):
 		         'create_scatter',
 		         'loss',
 		         'classes',
-		         'weights' ]
+		         'weights'
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
 	@property
 	def loss( self ) -> float:
@@ -4385,23 +5626,24 @@ class MultiLayerPerceptron( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ""
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
+	
 	        Purpose:
 	        -----------
-	        Compute the R^2 accuracy of the model on the given test df.
-
+	        Compute the R-squared accuracy for the Ridge model.
+	
 	        Parameters:
 	        -----------
 	        X ( n_samples, n_features ): np.ndarray - feature matrix.
 	        y ( n_samples, ): np.ndarray - target vector.
-
+	
 	        Returns:
 	        -----------
 	        float: R-squared accuracy.
@@ -4410,9 +5652,33 @@ class MultiLayerPerceptron( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			self.accuracy = r2_score( y, self.prediction )
-			return self.accuracy
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			self.accuracy = accuracy_score( y, self.prediction )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.max_error = max_error( y, self.prediction  )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			
+			_metrics = \
+			{
+				'Training Score': self.training_score,
+	            'Testing Score': self.testing_score,
+				'R Squared Score': self.r2_score,
+				'Accuracy Score': self.accuracy,
+				'Mean Absolute Error': self.mean_absolute_error,
+				'Mean Squared Error': self.mean_squared_error,
+				'Root Mean Squared Error': self.root_mean_squared_error,
+				'Max Error': self.max_error,
+				'Explained Variance Score': self.explained_variance_score,
+			}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4465,267 +5731,48 @@ class MultiLayerPerceptron( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
-	        Purpose:
-	        -----------
-	        Plot actual vs predicted target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-	        Parameters:
-	        -----------
-	        X ( n_samples, n_features ): np.ndarray - feature matrix.
-	        y ( n_samples, ): np.ndarray - target vector.
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-        """
+			Returns:
+			-------
+			None
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( "Observed" )
-			plt.ylabel( "Projected" )
-			plt.title( "MultiLayerPerceptron: Observed vs Projected" )
-			plt.plot( [ X.min( ),  X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ""
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
-			error = ErrorDialog( exception )
-			error.show( )
-
-class GaussianProcess( Regression ):
-	'''
-
-	    Purpose:
-	    --------
-	    Wraps sklearn's GaussianProcessRegressor to provide a clean interface
-	    for model training, prediction, and performance evaluation.
-
-    '''
-	
-	model: gpr.GaussianProcessRegressor
-	alpha: Optional[ float ]
-	normalize: Optional[ bool ]
-	prediction: Optional[ np.ndarray ]
-	mean_absolute_error: Optional[ float ]
-	mean_squared_error: Optional[ float ]
-	median_absolute_error: Optional[ float ]
-	explained_variance_score: Optional[ float ]
-	r2_score: Optional[ float ]
-	alpha: Optional[ float ]
-	
-	def __init__( self, alpha: float=1e-10, normalize_y: bool=True ) -> None:
-		"""
-
-        Purpose:
-        --------
-        Initializes the Gaussian Process Regressor with a default RBF kernel.
-
-        Parameters:
-        -----------
-        kernel (sklearn.gaussian_process.kernels.Kernel): Kernel to use.
-        alpha (float): Value added to the diagonal of the kernel matrix.
-        normalize_y (bool): Whether to normalize the target values.
-
-        Returns:
-        --------
-        None
-
-        """
-		super( ).__init__( )
-		self.normalize = normalize_y
-		self.alpha = alpha
-		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
-		self.model = GaussianProcess( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
-		
-		def __dir__( self ) -> List[ str ]:
-			"""
-
-		        Purpose:
-		        -------
-		        Provides a list of strings representing class members
-
-	        """
-			return [ 'prediction',
-			         'model',
-			         'accuracy',
-			         'alpha',
-			         'normalize',
-			         'mean_absolute_error',
-			         'mean_squared_error',
-			         'r_mean_squared_error',
-			         'r2_score',
-			         'explained_variance_score',
-			         'median_absolute_error',
-			         'train',
-			         'project',
-			         'score',
-			         'analyze',
-			         'create_scatter', ]
-		
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcess | None:
-		"""
-
-        Purpose:
-        --------
-        Fit the Gaussian Process Regressor to the training data.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-        y (np.ndarray): Target vector of shape (n_samples,).
-
-        Returns:
-        --------
-        self
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.model.train( X, y )
-			return self
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
 			exception.cause = 'GaussianProcess'
-			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		'''
-
-	        Purpose:
-	        --------
-	        Predict using the trained model.
-	
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-	
-	        Returns:
-	        --------
-	        np.ndarray: Predicted values.
-
-        '''
-		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.project( X )
-			return self.prediction
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'GaussianProcess'
-			exception.method = "project"
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> float | None:
-		"""
-
-        Purpose:
-        --------
-        Compute R² score for the model on the test data.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
-        y (np.ndarray): True target values.
-
-        Returns:
-        --------
-        float: R² score.
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			return self.model.score( X, y )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'GaussianProcess'
-			exception.method = 'score'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
-
-        Purpose:
-        --------
-        Compute regression metrics: MSE, RMSE, MAE, R², Median AE, Explained Variance.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix.
-        y (np.ndarray): True target values.
-
-        Returns:
-        --------
-        Dict[str, float]: Dictionary of metrics.
-
-        """
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.model.project( X )
-			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-			self.median_absolute_error = median_absolute_error( y, self.prediction )
-			self.r2_score = r2_score( y, self.prediction )
-			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			self.max_error = max_error( y, self.prediction )
-			return \
-			{
-				'MSE': self.mean_squared_error,
-				'RMSE': self.r_mean_squared_error,
-				'R2': self.r2_score,
-				'VAR': self.explained_variance_score,
-				'MAE': self.mean_absolute_error,
-				'MAX': self.max_error
-			}
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'GaussianProcess'
-			exception.method = 'analyze'
-			error = ErrorDialog( exception )
-			error.show( )
-	
-	def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-		'''
-
-	        Purpose:
-	        -----------
-	        Plot predicted vs. actual target_names.
-
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-        '''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			plt.scatter( y, self.prediction )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
-			plt.title( 'Guassian Process Regression: Observed vs Projected' )
-			plt.plot( [ X.min( ),X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-			plt.grid( True )
-			plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'GradientDescent'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
 			error = ErrorDialog( exception )
 			error.show( )
