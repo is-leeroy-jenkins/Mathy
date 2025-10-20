@@ -1,16 +1,16 @@
 '''
   ******************************************************************************************
       Assembly:                Name
-      Filename:                anomalies.py
+      Filename:                outliers.py
       Author:                  Terry D. Eppler
       Created:                 05-31-2022
 
       Last Modified By:        Terry D. Eppler
       Last Modified On:        05-01-2025
   ******************************************************************************************
-  <copyright file="anomalies.py" company="Terry D. Eppler">
+  <copyright file="outliers.py" company="Terry D. Eppler">
 
-	     anomalies.py
+	     outliers.py
 	     Copyright ©  2022  Terry Eppler
 
      Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,7 +37,7 @@
 
   </copyright>
   <summary>
-    anomalies.py
+    outliers.py
   </summary>
   ******************************************************************************************
 '''

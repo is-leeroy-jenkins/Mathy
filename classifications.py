@@ -97,6 +97,24 @@ class Classifier( ):
 	def __init__( self ):
 		pass
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray,) | None:
+		'''
+			
+			Purpose:
+			_______
+			
+			
+			Parameters:
+			__________
+			
+			
+			Returns:
+			________
+			
+			
+		'''
+		raise NotImplementedError
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
 
@@ -213,7 +231,7 @@ class Perceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.0001, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
+	def __init__( self, alpha: float=0.0001, eta: float=1.0, iters: int=1000, shuffle: bool=True, penalty='l2' ) -> None:
 		"""
 
 			Purpose:
@@ -233,19 +251,17 @@ class Perceptron( Classifier ):
 		self.max_iter = iters
 		self.shuffle = shuffle
 		self.penalty = penalty
+		self.learning_rate = eta
 		self.model = skc.Perceptron( alpha=self.alpha, max_iter=self.max_iter,
-			shuffle=self.shuffle, penalty=self.penalty, )
+			shuffle=self.shuffle, eta0=self.learning_rate, penalty=self.penalty )
 		self.decision = None
 		self.prediction = None
-		self.accuracy = 0.0
+		self.probability = None
 		self.precision = 0.0
+		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
-		self.f1_score = 0.0
 		self.recall = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.median_absolute_error = 0.0
-		self.mean_absolute_error = 0.0
+		self.f1_score = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
 	
@@ -284,7 +300,7 @@ class Perceptron( Classifier ):
 			Returns
 			-------
 			Weights assigned to the features.
-			ndarray of shape (n_features,) or (n_targets, n_features)
+			ndarray of shape ( n_features, ) or ( n_targets, n_features )
 
 		'''
 		if self.model.coef_ is None:
@@ -298,8 +314,8 @@ class Perceptron( Classifier ):
 
 			Returns
 			-------
-			classes_ is ndarray of shape (n_classes, )
-			Actual number of iterations for all classes.
+			n_iter_ is a np.ndarray of shape ( n_classes, ).
+			Represents the actual number of iterations for all classes.
 			If binary or multinomial, it returns only 1 element. For liblinear solver,
 			only the maximum number of iteration across all classes is given.
 
@@ -309,6 +325,58 @@ class Perceptron( Classifier ):
 		else:
 			return self.model.n_iter_
 	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.model.classes_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.classes_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray ):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, stratify=y )
+			return ( X_train, X_test, y_train, y_test )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Perceptron'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+		
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
@@ -431,7 +499,7 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -522,25 +590,19 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			markers = ( 'o', 's', '^', 'v', '<' )
-			colors = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( colors[ :len( np.unique( y ) ) ] )
-			_pred = self.project( X )
-			_alph = self.alpha
-			_reg = self.model.C
-			_acc = np.round( self.accuracy, 2 )
-			_rmse = np.round( self.root_mean_squared_error[ 0 ], 2)
-			_mse = np.round( self.mean_squared_error[ 0 ], 2 )
-			_mae = np.round( self.mean_absolute_error[ 0 ], 2 )
-			_text = f'Score = {_acc:.1%}\nRSME = {_rmse:,.2f}\nMSE = {_mse:,.2f}\nMAE = {_mae:,.2f}\nAlpha = {_alph}\nC = {_reg}'
+			_mrk = ( 'o', 's', '^', 'v', '<' )
+			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=9,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
-			plt.xlabel( 'Observed' )
-			plt.ylabel( 'Projected' )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
 			plt.grid( visible=True )
 			plt.tight_layout( )
@@ -650,6 +712,43 @@ class LeastSquares( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_features_in_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
@@ -1020,6 +1119,43 @@ class LogisticRegression( Classifier ):
 		else:
 			return self.model.n_iter_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2 ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray ):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=42, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
@@ -1179,7 +1315,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -1332,7 +1468,7 @@ class Ridge( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, solver: str='auto', size: int=1000, rando: int=42 ) -> None:
+	def __init__( self, alpha: float=1.0, solver: str='auto', iters: int=1000, rando: int=42 ) -> None:
 		"""
 
 
@@ -1351,7 +1487,7 @@ class Ridge( Classifier ):
 		super( ).__init__( )
 		self.alpha = alpha
 		self.solver = solver
-		self.max_iter = size
+		self.max_iter = iters
 		self.random_state = rando
 		self.model = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state )
@@ -1411,21 +1547,21 @@ class Ridge( Classifier ):
 			return self.model.coef_
 		
 	@property
-	def iterations( self ) -> int:
+	def labels( self ) -> int:
 		'''
 
 			Returns
 			-------
 			classes_ is ndarray of shape (n_classes, )
-			Actual number of iterations for all classes.
+			Actual number of lab for all classes.
 			If binary or multinomial, it returns only 1 element. For liblinear solver,
 			only the maximum number of iteration across all classes is given.
 
 		'''
-		if self.model.n_iter_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
-			return self.model.n_iter_
+			return self.model.classes_
 	
 	@property
 	def features( self ) -> int:
@@ -1441,6 +1577,43 @@ class Ridge( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_features_in_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
 		"""
@@ -1529,7 +1702,7 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -1682,7 +1855,7 @@ class Lasso( Classifier ):
 	
 		Purpose:
 		---------
-		
+		Linear Model trained with L1 prior as regularizer
 	
 		Parameters:
 		------------
@@ -1703,6 +1876,7 @@ class Lasso( Classifier ):
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
+	selection: Optional[ str ]
 	accuracy: Optional[ float ]
 	precision: Optional[ np.ndarray ]
 	balanced_accuracy: Optional[ float ]
@@ -1710,19 +1884,19 @@ class Lasso( Classifier ):
 	f1_score: Optional[ float ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
-	training_score: Optional[ float ]
-	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 
-	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42, threshold: float=0.5 ) -> None:
+	def __init__( self, alpha: float=1.0, iters: int=500,
+			rando: int=42, threshold: float=0.5, selection: str='random' ) -> None:
 		super( ).__init__( )
 		self.alpha = alpha
 		self.max_iter = iters
 		self.random_state = rando
 		self.threshold = threshold
+		self.selection = selection
 		self.model = skc.Lasso( alpha=self.alpha, max_iter=self.max_iter,
-			random_state=self.random_state )
+			random_state=self.random_state, selection=self.selection )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -1745,6 +1919,7 @@ class Lasso( Classifier ):
 				 'random_state',
 				 'regularization',
 				 'alpha',
+		         'selection',
 		         'threshold',
 				 'model',
 				 'weights',
@@ -1785,10 +1960,9 @@ class Lasso( Classifier ):
 	
 			Returns
 			-------
-			classes_ is ndarray of shape (n_classes, )
-			Actual number of iterations for all classes.
-			If binary or multinomial, it returns only 1 element. For liblinear solver,
-			only the maximum number of iteration across all classes is given.
+			n_iter_ (int) is ndarray of shape ( n_classes, )
+			Represents the number of iterations run by the coordinate descent solver
+			to reach the specified tolerance.
 	
 		'''
 		if self.model.n_iter_ is None:
@@ -1810,7 +1984,44 @@ class Lasso( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_features_in_
-			
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		try:
 			throw_if( 'X', X )
@@ -1882,7 +2093,7 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -2045,6 +2256,8 @@ class GradientDescent( Classifier ):
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
 	loss: Optional[ str ]
+	learning_rate: Optional[ str ]
+	average: Optional[ bool ]
 	regularization: Optional[ Any ]
 	alpha: Optional[ float ]
 	accuracy: Optional[ float ]
@@ -2057,7 +2270,8 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str='log_loss', size: int=5, reg: str='l2', alpha: float=0.0001 ) -> None:
+	def __init__( self, loss: str='squared_error', iters: int=1000,
+			reg: str='l2', alpha: float=0.0001, ave: bool=True, rate: str='constant' ) -> None:
 		"""
 
 			Purpose:
@@ -2073,11 +2287,14 @@ class GradientDescent( Classifier ):
 		"""
 		super( ).__init__( )
 		self.loss = loss
-		self.max_iter = size
+		self.learning_rate = rate
+		self.max_iter = iters
 		self.regularization = reg
 		self.alpha = alpha
+		self.average = ave
 		self.model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
-			penalty=self.regularization, alpha=self.alpha )
+			penalty=self.regularization, alpha=self.alpha,
+			average=self.average, learning_rate=self.learning_rate )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -2102,8 +2319,8 @@ class GradientDescent( Classifier ):
 				 'loss',
 				 'regularization',
 				 'alpha',
+		         'average',
 				 'model',
-				 'weights',
 				 'train',
 				 'project',
 				 'score',
@@ -2111,6 +2328,8 @@ class GradientDescent( Classifier ):
 				 'create_heatmap',
 		         'weights',
 		         'iterations',
+		         'labels',
+		         'features',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -2150,6 +2369,72 @@ class GradientDescent( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.n_iter_
+	
+	@property
+	def labels( self ) -> int:
+		'''
+
+			Returns
+			-------
+			classes_ is ndarray of shape (n_classes, )
+			Actual number of label for all classes.
+
+		'''
+		if self.model.classes_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.classes_
+	
+	@property
+	def features( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
 		"""
@@ -2235,7 +2520,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -2440,6 +2725,8 @@ class NearestNeighbor( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
+	leaf_size: Optional[ int ]
+	power: Optional[ int ]
 	algorithm: Any
 	metric: str
 	accuracy: Optional[ float ]
@@ -2452,7 +2739,8 @@ class NearestNeighbor( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, neighbors: int=5, algorithm: str='auto', metric: str='minkowski' ) -> None:
+	def __init__( self, num: int=5, algorithm: str='auto',
+			power: int=1, metric: str='minkowski', leafs: int=30 ) -> None:
 		"""
 
 
@@ -2467,11 +2755,13 @@ class NearestNeighbor( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.n_neighbors = neighbors
+		self.n_neighbors = num
 		self.algorithm = algorithm
 		self.metric = metric
-		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
-			algorithm=self.algorithm, metric=self.metric )
+		self.leaf_size = leafs
+		self.power = power
+		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors, p=self.power,
+			algorithm=self.algorithm, metric=self.metric, leaf_size=self.leaf_size )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -2504,6 +2794,8 @@ class NearestNeighbor( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 				 'labels',
+		         'features_in',
+		         'samplers',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -2511,6 +2803,87 @@ class NearestNeighbor( Classifier ):
 		         'recall',
 		         'testing_score',
 		         'training_score', ]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.model.classes_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.classes_
+	
+	@property
+	def feature_in( self ) -> int:
+		'''
+
+			Returns
+			-------
+			ndarray of shape (n_features,)
+			The number of features seen during training.
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def samples( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_samples_fit_ (int)
+			The number of samples fit during training.
+
+		'''
+		if self.model.n_samples_fit_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_samples_fit_
+		
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2595,7 +2968,7 @@ class NearestNeighbor( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultilayerClassifier'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2626,7 +2999,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -2760,6 +3133,7 @@ class DecisionTree( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
+	min_split: Optional[ int ]
 	random_state: Optional[ int ]
 	hinge_loss: Optional[ float ]
 	classifier: Optional[ Any ]
@@ -2774,7 +3148,7 @@ class DecisionTree( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, criterion='gini', splitter='best', depth=3, rando: int=42 ) -> None:
+	def __init__( self, criterion='gini', splitter='best', depth=3, split: int=1, rando: int=42 ) -> None:
 		"""
 
 
@@ -2788,8 +3162,10 @@ class DecisionTree( Classifier ):
 		self.splitter = splitter
 		self.max_depth = depth
 		self.random_state = rando
+		self.min_split = split
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion,
-			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state )
+			splitter=self.splitter, max_depth=self.max_depth,
+			min_samples_split=self.min_split, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -2810,6 +3186,7 @@ class DecisionTree( Classifier ):
 		'''
 		return [ 'prediction',
 				 'max_depth',
+		         'min_split',
 				 'random_state',
 				 'criterion',
 				 'splitter',
@@ -2819,6 +3196,11 @@ class DecisionTree( Classifier ):
 				 'score',
 				 'analyze',
 				 'create_heatmap',
+		         'labels',
+		         'features_in',
+		         'feature_importances',
+		         'outputs',
+		         'tree',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -2826,6 +3208,117 @@ class DecisionTree( Classifier ):
 		         'recall',
 		         'testing_score',
 		         'training_score', ]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.model.classes_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.classes_
+	
+	@property
+	def feature_in( self ) -> int:
+		'''
+
+			Returns
+			-------
+			ndarray of shape (n_features,)
+			The number of features seen during training.
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def feature_importances( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			ndarray of shape (n_features,)
+			The impurity-based feature importances.
+
+		'''
+		if self.model.feature_importances_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.feature_importances_
+	
+	@property
+	def outputs( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_outputs_ (int):
+			The number of outputs after training.
+
+		'''
+		if self.model.n_outputs_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_outputs_
+	
+	@property
+	def tree( self ) -> int:
+		'''
+
+			Returns
+			-------
+			tree_ (int):
+			The underlying Tree object.
+
+		'''
+		if self.model.tree_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.tree_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		"""
@@ -2941,7 +3434,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -3095,7 +3588,7 @@ class RandomForest( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, est: int=10, crit: Any='gini', size: Any=None, rando: int=42 ) -> None:
+	def __init__( self, num: int=10, criterion: Any='gini', depth: Any=None, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -3104,9 +3597,9 @@ class RandomForest( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.n_estimators = est
-		self.criterion = crit
-		self.max_depth = size
+		self.n_estimators = num
+		self.criterion = criterion
+		self.max_depth = depth
 		self.random_state = rando
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
@@ -3140,6 +3633,9 @@ class RandomForest( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'labels',
+		         'features_in',
+		         'feature_importances',
+		         'outputs',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -3164,7 +3660,22 @@ class RandomForest( Classifier ):
 			return self.model.classes_
 	
 	@property
-	def features( self ) -> np.ndarray:
+	def feature_in( self ) -> int:
+		'''
+
+			Returns
+			-------
+			ndarray of shape (n_features,)
+			The number of features seen during training.
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def feature_importances( self ) -> np.ndarray:
 		'''
 
 			Returns
@@ -3177,6 +3688,57 @@ class RandomForest( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.feature_importances_
+	
+	@property
+	def outputs( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_outputs_ (int):
+			The number of outputs after training.
+
+		'''
+		if self.model.n_outputs_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_outputs_
+		
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
@@ -3294,7 +3856,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -3423,10 +3985,10 @@ class GradientBoost( Classifier ):
 		only a single regression tree is induced.
 
 		The feature_names are always randomly permuted at each split. Therefore, the best found
-		split
-		may vary, even with the same training stores and max_features=n_features, if the improvement
-		of the criterion is identical for several splits enumerated during the search of the best
-		split. To obtain a deterministic behaviour during fitting, rando has to be fixed.
+		split may vary, even with the same training stores and max_features=n_features,
+		if the improvement of the criterion is identical for several splits enumerated
+		during the search of the best split. To obtain a deterministic behaviour during fitting,
+		rando has to be fixed.
 
 	"""
 	model: ske.GradientBoostingClassifier
@@ -3434,6 +3996,7 @@ class GradientBoost( Classifier ):
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
+	criterion: Optional[ str ]
 	f1_score: Optional[ float ]
 	hinge_loss: Optional[ float ]
 	accuracy: Optional[ float ]
@@ -3446,8 +4009,8 @@ class GradientBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, lss: str='deviance', rate: int=0.1, est: int=100,
-			size: int=3, rando: int=42 ) -> None:
+	def __init__( self, lss: str='log_loss', rate: int=0.1, est: int=100,
+			depth: int=3, rando: int=42, criterion: str= '‘squared_error’' ) -> None:
 		"""
 
 			Purpose:
@@ -3467,11 +4030,12 @@ class GradientBoost( Classifier ):
 		self.loss = lss
 		self.learning_rate = rate
 		self.n_estimators = est
-		self.max_depth = size
+		self.max_depth = depth
 		self.random_state = rando
+		self.criterion = criterion
 		self.model = ske.GradientBoostingClassifier( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
-			max_depth=self.max_depth, random_state=self.random_state )
+			max_depth=self.max_depth, random_state=self.random_state, criterion=self.criterion )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -3503,6 +4067,10 @@ class GradientBoost( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 				 'labels',
+		         'features_in',
+		         'trees',
+		         'feature_importances'
+		         'estimators',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -3522,9 +4090,106 @@ class GradientBoost( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.classes_
+	
+	@property
+	def trees( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_trees_per_iteration_ - (int):
+			Number of trees per iteration
+
+		'''
+		if self.model.n_trees_per_iteration_ is None:
+			raise AttributeError( 'The data has not been trained!' )
+		else:
+			return self.model.n_trees_per_iteration_
+	
+	@property
+	def features_in( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def feature_importances( self ) -> int:
+		'''
+
+			Returns
+			-------
+			feature_importances_ (int):
+			The impurity-based feature importances.
+
+		'''
+		if self.model.feature_importances_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.feature_importances_
+
+	@property
+	def estimators( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.estimators_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -3640,7 +4305,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -3793,7 +4458,7 @@ class AdaptiveBoost( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.estimator = 'AdaBoostClassifier'
+		self.estimator = None
 		self.n_estimators = num
 		self.learning_rate = learning
 		self.model = ske.AdaBoostClassifier( estimator=self.estimator,
@@ -3829,9 +4494,11 @@ class AdaptiveBoost( Classifier ):
 				 'score',
 				 'analyze',
 				 'create_heatmap',
-		         'errors',
-		         'weights',
+		         'estimator_errors',
+		         'estimator_weights',
 		         'labels',
+		         'features_in',
+		         'importances',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -3841,14 +4508,14 @@ class AdaptiveBoost( Classifier ):
 		         'training_score', ]
 	
 	@property
-	def errors( self ) -> np.ndarray | None:
+	def estimator_errors( self ) -> np.ndarray | None:
 		if self.model.estimator_errors_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.estimator_errors_
 	   
 	@property
-	def weights( self ) -> np.ndarray:
+	def estimator_weights( self ) -> np.ndarray:
 		'''
 			
 			Returns
@@ -3861,7 +4528,7 @@ class AdaptiveBoost( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.estimator_weights_
-	
+
 	@property
 	def labels( self ) -> np.ndarray:
 		'''
@@ -3873,9 +4540,90 @@ class AdaptiveBoost( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.classes_
+	
+	@property
+	def features_in( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def estimators( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.estimators_
+	
+	@property
+	def feature_importances( self ) -> int:
+		'''
+
+			Returns
+			-------
+			feature_importances_ (int):
+			The impurity-based feature importances.
+
+		'''
+		if self.model.feature_importances_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.feature_importances_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -3960,7 +4708,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -4152,6 +4900,8 @@ class BaggingModel( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'labels',
+		         'features',
+		         'estimators',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -4159,7 +4909,7 @@ class BaggingModel( Classifier ):
 		         'recall',
 		         'testing_score',
 		         'training_score', ]
-		
+	
 	@property
 	def labels( self ) -> np.ndarray:
 		'''
@@ -4171,9 +4921,75 @@ class BaggingModel( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.classes_
+	
+	@property
+	def features( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def estimators( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.estimators_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
@@ -4258,7 +5074,7 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -4460,9 +5276,75 @@ class VotingModel( Classifier ):
 
 		'''
 		if self.model.classes_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.classes_
+	
+	@property
+	def features( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def estimators( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.estimators_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		"""
@@ -4547,7 +5429,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -4670,8 +5552,8 @@ class StackingModel( Classifier ):
 		Purpose:
 		-------
 		Stack of estimators with a final classifier. Stacked generalization consists in stacking
-		the
-		output of individual estimator and use a classifier to compute the final prediction.
+		the output of individual estimator and use a classifier to compute the final prediction.
+		
 		Stacking allows to use the strength of each individual estimator by using their output
 		as input of a final estimator. Note that estimators_ are fitted on the full X while
 		final_estimator_ is trained using cross-validated predictions of the base
@@ -4753,6 +5635,87 @@ class StackingModel( Classifier ):
 			raise AttributeError( 'The data has not been trained!' )
 		else:
 			return self.model.classes_
+	
+	@property
+	def features( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def estimators( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.estimators_
+	
+	@property
+	def final( self ) -> str:
+		'''
+
+			Returns
+			-------
+			final_estimator
+			The classifier fit on the output of estimators_ and responsible for final predictions
+
+		'''
+		if self.model.final_estimator_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.final_estimator_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -4837,7 +5800,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -5031,7 +5994,11 @@ class SupportVector( Classifier ):
 				 'analyze',
 				 'create_heatmap',
 		         'vectors',
-		         'weights',
+		         'weights'
+		         'supports',
+		         'labels',
+		         'iterations',
+		         'features',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -5068,6 +6035,103 @@ class SupportVector( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		else:
 			return self.model.coef_
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			classes_ ndarray of shape (n_classes, )
+			A list of class labels known to the classifier.
+
+		'''
+		if self.model.classes_ is None:
+			raise AttributeError( 'The data has not been trained!' )
+		else:
+			return self.model.classes_
+	
+	@property
+	def iterations( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_iter_ (int) is ndarray of shape ( n_classes, )
+			Represents the number of iterations run by the coordinate descent solver
+			to reach the specified tolerance.
+
+		'''
+		if self.model.n_iter_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_iter_
+	
+	@property
+	def features( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def supports( self ) -> int:
+		'''
+
+			Returns
+			-------
+			n_support_
+			The number of support vectors per class.
+
+		'''
+		if self.model.n_support_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_support_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -5174,7 +6238,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
@@ -5378,6 +6442,8 @@ class MultiLayerPerceptron( Classifier ):
 		         'weights',
 		         'labels',
 		         'loss',
+		         'outputs',
+		         'layers'
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -5422,6 +6488,72 @@ class MultiLayerPerceptron( Classifier ):
 			raise AttributeError( 'The weights have not been initialized!' )
 		else:
 			return self.model.coefs_
+	
+	@property
+	def layers( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			n_layer_ (int)
+			Number of layers.
+
+		'''
+		if self.model.n_layers_ is None:
+			raise AttributeError( 'The data has not been trained!' )
+		else:
+			return self.model.n_layers_
+	
+	@property
+	def outputs( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			n_layer_ (int)
+			Number of outputs.
+
+		'''
+		if self.model.n_outputs_ is None:
+			raise AttributeError( 'The data has not been trained!' )
+		else:
+			return self.model.n_outputs_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, stratify=y )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
@@ -5537,7 +6669,7 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.precision = precision_score( y, self.prediction, average=None )
