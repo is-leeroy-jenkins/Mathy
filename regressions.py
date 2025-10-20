@@ -79,6 +79,7 @@ class Regression:
     """
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
+	binarizer: Optional[ Binarizer ]
 	decision: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
@@ -1212,6 +1213,7 @@ class ElasticNet( Regression ):
 		self.max_iter = max
 		self.model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
 			random_state=self.random_state, max_iter=self.max_iter, selection=self.selection, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -1233,6 +1235,7 @@ class ElasticNet( Regression ):
 
         """
 		return [ 'model',
+		         'binarizer',
 				 'prediction',
 		         'probability',
 		         'alpha',
@@ -1491,13 +1494,11 @@ class LeastAngle( Regression ):
 	eps: float
 	n_nonzero_coefs: int
 	fit_intercept: bool
-	normalize: bool
 	precompute: bool
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, coeffs: int=500, fit: bool=True, normal: bool=True,
-		precompute: bool=True, ) -> None:
+	def __init__( self, coeffs: int=500, fit: bool=True, precompute: bool=True, ) -> None:
 		"""
 
 	        Purpose:
@@ -1514,11 +1515,11 @@ class LeastAngle( Regression ):
         """
 		super( ).__init__( )
 		self.fit_intercept = fit
-		self.normalize = normal
 		self.nonzero_coefficients = coeffs
 		self.precompute = precompute
-		self.model = skl.Lars( fit_intercept=self.fit_intercept, normalize=self.normalize,
-			precompute=self.precompute, n_nonzero_coefs=self.nonzero_coefficients, )
+		self.model = skl.Lars( fit_intercept=self.fit_intercept, precompute=self.precompute,
+			n_nonzero_coefs=self.nonzero_coefficients, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -1541,9 +1542,11 @@ class LeastAngle( Regression ):
         """
 		return [ 'model',
 		         'prediction',
+		         'probability',
+		         'binarizer',
 		         'accuracy',
 		         'fit_intercept',
-		         'normalize',
+		         'precompute',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
@@ -1724,38 +1727,56 @@ class LeastAngle( Regression ):
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None:
-			"""
+	
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+		"""
 
-	        Purpose:
-	        -----------
-	        Plot predicted vs. actual target_names.
+			Purpose:
+			-----------
+			Plot scatter diagram for regression predictions.
 
-	        Parameters:
-	        -----------
-	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-	        y (np.ndarray): True class target vector of shape ( n_samples, ).
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.model.predict( X )
-				plt.scatter( y, self.prediction )
-				plt.xlabel( 'Observed' )
-				plt.ylabel( 'Projected' )
-				plt.title( 'Least-Angle Regression: Observed vs Projected' )
-				plt.plot( [ X.min( ), X.max( ) ], [ y.min( ), y.max( ) ], 'r--' )
-				plt.grid( True )
-				plt.show( )
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = 'LeastAngle'
-				exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-				error = ErrorDialog( exception )
-				error.show( )
+			Returns:
+			-------
+			None
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			_mrk = ('o', 's', '^', 'v', '<')
+			_clr = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
+			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
+			_trn = self.training_score
+			_tst = self.testing_score
+			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			y_pred = self.model.predict( X )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={
+					'alpha': 0.6 }, line_kws={
+					'color': 'red' } )
+			plt.plot( [ y.min( ),
+			            y.max( ) ], [ y.min( ),
+			                          y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.xlabel( 'Observations' )
+			plt.ylabel( 'Estimates' )
+			plt.title( 'Observations vs Estimates' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LeastAngle'
+			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
+			error = ErrorDialog( exception )
+			error.show( )
 
 class Bayesian( Regression ):
 	"""
@@ -1814,6 +1835,7 @@ class Bayesian( Regression ):
 		self.scale_lambda = scale_lambda
 		self.model = skl.BayesianRidge( alpha_1=self.shape_alpha,
 			alpha_2=self.scale_alpha, lambda_1=self.shape_lambda, lambda_2=self.scale_lambda, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2131,6 +2153,7 @@ class GradientDescent( Regression ):
 		self.penalty = penalty
 		self.model = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.penalty )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2455,6 +2478,7 @@ class NearestNeighbor( Regression ):
 		self.metric = metric
 		self.model = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors,
 			algorithm=self.algorithm, p=self.power, metric=self.metric, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2759,6 +2783,7 @@ class DecisionTree( Regression ):
 		self.random_state = rando
 		self.model = skd.DecisionTreeRegressor( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -3072,6 +3097,7 @@ class RandomForest( Regression ):
 		self.random_state = rando
 		self.model = ske.RandomForestRegressor( n_estimators=self.n_estimators,
 			criterion=self.criterion, random_state=self.random_state, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -3377,6 +3403,7 @@ class GradientBoost( Regression ):
 		self.model = ske.GradientBoostingRegressor( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators, 
 			max_depth=self.max_depth, random_state=self.random_state, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -3694,6 +3721,7 @@ class AdaptiveBoost( Regression ):
 		self.learning_rate = learning
 		self.model = ske.AdaBoostRegressor( n_estimators=self.n_estimators,
 			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -4022,6 +4050,7 @@ class BaggingModel( Regression ):
 		self.random_state = rando
 		self.bagging_regressor = ske.BaggingRegressor( estimator=self.base_estimator, 
 			max_features=self.max_features, random_state=self.random_state, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -4327,6 +4356,7 @@ class VotingModel( Regression ):
 		super( ).__init__( )
 		self.estimators = est
 		self.model = ske.VotingRegressor( estimators=self.estimators )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -4644,6 +4674,7 @@ class StackingModel( Regression ):
 		self.final_estimator = final
 		self.model = ske.StackingRegressor( estimators=self.estimators,
 			final_estimator=self.final_estimator )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -4943,6 +4974,7 @@ class SupportVector( Regression ):
 		self.regularization = C
 		self.epsilon = epsilon
 		self.model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -5231,6 +5263,7 @@ class GaussianProcess( Regression ):
 		self.alpha = alpha
 		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
 		self.model = GaussianProcess( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -5528,6 +5561,8 @@ class MultiLayerPerceptron( Regression ):
 		self.model = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning, random_state=self.random_state, )
+		self.binarizer = Binarizer( threshold=0.5 )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
