@@ -42,11 +42,8 @@
   ******************************************************************************************
   '''
 from __future__ import annotations
-
-from typing import Optional, List
+from typing import Optional
 import numpy as np
-import sklearn.feature_extraction.text as sk
-import sklearn.impute as im
 import sklearn.preprocessing as pp
 from boogr import Error, ErrorDialog
 
