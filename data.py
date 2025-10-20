@@ -48,9 +48,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.compose import ColumnTransformer
-
+from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 from boogr import Error, ErrorDialog
-from encoders import Encoder
+from encoders import Encoder, LabelEncoder
 
 def throw_if( name: str, value: object ):
     if value is None:
@@ -439,6 +439,8 @@ class DataSource( ):
     dataframe: pd.DataFrame
     size: float
     seed: int
+    scaler: Optional[ Scaler ]
+    encoder: Optional[ Encoder ]
     data: Optional[ np.ndarray ]
     targets: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
@@ -505,6 +507,7 @@ class DataSource( ):
         self.standard_deviation = self.numeric_data.std( axis=0, ddof=1, numeric_only=True )
         self.datatuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
         self.variance = self.numeric_data.cov( ddof=1, numeric_only=True )
+        self.scaler = None
         self.numeric_metrics = None
         self.categorical_metrics = None
         self.pivot_table = None
@@ -518,14 +521,14 @@ class DataSource( ):
             This function retuns a list of strings (members of the class)
 
         '''
-        return [ 'dataframe', 'n_samples', 'n_features', 'target_names', 'feature_names',
+        return [ 'dataframe', 'scaler', 'n_samples', 'n_features', 'target_names', 'feature_names',
                  'test_size', 'random_state', 'categorical_metrics', 'categorical_columns',
-                 'transtuple', 'numeric_metrics', 'numeric', 'pivot_table', 'calculate_statistics',
+                 'transtuple', 'numeric', 'pivot_table', 'calculate_statistics',
                  'numeric_columns', 'mean_standard_error', 'data', 'target',
-                 'average', 'kurtosis', 'variance', 'transform_columns', 'numeric_data',
-                 'create_pivot_table', 'standard_deviation', 'export_excel', 'plot_correlations',
-                 'transform_columns', 'calculate_numeric_statistics', 'categorical_data',
-                 'calculate_categorical_statistics', 'create_pivot_table', 'plot_histogram', ]
+                 'average', 'kurtosis', 'variance', 'numeric_data',
+                 'standard_deviation', 'export_excel', 'create_heatemap',
+                 'transform_columns', 'numeric_statistics', 'categorical_data',
+                 'categorical_statistics', 'create_pivot', 'create_histogram', ]
     
     def transform_columns( self, name: str, encoder: Encoder, columns: List[ str ] ) -> None:
         """
@@ -562,7 +565,7 @@ class DataSource( ):
                                 'List[ str ] )')
             error = ErrorDialog( exception )
             error.show( )
-    
+			    
     def numeric_statistics( self ) -> pd.DataFrame:
 	    """
 
@@ -609,8 +612,117 @@ class DataSource( ):
             exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
             error = ErrorDialog( exception )
             error.show( )
+        
+    def standardize( self ) -> pd.DataFrame:
+        """
+
+            Purpose:
+            -----------
+            Instance method that converts numeric data values
+            into a standardized form (ie, subtracting the average
+            and diidiving by the standard deviation).
+
+
+            Returns:
+            -----------
+            pd.DataFrame
+
+        """
+        try:
+	        self.scaler = StandardScaler( )
+	        standard_data = self.scaler.fit_transform( self.numeric_data )
+	        return standard_data
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'DataSource'
+	        exception.method = 'standardize( self ) -> pd.DataFrame'
+	        error = ErrorDialog( exception )
+	        error.show( )
+        
+    def maxminize( self ) -> pd.DataFrame:
+        """
+
+            Purpose:
+            -----------
+            Instance method that converts numeric data values
+            into a standardized form (ie, subtracting the average
+            and diidiving by the standard deviation).
+
+
+            Returns:
+            -----------
+            pd.DataFrame
+
+        """
+        try:
+	        self.scaler = StandardScaler( )
+	        standardized_data = self.scaler.fit_transform( self.numeric_data )
+	        return standardized_data
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'DataSource'
+	        exception.method = 'standardize( self ) -> pd.DataFrame'
+	        error = ErrorDialog( exception )
+	        error.show( )
+	
+    def normalize( self ) -> pd.DataFrame:
+        """
+
+            Purpose:
+            -----------
+            Instance method that converts numeric data values
+            into a standardized form (ie, subtracting the average
+            and diidiving by the standard deviation).
+
+
+            Returns:
+            -----------
+            pd.DataFrame
+
+        """
+        try:
+	        self.scaler = NormalScaler( )
+	        normalized_data = self.scaler.train_transform( self.numeric_data )
+	        return normalized_data
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'DataSource'
+	        exception.method = 'standardize( self ) -> pd.DataFrame'
+	        error = ErrorDialog( exception )
+	        error.show( )
+        
+    def encode_targets( self ) -> np.ndarray:
+        """
+
+            Purpose:
+            -----------
+            Instance method that converts numeric data values
+            into a standardized form (ie, subtracting the average
+            and diidiving by the standard deviation).
+
+
+            Returns:
+            -----------
+            pd.DataFrame
+
+        """
+        try:
+	        self.encoder = LabelEncoder( )
+	        encoded_labels = self.encoder.train_transform( self.targets )
+	        return encoded_labels
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'DataSource'
+	        exception.method = 'encode_targets( self ) -> p.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
+	
     
-    def create_pivot_table( self, df: pd.DataFrame, cols: List, vals: List, idx: List ) -> pd.DataFrame:
+    def create_pivot( self, df: pd.DataFrame, cols: List, vals: List, idx: List ) -> pd.DataFrame:
         '''
 
             Purpose:
@@ -642,7 +754,7 @@ class DataSource( ):
             exception = Error( e )
             exception.module = 'mathy'
             exception.cause = 'DataSource'
-            exception.method = 'create_pivot_table( self ) -> pd.DataFrame '
+            exception.method = 'create_pivot( self ) -> pd.DataFrame '
             error = ErrorDialog( exception )
             error.show( )
     
@@ -670,7 +782,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def plot_histogram( self ) -> None:
+    def create_histogram( self ) -> None:
         '''
 
             Purpose:
@@ -695,7 +807,7 @@ class DataSource( ):
             error = ErrorDialog( exception )
             error.show( )
     
-    def plot_correlations( self, numeric: bool=True ) -> None:
+    def create_heatmap( self, numeric: bool=True ) -> None:
         '''
 
             Purpose:

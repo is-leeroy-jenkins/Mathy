@@ -65,7 +65,7 @@ class Encoder( ):
 	def __init__( self ):
 		self.transformed_data = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def train( self, X: np.ndarray ) -> object | None:
 		"""
 
 			Purpose:
@@ -103,7 +103,7 @@ class Encoder( ):
 		"""
 		raise NotImplementedError
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -157,14 +157,14 @@ class OneHotEncoder( Encoder ):
 	"""
 	unknown: Optional[ str ]
 	sparse: Optional[ bool ]
-	encoder: pp.OneHotEncoder
+	model: pp.OneHotEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, sparse: bool=False, unknown: str='ignore' ) -> None:
 		super( ).__init__( )
 		self.unknown = unknown
 		self.sparse = sparse
-		self.encoder = pp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
+		self.model = pp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
 	
 	def __dir__( self ):
 		'''
@@ -175,7 +175,7 @@ class OneHotEncoder( Encoder ):
 
 		'''
 		[ 'unknown',
-		  'encoder',
+		  'model',
 		  'categories',
 		  'transformed_data',
 		  'sparse',
@@ -186,12 +186,12 @@ class OneHotEncoder( Encoder ):
 	
 	@property
 	def categories( self ):
-		if self.encoder.categories_ is None:
+		if self.model.categories_ is None:
 			raise AttributeError( 'Hot Encoder data is untrained' )
 		else:
-			return self.encoder.categories_
+			return self.model.categories_
 	
-	def train( self, X: np.ndarray, y: np.ndarray=None ) -> OneHotEncoder | None:
+	def train( self, X: np.ndarray ) -> OneHotEncoder | None:
 		"""
 
 
@@ -211,7 +211,7 @@ class OneHotEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.encoder.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -222,7 +222,7 @@ class OneHotEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 
@@ -242,7 +242,7 @@ class OneHotEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.encoder.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -252,7 +252,7 @@ class OneHotEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -267,7 +267,7 @@ class OneHotEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.encoder.fit_transform( X )
+			self.transformed_data = self.model.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -296,12 +296,12 @@ class OrdinalEncoder( Encoder ):
 			the missing values without the need to create a pipeline and using SimpleImputer.
 
 	"""
-	encoder: pp.OrdinalEncoder
+	model: pp.OrdinalEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		super( ).__init__( )
-		self.encoder = pp.OrdinalEncoder( )
+		self.model = pp.OrdinalEncoder( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -322,12 +322,12 @@ class OrdinalEncoder( Encoder ):
 	
 	@property
 	def categories( self ):
-		if self.encoder.categories_ is None:
+		if self.model.categories_ is None:
 			raise AttributeError( 'Encoder data is untrained' )
 		else:
-			return self.encoder.categories_
+			return self.model.categories_
 	
-	def train( self, X: np.ndarray, y: np.ndarray=None ) -> OrdinalEncoder | None:
+	def train( self, X: np.ndarray ) -> OrdinalEncoder | None:
 		"""
 
 			Purpose:
@@ -346,7 +346,7 @@ class OrdinalEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.encoder.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -356,7 +356,7 @@ class OrdinalEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -376,7 +376,7 @@ class OrdinalEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.encoder.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -386,7 +386,7 @@ class OrdinalEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -401,7 +401,7 @@ class OrdinalEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.encoder.fit_transform( X )
+			self.transformed_data = self.model.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -428,7 +428,7 @@ class OrdinalEncoder( Encoder ):
 				raise Exception( '"X" cannot be None' )
 			else:
 				throw_if( 'X', X )
-				return self.encoder.inverse_transform( X ).toarray( )
+				return self.model.inverse_transform( X ).toarray( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -446,7 +446,7 @@ class LabelEncoder( Encoder ):
 		This transformer should be used to encode target values, i.e. y, and not the input X.
 
 	"""
-	encoder: pp.LabelEncoder
+	model: pp.LabelEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -458,7 +458,7 @@ class LabelEncoder( Encoder ):
 
 		"""
 		super( ).__init__( )
-		self.encoder = pp.LabelEncoder( )
+		self.model = pp.LabelEncoder( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -469,8 +469,8 @@ class LabelEncoder( Encoder ):
 			A list of strings comprised of class members.
 
 		'''
-		[ 'encoder',
-		  'classes',
+		[ 'model',
+		  'labels',
 		  'transformed_data',
 		  'train',
 		  'transform',
@@ -478,11 +478,11 @@ class LabelEncoder( Encoder ):
 		  'inverse_transform', ]
 	
 	@property
-	def classes( self ):
-		if self.encoder.classes_ is None:
+	def labels( self ):
+		if self.model.classes_ is None:
 			raise AttributeError( 'The label encoder data is untrained.' )
 		else:
-			return self.encoder.classes_
+			return self.model.classes_
 	
 	def train( self, y: np.ndarray ) -> LabelEncoder | None:
 		"""
@@ -493,13 +493,12 @@ class LabelEncoder( Encoder ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
 		try:
 			throw_if( 'y', y )
-			self.encoder.fit( y )
+			self.model.fit( y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -518,20 +517,18 @@ class LabelEncoder( Encoder ):
 
 			Parameters:
 			-----------
-			X ( List[ str ] ): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
-		
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.encoder.transform( y )
+			self.transformed_data = self.model.transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
-			exception.method = 'transform( self, y: np.ndarray  ) -> np.ndarray'
+			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -544,20 +541,18 @@ class LabelEncoder( Encoder ):
 
 			Parameters:
 			-----------
-			X ( List[ str ] ): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 		"""
-		
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.encoder.fit_transform( y )
+			self.transformed_data = self.model.fit_transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
-			exception.method = 'fit_transform( self, y: np.ndarray  ) -> np.ndarray'
+			exception.method = 'fit_transform( self, y: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -575,7 +570,7 @@ class LabelEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'y', y )
-			return self.encoder.inverse_transform( y )
+			return self.model.inverse_transform( y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -600,7 +595,7 @@ class PolynomialFeatures( Encoder ):
 	"""
 	degree: Optional[ int ]
 	interaction_only: Optional[ bool ]
-	encoder: pp.PolynomialFeatures
+	model: pp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, degree: int=2, interaction: bool=True ) -> None:
@@ -616,7 +611,7 @@ class PolynomialFeatures( Encoder ):
 		super( ).__init__( )
 		self.degree = degree
 		self.interaction_only = interaction
-		self.encoder = pp.PolynomialFeatures( degree=self.degree,
+		self.model = pp.PolynomialFeatures( degree=self.degree,
 			interaction_only=self.interaction_only )
 	
 	def __dir__( self ):
@@ -627,7 +622,7 @@ class PolynomialFeatures( Encoder ):
 			A list of strings comprised of class members.
 
 		'''
-		[ 'encoder',
+		[ 'model',
 		  'degree',
 		  'powers',
 		  'interaction_only',
@@ -639,12 +634,12 @@ class PolynomialFeatures( Encoder ):
 	
 	@property
 	def powers( self ):
-		if self.encoder.powers_ is None:
+		if self.model.powers_ is None:
 			raise AttributeError( 'The polynomial data is untrained.' )
 		else:
-			return self.encoder.powers_
+			return self.model.powers_
 	
-	def train( self, X: np.ndarray, y: np.ndarray=None ) -> PolynomialFeatures | None:
+	def train( self, X: np.ndarray ) -> PolynomialFeatures | None:
 		"""
 
 			Purpose:
@@ -659,7 +654,7 @@ class PolynomialFeatures( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.encoder.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -669,7 +664,7 @@ class PolynomialFeatures( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -684,7 +679,7 @@ class PolynomialFeatures( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.encoder.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -694,7 +689,7 @@ class PolynomialFeatures( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -709,7 +704,7 @@ class PolynomialFeatures( Encoder ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.encoder.fit_transform( X )
+			self.transformed_data = self.model.fit_transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
