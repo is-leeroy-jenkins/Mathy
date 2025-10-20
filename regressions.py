@@ -538,6 +538,7 @@ class Ridge( Regression ):
 
     """
 	model: skl.Ridge
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -581,6 +582,7 @@ class Ridge( Regression ):
 		self.random_state = rando
 		self.model = skl.Ridge( alpha=self.alpha, solver=self.solver,
 			max_iter=self.max_iter, random_state=self.random_state, )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -680,7 +682,9 @@ class Ridge( Regression ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -857,6 +861,7 @@ class Lasso( Regression ):
     """
 	
 	model: skl.Lasso
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -889,6 +894,7 @@ class Lasso( Regression ):
 		self.random_state = rando
 		self.model = skl.Lasso( alpha=self.alpha, max_iter=self.max_iter,
 			random_state=self.random_state )
+		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -987,7 +993,9 @@ class Lasso( Regression ):
 
         """
 		try:
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1296,8 +1304,9 @@ class ElasticNet( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1597,8 +1606,9 @@ class LeastAngle( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1896,8 +1906,9 @@ class Bayesian( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2232,8 +2243,9 @@ class GradientDescent( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2539,8 +2551,9 @@ class NearestNeighbor( Regression ):
 
         '''
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2837,8 +2850,9 @@ class DecisionTree( Regression ):
 
         '''
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3148,8 +3162,9 @@ class RandomForest( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3466,8 +3481,9 @@ class GradientBoost( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3796,8 +3812,9 @@ class AdaptiveBoost( Regression ):
 
         '''
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4110,8 +4127,9 @@ class BaggingModel( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.bagging_regressor.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4415,8 +4433,9 @@ class VotingModel( Regression ):
 
         '''
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4728,8 +4747,9 @@ class StackingModel( Regression ):
 
         """
 		try:
-			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5010,7 +5030,10 @@ class SupportVector( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5296,7 +5319,9 @@ class GaussianProcess( Regression ):
         '''
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.project( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5621,7 +5646,9 @@ class MultiLayerPerceptron( Regression ):
         """
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			y_prediction = self.model.predict( X )
+			_shape = y_prediction.reshape( -1, 1 )
+			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
