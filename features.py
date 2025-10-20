@@ -42,13 +42,11 @@ features.py
 ******************************************************************************************
 '''
 from typing import Optional, Tuple
-
 import numpy as np
 import sklearn.cross_decomposition as sd
 import sklearn.decomposition as sd
 import sklearn.feature_selection as sf
 from sklearn.feature_selection import chi2
-
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
@@ -591,7 +589,7 @@ class SelectPercent( ):
 	transformed_data: Optional[ np.ndarray ]
 	threshold: Optional[ float ]
 	
-	def __init__( self, percent: int = 10 ) -> None:
+	def __init__( self, percent: int=10 ) -> None:
 		"""
 
 			Purpose:
