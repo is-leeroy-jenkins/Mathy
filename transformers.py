@@ -157,7 +157,7 @@ class LabelBinarizer( Transformer ):
 
 
 	"""
-	transformer: pp.LabelBinarizer
+	model: pp.LabelBinarizer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -169,7 +169,7 @@ class LabelBinarizer( Transformer ):
 
 		"""
 		super( ).__init__( )
-		self.transformer = pp.LabelBinarizer( )
+		self.model = pp.LabelBinarizer( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -185,10 +185,10 @@ class LabelBinarizer( Transformer ):
 		
 	@property
 	def classes( self ) -> List[ str ]:
-		if self.transformer.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'LabelBinarizer has not been initialized.' )
 		else:
-			return self.transformer.classes_
+			return self.model.classes_
 	
 	def train( self, y: np.ndarray ) -> LabelBinarizer | None:
 		"""
@@ -208,7 +208,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformer.fit( y )
+			self.model.fit( y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -236,7 +236,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.transformer.transform( y )
+			self.transformed_data = self.model.transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -264,7 +264,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.transformer.fit_transform( y )
+			self.transformed_data = self.model.fit_transform( y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -291,7 +291,7 @@ class LabelBinarizer( Transformer ):
 		"""
 		try:
 			throw_if( 'Y', Y )
-			return self.transformer.inverse_transform( Y )
+			return self.model.inverse_transform( Y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -324,7 +324,7 @@ class TfidfTransformer( Transformer ):
 		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
 
 	"""
-	transformer: sk.TfidfTransformer
+	model: sk.TfidfTransformer
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -335,7 +335,7 @@ class TfidfTransformer( Transformer ):
 			Initialize TfidfTransformer.
 		"""
 		super( ).__init__( )
-		self.transformer = sk.TfidfTransformer( )
+		self.model = sk.TfidfTransformer( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -355,10 +355,10 @@ class TfidfTransformer( Transformer ):
 	
 	@property
 	def idf_vector( self ) -> np.ndarray:
-		if self.transformer.idf_ is None:
+		if self.model.idf_ is None:
 			raise AttributeError( 'TfidfTransformer must be initialized' )
 		else:
-			return self.transformer.idf_
+			return self.model.idf_
 	
 	def train( self, X: np.ndarray ) -> TfidfTransformer | None:
 		"""
@@ -378,7 +378,7 @@ class TfidfTransformer( Transformer ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformer.fit( X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -406,7 +406,7 @@ class TfidfTransformer( Transformer ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.transformer.transform( X )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -430,7 +430,7 @@ class TfidfTransformer( Transformer ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.transformer.fit_transform( X ).toarray( )
+			self.transformed_data = self.model.fit_transform( X ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )

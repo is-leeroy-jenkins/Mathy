@@ -579,6 +579,203 @@ class LabelEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 
+class TargetEncoder( Encoder ):
+	"""
+
+		Purpose:
+		--------
+		Target Encoder for regression and classification targets. Each category is encoded based
+		on a shrunk estimate of the average target values for observations belonging
+		to the category. The encoding scheme mixes the global target mean with the target
+		mean conditioned on the value of the category.
+		
+		When the target type is “multiclass”, encodings are based on the conditional probability
+		estimate for each class. The target is first binarized using the “one-vs-all” scheme
+		via LabelBinarizer, then the average target value for each class and each category is
+		used for encoding, resulting in n_features * n_classes encoded output features.
+
+		TargetEncoder considers missing values, such as np.nan or None, as another
+		category and encodes them like any other category. Categories that are not seen
+		during fit are encoded with the target mean, i.e. target_mean_.
+
+	"""
+	model: pp.TargetEncoder
+	transformed_data: Optional[ np.ndarray ]
+	
+	def __init__( self ) -> None:
+		"""
+
+			Purpose:
+			--------
+			Initialize LabelEncoder.
+
+		"""
+		super( ).__init__( )
+		self.model = pp.TargetEncoder( )
+		self.transformed_data = None
+	
+	def __dir__( self ):
+		'''
+
+			Returns
+			-------
+			A list of strings comprised of class members.
+
+		'''
+		[ 'model',
+		  'labels',
+		  'encodings',
+		  'categories',
+		  'features_in'
+		  'transformed_data',
+		  'train',
+		  'transform',
+		  'train_transform',
+		  'inverse_transform', ]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		if self.model.classes_ is None:
+			raise AttributeError( 'The label encoder data is untrained.' )
+		else:
+			return self.model.classes_
+	
+	@property
+	def encodings( self ) -> np.ndarray:
+		'''
+			
+			Returns:
+			-------
+			Encodings learnt on all of X. For feature i, encodings_[i] are the encodings matching
+			the categories listed in categories_[i]. When target_type_ is “multiclass”, the encoding
+			for feature i and class j is stored in encodings_[j + (i * len(classes_))].
+			E.g., for 2 features (f) and 3 classes (c),
+			encodings are ordered: f0_c0, f0_c1, f0_c2, f1_c0, f1_c1, f1_c2,
+		 
+		'''
+		if self.model.encodings_ is None:
+			raise AttributeError( 'The label encoder data is untrained.' )
+		else:
+			return self.model.encodings_
+	
+	@property
+	def features_in( self ) -> int:
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The label encoder data is untrained.' )
+		else:
+			return self.model.n_features_in_
+	
+	@property
+	def categories( self ) -> np.ndarray:
+		'''
+
+			Returns:
+			-------
+			The categories of each input feature determined during fitting or specified
+			in categories (in order of the features in X and
+			corresponding with the output of transform).
+
+		'''
+		if self.model.categories_ is None:
+			raise AttributeError( 'The label encoder data is untrained.' )
+		else:
+			return self.model.categories_
+	
+	def train( self, y: np.ndarray ) -> LabelEncoder | None:
+		"""
+
+			Purpose:
+			--------
+			Fit the label encoder to the stores.
+
+			Parameters:
+			-----------
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
+		"""
+		try:
+			throw_if( 'y', y )
+			self.model.fit( y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TargetEncoder'
+			exception.method = 'fit( self, y: np.ndarray ) -> LabelEncoder'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def transform( self, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Transform target_names to encoded form.
+
+			Parameters:
+			-----------
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
+		"""
+		try:
+			throw_if( 'y', y )
+			self.transformed_data = self.model.transform( y )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TargetEncoder'
+			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def train_transform( self, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Fit and transform the label stores.
+
+			Parameters:
+			-----------
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+
+		"""
+		try:
+			throw_if( 'y', y )
+			self.transformed_data = self.model.fit_transform( y )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TargetEncoder'
+			exception.method = 'fit_transform( self, y: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Map integer labels back to original classes.
+
+			Parameters:
+			-----------
+			y: np.ndarray
+
+		"""
+		try:
+			throw_if( 'y', y )
+			return self.model.inverse_transform( y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TargetEncoder'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			error = ErrorDialog( exception )
+			error.show( )
+
 class PolynomialFeatures( Encoder ):
 	"""
 
