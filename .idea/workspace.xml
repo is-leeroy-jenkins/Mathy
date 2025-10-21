@@ -7,7 +7,10 @@
     <list default="true" id="c36181d0-5e3a-4e14-9759-9cde8cba1d43" name="Changes" comment="updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/minion.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/encoders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ipynb/board.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ipynb/board.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/regressions.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scalers.py" beforeDir="false" afterPath="$PROJECT_DIR$/scalers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +39,7 @@
         <option name="unlockedFilePaths">
           <set>
             <option value="$PROJECT_DIR$/classifications.py" />
+            <option value="$PROJECT_DIR$/regressions.py" />
           </set>
         </option>
       </LargeFiles>
@@ -95,15 +99,8 @@
       <workItem from="1760698736046" duration="35990000" />
       <workItem from="1760790970448" duration="24471000" />
       <workItem from="1760876570418" duration="14794000" />
-      <workItem from="1760962072557" duration="24474000" />
-    </task>
-    <task id="LOCAL-00008" summary="updates">
-      <option name="closed" value="true" />
-      <created>1760289747174</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1760289747174</updated>
+      <workItem from="1760962072557" duration="24562000" />
+      <workItem from="1761049817706" duration="8520000" />
     </task>
     <task id="LOCAL-00009" summary="updates">
       <option name="closed" value="true" />
@@ -489,7 +486,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760997522629</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="updates">
+      <option name="closed" value="true" />
+      <created>1761049156334</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1761049156334</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

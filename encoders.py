@@ -48,7 +48,7 @@ import sklearn.preprocessing as pp
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
-	if not value:
+	if value is None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Encoder( ):
@@ -681,7 +681,7 @@ class TargetEncoder( Encoder ):
 		else:
 			return self.model.categories_
 	
-	def train( self, y: np.ndarray ) -> LabelEncoder | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> TargetEncoder | None:
 		"""
 
 			Purpose:
@@ -694,8 +694,9 @@ class TargetEncoder( Encoder ):
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.model.fit( y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -705,7 +706,7 @@ class TargetEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, y: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -718,8 +719,9 @@ class TargetEncoder( Encoder ):
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.transformed_data = self.model.transform( y )
+			self.transformed_data = self.model.transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -729,7 +731,7 @@ class TargetEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, y: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -742,8 +744,9 @@ class TargetEncoder( Encoder ):
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.transformed_data = self.model.fit_transform( y )
+			self.transformed_data = self.model.fit_transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -753,7 +756,7 @@ class TargetEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
+	def inverse_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -766,8 +769,9 @@ class TargetEncoder( Encoder ):
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return self.model.inverse_transform( y )
+			return self.model.inverse_transform( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'

@@ -508,8 +508,7 @@ class RobustScaler( Scaler ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RobustScaler'
-			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
-			                    'Pipeline')
+			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
 	

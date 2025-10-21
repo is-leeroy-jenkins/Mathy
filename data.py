@@ -711,7 +711,7 @@ class DataSource( ):
 
         """
         try:
-	        self.encoder = TargetEncoder( )
+	        self.encoder = LabelEncoder( )
 	        encoded_labels = self.encoder.train_transform( self.targets )
 	        return encoded_labels
         except Exception as e:

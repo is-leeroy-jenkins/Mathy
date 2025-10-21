@@ -53,11 +53,10 @@ import seaborn as sns
 import sklearn.ensemble as ske
 import sklearn.linear_model as skl
 import sklearn.neighbors as skn
-import sklearn.neural_network as skn
 import sklearn.svm as skv
 import sklearn.tree as skd
 from sklearn.base import ClassifierMixin
-from sklearn.gaussian_process import GaussianProcessRegressor as gpr
+from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.model_selection import train_test_split as split
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.preprocessing import Binarizer
@@ -1514,7 +1513,6 @@ class LeastAngle( Regression ):
 		return [ 'model',
 		         'prediction',
 		         'probability',
-		         'binarizer',
 		         'fit_intercept',
 		         'precompute',
 		         'mean_absolute_error',
@@ -1801,7 +1799,6 @@ class Bayesian( Regression ):
 		self.scale_lambda = scale_lambda
 		self.model = skl.BayesianRidge( alpha_1=self.shape_alpha,
 			alpha_2=self.scale_alpha, lambda_1=self.shape_lambda, lambda_2=self.scale_lambda, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -1872,7 +1869,7 @@ class Bayesian( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidge'
+			exception.cause = 'Bayesian'
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1899,7 +1896,7 @@ class Bayesian( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidge'
+			exception.cause = 'Bayesian'
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1954,7 +1951,7 @@ class Bayesian( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidge'
+			exception.cause = 'Bayesian'
 			exception.method = 'accuracy( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1998,7 +1995,7 @@ class Bayesian( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BayesianRidge'
+			exception.cause = 'Bayesian'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2074,8 +2071,15 @@ class GradientDescent( Regression ):
     This implementation works with stores represented as dense numpy arrays of floating point
     values for the feature_names.
 
-    """	
+    """
+	random_state: Optional[ int ]
+	loss: Optional[ str ]
+	max_iter: Optional[ int ]
+	penalty: Optional[ str ]
+	learning_rate: Optional[ str ]
+	l1_ratio: Optional[ float ]
 	model = skl.SGDRegressor
+	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
@@ -2085,16 +2089,11 @@ class GradientDescent( Regression ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	random_state: int
-	penalty: str
-	loss: str
-	max_iter: int
-	penalty: str
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, loss: str='squared_loss', iters: int=1000, penalty: str='l2', 
-		alpha: float=0.0001, rando: int=42, ) -> None:
+	def __init__( self, loss: str='squared_error', iters: int=1000, penalty: str='l2',
+			alpha: float=0.0001, rando: int=42, learning_rate: str='optimal', l1_ratio: float=0.0 ) -> None:
 		'''
 	
 	        Purpose:
@@ -2114,9 +2113,11 @@ class GradientDescent( Regression ):
 		self.alpha = alpha
 		self.random_state = rando
 		self.penalty = penalty
+		self.learning_rate = learning_rate
+		self.l1_ratio = l1_ratio
 		self.model = skl.SGDRegressor( loss=self.loss, max_iter=self.max_iter,
-			penalty=self.penalty )
-		self.binarizer = Binarizer( threshold=0.5 )
+			penalty=self.penalty, alpha=self.alpha, random_state=self.random_state,
+			learning_rate=self.learning_rate, l1_ratio=self.l1_ratio )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2139,11 +2140,12 @@ class GradientDescent( Regression ):
         """
 		return [ 'model',
 		         'prediction',
-		         'accuracy',
 		         'penalty',
 		         'max_iter',
 		         'random_state',
 		         'loss',
+		         'learning_rate',
+		         'l1_ratio',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
@@ -2229,15 +2231,13 @@ class GradientDescent( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = ''
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -2266,7 +2266,6 @@ class GradientDescent( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -2278,7 +2277,6 @@ class GradientDescent( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -2440,8 +2438,7 @@ class NearestNeighbor( Regression ):
 		self.power = power
 		self.metric = metric
 		self.model = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors,
-			algorithm=self.algorithm, p=self.power, metric=self.metric, )
-		self.binarizer = Binarizer( threshold=0.5 )
+			algorithm=self.algorithm, p=self.power, metric=self.metric )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2538,9 +2535,7 @@ class NearestNeighbor( Regression ):
 
         '''
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -2746,7 +2741,6 @@ class DecisionTree( Regression ):
 		self.random_state = rando
 		self.model = skd.DecisionTreeRegressor( criterion=self.criterion,
 			splitter=self.splitter, max_depth=self.max_depth, random_state=self.random_state, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -2838,9 +2832,7 @@ class DecisionTree( Regression ):
 
         '''
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3060,7 +3052,6 @@ class RandomForest( Regression ):
 		self.random_state = rando
 		self.model = ske.RandomForestRegressor( n_estimators=self.n_estimators,
 			criterion=self.criterion, random_state=self.random_state, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -3151,9 +3142,7 @@ class RandomForest( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3366,7 +3355,6 @@ class GradientBoost( Regression ):
 		self.model = ske.GradientBoostingRegressor( loss=self.loss,
 			learning_rate=self.learning_rate, n_estimators=self.n_estimators, 
 			max_depth=self.max_depth, random_state=self.random_state, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
 		self.accuracy = 0.0
@@ -3471,9 +3459,7 @@ class GradientBoost( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3653,7 +3639,6 @@ class AdaptiveBoost( Regression ):
 	learning_rate: float
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -3684,10 +3669,8 @@ class AdaptiveBoost( Regression ):
 		self.learning_rate = learning
 		self.model = ske.AdaBoostRegressor( n_estimators=self.n_estimators,
 			random_state=self.random_state, loss=self.loss, learning_rate=self.learning_rate, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -3803,9 +3786,7 @@ class AdaptiveBoost( Regression ):
 
         '''
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -3840,7 +3821,6 @@ class AdaptiveBoost( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -3983,7 +3963,6 @@ class BaggingModel( Regression ):
 	base_estimator: object
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -4011,12 +3990,10 @@ class BaggingModel( Regression ):
 		self.n_estimators = num
 		self.max_features = max
 		self.random_state = rando
-		self.bagging_regressor = ske.BaggingRegressor( estimator=self.base_estimator, 
+		self.model = ske.BaggingRegressor( estimator=self.base_estimator,
 			max_features=self.max_features, random_state=self.random_state, )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -4040,7 +4017,6 @@ class BaggingModel( Regression ):
 		         'base_estimator',
 		         'n_estimators',
 		         'max_features',
-		         'accuracy',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
@@ -4068,10 +4044,10 @@ class BaggingModel( Regression ):
 			A list of class labels known to the classifier.
 
 		'''
-		if self.bagging_regressor.classes_ is None:
+		if self.model.classes_ is None:
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
-			return self.bagging_regressor.classes_
+			return self.model.classes_
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
@@ -4093,7 +4069,7 @@ class BaggingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.bagging_regressor.fit( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -4119,9 +4095,7 @@ class BaggingModel( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4156,7 +4130,6 @@ class BaggingModel( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -4168,7 +4141,6 @@ class BaggingModel( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -4289,10 +4261,10 @@ class VotingModel( Regression ):
     """
 	
 	model: ske.VotingRegressor
+	sample_weight: Optional[ np.ndarray ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -4303,7 +4275,7 @@ class VotingModel( Regression ):
 	training_score: Optional[ float ]
 	estimators: List[ (str, object) ]
 	
-	def __init__( self, est: List[ (str, object) ] ) -> None:
+	def __init__( self, est: List[ (str, object) ], sample_weight: np.ndarray=None ) -> None:
 		"""
 
         Purpose:
@@ -4318,11 +4290,11 @@ class VotingModel( Regression ):
         """
 		super( ).__init__( )
 		self.estimators = est
-		self.model = ske.VotingRegressor( estimators=self.estimators )
-		self.binarizer = Binarizer( threshold=0.5 )
+		self.sample_weight = sample_weight
+		self.model = ske.VotingRegressor( estimators=self.estimators,
+			sample_weight=self.sample_weight )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -4426,9 +4398,7 @@ class VotingModel( Regression ):
 
         '''
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4463,7 +4433,6 @@ class VotingModel( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -4475,7 +4444,6 @@ class VotingModel( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -4579,7 +4547,7 @@ class VotingModel( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = ("create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None")
+			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
 
@@ -4601,7 +4569,6 @@ class StackingModel( Regression ):
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -4611,8 +4578,7 @@ class StackingModel( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, est: List[
-		Tuple[ str, ClassifierMixin ] ], final: ClassifierMixin = None ) -> None:
+	def __init__( self, est: List[Tuple[ str, ClassifierMixin ] ], final: ClassifierMixin=None ) -> None:
 		"""
 
 	        Purpose:
@@ -4637,10 +4603,8 @@ class StackingModel( Regression ):
 		self.final_estimator = final
 		self.model = ske.StackingRegressor( estimators=self.estimators,
 			final_estimator=self.final_estimator )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -4663,7 +4627,6 @@ class StackingModel( Regression ):
 		         'probability',
 		         'estimators',
 		         'final_estimator',
-		         'accuracy',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
@@ -4741,9 +4704,7 @@ class StackingModel( Regression ):
 
         """
 		try:
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -4778,7 +4739,6 @@ class StackingModel( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -4790,7 +4750,6 @@ class StackingModel( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -4906,7 +4865,6 @@ class SupportVector( Regression ):
 	model: skv.SVR
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -4914,10 +4872,10 @@ class SupportVector( Regression ):
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
 	kernel: str
-	regularization: float
+	C: float
 	epsilon: float
 	
-	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1 ) -> None:
+	def __init__( self, kernel: str='rbf', C: float=1.0, epsilon: float=0.1, gamma: float='' ) -> None:
 		'''
 
 	        Purpose:
@@ -4934,13 +4892,11 @@ class SupportVector( Regression ):
         '''
 		super( ).__init__( )
 		self.kernel = kernel
-		self.regularization = C
+		self.C = C
 		self.epsilon = epsilon
-		self.model = skv.SVR( kernel=self.kernel, C=self.regulation, epsilon=self.epsilon )
-		self.binarizer = Binarizer( threshold=0.5 )
+		self.model = skv.SVR( kernel=self.kernel, C=self.C, epsilon=self.epsilon )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -4962,9 +4918,8 @@ class SupportVector( Regression ):
 		         'prediction',
 		         'probability',
 		         'kernel',
-		         'regulation',
+		         'C',
 		         'epsilon',
-		         'accuracy',
 		         'mean_absolute_error',
 		         'mean_squared_error',
 		         'r_mean_squared_error',
@@ -5009,7 +4964,7 @@ class SupportVector( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray | None:
+	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
 
         Purpose:
@@ -5024,10 +4979,7 @@ class SupportVector( Regression ):
         """
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5062,7 +5014,6 @@ class SupportVector( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -5074,7 +5025,6 @@ class SupportVector( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -5184,13 +5134,17 @@ class GaussianProcess( Regression ):
 
 	    Purpose:
 	    --------
-	    Wraps sklearn's GaussianProcessRegressor to provide a clean interface
-	    for model training, prediction, and performance evaluation.
+	    Allows prediction without prior fitting (based on the GP prior)
+		provides an additional method sample_y(X), which evaluates samples
+		drawn from the GPR (prior or posterior) at given inputs
+		exposes a method log_marginal_likelihood(theta), which can be used externally
+		for other ways of selecting hyperparameters, e.g., via Markov chain Monte Carlo.
 
     '''
 	
-	model: gpr.GaussianProcessRegressor
+	model: GaussianProcessRegressor
 	alpha: Optional[ float ]
+	kernel: Optional[ object ]
 	normalize: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -5203,7 +5157,7 @@ class GaussianProcess( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, alpha: float = 1e-10, normalize_y: bool = True ) -> None:
+	def __init__( self, alpha: float=1e-10, normalize_y: bool=True ) -> None:
 		"""
 
         Purpose:
@@ -5225,11 +5179,10 @@ class GaussianProcess( Regression ):
 		self.normalize = normalize_y
 		self.alpha = alpha
 		self.kernel = C( 1.0, (1e-3, 1e3) ) * RBF( 1.0, (1e-2, 1e2) )
-		self.model = GaussianProcess( kernel=self.kernel, alpha=alpha, normalize_y=normalize_y )
-		self.binarizer = Binarizer( threshold=0.5 )
+		self.model = GaussianProcessRegressor( kernel=self.kernel, alpha=self.alpha,
+			normalize_y=self.normalize )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -5239,35 +5192,34 @@ class GaussianProcess( Regression ):
 		self.training_score = 0.0
 		self.testing_score = 0.0
 		
-		def __dir__( self ) -> List[ str ]:
-			"""
+	def __dir__( self ) -> List[ str ]:
+		"""
 
-		        Purpose:
-		        -------
-		        Provides a list of strings representing class members
+	        Purpose:
+	        -------
+	        Provides a list of strings representing class members
 
-	        """
-			return [ 'prediction',
-			         'probability',
-			         'model',
-			         'accuracy',
-			         'alpha',
-			         'normalize',
-			         'mean_absolute_error',
-			         'mean_squared_error',
-			         'r_mean_squared_error',
-			         'r2_score',
-			         'explained_variance_score',
-			         'median_absolute_error',
-			         'train',
-			         'project',
-			         'score',
-			         'analyze',
-			         'scatter_plot',
-			         'training_score',
-			         'training_score' ]
+        """
+		return [ 'prediction',
+		         'probability',
+		         'model',
+		         'alpha',
+		         'normalize',
+		         'mean_absolute_error',
+		         'mean_squared_error',
+		         'r_mean_squared_error',
+		         'r2_score',
+		         'explained_variance_score',
+		         'median_absolute_error',
+		         'train',
+		         'project',
+		         'score',
+		         'analyze',
+		         'scatter_plot',
+		         'training_score',
+		         'training_score' ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcess | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcessRegressor | None:
 		"""
 
         Purpose:
@@ -5287,7 +5239,7 @@ class GaussianProcess( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.model.train( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -5315,9 +5267,7 @@ class GaussianProcess( Regression ):
         '''
 		try:
 			throw_if( 'X', X )
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5352,7 +5302,6 @@ class GaussianProcess( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -5364,7 +5313,6 @@ class GaussianProcess( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -5496,7 +5444,6 @@ class MultiLayerPerceptron( Regression ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	accuracy: Optional[ float ]
 	mean_absolute_error: Optional[ float ]
 	mean_squared_error: Optional[ float ]
 	root_mean_squared_error: Optional[ float ]
@@ -5524,11 +5471,8 @@ class MultiLayerPerceptron( Regression ):
 		self.model = skn.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
 			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
 			learning_rate=self.learning, random_state=self.random_state, )
-		self.binarizer = Binarizer( threshold=0.5 )
-		self.binarizer = Binarizer( threshold=0.5 )
 		self.prediction = None
 		self.probability = None
-		self.accuracy = 0.0
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
 		self.root_mean_squared_error = 0.0
@@ -5549,7 +5493,6 @@ class MultiLayerPerceptron( Regression ):
 		return [ 'prediction',
 		         'probability',
 		         'model',
-		         'accuracy',
 		         'learning',
 		         'activation_function',
 		         'hidden_layers',
@@ -5644,9 +5587,7 @@ class MultiLayerPerceptron( Regression ):
         """
 		try:
 			throw_if( 'X', X )
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -5681,7 +5622,6 @@ class MultiLayerPerceptron( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
@@ -5693,7 +5633,6 @@ class MultiLayerPerceptron( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
