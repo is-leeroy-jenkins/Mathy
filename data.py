@@ -50,7 +50,7 @@ import seaborn as sns
 from sklearn.compose import ColumnTransformer
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 from boogr import Error, ErrorDialog
-from encoders import Encoder, LabelEncoder
+from encoders import Encoder, LabelEncoder, TargetEncoder
 
 def throw_if( name: str, value: object ):
     if value is None:
@@ -508,6 +508,7 @@ class DataSource( ):
         self.datatuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
         self.variance = self.numeric_data.cov( ddof=1, numeric_only=True )
         self.scaler = None
+        self.encoder = None
         self.numeric_metrics = None
         self.categorical_metrics = None
         self.pivot_table = None
@@ -656,7 +657,7 @@ class DataSource( ):
 
         """
         try:
-	        self.scaler = StandardScaler( )
+	        self.scaler = MinMaxScaler( )
 	        standardized_data = self.scaler.fit_transform( self.numeric_data )
 	        return standardized_data
         except Exception as e:
@@ -710,7 +711,7 @@ class DataSource( ):
 
         """
         try:
-	        self.encoder = LabelEncoder( )
+	        self.encoder = TargetEncoder( )
 	        encoded_labels = self.encoder.train_transform( self.targets )
 	        return encoded_labels
         except Exception as e:
@@ -722,7 +723,7 @@ class DataSource( ):
 	        error.show( )
 	
     
-    def create_pivot( self, df: pd.DataFrame, cols: List, vals: List, idx: List ) -> pd.DataFrame:
+    def create_pivot( self, cols: List, vals: List, idx: List ) -> pd.DataFrame:
         '''
 
             Purpose:
@@ -742,12 +743,10 @@ class DataSource( ):
 
         '''
         try:
-            throw_if( 'df', df )
             throw_if( 'cols', cols )
             throw_if( 'vals', vals )
             throw_if( 'idx', idx )
-            self.dataframe = df.copy( )
-            self.pivot_table = df.pivot_table( index=idx, columns=cols, values=vals,
+            self.pivot_table = self.dataframe.pivot_table( index=idx, columns=cols, values=vals,
 	            dropna=True, margins=True )
             return self.pivot_table
         except Exception as e:
