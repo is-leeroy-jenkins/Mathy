@@ -83,6 +83,7 @@ class Classifier( ):
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
@@ -97,7 +98,7 @@ class Classifier( ):
 	def __init__( self ):
 		pass
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray,) | None:
+	def split_data( self, X: np.ndarray, y: np.ndarray ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray, ) | None:
 		'''
 			
 			Purpose:
@@ -219,6 +220,7 @@ class Perceptron( Classifier ):
 	model: skc.Perceptron
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -231,7 +233,7 @@ class Perceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.0001, eta: float=1.0, iters: int=1000, 
+	def __init__( self, alpha: float=0.01, eta: float=.01, iters: int=1000,
 			shuffle: bool=True, penalty='l2' ) -> None:
 		"""
 
@@ -258,6 +260,7 @@ class Perceptron( Classifier ):
 		self.decision = None
 		self.prediction = None
 		self.probability = None
+		self.misclass = 0.0
 		self.precision = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
@@ -276,6 +279,7 @@ class Perceptron( Classifier ):
 		'''
 		return [ 'model',
 				 'prediction',
+		         'misclass',
 		         'max_iter',
 		         'random_state',
 		         'decision',
@@ -440,7 +444,7 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
 		
 			Purpose:
@@ -461,10 +465,7 @@ class Perceptron( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			y_pred = self.model.predict( X )
-			self.binarizer = Binarizer( threshold=0 )
-			_shape = y_pred.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -503,16 +504,19 @@ class Perceptron( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			y_pred = self.project( X )
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			
 			_metrics = \
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Misclassifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -597,7 +601,7 @@ class Perceptron( Classifier ):
 			_trn = self.training_score
 			_tst = self.testing_score
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X )
 			plt.figure( figsize=( 8, 6 ) )
 			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
@@ -634,6 +638,7 @@ class LeastSquares( Classifier ):
 	model: skc.LinearRegression
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -784,7 +789,7 @@ class LeastSquares( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
 		
 			Purpose:
@@ -805,8 +810,9 @@ class LeastSquares( Classifier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			y_prediction = self.model.predict( X )
-			_shape = y_prediction.reshape( -1, 1 )
+			y_pred = self.model.predict( X )
+			self.binarizer = Binarizer( threshold=0 )
+			_shape = y_pred.reshape( -1, 1 )
 			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
 			return self.prediction
 		except Exception as e:
@@ -849,14 +855,15 @@ class LeastSquares( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.precision = precision_score( y, y_pred, average=None  )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			
 			_metrics = \
 			{
@@ -1316,6 +1323,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -1413,7 +1421,7 @@ class LogisticRegression( Classifier ):
 			_trn = self.training_score
 			_tst = self.testing_score
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X )
 			plt.figure( figsize=( 8, 6 ) )
 			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
@@ -1703,6 +1711,7 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -2099,6 +2108,7 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -2529,6 +2539,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -3008,6 +3019,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -3443,6 +3455,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -3865,6 +3878,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -4019,7 +4033,7 @@ class GradientBoost( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, lss: str='log_loss', rate: int=0.1, est: int=100,
-			depth: int=3, rando: int=42, criterion: str= '‘squared_error’' ) -> None:
+			depth: int=3, rando: int=42, criterion: str='squared_error' ) -> None:
 		"""
 
 			Purpose:
@@ -4314,6 +4328,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -4717,6 +4732,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5083,6 +5099,7 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5438,6 +5455,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5809,6 +5827,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5935,6 +5954,7 @@ class SupportVector( Classifier ):
 
 	"""
 	model: skv.SVC
+	kernel: Optional[ str ]
 	multiclass: Optional[ str ]
 	regulation: Optional[ float ]
 	penalty: Optional[ str ]
@@ -5952,7 +5972,7 @@ class SupportVector( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, multi: str='ovr', C: float=1.0, penalty: str='l2', degree: int=3 ) -> None:
+	def __init__( self,  C: float=1.0, kernel: str='rbf', degree: int=3 ) -> None:
 		"""
 		
 			Purpose:
@@ -5966,12 +5986,10 @@ class SupportVector( Classifier ):
 			
 		"""
 		super( ).__init__( )
-		self.multiclass = multi
 		self.regulation = C
-		self.penalty = penalty
+		self.kernel = kernel
 		self.degree = degree
-		self.model = skv.SVC( multi_class=self.multiclass, C=self.regulation,
-			random_state=self.random_state, penalty=self.penalty, degree=self.degree )
+		self.model = skv.SVC( C=self.regulation, kernel=self.kernel, degree=self.degree )
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
@@ -6247,6 +6265,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -6678,6 +6697,7 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )

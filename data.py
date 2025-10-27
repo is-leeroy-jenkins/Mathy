@@ -50,7 +50,7 @@ import seaborn as sns
 from sklearn.compose import ColumnTransformer
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 from boogr import Error, ErrorDialog
-from encoders import Encoder, LabelEncoder, TargetEncoder
+from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder
 
 def throw_if( name: str, value: object ):
     if value is None:
@@ -440,11 +440,12 @@ class DataSource( ):
     size: float
     seed: int
     scaler: Optional[ Scaler ]
-    encoder: Optional[ Encoder ]
+    encoder: Optional[ LabelEncoder ]
     data: Optional[ np.ndarray ]
     targets: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
     n_features: Optional[ int ]
+    percentiles: Optional[ List[ float ] ]
     scaling_factor: Optional[ int ]
     feature_names: Optional[ List[ str ] ]
     target_names: Optional[ np.ndarray ]
@@ -454,7 +455,6 @@ class DataSource( ):
     categorical_data: Optional[ pd.DataFrame ]
     datatuple: Optional[ List[ Tuple[ str, Encoder, List[ str ] ] ] ]
     numeric_metrics: Optional[ pd.DataFrame ]
-    categorical_metrics: Optional[ pd.DataFrame ]
     pivot_table: Optional[ pd.DataFrame ]
     mean_standard_error: Optional[ pd.DataFrame ]
     average: Optional[ pd.Series ]
@@ -497,20 +497,19 @@ class DataSource( ):
         self.n_features = self.dataframe.shape[ 1 ]
         self.targets = df[ target ].to_numpy( )
         self.target_names = np.array( sorted( np.unique( df[ target ].to_numpy( ) ) ) )
-        self.numeric_data = df.select_dtypes( include='number' ).copy( )
-        self.categorical_data = df.select_dtypes( include=[ 'object', 'category' ] ).copy( )
+        self.numeric_data = df[ self.numeric_columns ].copy( )
+        self.categorical_data = df[ self.categorical_columns ].copy( )
         self.skew = self.numeric_data.skew( axis=0, numeric_only=True )
         self.variance = self.numeric_data.var( axis=0, ddof=1, numeric_only=True )
         self.kurtosis = self.numeric_data.kurt( axis=0, numeric_only=True )
         self.average = self.numeric_data.mean( axis=0, numeric_only=True )
         self.mean_standard_error = self.numeric_data.sem( axis=0, ddof=1, numeric_only=True )
         self.standard_deviation = self.numeric_data.std( axis=0, ddof=1, numeric_only=True )
-        self.datatuple: List[ Tuple[ str, Encoder, list[ str ] ] ] = ( )
         self.variance = self.numeric_data.cov( ddof=1, numeric_only=True )
+        self.numeric_metrics = df[ self.numeric_columns ].describe( percentiles=[ .05, .1, .25, .3, .5, .70, .8, .95 ] )
+        self.datatuple = [ ]
         self.scaler = None
         self.encoder = None
-        self.numeric_metrics = None
-        self.categorical_metrics = None
         self.pivot_table = None
         self.column_transformer = None
     
@@ -531,7 +530,7 @@ class DataSource( ):
                  'transform_columns', 'numeric_statistics', 'categorical_data',
                  'categorical_statistics', 'create_pivot', 'create_histogram', ]
     
-    def transform_columns( self, name: str, encoder: Encoder, columns: List[ str ] ) -> None:
+    def transform_columns( self, name: List[ str] , encoder: Encoder, columns: List[ str ] ) -> None:
         """
 
             Purpose:
@@ -556,7 +555,7 @@ class DataSource( ):
             self.datatuple.append( (name, encoder, columns) )
             self.column_transformer = ColumnTransformer( transformers=self.datatuple,
 	            remainder='passthrough' )
-            self.data = self.dataframe[ self.feature_names ]
+            self.data = self.dataframe[ self.feature_names ].values
             _ = self.column_transformer.fit_transform( self.data )
         except Exception as e:
             exception = Error( e )
@@ -566,54 +565,8 @@ class DataSource( ):
                                 'List[ str ] )')
             error = ErrorDialog( exception )
             error.show( )
-			    
-    def numeric_statistics( self ) -> pd.DataFrame:
-	    """
-
-			Purpose:
-			-----------
-			Method calculating descriptive statistics for the datasets numeric n_features.
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
-	    try:
-		    percentiles = [ .05, .1, .25, .3, .5, .70, .8, .95 ]
-		    self.numeric_metrics = self.dataframe.describe( percentiles, include='all' )
-		    return self.numeric_metrics
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'DataSource'
-		    exception.method = 'calculate_numeric_statistics( self ) -> pd.DataFrame'
-		    error = ErrorDialog( exception )
-		    error.show( )
+            
     
-    def categorical_statistics( self ) -> pd.DataFrame:
-        """
-
-            Purpose:
-            -----------
-            Method calculating descriptive statistics for the datasets categorical n_features.
-
-            Returns:
-            -----------
-            pd.DataFrame
-
-        """
-        try:
-            self.categorical_metrics = self.dataframe.describe( include=[ object ] )
-            return self.categorical_metrics
-        except Exception as e:
-            exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'DataSource'
-            exception.method = 'calculate_categorical_statistics( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
-        
     def standardize( self ) -> pd.DataFrame:
         """
 
@@ -631,7 +584,7 @@ class DataSource( ):
         """
         try:
 	        self.scaler = StandardScaler( )
-	        standard_data = self.scaler.fit_transform( self.numeric_data )
+	        standard_data = self.scaler.train_transform( self.numeric_data )
 	        return standard_data
         except Exception as e:
 	        exception = Error( e )
@@ -658,7 +611,7 @@ class DataSource( ):
         """
         try:
 	        self.scaler = MinMaxScaler( )
-	        standardized_data = self.scaler.fit_transform( self.numeric_data )
+	        standardized_data = self.scaler.train_transform( self.numeric_data )
 	        return standardized_data
         except Exception as e:
 	        exception = Error( e )
@@ -695,6 +648,36 @@ class DataSource( ):
 	        error = ErrorDialog( exception )
 	        error.show( )
         
+    def encode_labels( self, col: str ) -> np.ndarray:
+        """
+
+			Purpose:
+			-----------
+			Instance method that converts numeric data values
+			into a standardized form (ie, subtracting the average
+			and diidiving by the standard deviation).
+
+
+			Returns:
+			-----------
+			pd.DataFrame
+
+		"""
+        try:
+	        throw_if( 'col', col )
+	        self.encoder = LabelEncoder( )
+	        values = self.dataframe[ col ].values
+	        y = values.astype(str)
+	        encoded_labels = self.encoder.model.fit_transform( y )
+	        return encoded_labels
+        except Exception as e:
+	        exception = Error( e )
+	        exception.module = 'mathy'
+	        exception.cause = 'DataSource'
+	        exception.method = 'encode_targets( self ) -> p.ndarray'
+	        error = ErrorDialog( exception )
+	        error.show( )
+    
     def encode_targets( self ) -> np.ndarray:
         """
 
@@ -712,7 +695,9 @@ class DataSource( ):
         """
         try:
 	        self.encoder = LabelEncoder( )
-	        encoded_labels = self.encoder.train_transform( self.targets )
+	        values = self.targets
+	        y = values.astype(str)
+	        encoded_labels = self.encoder.model.fit_transform( y )
 	        return encoded_labels
         except Exception as e:
 	        exception = Error( e )
@@ -812,6 +797,8 @@ class DataSource( ):
             Purpose:
             --------
             Method to show the pearson-correlation analysis of the dataset.
+            
+            
         '''
         try:
             _correlation = self.dataframe.corr( 'pearson', numeric_only=numeric )

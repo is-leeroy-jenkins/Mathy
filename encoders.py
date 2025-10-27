@@ -252,7 +252,7 @@ class OneHotEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -546,7 +546,8 @@ class LabelEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'y', y )
-			self.transformed_data = self.model.fit_transform( y )
+			values = y.astype(float)
+			self.transformed_data = self.model.fit_transform( values )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -601,8 +602,10 @@ class TargetEncoder( Encoder ):
 	"""
 	model: pp.TargetEncoder
 	transformed_data: Optional[ np.ndarray ]
+	categories: Optional[ str ]
+	target_type: Optional[ str ]
 	
-	def __init__( self ) -> None:
+	def __init__( self, target_type: str='auto' ) -> None:
 		"""
 
 			Purpose:
@@ -611,7 +614,8 @@ class TargetEncoder( Encoder ):
 
 		"""
 		super( ).__init__( )
-		self.model = pp.TargetEncoder( )
+		self.target_type = target_type
+		self.model = pp.TargetEncoder( target_type=self.target_type )
 		self.transformed_data = None
 	
 	def __dir__( self ):

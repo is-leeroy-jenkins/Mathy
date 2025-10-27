@@ -170,7 +170,7 @@ class StandardScaler( Scaler ):
 		  'train_transform',
 		  'inverse_transform' ]
 	
-	def train( self, X: np.ndarray, y: np.ndarray=None ) -> StandardScaler | None:
+	def train( self, X: np.ndarray ) -> StandardScaler | None:
 		"""
 
 
@@ -201,7 +201,7 @@ class StandardScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -230,7 +230,7 @@ class StandardScaler( Scaler ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
