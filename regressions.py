@@ -392,6 +392,7 @@ class LeastSquares( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -702,6 +703,7 @@ class Ridge( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -1005,6 +1007,7 @@ class Lasso( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -1313,6 +1316,7 @@ class ElasticNet( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -1608,6 +1612,7 @@ class LeastAngle( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -1720,14 +1725,9 @@ class LeastAngle( Regression ):
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={
-					'alpha': 0.6 }, line_kws={
-					'color': 'red' } )
-			plt.plot( [ y.min( ),
-			            y.max( ) ], [ y.min( ),
-			                          y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1922,6 +1922,7 @@ class Bayesian( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -2262,6 +2263,7 @@ class GradientDescent( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -2566,6 +2568,7 @@ class NearestNeighbor( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -2863,6 +2866,7 @@ class DecisionTree( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -3173,6 +3177,7 @@ class RandomForest( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -3490,6 +3495,7 @@ class GradientBoost( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -3817,6 +3823,7 @@ class AdaptiveBoost( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -4126,6 +4133,7 @@ class BaggingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -4429,6 +4437,7 @@ class VotingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -4735,6 +4744,7 @@ class StackingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5010,6 +5020,7 @@ class SupportVector( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5298,6 +5309,7 @@ class GaussianProcess( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
@@ -5459,7 +5471,7 @@ class MultiLayerPerceptron( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, hidden: tuple = (100,), activ='relu', solver='adam', alpha=0.0001,
+	def __init__( self, hidden: tuple=(100,), activ='relu', solver='adam', alpha=0.0001,
 			learning: str='constant', rando: int=42, ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden
@@ -5618,6 +5630,7 @@ class MultiLayerPerceptron( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			self.prediction = self.project( X )
 			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )

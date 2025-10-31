@@ -184,7 +184,7 @@ class KMeans( Cluster ):
     probability: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    def __init__( self, num: int=8, rando: int=42, max_iter: int=300 ) -> None:
+    def __init__( self, clusters: int=8, rando: int=42, max_iter: int=300 ) -> None:
         """
             Purpose:
             ---------
@@ -198,7 +198,7 @@ class KMeans( Cluster ):
 
         """
         super( ).__init__( )
-        self.n_clusters = num
+        self.n_clusters = clusters
         self.random_state = rando
         self.max_iter = max_iter
         self.model = skc.KMeans( n_clusters=self.n_clusters,
@@ -508,7 +508,7 @@ class Agglomerative( Cluster ):
     probability: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    def __init__( self, num: int = 2 ) -> None:
+    def __init__( self, num: int=2 ) -> None:
         """
 
             Purpose:

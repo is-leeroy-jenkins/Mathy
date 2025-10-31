@@ -501,17 +501,16 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			y_pred = self.project( X )
 			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
 			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
 			self.f1_score = f1_score( y, y_pred, average=None )
-			
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -660,6 +659,7 @@ class LeastSquares( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -751,7 +751,7 @@ class LeastSquares( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'LeastSquares'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -856,15 +856,15 @@ class LeastSquares( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, y_pred, average=None  )
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
 			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
 			self.f1_score = f1_score( y, y_pred, average=None )
-			
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -997,6 +997,7 @@ class LogisticRegression( Classifier ):
 	model: skc.LogisticRegression
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1042,6 +1043,7 @@ class LogisticRegression( Classifier ):
 		self.prediction = None
 		self.decision = None
 		self.accuracy = 0.0
+		self.misclass = 0.0
 		self.precision = 0.0
 		self.balanced_accuracy = 0.0
 		self.f1_score = 0.0
@@ -1153,13 +1155,12 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=42 )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=42 )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'LogisticRegression'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1323,16 +1324,16 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -1461,6 +1462,7 @@ class Ridge( Classifier ):
 	"""
 	model: skc.RidgeClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -1503,6 +1505,7 @@ class Ridge( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
@@ -1619,7 +1622,7 @@ class Ridge( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'Ridge'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -1711,16 +1714,16 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -1882,6 +1885,7 @@ class Lasso( Classifier ):
 	"""
 	model: skc.Lasso
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	binarizer: Optional[ Binarizer ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -1912,6 +1916,7 @@ class Lasso( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
@@ -2029,7 +2034,7 @@ class Lasso( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'Lasso'
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2108,16 +2113,16 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -2267,6 +2272,7 @@ class GradientDescent( Classifier ):
 	"""
 	model: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
@@ -2314,6 +2320,7 @@ class GradientDescent( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -2447,7 +2454,7 @@ class GradientDescent( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'GradientDescent'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2539,16 +2546,16 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -2743,6 +2750,7 @@ class NearestNeighbor( Classifier ):
 	"""
 	model: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
 	leaf_size: Optional[ int ]
@@ -2785,6 +2793,7 @@ class NearestNeighbor( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -2900,7 +2909,7 @@ class NearestNeighbor( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2930,7 +2939,7 @@ class NearestNeighbor( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborClassifier'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -2959,7 +2968,7 @@ class NearestNeighbor( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'NearestNeighborClassifier'
+			exception.cause = 'NearestNeighbor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3019,16 +3028,16 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -3152,6 +3161,7 @@ class DecisionTree( Classifier ):
 	'''
 	model: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	min_split: Optional[ float ]
@@ -3336,7 +3346,7 @@ class DecisionTree( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'DecisionTree'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3366,7 +3376,7 @@ class DecisionTree( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeClassifier'
+			exception.cause = 'DecisionTree'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3395,7 +3405,7 @@ class DecisionTree( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeClassifier'
+			exception.cause = 'DecisionTree'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3424,7 +3434,7 @@ class DecisionTree( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeClassifier'
+			exception.cause = 'DecisionTree'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3455,16 +3465,16 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -3481,7 +3491,7 @@ class DecisionTree( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeClassifier'
+			exception.cause = 'DecisionTree'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3522,7 +3532,7 @@ class DecisionTree( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'DecisionTreeClassifier'
+			exception.cause = 'DecisionTree'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3597,6 +3607,7 @@ class RandomForest( Classifier ):
 	criterion: Optional[ Any ]
 	model: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
@@ -3627,6 +3638,7 @@ class RandomForest( Classifier ):
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
+		self.misclass = 0.0
 		self.precision = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
@@ -3757,7 +3769,7 @@ class RandomForest( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'RandomForest'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -3878,16 +3890,16 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -4016,6 +4028,7 @@ class GradientBoost( Classifier ):
 	"""
 	model: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -4062,6 +4075,7 @@ class GradientBoost( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -4209,7 +4223,7 @@ class GradientBoost( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4328,15 +4342,16 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			
 			_metrics = \
 			{
@@ -4459,6 +4474,7 @@ class AdaptiveBoost( Classifier ):
 	"""
 	model = ske.AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
 	recall: Optional[ float ]
@@ -4491,6 +4507,7 @@ class AdaptiveBoost( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -4644,7 +4661,7 @@ class AdaptiveBoost( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'AdaptiveBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -4732,16 +4749,16 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -4869,6 +4886,7 @@ class BaggingModel( Classifier ):
 	"""
 	model: ske.BaggingClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
 	hinge_loss: Optional[ float ]
@@ -4901,6 +4919,7 @@ class BaggingModel( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -5011,7 +5030,7 @@ class BaggingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'BaggingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5041,7 +5060,7 @@ class BaggingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingClassifier'
+			exception.cause = 'BaggingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5068,7 +5087,7 @@ class BaggingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingClassifier'
+			exception.cause = 'BaggingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5099,16 +5118,16 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -5125,7 +5144,7 @@ class BaggingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'BaggingClassifier'
+			exception.cause = 'BaggingModel'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5231,6 +5250,7 @@ class VotingModel( Classifier ):
 	"""
 	model: ske.VotingClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	estimators: List[ (str, object) ]
@@ -5258,6 +5278,7 @@ class VotingModel( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -5367,7 +5388,7 @@ class VotingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'VotingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5455,16 +5476,16 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -5591,6 +5612,7 @@ class StackingModel( Classifier ):
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ np.ndarray ]
 	balanced_accuracy: Optional[ float ]
@@ -5615,6 +5637,7 @@ class StackingModel( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -5739,7 +5762,7 @@ class StackingModel( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'StackingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -5827,16 +5850,16 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -5959,6 +5982,7 @@ class SupportVector( Classifier ):
 	regulation: Optional[ float ]
 	penalty: Optional[ str ]
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -5993,6 +6017,7 @@ class SupportVector( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -6155,7 +6180,7 @@ class SupportVector( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'SupportVector'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -6265,16 +6290,16 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
@@ -6403,6 +6428,7 @@ class MultiLayerPerceptron( Classifier ):
 	"""
 	model: snn.MLPClassifier
 	prediction: Optional[ np.ndarray ]
+	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -6436,6 +6462,7 @@ class MultiLayerPerceptron( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
+		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -6578,7 +6605,7 @@ class MultiLayerPerceptron( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -6697,16 +6724,16 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.project( X )
+			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, self.prediction, average=None )
-			self.accuracy = accuracy_score( y, self.prediction )
-			self.recall = recall_score( y, self.prediction, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, self.prediction )
-			self.f1_score = f1_score( y, self.prediction, average=None )
-			
+			self.misclass = ( y != y_pred ).sum( )
+			self.precision = precision_score( y, y_pred, average=None )
+			self.accuracy = accuracy_score( y, y_pred )
+			self.recall = recall_score( y, y_pred, average=None )
+			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
+			self.f1_score = f1_score( y, y_pred, average=None )
 			_metrics = \
 			{
 				'Training Score': self.training_score,
