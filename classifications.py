@@ -220,7 +220,6 @@ class Perceptron( Classifier ):
 	model: skc.Perceptron
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -260,7 +259,6 @@ class Perceptron( Classifier ):
 		self.decision = None
 		self.prediction = None
 		self.probability = None
-		self.misclass = 0.0
 		self.precision = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
@@ -505,7 +503,6 @@ class Perceptron( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -515,14 +512,12 @@ class Perceptron( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -659,7 +654,6 @@ class LeastSquares( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -859,7 +853,6 @@ class LeastSquares( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -869,7 +862,6 @@ class LeastSquares( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -997,7 +989,6 @@ class LogisticRegression( Classifier ):
 	model: skc.LogisticRegression
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
@@ -1043,7 +1034,6 @@ class LogisticRegression( Classifier ):
 		self.prediction = None
 		self.decision = None
 		self.accuracy = 0.0
-		self.misclass = 0.0
 		self.precision = 0.0
 		self.balanced_accuracy = 0.0
 		self.f1_score = 0.0
@@ -1328,7 +1318,6 @@ class LogisticRegression( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -1462,7 +1451,6 @@ class Ridge( Classifier ):
 	"""
 	model: skc.RidgeClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
@@ -1505,7 +1493,6 @@ class Ridge( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
@@ -1718,7 +1705,6 @@ class Ridge( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -1885,7 +1871,6 @@ class Lasso( Classifier ):
 	"""
 	model: skc.Lasso
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	binarizer: Optional[ Binarizer ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
@@ -1916,7 +1901,6 @@ class Lasso( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.accuracy = 0.0
 		self.f1_score = 0.0
 		self.recall = 0.0
@@ -2117,7 +2101,6 @@ class Lasso( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -2127,7 +2110,6 @@ class Lasso( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -2272,7 +2254,6 @@ class GradientDescent( Classifier ):
 	"""
 	model: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	max_iter: Optional[ int ]
@@ -2320,7 +2301,6 @@ class GradientDescent( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -2550,7 +2530,6 @@ class GradientDescent( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -2560,7 +2539,6 @@ class GradientDescent( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -2750,7 +2728,6 @@ class NearestNeighbor( Classifier ):
 	"""
 	model: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	n_neighbors: Optional[ int ]
 	leaf_size: Optional[ int ]
@@ -2793,7 +2770,6 @@ class NearestNeighbor( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -3032,7 +3008,6 @@ class NearestNeighbor( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -3042,7 +3017,6 @@ class NearestNeighbor( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -3162,7 +3136,6 @@ class DecisionTree( Classifier ):
 	'''
 	model: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	min_split: Optional[ float ]
@@ -3470,7 +3443,6 @@ class DecisionTree( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -3480,7 +3452,6 @@ class DecisionTree( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -3609,7 +3580,6 @@ class RandomForest( Classifier ):
 	criterion: Optional[ Any ]
 	model: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
@@ -3640,7 +3610,6 @@ class RandomForest( Classifier ):
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
 		self.prediction = None
 		self.probability = None
-		self.misclass = 0.0
 		self.precision = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
@@ -3896,7 +3865,6 @@ class RandomForest( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -3906,7 +3874,6 @@ class RandomForest( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -4031,7 +3998,6 @@ class GradientBoost( Classifier ):
 	"""
 	model: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -4078,7 +4044,6 @@ class GradientBoost( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -4349,7 +4314,6 @@ class GradientBoost( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -4359,7 +4323,6 @@ class GradientBoost( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -4477,7 +4440,6 @@ class AdaptiveBoost( Classifier ):
 	"""
 	model = ske.AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	n_estimators: Optional[ int ]
 	random_state: Optional[ int ]
 	recall: Optional[ float ]
@@ -4510,7 +4472,6 @@ class AdaptiveBoost( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -4756,7 +4717,6 @@ class AdaptiveBoost( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -4766,7 +4726,6 @@ class AdaptiveBoost( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -4889,7 +4848,6 @@ class BaggingModel( Classifier ):
 	"""
 	model: ske.BaggingClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	max_features: Optional[ int ]
 	random_state: Optional[ int ]
 	hinge_loss: Optional[ float ]
@@ -5125,7 +5083,6 @@ class BaggingModel( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -5135,7 +5092,6 @@ class BaggingModel( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -5253,7 +5209,6 @@ class VotingModel( Classifier ):
 	"""
 	model: ske.VotingClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	estimators: List[ (str, object) ]
@@ -5281,7 +5236,6 @@ class VotingModel( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -5615,7 +5569,6 @@ class StackingModel( Classifier ):
 	estimators: List[ Tuple[ str, ClassifierMixin ] ]
 	final_estimator: Optional[ ClassifierMixin ]
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	accuracy: Optional[ float ]
 	precision: Optional[ np.ndarray ]
 	balanced_accuracy: Optional[ float ]
@@ -5640,7 +5593,6 @@ class StackingModel( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -6020,7 +5972,6 @@ class SupportVector( Classifier ):
 		self.prediction = None
 		self.probability = None
 		self.precision = 0.0
-		self.misclass = 0.0
 		self.balanced_accuracy = 0.0
 		self.accuracy = 0.0
 		self.recall = 0.0
@@ -6297,7 +6248,6 @@ class SupportVector( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -6307,7 +6257,6 @@ class SupportVector( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -6431,7 +6380,6 @@ class MultiLayerPerceptron( Classifier ):
 	"""
 	model: snn.MLPClassifier
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
@@ -6546,6 +6494,7 @@ class MultiLayerPerceptron( Classifier ):
 			raise AttributeError( 'The weights have not been initialized!' )
 		else:
 			return self.model.coefs_
+	
 	
 	@property
 	def layers( self ) -> np.ndarray:
@@ -6696,7 +6645,7 @@ class MultiLayerPerceptron( Classifier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'MultilayerClassifier'
+			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -6731,7 +6680,6 @@ class MultiLayerPerceptron( Classifier ):
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.misclass = ( y != y_pred ).sum( )
 			self.precision = precision_score( y, y_pred, average=None )
 			self.accuracy = accuracy_score( y, y_pred )
 			self.recall = recall_score( y, y_pred, average=None )
@@ -6741,7 +6689,6 @@ class MultiLayerPerceptron( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
