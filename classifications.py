@@ -511,14 +511,14 @@ class Perceptron( Classifier ):
 			_metrics = \
 			{
 				'Training Score': self.training_score,
-	            'Testing Score': self.testing_score,
+	            'Testing Score': self.testing_score ,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			_dataframe = pd.DataFrame( _metrics )
+			_dataframe = pd.DataFrame( _metrics  )
 			return _dataframe
 		except Exception as e:
 			exception = Error( e )
@@ -4961,7 +4961,7 @@ class BaggingModel( Classifier ):
 			return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		'''
 
 			Purpose:
