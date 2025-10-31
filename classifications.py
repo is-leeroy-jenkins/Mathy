@@ -515,7 +515,7 @@ class Perceptron( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
-				'Misclassifications': self.misclass,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -869,13 +869,13 @@ class LeastSquares( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -2127,13 +2127,13 @@ class Lasso( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -2560,13 +2560,13 @@ class GradientDescent( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -3042,6 +3042,7 @@ class NearestNeighbor( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -3479,6 +3480,7 @@ class DecisionTree( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -3904,6 +3906,7 @@ class RandomForest( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -4352,11 +4355,11 @@ class GradientBoost( Classifier ):
 			self.recall = recall_score( y, y_pred, average=None )
 			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
 			self.f1_score = f1_score( y, y_pred, average=None )
-			
 			_metrics = \
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
@@ -4763,13 +4766,13 @@ class AdaptiveBoost( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -5132,13 +5135,13 @@ class BaggingModel( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -5490,13 +5493,13 @@ class VotingModel( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -5864,13 +5867,13 @@ class StackingModel( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -6304,13 +6307,13 @@ class SupportVector( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -6738,13 +6741,13 @@ class MultiLayerPerceptron( Classifier ):
 			{
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
+				'Mis-Classifications': self.misclass,
 				'Precision Score': self.precision,
 				'Accuracy Score': self.accuracy,
 				'Recall Score': self.recall,
 				'Balanced Accuracy': self.balanced_accuracy,
 				'F Score': self.f1_score,
 			}
-			
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
