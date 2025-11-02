@@ -42,11 +42,11 @@
 '''
 from argparse import ArgumentError
 from typing import Optional, List, Tuple
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from pandas.core.interchange.dataframe_protocol import DataFrame
 from sklearn.compose import ColumnTransformer
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 from boogr import Error, ErrorDialog
@@ -440,7 +440,8 @@ class DataSource( ):
     size: float
     seed: int
     scaler: Optional[ Scaler ]
-    encoder: Optional[ LabelEncoder ]
+    label_encoder: Optional[ LabelEncoder ]
+    target_encoder: Optional[ TargetEncoder ]
     data: Optional[ np.ndarray ]
     targets: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
@@ -491,11 +492,11 @@ class DataSource( ):
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
         self.feature_names = list( self.dataframe.columns )
         self.numeric_columns = self.dataframe.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-        self.categorical_columns = self.dataframe.select_dtypes( include=[ 'object', 'category' ] ).columns.tolist( )
+        self.categorical_columns = self.dataframe.select_dtypes( include=[ 'object', 'category', ] ).columns.tolist( )
         self.data = self.dataframe.values
         self.n_samples = self.dataframe.shape[ 0 ]
         self.n_features = self.dataframe.shape[ 1 ]
-        self.targets = df[ target ].to_numpy( )
+        self.targets = df[ target ].values
         self.target_names = np.array( sorted( np.unique( df[ target ].to_numpy( ) ) ) )
         self.numeric_data = df[ self.numeric_columns ].copy( )
         self.categorical_data = df[ self.categorical_columns ].copy( )
@@ -509,7 +510,8 @@ class DataSource( ):
         self.numeric_metrics = df[ self.numeric_columns ].describe( percentiles=[ .05, .1, .25, .3, .5, .70, .8, .95 ] )
         self.datatuple = [ ]
         self.scaler = None
-        self.encoder = None
+        self.label_encoder = None
+        self.target_encoder = None
         self.pivot_table = None
         self.column_transformer = None
     
@@ -521,14 +523,39 @@ class DataSource( ):
             This function retuns a list of strings (members of the class)
 
         '''
-        return [ 'dataframe', 'scaler', 'n_samples', 'n_features', 'target_names', 'feature_names',
-                 'test_size', 'random_state', 'categorical_metrics', 'categorical_columns',
-                 'transtuple', 'numeric', 'pivot_table', 'calculate_statistics',
-                 'numeric_columns', 'mean_standard_error', 'data', 'target',
-                 'average', 'kurtosis', 'variance', 'numeric_data',
-                 'standard_deviation', 'export_excel', 'create_heatemap',
-                 'transform_columns', 'numeric_statistics', 'categorical_data',
-                 'categorical_statistics', 'create_pivot', 'create_histogram', ]
+        return [ 'dataframe',
+                 'scaler',
+                 'n_samples',
+                 'n_features',
+                 'target_names',
+                 'feature_names',
+                 'test_size',
+                 'random_state',
+                 'label_encoder',
+                 'target_encoder',
+                 'categorical_metrics',
+                 'categorical_columns',
+                 'transtuple',
+                 'numeric',
+                 'pivot_table',
+                 'calculate_statistics',
+                 'numeric_columns',
+                 'mean_standard_error',
+                 'data',
+                 'target',
+                 'average',
+                 'kurtosis',
+                 'variance',
+                 'numeric_data',
+                 'standard_deviation',
+                 'export_excel',
+                 'create_heatemap',
+                 'transform_columns',
+                 'numeric_statistics',
+                 'categorical_data',
+                 'categorical_statistics',
+                 'create_pivot',
+                 'create_histogram', ]
     
     def transform_columns( self, name: List[ str] , encoder: Encoder, columns: List[ str ] ) -> None:
         """
@@ -555,14 +582,14 @@ class DataSource( ):
             self.datatuple.append( (name, encoder, columns) )
             self.column_transformer = ColumnTransformer( transformers=self.datatuple,
 	            remainder='passthrough' )
-            self.data = self.dataframe[ self.feature_names ].values
-            _ = self.column_transformer.fit_transform( self.data )
+            values = self.dataframe[ self.feature_names ].values
+            self.data = self.column_transformer.fit_transform( values )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
             exception.cause = 'DataSource'
-            exception.method = ('transform_columns( self, name: str, encoder: object, n_features: '
-                                'List[ str ] )')
+            exception.method = ('transform_columns( self, name: List[ str] , encoder: Encoder, '
+                                'columns: List[ str ] )')
             error = ErrorDialog( exception )
             error.show( )
             
@@ -665,11 +692,11 @@ class DataSource( ):
 		"""
         try:
 	        throw_if( 'col', col )
-	        self.encoder = LabelEncoder( )
-	        values = self.dataframe[ col ].values
-	        y = values.astype(str)
-	        encoded_labels = self.encoder.model.fit_transform( y )
-	        return encoded_labels
+	        self.label_encoder = LabelEncoder( )
+	        y = self.dataframe[ col ].to_numpy( )
+	        labels = self.label_encoder.train_transform( y )
+	        self.dataframe[ col ] = labels
+	        return labels
         except Exception as e:
 	        exception = Error( e )
 	        exception.module = 'mathy'
@@ -677,6 +704,40 @@ class DataSource( ):
 	        exception.method = 'encode_targets( self ) -> p.ndarray'
 	        error = ErrorDialog( exception )
 	        error.show( )
+    
+    def encode_categorical( self ) -> DataFrame:
+	    """
+
+			Purpose:
+			-----------
+			Instance method that converts numeric data values
+			into a standardized form (ie, subtracting the average
+			and diidiving by the standard deviation).
+
+
+			Returns:
+			-----------
+			pd.DataFrame
+
+		"""
+	    try:
+		    encoded_categories = [ ]
+		    for col in self.categorical_columns:
+			    map = { }
+			    values = np.unique( self.dataframe[ col ] )
+			    for index, value in enumerate( values ):
+				    map[ index ] = value
+			    series = self.dataframe[ col ].map( map )
+			    encoded_categories.append( series )
+		    data = pd.DataFrame( encoded_categories, columns=self.categorical_columns )
+		    return data
+	    except Exception as e:
+		    exception = Error( e )
+		    exception.module = 'mathy'
+		    exception.cause = 'DataSource'
+		    exception.method = 'encode_categorical( self ) -> None'
+		    error = ErrorDialog( exception )
+		    error.show( )
     
     def encode_targets( self ) -> np.ndarray:
         """
@@ -694,11 +755,10 @@ class DataSource( ):
 
         """
         try:
-	        self.encoder = LabelEncoder( )
-	        values = self.targets
-	        y = values.astype(str)
-	        encoded_labels = self.encoder.model.fit_transform( y )
-	        return encoded_labels
+	        self.label_encoder = LabelEncoder( )
+	        encoded_targets = self.label_encoder.train_transform( self.targets )
+	        self.dataframe[ self.targets ] = encoded_targets
+	        return encoded_targets
         except Exception as e:
 	        exception = Error( e )
 	        exception.module = 'mathy'
@@ -707,7 +767,6 @@ class DataSource( ):
 	        error = ErrorDialog( exception )
 	        error.show( )
 	
-    
     def create_pivot( self, cols: List, vals: List, idx: List ) -> pd.DataFrame:
         '''
 

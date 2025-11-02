@@ -546,7 +546,7 @@ class LabelEncoder( Encoder ):
 		"""
 		try:
 			throw_if( 'y', y )
-			values = y.astype(float)
+			values = y.astype( str )
 			self.transformed_data = self.model.fit_transform( values )
 			return self.transformed_data
 		except Exception as e:
@@ -603,9 +603,10 @@ class TargetEncoder( Encoder ):
 	model: pp.TargetEncoder
 	transformed_data: Optional[ np.ndarray ]
 	categories: Optional[ str ]
+	smoothing: Optional[ str ]
 	target_type: Optional[ str ]
 	
-	def __init__( self, target_type: str='auto' ) -> None:
+	def __init__( self ) -> None:
 		"""
 
 			Purpose:
@@ -614,8 +615,7 @@ class TargetEncoder( Encoder ):
 
 		"""
 		super( ).__init__( )
-		self.target_type = target_type
-		self.model = pp.TargetEncoder( target_type=self.target_type )
+		self.model = pp.TargetEncoder( )
 		self.transformed_data = None
 	
 	def __dir__( self ):
