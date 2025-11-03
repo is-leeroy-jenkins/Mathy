@@ -705,7 +705,7 @@ class DataSource( ):
 	        exception = Error( e )
 	        exception.module = 'mathy'
 	        exception.cause = 'DataSource'
-	        exception.method = 'encode_targets( self ) -> p.ndarray'
+	        exception.method = 'encode_labels( self, col: str ) -> np.ndarray'
 	        error = ErrorDialog( exception )
 	        error.show( )
     
