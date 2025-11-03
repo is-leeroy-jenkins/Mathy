@@ -2857,7 +2857,7 @@ class NearestNeighbor( Classifier ):
 			return self.model.classes_
 	
 	@property
-	def feature_in( self ) -> int:
+	def features_in( self ) -> int:
 		'''
 
 			Returns
@@ -3262,7 +3262,7 @@ class DecisionTree( Classifier ):
 			return self.model.classes_
 	
 	@property
-	def feature_in( self ) -> int:
+	def features_in( self ) -> int:
 		'''
 
 			Returns
@@ -3697,7 +3697,7 @@ class RandomForest( Classifier ):
 			return self.model.classes_
 	
 	@property
-	def feature_in( self ) -> int:
+	def features_in( self ) -> int:
 		'''
 
 			Returns

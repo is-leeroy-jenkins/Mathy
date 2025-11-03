@@ -48,6 +48,7 @@ import pandas as pd
 import seaborn as sns
 from pandas.core.interchange.dataframe_protocol import DataFrame
 from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split as split
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 from boogr import Error, ErrorDialog
 from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder

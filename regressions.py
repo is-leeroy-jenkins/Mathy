@@ -6274,7 +6274,7 @@ class MultiLayerPerceptron( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.model.fit( X, y )
+			self.model.train( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
