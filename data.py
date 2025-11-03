@@ -436,11 +436,11 @@ class DataSource( ):
         y_testing
 
     """
-    dataframe: pd.DataFrame
+    data: pd.DataFrame
     size: float
     seed: int
     scaler: Optional[ Scaler ]
-    label_encoder: Optional[ LabelEncoder ]
+    label_encoder: Optional[ OrdinalEncoder ]
     target_encoder: Optional[ TargetEncoder ]
     data: Optional[ np.ndarray ]
     targets: Optional[ np.ndarray ]
@@ -485,17 +485,16 @@ class DataSource( ):
                 None
 
         """
-        self.dataframe = df.copy( )
+        self.data = df.copy( )
         self.size = size
         self.seed = rando
         if target not in df.columns:
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
-        self.feature_names = list( self.dataframe.columns )
-        self.numeric_columns = self.dataframe.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-        self.categorical_columns = self.dataframe.select_dtypes( include=[ 'object', 'category', ] ).columns.tolist( )
-        self.data = self.dataframe.values
-        self.n_samples = self.dataframe.shape[ 0 ]
-        self.n_features = self.dataframe.shape[ 1 ]
+        self.feature_names = list( self.data.columns )
+        self.numeric_columns = self.data.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+        self.categorical_columns = self.data.select_dtypes( include=[ 'object', 'category', ] ).columns.tolist( )
+        self.n_samples = self.data.shape[ 0 ]
+        self.n_features = self.data.shape[ 1 ]
         self.targets = df[ target ].values
         self.target_names = np.array( sorted( np.unique( df[ target ].to_numpy( ) ) ) )
         self.numeric_data = df[ self.numeric_columns ].copy( )
@@ -523,7 +522,8 @@ class DataSource( ):
             This function retuns a list of strings (members of the class)
 
         '''
-        return [ 'dataframe',
+        return [ 'data',
+                 'target',
                  'scaler',
                  'n_samples',
                  'n_features',
@@ -538,20 +538,24 @@ class DataSource( ):
                  'transtuple',
                  'numeric',
                  'pivot_table',
-                 'calculate_statistics',
-                 'numeric_columns',
                  'mean_standard_error',
-                 'data',
-                 'target',
                  'average',
                  'kurtosis',
                  'variance',
                  'numeric_data',
+                 'numeric_columns',
+                 'numeric_statistics',
                  'standard_deviation',
+                 # Methods
                  'export_excel',
                  'create_heatemap',
+                 'calculate_statistics',
                  'transform_columns',
-                 'numeric_statistics',
+                 'maxminize',
+                 'normalize',
+                 'standardize',
+                 'encode_targets',
+                 'encode_labels',
                  'categorical_data',
                  'categorical_statistics',
                  'create_pivot',
@@ -582,7 +586,7 @@ class DataSource( ):
             self.datatuple.append( (name, encoder, columns) )
             self.column_transformer = ColumnTransformer( transformers=self.datatuple,
 	            remainder='passthrough' )
-            values = self.dataframe[ self.feature_names ].values
+            values = self.data[ self.feature_names ].values
             self.data = self.column_transformer.fit_transform( values )
         except Exception as e:
             exception = Error( e )
@@ -592,7 +596,6 @@ class DataSource( ):
                                 'columns: List[ str ] )')
             error = ErrorDialog( exception )
             error.show( )
-            
     
     def standardize( self ) -> pd.DataFrame:
         """
@@ -675,6 +678,7 @@ class DataSource( ):
 	        error = ErrorDialog( exception )
 	        error.show( )
         
+        
     def encode_labels( self, col: str ) -> np.ndarray:
         """
 
@@ -693,9 +697,9 @@ class DataSource( ):
         try:
 	        throw_if( 'col', col )
 	        self.label_encoder = LabelEncoder( )
-	        y = self.dataframe[ col ].to_numpy( )
+	        y = self.data[ col ].to_numpy( )
 	        labels = self.label_encoder.train_transform( y )
-	        self.dataframe[ col ] = labels
+	        self.data[ col ] = labels
 	        return labels
         except Exception as e:
 	        exception = Error( e )
@@ -721,16 +725,10 @@ class DataSource( ):
 
 		"""
 	    try:
-		    encoded_categories = [ ]
-		    for col in self.categorical_columns:
-			    map = { }
-			    values = np.unique( self.dataframe[ col ] )
-			    for index, value in enumerate( values ):
-				    map[ index ] = value
-			    series = self.dataframe[ col ].map( map )
-			    encoded_categories.append( series )
-		    data = pd.DataFrame( encoded_categories, columns=self.categorical_columns )
-		    return data
+		    self.label_encoder = OrdinalEncoder( )
+		    values = self.data[ self.categorical_columns ].values
+		    encoded_targets = self.label_encoder.train_transform( values )
+		    return encoded_targets
 	    except Exception as e:
 		    exception = Error( e )
 		    exception.module = 'mathy'
@@ -757,7 +755,7 @@ class DataSource( ):
         try:
 	        self.label_encoder = LabelEncoder( )
 	        encoded_targets = self.label_encoder.train_transform( self.targets )
-	        self.dataframe[ self.targets ] = encoded_targets
+	        self.data[ self.targets ] = encoded_targets
 	        return encoded_targets
         except Exception as e:
 	        exception = Error( e )
@@ -790,7 +788,7 @@ class DataSource( ):
             throw_if( 'cols', cols )
             throw_if( 'vals', vals )
             throw_if( 'idx', idx )
-            self.pivot_table = self.dataframe.pivot_table( index=idx, columns=cols, values=vals,
+            self.pivot_table = self.data.pivot_table( index=idx, columns=cols, values=vals,
 	            dropna=True, margins=True )
             return self.pivot_table
         except Exception as e:
@@ -816,7 +814,7 @@ class DataSource( ):
         '''
         try:
             throw_if( 'filepath', filepath )
-            self.dataframe.to_excel( filepath )
+            self.data.to_excel( filepath )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
@@ -835,18 +833,18 @@ class DataSource( ):
 
         '''
         try:
-            _col_means = self.dataframe.select_dtypes( 'number' ).sum( axis=0 )
-            plt.figure( figsize=( 10, 6 ) )
-            sns.histplot( _col_means, bins=20, kde=True )
-            plt.title( 'Column Means' )
-            plt.xlabel( 'Average' )
+            total = self.data.sum( axis=0, numeric_only=True )
+            plt.figure( figsize=( 8, 6 ) )
+            sns.histplot( total, bins=20, kde=True, legend=True, )
+            plt.title( 'Distributions' )
+            plt.xlabel( 'Mean' )
             plt.ylabel( 'Frequency' )
             plt.show( )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'stores'
-            exception.method = 'show_histogram( self )'
+            exception.cause = 'DataSource'
+            exception.method = 'create_histogram( self )'
             error = ErrorDialog( exception )
             error.show( )
     
@@ -860,15 +858,15 @@ class DataSource( ):
             
         '''
         try:
-            _correlation = self.dataframe.corr( 'pearson', numeric_only=numeric )
-            plt.figure( figsize=( 10, 6 ) )
-            sns.heatmap( _correlation, cmap='coolwarm', annot=True )
-            plt.title( 'Correlation Analysis' )
+            correlations = self.data.corr( 'pearson', numeric_only=numeric )
+            plt.figure( figsize=( 8, 6 ) )
+            sns.heatmap( correlations, cmap='coolwarm', annot=True )
+            plt.title( 'Correlations' )
             plt.show( )
         except Exception as e:
             exception = Error( e )
             exception.module = 'mathy'
-            exception.cause = 'stores'
-            exception.method = 'show_correlation_analysis( self )'
+            exception.cause = 'DataSource'
+            exception.method = 'create_heatmap( self )'
             error = ErrorDialog( exception )
             error.show( )

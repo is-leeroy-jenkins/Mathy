@@ -79,13 +79,15 @@ class Classifier( ):
 		Abstract base class that defines the interface for all linerar_model wrappers.
 
 	"""
+	max_iter: Optional[ int ]
+	random_state: Optional[ int ]
+	learning_rate: Optional[ float ]
+	random_state: Optional[ int ]
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	misclass: Optional[ float ]
-	max_depth: Optional[ int ]
-	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	recall: Optional[ float ]
@@ -553,12 +555,12 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -630,7 +632,7 @@ class Perceptron( Classifier ):
 			first = np.arange( x1_min, x1_max, resolution )
 			second = np.arange( x2_min, x2_max, resolution )
 			xx1, xx2 = np.meshgrid( first, second )
-			lab = self.model.predict( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
+			lab = self.project( np.ndarray( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
 			plt.xlim( xx1.min( ), xx1.max( ) )
@@ -648,6 +650,7 @@ class Perceptron( Classifier ):
 					linewidth=1, marker='o',
 					s=100, label='Test set' )
 			
+			plt.grid( visible=True )
 			plt.legend( loc='best' )
 			plt.tight_layout( )
 		except Exception as e:
@@ -947,12 +950,12 @@ class LeastSquares( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
+			plt.figure( figsize=( 10, 6 ) )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -1036,7 +1039,7 @@ class LogisticRegression( Classifier ):
 	decision: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
-	random_state: int
+	random_state: Optional[ int ]
 	penalty: str
 	multi_class: str
 	C: float
@@ -1413,12 +1416,12 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
+			plt.figure( figsize=( 10, 6 ) )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -1800,12 +1803,12 @@ class Ridge( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
+			plt.figure( figsize=( 10, 6 ) )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -2169,7 +2172,7 @@ class Lasso( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
-	
+
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
@@ -2195,29 +2198,14 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
-			self.prediction = self.project( X )
-			self.mean_squared_error = float( mean_squared_error( y, self.prediction ) ),
-			self.root_mean_squared_error = float( root_mean_squared_error( y, self.prediction ) ),
-			self.mean_absolute_error = float( mean_absolute_error( y, self.prediction ) ),
-			self.median_absolute_error = float( median_absolute_error( y, self.prediction ) ),
-			_analysis = \
-			{
-				'Mean Squared Error': self.mean_squared_error,
-				'Root Mean Squared Error': self.root_mean_squared_error,
-				'Mean Absolute Error': self.mean_absolute_error,
-				'Median Absolute Error': self.median_absolute_error
-			}
-			
-			_data = pd.DataFrame( _analysis )
-			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2254,7 +2242,7 @@ class Lasso( Classifier ):
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
+			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'}, marker='o' )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
@@ -2624,12 +2612,12 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -3103,12 +3091,12 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -3538,12 +3526,12 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -3960,12 +3948,12 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -4409,12 +4397,12 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -4811,12 +4799,12 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -5177,12 +5165,12 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -5533,12 +5521,12 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -5905,12 +5893,12 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -6342,12 +6330,12 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:
@@ -6774,12 +6762,12 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
-			_analysis = confusion_matrix( y, y_pred )
+			data = pd.DataFrame( X )
+			corr = data.corr( method='pearson' )
 			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( pd.crosstab( y, y_pred ), annot=True, fmt='d', cmap='YlGnBu' )
+			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Confusion Matrix' )
+			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
 			plt.show( )
 		except Exception as e:

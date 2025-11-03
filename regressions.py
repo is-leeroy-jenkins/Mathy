@@ -76,6 +76,10 @@ class Regression:
     Abstract base class that defines the interface for all linerar_model wrappers.
 
     """
+	max_iter: Optional[ int ]
+	random_state: Optional[ int ]
+	learning_rate: Optional[ float ]
+	random_state: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	binarizer: Optional[ Binarizer ]
@@ -311,6 +315,43 @@ class LeastSquares( Regression ):
 		else:
 			return self.model.n_features_in_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
 	
@@ -531,6 +572,10 @@ class Ridge( Regression ):
 	    If an array is passed, penalties are assumed to be specific to the targets.
 
     """
+	max_iter: Optional[ int ]
+	random_state: Optional[ int ]
+	learning_rate: Optional[ float ]
+	random_state: Optional[ int ]
 	model: skl.Ridge
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
@@ -545,7 +590,6 @@ class Ridge( Regression ):
 	random_state: int
 	learning_rate: float
 	alpha: float
-	max_iter: int
 	solver: str
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
@@ -652,6 +696,43 @@ class Ridge( Regression ):
 			raise AttributeError( 'The classification data is untrained.' )
 		else:
 			return self.model.coef_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Ridge'
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -927,6 +1008,74 @@ class Lasso( Regression ):
 			raise AttributeError( 'The model weights have not been initialized!' )
 		else:
 			return self.model.coef_
+	
+	@property
+	def iterations( self ) -> int:
+		'''
+	
+			Returns
+			-------
+			n_iter_ (int) is ndarray of shape ( n_classes, )
+			Represents the number of iterations run by the coordinate descent solver
+			to reach the specified tolerance.
+	
+		'''
+		if self.model.n_iter_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_iter_
+	
+	@property
+	def features( self ) -> int:
+		'''
+	
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+	
+		'''
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.n_features_in_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Lasso'
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		"""
@@ -1235,6 +1384,43 @@ class ElasticNet( Regression ):
 		         'training_score',
 		         'training_score' ]
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+			
 	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNet | None:
 		"""
 
@@ -1532,6 +1718,43 @@ class LeastAngle( Regression ):
 		         'plot_scatter',
 		         'training_score',
 		         'training_score' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngle | None:
 		"""
@@ -1842,6 +2065,43 @@ class Bayesian( Regression ):
 		         'plot_scatter',
 		         'training_score',
 		         'training_score' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Bayesian | None:
 		"""
@@ -2162,6 +2422,43 @@ class GradientDescent( Regression ):
 		         'labels',
 		         'training_score',
 		         'training_score' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -2489,6 +2786,43 @@ class NearestNeighbor( Regression ):
 		else:
 			return self.model.classes_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
 
@@ -2786,6 +3120,43 @@ class DecisionTree( Regression ):
 		         'scatter_plot',
 		         'training_score',
 		         'training_score' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		'''
@@ -3099,6 +3470,43 @@ class RandomForest( Regression ):
 		         'training_score',
 		         'training_score' ]
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+			
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		'''
 	
@@ -3416,6 +3824,43 @@ class GradientBoost( Regression ):
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
 			return self.model.classes_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -3746,6 +4191,43 @@ class AdaptiveBoost( Regression ):
 		else:
 			return self.model.classes_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
 
@@ -4056,6 +4538,43 @@ class BaggingModel( Regression ):
 		else:
 			return self.model.classes_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
 
@@ -4357,6 +4876,43 @@ class VotingModel( Regression ):
 			raise AttributeError( 'The model labels have not been initialized!' )
 		else:
 			return self.model.classes_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		'''
@@ -4667,6 +5223,43 @@ class StackingModel( Regression ):
 		else:
 			return self.model.classes_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
 
@@ -4943,6 +5536,43 @@ class SupportVector( Regression ):
 		         'scatter_plot',
 		         'training_score',
 		         'training_score' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -5229,6 +5859,43 @@ class GaussianProcess( Regression ):
 		         'scatter_plot',
 		         'training_score',
 		         'training_score' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcessRegressor | None:
 		"""
@@ -5550,6 +6217,43 @@ class MultiLayerPerceptron( Regression ):
 		else:
 			return self.model.coefs_
 	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			---------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			size (int): The size of the testing data set
+			random (int): A random seed.
+
+
+			Returns:
+			________
+			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
+			ex. ( X_train, X_test, y_train, y_test )
+
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			error = ErrorDialog( exception )
+			error.show( )
+	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
 
@@ -5575,9 +6279,8 @@ class MultiLayerPerceptron( Regression ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ""
-			exception.method = (
-					'train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline')
+			exception.cause = ''
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron'
 			error = ErrorDialog( exception )
 			error.show( )
 	

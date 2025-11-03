@@ -252,7 +252,7 @@ class OneHotEncoder( Encoder ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def fit_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
