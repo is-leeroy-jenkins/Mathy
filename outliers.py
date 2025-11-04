@@ -325,7 +325,7 @@ class IsolationForest( Outlier ):
 			_data = pd.DataFrame( _analysis )
 			_total = _data.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
-			sns.histplot( _total, bins=20, kde=True, legend=True, )
+			sns.scatterplot( data=_data[ ['Inliers', 'Outliers'] ], orient='v', legend='auto'  )
 			plt.title( 'Distributions' )
 			plt.xlabel( 'Totals' )
 			plt.ylabel( 'Frequency' )
