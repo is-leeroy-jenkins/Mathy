@@ -1962,7 +1962,7 @@ class Bayesian( Regression ):
     Bayesian regression techniques can be used to include alpha parameters in the
     estimation procedure: the alpha parameter is not set in a hard sense
     but tuned to the df at hand. This can be done by introducing uninformative priors over
-    the hyper parameters of the model. The alpha used in Ridge regression and
+    the hyperparameters of the model. The alpha used in Ridge regression and
     classification is equivalent to finding a maximum a posteriori estimation under a
     Gaussian prior over the coefficients with precision . Instead of setting lambda manually,
     it is possible to treat it as a random variable to be estimated from the df.
