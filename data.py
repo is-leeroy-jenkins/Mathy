@@ -444,6 +444,7 @@ class DataSource( ):
     label_encoder: Optional[ OrdinalEncoder ]
     target_encoder: Optional[ TargetEncoder ]
     data: Optional[ np.ndarray ]
+    target: Optional[ str ]
     targets: Optional[ np.ndarray ]
     n_samples: Optional[ int ]
     n_features: Optional[ int ]
@@ -491,6 +492,7 @@ class DataSource( ):
         self.seed = rando
         if target not in df.columns:
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
+        self.target = target
         self.feature_names = [ c for c in self.data.columns if c != target ]
         self.numeric_columns = self.data.select_dtypes( include=[ 'number' ] ).columns.tolist( )
         self.categorical_columns = self.data.select_dtypes( include=[ 'object', 'category', ] ).columns.tolist( )
@@ -728,8 +730,9 @@ class DataSource( ):
 	    try:
 		    features = [ ]
 		    for col in self.data.columns:
-			    if col != self.targets:
+			    if col != self.target:
 				    features.append( col )
+				
 		    self.label_encoder = OrdinalEncoder( )
 		    values = self.data[ self.categorical_columns ].values
 		    encoded_targets = self.label_encoder.train_transform( values )

@@ -440,7 +440,7 @@ class LeastSquares( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -791,7 +791,7 @@ class Ridge( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -1163,7 +1163,7 @@ class Lasso( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -1509,7 +1509,7 @@ class ElasticNet( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -1842,7 +1842,7 @@ class LeastAngle( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -2189,7 +2189,7 @@ class Bayesian( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -2567,7 +2567,7 @@ class GradientDescent( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -2910,7 +2910,7 @@ class NearestNeighbor( Regression ):
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -3245,7 +3245,7 @@ class DecisionTree( Regression ):
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -3593,7 +3593,7 @@ class RandomForest( Regression ):
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -3948,7 +3948,7 @@ class GradientBoost( Regression ):
 			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -4312,7 +4312,7 @@ class AdaptiveBoost( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -4659,7 +4659,7 @@ class BaggingModel( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -5000,7 +5000,7 @@ class VotingModel( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -5344,7 +5344,7 @@ class StackingModel( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -5657,7 +5657,7 @@ class SupportVector( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -5983,7 +5983,7 @@ class GaussianProcess( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
@@ -6340,7 +6340,7 @@ class MultiLayerPerceptron( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
-			self.r_mean_squared_error = mean_squared_error( y, self.prediction, squared=False  )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction, squared=False  )
 			self.max_error = max_error( y, self.prediction  )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			

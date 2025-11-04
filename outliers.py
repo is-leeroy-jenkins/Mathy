@@ -428,7 +428,7 @@ class OneClass( Outlier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVector'
+			exception.cause = 'OneClass'
 			exception.method = 'project'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -453,19 +453,18 @@ class OneClass( Outlier ):
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
 			_scores = \
-				{
-						'Outliers': float( self.outliers ),
-						'Inliers': float( self.inliers ),
-						'Contamination': float( self.model.contamination ),
-						'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-						'Anomaly': self.anomaly_scores,
-				}
+			{
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
+			}
 			_data = pd.DataFrame( _scores )
 			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'OneClass'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -490,14 +489,15 @@ class OneClass( Outlier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			y_pred = self.model.predict( X )
+			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
 			_analysis = \
 			{
 				'Outliers': float( self.outliers ),
 				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
 			}
 			_data = pd.DataFrame( _analysis )
 			_total = _data.sum( axis=0, numeric_only=True )
@@ -509,8 +509,8 @@ class OneClass( Outlier ):
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
+			exception.module = 'outliers'
+			exception.cause = 'OneClass'
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -670,6 +670,7 @@ class OutlierFactor( Outlier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			y_pred = self.model.predict( X )
+			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
 			_analysis = \
@@ -677,7 +678,8 @@ class OutlierFactor( Outlier ):
 					'Outliers': float( self.outliers ),
 					'Inliers': float( self.inliers ),
 					'Contamination': float( self.model.contamination ),
-					'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
+					'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+					'Anomaly': self.anomaly_scores,
 				}
 			_data = pd.DataFrame( _analysis )
 			_total = _data.sum( axis=0, numeric_only=True )
@@ -843,7 +845,8 @@ class EllipticSquare( Outlier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X )
+			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
 			_analysis = \
@@ -851,7 +854,8 @@ class EllipticSquare( Outlier ):
 				'Outliers': float( self.outliers ),
 				'Inliers': float( self.inliers ),
 				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
 			}
 			_data = pd.DataFrame( _analysis )
 			_total = _data.sum( axis=0, numeric_only=True )

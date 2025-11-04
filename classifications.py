@@ -555,7 +555,7 @@ class Perceptron( Classifier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Any:
 		"""
 
 
@@ -585,14 +585,55 @@ class Perceptron( Classifier ):
 			plt.figure( figsize=( 8, 6 ) )
 			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
 			plt.tight_layout( )
-			plt.title( 'Correlation Matrix' )
-			plt.grid( False )
+			plt.title( 'Correlations' )
+			plt.grid( True )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> str'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def confusion_graph( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+		"""
+
+
+			Purpose:
+			-----------
+			Evaluate classifier performance using standard classification metrics.
+
+			Parameters:
+			---------
+			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
+			y (np.ndarray): Ground truth class target_names.
+
+			Returns:
+			---------
+			dict: Dictionary of evaluation metrics including:
+			- Mean Squared Error (float)
+			- Root Mean Squared Error (float)
+			- Mean Absolute Error (float)
+			- Median Absolute Error (float)
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			plt.figure( figsize=( 8, 6 ) )
+			cm = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( cm ).plot( )
+			plt.tight_layout( )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( True )
+			plt.show( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Perceptron'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> Dict'
 			error = ErrorDialog( exception )
 			error.show( )
 	
@@ -771,7 +812,7 @@ class LeastSquares( Classifier ):
 			return self.model.coef_
 	
 	@property
-	def features( self ) -> np.ndarray:
+	def features_in( self ) -> np.ndarray:
 		'''
 
 			Returns
