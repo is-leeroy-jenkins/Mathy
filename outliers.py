@@ -323,12 +323,10 @@ class IsolationForest( Outlier ):
 				'Anomaly': self.anomaly_scores,
 			}
 			_data = pd.DataFrame( _analysis )
-			_total = _data.sum( axis=0, numeric_only=True )
+			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
+			_total = anomalies.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
-			sns.scatterplot( data=_data[ ['Inliers', 'Outliers'] ], orient='v', legend='auto'  )
-			plt.title( 'Distributions' )
-			plt.xlabel( 'Totals' )
-			plt.ylabel( 'Frequency' )
+			sns.barplot( data=anomalies )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
