@@ -310,7 +310,8 @@ class IsolationForest( Outlier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X, y  )
+			y_pred = self.project( X, y )
+			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
 			_analysis = \
@@ -318,7 +319,8 @@ class IsolationForest( Outlier ):
 				'Outliers': float( self.outliers ),
 				'Inliers': float( self.inliers ),
 				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
 			}
 			_data = pd.DataFrame( _analysis )
 			_total = _data.sum( axis=0, numeric_only=True )

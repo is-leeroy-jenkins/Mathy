@@ -728,7 +728,8 @@ class DataSource( ):
 	    try:
 		    features = [ ]
 		    for col in self.data.columns:
-			    if col !=
+			    if col != self.targets:
+				    features.append( col )
 		    self.label_encoder = OrdinalEncoder( )
 		    values = self.data[ self.categorical_columns ].values
 		    encoded_targets = self.label_encoder.train_transform( values )
