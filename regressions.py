@@ -1954,7 +1954,7 @@ class LeastAngle( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class Bayesian( Regression ):
+class BayesianRidge( Regression ):
 	"""
 
     Purpose:
@@ -2092,7 +2092,7 @@ class Bayesian( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> Bayesian | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidge | None:
 		"""
 
         Purpose:
