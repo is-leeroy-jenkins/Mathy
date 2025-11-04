@@ -1790,17 +1790,17 @@ class LeastAngle( Regression ):
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
 
-        Purpose:
-        -----------
-        Predict class target_names using the least angle regression linerar_model.
-
-        Parameters:
-        -----------
-        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-
-        Returns:
-        -----------
-                np.ndarray: Predicted class target_names.
+	        Purpose:
+	        -----------
+	        Predict class target_names using the least angle regression linerar_model.
+	
+	        Parameters:
+	        -----------
+	        X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+	
+	        Returns:
+	        -----------
+	                np.ndarray: Predicted class target_names.
 
         """
 		try:
@@ -2907,7 +2907,6 @@ class NearestNeighbor( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction  )
@@ -2919,7 +2918,6 @@ class NearestNeighbor( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -3743,7 +3741,7 @@ class GradientBoost( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, lss: str='deviance', rate: float=0.1, est: int=100, max: int=3, rando: int=42, ) -> None:
+	def __init__( self, lss: str='squared_error', rate: float=0.1, est: int=100, max: int=3, rando: int=42, ) -> None:
 		"""
 
         Purpose:
