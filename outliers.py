@@ -326,7 +326,7 @@ class IsolationForest( Outlier ):
 			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
 			_total = anomalies.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
-			sns.barplot( data=anomalies )
+			sns.barplot( data=anomalies, legend='full' )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
