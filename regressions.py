@@ -3943,7 +3943,6 @@ class GradientBoost( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			self.accuracy = accuracy_score( y, self.prediction )
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction  )
@@ -3955,7 +3954,6 @@ class GradientBoost( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -4319,7 +4317,6 @@ class AdaptiveBoost( Regression ):
 				'Training Score': self.training_score,
 	            'Testing Score': self.testing_score,
 				'R Squared Score': self.r2_score,
-				'Accuracy Score': self.accuracy,
 				'Mean Absolute Error': self.mean_absolute_error,
 				'Mean Squared Error': self.mean_squared_error,
 				'Root Mean Squared Error': self.root_mean_squared_error,
@@ -5859,7 +5856,7 @@ class GaussianProcess( Regression ):
 		         'training_score' ]
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		'''
 
 			Purpose:
