@@ -788,99 +788,99 @@ class Ridge( Regression ):
 			error = ErrorDialog( exception )
 			error.show( )
 		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
 
 
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
 
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
 	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -1152,100 +1152,100 @@ class Lasso( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -1490,100 +1490,100 @@ class ElasticNet( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -1815,99 +1815,99 @@ class LeastAngle( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
 
 
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
 
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
 
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
 
 
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
 
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
 
-		        Returns:
-		        -----------
-		        DataFrame
+	        Returns:
+	        -----------
+	        DataFrame
 
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -2149,100 +2149,100 @@ class Bayesian( Regression ):
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -2535,100 +2535,100 @@ class GradientDescent( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -2871,100 +2871,100 @@ class NearestNeighbor( Regression ):
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -3197,100 +3197,100 @@ class DecisionTree( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -3536,100 +3536,100 @@ class RandomForest( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -3883,100 +3883,100 @@ class GradientBoost( Regression ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -4240,100 +4240,100 @@ class AdaptiveBoost( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -4581,100 +4581,100 @@ class BaggingModel( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -4917,100 +4917,100 @@ class VotingModel( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -5256,100 +5256,100 @@ class StackingModel( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -5564,100 +5564,100 @@ class SupportVector( Regression ):
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -5888,100 +5888,100 @@ class GaussianProcess( Regression ):
 			exception.method = "project"
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
@@ -6239,100 +6239,100 @@ class MultiLayerPerceptron( Regression ):
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
-		
-		def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Compute the R-squared accuracy of the OLS model.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        float: R-squared accuracy.
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.training_score = self.model.score( X_training, y_training )
-				self.testing_score = self.model.score( X_testing, y_testing )
-				self.r2_score = r2_score( y, self.prediction )
-				
-				_metrics = \
-					{
-							'Training Score': self.training_score,
-							'Testing Score': self.testing_score,
-							'R-Squared Score': self.r2_score,
-					}
-				
-				idx = range( len( _metrics.items( ) ) )
-				_dataframe = pd.DataFrame( _metrics, index=idx )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
-		
-		def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-			"""
-
-
-		        Purpose:
-		        -----------
-		        Evaluate the model using multiple regression metrics.
-
-		        Parameters:
-		        -----------
-		        X ( n_samples, n_features ): np.ndarray - feature matrix.
-		        y ( n_samples, ): np.ndarray - target vector.
-
-		        Returns:
-		        -----------
-		        DataFrame
-
-	        """
-			try:
-				throw_if( 'X', X )
-				throw_if( 'y', y )
-				self.prediction = self.project( X )
-				X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-				self.mean_absolute_error = mean_absolute_error( y, self.prediction )
-				self.mean_squared_error = mean_squared_error( y, self.prediction )
-				self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
-				self.max_error = max_error( y, self.prediction )
-				self.explained_variance_score = explained_variance_score( y, self.prediction )
-				_metrics = \
-					{
-							'MAE': self.mean_absolute_error,
-							'MSE': self.mean_squared_error,
-							'RMSE': self.root_mean_squared_error,
-							'EVS': self.explained_variance_score,
-							'MAX': self.max_error,
-					}
-				
-				_data = pd.Series( _metrics )
-				_dataframe = pd.DataFrame( _data )
-				return _dataframe
-			except Exception as e:
-				exception = Error( e )
-				exception.module = 'mathy'
-				exception.cause = ''
-				exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-				error = ErrorDialog( exception )
-				error.show( )
 	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Compute the R-squared accuracy of the OLS model.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        float: R-squared accuracy.
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.training_score = self.model.score( X_training, y_training )
+			self.testing_score = self.model.score( X_testing, y_testing )
+			self.r2_score = r2_score( y, self.prediction )
+			
+			_metrics = \
+				{
+						'Training Score': self.training_score,
+						'Testing Score': self.testing_score,
+						'R-Squared Score': self.r2_score,
+				}
+			
+			idx = range( len( _metrics.items( ) ) )
+			_dataframe = pd.DataFrame( _metrics, index=idx )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+	
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
+		"""
+
+
+	        Purpose:
+	        -----------
+	        Evaluate the model using multiple regression metrics.
+
+	        Parameters:
+	        -----------
+	        X ( n_samples, n_features ): np.ndarray - feature matrix.
+	        y ( n_samples, ): np.ndarray - target vector.
+
+	        Returns:
+	        -----------
+	        DataFrame
+
+        """
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.prediction = self.project( X )
+			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
+			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
+			self.mean_squared_error = mean_squared_error( y, self.prediction )
+			self.r_mean_squared_error = root_mean_squared_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
+			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			_metrics = \
+				{
+						'MAE': self.mean_absolute_error,
+						'MSE': self.mean_squared_error,
+						'RMSE': self.root_mean_squared_error,
+						'EVS': self.explained_variance_score,
+						'MAX': self.max_error,
+				}
+			
+			_data = pd.Series( _metrics )
+			_dataframe = pd.DataFrame( _data )
+			return _dataframe
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = ''
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
+			error = ErrorDialog( exception )
+			error.show( )
+
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
 
