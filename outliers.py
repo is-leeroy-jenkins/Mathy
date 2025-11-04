@@ -43,11 +43,14 @@
 '''
 from __future__ import annotations
 from typing import Optional, Dict
+import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.svm import OneClassSVM
-from sklearn.neighbors import LocalOutlierFactor
-from sklearn.ensemble import IsolationForest
-from sklearn.covariance import EllipticEnvelope
+import pandas as pd
+import seaborn as sns
+import sklearn.ensemble as en
+import sklearn.svm as sv
+import sklearn.neighbors as nn
+import sklearn.covariance as cv
 from sklearn.metrics import classification_report
 from boogr import Error, ErrorDialog
 
@@ -69,9 +72,13 @@ class Outlier( ):
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	anomaly_scores: Optional[ float ]
+	learning_rate: Optional[ float ]
+	outliers: Optional[ float ]
+	inliers: Optional[ float ]
 	
 	def __init__( self ):
-		pass
+		self.outliers = 0.0
+		self.inliers = 0.0
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
@@ -162,7 +169,7 @@ class IsolationForest( Outlier ):
 		forest of such random trees, is a measure of normality and our decision function.
 
 	"""
-	model: IsolationForest
+	model: en.IsolationForest
 	contamination: float
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
@@ -185,7 +192,7 @@ class IsolationForest( Outlier ):
 
 		"""
 		self.contamination = contamination
-		self.model = IsolationForest( contamination=self.contamination )
+		self.model = en.IsolationForest( contamination=self.contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
@@ -247,41 +254,54 @@ class IsolationForest( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
-	
+
 			Purpose:
 			--------
-			Returns the proportion of inliers detected during training.
-	
+			Computes the proportion of training samples classified as inliers.
+
 			Returns:
 			--------
-			float: Percentage of samples labeled as inliers.
+			float: Fraction of inliers.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
-			return np.mean( self.prediction == 1 )
+			throw_if( 'y', y )
+			y_pred = self.project( X, y )
+			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_scores = \
+			{
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
+			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'IsolationForest'
+			exception.cause = ''
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
 			--------
 			Evaluates outlier detection results, optionally against ground-truth labels.
-	
+
 			Parameters:
 			-----------
 			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
-	
+
 			Returns:
 			--------
 			Dict: Classification report or descriptive summary.
@@ -289,16 +309,25 @@ class IsolationForest( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
-			outliers = int( np.sum( self.prediction == -1 ) )
-			inliers = int( np.sum( self.prediction == 1 ) )
-			return \
+			throw_if( 'y', y )
+			y_pred = self.model.predict( X, y  )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_analysis = \
 			{
-				'Outliers': float( outliers ),
-				'Inliers': float( inliers ),
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
 				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
 			}
+			_data = pd.DataFrame( _analysis )
+			_total = _data.sum( axis=0, numeric_only=True )
+			plt.figure( figsize=(8, 6) )
+			sns.histplot( _total, bins=20, kde=True, legend=True, )
+			plt.title( 'Distributions' )
+			plt.xlabel( 'Totals' )
+			plt.ylabel( 'Frequency' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -316,7 +345,7 @@ class OneClass( Outlier ):
 		The model learns a boundary around "normal" samples and identifies novel deviations.
 
 	"""
-	model: Optional[ OneClassSVM ]
+	model: Optional[ sv.OneClassSVM ]
 	data: Optional[ np.ndarray ]
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
@@ -341,7 +370,7 @@ class OneClass( Outlier ):
 			None
 
 		"""
-		self.model = OneClassSVM( kernel=kernel, nu=nu, gamma=gamma )
+		self.model = sv.OneClassSVM( kernel=kernel, nu=nu, gamma=gamma )
 		self.prediction = None
 		self.anomaly_scores = None
 	
@@ -364,7 +393,6 @@ class OneClass( Outlier ):
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )  # -1 = outlier, 1 = inlier
-			self.anomaly_scores = self.model.decision_function( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -403,42 +431,54 @@ class OneClass( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
-	
+
 			Purpose:
 			--------
-			Returns the percentage of samples classified as inliers during training.
-	
+			Computes the proportion of training samples classified as inliers.
+
 			Returns:
 			--------
-			float: Proportion of training samples classified as inliers.
+			float: Fraction of inliers.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
-			_score = np.mean( self.prediction == 1 )
-			return _score
+			throw_if( 'y', y )
+			y_pred = self.project( X, y )
+			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_scores = \
+				{
+						'Outliers': float( self.outliers ),
+						'Inliers': float( self.inliers ),
+						'Contamination': float( self.model.contamination ),
+						'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+						'Anomaly': self.anomaly_scores,
+				}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVector'
+			exception.cause = ''
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
 			--------
 			Evaluates outlier detection results, optionally against ground-truth labels.
-	
+
 			Parameters:
 			-----------
 			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
-	
+
 			Returns:
 			--------
 			Dict: Classification report or descriptive summary.
@@ -446,20 +486,29 @@ class OneClass( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
-			outliers = int( np.sum( self.prediction == -1 ) )
-			inliers = int( np.sum( self.prediction == 1 ) )
-			return \
+			throw_if( 'y', y )
+			y_pred = self.model.predict( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_analysis = \
 			{
-				'Outliers': float( outliers ),
-				'Inliers': float( inliers ),
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
 				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
 			}
+			_data = pd.DataFrame( _analysis )
+			_total = _data.sum( axis=0, numeric_only=True )
+			plt.figure( figsize=(8, 6) )
+			sns.histplot( _total, bins=20, kde=True, legend=True, )
+			plt.title( 'Distributions' )
+			plt.xlabel( 'Mean' )
+			plt.ylabel( 'Frequency' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVector'
+			exception.cause = ''
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -473,7 +522,7 @@ class OutlierFactor( Outlier ):
 		Provides decision function, prediction, and scoring interfaces.
 
 	"""
-	model: LocalOutlierFactor
+	model: nn.LocalOutlierFactor
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
 	neighbors: Optional[ int ]
@@ -501,12 +550,12 @@ class OutlierFactor( Outlier ):
 		self.neighbors = n_neighbors
 		self.contamination = contamination
 		self.novelty = novelty
-		self.model = LocalOutlierFactor( n_neighbors=self.neighbors,
+		self.model = nn.LocalOutlierFactor( n_neighbors=self.neighbors,
 			contamination=self.contamination, novelty=self.novelty )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> LocalOutlierFactor | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> OutlierFactor | None:
 		"""
 
 			Purpose:
@@ -525,8 +574,6 @@ class OutlierFactor( Outlier ):
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
-			self.prediction = self.model.predict( X )
-			self.anomaly_scores = self.model.decision_function( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -554,8 +601,8 @@ class OutlierFactor( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.predicate = self.model.predict( X )
-			return self.predicate
+			self.prediction = self.model.predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -564,7 +611,7 @@ class OutlierFactor( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
 	
 			Purpose:
@@ -577,17 +624,31 @@ class OutlierFactor( Outlier ):
 
 		"""
 		try:
-			throw_if( 'predicate', self.predicate )
-			return np.mean( self.predicate == 1 )
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X, y )
+			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_scores = \
+			{
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
+			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'OutlierFactor'
+			exception.cause = ''
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -606,24 +667,32 @@ class OutlierFactor( Outlier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.prediction = self.model.predict( X )
-			outliers = int( np.sum( self.prediction == -1 ) )
-			inliers = int( np.sum( self.prediction == 1 ) )
-			return \
-			{
-				'Outliers': float( outliers ),
-				'Inliers': float( inliers ),
-				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
-			}
+			y_pred = self.model.predict( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_analysis = \
+				{
+					'Outliers': float( self.outliers ),
+					'Inliers': float( self.inliers ),
+					'Contamination': float( self.model.contamination ),
+					'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
+				}
+			_data = pd.DataFrame( _analysis )
+			_total = _data.sum( axis=0, numeric_only=True )
+			plt.figure( figsize=(8, 6) )
+			sns.histplot( _total, bins=20, kde=True, legend=True, )
+			plt.title( 'Distributions' )
+			plt.xlabel( 'Total' )
+			plt.ylabel( 'Frequency' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'OutlierFactor'
+			exception.cause = ''
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )
-
+			
 class EllipticSquare( Outlier ):
 	"""
 
@@ -633,7 +702,7 @@ class EllipticSquare( Outlier ):
 		This method is based on Mahalanobis distances under an elliptical (normal) distribution.
 
 	"""
-	model: EllipticEnvelope
+	model: cv.EllipticEnvelope
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
 	
@@ -654,7 +723,7 @@ class EllipticSquare( Outlier ):
 			None
 
 		"""
-		self.model = EllipticEnvelope( contamination=contamination )
+		self.model = cv.EllipticEnvelope( contamination=contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
@@ -716,31 +785,44 @@ class EllipticSquare( Outlier ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> float | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
-	
+
 			Purpose:
 			--------
-			Computes proportion of inliers detected during training.
-	
+			Computes the proportion of training samples classified as inliers.
+
 			Returns:
 			--------
-			float: Fraction of training samples classified as inliers.
+			float: Fraction of inliers.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
-			return np.mean( self.prediction == 1 )
+			throw_if( 'y', y )
+			y_pred = self.project( X, y )
+			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_scores = \
+			{
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
+			}
+			_data = pd.DataFrame( _scores )
+			return _data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'EllipticSquare'
+			exception.cause = ''
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def analyze( self, X: np.ndarray, y:np.ndarray ) -> Dict[ str, float ] | None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -758,20 +840,29 @@ class EllipticSquare( Outlier ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
-			outliers = int( np.sum( self.prediction == -1 ) )
-			inliers = int( np.sum( self.prediction == 1 ) )
-			return \
+			throw_if( 'y', y )
+			y_pred = self.model.predict( X )
+			self.outliers = int( np.sum( y_pred == -1 ) )
+			self.inliers = int( np.sum( y_pred == 1 ) )
+			_analysis = \
 			{
-				'Outliers': float( outliers ),
-				'Inliers': float( inliers ),
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
 				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( inliers / len( self.prediction ), 4 ) )
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) )
 			}
+			_data = pd.DataFrame( _analysis )
+			_total = _data.sum( axis=0, numeric_only=True )
+			plt.figure( figsize=(8, 6) )
+			sns.histplot( _total, bins=20, kde=True, legend=True, )
+			plt.title( 'Distributions' )
+			plt.xlabel( 'Mean' )
+			plt.ylabel( 'Frequency' )
+			plt.show( )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'EllipticSquare'
+			exception.cause = ''
 			exception.method = 'analyze'
 			error = ErrorDialog( exception )
 			error.show( )

@@ -70,6 +70,8 @@ from boogr import Error, ErrorDialog
 def throw_if( name: str, value: object ):
 	if value is None:
 		raise Exception( f'Argument "{name}" cannot be empty!' )
+	
+
 
 class Classifier( ):
 	"""
@@ -96,11 +98,34 @@ class Classifier( ):
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
+	markers: Optional[ List[ str ] ]
 	
 	def __init__( self ):
-		pass
+		self.markers = [ '.',
+		                 'o',
+		                 'v',
+		                 '^',
+		                 '<',
+		                 '>',
+		                 '1',
+		                 '2',
+		                 '3',
+		                 '4',
+		                 '8',
+		                 's',
+		                 'p',
+		                 'P',
+		                 '*',
+		                 'h',
+		                 'H',
+		                 '+',
+		                 'x',
+		                 'X',
+		                 'd',
+		                 'D' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray, ) | None:
+	def split_data( self, X: np.ndarray, y: np.ndarray ) -> (
+			( np.ndarray, np.ndarray, np.ndarray, np.ndarray, ) | None ):
 		'''
 			
 			Purpose:
@@ -156,7 +181,7 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:

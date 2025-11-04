@@ -47,7 +47,6 @@ import pandas as pd
 import sklearn.cross_decomposition as sd
 import sklearn.decomposition as sd
 import sklearn.feature_selection as sf
-from sklearn.feature_selection import chi2
 from sklearn.metrics import accuracy_score
 from sklearn.base import clone
 from itertools import combinations
@@ -59,7 +58,159 @@ def throw_if( name: str, value: object ):
     if value is None:
         raise ValueError( f'Argument "{name}" cannot be empty!' )
 
-class VarianceThreshold( ):
+class Selector( ):
+	'''
+		
+		Purpose:
+		--------
+		Base class for implementing feature selection functionality
+		
+		
+	'''
+	markers: Optional[ List[ str ] ]
+	prediction: Optional[ np.ndarray ]
+	transformed_data: Optional[ np.ndarray ]
+	accuracy: Optional[ float ]
+	
+	def __init__( self ):
+		self.markers = [ '.',
+		                 'o',
+		                 'v',
+		                 '^',
+		                 '<',
+		                 '>',
+		                 '1',
+		                 '2',
+		                 '3',
+		                 '4',
+		                 '8',
+		                 's',
+		                 'p',
+		                 'P',
+		                 '*',
+		                 'h',
+		                 'H',
+		                 '+',
+		                 'x',
+		                 'X',
+		                 'd',
+		                 'D' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray ) -> (
+			(np.ndarray, np.ndarray, np.ndarray, np.ndarray,) | None):
+		'''
+
+			Purpose:
+			_______
+
+
+			Parameters:
+			__________
+
+
+			Returns:
+			________
+
+
+		'''
+		raise NotImplementedError
+	
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the linerar_model to the training df.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+			Returns:
+			--------
+				None
+
+		"""
+		raise NotImplementedError
+	
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Generate predictions from  the trained linerar_model.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True target target_names.
+
+			Returns:
+			-----------
+			np.ndarray: Predicted target_names or class target_names.
+
+		"""
+		raise NotImplementedError
+	
+	def transform( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the linerar_model to the training df.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+			Returns:
+			--------
+				None
+
+		"""
+		raise NotImplementedError
+	
+	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the linerar_model to the training df.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector w/shape ( n_samples, ).
+
+			Returns:
+			--------
+				None
+
+		"""
+		raise NotImplementedError
+	
+	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
+		"""
+
+			Purpose:
+			---------
+			Compute the core metric (e.g., R²) of the model on test df.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): True target target_names.
+
+			Returns:
+			-----------
+				float: Score value (e.g., R² for regressors).
+
+		"""
+		raise NotImplementedError
+
+class VarianceThreshold( Selector ):
 	"""
 
 		Purpose:
@@ -70,6 +221,7 @@ class VarianceThreshold( ):
 
 	"""
 	model: sf.VarianceThreshold
+	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	threshold: Optional[ float ]
 	accuracy: Optional[ float ]
@@ -87,8 +239,10 @@ class VarianceThreshold( ):
 			:type threshold: float
 
 		"""
+		super( ).__init__( )
 		self.threshold = thresh
 		self.model = sf.VarianceThreshold( threshold=self.threshold )
+		self.prediction = None
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -101,6 +255,7 @@ class VarianceThreshold( ):
 		'''
 		return [ 'threshold',
 		         'model',
+		         'prediction',
 		         'transformed_data',
 		         'split_data',
 		         'train',
@@ -108,7 +263,7 @@ class VarianceThreshold( ):
 		         'train_transform' ]
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		'''
 
 			Purpose:
@@ -134,7 +289,7 @@ class VarianceThreshold( ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			return ( X_train, X_test, y_train, y_test )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -303,7 +458,7 @@ class VarianceThreshold( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class CCA( ):
+class CCA( Selector ):
 	"""
 
 		Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
@@ -312,6 +467,7 @@ class CCA( ):
 
 	"""
 	model: Optional[ sd.CCA ]
+	prediction: Optional[ np.ndarray ]
 	n_components: Optional[ int ]
 	scale: Optional[ bool ]
 	max_iter: Optional[ int ]
@@ -334,10 +490,12 @@ class CCA( ):
 			max (int): The maximum number of components to extract.
 
 		"""
+		super( ).__init__( )
 		self.scale = scale
 		self.n_components = num
 		self.max_iter = size
 		self.model = sd.CCA( n_components=self.n_components, scale=self.scale, max_iter=self.max_iter )
+		self.prediction = None
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -348,10 +506,10 @@ class CCA( ):
 			Returns a list of strings representing class members.
 
 		'''
-		return [ 'analysis',
+		return [ 'mdel',
 		         'n_components',
 		         'max_iter',
-		         'analysis',
+		         'prediction',
 		         'transformed_data',
 		         'split_data',
 		         'train',
@@ -385,7 +543,7 @@ class CCA( ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			return ( X_train, X_test, y_train, y_test )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -461,9 +619,9 @@ class CCA( ):
 			self.accuracy = accuracy_score( y, y_pred )
 			_metrics = \
 			{
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'Accuracy Score': self.accuracy,
+				'Training Score': self.training_score,
+				'Testing Score': self.testing_score,
+				'Accuracy Score': self.accuracy,
 			}
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
@@ -562,7 +720,7 @@ class CCA( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class PCA( ):
+class PCA( Selector ):
 	"""
 
 		Purpose:
@@ -576,6 +734,7 @@ class PCA( ):
 
 	"""
 	model: sd.PCA
+	prediction: Optional[ np.ndarray ]
 	svd_solver: Optional[ str ]
 	n_components: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
@@ -597,9 +756,11 @@ class PCA( ):
 			:type solver: str
 
 		"""
+		super( ).__init__( )
 		self.n_components = num
 		self.svd_solver = solver
 		self.model = sd.PCA( n_components=self.n_components, svd_solver=self.svd_solver )
+		self.prediction = None
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -610,7 +771,8 @@ class PCA( ):
 			A list of strings representing class members.
 
 		'''
-		return [ 'component_analysis',
+		return [ 'model',
+		         'prediction',
 		         'svd_solver',
 		         'n_components',
 		         'transformed_data',
@@ -749,9 +911,9 @@ class PCA( ):
 			self.accuracy = accuracy_score( y, y_pred )
 			_metrics = \
 				{
-						'Training Score': self.training_score,
-						'Testing Score': self.testing_score,
-						'Accuracy Score': self.accuracy,
+					'Training Score': self.training_score,
+					'Testing Score': self.testing_score,
+					'Accuracy Score': self.accuracy,
 				}
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
@@ -820,23 +982,23 @@ class PCA( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SelectBest( ):
+class SelectBest( Selector ):
 	"""
 
 		Purpose:
 		---------
-
+		Class that removes all but the 'k' highest scoring features
 
 	"""
 	model: sf.SelectKBest
+	prediction: Optional[ np.ndarray ]
 	k_best: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
-	threshold: Optional[ float ]
 	accuracy: Optional[ float ]
-	training_score: Optional[ float ]
-	testing_score: Optional[ float ]
+	score_function: Optional[ callable ]
+	chi2_score: Optional[ Tuple[ float, float ] ]
 	
-	def __init__( self, k: int = 3 ) -> None:
+	def __init__( self, score_func: callable=sf.chi2,  k: int=3 ) -> None:
 		"""
 
 			Purpose:
@@ -847,9 +1009,13 @@ class SelectBest( ):
 			:type threshold: float
 
 		"""
+		super( ).__init__( )
 		self.k_best = k
-		self.model = sf.SelectKBest( score_func=chi2, k=self.k_best )
+		self.score_function = score_func
+		self.model = sf.SelectKBest( score_func=self.score_function, k=self.k_best )
+		self.prediction = None
 		self.transformed_data = None
+		self.chi2_score = None
 	
 	def __dir__( self ):
 		'''
@@ -861,12 +1027,48 @@ class SelectBest( ):
 		'''
 		return [ 'k_best',
 		         'model',
+		         'prediction',
+		         'accuracy',
+		         'score_function',
+		         'chi2_score',
 		         'transformed_data',
-		         'split_data',
-		         'train',
-		         'transform',
-		         'train_transform' ]
+		         'chi_square', ]
 	
+	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ float, float ]:
+		'''
+			
+			Purpose:
+			-------
+			Compute chi-squared stats between each non-negative feature and class.
+			This score can be used to select the n_features features with the highest values
+			for the test chi-squared statistic from X, which must contain only non-negative
+			integer feature values such as booleans or frequencies (e.g., term counts in
+			document classification), relative to the classes.
+			
+			Parameters:
+			----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+			
+			
+			Return:
+			--------
+			(float, float) chi2, pvalue
+		
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			( stats, p_vals ) = self.score_function( X, y )
+			return ( stats, p_vals )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectBest'
+			exception.method = 'chi_square( self, X: ndarray, y: ndarray ) -> ( ndarray, ndarray)'
+			error = ErrorDialog( exception )
+			error.show( )
+		
 	def split_data( self, X: np.ndarray, y: np.ndarray,
 			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		'''
@@ -994,11 +1196,11 @@ class SelectBest( ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.accuracy = accuracy_score( y, y_pred )
 			_metrics = \
-				{
-						'Training Score': self.training_score,
-						'Testing Score': self.testing_score,
-						'Accuracy Score': self.accuracy,
-				}
+			{
+				'Training Score': self.training_score,
+				'Testing Score': self.testing_score,
+				'Accuracy Score': self.accuracy,
+			}
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
@@ -1067,7 +1269,7 @@ class SelectBest( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SelectPercent( ):
+class SelectPercent( Selector ):
 	"""
 
 		Purpose:
@@ -1076,25 +1278,27 @@ class SelectPercent( ):
 
 	"""
 	model: sf.SelectPercentile
+	prediction: Optional[ np.ndarray ]
+	percent: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
-	threshold: Optional[ float ]
+	score_function: Optional[ callable ]
 	accuracy: Optional[ float ]
-	training_score: Optional[ float ]
-	testing_score: Optional[ float ]
+	chi2_score: Optional[ float ]
 	
-	def __init__( self, percent: int=10 ) -> None:
+	def __init__( self, score_func: callable=sf.chi2, percent: int=10 ) -> None:
 		"""
 
 			Purpose:
 			---------
 			Initialize SelectBest.
 
-			:param threshold: Features with variance below this are removed.
-			:type threshold: float
+			score_func:
 
 		"""
+		super( ).__init__( )
 		self.percent = percent
-		self.model = sf.SelectPercentile( percentile=self.percent )
+		self.score_function: score_func
+		self.model = sf.SelectPercentile( score_func=self.score_function, percentile=self.percent )
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -1105,13 +1309,52 @@ class SelectPercent( ):
 			A list of strings representing class members
 
 		'''
-		return [ 'k',
+		return [ 'percent',
 		         'model',
+		         'prediction',
 		         'transformed_data',
 		         'split_data',
+		         'score_function',
 		         'train',
+		         'project',
+		         'train_transform',
 		         'transform',
-		         'train_transform' ]
+		         'chi_square' ]
+	
+	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ float, float ]:
+		'''
+
+			Purpose:
+			-------
+			Compute chi-squared stats between each non-negative feature and class.
+			This score can be used to select the n_features features with the highest values
+			for the test chi-squared statistic from X, which must contain only non-negative
+			integer feature values such as booleans or frequencies (e.g., term counts in
+			document classification), relative to the classes.
+
+			Parameters:
+			----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Binary class target_names. ( n_samples, ).
+
+
+			Return:
+			--------
+			(float, float) chi2, pvalue
+
+		'''
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			( stats, p_vals ) = self.score_function( X, y )
+			return ( stats, p_vals )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectPercent'
+			exception.method = 'chi_square( self, X: ndarray, y: ndarray ) -> ( ndarray, ndarray)'
+			error = ErrorDialog( exception )
+			error.show( )
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
 			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
@@ -1313,7 +1556,7 @@ class SelectPercent( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class SBS( ):
+class SBS( Selector ):
 	'''
 	
 		Purpose:
@@ -1321,7 +1564,8 @@ class SBS( ):
 	
 	
 	'''
-	scoring: Optional[ accuracy_score ]
+	scoring: Optional[ callable ]
+	prediction: Optional[ np.ndarray ]
 	classifier: Optional[ Classifier ]
 	random_state: Optional[ int ]
 	test_size: Optional[ float ]
@@ -1329,7 +1573,7 @@ class SBS( ):
 	accuracy: Optional[ float ]
 	
 	def __init__( self, classifier: Classifier, k_features: int,
-			scoring: accuracy_score=accuracy_score, test_size: float=0.25, random_state: int=1 ):
+			scoring: callable=accuracy_score, test_size: float=0.25, random_state: int=1 ):
 		'''
 
 			Purpose:
@@ -1337,11 +1581,13 @@ class SBS( ):
 			Sequential Back Selection (SBS) Contrstructor
 
 		'''
+		super( ).__init__( )
 		self.scoring = scoring
 		self.classifier = clone( classifier )
 		self.k_features = k_features
 		self.test_size = test_size
 		self.random_state = random_state
+		self.prediction = None
 	
 	def __dir__( self ):
 		'''
@@ -1353,6 +1599,7 @@ class SBS( ):
 		'''
 		return [ 'k',
 		         'model',
+		         'prediction',
 		         'transformed_data',
 		         'split_data',
 		         'train',
@@ -1361,7 +1608,7 @@ class SBS( ):
 		         'train_transform' ]
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		'''
 
 			Purpose:
@@ -1388,7 +1635,7 @@ class SBS( ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			return ( X_train, X_test, y_train, y_test )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1398,7 +1645,7 @@ class SBS( ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) ->  object | None:
 		'''
 
 			Purpose:
@@ -1517,7 +1764,7 @@ class SBS( ):
 			error = ErrorDialog( exception )
 			error.show( )
 
-class RFE( ):
+class RFE( Selector ):
 	"""
 
 		Purpose:
@@ -1534,6 +1781,7 @@ class RFE( ):
 
 	"""
 	model: Optional[ sf.RFE ]
+	prediction: Optional[ np.ndarray ]
 	classifier: Optional[ NearestNeighbor ]
 	transformed_data: Optional[ np.ndarray ]
 	n_features_to_select: Optional[ int ]
@@ -1551,11 +1799,13 @@ class RFE( ):
 
 
 		"""
+		super( ).__init__( )
 		self.n_features_to_select = k_features
 		self.classifier = NearestNeighbor( )
 		self.verbose = verbose
 		self.model = sf.RFE( estimator=self.classifier,
 			n_features_to_select=self.n_features_to_select, verbose=self.verbose )
+		self.prediction = None
 		self.transformed_data = None
 	
 	def __dir__( self ):
@@ -1747,7 +1997,7 @@ class RFE( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
 	

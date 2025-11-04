@@ -491,11 +491,11 @@ class DataSource( ):
         self.seed = rando
         if target not in df.columns:
             raise ArgumentError( None, f'target "{target}" not in dataframe' )
-        self.feature_names = list( self.data.columns )
+        self.feature_names = [ c for c in self.data.columns if c != target ]
         self.numeric_columns = self.data.select_dtypes( include=[ 'number' ] ).columns.tolist( )
         self.categorical_columns = self.data.select_dtypes( include=[ 'object', 'category', ] ).columns.tolist( )
         self.n_samples = self.data.shape[ 0 ]
-        self.n_features = self.data.shape[ 1 ]
+        self.n_features = len( self.feature_names )
         self.targets = df[ target ].values
         self.target_names = np.array( sorted( np.unique( df[ target ].to_numpy( ) ) ) )
         self.numeric_data = df[ self.numeric_columns ].copy( )
@@ -547,6 +547,8 @@ class DataSource( ):
                  'numeric_columns',
                  'numeric_statistics',
                  'standard_deviation',
+                 'categorical_data',
+                 'categorical_statistics',
                  # Methods
                  'export_excel',
                  'create_heatemap',
@@ -557,8 +559,6 @@ class DataSource( ):
                  'standardize',
                  'encode_targets',
                  'encode_labels',
-                 'categorical_data',
-                 'categorical_statistics',
                  'create_pivot',
                  'create_histogram', ]
     
@@ -710,7 +710,7 @@ class DataSource( ):
 	        error = ErrorDialog( exception )
 	        error.show( )
     
-    def encode_categorical( self ) -> DataFrame:
+    def encode_features( self ) -> DataFrame:
 	    """
 
 			Purpose:
@@ -726,6 +726,9 @@ class DataSource( ):
 
 		"""
 	    try:
+		    features = [ ]
+		    for col in self.data.columns:
+			    if col !=
 		    self.label_encoder = OrdinalEncoder( )
 		    values = self.data[ self.categorical_columns ].values
 		    encoded_targets = self.label_encoder.train_transform( values )

@@ -5,7 +5,7 @@ matplotlib
 seaborn
 openpyxl
 scipy
-scikit-learn==1.5.2
+scikit-learn
 pydantic
 FreeSimpleGUI
 torch
