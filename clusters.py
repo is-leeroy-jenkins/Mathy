@@ -599,28 +599,42 @@ class DBSCAN( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate DBSCAN clusters with silhouette score.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+
 			Returns:
 			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silhoutte
+			labels = self.model.predict( X )
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -628,7 +642,7 @@ class DBSCAN( Cluster ):
 			exception.method = 'score( self, X: np.ndarray ) -> float'
 			error = ErrorDialog( exception )
 			error.show( )
-		
+	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
 	
@@ -791,28 +805,42 @@ class Agglomerative( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate agglomerative clustering using silhouette score.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+
 			Returns:
-			-------
+			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silhoutte
+			labels = self.model.predict( X )
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -877,7 +905,7 @@ class Spectral( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, num: int = 8 ) -> None:
+	def __init__( self, num: int=8 ) -> None:
 		"""
 
 			Purpose:
@@ -976,28 +1004,42 @@ class Spectral( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate SpectralCluster results.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-			Return:
-			--------
+
+			Returns:
+			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silhoutte
+			labels = self.model.predict( X )
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1156,28 +1198,42 @@ class MeanShift( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate MeanShift clustering.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-			Return:
-			--------
+
+			Returns:
+			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silhoutte
+			labels = self.model.predict( X )
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1330,28 +1386,42 @@ class AffinityPropagation( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate clustering result.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-			Return:
-			--------
+
+			Returns:
+			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit( X ).labels_
-			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silhoutte
+			labels = self.model.predict( X )
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+				{
+						'Silouette': self.silouette,
+						'Homogeneity': self.homogeneity,
+						'Mutual-Info': self.mutual_info,
+						'Completeness': self.completeness,
+						'V-Measure': self.v_measure,
+				}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1567,27 +1637,42 @@ class Birch( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate Birch clustering.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-	
-			Return:
-			--------
+			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+
+			Returns:
+			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
 			labels = self.model.predict( X )
-			self.silouette = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silouette
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1651,7 +1736,7 @@ class OPTICS( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, samples: int = 5 ) -> None:
+	def __init__( self, samples: int=5 ) -> None:
 		"""
 
 			Purpose:
@@ -1727,28 +1812,42 @@ class OPTICS( Cluster ):
 			error = ErrorDialog( exception )
 			error.show( )
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate OPTICS clustering.
-	
+			Evaluate clustering performance using silhouette score.
+
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
 			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+
 			Returns:
 			---------
 			float
-	
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			self.silouette = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.silouette
+			labels = self.model.predict( X )
+			self.siloutte = silhouette_score( X, labels )
+			self.homogeneity = homogeneity_score( X, labels )
+			self.mutual_info = mutual_info_score( X, labels )
+			self.completeness = completeness_score( X, labels )
+			self.v_measure = v_measure_score( X, labels )
+			scores = \
+				{
+						'Silouette': self.silouette,
+						'Homogeneity': self.homogeneity,
+						'Mutual-Info': self.mutual_info,
+						'Completeness': self.completeness,
+						'V-Measure': self.v_measure,
+				}
+			cols = list( scores.keys( ) )
+			data = pd.DataFrame( data=scores, columns=cols )
+			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
