@@ -1056,7 +1056,7 @@ class AffinityPropagation( Cluster ):
 		    return self.accuracy
 	    except Exception as e:
 		    exception = Error( e )
-            exception.module = 'clusters'
+		    exception.module = 'clusters'
 		    exception.cause = 'AffinityPropagation'
 		    exception.method = 'score( self, X: np.ndarray ) -> float'
 		    error = ErrorDialog( exception )
