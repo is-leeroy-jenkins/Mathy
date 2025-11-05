@@ -225,8 +225,8 @@ class KMeans( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'KMeansCluster'
+            exception.module = 'clusters'
+            exception.cause = 'KMeans'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -254,8 +254,8 @@ class KMeans( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'KMeansCluster'
+            exception.module = 'clusters'
+            exception.cause = 'KMeans'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
             error.show( )
@@ -284,8 +284,8 @@ class KMeans( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'KMeansCluster'
+            exception.module = 'clusters'
+            exception.cause = 'KMeans'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
             error.show( )
@@ -312,8 +312,8 @@ class KMeans( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
-            exception.cause = 'KMeansCluster'
+            exception.module = 'clusters'
+            exception.cause = 'KMeans'
             exception.method = 'visualize( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
             error.show( )
@@ -385,7 +385,7 @@ class DBSCAN( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'DbscanCluster'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -414,7 +414,7 @@ class DBSCAN( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'DbscanCluster'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -444,7 +444,7 @@ class DBSCAN( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'DBSCAN'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
@@ -471,7 +471,7 @@ class DBSCAN( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'DBSCAN'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -545,7 +545,7 @@ class Agglomerative( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Agglomerative'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -574,7 +574,7 @@ class Agglomerative( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Agglomerative'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -604,7 +604,7 @@ class Agglomerative( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Agglomerative'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
@@ -632,7 +632,7 @@ class Agglomerative( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Agglomerative'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -697,7 +697,7 @@ class Spectral( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Spectral'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -727,7 +727,7 @@ class Spectral( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Spectral'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -757,7 +757,7 @@ class Spectral( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Spectral'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
@@ -784,7 +784,7 @@ class Spectral( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Spectral'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -847,7 +847,7 @@ class MeanShift( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'MeanShift'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -876,7 +876,7 @@ class MeanShift( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'MeanShift'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -906,7 +906,7 @@ class MeanShift( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'MeanShift'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
@@ -933,7 +933,7 @@ class MeanShift( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'MeanShift'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -990,7 +990,7 @@ class AffinityPropagation( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'AffinityPropagation'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -1019,7 +1019,7 @@ class AffinityPropagation( Cluster ):
             return np.ndarray( labels )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'AffinityPropagation'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -1049,7 +1049,7 @@ class AffinityPropagation( Cluster ):
 		    return self.accuracy
 	    except Exception as e:
 		    exception = Error( e )
-		    exception.module = 'mathy'
+            exception.module = 'clusters'
 		    exception.cause = 'AffinityPropagation'
 		    exception.method = 'score( self, X: np.ndarray ) -> float'
 		    error = ErrorDialog( exception )
@@ -1076,7 +1076,7 @@ class AffinityPropagation( Cluster ):
 		    plt.show( )
 	    except Exception as e:
 		    exception = Error( e )
-		    exception.module = 'mathy'
+            exception.module = 'clusters'
 		    exception.cause = 'AffinityPropagation'
 		    exception.method = 'analyze( self, X: np.ndarray ) -> None'
 		    error = ErrorDialog( exception )
@@ -1148,7 +1148,7 @@ class Birch( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Birch'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -1177,7 +1177,7 @@ class Birch( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Birch'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -1207,7 +1207,7 @@ class Birch( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Birch'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
@@ -1234,7 +1234,7 @@ class Birch( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'Birch'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -1302,7 +1302,7 @@ class OPTICS( Cluster ):
             return self
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'OPTICS'
             exception.method = 'train( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
@@ -1331,7 +1331,7 @@ class OPTICS( Cluster ):
             return self.prediction
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'OPTICS'
             exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
             error = ErrorDialog( exception )
@@ -1361,7 +1361,7 @@ class OPTICS( Cluster ):
             return self.accuracy
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'OPTICS'
             exception.method = 'score( self, X: np.ndarray ) -> float'
             error = ErrorDialog( exception )
@@ -1389,7 +1389,7 @@ class OPTICS( Cluster ):
             plt.show( )
         except Exception as e:
             exception = Error( e )
-            exception.module = 'mathy'
+            exception.module = 'clusters'
             exception.cause = 'OPTICS'
             exception.method = 'analyze( self, X: np.ndarray ) -> None'
             error = ErrorDialog( exception )
