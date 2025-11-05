@@ -196,8 +196,8 @@ class KMeans( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters: int = 8, init: str = 'k-means++', n_init: str = 'auto',
-			tol: float = 0.0001, rando: int = 42, max_iter: int = 300 ) -> None:
+	def __init__( self, clusters: int=8, init: str='k-means++', n_init: str='auto',
+			tol: float=0.0001, rando: int=42, max_iter: int=300 ) -> None:
 		"""
 			Purpose:
 			---------
@@ -235,6 +235,11 @@ class KMeans( Cluster ):
 			
 		'''
 		return [ 'model',
+		         'train',
+		         'score',
+		         'project',
+		         'transform',
+		         'analyze',
 		         'n_clusters',
 		         'init',
 		         'n_init',
@@ -244,6 +249,10 @@ class KMeans( Cluster ):
 		         'clusters',
 		         'labels',
 		         'inertia',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
 		         'iterations',
 		         'features',
 		         'prediction',
@@ -404,13 +413,13 @@ class KMeans( Cluster ):
 			self.completeness = completeness_score( X, labels )
 			self.v_measure = v_measure_score( X, labels )
 			scores = \
-				{
-						'Silouette': self.silouette,
-						'Homogeneity': self.homogeneity,
-						'Mutual-Info': self.mutual_info,
-						'Completeness': self.completeness,
-						'V-Measure': self.v_measure,
-				}
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
 			cols = list( scores.keys( ) )
 			data = pd.DataFrame( data=scores, columns=cols )
 			return data
@@ -472,6 +481,8 @@ class DBSCAN( Cluster ):
 	eps: Optional[ float ]
 	min_samples: Optional[ int ]
 	algorithm: Optional[ str ]
+	metric: Optional[ str ]
+	leaf_size: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -480,7 +491,8 @@ class DBSCAN( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, eps: float = 0.5, size: int = 5, algo: str = 'auto' ) -> None:
+	def __init__( self, eps: int=0.5, min_samples: int=5, metric: str='euclidean',
+			algorithm: str='auto', leaf_size: int=30 ) -> None:
 		"""
 
 			Purpose:
@@ -495,17 +507,44 @@ class DBSCAN( Cluster ):
 		"""
 		super( ).__init__( )
 		self.eps = eps
-		self.min_samples = size
-		self.algorithm = algo
-		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
-			algorithm=self.algorithm )
+		self.min_samples = min_samples
+		self.algorithm = algorithm
+		self.metric = metric
+		self.leaf_size = leaf_size
+		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples, metric=self.metric,
+			algorithm=self.algorithm, leaf_size=self.leaf_size )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'train',
+		         'score',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'min_samples',
+		         'algorithm',
+		         'eps',
+		         'leaf_size',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'clusters',
+		         'prediction',]
+	
 	def train( self, X: np.ndarray ) -> DBSCAN | None:
 		"""
 	
@@ -526,7 +565,7 @@ class DBSCAN( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
-			exception.cause = 'DbscanCluster'
+			exception.cause = 'DBSCAN'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -555,7 +594,7 @@ class DBSCAN( Cluster ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
-			exception.cause = 'DbscanCluster'
+			exception.cause = 'DBSCAN'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -580,8 +619,8 @@ class DBSCAN( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.fit_predict( X )
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silhoutte
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -673,7 +712,30 @@ class Agglomerative( Cluster ):
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'train',
+		         'score',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'prediction', ]
+	
 	def train( self, X: np.ndarray ) -> Agglomerative | None:
 		"""
 	
@@ -749,8 +811,8 @@ class Agglomerative( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.fit_predict( X )
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silhoutte
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -835,7 +897,30 @@ class Spectral( Cluster ):
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'train',
+		         'score',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'prediction', ]
+	
 	def train( self, X: np.ndarray ) -> Spectral | None:
 		"""
 	
@@ -911,8 +996,8 @@ class Spectral( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.fit_predict( X )
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silhoutte
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -993,7 +1078,30 @@ class MeanShift( Cluster ):
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'train',
+		         'score',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'prediction', ]
+	
 	def train( self, X: np.ndarray ) -> MeanShift | None:
 		"""
 	
@@ -1068,8 +1176,8 @@ class MeanShift( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.fit_predict( X )
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silhoutte
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1144,7 +1252,30 @@ class AffinityPropagation( Cluster ):
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'train',
+		         'score',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'project',
+		         'transform',
+		         'analyze',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'prediction', ]
+	
 	def train( self, X: np.ndarray ) -> AffinityPropagation | None:
 		"""
 	
@@ -1219,8 +1350,8 @@ class AffinityPropagation( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.fit( X ).labels_
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silhoutte = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silhoutte
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1283,6 +1414,11 @@ class Birch( Cluster ):
 
 	"""
 	model: skc.Birch
+	n_clusters: Optional[ int ]
+	threshold: Optional[ float ]
+	branching_factor: Optional[ int ]
+	copy: Optional[ bool ]
+	compute_labels: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -1291,7 +1427,8 @@ class Birch( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, num: int = 3 ) -> None:
+	def __init__( self, threshold=0.5, branching_factor=50, n_clusters=3,
+			compute_labels=True, copy=True ) -> None:
 		"""
 
 			Purpose:
@@ -1300,18 +1437,82 @@ class Birch( Cluster ):
 
 			Parameters:
 			----------
-			num: Optional[int]
+			n_clusters: Optional[int]
+			threshold: Optional[ float ]
+			branching_factor: Optional[ int ]
+			copy: Optional[ bool ]
+			compute_labels: Optional[ bool ]
 
 		"""
 		super( ).__init__( )
-		self.model = skc.Birch( n_clusters=num )
+		self.threshold = threshold
+		self.branching_factor = branching_factor
+		self.n_clusters = n_clusters
+		self.compute_labels = compute_labels
+		self.copy = copy
+		self.model = skc.Birch( threshold=self.threshold, branching_factor=self.branching_factor,
+			n_clusters=self.n_clusters, copy=self.copy, compute_labels=self.compute_labels )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'score',
+		         'project',
+		         'train',
+		         'transform',
+		         'analyze',
+		         'analyze',
+		         'centers',
+		         'labels',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'prediction', ]
+	
+	@property
+	def centers( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			n_iter_ (int) is ndarray of shape ( n_classes, )
+			Represents the number of iterations run by the coordinate descent solver
+			to reach the specified tolerance.
+
+		'''
+		if self.model.subcluster_centers_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.subcluster_centers_
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		'''
+
+			Returns
+			-------
+			n_features_in_
+			The number of features seen during training
+
+		'''
+		if self.model.subcluster_labels_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		else:
+			return self.model.subcluster_labels_
+	
 	def train( self, X: np.ndarray ) -> Birch | None:
 		"""
 	
@@ -1356,7 +1557,7 @@ class Birch( Cluster ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.fit_predict( X )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1376,7 +1577,6 @@ class Birch( Cluster ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
 	
 			Return:
 			--------
@@ -1386,8 +1586,8 @@ class Birch( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.predict( X )
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silouette = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silouette
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
@@ -1547,8 +1747,8 @@ class OPTICS( Cluster ):
 		try:
 			throw_if( 'X', X )
 			labels = self.model.fit_predict( X )
-			self.accuracy = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
-			return self.accuracy
+			self.silouette = silhouette_score( X, labels ) if len( set( labels ) ) > 1 else -1.0
+			return self.silouette
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
