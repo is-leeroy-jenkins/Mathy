@@ -46,8 +46,11 @@ from .clusters import *
 from .encoders import *
 from .transformers import *
 from .imputers import *
-from .vectorizers import  *
+from .forecasting import  *
+from .features import *
+from .outliers import *
 from .scalers import *
 from .data import *
+from .encoders import *
 
 __version__ = "0.1.0"

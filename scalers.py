@@ -585,7 +585,7 @@ class NormalScaler( Scaler ):
 	model: pp.Normalizer
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, reg: str = 'l2' ) -> None:
+	def __init__( self, reg: str='l2' ) -> None:
 		super( ).__init__( )
 		self.norm = reg
 		self.model = pp.Normalizer( norm=self.norm )
