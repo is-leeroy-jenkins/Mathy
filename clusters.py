@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 from boogr import Error, ErrorDialog
 import sklearn.cluster as skc
 from sklearn.metrics import silhouette_score
@@ -178,13 +178,17 @@ class KMeans( Cluster ):
     """
     model: skc.KMeans
     n_clusters: Optional[ int ]
+    init: Optional[ str ]
+    n_init: Optional[ str ]
+    tolerance: Optional[ str ]
     random_state: Optional[ int ]
     max_iter: Optional[ int ]
     prediction: Optional[ np.ndarray ]
     probability: Optional[ np.ndarray ]
     accuracy: Optional[ float ]
     
-    def __init__( self, clusters: int=8, rando: int=42, max_iter: int=300 ) -> None:
+    def __init__( self, clusters: int=8, init: str='k-means++', n_init: str='auto',
+		    tol: float=0.0001, rando: int=42, max_iter: int=300 ) -> None:
         """
             Purpose:
             ---------
@@ -199,10 +203,13 @@ class KMeans( Cluster ):
         """
         super( ).__init__( )
         self.n_clusters = clusters
+        self.init = init
+        self.n_init = n_init
         self.random_state = rando
         self.max_iter = max_iter
-        self.model = skc.KMeans( n_clusters=self.n_clusters,
-            random_state=self.random_state, max_iter=self.max_iter, n_init='auto' )
+        self.tolerance = tol
+        self.model = skc.KMeans( n_clusters=self.n_clusters, init=self.init, n_init=self.n_init,
+            random_state=self.random_state, max_iter=self.max_iter, )
         self.prediction = None
         self.accuracy = 0.0
         
@@ -1076,12 +1083,12 @@ class AffinityPropagation( Cluster ):
 		    plt.show( )
 	    except Exception as e:
 		    exception = Error( e )
-            exception.module = 'clusters'
+		    exception.module = 'clusters'
 		    exception.cause = 'AffinityPropagation'
 		    exception.method = 'analyze( self, X: np.ndarray ) -> None'
 		    error = ErrorDialog( exception )
 		    error.show( )
-
+	    
 class Birch( Cluster ):
     """
 
