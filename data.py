@@ -700,7 +700,7 @@ class DataSource( ):
         try:
 	        throw_if( 'col', col )
 	        self.label_encoder = LabelEncoder( )
-	        y = self.data[ col ].to_numpy( )
+	        y = self.data[ col ].values
 	        labels = self.label_encoder.train_transform( y )
 	        self.data[ col ] = labels
 	        return labels
@@ -729,12 +729,12 @@ class DataSource( ):
 		"""
 	    try:
 		    features = [ ]
+		    self.label_encoder = OrdinalEncoder( )
 		    for col in self.data.columns:
 			    if col != self.target:
 				    features.append( col )
-				
-		    self.label_encoder = OrdinalEncoder( )
-		    values = self.data[ self.categorical_columns ].values
+				    
+		    values = self.data[ : features ].values
 		    encoded_targets = self.label_encoder.train_transform( values )
 		    return encoded_targets
 	    except Exception as e:
@@ -841,9 +841,9 @@ class DataSource( ):
 
         '''
         try:
-            total = self.data.sum( axis=0, numeric_only=True )
             plt.figure( figsize=( 8, 6 ) )
-            sns.histplot( total, bins=20, kde=True, legend=True, )
+            data = self.data.sum( axis=0, numeric_only=True )
+            sns.histplot( data, kde=True, legend=True, line_kws={'color': 'red'}  )
             plt.title( 'Distributions' )
             plt.xlabel( 'Mean' )
             plt.ylabel( 'Frequency' )

@@ -324,8 +324,10 @@ class IsolationForest( Outlier ):
 			}
 			_data = pd.DataFrame( _analysis )
 			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
+			_text = f''
 			_total = anomalies.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
+			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
 			sns.barplot( data=anomalies, legend='full' )
 			plt.show( )
 		except Exception as e:
@@ -486,7 +488,7 @@ class OneClass( Outlier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
@@ -498,12 +500,12 @@ class OneClass( Outlier ):
 				'Anomaly': self.anomaly_scores,
 			}
 			_data = pd.DataFrame( _analysis )
-			_total = _data.sum( axis=0, numeric_only=True )
+			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
+			_text = f''
+			_total = anomalies.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
-			sns.histplot( _total, bins=20, kde=True, legend=True, )
-			plt.title( 'Distributions' )
-			plt.xlabel( 'Mean' )
-			plt.ylabel( 'Frequency' )
+			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.barplot( data=anomalies, legend='full' )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -613,11 +615,11 @@ class OutlierFactor( Outlier ):
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
-	
+
 			Purpose:
 			--------
 			Computes the proportion of training samples classified as inliers.
-	
+
 			Returns:
 			--------
 			float: Fraction of inliers.
@@ -634,7 +636,6 @@ class OutlierFactor( Outlier ):
 			{
 				'Outliers': float( self.outliers ),
 				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
 				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
 				'Anomaly': self.anomaly_scores,
 			}
@@ -643,7 +644,7 @@ class OutlierFactor( Outlier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'OutlierFactor'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -654,11 +655,11 @@ class OutlierFactor( Outlier ):
 			Purpose:
 			--------
 			Evaluates outlier detection results, optionally against ground-truth labels.
-	
+
 			Parameters:
 			-----------
 			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
-	
+
 			Returns:
 			--------
 			Dict: Classification report or descriptive summary.
@@ -667,25 +668,25 @@ class OutlierFactor( Outlier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
 			_analysis = \
-				{
-					'Outliers': float( self.outliers ),
-					'Inliers': float( self.inliers ),
-					'Contamination': float( self.model.contamination ),
-					'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-					'Anomaly': self.anomaly_scores,
-				}
+			{
+				'Outliers': float( self.outliers ),
+				'Inliers': float( self.inliers ),
+				'Contamination': float( self.model.contamination ),
+				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
+				'Anomaly': self.anomaly_scores,
+			}
 			_data = pd.DataFrame( _analysis )
-			_total = _data.sum( axis=0, numeric_only=True )
+			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
+			_text = f''
+			_total = anomalies.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
-			sns.histplot( _total, bins=20, kde=True, legend=True, )
-			plt.title( 'Distributions' )
-			plt.xlabel( 'Total' )
-			plt.ylabel( 'Frequency' )
+			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.barplot( data=anomalies, legend='full' )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -810,7 +811,6 @@ class EllipticSquare( Outlier ):
 			{
 				'Outliers': float( self.outliers ),
 				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
 				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
 				'Anomaly': self.anomaly_scores,
 			}
@@ -819,7 +819,7 @@ class EllipticSquare( Outlier ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'EllipticSquare'
 			exception.method = 'score'
 			error = ErrorDialog( exception )
 			error.show( )
@@ -830,11 +830,11 @@ class EllipticSquare( Outlier ):
 			Purpose:
 			--------
 			Evaluates outlier detection results, optionally against ground-truth labels.
-	
+
 			Parameters:
 			-----------
 			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
-	
+
 			Returns:
 			--------
 			Dict: Classification report or descriptive summary.
@@ -843,7 +843,7 @@ class EllipticSquare( Outlier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
+			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = int( np.sum( y_pred == -1 ) )
 			self.inliers = int( np.sum( y_pred == 1 ) )
@@ -856,12 +856,12 @@ class EllipticSquare( Outlier ):
 				'Anomaly': self.anomaly_scores,
 			}
 			_data = pd.DataFrame( _analysis )
-			_total = _data.sum( axis=0, numeric_only=True )
+			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
+			_text = f''
+			_total = anomalies.sum( axis=0, numeric_only=True )
 			plt.figure( figsize=(8, 6) )
-			sns.histplot( _total, bins=20, kde=True, legend=True, )
-			plt.title( 'Distributions' )
-			plt.xlabel( 'Mean' )
-			plt.ylabel( 'Frequency' )
+			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.barplot( data=anomalies, legend='full' )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
