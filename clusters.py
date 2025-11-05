@@ -213,6 +213,104 @@ class KMeans( Cluster ):
         self.prediction = None
         self.accuracy = 0.0
         
+    def __dir__( self ):
+	    '''
+		    
+		    Returns
+		    -------
+			A list of strings repreenting members
+			
+	    '''
+	    return [ 'model',
+	             'n_clusters',
+	             'init',
+	             'n_init',
+	             'random_state',
+	             'tolerance',
+	             'max_iter',
+	             'clusters',
+	             'labels',
+	             'inertia',
+	             'iterations',
+	             'features',
+	             'prediction',
+	             'accuracy' ]
+    
+    @property
+    def clusters( self ) -> np.ndarray:
+	    '''
+
+			Returns
+			-------
+			cluster_centers_ : ndarray of shape (n_clusters, n_features )
+
+		'''
+	    if self.model.cluster_centers_ is None:
+		    raise AttributeError( 'The model data has not been trained!' )
+	    else:
+		    return self.model.cluster_centers_
+    
+    @property
+    def labels( self ) -> np.ndarray:
+	    '''
+
+			Returns
+			-------
+			labels_ : ndarray of shape (n_samples,)
+
+		'''
+	    if self.model.labels_ is None:
+		    raise AttributeError( 'The model data has not been trained!' )
+	    else:
+		    return self.model.labels_
+    
+    @property
+    def inertia( self ) -> float:
+	    '''
+
+			Returns
+			-------
+			inertia_ (float):
+			Sum of squared distances of samples to their closest cluster center,
+			weighted by the sample weights if provided.
+
+		'''
+	    if self.model.inertia_ is None:
+		    raise AttributeError( 'The model data has not been trained!' )
+	    else:
+		    return self.model.inertia_
+    
+    @property
+    def iterations( self ) -> int:
+	    '''
+
+    		Returns
+    		-------
+    		n_iter_ (int) is ndarray of shape ( n_classes, )
+    		Represents the number of iterations run by the coordinate descent solver
+    		to reach the specified tolerance.
+
+    	'''
+	    if self.model.n_iter_ is None:
+		    raise AttributeError( 'The model data has not been trained!' )
+	    else:
+		    return self.model.n_iter_
+    
+    @property
+    def features( self ) -> int:
+	    '''
+
+    		Returns
+    		-------
+    		n_features_in_
+    		The number of features seen during training
+
+    	'''
+	    if self.model.n_features_in_ is None:
+		    raise AttributeError( 'The model data has not been trained!' )
+	    else:
+		    return self.model.n_features_in_
+    
     def train( self, X: np.ndarray ) -> KMeans | None:
         """
 
@@ -257,7 +355,7 @@ class KMeans( Cluster ):
         """
         try:
             throw_if( 'X', X )
-            self.prediction = self.model.fit_predict( X )
+            self.prediction = self.model.predict( X )
             return self.prediction
         except Exception as e:
             exception = Error( e )
