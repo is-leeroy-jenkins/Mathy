@@ -122,7 +122,7 @@ class Cluster( ):
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray ) -> float | None:
+	def score( self, X: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
@@ -421,7 +421,8 @@ class KMeans( Cluster ):
 				'V-Measure': self.v_measure,
 			}
 			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			vals = list( scores.values( ) )
+			data = pd.DataFrame( data=vals, columns=cols )
 			return data
 		except Exception as e:
 			exception = Error( e )
@@ -449,7 +450,7 @@ class KMeans( Cluster ):
 			throw_if( 'X', X )
 			labels = self.model.predict( X )
 			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
-			plt.title( "K-Means Cluster" )
+			plt.title( "K-Means" )
 			plt.show( )
 		except Exception as e:
 			exception = Error( e )
@@ -491,8 +492,8 @@ class DBSCAN( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, eps: int=0.5, min_samples: int=5, metric: str='euclidean',
-			algorithm: str='auto', leaf_size: int=30 ) -> None:
+	def __init__( self, max_distance: float=0.5, samples: int=5, measure: str= 'euclidean',
+			algorithm: str='auto', size: int=30 ) -> None:
 		"""
 
 			Purpose:
@@ -501,16 +502,35 @@ class DBSCAN( Cluster ):
 
 			Parameters:
 			----------
-			eps: float
+			max_distance: float
+			eps - The maximum distance between two samples for one to be considered as in the
+			neighborhood of the other. This is not a maximum bound on the distances of points
+			within a cluster. This is the most important DBSCAN parameter to choose appropriately
+			for your data set and distance function
+			
+			samples: int
+			min_samples - The number of samples (or total weight) in a neighborhood for a point
+			to be considered as a core point. This includes the point itself.
+			
+			measure: str
+			metric - The metric to use when calculating distance between instances in a feature array.
+			
+			strategy: str
+			algorith - The algorithm to be used by the NearestNeighbors module to compute
+			pointwise distances and find nearest neighbors
+			
 			size: int
+			leaf_size - Leaf size passed to BallTree or cKDTree. This can affect the speed of the
+			construction and query, as well as the memory required to store the tree.
+			The optimal value depends on the nature of the problem.
 
 		"""
 		super( ).__init__( )
-		self.eps = eps
-		self.min_samples = min_samples
+		self.eps = max_distance
+		self.min_samples = samples
 		self.algorithm = algorithm
-		self.metric = metric
-		self.leaf_size = leaf_size
+		self.metric = measure
+		self.leaf_size = size
 		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples, metric=self.metric,
 			algorithm=self.algorithm, leaf_size=self.leaf_size )
 		self.prediction = None
@@ -698,6 +718,10 @@ class Agglomerative( Cluster ):
 
 	"""
 	model: skc.AgglomerativeClustering
+	n_clusters: Optional[ int ]
+	affinity: Optional[ str ]
+	compute_full_tree: Optional[ str ]
+	linkage: Optional[ str ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -706,7 +730,8 @@ class Agglomerative( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, num: int = 2 ) -> None:
+	def __init__( self, clusters: int=2, distance: str='euclidean',
+			full_tree: str='auto', link: str='ward' ) -> None:
 		"""
 
 			Purpose:
@@ -719,7 +744,12 @@ class Agglomerative( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = skc.AgglomerativeClustering( n_clusters=num )
+		self.n_clusters = clusters
+		self.affinity = distance
+		self.compute_full_tree = full_tree
+		self.linkage = link
+		self.model = skc.AgglomerativeClustering( n_clusters=self.n_clusters,
+			affinity=self.affinity, compute_full_tree=self.compute_full_tree, linkage=self.linkage )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -736,11 +766,12 @@ class Agglomerative( Cluster ):
 
 		'''
 		return [ 'model',
+		         'n_clusters',
+		         'affinity',
+		         'compute_ful_tree',
+		         'linkage',
 		         'train',
 		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
 		         'project',
 		         'transform',
 		         'analyze',
@@ -897,6 +928,14 @@ class Spectral( Cluster ):
 
 	"""
 	model: skc.SpectralClustering
+	n_clusters: Optional[ int ]
+	random_state: Optional[ int ]
+	n_init: Optional[ int ]
+	gamma: Optional[ float ]
+	n_neighbors: Optional[ int ]
+	eigen_tolerance: Optional[ float ]
+	affinity: Optional[ str ]
+	assign_labels: Optional[ str ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -905,7 +944,9 @@ class Spectral( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, num: int=8 ) -> None:
+	def __init__( self, clusters=8, random_state: int=42, n_init=10,
+			gama=1.0, distance='rbf', neighbors=10,
+			tolerance=0.0, assign='kmeans'  ) -> None:
 		"""
 
 			Purpose:
@@ -918,7 +959,18 @@ class Spectral( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = skc.SpectralClustering( n_clusters=num )
+		self.n_clusters = clusters
+		self.random_state = random_state
+		self.n_init = n_init
+		self.gamma = gama
+		self.affinity = distance
+		self.n_neighbors = neighbors
+		self.eigen_tolerance = tolerance
+		self.assign_labels = assign
+		self.model = skc.SpectralClustering( n_clusters=self.n_clusters,
+			random_state=self.random_state, n_init=self.n_init, gamma=self.gamma,
+			affinity=self.affinity, n_neighbors=self.n_neighbors,
+			eigen_tol=self.eigen_tolerance, assign_labels=self.assign_labels )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -935,11 +987,16 @@ class Spectral( Cluster ):
 
 		'''
 		return [ 'model',
+		         'n_clusters',
+		         'random_state',
+		         'n_init',
+		         'gamma',
+		         'affinity',
+		         'n_neighbors',
+		         'eigen_tolerance',
+		         'assign_labels',
 		         'train',
 		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
 		         'project',
 		         'transform',
 		         'analyze',
@@ -1096,6 +1153,8 @@ class MeanShift( Cluster ):
 
 	"""
 	model: skc.MeanShift
+	min_bin_freq: Optional[ int ]
+	cluster_all: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -1104,7 +1163,7 @@ class MeanShift( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self ) -> None:
+	def __init__( self, min_bin: int=1, group_all: bool=True ) -> None:
 		"""
 
 			Purpose:
@@ -1113,7 +1172,9 @@ class MeanShift( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = skc.MeanShift( )
+		self.min_bin_freq = min_bin
+		self.cluster_all = group_all
+		self.model = skc.MeanShift( min_bin_freq=self.min_bin_freq, cluster_all=self.cluster_all )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -1132,9 +1193,6 @@ class MeanShift( Cluster ):
 		return [ 'model',
 		         'train',
 		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
 		         'project',
 		         'transform',
 		         'analyze',
@@ -1188,7 +1246,7 @@ class MeanShift( Cluster ):
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.model.fit_predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -1284,15 +1342,20 @@ class AffinityPropagation( Cluster ):
 
 	"""
 	model: skc.AffinityPropagation
+	damping: Optional[ float ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
+	preference: Optional[ np.ndarray ]
+	affinity: Optional[ str ]
+	convergence_iter: Optional[ int ]
 	homogeneity: Optional[ float ]
 	mutual_info: Optional[ float ]
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self ) -> None:
+	def __init__( self, damp: float=0.5, iters: int=200, convergence: int=15,
+			prefer: np.ndarray=None, distance: str='euclidean' ) -> None:
 		"""
 
 			Purpose:
@@ -1301,7 +1364,13 @@ class AffinityPropagation( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.model = skc.AffinityPropagation( )
+		self.damping = damp
+		self.max_iter = iters
+		self.convergence_iter = convergence
+		self.preference = prefer
+		self.affinity = distance
+		self.model = skc.AffinityPropagation( damping=self.damping, max_iter=self.max_iter,
+			convergence_iter=self.convergence_iter, preference=self.preference, affinity=self.affinity )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -1318,11 +1387,13 @@ class AffinityPropagation( Cluster ):
 
 		'''
 		return [ 'model',
+		         'damping',
+		         'max_iter',
+		         'convergence_iter',
+		         'preference',
+		         'affinity',
 		         'train',
 		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
 		         'project',
 		         'transform',
 		         'analyze',
@@ -1412,13 +1483,13 @@ class AffinityPropagation( Cluster ):
 			self.completeness = completeness_score( X, labels )
 			self.v_measure = v_measure_score( X, labels )
 			scores = \
-				{
-						'Silouette': self.silouette,
-						'Homogeneity': self.homogeneity,
-						'Mutual-Info': self.mutual_info,
-						'Completeness': self.completeness,
-						'V-Measure': self.v_measure,
-				}
+			{
+				'Silouette': self.silouette,
+				'Homogeneity': self.homogeneity,
+				'Mutual-Info': self.mutual_info,
+				'Completeness': self.completeness,
+				'V-Measure': self.v_measure,
+			}
 			cols = list( scores.keys( ) )
 			data = pd.DataFrame( data=scores, columns=cols )
 			return data
@@ -1543,9 +1614,8 @@ class Birch( Cluster ):
 		         'train',
 		         'transform',
 		         'analyze',
-		         'analyze',
-		         'centers',
-		         'labels',
+		         'subcluster_centers',
+		         'subcluster_labels',
 		         'silouette',
 		         'homogeneity',
 		         'mutual_info',
@@ -1553,7 +1623,7 @@ class Birch( Cluster ):
 		         'prediction', ]
 	
 	@property
-	def centers( self ) -> np.ndarray:
+	def subcluster_centers( self ) -> np.ndarray:
 		'''
 
 			Returns
@@ -1569,7 +1639,7 @@ class Birch( Cluster ):
 			return self.model.subcluster_centers_
 	
 	@property
-	def labels( self ) -> np.ndarray:
+	def subcluster_labels( self ) -> np.ndarray:
 		'''
 
 			Returns
@@ -1728,6 +1798,14 @@ class OPTICS( Cluster ):
 	"""
 	model: skc.OPTICS
 	min_samples: Optional[ int ]
+	max_eps: Optional[ float ]
+	metric: Optional[ str ]
+	eps: Optional[ float ]
+	xi: Optional[ float ]
+	min_cluster_size: Optional[ int ]
+	algorith: Optional[ str ]
+	leaf_size: Optional[ int ]
+	predecessor_correction: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -1736,7 +1814,9 @@ class OPTICS( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, samples: int=5 ) -> None:
+	def __init__( self, samples: int=5, max_distance: float=np.inf, measure: str='minkowski',
+			distance: float=None, correction: bool=True, min_size: int=None,
+			method: str='auto', leaf_size: int=30 ) -> None:
 		"""
 
 			Purpose:
@@ -1750,14 +1830,51 @@ class OPTICS( Cluster ):
 		"""
 		super( ).__init__( )
 		self.min_samples = samples
-		self.model = skc.OPTICS( min_samples=self.min_samples )
+		self.max_eps = max_distance
+		self.metric = measure
+		self.eps = distance
+		self.predecessor_correction = correction
+		self.min_cluster_size = min_size
+		self.algorith = method
+		self.leaf_size = leaf_size
+		self.model = skc.OPTICS( min_samples=self.min_samples, max_eps=self.max_eps,
+			algorithm=self.algorith, leaf_size=self.leaf_size, metric=self.metric,
+			predecessor_correction=self.predecessor_correction, eps=self.eps,
+			min_cluster_size=self.min_cluster_size, )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+	
+	def __dir__( self ):
+		'''
 
+			Returns
+			-------
+			A list of strings repreenting members
+
+		'''
+		return [ 'model',
+		         'max_eps',
+		         'min_samples',
+		         'metric',
+		         'eps',
+		         'predecessor_correction',
+		         'min_cluster_size',
+		         'leaf_size',
+		         'score',
+		         'project',
+		         'train',
+		         'transform',
+		         'analyze',
+		         'silouette',
+		         'homogeneity',
+		         'mutual_info',
+		         'v_measuere',
+		         'prediction', ]
+	
 	def train( self, X: np.ndarray ) -> OPTICS | None:
 		"""
 	
