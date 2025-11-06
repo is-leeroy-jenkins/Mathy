@@ -84,7 +84,8 @@ mathy/
 ---
 
 ## 🧩 Transformers 
--  Algorithms that processes the input sequence, converting it into a rich, contextualized representation..
+-  Algorithms that processes the input sequence, converting it into a rich, contextualized representation.
+-  NLP classes for the conversion text features
 
 | Class Name           | Description (concise)                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------- |
@@ -97,7 +98,8 @@ mathy/
 ---
 
 ## 🧪 Classifications 
-- Supervised learning algorythms that assign data points to predefined categories or classes to learn patterns to predict the category of new, unseen data
+- Supervised learning algorythms that assign data points to predefined categories to learn patterns.
+- Training to predict category of new, unseen data
 
 | Class              | Description                                            |
 |--------------------|--------------------------------------------------------|
@@ -166,7 +168,8 @@ mathy/
 ---
 
 ## 🔍 Outliers 
-- data points that are significantly different from other observations, and they can arise from errors, fraud, or natural deviations. 
+- Data points that are significantly different from other observations.  
+- Can arise from errors, fraud, or natural deviations. 
 - Can be detected using methods like the z-score or the interquartile range (IQR), and then either remove them, use a robust model like a tree-based method, or transform the data to reduce their influence
 
 | Class Name          | Description (concise)                                     |
@@ -181,7 +184,8 @@ mathy/
 ---
 
 ## ⏱️ Forecasting  
-- Algorithms to analyze data points indexed in a time sequence to find patterns and make predictions about future values
+- Algorithms to analyze data points indexed in a time sequence.
+- Trains model to find patterns and make predictions about future values
 
 | Class Name          | Description (concise)                                |
 | ------------------- | ---------------------------------------------------- |
@@ -194,7 +198,8 @@ mathy/
 ---
 
 ## 🧮 Feature Selection
-- Finding a subset of relevant input features from a dataset to use in building a machine learning model to reduce model complexity, decrease training time, prevent overfitting, and improve model accuracy and interpretability.
+- Finding a subset of relevant input features from a dataset.
+- Machine learning models to reduce complexity, decrease training time, prevent overfitting, and improve accuracy and interpretability.
 
 | Class Name        | Description (concise)                                              |
 | ----------------- | ------------------------------------------------------------------ |
@@ -223,15 +228,6 @@ model = LogisticRegression().train(X_scaled, y_enc)
 print("Accuracy:", model.score(X_scaled, y_enc))
 ```
 
----
-
-## 🧩 Design Principles
-
-* **Unified API:** Every model and transformer implements the same verbs (`train`, `project`, etc.).
-* **Composable Pipelines:** All wrappers interoperate natively.
-* **Transparent Errors:** Common exception handling via `boogr.Error` and `ErrorDialog`.
-* **Extensible Framework:** Add wrappers easily using the shared base interface.
-* **Interoperable:** Fully compatible with `scikit-learn`, `statsmodels`, and `PyTorch`.
 
 ---
 
