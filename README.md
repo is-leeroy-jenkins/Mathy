@@ -1,4 +1,4 @@
-## .
+###### e 
 <p align="left">
   <img src="resources/Mathy.png" alt="Mathy logo" width="800">
 </p>
