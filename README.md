@@ -94,22 +94,23 @@ mathy/
 
 ## 🧪 Classifications 
 
-| Class                  | Description                                             |
-| ---------------------- | ------------------------------------------------------- |
-| PerceptronModel    | Single-layer perceptron for linear classification.      |
-| LogisticModel      | Logistic regression classifier.                         |
-| RidgeModel         | Ridge-regularized linear classifier.                    |
-| SVMModel           | Support Vector Machine for classification.              |
-| KnnModel           | K-Nearest Neighbors classifier.                         |
-| DecisionTreeModel  | Non-parametric decision tree classifier.                |
-| RandomForestModel  | Ensemble of randomized decision trees.                  |
-| AdaBoostModel      | Adaptive boosting classifier.                           |
-| GradientBoostModel | Gradient boosting ensemble classifier.                  |
-| BaggingModel       | Bootstrap aggregation ensemble.                         |
-| VotingModel        | Hard or soft voting ensemble of base classifiers.       |
-| StackModel         | Stacked meta-classifier combining multiple learners.    |
-| MlpModel           | Feedforward neural network for classification.          |
-| SgdModel           | Linear model optimized via stochastic gradient descent. |
+| Class              | Description                                            |
+|--------------------|--------------------------------------------------------|
+| Perceptron         | Single-layer perceptron for linear classification.     |
+| LogisticRegression | Logistic regression classifier.                        |
+| Ridge              | Ridge-regularized linear classifier.                   |
+| SupportVector      | Support Vector Machine for classification.             |
+| NearestNeighbor    | K-Nearest Neighbors classifier.                        |
+| DecisionTree       | Non-parametric decision tree classifier.               |
+| RandomForest       | Ensemble of randomized decision trees.                 |
+| AdaptiveBoost      | Adaptive boosting classifier.                          |
+| GradientBoost      | Gradient boosting ensemble classifier.                 |
+| BaggingModel       | Bootstrap aggregation ensemble.                        |
+| VotingModel        | Hard or soft voting ensemble of base classifiers.      |
+| StackingModel      | Stacked meta-classifier combining multiple learners.   |
+| LeastSquares       | OLS regression for classification.                     |
+| GradientDescent    | Linear model optimized via stochastic gradient descent. |
+| Lasso              | A linear model that estimates sparse coefficients    | 
 
 ---
 
@@ -205,7 +206,7 @@ X = df.values
 y_enc = LabelEncoder().train_transform(y)
 X_scaled = StandardScaler().train_transform(X)
 
-model = LogisticModel().train(X_scaled, y_enc)
+model = LogisticRegression().train(X_scaled, y_enc)
 print("Accuracy:", model.score(X_scaled, y_enc))
 ```
 
