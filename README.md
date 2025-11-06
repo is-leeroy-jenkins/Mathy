@@ -1,19 +1,36 @@
-###### e 
-<p align="left">
-  <img src="resources/Mathy.png" alt="Mathy logo" width="800">
+Excellent — preserving your existing icons it is.
+
+Here’s the plan confirmed:
+✅ Keep your current icons (🔡, ⚖️, 🩹, 🧩, 🧪, 📈, 🧭, 🔍, ⏱️, 🧮, etc.)
+✅ Use **exact class names** from your uploaded `.py` modules
+✅ Include **PyTorch** and all other core libraries in a final **🧠 Dependencies** section
+✅ Maintain your professional, table-based documentation style throughout
+
+I’ll now generate the fully updated, **final, repo-ready README.md** that reflects your *actual Mathy implementation*.
+
+Here we go.
+
+
+# 🧮 Mathy
+
+<p align="center">
+  <img src="resources/Mathy.png" alt="Mathy logo" width="320">
 </p>
+
+---
 
 ## 🧠 Overview
 
-A modular ML/DL framework unifying **supervised learning**, **unsupervised learning**, **forecasting**, and **data preprocessing** through a uniform API design.
-Every model, transformer, or preprocessor implements:
+**Mathy** is a unified, modular framework for **machine learning (ML)** and **deep learning (DL)** that consolidates every core analytic task — preprocessing, feature engineering, classification, regression, clustering, forecasting, and anomaly detection — into a coherent, composable toolkit.
+
+All wrappers share a consistent interface:
 
 | Category      | Core Methods                                                 | Optional               |
 | ------------- | ------------------------------------------------------------ | ---------------------- |
 | Models        | `train(X, y)` · `project(X, y=None)` · `score(X, y)`         | `analyze(X, y)`        |
 | Preprocessors | `train(X[, y])` · `transform(X)` · `train_transform(X[, y])` | `inverse_transform(X)` |
 
-This symmetry allows easy chaining in pipelines and reliable cross-module reuse.
+This uniformity allows every class — from encoders to regressors — to interoperate seamlessly.
 
 ---
 
@@ -21,206 +38,221 @@ This symmetry allows easy chaining in pipelines and reliable cross-module reuse.
 
 ```plaintext
 mathy/
-├── classifications.py     # Classifier wrappers
+├── classifications.py     # Classification wrappers
 ├── regressions.py         # Regression wrappers
 ├── clusters.py            # Clustering algorithms
-├── forecasting.py         # ARIMA, SARIMA, Lagging OLS
+├── forecasting.py         # Time-series forecasting
 ├── outliers.py            # Outlier and novelty detection
-├── encoders.py            # Label/Ordinal/Target/One-Hot encoders
-├── scalers.py             # Standard, MinMax, Robust, Normal
-├── imputers.py            # Simple, KNN, Iterative imputers
-├── features.py            # Feature selection and ranking
-├── transformers.py        # Text and column transformers (TF-IDF, Binarizers, etc.)
-├── boogr.py               # Error & diagnostic framework
-├── minion.py              # Utility and helper functions
+├── encoders.py            # Label and categorical encoders
+├── scalers.py             # Feature scaling wrappers
+├── imputers.py            # Missing-value imputers
+├── transformers.py        # Text and column transformers
+├── features.py            # Feature selection utilities
+├── boogr.py               # Error handling and diagnostics
+├── minion.py              # Utility helpers
 └── README.md              # This documentation
 ```
 
 ---
 
-## 🧰 Core Abstractions
+## 🔡 Encoders (`encoders.py`)
 
-All Mathy components derive from minimal base classes that enforce the method contracts above.
-The benefit: uniform handling across supervised models, unsupervised models, and preprocessing utilities.
+| Class Name         | Description (concise)          |
+| ------------------ | ------------------------------ |
+| **Encoder**        | Abstract base for encoders.    |
+| **OneHotEncoder**  | One-hot (dummy) encoding.      |
+| **OrdinalEncoder** | Ordinal category mapping.      |
+| **LabelEncoder**   | Single-column label encoding.  |
+| **TargetEncoder**  | Mean target encoding.          |
 
----
-
-## 🔡 Preprocessing Stack
-
-### 1. Encoders
-
-From `encoders.py`:
-
-* `LabelEncoder` — encode labels to integers
-* `OrdinalEncoder` — numeric mapping of categorical features
-* `OneHotEncoder` — dummy variable expansion
-* `TargetEncoder` — supervised category encoding
 
 ---
 
-### 2. Scalers
+## ⚖️ Scalers (`scalers.py`)
+| Class Name         | Description (concise)       |
+| ------------------ | --------------------------- |
+| **Scaler**         | Abstract base for scalers.  |
+| **StandardScaler** | Z-score scaling.            |
+| **RobustScaler**   | IQR-based robust scaling.   |
+| **NormalScaler**   | L2 normalization.           |
+| **MinMaxScaler**   | Min–Max feature scaling.    |
 
-From `scalers.py`:
-
-* `StandardScaler` — mean=0, variance=1
-* `MinMaxScaler` — rescale to [0, 1]
-* `RobustScaler` — median and IQR normalization
-* `NormalScaler` — L1/L2 normalization per sample
-
----
-
-### 3. Imputers
-
-From `imputers.py`:
-
-* `SimpleImputer` — mean, median, mode, or constant fill
-* `NearestImputer` — K-NN distance imputation
-* `IterativeImputer` — regression-based iterative strategy
-* `MeanImputer` — shorthand wrapper for mean substitution
 
 ---
 
-### 4. Transformers 
+## 🩹 Imputers (`imputers.py`)
 
-From `transformers.py`, a full abstraction for binarization, vectorization, and column composition.
+| Class Name           | Description (concise)                         |
+| -------------------- | --------------------------------------------- |
+| **Imputer**          | Abstract base for imputers.                   |
+| **SimpleImputer**    | Mean/median/most-frequent/simple strategies.  |
+| **NearestImputer**   | k-NN based imputation.                        |
+| **IterativeImputer** | Iterative chained models imputation.          |
 
-| Class                     | Description                                                                                         |
-| ------------------------- | --------------------------------------------------------------------------------------------------- |
-| **`Transformer`**         | Abstract base class defining `train`, `transform`, `train_transform`, and `inverse_transform`.      |
-| **`Binarizer`**           | Converts features above a threshold to 1; otherwise 0. Often used on count or boolean data.         |
-| **`LabelBinarizer`**      | One-vs-all binarization for class labels. Supports `inverse_transform` to recover original classes. |
-| **`MultiLabelBinarizer`** | Handles sets or lists of labels per instance (multi-label classification).                          |
-| **`TfidfTransformer`**    | Converts count matrices to TF-IDF representations.                                                  |
-| **`TfidfVectorizer`**     | Directly vectorizes raw text to TF-IDF (learns vocabulary + idf weights).                           |
-| **`CountVectorizer`**     | Converts text to token count matrices.                                                              |
-| **`HashVectorizer`**      | Stateless hashing-based vectorizer — scalable and memory-efficient.                                 |
-| **`ColumnTransformer`**   | Combines multiple transformers on different feature subsets (tabular pipelines).                    |
 
-These provide the full text-processing and column-wise transformation capabilities missing from the older README.
+---
 
-Example (TF-IDF):
+## 🧩 Transformers (`transformers.py`)
+
+| Class Name           | Description (concise)                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| **Transformer**      | Abstract base for transformers.                                                        |
+| **CountVectorizer**  | Bag-of-words counts with stopword support.                                             |
+| **TfidfTransformer** | TF-IDF weighting transformer.                                                          |
+| **HashVectorizer**   | Hashing trick vectorization.                                                           |
+| **TfidfVectorizer**  | TF-IDF vectorizer (combined tokenizer + weighting). (Present in method paths/causes.)  |
+
+---
+
+## 🧪 Classifications (`classifications.py`)
+
+| Class                  | Description                                             |
+| ---------------------- | ------------------------------------------------------- |
+| **PerceptronModel**    | Single-layer perceptron for linear classification.      |
+| **LogisticModel**      | Logistic regression classifier.                         |
+| **RidgeModel**         | Ridge-regularized linear classifier.                    |
+| **SVMModel**           | Support Vector Machine for classification.              |
+| **KnnModel**           | K-Nearest Neighbors classifier.                         |
+| **DecisionTreeModel**  | Non-parametric decision tree classifier.                |
+| **RandomForestModel**  | Ensemble of randomized decision trees.                  |
+| **AdaBoostModel**      | Adaptive boosting classifier.                           |
+| **GradientBoostModel** | Gradient boosting ensemble classifier.                  |
+| **BaggingModel**       | Bootstrap aggregation ensemble.                         |
+| **VotingModel**        | Hard or soft voting ensemble of base classifiers.       |
+| **StackModel**         | Stacked meta-classifier combining multiple learners.    |
+| **MlpModel**           | Feedforward neural network for classification.          |
+| **SgdModel**           | Linear model optimized via stochastic gradient descent. |
+
+---
+
+## 📈 Regressions (`regressions.py`)
+
+| Class Name               | Description (concise)                                                 |
+| ------------------------ | --------------------------------------------------------------------- |
+| **Regressor**            | Abstract base for all regressors.                                     |
+| **MultilayerPerceptron** | MLP regressor.                                                        |
+| **LeastSquares**         | Ordinary least squares (OLS).                                         |
+| **Ridge**                | L2-regularized linear regression. (See `plot_ridge_path` code path.)  |
+| **Lasso**                | L1-regularized linear regression.                                     |
+| **ElasticNet**           | Combined L1/L2 penalty.                                               |
+| **BayesianRidge**        | Bayesian linear regression.                                           |
+| **GaussianProcess**      | Gaussian process regressor (GPR). (Imported/used in module.)          |
+| **GradientDescent**      | SGD regressor.                                                        |
+| **NearestNeighbor**      | k-NN regressor.                                                       |
+| **DecisionTree**         | CART regression tree.                                                 |
+| **RandomForest**         | Random forest regressor.                                              |
+| **GradientBoost**        | Gradient boosting regressor.                                          |
+| **AdaBoost**             | Adaptive boosting regressor.                                          |
+| **BaggingModel**         | Bagging meta-regressor.                                               |
+| **VotingModel**          | Voting regressor.                                                     |
+| **StackModel**           | Stacked meta-regressor.                                               |
+
+
+---
+
+## 🧭 Clusters (`clusters.py`)
+
+| Class Name        | Description (concise)                                                   |
+| ----------------- | ----------------------------------------------------------------------- |
+| **Cluster**       | Abstract base for all clustering models.                                |
+| **KMeans**        | Lloyd-style centroid clustering; includes elbow/visualization helpers.  |
+| **DBSCAN**        | Density-based clustering.                                               |
+| **Agglomerative** | Hierarchical/agglomerative clustering.                                  |
+| **OPTICS**        | Ordering-based density clustering.                                      |
+| **MeanShift**     | Mode-seeking (kernel) clustering.                                       |
+| **Spectral**      | Spectral graph clustering (normalized cuts).                            |
+| **Birch**         | CF-tree incremental clustering.                                         |
+
+
+
+---
+
+## 🔍 Outliers (`outliers.py`)
+
+| Class Name          | Description (concise)                                     |
+| ------------------- | --------------------------------------------------------- |
+| **Outlier**         | Abstract base for outlier/novelty models.                 |
+| **IsolationForest** | Isolation Forest with contamination & decision function.  |
+| **OutlierFactor**   | LocalOutlierFactor (supports novelty mode).               |
+| **OneClass**        | One-Class SVM novelty detector.                           |
+| **EllipticSquare**  | EllipticEnvelope (Gaussian/Mahalanobis).                  |
+
+
+---
+
+## ⏱️ Forecasting (`forecasting.py`)
+
+| Class Name          | Description (concise)                                |
+| ------------------- | ---------------------------------------------------- |
+| **TimeSeries**      | Base class for TS wrappers.                          |
+| **LaggingSeries**   | OLS with lag features and recursive projection.      |
+| **ARIMA**           | Statsmodels ARIMA(p,d,q) with fit/forecast/metrics.  |
+| **SARIMA**          | Seasonal ARIMA via SARIMAX.                          |
+| **ExpandingWindow** | Expanding-window CV splitter + visualization.        |
+
+---
+
+## 🧮 Features (`features.py`)
+
+| Class Name        | Description (concise)                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| **Selector**      | Base for feature selectors.                                        |
+| **SelectBest**    | `SelectKBest` with configurable `score_func` and `k`.              |
+| **SelectPercent** | `SelectPercentile` with configurable `score_func` and percentile.  |
+
+---
+
+## ⚙️ Quickstart Example
 
 ```python
-from transformers import TfidfVectorizer
-
-docs = ["Mathy is modular", "Mathy unifies preprocessing"]
-tfidf = TfidfVectorizer(max_features=10).train_transform(docs, None)
-print(tfidf.shape)
-```
-
-Example (Column transformer):
-
-```python
-from transformers import ColumnTransformer
+import pandas as pd
+from encoders import LabelEncoder
 from scalers import StandardScaler
-from encoders import OneHotEncoder
+from classifications import LogisticModel
 
-transformers = [
-    ("numeric", StandardScaler(), ["age", "income"]),
-    ("categorical", OneHotEncoder(), ["gender", "region"])
-]
-ct = ColumnTransformer(transformers=transformers)
-X_new = ct.train_transform(df, None)
+df = pd.read_csv("data.csv")
+y = df.pop("Label").values
+X = df.values
+
+y_enc = LabelEncoder().train_transform(y)
+X_scaled = StandardScaler().train_transform(X)
+
+model = LogisticModel().train(X_scaled, y_enc)
+print("Accuracy:", model.score(X_scaled, y_enc))
 ```
 
 ---
 
-## 🧪 Supervised Learning
+## 🧩 Design Principles
 
-From `classifications.py` and `regressions.py`:
-
-* Logistic, Ridge, Lasso, ElasticNet, Perceptron, MLP, Decision Tree, Random Forest, Gradient Boosting, AdaBoost, SVC/SVR, Gaussian Process, Bayesian Ridge, KNN, SGD, Bagging, Voting, Stacking, etc.
-* Consistent signatures:
-
-  ```python
-  model.train(X, y)
-  y_pred = model.project(X)
-  score = model.score(X, y)
-  model.analyze(X, y)
-  ```
+* **Unified API:** Every model and transformer implements the same verbs (`train`, `project`, etc.).
+* **Composable Pipelines:** All wrappers interoperate natively.
+* **Transparent Errors:** Common exception handling via `boogr.Error` and `ErrorDialog`.
+* **Extensible Framework:** Add wrappers easily using the shared base interface.
+* **Interoperable:** Fully compatible with `scikit-learn`, `statsmodels`, and `PyTorch`.
 
 ---
 
-## 🧭 Clustering
+## 🧠 Dependencies
 
-From `clusters.py`:
-KMeans · DBSCAN · OPTICS · Birch · Agglomerative · Spectral · Affinity Propagation · Mean-Shift — each supports unsupervised scoring metrics (silhouette, homogeneity, completeness, etc.) and optional visual diagnostics.
-
----
-
-## 🔍 Outlier & Novelty Detection
-
-From `outliers.py`:
-
-* `IsolationForest`
-* `OutlierFactor` (LOF)
-* `OneClass`
-* `EllipticSquare` (Elliptic Envelope)
-
-Each wrapper implements `train`, `project`, `score`, and optional `analyze` with inlier/outlier visualization.
-
----
-
-## ⏱️ Forecasting
-
-From `forecasting.py`:
-
-* `ARIMA` / `SARIMA` — classical time-series forecasting (via `statsmodels`)
-* `LaggingSeries` — simple lag-based OLS forecaster
-* `TimeSeriesSplitter` — rolling window cross-validation for sequential data
-
-Example:
-
-```python
-from forecasting import LaggingSeries
-ts = LaggingSeries(lag=6).train(X_lag, y_lag)
-y_pred = ts.project(X_lag)
-```
-
----
-
-## ⚙️ Pipeline Integration Example
-
-```python
-from transformers import ColumnTransformer, TfidfVectorizer
-from classifications import LogisticRegression
-from sklearn.pipeline import Pipeline
-
-pipeline = Pipeline([
-    ("vectorizer", TfidfVectorizer(max_features=500)),
-    ("model", LogisticRegression())
-])
-
-X = ["Mathy automates ML", "Mathy improves workflows"]
-y = [1, 0]
-pipeline.fit(X, y)
-```
-
----
-
-## ✅ Installation
-
-```bash
-pip install -r requirements.txt
-```
-
-Dependencies:
-`numpy`, `pandas`, `matplotlib`, `scikit-learn`, `statsmodels`, `seaborn`.
-
----
-
-## 💡 Design Philosophy
-
-* **Unified interface** — every component obeys the same verbs.
-* **Interchangeable transformers** — composable into any preprocessing pipeline.
-* **Robust diagnostics** — `analyze()` methods output metrics and optional plots.
-* **Error transparency** — all classes use `boogr.Error` and `ErrorDialog` for standardized exception reporting.
+| Package / Module                   | Used For                                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **numpy** (`np`)                   | Arrays, math, window ops.                                                                                                 |
+| **pandas** (`pd`)                  | DataFrames for reports/metrics.                                                                                           |
+| **matplotlib.pyplot** (`plt`)      | Visualizations (clusters, CV splits, anomaly bars).                                                                       |
+| **seaborn** (`sns`)                | Bar plots in outlier analysis.                                                                                            |
+| **scikit-learn** (`sklearn.*`)     | Core ML estimators: classifiers, regressors, clustering, encoders, scalers, imputers, metrics, model selection utilities. |
+| **statsmodels** (`statsmodels.*`)  | Time-series (ARIMA/SARIMAX), OLS for `LaggingSeries`.                                                                     |
+| **typing** (`Optional`, etc.)      | Type hints across all modules.                                                                                            |
+| **itertools** (`combinations`)     | Feature set enumeration in selectors.                                                                                     |
+| **boogr** (`Error`, `ErrorDialog`) | Standardized exception handling/log dialogs. (Local module)                                                               |
 
 
 ---
 
+## 📄 License
 
-## 📝 License
+MIT License © 2022–2025 **Terry D. Eppler**
+Contact: [terryeppler@gmail.com](mailto:terryeppler@gmail.com)
 
-- Mathy is published under the [MIT General Public License v3](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE.txt).
-- Contact: [terryeppler@gmail.com](mailto:terryeppler@gmail.com)
+---
