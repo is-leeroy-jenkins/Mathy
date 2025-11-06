@@ -9,9 +9,9 @@
 
 ## 🧠 Overview
 
-**Mathy** is a unified, modular framework for **machine learning (ML)** and **deep learning (DL)** that consolidates every core analytic task — preprocessing, feature engineering, classification, regression, clustering, forecasting, and anomaly detection — into a coherent, composable toolkit.
+A unified, modular framework for **machine learning (ML)** and **deep learning (DL)** that consolidates core analytic tasks — preprocessing, feature engineering, classification, regression, clustering, forecasting, and anomaly detection — into a coherent, composable toolkit.
 
-All wrappers share a consistent interface:
+
 
 | Category      | Core Methods                                                 | Optional               |
 | ------------- | ------------------------------------------------------------ | ---------------------- |
@@ -22,7 +22,7 @@ This uniformity allows every class — from encoders to regressors — to intero
 
 ---
 
-## 📦 Project Layout
+## 📦 Layout
 
 ```plaintext
 mathy/
@@ -43,140 +43,140 @@ mathy/
 
 ---
 
-## 🔡 Encoders (`encoders.py`)
+## 🔡 Encoders 
 
 | Class Name         | Description (concise)          |
 | ------------------ | ------------------------------ |
-| **Encoder**        | Abstract base for encoders.    |
-| **OneHotEncoder**  | One-hot (dummy) encoding.      |
-| **OrdinalEncoder** | Ordinal category mapping.      |
-| **LabelEncoder**   | Single-column label encoding.  |
-| **TargetEncoder**  | Mean target encoding.          |
+| Encoder        | Abstract base for encoders.    |
+| OneHotEncoder  | One-hot (dummy) encoding.      |
+| OrdinalEncoder | Ordinal category mapping.      |
+| LabelEncoder   | Single-column label encoding.  |
+| TargetEncoder  | Mean target encoding.          |
 
 
 ---
 
-## ⚖️ Scalers (`scalers.py`)
+## ⚖️ Scalers  
 | Class Name         | Description (concise)       |
 | ------------------ | --------------------------- |
-| **Scaler**         | Abstract base for scalers.  |
-| **StandardScaler** | Z-score scaling.            |
-| **RobustScaler**   | IQR-based robust scaling.   |
-| **NormalScaler**   | L2 normalization.           |
-| **MinMaxScaler**   | Min–Max feature scaling.    |
+| Scaler         | Abstract base for scalers.  |
+| StandardScaler | Z-score scaling.            |
+| RobustScaler   | IQR-based robust scaling.   |
+| NormalScaler   | L2 normalization.           |
+| MinMaxScaler   | Min–Max feature scaling.    |
 
 
 ---
 
-## 🩹 Imputers (`imputers.py`)
+## 🩹 Imputers 
 
 | Class Name           | Description (concise)                         |
 | -------------------- | --------------------------------------------- |
-| **Imputer**          | Abstract base for imputers.                   |
-| **SimpleImputer**    | Mean/median/most-frequent/simple strategies.  |
-| **NearestImputer**   | k-NN based imputation.                        |
-| **IterativeImputer** | Iterative chained models imputation.          |
+| Imputer          | Abstract base for imputers.                   |
+| SimpleImputer    | Mean/median/most-frequent/simple strategies.  |
+| NearestImputer   | k-NN based imputation.                        |
+| IterativeImputer | Iterative chained models imputation.          |
 
 
 ---
 
-## 🧩 Transformers (`transformers.py`)
+## 🧩 Transformers 
 
 | Class Name           | Description (concise)                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------- |
-| **Transformer**      | Abstract base for transformers.                                                        |
-| **CountVectorizer**  | Bag-of-words counts with stopword support.                                             |
-| **TfidfTransformer** | TF-IDF weighting transformer.                                                          |
-| **HashVectorizer**   | Hashing trick vectorization.                                                           |
-| **TfidfVectorizer**  | TF-IDF vectorizer (combined tokenizer + weighting). (Present in method paths/causes.)  |
+| Transformer      | Abstract base for transformers.                                                        |
+| CountVectorizer  | Bag-of-words counts with stopword support.                                             |
+| TfidfTransformer | TF-IDF weighting transformer.                                                          |
+| HashVectorizer   | Hashing trick vectorization.                                                           |
+| TfidfVectorizer  | TF-IDF vectorizer (combined tokenizer + weighting). (Present in method paths/causes.)  |
 
 ---
 
-## 🧪 Classifications (`classifications.py`)
+## 🧪 Classifications 
 
 | Class                  | Description                                             |
 | ---------------------- | ------------------------------------------------------- |
-| **PerceptronModel**    | Single-layer perceptron for linear classification.      |
-| **LogisticModel**      | Logistic regression classifier.                         |
-| **RidgeModel**         | Ridge-regularized linear classifier.                    |
-| **SVMModel**           | Support Vector Machine for classification.              |
-| **KnnModel**           | K-Nearest Neighbors classifier.                         |
-| **DecisionTreeModel**  | Non-parametric decision tree classifier.                |
-| **RandomForestModel**  | Ensemble of randomized decision trees.                  |
-| **AdaBoostModel**      | Adaptive boosting classifier.                           |
-| **GradientBoostModel** | Gradient boosting ensemble classifier.                  |
-| **BaggingModel**       | Bootstrap aggregation ensemble.                         |
-| **VotingModel**        | Hard or soft voting ensemble of base classifiers.       |
-| **StackModel**         | Stacked meta-classifier combining multiple learners.    |
-| **MlpModel**           | Feedforward neural network for classification.          |
-| **SgdModel**           | Linear model optimized via stochastic gradient descent. |
+| PerceptronModel    | Single-layer perceptron for linear classification.      |
+| LogisticModel      | Logistic regression classifier.                         |
+| RidgeModel         | Ridge-regularized linear classifier.                    |
+| SVMModel           | Support Vector Machine for classification.              |
+| KnnModel           | K-Nearest Neighbors classifier.                         |
+| DecisionTreeModel  | Non-parametric decision tree classifier.                |
+| RandomForestModel  | Ensemble of randomized decision trees.                  |
+| AdaBoostModel      | Adaptive boosting classifier.                           |
+| GradientBoostModel | Gradient boosting ensemble classifier.                  |
+| BaggingModel       | Bootstrap aggregation ensemble.                         |
+| VotingModel        | Hard or soft voting ensemble of base classifiers.       |
+| StackModel         | Stacked meta-classifier combining multiple learners.    |
+| MlpModel           | Feedforward neural network for classification.          |
+| SgdModel           | Linear model optimized via stochastic gradient descent. |
 
 ---
 
-## 📈 Regressions (`regressions.py`)
+## 📈 Regressions 
 
 | Class Name               | Description (concise)                                                 |
 | ------------------------ | --------------------------------------------------------------------- |
-| **Regressor**            | Abstract base for all regressors.                                     |
-| **MultilayerPerceptron** | MLP regressor.                                                        |
-| **LeastSquares**         | Ordinary least squares (OLS).                                         |
-| **Ridge**                | L2-regularized linear regression. (See `plot_ridge_path` code path.)  |
-| **Lasso**                | L1-regularized linear regression.                                     |
-| **ElasticNet**           | Combined L1/L2 penalty.                                               |
-| **BayesianRidge**        | Bayesian linear regression.                                           |
-| **GaussianProcess**      | Gaussian process regressor (GPR). (Imported/used in module.)          |
-| **GradientDescent**      | SGD regressor.                                                        |
-| **NearestNeighbor**      | k-NN regressor.                                                       |
-| **DecisionTree**         | CART regression tree.                                                 |
-| **RandomForest**         | Random forest regressor.                                              |
-| **GradientBoost**        | Gradient boosting regressor.                                          |
-| **AdaBoost**             | Adaptive boosting regressor.                                          |
-| **BaggingModel**         | Bagging meta-regressor.                                               |
-| **VotingModel**          | Voting regressor.                                                     |
-| **StackModel**           | Stacked meta-regressor.                                               |
+| Regressor            | Abstract base for all regressors.                                     |
+| MultilayerPerceptron | MLP regressor.                                                        |
+| LeastSquares         | Ordinary least squares (OLS).                                         |
+| Ridge                | L2-regularized linear regression. (See `plot_ridge_path` code path.)  |
+| Lasso                | L1-regularized linear regression.                                     |
+| ElasticNet           | Combined L1/L2 penalty.                                               |
+| BayesianRidge        | Bayesian linear regression.                                           |
+| GaussianProcess      | Gaussian process regressor (GPR). (Imported/used in module.)          |
+| GradientDescent      | SGD regressor.                                                        |
+| NearestNeighbor      | k-NN regressor.                                                       |
+| DecisionTree         | CART regression tree.                                                 |
+| RandomForest         | Random forest regressor.                                              |
+| GradientBoost        | Gradient boosting regressor.                                          |
+| AdaBoost             | Adaptive boosting regressor.                                          |
+| BaggingModel         | Bagging meta-regressor.                                               |
+| VotingModel          | Voting regressor.                                                     |
+| StackModel           | Stacked meta-regressor.                                               |
 
 
 ---
 
-## 🧭 Clusters (`clusters.py`)
+## 🧭 Clusters 
 
 | Class Name        | Description (concise)                                                   |
 | ----------------- | ----------------------------------------------------------------------- |
-| **Cluster**       | Abstract base for all clustering models.                                |
-| **KMeans**        | Lloyd-style centroid clustering; includes elbow/visualization helpers.  |
-| **DBSCAN**        | Density-based clustering.                                               |
-| **Agglomerative** | Hierarchical/agglomerative clustering.                                  |
-| **OPTICS**        | Ordering-based density clustering.                                      |
-| **MeanShift**     | Mode-seeking (kernel) clustering.                                       |
-| **Spectral**      | Spectral graph clustering (normalized cuts).                            |
-| **Birch**         | CF-tree incremental clustering.                                         |
+| Cluster       | Abstract base for all clustering models.                                |
+| KMeans        | Lloyd-style centroid clustering; includes elbow/visualization helpers.  |
+| DBSCAN        | Density-based clustering.                                               |
+| Agglomerative | Hierarchical/agglomerative clustering.                                  |
+| OPTICS        | Ordering-based density clustering.                                      |
+| MeanShift     | Mode-seeking (kernel) clustering.                                       |
+| Spectral      | Spectral graph clustering (normalized cuts).                            |
+| Birch         | CF-tree incremental clustering.                                         |
 
 
 
 ---
 
-## 🔍 Outliers (`outliers.py`)
+## 🔍 Outliers 
 
 | Class Name          | Description (concise)                                     |
 | ------------------- | --------------------------------------------------------- |
-| **Outlier**         | Abstract base for outlier/novelty models.                 |
-| **IsolationForest** | Isolation Forest with contamination & decision function.  |
-| **OutlierFactor**   | LocalOutlierFactor (supports novelty mode).               |
-| **OneClass**        | One-Class SVM novelty detector.                           |
-| **EllipticSquare**  | EllipticEnvelope (Gaussian/Mahalanobis).                  |
+| Outlier         | Abstract base for outlier/novelty models.                 |
+| IsolationForest | Isolation Forest with contamination & decision function.  |
+| OutlierFactor   | LocalOutlierFactor (supports novelty mode).               |
+| OneClass        | One-Class SVM novelty detector.                           |
+| EllipticSquare  | EllipticEnvelope (Gaussian/Mahalanobis).                  |
 
 
 ---
 
-## ⏱️ Forecasting (`forecasting.py`)
+## ⏱️ Forecasting  
 
 | Class Name          | Description (concise)                                |
 | ------------------- | ---------------------------------------------------- |
-| **TimeSeries**      | Base class for TS wrappers.                          |
-| **LaggingSeries**   | OLS with lag features and recursive projection.      |
-| **ARIMA**           | Statsmodels ARIMA(p,d,q) with fit/forecast/metrics.  |
-| **SARIMA**          | Seasonal ARIMA via SARIMAX.                          |
-| **ExpandingWindow** | Expanding-window CV splitter + visualization.        |
+| TimeSeries      | Base class for TS wrappers.                          |
+| LaggingSeries   | OLS with lag features and recursive projection.      |
+| ARIMA           | Statsmodels ARIMA(p,d,q) with fit/forecast/metrics.  |
+| SARIMA          | Seasonal ARIMA via SARIMAX.                          |
+| ExpandingWindow | Expanding-window CV splitter + visualization.        |
 
 ---
 
@@ -184,9 +184,9 @@ mathy/
 
 | Class Name        | Description (concise)                                              |
 | ----------------- | ------------------------------------------------------------------ |
-| **Selector**      | Base for feature selectors.                                        |
-| **SelectBest**    | `SelectKBest` with configurable `score_func` and `k`.              |
-| **SelectPercent** | `SelectPercentile` with configurable `score_func` and percentile.  |
+| Selector      | Base for feature selectors.                                        |
+| SelectBest    | `SelectKBest` with configurable `score_func` and `k`.              |
+| SelectPercent | `SelectPercentile` with configurable `score_func` and percentile.  |
 
 ---
 
