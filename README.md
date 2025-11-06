@@ -1,20 +1,8 @@
-Excellent — preserving your existing icons it is.
 
-Here’s the plan confirmed:
-✅ Keep your current icons (🔡, ⚖️, 🩹, 🧩, 🧪, 📈, 🧭, 🔍, ⏱️, 🧮, etc.)
-✅ Use **exact class names** from your uploaded `.py` modules
-✅ Include **PyTorch** and all other core libraries in a final **🧠 Dependencies** section
-✅ Maintain your professional, table-based documentation style throughout
-
-I’ll now generate the fully updated, **final, repo-ready README.md** that reflects your *actual Mathy implementation*.
-
-Here we go.
-
-
-# 🧮 Mathy
+###### Mathy-Py
 
 <p align="center">
-  <img src="resources/Mathy.png" alt="Mathy logo" width="320">
+  <img src="resources/Mathy.png" alt="Mathy logo" width="800">
 </p>
 
 ---
