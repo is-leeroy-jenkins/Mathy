@@ -57,6 +57,8 @@ mathy/
 ---
 
 ## ⚖️ Scalers  
+- Classes that put features on a common scale by preventing features with larger values from disproportionately influencing the model.
+
 | Class Name         | Description (concise)       |
 | ------------------ | --------------------------- |
 | Scaler         | Abstract base for scalers.  |
@@ -69,6 +71,7 @@ mathy/
 ---
 
 ## 🩹 Imputers 
+- Functionality to replace missing data with substituted values to ensure dataset completenes
 
 | Class Name           | Description (concise)                         |
 | -------------------- | --------------------------------------------- |
@@ -81,6 +84,7 @@ mathy/
 ---
 
 ## 🧩 Transformers 
+-  Algorithms that processes the input sequence, converting it into a rich, contextualized representation..
 
 | Class Name           | Description (concise)                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------- |
@@ -93,6 +97,7 @@ mathy/
 ---
 
 ## 🧪 Classifications 
+- Supervised learning algorythms that assign data points to predefined categories or classes to learn patterns to predict the category of new, unseen data
 
 | Class              | Description                                            |
 |--------------------|--------------------------------------------------------|
@@ -115,6 +120,8 @@ mathy/
 ---
 
 ## 📈 Regressions 
+- Regression in machine learning refers to a set of supervised learning techniques used to predict a continuous output variable based on one or more input variables. 
+- Unlike classification, which predicts discrete categories, regression models predict numerical values.
 
 | Class Name               | Description (concise)                                                 |
 | ------------------------ | --------------------------------------------------------------------- |
@@ -140,6 +147,8 @@ mathy/
 ---
 
 ## 🧭 Clusters 
+- Unsupervised learning technique used to group similar data points into clusters without requiring any prior knowledge or labels about the data. 
+- The core idea is that data points within the same cluster exhibit more similarity to each other than to those in different clusters
 
 | Class Name        | Description (concise)                                                   |
 | ----------------- | ----------------------------------------------------------------------- |
@@ -157,6 +166,8 @@ mathy/
 ---
 
 ## 🔍 Outliers 
+- data points that are significantly different from other observations, and they can arise from errors, fraud, or natural deviations. 
+- Can be detected using methods like the z-score or the interquartile range (IQR), and then either remove them, use a robust model like a tree-based method, or transform the data to reduce their influence
 
 | Class Name          | Description (concise)                                     |
 | ------------------- | --------------------------------------------------------- |
@@ -170,6 +181,7 @@ mathy/
 ---
 
 ## ⏱️ Forecasting  
+- Algorithms to analyze data points indexed in a time sequence to find patterns and make predictions about future values
 
 | Class Name          | Description (concise)                                |
 | ------------------- | ---------------------------------------------------- |
@@ -181,7 +193,8 @@ mathy/
 
 ---
 
-## 🧮 Features (`features.py`)
+## 🧮 Feature Selection
+- Finding a subset of relevant input features from a dataset to use in building a machine learning model to reduce model complexity, decrease training time, prevent overfitting, and improve model accuracy and interpretability.
 
 | Class Name        | Description (concise)                                              |
 | ----------------- | ------------------------------------------------------------------ |
