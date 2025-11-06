@@ -1,11 +1,11 @@
-_
+## _
 <p align="left">
   <img src="resources/Mathy.png" alt="Mathy logo" width="800">
 </p>
 
 ## 🧠 Overview
 
-**Mathy** is a modular ML/DL framework unifying **supervised learning**, **unsupervised learning**, **forecasting**, and **data preprocessing** through a uniform API design.
+A modular ML/DL framework unifying **supervised learning**, **unsupervised learning**, **forecasting**, and **data preprocessing** through a uniform API design.
 Every model, transformer, or preprocessor implements:
 
 | Category      | Core Methods                                                 | Optional               |
