@@ -699,7 +699,7 @@ class Perceptron( Classifier ):
 			first = np.arange( x1_min, x1_max, resolution )
 			second = np.arange( x2_min, x2_max, resolution )
 			xx1, xx2 = np.meshgrid( first, second, copy=False )
-			lab = self.project( np.array( [xx1.ravel(), xx2.ravel() ] ).T )
+			lab = self.project( np.array( [ xx1.ravel(), xx2.ravel() ] ).T )
 			lab = lab.reshape( xx1.shape )
 			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
 			plt.xlim( xx1.min( ), xx1.max( ) )

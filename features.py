@@ -41,7 +41,7 @@
 	</summary>
 	******************************************************************************************
 '''
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict
 import numpy as np
 import pandas as pd
 import sklearn.cross_decomposition as sd
@@ -462,7 +462,7 @@ class CCA( Selector ):
 	"""
 
 		Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
-		i.e. the components of each datasets that explain the most shared variance
+		i.e. the components of each data sets that explain the most shared variance
 		between both datasets.
 
 	"""
@@ -910,11 +910,11 @@ class PCA( Selector ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.accuracy = accuracy_score( y, y_pred )
 			_metrics = \
-				{
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'Accuracy Score': self.accuracy,
-				}
+			{
+				'Training Score': self.training_score,
+				'Testing Score': self.testing_score,
+				'Accuracy Score': self.accuracy,
+			}
 			_dataframe = pd.DataFrame( _metrics )
 			return _dataframe
 		except Exception as e:
