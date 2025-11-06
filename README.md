@@ -219,7 +219,8 @@ Dependencies:
 
 ---
 
-## 📄 License
 
-MIT License © Terry D. Eppler
-Contact: [terryeppler@gmail.com](mailto:terryeppler@gmail.com)
+## 📝 License
+
+- Mathy is published under the [MIT General Public License v3](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE.txt).
+- Contact: [terryeppler@gmail.com](mailto:terryeppler@gmail.com)
