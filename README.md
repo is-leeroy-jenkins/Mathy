@@ -1,11 +1,3 @@
-Perfect — I’ve reviewed **`transformers.py`** and integrated it into the Mathy documentation you approved earlier.
-
-This module adds a **Text & Column Transformation Layer**, completing the preprocessing stack alongside `encoders.py`, `scalers.py`, and `imputers.py`. It provides standardized wrappers around scikit-learn’s `Binarizer`, `LabelBinarizer`, `MultiLabelBinarizer`, `TfidfTransformer`, `TfidfVectorizer`, `CountVectorizer`, `HashingVectorizer`, and `ColumnTransformer`, all following the same `train / transform / train_transform / inverse_transform` pattern.
-
-Below is the **updated README** (ready to paste into your repo), now fully incorporating `transformers.py` and reflecting the complete current architecture.
-
----
-
 # 🧮 Mathy
 
 <p align="center">
