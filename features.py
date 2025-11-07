@@ -987,7 +987,9 @@ class SelectBest( Selector ):
 
 		Purpose:
 		---------
-		Class that removes all but the 'k' highest scoring features
+		A univariate feature selection works by selecting the best features based on univariate
+		statistical tests. Removes all but the 'k' highest scoring features
+		
 
 	"""
 	model: sf.SelectKBest
@@ -1274,6 +1276,9 @@ class SelectPercent( Selector ):
 
 		Purpose:
 		---------
+		A univariate feature selection works by selecting the best features based on univariate
+		statistical tests. It can be seen as a preprocessing step to an estimator.
+		Removes all but a user-specified highest scoring percentage (default - 10%) of features
 
 
 	"""

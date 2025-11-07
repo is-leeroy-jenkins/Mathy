@@ -5299,11 +5299,10 @@ class VotingModel( Classifier ):
 
 		Purpose:
 		--------
-		The idea behind the VotingClassifier is to combine conceptually different machine rate
+		The idea behind the VotingModel is to combine conceptually different machine rate
 		classifiers and use a majority vote or the average predicted probabilities (soft vote)
 		to predict the class target_names. Such a classifier can be useful for a set of equally
-		well
-		performing model in order to balance out their individual weaknesses.
+		well performing model in order to balance out their individual weaknesses.
 
 	"""
 	model: ske.VotingClassifier
@@ -6497,7 +6496,7 @@ class MultiLayerPerceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, hidden=( 100, ), activation='relu', solver='adam', alpha=0.0001,
+	def __init__( self, hidden=( 100, ), activation='logistic', solver='lbfgs', alpha=0.0001,
 			learning: str='constant', rando: int=42 ) -> None:
 		super( ).__init__( )
 		self.hidden_layers = hidden

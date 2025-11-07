@@ -82,13 +82,16 @@ mathy/
 -  Algorithms that processes the input sequence, converting it into a rich, contextualized representation.
 -  NLP classes for the conversion text features
 
-| Class Name           | Description (concise)                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------- |
-| Transformer      | Abstract base for transformers.                                                        |
-| CountVectorizer  | Bag-of-words counts with stopword support.                                             |
-| TfidfTransformer | TF-IDF weighting transformer.                                                          |
-| HashVectorizer   | Hashing trick vectorization.                                                           |
-| TfidfVectorizer  | TF-IDF vectorizer (combined tokenizer + weighting). (Present in method paths/causes.)  |
+| Class Name                                                                                    | Description (concise)                                 |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| [Transformer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L56)       | Abstract base for transformers.                       |
+| [CountVectorizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L1185) | Bag-of-words counts with stopword support.            |
+| [TfidfTransformer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L637) | TF-IDF weighting transformer.                         |
+| [HashVectorizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L1355)  | Hashing trick vectorization.                          |
+| [TfidfVectorizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L953)  | TF-IDF vectorizer (combined tokenizer + weighting)    |
+ | [LabelBinarizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L281)    | Learning one regressor or binary classifier per class |
+ | [Binarizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L141)         | Set feature values to 0 or 1)                         |
+ | [MultiLabelBinarizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L468)| Transform between iterables and a multilabel format   |
 
 ---
 

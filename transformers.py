@@ -283,10 +283,6 @@ class LabelBinarizer( Transformer ):
 
 		Purpose:
 		_______
-		Binarize target_names in a one-vs-all fashion. Several regression and binary classification
-		algorithms are available in scikit-learn. A simple way to extend these algorithms to the
-		multi-class classification case is to use the so-called one-vs-all scheme.
-
 		At learning time, this simply consists in learning one regressor or binary classifier
 		per class. In doing so, one needs to convert multi-class target_names to binary target_names
 		(belong or does not belong to the class). LabelBinarizer does this process with
@@ -1212,7 +1208,7 @@ class CountVectorizer( Transformer ):
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self, input: str = 'content', encoding: str = 'utf-8', decode_error: str = 'strict',
-			strip_accents: Any=None, max_features: Any=None, lowercase: bool = True, stopwords: Any=None,
+			strip_accents: Any=None, max_features: Any=None, lowercase: bool=True, stopwords: Any=None,
 			preprocessor: Any=None, tokenizer: Any=None, norm: str = 'l2', max_df: float = 1.0,
 			min_df: float = 1 ) -> None:
 		"""
