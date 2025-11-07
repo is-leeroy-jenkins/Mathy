@@ -13,7 +13,7 @@
 - A modular, object-oriented framework for machine learning and deep learning framework designed to unify data preprocessing, feature engineering, model training, and evaluation under a single, consistent interface. 
 - Built entirely on top of open-source scientific libraries such as NumPy, Pandas, scikit-learn, Statsmodels, and PyTorch, to provide functionality across classifiers, regressors, clusterers, forecasters, and outlier detectors. 
 - Every component—from encoders, scalers, and imputers to neural networks and ensemble models—follows the same method pattern (`train`, `project`, `score`, and `analyze`), enabling seamless pipeline integration, cross-module interoperability, and rapid experimentation. 
-- Mathy is built for analysts, engineers, and researchers who value clarity, consistency, and composability in their machine learning workflows.
+- Mathy offers clarity, consistency, and composability in machine learning workflows.
 
 ---
 
@@ -40,13 +40,13 @@ mathy/
 
 ## 🔡 Encoders 
 
-| Class Name         | Description (concise)          |
-| ------------------ | ------------------------------ |
-| Encoder        | Abstract base for encoders.    |
-| OneHotEncoder  | One-hot (dummy) encoding.      |
-| OrdinalEncoder | Ordinal category mapping.      |
-| LabelEncoder   | Single-column label encoding.  |
-| TargetEncoder  | Mean target encoding.          |
+| Class Name                                                                      | Description (concise)          |
+|---------------------------------------------------------------------------------| ------------------------------ |
+| [Encoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L54) | Abstract base for encoders.    |
+| [OneHotEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L139)                                                                 | One-hot (dummy) encoding.      |
+| [OrdinalEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L280)                                                                   | Ordinal category mapping.      |
+| [LabelEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L440)                                                                     | Single-column label encoding.  |
+| [TargetEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L583)                                                                    | Mean target encoding.          |
 
 
 ---
@@ -54,13 +54,13 @@ mathy/
 ## ⚖️ Scalers  
 - Classes that put features on a common scale by preventing features with larger values from disproportionately influencing the model.
 
-| Class Name         | Description (concise)       |
-| ------------------ | --------------------------- |
-| Scaler         | Abstract base for scalers.  |
-| StandardScaler | Z-score scaling.            |
-| RobustScaler   | IQR-based robust scaling.   |
-| NormalScaler   | L2 normalization.           |
-| MinMaxScaler   | Min–Max feature scaling.    |
+| Class Name     | Description (concise)       |
+|----------------| --------------------------- |
+| [Scaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L54)       | Abstract base for scalers.  |
+| [StandardScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L139)  | Z-score scaling.            |
+| [RobustScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L444)    | IQR-based robust scaling.   |
+| [NormalScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L568)    | L2 normalization.           |
+| [MinMaxScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L291)    | Min–Max feature scaling.    |
 
 
 ---
@@ -70,10 +70,10 @@ mathy/
 
 | Class Name           | Description (concise)                         |
 | -------------------- | --------------------------------------------- |
-| Imputer          | Abstract base for imputers.                   |
-| SimpleImputer    | Mean/median/most-frequent/simple strategies.  |
-| NearestImputer   | k-NN based imputation.                        |
-| IterativeImputer | Iterative chained models imputation.          |
+| [Imputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L55)           | Abstract base for imputers.                   |
+| [SimpleImputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L533)     | Mean/median/most-frequent/simple strategies.  |
+| [NearestImputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L277)    | k-NN based imputation.                        |
+| [IterativeImputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L407)  | Iterative chained models imputation.          |
 
 
 ---
