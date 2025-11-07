@@ -10,7 +10,8 @@
 ## 🧠 Overview
 
 
-- A modular, object-oriented framework for machine learning and deep learning framework designed to unify data preprocessing, feature engineering, model training, and evaluation under a single, consistent interface. Built entirely on top of open-source scientific libraries such as NumPy, Pandas, scikit-learn, Statsmodels, and PyTorch, to provide functionality across classifiers, regressors, clusterers, forecasters, and outlier detectors. 
+- A modular, object-oriented framework for machine learning and deep learning framework designed to unify data preprocessing, feature engineering, model training, and evaluation under a single, consistent interface. 
+- Built entirely on top of open-source scientific libraries such as NumPy, Pandas, scikit-learn, Statsmodels, and PyTorch, to provide functionality across classifiers, regressors, clusterers, forecasters, and outlier detectors. 
 - Every component—from encoders, scalers, and imputers to neural networks and ensemble models—follows the same method pattern (`train`, `project`, `score`, and `analyze`), enabling seamless pipeline integration, cross-module interoperability, and rapid experimentation. 
 - Mathy is built for analysts, engineers, and researchers who value clarity, consistency, and composability in their machine learning workflows.
 
