@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f65a86d1-315c-4e13-90c5-0dad1d619215" name="Changes" comment="update" />
+    <list default="true" id="f65a86d1-315c-4e13-90c5-0dad1d619215" name="Changes" comment="update">
+      <change beforePath="$PROJECT_DIR$/.idea/mathy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mathy.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/boogr.py" beforeDir="false" afterPath="$PROJECT_DIR$/boogr.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -48,6 +52,9 @@
     &quot;accountId&quot;: &quot;78145f30-18cb-443d-a346-237522922b0e&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/features.py" root0="SKIP_INSPECTION" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;930000aa&quot;
 }</component>
@@ -77,8 +84,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-PY-252.26199.168" />
-        <option value="bundled-python-sdk-b3d66beaba9a-c6efb3732140-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26199.168" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.27397.106" />
+        <option value="bundled-python-sdk-4e2b1448bda8-9a97661f3031-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.27397.106" />
       </set>
     </attachedChunks>
   </component>
@@ -92,6 +99,7 @@
       <workItem from="1762264910246" duration="5110000" />
       <workItem from="1762270324164" duration="26891000" />
       <workItem from="1762304441863" duration="54205000" />
+      <workItem from="1764629625273" duration="630000" />
     </task>
     <task id="LOCAL-00001" summary="update">
       <option name="closed" value="true" />

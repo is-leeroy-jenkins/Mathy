@@ -74,6 +74,10 @@ class Dark( ):
 	theme_font: Optional[ Tuple[ str, int ] ]
 	scrollbar_color: Optional[ str ]
 	form_size: Optional[ Tuple[ int, int ] ]
+	keep_on_top: Optional[ bool ]
+	top_level: Optional[ bool ]
+	resizeable: Optional[ bool ]
+	context_menu: Optional[ List[ List[ str ] ] ]
 
 	def __init__( self ):
 		sg.theme( 'DarkGrey15' )
@@ -95,9 +99,13 @@ class Dark( ):
 		self.theme_font = ('Roboto', 11)
 		self.scrollbar_color = '#755600'
 		self.form_size = (400, 200)
+		self.keep_on_top = True
+		self.top_level = True
+		self.resizable = True,
+		self.context_menu = sg.MENU_RIGHT_CLICK_EDITME_VER_SETTINGS_EXIT
 		sg.set_global_icon( icon=self.icon_path )
 		sg.set_options( font=self.theme_font )
-		sg.user_settings_save( 'Boo', r'\resources\theme' )
+		sg.user_settings_save( 'Mathy', r'\resources\theme' )
 
 
 	def __dir__( self ) -> List[ str ] | None:
@@ -237,7 +245,7 @@ class ErrorDialog( Dark ):
 		self.scrollbar_color = '#755600'
 		sg.set_global_icon( icon = self.icon_path )
 		sg.set_options( font = self.theme_font )
-		sg.user_settings_save( 'mathy', r'\resources\theme' )
+		sg.user_settings_save( 'Mathy', r'\resources\theme' )
 		self.form_size = (500, 300)
 		self.error = error
 		self.heading = error.heading
