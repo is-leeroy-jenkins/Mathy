@@ -10,3 +10,4 @@ pydantic
 FreeSimpleGUI
 torch
 typing
+streamlit-extras
