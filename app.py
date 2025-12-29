@@ -41,6 +41,12 @@
   </summary>
   ******************************************************************************************
 '''
+# ******************************************************************************************
+# Assembly:                Mathy-Py
+# Filename:                app.py
+# Author:                  Terry D. Eppler (integration)
+# ******************************************************************************************
+
 from __future__ import annotations
 
 import streamlit as st
@@ -48,68 +54,86 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from typing import Optional
+from scipy import stats
+from typing import List
 
-# Mathy imports (verified to exist)
+# Mathy (verified)
 from imputers import SimpleImputer
 from scalers import StandardScaler, MinMaxScaler, RobustScaler, NormalScaler
-from encoders import OneHotEncoder, OrdinalEncoder
 
-try:
-    from streamlit_extras.dataframe_explorer import dataframe_explorer
-    HAS_EXTRAS = True
-except ImportError:
-    HAS_EXTRAS = False
-    
 # -----------------------------------------------------------------------------------------
-# Streamlit configuration
+# Configuration
 # -----------------------------------------------------------------------------------------
 
 st.set_page_config(
     page_title="Mathy",
-	page_icon= r'resources\favicon.ico',
     layout="wide",
+    page_icon=r"resources/favicon.ico",
     initial_sidebar_state="expanded"
 )
 
+pd.options.display.float_format = "{:.4f}".format
+
 # -----------------------------------------------------------------------------------------
-# Session State Initialization
+# Session State
 # -----------------------------------------------------------------------------------------
 
-def initialize_state() -> None:
+def init_state() -> None:
     defaults = {
         "raw_df": None,
         "df": None,
         "numeric_cols": [],
         "categorical_cols": [],
-        "target_col": None,
-        "pipeline_log": [],
+        "pipeline_log": []
     }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
-
-
-initialize_state()
+init_state()
 
 # -----------------------------------------------------------------------------------------
-# Utility helpers
+# Utilities
 # -----------------------------------------------------------------------------------------
 
-def log_step(message: str) -> None:
-    st.session_state.pipeline_log.append(message)
+def log_step(msg: str) -> None:
+    st.session_state.pipeline_log.append(msg)
 
 
-def render_table(df: pd.DataFrame, height: int = 350) -> None:
-    st.dataframe(df, use_container_width=True, height=height)
+def render_table(df: pd.DataFrame, height: int = 360) -> None:
+    disp = df.copy()
+    float_cols = disp.select_dtypes(include=[np.floating]).columns
+    disp[float_cols] = disp[float_cols].round(4)
+    st.dataframe(disp, use_container_width=True, height=height)
 
 
-def detect_column_types(df: pd.DataFrame) -> tuple[list[str], list[str]]:
-    numeric = df.select_dtypes(include=[np.number]).columns.tolist()
-    categorical = [c for c in df.columns if c not in numeric]
+def blue_divider() -> None:
+    st.markdown(
+        "<div style='height:3px;background:#1f77b4;margin:1rem 0;'></div>",
+        unsafe_allow_html=True
+    )
+
+
+def detect_column_types(df: pd.DataFrame) -> tuple[List[str], List[str]]:
+    numeric_hints = ("py", "cy", "by", "amount", "total", "value", "balance", "outlay")
+    categorical_hints = ("fy", "code", "id", "name", "type", "symbol")
+
+    numeric, categorical = [], []
+
+    for col in df.columns:
+        name = col.lower()
+        if any(h in name for h in categorical_hints):
+            categorical.append(col)
+        elif any(h in name for h in numeric_hints):
+            numeric.append(col)
+        elif pd.api.types.is_float_dtype(df[col]):
+            numeric.append(col)
+        elif pd.api.types.is_integer_dtype(df[col]):
+            numeric.append(col)
+        else:
+            categorical.append(col)
+
     return numeric, categorical
-
 
 # -----------------------------------------------------------------------------------------
 # Sidebar – Data Source
@@ -117,37 +141,30 @@ def detect_column_types(df: pd.DataFrame) -> tuple[list[str], list[str]]:
 
 st.sidebar.title("📦 Dataset")
 
-uploaded = st.sidebar.file_uploader(
-    "Upload spreadsheet",
-    type=["xlsx", "xls", "csv"]
-)
-
-use_fallback = st.sidebar.checkbox("Use fallback data", value=False)
+use_fallback = st.sidebar.checkbox("Use fallback data", value=True)
+uploaded = st.sidebar.file_uploader("Upload spreadsheet", type=["xlsx", "xls", "csv"])
 
 if uploaded or use_fallback:
-    try:
-        if uploaded:
-            if uploaded.name.endswith(".csv"):
-                df = pd.read_csv(uploaded)
-            else:
-                df = pd.read_excel(uploaded)
-            log_step(f"Loaded uploaded file: {uploaded.name}")
-        else:
-            df = pd.read_excel("stores/excel/Combined Schedules.xlsx")
-            log_step("Loaded fallback dataset: Combined Schedules.xlsx")
+    if uploaded:
+        df = pd.read_excel(uploaded) if uploaded.name.endswith("xls") else pd.read_csv(uploaded)
+        log_step(f"Loaded uploaded file: {uploaded.name}")
+    else:
+        df = pd.read_excel("stores/excel/Combined Schedules.xlsx")
+        log_step("Loaded fallback dataset")
 
-        st.session_state.raw_df = df.copy()
-        st.session_state.df = df.copy()
-        st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types(df)
-
-    except Exception as ex:
-        st.error(f"Data load failed: {ex}")
+    st.session_state.raw_df = df.copy()
+    st.session_state.df = df.copy()
+    st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types(df)
 
 # -----------------------------------------------------------------------------------------
-# Tabs
+# Tabs (TOP LEVEL)
 # -----------------------------------------------------------------------------------------
 
-tabs = st.tabs(["🧹 Data Processing", "📊 Data Analysis"])
+tabs = st.tabs([
+    "🧹 Data Processing",
+    "📈 Descriptive Statistics",
+    "📐 Inferential Statistics"
+])
 
 # =========================================================================================
 # TAB 1 — DATA PROCESSING
@@ -156,203 +173,248 @@ tabs = st.tabs(["🧹 Data Processing", "📊 Data Analysis"])
 with tabs[0]:
     st.header("🧹 Data Processing")
 
-    if st.session_state.raw_df is None:
-        st.info("Upload a dataset or enable fallback data to begin.")
+    if st.session_state.df is None:
+        st.info("No data loaded.")
         st.stop()
 
-    st.subheader("Raw Data (Interactive)")
-    
-    if HAS_EXTRAS:
-	    filtered_raw = dataframe_explorer( st.session_state.raw_df )
-    else:
-	    filtered_raw = st.session_state.raw_df
-    
-    render_table(filtered_raw)
+    df = st.session_state.df
 
-    st.subheader("Column Role Assignment")
+    st.subheader("Current Dataset")
+    render_table(df)
+    blue_divider()
 
-    cols = st.session_state.raw_df.columns.tolist()
+    CRUD_ROW_HEIGHT = 260
 
-    target = st.selectbox("Target column (optional)", ["<None>"] + cols)
-    st.session_state.target_col = None if target == "<None>" else target
+    # ---------------------------------------------------------------------
+    # Structure
+    # ---------------------------------------------------------------------
 
-    numeric_cols = st.multiselect(
-        "Numeric columns",
-        options=cols,
-        default=st.session_state.numeric_cols
-    )
+    st.subheader("Structure")
+    c1, c2 = st.columns(2)
 
-    categorical_cols = st.multiselect(
-        "Categorical columns",
-        options=[c for c in cols if c not in numeric_cols],
-        default=st.session_state.categorical_cols
-    )
+    with c1:
+        with st.container(height=CRUD_ROW_HEIGHT):
+            st.markdown("**Drop Columns**")
+            drop_cols = st.multiselect(
+                "Columns to drop",
+                options=df.columns.tolist(),
+                key="drop_cols"
+            )
+            if st.button("Apply Column Drop", key="btn_drop"):
+                df = df.drop(columns=drop_cols)
+                st.session_state.df = df
+                st.session_state.numeric_cols, st.session_state.categorical_cols = (
+                    detect_column_types(df)
+                )
+                log_step(f"Dropped columns: {drop_cols}")
 
-    st.session_state.numeric_cols = numeric_cols
-    st.session_state.categorical_cols = categorical_cols
+    with c2:
+        with st.container(height=CRUD_ROW_HEIGHT):
+            st.markdown("**Rename Column**")
+            rename_col = st.selectbox(
+                "Column",
+                ["<None>"] + df.columns.tolist(),
+                key="rename_col"
+            )
+            new_name = st.text_input("New name", key="rename_name")
+            if st.button("Apply Rename", key="btn_rename") and rename_col != "<None>" and new_name:
+                df = df.rename(columns={rename_col: new_name})
+                st.session_state.df = df
+                st.session_state.numeric_cols, st.session_state.categorical_cols = (
+                    detect_column_types(df)
+                )
+                log_step(f"Renamed {rename_col} → {new_name}")
 
-    # -------------------------------
-    # Imputation
-    # -------------------------------
+    blue_divider()
 
-    st.subheader("Missing Value Imputation")
+    # ---------------------------------------------------------------------
+    # Data Quality
+    # ---------------------------------------------------------------------
 
-    if st.button("Apply Imputation"):
-        df = st.session_state.df.copy()
+    st.subheader("Data Quality")
+    c3, c4 = st.columns(2)
 
-        if numeric_cols:
-            imp = SimpleImputer(strategy="mean")
-            df[numeric_cols] = imp.train_transform(df[numeric_cols], None)
-            log_step("Imputed numeric columns (mean)")
+    with c3:
+        with st.container(height=CRUD_ROW_HEIGHT):
+            st.markdown("**Imputation**")
+            if st.button("Impute Missing Values", key="btn_impute"):
+                if st.session_state.numeric_cols:
+                    imp = SimpleImputer(strategy="mean")
+                    df[st.session_state.numeric_cols] = imp.train_transform(
+                        df[st.session_state.numeric_cols], None
+                    )
+                if st.session_state.categorical_cols:
+                    imp = SimpleImputer(strategy="most_frequent")
+                    df[st.session_state.categorical_cols] = imp.train_transform(
+                        df[st.session_state.categorical_cols], None
+                    )
+                st.session_state.df = df
+                st.session_state.numeric_cols, st.session_state.categorical_cols = (
+                    detect_column_types(df)
+                )
+                log_step("Applied imputation")
 
-        if categorical_cols:
-            imp = SimpleImputer(strategy="most_frequent")
-            df[categorical_cols] = imp.train_transform(df[categorical_cols], None)
-            log_step("Imputed categorical columns (most frequent)")
+    with c4:
+        with st.container(height=CRUD_ROW_HEIGHT):
+            st.markdown("**Scaling**")
+            scaler_name = st.selectbox(
+                "Scaler",
+                ["None", "Standard", "MinMax", "Robust", "Normalize"],
+                key="scaler"
+            )
+            if st.button("Apply Scaling", key="btn_scale") and scaler_name != "None":
+                scaler_map = {
+                    "Standard": StandardScaler,
+                    "MinMax": MinMaxScaler,
+                    "Robust": RobustScaler,
+                    "Normalize": NormalScaler
+                }
+                scaler = scaler_map[scaler_name]()
+                df[st.session_state.numeric_cols] = scaler.train_transform(
+                    df[st.session_state.numeric_cols]
+                )
+                st.session_state.df = df
+                log_step(f"Applied {scaler_name} scaling")
 
-        st.session_state.df = df
-        st.success("Imputation completed")
+    blue_divider()
 
-    # -------------------------------
-    # Encoding
-    # -------------------------------
+    # ---------------------------------------------------------------------
+    # State
+    # ---------------------------------------------------------------------
 
-    st.subheader("Categorical Encoding")
+    st.subheader("State")
+    c5, c6 = st.columns(2)
 
-    encoder_type = st.selectbox("Encoding strategy", ["One-Hot", "Ordinal"])
+    with c5:
+        with st.container(height=CRUD_ROW_HEIGHT):
+            if st.button("Reset to Raw Data", key="btn_reset"):
+                st.session_state.df = st.session_state.raw_df.copy()
+                st.session_state.numeric_cols, st.session_state.categorical_cols = (
+                    detect_column_types(st.session_state.df)
+                )
+                log_step("Reset dataset to raw")
 
-    if st.button("Apply Encoding"):
-        df = st.session_state.df.copy()
-
-        if categorical_cols:
-            encoder = OneHotEncoder() if encoder_type == "One-Hot" else OrdinalEncoder()
-            encoded = encoder.train_transform(df[categorical_cols], None)
-            encoded_df = pd.DataFrame(encoded, index=df.index)
-
-            df = df.drop(columns=categorical_cols)
-            df = pd.concat([df, encoded_df], axis=1)
-
-            log_step(f"Applied {encoder_type} encoding")
-
-        st.session_state.df = df
-        st.success("Encoding completed")
-
-    # -------------------------------
-    # Scaling
-    # -------------------------------
-
-    st.subheader("Scaling / Normalization")
-
-    scaler_name = st.selectbox("Scaler", ["None", "Standard", "MinMax", "Robust", "Normalize"])
-
-    if st.button("Apply Scaling"):
-        df = st.session_state.df.copy()
-
-        if scaler_name != "None" and numeric_cols:
-            scaler_map = {
-                "Standard": StandardScaler,
-                "MinMax": MinMaxScaler,
-                "Robust": RobustScaler,
-                "Normalize": NormalScaler
-            }
-            scaler = scaler_map[scaler_name]()
-            df[numeric_cols] = scaler.train_transform( df[numeric_cols] )
-            log_step(f"Applied {scaler_name} scaling")
-
-        st.session_state.df = df
-        st.success("Scaling completed")
-
-    st.subheader("Processed Data")
-    render_table(st.session_state.df)
+    with c6:
+        with st.container(height=CRUD_ROW_HEIGHT):
+            st.download_button(
+                "Export Processed Data (CSV)",
+                st.session_state.df.to_csv(index=False),
+                "processed_data.csv",
+                "text/csv",
+                key="btn_export"
+            )
 
     st.subheader("Pipeline Log")
     for step in st.session_state.pipeline_log:
         st.write(f"• {step}")
 
 # =========================================================================================
-# TAB 2 — DATA ANALYSIS (VISUALIZATION-FOCUSED)
+# TAB 2 — DESCRIPTIVE STATISTICS
 # =========================================================================================
 
 with tabs[1]:
-    st.header("📊 Data Analysis")
+    st.header("📈 Descriptive Statistics")
 
     df = st.session_state.df
-    if df is None:
-        st.info("No processed data available.")
+    num_df = df.select_dtypes(include=[np.number])
+
+    if num_df.empty:
+        st.info("No numeric columns available.")
         st.stop()
 
-    st.subheader("Descriptive Statistics")
-    render_table(df.describe(include="all").transpose())
+    col = st.selectbox("Select numeric column", num_df.columns.tolist(), key="desc_col")
+    s = num_df[col].dropna()
+    ROW_HEIGHT = 420
 
-    numeric_df = df.select_dtypes(include=[np.number])
+    st.subheader("Distribution Overview")
+    blue_divider()
 
-    # -------------------------------
-    # Correlation Heatmap
-    # -------------------------------
+    c1, c2 = st.columns(2)
+    with c1:
+        with st.container(height=ROW_HEIGHT):
+            fig, ax = plt.subplots()
+            ax.hist(s, bins=30, edgecolor="black", alpha=0.85)
+            ax.set_title("Histogram")
+            st.pyplot(fig)
 
-    if not numeric_df.empty:
-        st.subheader("Correlation Matrix")
+    with c2:
+        with st.container(height=ROW_HEIGHT):
+            fig, ax = plt.subplots()
+            ax.boxplot(
+                s,
+                patch_artist=True,
+                boxprops=dict(facecolor="lightblue", edgecolor="black"),
+                medianprops=dict(color="red")
+            )
+            ax.set_title("Boxplot")
+            st.pyplot(fig)
 
-        corr = numeric_df.corr()
+    summary = pd.DataFrame({
+        "Metric": ["Count", "Mean", "Median", "Std Dev", "Min", "Max", "IQR", "CV"],
+        "Value": [
+            s.count(), s.mean(), s.median(), s.std(),
+            s.min(), s.max(),
+            s.quantile(0.75) - s.quantile(0.25),
+            s.std() / s.mean() if s.mean() else np.nan
+        ]
+    })
+    render_table(summary)
 
-        fig, ax = plt.subplots(figsize=(10, 8))
-        im = ax.imshow(corr, cmap="coolwarm", vmin=-1, vmax=1)
+    st.subheader("Shape & Moments")
+    blue_divider()
 
-        ax.set_xticks(range(len(corr.columns)))
-        ax.set_yticks(range(len(corr.columns)))
-        ax.set_xticklabels(corr.columns, rotation=90)
-        ax.set_yticklabels(corr.columns)
+    c3, c4 = st.columns(2)
+    with c3:
+        with st.container(height=ROW_HEIGHT):
+            fig, ax = plt.subplots()
+            stats.probplot(s, plot=ax)
+            ax.set_title("Q–Q Plot")
+            st.pyplot(fig)
 
-        for i in range(len(corr.columns)):
-            for j in range(len(corr.columns)):
-                ax.text(
-                    j, i,
-                    f"{corr.iloc[i, j]:.2f}",
-                    ha="center",
-                    va="center",
-                    fontsize=8
-                )
+    with c4:
+        with st.container(height=ROW_HEIGHT):
+            render_table(pd.DataFrame({
+                "Metric": ["Skewness", "Kurtosis"],
+                "Value": [s.skew(), s.kurtosis()]
+            }))
 
-        fig.colorbar(im, ax=ax, label="Correlation")
-        ax.set_title("Correlation Matrix")
+# =========================================================================================
+# TAB 3 — INFERENTIAL STATISTICS
+# =========================================================================================
 
-        st.pyplot(fig)
-        render_table(corr)
+with tabs[2]:
+    st.header("📐 Inferential Statistics")
 
-    # -------------------------------
-    # Distribution Explorer
-    # -------------------------------
+    df = st.session_state.df
+    num_df = df.select_dtypes(include=[np.number])
 
-    st.subheader("Distribution Explorer")
+    if num_df.empty:
+        st.info("No numeric columns available.")
+        st.stop()
 
-    col = st.selectbox("Select numeric column", options=numeric_df.columns.tolist())
+    col = st.selectbox("Select numeric column", num_df.columns.tolist(), key="inf_col")
+    s = num_df[col].dropna()
 
-    if col:
-        data = numeric_df[col].dropna()
+    st.subheader("Normality Tests")
+    blue_divider()
 
-        fig, ax = plt.subplots(figsize=(8, 5))
-        counts, bins, patches = ax.hist(
-            data,
-            bins=30,
-            edgecolor="black",
-            linewidth=1.2,
-            alpha=0.85
-        )
+    shapiro_stat, shapiro_p = stats.shapiro(s.sample(min(len(s), 500)))
+    dag_stat, dag_p = stats.normaltest(s)
 
-        ax.set_title(f"Distribution of {col}")
-        ax.set_xlabel(col)
-        ax.set_ylabel("Frequency")
+    render_table(pd.DataFrame({
+        "Test": ["Shapiro–Wilk", "D’Agostino–Pearson"],
+        "Statistic": [shapiro_stat, dag_stat],
+        "p-value": [shapiro_p, dag_p]
+    }))
 
-        for count, patch in zip(counts, patches):
-            if count > 0:
-                ax.text(
-                    patch.get_x() + patch.get_width() / 2,
-                    count,
-                    f"{int(count)}",
-                    ha="center",
-                    va="bottom",
-                    fontsize=8
-                )
+    st.subheader("Confidence Interval (Mean)")
+    blue_divider()
 
-        st.pyplot(fig)
-        render_table(data.to_frame(name=col))
+    mean = s.mean()
+    sem = stats.sem(s)
+    ci_low, ci_high = stats.t.interval(0.95, len(s) - 1, loc=mean, scale=sem)
+
+    render_table(pd.DataFrame({
+        "Metric": ["Mean", "CI Lower (95%)", "CI Upper (95%)"],
+        "Value": [mean, ci_low, ci_high]
+    }))
