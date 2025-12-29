@@ -322,19 +322,37 @@ with tabs[1]:
         st.info("No numeric columns available.")
         st.stop()
 
-    col = st.selectbox("Select numeric column", num_df.columns.tolist(), key="desc_col")
+    col = st.selectbox(
+        "Select numeric column",
+        num_df.columns.tolist(),
+        key="desc_col"
+    )
+
     s = num_df[col].dropna()
     ROW_HEIGHT = 420
 
-    st.subheader("Distribution Overview")
+    # =========================================================================
+    # SECTION 1 — DISTRIBUTION & LOCATION
+    # =========================================================================
+
+    st.subheader("Distribution & Location")
     blue_divider()
 
     c1, c2 = st.columns(2)
+
     with c1:
         with st.container(height=ROW_HEIGHT):
             fig, ax = plt.subplots()
-            ax.hist(s, bins=30, edgecolor="black", alpha=0.85)
-            ax.set_title("Histogram")
+            ax.hist(
+                s,
+                bins=30,
+                edgecolor="black",
+                alpha=0.85
+            )
+            ax.axvline(s.mean(), color="red", linestyle="--", label="Mean")
+            ax.axvline(s.median(), color="green", linestyle=":", label="Median")
+            ax.set_title("Histogram with Mean & Median")
+            ax.legend()
             st.pyplot(fig)
 
     with c2:
@@ -342,41 +360,198 @@ with tabs[1]:
             fig, ax = plt.subplots()
             ax.boxplot(
                 s,
+                vert=True,
                 patch_artist=True,
                 boxprops=dict(facecolor="lightblue", edgecolor="black"),
-                medianprops=dict(color="red")
+                medianprops=dict(color="red"),
+                whiskerprops=dict(color="black"),
+                capprops=dict(color="black"),
+                flierprops=dict(marker="o", markerfacecolor="orange", markersize=4)
             )
-            ax.set_title("Boxplot")
+            ax.set_title("Boxplot with Outliers")
             st.pyplot(fig)
 
-    summary = pd.DataFrame({
-        "Metric": ["Count", "Mean", "Median", "Std Dev", "Min", "Max", "IQR", "CV"],
+    render_table(pd.DataFrame({
+        "Metric": [
+            "Count",
+            "Mean",
+            "Median",
+            "Trimmed Mean (10%)",
+            "Min",
+            "Max",
+            "Range"
+        ],
         "Value": [
-            s.count(), s.mean(), s.median(), s.std(),
-            s.min(), s.max(),
-            s.quantile(0.75) - s.quantile(0.25),
-            s.std() / s.mean() if s.mean() else np.nan
+            s.count(),
+            s.mean(),
+            s.median(),
+            stats.trim_mean(s, 0.10),
+            s.min(),
+            s.max(),
+            s.max() - s.min()
         ]
-    })
-    render_table(summary)
+    }))
 
-    st.subheader("Shape & Moments")
+    # =========================================================================
+    # SECTION 2 — DISPERSION & VARIABILITY
+    # =========================================================================
+
+    st.subheader("Dispersion & Variability")
     blue_divider()
 
     c3, c4 = st.columns(2)
+
     with c3:
         with st.container(height=ROW_HEIGHT):
-            fig, ax = plt.subplots()
-            stats.probplot(s, plot=ax)
-            ax.set_title("Q–Q Plot")
-            st.pyplot(fig)
+            render_table(pd.DataFrame({
+                "Metric": [
+                    "Variance",
+                    "Standard Deviation",
+                    "Coefficient of Variation",
+                    "Interquartile Range (IQR)",
+                    "Median Absolute Deviation (MAD)"
+                ],
+                "Value": [
+                    s.var(),
+                    s.std(),
+                    s.std() / s.mean() if s.mean() else np.nan,
+                    s.quantile(0.75) - s.quantile(0.25),
+                    stats.median_abs_deviation(s)
+                ]
+            }))
 
     with c4:
         with st.container(height=ROW_HEIGHT):
+            fig, ax = plt.subplots()
+            ax.violinplot(s, showmeans=True, showmedians=True)
+            ax.set_title("Violin Plot (Distribution Density)")
+            st.pyplot(fig)
+
+    # =========================================================================
+    # SECTION 3 — SHAPE, MOMENTS & DISTRIBUTIONAL DIAGNOSTICS
+    # =========================================================================
+
+    st.subheader("Shape, Moments & Distributional Diagnostics")
+    blue_divider()
+
+    c5, c6 = st.columns(2)
+
+    with c5:
+        with st.container(height=ROW_HEIGHT):
+            fig, ax = plt.subplots()
+            stats.probplot(s, plot=ax)
+            ax.set_title("Q–Q Plot (Normal Reference)")
+            st.pyplot(fig)
+
+    with c6:
+        with st.container(height=ROW_HEIGHT):
             render_table(pd.DataFrame({
-                "Metric": ["Skewness", "Kurtosis"],
-                "Value": [s.skew(), s.kurtosis()]
+                "Metric": [
+                    "Skewness",
+                    "Kurtosis (Fisher)",
+                    "Kurtosis (Pearson)"
+                ],
+                "Value": [
+                    s.skew(),
+                    s.kurtosis(),
+                    s.kurtosis() + 3
+                ]
             }))
+
+    # =========================================================================
+    # SECTION 4 — OUTLIER PREVALENCE (DESCRIPTIVE ONLY)
+    # =========================================================================
+
+    st.subheader("Outlier Prevalence (Descriptive)")
+    blue_divider()
+
+    z_scores = np.abs(stats.zscore(s, nan_policy="omit"))
+    q1, q3 = s.quantile([0.25, 0.75])
+    iqr = q3 - q1
+    lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+
+    render_table(pd.DataFrame({
+        "Method": [
+            "Z-Score > 2",
+            "Z-Score > 3",
+            "IQR Fence"
+        ],
+        "Count": [
+            int((z_scores > 2).sum()),
+            int((z_scores > 3).sum()),
+            int(((s < lower) | (s > upper)).sum())
+        ],
+        "Percent of Observations": [
+            float((z_scores > 2).mean() * 100),
+            float((z_scores > 3).mean() * 100),
+            float(((s < lower) | (s > upper)).mean() * 100)
+        ]
+    }))
+
+    # =========================================================================
+    # SECTION 5 — GROUPED DESCRIPTIVES (FINANCE-CRITICAL)
+    # =========================================================================
+
+    st.subheader("Grouped Descriptive Statistics")
+    blue_divider()
+
+    cat_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+
+    if cat_cols:
+        group_col = st.selectbox(
+            "Group by (categorical)",
+            cat_cols,
+            key="desc_group_col"
+        )
+
+        grouped = (
+            df[[group_col, col]]
+            .dropna()
+            .groupby(group_col)[col]
+            .agg(
+                count="count",
+                mean="mean",
+                median="median",
+                std="std",
+                min="min",
+                max="max"
+            )
+            .reset_index()
+        )
+
+        render_table(grouped)
+
+        c7, c8 = st.columns(2)
+
+        with c7:
+            with st.container(height=ROW_HEIGHT):
+                fig, ax = plt.subplots()
+                grouped.sort_values("mean").plot.bar(
+                    x=group_col,
+                    y="mean",
+                    ax=ax,
+                    legend=False,
+                    edgecolor="black"
+                )
+                ax.set_title("Group Means")
+                st.pyplot(fig)
+
+        with c8:
+            with st.container(height=ROW_HEIGHT):
+                fig, ax = plt.subplots()
+                df.boxplot(
+                    column=col,
+                    by=group_col,
+                    ax=ax,
+                    grid=False,
+                    rot=45
+                )
+                ax.set_title("Grouped Boxplots")
+                plt.suptitle("")
+                st.pyplot(fig)
+    else:
+        st.info("No categorical columns available for grouping.")
+
 
 # =========================================================================================
 # TAB 3 — INFERENTIAL STATISTICS
@@ -392,29 +567,205 @@ with tabs[2]:
         st.info("No numeric columns available.")
         st.stop()
 
-    col = st.selectbox("Select numeric column", num_df.columns.tolist(), key="inf_col")
+    col = st.selectbox(
+        "Select numeric column",
+        num_df.columns.tolist(),
+        key="inf_col"
+    )
+
     s = num_df[col].dropna()
+    ROW_HEIGHT = 420
 
-    st.subheader("Normality Tests")
+    # =========================================================================
+    # SECTION 1 — NORMALITY & DISTRIBUTIONAL ASSUMPTIONS
+    # =========================================================================
+
+    st.subheader("Distributional Assumptions")
     blue_divider()
 
-    shapiro_stat, shapiro_p = stats.shapiro(s.sample(min(len(s), 500)))
-    dag_stat, dag_p = stats.normaltest(s)
+    c1, c2 = st.columns(2)
 
-    render_table(pd.DataFrame({
-        "Test": ["Shapiro–Wilk", "D’Agostino–Pearson"],
-        "Statistic": [shapiro_stat, dag_stat],
-        "p-value": [shapiro_p, dag_p]
-    }))
+    with c1:
+        with st.container(height=ROW_HEIGHT):
+            fig, ax = plt.subplots()
+            stats.probplot(s, plot=ax)
+            ax.set_title("Q–Q Plot (Normal Reference)")
+            st.pyplot(fig)
 
-    st.subheader("Confidence Interval (Mean)")
+    with c2:
+        with st.container(height=ROW_HEIGHT):
+            shapiro_stat, shapiro_p = stats.shapiro(s.sample(min(len(s), 500)))
+            dag_stat, dag_p = stats.normaltest(s)
+            anderson = stats.anderson(s)
+
+            render_table(pd.DataFrame({
+                "Test": [
+                    "Shapiro–Wilk",
+                    "D’Agostino–Pearson",
+                    "Anderson–Darling (stat)"
+                ],
+                "Statistic": [
+                    shapiro_stat,
+                    dag_stat,
+                    anderson.statistic
+                ],
+                "p-value / Critical": [
+                    shapiro_p,
+                    dag_p,
+                    anderson.critical_values[2]  # 5% level
+                ]
+            }))
+
+    # =========================================================================
+    # SECTION 2 — CONFIDENCE INTERVALS (PARAMETRIC & ROBUST)
+    # =========================================================================
+
+    st.subheader("Confidence Intervals")
     blue_divider()
 
-    mean = s.mean()
-    sem = stats.sem(s)
-    ci_low, ci_high = stats.t.interval(0.95, len(s) - 1, loc=mean, scale=sem)
+    alpha = st.selectbox(
+        "Confidence Level",
+        [0.90, 0.95, 0.99],
+        index=1,
+        key="ci_level"
+    )
 
-    render_table(pd.DataFrame({
-        "Metric": ["Mean", "CI Lower (95%)", "CI Upper (95%)"],
-        "Value": [mean, ci_low, ci_high]
-    }))
+    c3, c4 = st.columns(2)
+
+    with c3:
+        with st.container(height=ROW_HEIGHT):
+            mean = s.mean()
+            sem = stats.sem(s)
+            ci_low, ci_high = stats.t.interval(
+                alpha,
+                len(s) - 1,
+                loc=mean,
+                scale=sem
+            )
+
+            render_table(pd.DataFrame({
+                "Metric": ["Mean", "CI Lower", "CI Upper"],
+                "Value": [mean, ci_low, ci_high]
+            }))
+
+    with c4:
+        with st.container(height=ROW_HEIGHT):
+            # Bootstrap CI for median
+            rng = np.random.default_rng(42)
+            boot = rng.choice(s.values, size=(2000, len(s)), replace=True)
+            medians = np.median(boot, axis=1)
+            lo, hi = np.percentile(
+                medians,
+                [(1 - alpha) / 2 * 100, (1 + alpha) / 2 * 100]
+            )
+
+            render_table(pd.DataFrame({
+                "Metric": ["Median", "Bootstrap CI Lower", "Bootstrap CI Upper"],
+                "Value": [s.median(), lo, hi]
+            }))
+
+    # =========================================================================
+    # SECTION 3 — ONE-SAMPLE HYPOTHESIS TESTING
+    # =========================================================================
+
+    st.subheader("One-Sample Hypothesis Tests")
+    blue_divider()
+
+    mu0 = st.number_input(
+        "Null hypothesis mean (μ₀)",
+        value=float(s.mean()),
+        key="mu0"
+    )
+
+    c5, c6 = st.columns(2)
+
+    with c5:
+        with st.container(height=ROW_HEIGHT):
+            t_stat, t_p = stats.ttest_1samp(s, mu0)
+
+            render_table(pd.DataFrame({
+                "Test": ["One-Sample t-test"],
+                "Statistic": [t_stat],
+                "p-value": [t_p]
+            }))
+
+    with c6:
+        with st.container(height=ROW_HEIGHT):
+            # Effect size: Cohen's d
+            d = (s.mean() - mu0) / s.std()
+
+            render_table(pd.DataFrame({
+                "Metric": ["Cohen’s d"],
+                "Value": [d]
+            }))
+
+    # =========================================================================
+    # SECTION 4 — TWO-GROUP COMPARISONS
+    # =========================================================================
+
+    st.subheader("Two-Group Comparisons")
+    blue_divider()
+
+    cat_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+
+    if cat_cols:
+        group_col = st.selectbox(
+            "Grouping column (categorical)",
+            cat_cols,
+            key="inf_group_col"
+        )
+
+        groups = df[[group_col, col]].dropna().groupby(group_col)[col]
+
+        if groups.ngroups == 2:
+            g1, g2 = [g.values for _, g in groups]
+
+            c7, c8 = st.columns(2)
+
+            with c7:
+                with st.container(height=ROW_HEIGHT):
+                    t_stat, p_val = stats.ttest_ind(g1, g2, equal_var=False)
+                    u_stat, u_p = stats.mannwhitneyu(g1, g2, alternative="two-sided")
+
+                    render_table(pd.DataFrame({
+                        "Test": [
+                            "Welch’s t-test",
+                            "Mann–Whitney U"
+                        ],
+                        "Statistic": [t_stat, u_stat],
+                        "p-value": [p_val, u_p]
+                    }))
+
+            with c8:
+                with st.container(height=ROW_HEIGHT):
+                    pooled_sd = np.sqrt((np.var(g1) + np.var(g2)) / 2)
+                    d = (np.mean(g1) - np.mean(g2)) / pooled_sd
+
+                    render_table(pd.DataFrame({
+                        "Metric": ["Cohen’s d (group diff)"],
+                        "Value": [d]
+                    }))
+        else:
+            st.info("Two-group tests require exactly two categories.")
+    else:
+        st.info("No categorical columns available for grouping.")
+
+    # =========================================================================
+    # SECTION 5 — CORRELATION & ASSOCIATION
+    # =========================================================================
+
+    st.subheader("Correlation & Association")
+    blue_divider()
+
+    c9, c10 = st.columns(2)
+
+    with c9:
+        with st.container(height=ROW_HEIGHT):
+            corr = df.select_dtypes(include=[np.number]).corr(method="pearson")
+            render_table(corr)
+
+    with c10:
+        with st.container(height=ROW_HEIGHT):
+            spearman = df.select_dtypes(include=[np.number]).corr(method="spearman")
+            render_table(spearman)
+
