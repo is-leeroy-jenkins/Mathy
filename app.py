@@ -66,7 +66,7 @@ except ImportError:
 # -----------------------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title="Mathy-Py",
+    page_title="Mathy",
 	page_icon= r'resources\favicon.ico',
     layout="wide",
     initial_sidebar_state="expanded"
@@ -161,7 +161,12 @@ with tabs[0]:
         st.stop()
 
     st.subheader("Raw Data (Interactive)")
-    filtered_raw = dataframe_explorer(st.session_state.raw_df)
+    
+    if HAS_EXTRAS:
+	    filtered_raw = dataframe_explorer( st.session_state.raw_df )
+    else:
+	    filtered_raw = st.session_state.raw_df
+    
     render_table(filtered_raw)
 
     st.subheader("Column Role Assignment")
@@ -251,7 +256,7 @@ with tabs[0]:
                 "Normalize": NormalScaler
             }
             scaler = scaler_map[scaler_name]()
-            df[numeric_cols] = scaler.train_transform(df[numeric_cols], None)
+            df[numeric_cols] = scaler.train_transform( df[numeric_cols] )
             log_step(f"Applied {scaler_name} scaling")
 
         st.session_state.df = df
