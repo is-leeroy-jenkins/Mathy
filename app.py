@@ -50,13 +50,17 @@ import matplotlib.pyplot as plt
 
 from typing import Optional
 
-from streamlit_extras.dataframe_explorer import dataframe_explorer
-
 # Mathy imports (verified to exist)
 from imputers import SimpleImputer
 from scalers import StandardScaler, MinMaxScaler, RobustScaler, NormalScaler
 from encoders import OneHotEncoder, OrdinalEncoder
 
+try:
+    from streamlit_extras.dataframe_explorer import dataframe_explorer
+    HAS_EXTRAS = True
+except ImportError:
+    HAS_EXTRAS = False
+    
 # -----------------------------------------------------------------------------------------
 # Streamlit configuration
 # -----------------------------------------------------------------------------------------
