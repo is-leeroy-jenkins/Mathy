@@ -5,7 +5,7 @@
   <img src="resources/Mathy.png" alt="Mathy logo" width="800">
 </p>
 
----
+
 
 ## 🧠 Overview
 
@@ -16,9 +16,10 @@
 - Mathy offers clarity, consistency, and composability in machine learning workflows.
 
 ---
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
+
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 
 ## 📦 Layout
 
