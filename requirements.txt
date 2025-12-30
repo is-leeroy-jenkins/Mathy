@@ -11,3 +11,4 @@ FreeSimpleGUI
 torch
 typing
 streamlit-extras
+xgboost

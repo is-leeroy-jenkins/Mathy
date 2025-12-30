@@ -25,6 +25,7 @@ from statsmodels.stats.power import TTestPower
 from sklearn.neighbors import NearestNeighbors
 from sklearn.svm import OneClassSVM
 from sklearn.cluster import DBSCAN, KMeans
+import seaborn as sns
 
 # -----------------------------------------------------------------------------------------
 # Configuration
@@ -150,7 +151,7 @@ tabs = st.tabs([
 # =========================================================================================
 
 with tabs[0]:
-    st.header("🧹 Data Processing")
+    st.header("")
 
     if st.session_state.df is None:
         st.info("No data loaded.")
@@ -251,7 +252,7 @@ with tabs[0]:
 # =========================================================================================
 
 with tabs[1]:
-    st.header("📈 Descriptive Statistics")
+    st.header("")
 
     df = st.session_state.df
     num_df = clean_numeric(df.select_dtypes(include=[np.number]))
@@ -359,422 +360,443 @@ with tabs[1]:
             plt.close(fig)
 
 # =========================================================================================
-# TAB 3 — INFERENTIAL STATISTICS
+# TAB — INFERENTIAL STATISTICS (FIXED)
 # =========================================================================================
-
 with tabs[2]:
-    st.header("📐 Inferential Statistics")
+    st.header("📈 Inferential Statistics")
 
-    df = st.session_state.df
-    num_df = clean_numeric(df.select_dtypes(include=[np.number]))
-    if num_df.empty:
-        st.stop()
+    df = st.session_state.get("df", None)
+    if df is None or df.empty:
+        st.warning("⚠️ No dataset loaded. Please load or preprocess data first.")
+    else:
+        numeric_cols = st.session_state.get("numeric_cols", [])
+        if not numeric_cols:
+            st.info("No numeric columns available.")
+        else:
+            st.subheader("Correlation Matrix")
+            corr = df[numeric_cols].corr()
 
-    vars_sel = st.multiselect(
-        "Variables for inference",
-        num_df.columns.tolist(),
-        default=default_pick(num_df.columns.tolist(), 2)
+            fig, ax = plt.subplots(figsize=(8, 6), facecolor="white")
+            sns.heatmap(corr, cmap="coolwarm", annot=True, ax=ax)
+            ax.set_title("Inferential Correlation Matrix", color="black")
+            st.pyplot(fig)
+    # --- ensure Inferential tab context closes cleanly ---
+    st.markdown(
+	    "<hr style='border: 1px solid #1f77b4; margin-top: 1rem;'>",
+	    unsafe_allow_html=True
     )
-
-    for col in vars_sel:
-        s = num_df[col].dropna()
-
-        st.subheader(f"Inference — {col}")
-        blue_divider()
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-            fig, ax = plt.subplots(figsize=(7, 5))
-            stats.probplot(s, plot=ax)
-            ax.set_title(f"Q–Q Plot — {col}")
-            fig.tight_layout()
-            st.pyplot(fig, use_container_width=True)
-            plt.close(fig)
-
-        with c2:
-            sh, sp = stats.shapiro(s.sample(min(len(s), 500)))
-            render_table(pd.DataFrame({
-                "Test": ["Shapiro–Wilk"],
-                "Statistic": [sh],
-                "p-value": [sp]
-            }))
-
-    st.subheader("Power Analysis")
-    blue_divider()
-
-    effect_sizes = st.multiselect(
-        "Effect sizes (Cohen's d)",
-        [0.2, 0.5, 0.8, 1.0],
-        default=[0.5]
-    )
-
-    base_n = len(num_df[vars_sel[0]].dropna())
-    power_model = TTestPower()
-
-    rows = [
-        {
-            "Effect Size": d,
-            "Power": power_model.power(effect_size=d, nobs=base_n, alpha=0.05)
-        }
-        for d in effect_sizes
-    ]
-
-    c7, c8 = st.columns(2)
-
-    with c7:
-        render_table(pd.DataFrame(rows))
-
-    with c8:
-        fig, ax = plt.subplots(figsize=(7, 5))
-        ax.plot(
-            [r["Effect Size"] for r in rows],
-            [r["Power"] for r in rows],
-            marker="o"
-        )
-        ax.set_xlabel("Effect Size (Cohen's d)")
-        ax.set_ylabel("Power")
-        ax.set_ylim(0, 1.05)
-        ax.set_title("Power Curve")
-        fig.tight_layout()
-        st.pyplot(fig, use_container_width=True)
-        plt.close(fig)
+    
+    # =========================================================================================
+    # TAB — INFERENTIAL STATISTICS (FINAL CONSOLIDATED VERSION)
+    # =========================================================================================
+    with tabs[2]:
+	    st.header("📈 Inferential Statistics")
+	    
+	    import matplotlib.pyplot as plt
+	    import seaborn as sns
+	    import numpy as np
+	    import pandas as pd
+	    from scipy import stats
+	    from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
+	    from sklearn.decomposition import PCA
+	    
+	    # --- Mathy Scaler Integration (Safe Wrapper)
+	    try:
+		    from scalers import StandardScaler
+		    def scale_data(df):
+			    return StandardScaler().train_transform(df)
+	    except Exception:
+		    from sklearn.preprocessing import StandardScaler as SkStandardScaler
+		    def scale_data(df):
+			    return SkStandardScaler().fit_transform(df)
+	    
+	    # --- Visualization Style
+	    plt.style.use("default")
+	    sns.set_theme(style="whitegrid")
+	    plt.rcParams.update({"font.size": 9})
+	    
+	    st.markdown("""
+            <style>
+            .stDataFrame, .dataframe {
+                background-color: #1e1e1e !important;
+                color: #ddd !important;
+                border: 1px solid #333 !important;
+            }
+            .dataframe th {
+                background-color: #2a2a2a !important;
+                color: #eee !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+	    
+	    # --- Data and Column Setup
+	    df = st.session_state.get("df", None)
+	    if df is None or df.empty:
+		    st.warning("⚠️ No dataset loaded. Please load or preprocess data first.")
+		    st.stop()
+	    
+	    numeric_cols = st.session_state.get("numeric_cols", [])
+	    categorical_cols = st.session_state.get("categorical_cols", [])
+	    
+	    # =====================================================================
+	    # CORRELATION ANALYSIS
+	    # =====================================================================
+	    st.subheader("Correlation and Association")
+	    if numeric_cols:
+		    corr = df[numeric_cols].corr(method="pearson")
+		    
+		    c1, c2 = st.columns(2)
+		    with c1:
+			    st.markdown("**Correlation Matrix (Pearson)**")
+			    st.dataframe(corr.style.background_gradient(cmap="Greys"), use_container_width=True)
+		    
+		    with c2:
+			    fig, ax = plt.subplots(figsize=(6, 5), facecolor="white")
+			    sns.heatmap(corr, cmap="coolwarm", annot=False, ax=ax)
+			    ax.set_title("Correlation Heatmap", fontsize=10)
+			    st.pyplot(fig)
+	    else:
+		    st.info("No numeric columns available for correlation analysis.")
+	    
+	    st.divider()
+	    
+	    # =====================================================================
+	    # NORMALITY TESTS
+	    # =====================================================================
+	    st.subheader("Normality Tests")
+	    if numeric_cols:
+		    results = []
+		    for col in numeric_cols:
+			    x = df[col].dropna()
+			    if len(x) > 3:
+				    shapiro_p = stats.shapiro(x.sample(min(500, len(x))))[1]
+				    dagostino_p = stats.normaltest(x)[1]
+				    results.append([col, shapiro_p, dagostino_p])
+		    norm_df = pd.DataFrame(results, columns=["Variable", "Shapiro–Wilk p", "D’Agostino p"])
+		    st.dataframe(norm_df.style.background_gradient(cmap="Greys"), use_container_width=True)
+		    
+		    # --- QQ Plot
+		    sel_col = st.selectbox("Select variable for Q–Q Plot", numeric_cols)
+		    fig, ax = plt.subplots(figsize=(5, 5), facecolor="white")
+		    stats.probplot(df[sel_col].dropna(), plot=ax)
+		    ax.set_title(f"Q–Q Plot: {sel_col}")
+		    st.pyplot(fig)
+	    else:
+		    st.info("No numeric variables for normality testing.")
+	    
+	    st.divider()
+	    
+	    # =====================================================================
+	    # GROUP COMPARISON (ANOVA / KRUSKAL–WALLIS)
+	    # =====================================================================
+	    st.subheader("Group Comparison (ANOVA / Kruskal–Wallis)")
+	    if categorical_cols and numeric_cols:
+		    cat_for_anova = st.selectbox("Select categorical grouping variable", categorical_cols)
+		    num_for_anova = st.selectbox("Select numeric variable", numeric_cols)
+		    if cat_for_anova and num_for_anova:
+			    groups = [vals[1].dropna().values for vals in df.groupby(cat_for_anova)[num_for_anova]]
+			    if len(groups) > 1:
+				    try:
+					    f_stat, p_val = stats.f_oneway(*groups)
+					    test_type = "One-way ANOVA"
+				    except Exception:
+					    f_stat, p_val = stats.kruskal(*groups)
+					    test_type = "Kruskal–Wallis"
+				    st.write(f"**{test_type} p-value:** {p_val:.4f}")
+				    
+				    fig, ax = plt.subplots(figsize=(7, 4), facecolor="white")
+				    sns.boxplot(data=df, x=cat_for_anova, y=num_for_anova, ax=ax)
+				    ax.set_title(f"{test_type} by {cat_for_anova}", fontsize=10)
+				    st.pyplot(fig)
+			    else:
+				    st.info("Selected categorical variable must have at least two groups.")
+	    else:
+		    st.info("Need both categorical and numeric variables for ANOVA/Kruskal–Wallis tests.")
+	    
+	    st.divider()
+	    
+	    # =====================================================================
+	    # MUTUAL INFORMATION
+	    # =====================================================================
+	    st.subheader("Mutual Information (Variable Relevance)")
+	    target = st.selectbox("Select target variable", df.columns)
+	    features = [f for f in df.columns if f != target]
+	    df_valid = df[features + [target]].dropna()
+	    
+	    if not df_valid.empty:
+		    numeric_features = df_valid.select_dtypes(include=[np.number]).columns.tolist()
+		    if target in numeric_features:
+			    y = df_valid[target]
+			    X = df_valid[numeric_features].drop(columns=[target], errors="ignore")
+			    mi = mutual_info_regression(X, y)
+		    else:
+			    y = pd.factorize(df_valid[target])[0]
+			    X = df_valid[numeric_features]
+			    mi = mutual_info_classif(X, y)
+		    
+		    mi_df = pd.DataFrame({"Feature": X.columns, "MI Score": mi}).sort_values("MI Score", ascending=False)
+		    
+		    c1, c2 = st.columns(2)
+		    with c1:
+			    st.dataframe(mi_df.style.background_gradient(cmap="Greys"), use_container_width=True)
+		    with c2:
+			    fig, ax = plt.subplots(figsize=(6, 4), facecolor="white")
+			    sns.barplot(data=mi_df, x="MI Score", y="Feature", color="steelblue", ax=ax)
+			    ax.set_title("Mutual Information Scores", fontsize=10)
+			    st.pyplot(fig)
+	    else:
+		    st.info("Insufficient valid data for mutual information analysis.")
+	    
+	    st.divider()
+	    
+	    # =====================================================================
+	    # PRINCIPAL COMPONENT ANALYSIS (PCA)
+	    # =====================================================================
+	    st.subheader("Principal Component Analysis (PCA)")
+	    if len(numeric_cols) >= 2:
+		    X = df[numeric_cols].dropna()
+		    scaled_X = scale_data(X)
+		    
+		    pca = PCA(n_components=2)
+		    comps = pca.fit_transform(scaled_X)
+		    pca_df = pd.DataFrame(comps, columns=["PC1", "PC2"])
+		    
+		    fig, ax = plt.subplots(figsize=(6, 5), facecolor="white")
+		    sns.scatterplot(data=pca_df, x="PC1", y="PC2", s=30, alpha=0.7, ax=ax)
+		    exp = pca.explained_variance_ratio_ * 100
+		    ax.set_title(f"PCA Biplot — Var Explained: PC1 {exp[0]:.1f}% · PC2 {exp[1]:.1f}%", fontsize=10)
+		    st.pyplot(fig)
+	    else:
+		    st.info("Need at least two numeric variables for PCA.")
+	    
+	    st.divider()
+	    
+	    # =====================================================================
+	    # CHI-SQUARE & CRAMÉR'S V
+	    # =====================================================================
+	    st.subheader("Categorical Association (Chi-square / Cramér’s V)")
+	    if len(categorical_cols) >= 2:
+		    cat_x = st.selectbox("Select variable X", categorical_cols, key="chi_x")
+		    cat_y = st.selectbox("Select variable Y", [c for c in categorical_cols if c != cat_x], key="chi_y")
+		    
+		    ctab = pd.crosstab(df[cat_x], df[cat_y])
+		    chi2, p, _, _ = stats.chi2_contingency(ctab)
+		    cramers_v = np.sqrt(chi2 / (ctab.values.sum() * (min(ctab.shape) - 1)))
+		    st.write(f"**Chi² p-value:** {p:.4f} | **Cramér’s V:** {cramers_v:.3f}")
+		    
+		    fig, ax = plt.subplots(figsize=(6, 4), facecolor="white")
+		    sns.heatmap(ctab, cmap="Blues", annot=True, fmt="d", ax=ax)
+		    ax.set_title(f"Contingency Table: {cat_x} × {cat_y}", fontsize=10)
+		    st.pyplot(fig)
+	    else:
+		    st.info("Need at least two categorical variables for Chi-square test.")
 
 # =========================================================================================
-# TAB — ANOMALY DETECTION
+# TAB 4 — ANOMALY DETECTION
 # =========================================================================================
 
 with tabs[3]:
     st.header("🚨 Anomaly Detection")
-
-    # Local imports to prevent NameError / import-order issues
-    from sklearn.neighbors import NearestNeighbors, LocalOutlierFactor
-    from sklearn.ensemble import IsolationForest
-    from sklearn.svm import OneClassSVM
-    from sklearn.cluster import DBSCAN, KMeans
-    from sklearn.preprocessing import StandardScaler as SKStandardScaler
 
     if st.session_state.df is None:
         st.info("No data loaded.")
         st.stop()
 
     df = st.session_state.df
+
+    # -------------------------------------------------------------------------
+    # Prepare numeric data (analysis-only)
+    # -------------------------------------------------------------------------
+
     num_df = clean_numeric(df.select_dtypes(include=[np.number]))
 
     if num_df.empty:
-        st.info("No usable numeric data available.")
+        st.info("No usable numeric columns available for anomaly detection.")
         st.stop()
 
-    all_cols = num_df.columns.tolist()
+    all_num_cols = num_df.columns.tolist()
 
-    preferred = [c for c in all_cols if c.lower() in ("py", "cy", "by")]
+    # Finance-aware default: prefer PY / CY / BY if present
+    preferred = [c for c in all_num_cols if c.lower() in ("py", "cy", "by")]
+    default_vars = preferred if preferred else default_pick(all_num_cols, 2)
+
     vars_sel = st.multiselect(
         "Variables to analyze",
-        all_cols,
-        default=preferred if preferred else default_pick(all_cols, 2)
+        all_num_cols,
+        default=default_vars
     )
 
     if not vars_sel:
-        st.info("Select at least one variable.")
+        st.info("Select at least one numeric variable to run anomaly detection.")
         st.stop()
 
-    scale_analysis = st.checkbox(
+    analysis_scale = st.checkbox(
         "Use analysis-only standardization (recommended for multivariate methods)",
         value=True
     )
 
-    # Analysis-only working frame (never mutate session df)
-    work = num_df[vars_sel].copy()
+    # Analysis-only working frame
+    work_df = num_df[vars_sel].copy()
 
-    # IMPORTANT: Use sklearn StandardScaler (aliased) to avoid Mathy wrapper confusion
-    if scale_analysis and len(vars_sel) > 1:
-        # Fill NA for scaling/modeling only; do not change source df
-        mv_scale = work.dropna(axis=0)
-        if len(mv_scale) >= 2:
-            scaled = SKStandardScaler().fit_transform(mv_scale.values)
-            work.loc[mv_scale.index, :] = scaled
+    if analysis_scale and len(vars_sel) > 1:
+        work_df[:] = SKStandardScaler().fit_transform(work_df.values)
+
+    # -------------------------------------------------------------------------
+    # Method Selection
+    # -------------------------------------------------------------------------
 
     st.subheader("Detection Methods")
     blue_divider()
 
-    c1, c2 = st.columns(2)
-    with c1:
-        use_z = st.checkbox("Z-Score", True)
-        use_mz = st.checkbox("Modified Z-Score (MAD)", True)
-        use_iqr = st.checkbox("IQR Fence", True)
-        use_knn = st.checkbox("k-NN Distance", False)
+    c_m1, c_m2 = st.columns(2)
 
-    with c2:
-        use_lof = st.checkbox("Local Outlier Factor (LOF)", False)
-        use_iforest = st.checkbox("Isolation Forest", True)
-        use_ocsvm = st.checkbox("One-Class SVM", False)
-        use_dbscan = st.checkbox("DBSCAN (Noise)", False)
-        use_kmeans = st.checkbox("K-Means Distance", False)
-        use_mahal = st.checkbox("Mahalanobis Distance", True)
-    
-    st.subheader( "Method Parameters" )
-    blue_divider( )
-    
-    # --- Row 1: Statistical thresholds
-    c1, c2 = st.columns( 2 )
-    
-    with c1:
-	    with st.container( border=True ):
-		    st.markdown( "**Statistical Thresholds**" )
-		    z_thresh = st.slider(
-			    "Z / Modified Z threshold",
-			    2.0, 5.0, 3.0, 0.1,
-			    key="z_thresh"
-		    )
-    
-    with c2:
-	    with st.container( border=True ):
-		    st.markdown( "**IQR Fence**" )
-		    iqr_mult = st.slider(
-			    "IQR multiplier",
-			    1.0, 3.0, 1.5, 0.1,
-			    key="iqr_mult"
-		    )
-    
-    # --- Row 2: Proximity methods
-    c3, c4 = st.columns( 2 )
-    
-    with c3:
-	    with st.container( border=True ):
-		    st.markdown( "**k-NN Distance**" )
-		    knn_k = st.slider(
-			    "Neighbors (k)",
-			    5, 50, 20,
-			    key="knn_k"
-		    )
-		    knn_pct = st.slider(
-			    "Distance percentile",
-			    90, 99, 95,
-			    key="knn_pct"
-		    )
-    
-    with c4:
-	    with st.container( border=True ):
-		    st.markdown( "**Local Outlier Factor (LOF)**" )
-		    lof_k = st.slider(
-			    "Neighbors (k)",
-			    5, 50, 20,
-			    key="lof_k"
-		    )
-    
-    # --- Row 3: Boundary & tree methods
-    c5, c6 = st.columns( 2 )
-    
-    with c5:
-	    with st.container( border=True ):
-		    st.markdown( "**One-Class SVM**" )
-		    oc_kernel = st.selectbox(
-			    "Kernel",
-			    [ "rbf",
-			      "linear",
-			      "poly" ],
-			    key="oc_kernel"
-		    )
-		    oc_nu = st.slider(
-			    "ν (outlier fraction)",
-			    0.01, 0.25, 0.05,
-			    key="oc_nu"
-		    )
-    
-    with c6:
-	    with st.container( border=True ):
-		    st.markdown( "**Isolation Forest**" )
-		    st.caption(
-			    "Uses adaptive contamination; no exposed hyperparameters."
-		    )
-    
-    # --- Row 4: Clustering-based methods
-    c7, c8 = st.columns( 2 )
-    
-    with c7:
-	    with st.container( border=True ):
-		    st.markdown( "**DBSCAN (Noise Detection)**" )
-		    db_eps = st.slider(
-			    "eps",
-			    0.1, 5.0, 0.5,
-			    key="db_eps"
-		    )
-		    db_min = st.slider(
-			    "min_samples",
-			    5, 50, 10,
-			    key="db_min"
-		    )
-    
-    with c8:
-	    with st.container( border=True ):
-		    st.markdown( "**K-Means Distance**" )
-		    km_k = st.slider(
-			    "Clusters (k)",
-			    2, 10, 4,
-			    key="km_k"
-		    )
-		    km_pct = st.slider(
-			    "Distance percentile",
-			    90, 99, 95,
-			    key="km_pct"
-		    )
-    
-    # --- Row 5: Consensus logic
-    with st.container( border=True ):
-	    st.markdown( "**Consensus Scoring**" )
-	    min_methods = st.slider(
-		    "Minimum methods flagging a row",
-		    1, 9, 1,
-		    key="min_methods"
-	    )
-    
-    # Flags table
-    flags = pd.DataFrame(index=work.index)
+    with c_m1:
+        use_z = st.checkbox("Z-Score", value=True)
+        use_mz = st.checkbox("Modified Z-Score (MAD)", value=True)
+        use_iqr = st.checkbox("IQR Fence", value=True)
 
-    # -------------------------
-    # Univariate methods
-    # -------------------------
+    with c_m2:
+        use_mahal = st.checkbox("Mahalanobis Distance", value=True)
+        use_iforest = st.checkbox("Isolation Forest", value=True)
+        use_lof = st.checkbox("Local Outlier Factor (LOF)", value=False)
+
+    # -------------------------------------------------------------------------
+    # Threshold Controls
+    # -------------------------------------------------------------------------
+
+    st.subheader("Thresholds")
+    blue_divider()
+
+    c_t1, c_t2 = st.columns(2)
+
+    with c_t1:
+        z_thresh = st.slider("Z / Modified Z threshold", 2.0, 5.0, 3.0, 0.1)
+        iqr_mult = st.slider("IQR multiplier", 1.0, 3.0, 1.5, 0.1)
+
+    with c_t2:
+        lof_k = st.slider("LOF neighbors (k)", 5, 50, 20, 1)
+        min_methods = st.slider(
+            "Consensus: minimum methods flagging a row",
+            1, 4, 1, 1
+        )
+
+    # -------------------------------------------------------------------------
+    # Run Detection
+    # -------------------------------------------------------------------------
+
+    anomaly_flags = pd.DataFrame(index=work_df.index)
+
+    # --- Univariate methods
     for col in vars_sel:
-        s = work[col].dropna()
+        s = work_df[col].dropna()
+
         if s.empty:
             continue
 
         if use_z:
-            std = s.std()
-            z = (s - s.mean()) / std if std else pd.Series(0.0, index=s.index)
-            flags.loc[s.index, f"{col}_z"] = z.abs() >= z_thresh
+            z = (s - s.mean()) / s.std() if s.std() else pd.Series(0, index=s.index)
+            anomaly_flags[f"{col}_z"] = z.abs() >= z_thresh
 
         if use_mz:
             med = s.median()
             mad = np.median(np.abs(s - med))
             if mad == 0:
-                mz = pd.Series(0.0, index=s.index)
+                mz = pd.Series(0, index=s.index)
             else:
                 mz = 0.6745 * (s - med) / mad
-            flags.loc[s.index, f"{col}_mz"] = mz.abs() >= z_thresh
+            anomaly_flags[f"{col}_mz"] = mz.abs() >= z_thresh
 
         if use_iqr:
             q1, q3 = s.quantile(0.25), s.quantile(0.75)
             iqr = q3 - q1
-            lo, hi = q1 - iqr_mult * iqr, q3 + iqr_mult * iqr
-            flags.loc[s.index, f"{col}_iqr"] = (s < lo) | (s > hi)
+            lo = q1 - iqr_mult * iqr
+            hi = q3 + iqr_mult * iqr
+            anomaly_flags[f"{col}_iqr"] = (s < lo) | (s > hi)
 
-    # -------------------------
-    # Multivariate methods
-    # -------------------------
-    mv = work.dropna(axis=0)
+    # --- Multivariate methods
+    mv_df = work_df.dropna(axis=0)
 
-    if mv.shape[0] >= 10 and mv.shape[1] >= 2:
-
-        if use_knn and mv.shape[0] > knn_k:
-            nn = NearestNeighbors(n_neighbors=knn_k).fit(mv.values)
-            d, _ = nn.kneighbors(mv.values)
-            kth = d[:, -1]
-            cutoff = np.percentile(kth, knn_pct)
-            flags.loc[mv.index, "knn"] = kth >= cutoff
-
-        if use_lof:
-            lof = LocalOutlierFactor(n_neighbors=lof_k)
-            preds = lof.fit_predict(mv.values)
-            flags.loc[mv.index, "lof"] = preds == -1
-
-        if use_iforest:
-            iso = IsolationForest(random_state=42, contamination="auto")
-            preds = iso.fit_predict(mv.values)
-            flags.loc[mv.index, "iforest"] = preds == -1
-
-        if use_ocsvm:
-            oc = OneClassSVM(kernel=oc_kernel, nu=oc_nu)
-            preds = oc.fit_predict(mv.values)
-            flags.loc[mv.index, "ocsvm"] = preds == -1
-
-        if use_dbscan:
-            db = DBSCAN(eps=db_eps, min_samples=db_min)
-            labels = db.fit_predict(mv.values)
-            flags.loc[mv.index, "dbscan"] = labels == -1
-
-        if use_kmeans and mv.shape[0] >= km_k:
-            km = KMeans(n_clusters=km_k, random_state=42, n_init="auto")
-            labels = km.fit_predict(mv.values)
-            centers = km.cluster_centers_
-            dist = np.linalg.norm(mv.values - centers[labels], axis=1)
-            cutoff = np.percentile(dist, km_pct)
-            flags.loc[mv.index, "kmeans"] = dist >= cutoff
+    if mv_df.shape[0] >= 10 and mv_df.shape[1] >= 2:
 
         if use_mahal:
-            cov = np.cov(mv.values, rowvar=False)
-            det = np.linalg.det(cov)
-            if det != 0 and np.isfinite(det):
-                inv = np.linalg.inv(cov)
-                mean = mv.mean().values
-                diff = mv.values - mean
-                md = np.sqrt(np.einsum("ij,jk,ik->i", diff, inv, diff))
-                cutoff = np.sqrt(stats.chi2.ppf(0.975, mv.shape[1]))
-                flags.loc[mv.index, "mahal"] = md >= cutoff
-            else:
-                st.warning("Mahalanobis skipped: covariance matrix is singular or ill-conditioned.")
+            cov = np.cov(mv_df.values, rowvar=False)
+            if np.linalg.det(cov) != 0:
+                inv_cov = np.linalg.inv(cov)
+                mean = mv_df.mean().values
+                diffs = mv_df.values - mean
+                md = np.sqrt(np.einsum("ij,jk,ik->i", diffs, inv_cov, diffs))
+                cutoff = np.sqrt(stats.chi2.ppf(0.975, mv_df.shape[1]))
+                anomaly_flags.loc[mv_df.index, "mahal"] = md > cutoff
 
-    # -------------------------
-    # Consensus and output
-    # -------------------------
-    if flags.empty:
-        st.info("No methods produced results with current settings.")
-        st.stop()
+        if use_iforest:
+            from sklearn.ensemble import IsolationForest
+            iso = IsolationForest(contamination="auto", random_state=42)
+            preds = iso.fit_predict(mv_df.values)
+            anomaly_flags.loc[mv_df.index, "iforest"] = preds == -1
 
-    flags = flags.fillna(False)
-    flags["methods_flagged"] = flags.sum(axis=1)
+        if use_lof:
+            from sklearn.neighbors import LocalOutlierFactor
+            lof = LocalOutlierFactor(n_neighbors=lof_k)
+            preds = lof.fit_predict(mv_df.values)
+            anomaly_flags.loc[mv_df.index, "lof"] = preds == -1
 
-    anomalies = flags[flags["methods_flagged"] >= min_methods].copy()
-    anomalies = anomalies.sort_values("methods_flagged", ascending=False)
+    # -------------------------------------------------------------------------
+    # Consensus & Output
+    # -------------------------------------------------------------------------
 
     st.subheader("Anomaly Summary")
     blue_divider()
 
-    c3, c4 = st.columns(2)
+    if anomaly_flags.empty:
+        st.info("No anomalies detected under the selected methods and thresholds.")
+        st.stop()
 
-    with c3:
+    anomaly_flags = anomaly_flags.fillna(False)
+    anomaly_flags["methods_flagged"] = anomaly_flags.sum(axis=1)
+
+    anomalies = anomaly_flags[anomaly_flags["methods_flagged"] >= min_methods]
+
+    c_o1, c_o2 = st.columns(2)
+
+    with c_o1:
         st.markdown("### Flagged Observations")
-        render_table(anomalies)
+        render_table(anomalies.sort_values("methods_flagged", ascending=False))
 
-    with c4:
-        st.markdown("### Consensus Strength")
+    with c_o2:
+        st.markdown("### Flag Count Distribution")
         fig, ax = plt.subplots(figsize=(7, 5))
         anomalies["methods_flagged"].value_counts().sort_index().plot(
-            kind="bar", edgecolor="black", ax=ax
+            kind="bar", ax=ax, edgecolor="black"
         )
         ax.set_xlabel("Number of Methods Flagging")
-        ax.set_ylabel("Count")
-        ax.set_title("Consensus Distribution")
+        ax.set_ylabel("Observation Count")
+        ax.set_title("Consensus Strength")
         fig.tight_layout()
         st.pyplot(fig, use_container_width=True)
         plt.close(fig)
 
-    # -------------------------
-    # Distributions with anomalies highlighted
-    # -------------------------
+    # -------------------------------------------------------------------------
+    # Visualization — Distribution with Anomalies
+    # -------------------------------------------------------------------------
+
     st.subheader("Distributions with Anomalies Highlighted")
     blue_divider()
 
-    # Use original (unscaled) series for user interpretation where possible
-    interpret = num_df[vars_sel].copy()
-
     for col in vars_sel:
-        if col not in interpret.columns:
+        if col not in work_df.columns:
             continue
 
-        s = interpret[col].dropna()
-        if s.empty:
-            continue
-
+        s = work_df[col]
         flagged_idx = anomalies.index.intersection(s.index)
+
         if flagged_idx.empty:
             continue
 
-        c5, c6 = st.columns(2)
+        c_v1, c_v2 = st.columns(2)
 
-        with c5:
+        with c_v1:
             fig, ax = plt.subplots(figsize=(7, 5))
-            ax.hist(s, bins=30, alpha=0.75, edgecolor="black")
+            ax.hist(s.dropna(), bins=30, alpha=0.7, edgecolor="black")
             ax.scatter(
                 s.loc[flagged_idx],
                 np.zeros(len(flagged_idx)),
@@ -782,55 +804,68 @@ with tabs[3]:
                 label="Anomalies"
             )
             ax.set_title(f"{col} — Histogram with Anomalies")
-            ax.set_xlabel(col)
-            ax.set_ylabel("Frequency")
             ax.legend()
             fig.tight_layout()
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
-        with c6:
+        with c_v2:
             fig, ax = plt.subplots(figsize=(7, 5))
-            ax.boxplot(s, vert=False)
+            ax.boxplot(s.dropna(), vert=False)
             ax.scatter(
                 s.loc[flagged_idx],
                 np.ones(len(flagged_idx)),
                 color="red"
             )
             ax.set_title(f"{col} — Boxplot with Anomalies")
-            ax.set_xlabel(col)
             fig.tight_layout()
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
+    # -------------------------------------------------------------------------
+    # Export
+    # -------------------------------------------------------------------------
+
     st.download_button(
         "Export Anomaly Table (CSV)",
-        anomalies.to_csv(index=True),
+        anomalies.to_csv(),
         "anomalies.csv",
         "text/csv"
     )
 
 
 # =========================================================================================
-# TAB — CLASSIFICATION MODELS (LIGHT PLOTS / DARK TABLES)
+# TAB — CLASSIFICATION MODELS (NOTEBOOK-STYLE, SINGLE-MODEL EXPLORER)
 # =========================================================================================
 with tabs[4]:
     st.header("🧠 Classification Models")
 
-    import seaborn as sns
     import matplotlib.pyplot as plt
+    import seaborn as sns
+    import numpy as np
+    import pandas as pd
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import StandardScaler
     from sklearn.linear_model import LogisticRegression
-    from sklearn.neighbors import KNeighborsClassifier
-    from sklearn.svm import SVC
     from sklearn.tree import DecisionTreeClassifier
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import accuracy_score, confusion_matrix
+    from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+    from sklearn.svm import SVC
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.metrics import (
+        confusion_matrix, roc_curve, auc,
+        accuracy_score, precision_score, recall_score, f1_score
+    )
 
-    # ------------------------------------------------------------------
-    # Dark table style
-    # ------------------------------------------------------------------
+    try:
+        from xgboost import XGBClassifier
+        has_xgb = True
+    except Exception:
+        has_xgb = False
+
+    # -------------------------------------------------------------------------------------
+    # STYLING
+    # -------------------------------------------------------------------------------------
     st.markdown("""
         <style>
         .stDataFrame, .dataframe {
@@ -845,161 +880,194 @@ with tabs[4]:
         </style>
     """, unsafe_allow_html=True)
 
-    # ------------------------------------------------------------------
-    # Light plots
-    # ------------------------------------------------------------------
     plt.style.use("default")
     sns.set_theme(style="whitegrid")
 
-    df = st.session_state.df
+    # -------------------------------------------------------------------------------------
+    # DATA VALIDATION
+    # -------------------------------------------------------------------------------------
+    df = st.session_state.get("df", None)
     if df is None or df.empty:
-        st.warning("No dataset loaded.  Please complete Data-Processing first.")
+        st.warning("⚠️ No dataset loaded. Please load or preprocess data first.")
         st.stop()
 
     numeric_cols = st.session_state.get("numeric_cols", [])
     categorical_cols = st.session_state.get("categorical_cols", [])
-
     if not numeric_cols or not categorical_cols:
-        st.warning("Column typing not found.  Please classify columns in Data-Processing.")
+        st.warning("⚠️ No column typing found. Please classify numeric/categorical columns first.")
         st.stop()
 
+    # -------------------------------------------------------------------------------------
+    # TARGET & FEATURES
+    # -------------------------------------------------------------------------------------
     st.subheader("Target & Features")
-    target = st.selectbox("Target (categorical)", categorical_cols, key="cls_target")
+    target = st.selectbox("Target (categorical)", categorical_cols)
     features = st.multiselect(
         "Feature columns (numeric)",
         numeric_cols,
-        default=numeric_cols[:3] if len(numeric_cols) >= 3 else numeric_cols,
-        key="cls_features"
+        default=numeric_cols[:3] if len(numeric_cols) >= 3 else numeric_cols
     )
-    if not features:
-        st.info("Select at least one numeric feature to continue.")
+
+    if not features or target not in df.columns:
+        st.info("Please select a target and at least one feature to continue.")
         st.stop()
 
     X = df[features].copy()
     y = df[target].copy()
+
     if y.nunique() < 2:
-        st.error("Target must contain at least two classes.")
+        st.error("Target must contain at least two classes for classification.")
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Split & Scale
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------
+    # MODEL SELECTION
+    # -------------------------------------------------------------------------------------
+    model_options = [
+        "Logistic Regression", "k-Nearest Neighbors", "Support Vector Classifier",
+        "Decision Tree", "Random Forest", "Naive Bayes", "Gradient Boosting"
+    ]
+    if has_xgb:
+        model_options.append("XGBoost")
+
+    st.subheader("Model Selection")
+    model_choice = st.selectbox("Select model", model_options)
+
+    params = {}
+    if model_choice == "Logistic Regression":
+        params["C"] = st.slider("Inverse regularization strength (C)", 0.01, 10.0, 1.0)
+        params["penalty"] = st.selectbox("Penalty", ["l2", "l1", "elasticnet"], index=0)
+    elif model_choice == "k-Nearest Neighbors":
+        params["n_neighbors"] = st.slider("Number of neighbors", 1, 50, 5)
+    elif model_choice == "Support Vector Classifier":
+        params["C"] = st.slider("Regularization (C)", 0.01, 10.0, 1.0)
+        params["kernel"] = st.selectbox("Kernel", ["rbf", "linear", "poly"])
+    elif model_choice == "Decision Tree":
+        params["max_depth"] = st.slider("Max depth", 1, 50, 10)
+    elif model_choice == "Random Forest":
+        params["n_estimators"] = st.slider("Number of trees", 50, 500, 200, 50)
+        params["max_depth"] = st.slider("Max depth", 1, 50, 10)
+    elif model_choice == "Gradient Boosting":
+        params["n_estimators"] = st.slider("Number of estimators", 50, 500, 100, 50)
+        params["learning_rate"] = st.slider("Learning rate", 0.01, 1.0, 0.1)
+    elif model_choice == "XGBoost":
+        params["n_estimators"] = st.slider("Number of estimators", 50, 500, 100, 50)
+        params["learning_rate"] = st.slider("Learning rate", 0.01, 1.0, 0.1)
+        params["max_depth"] = st.slider("Max depth", 1, 20, 6)
+
+    # -------------------------------------------------------------------------------------
+    # TRAIN / TEST SPLIT
+    # -------------------------------------------------------------------------------------
     test_size = st.slider("Test size", 0.1, 0.5, 0.25)
     random_state = st.number_input("Random seed", value=42, step=1)
-    strat = y if y.value_counts().min() >= 2 else None
+
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=int(random_state), stratify=strat
+        X, y, test_size=test_size, random_state=int(random_state), stratify=y
     )
+
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
-    # ------------------------------------------------------------------
-    # Model Selection
-    # ------------------------------------------------------------------
-    st.subheader("Models")
-    model_choices = [
-        "Logistic Regression", "k-Nearest Neighbors",
-        "Support Vector Classifier", "Decision Tree", "Random Forest"
-    ]
-    selected_models = st.multiselect(
-        "Choose models to train",
-        model_choices,
-        default=["Logistic Regression", "Random Forest"], key="cls_models"
-    )
-    if not selected_models:
-        st.stop()
+    # -------------------------------------------------------------------------------------
+    # RUN MODEL
+    # -------------------------------------------------------------------------------------
+    if st.button("Run Model", type="primary"):
+        if model_choice == "Logistic Regression":
+            model = LogisticRegression(max_iter=1000, C=params["C"])
+        elif model_choice == "k-Nearest Neighbors":
+            model = KNeighborsClassifier(n_neighbors=params["n_neighbors"])
+        elif model_choice == "Support Vector Classifier":
+            model = SVC(C=params["C"], kernel=params["kernel"], probability=True)
+        elif model_choice == "Decision Tree":
+            model = DecisionTreeClassifier(max_depth=params["max_depth"], random_state=int(random_state))
+        elif model_choice == "Random Forest":
+            model = RandomForestClassifier(
+                n_estimators=params["n_estimators"],
+                max_depth=params["max_depth"],
+                random_state=int(random_state)
+            )
+        elif model_choice == "Naive Bayes":
+            model = GaussianNB()
+        elif model_choice == "Gradient Boosting":
+            model = GradientBoostingClassifier(
+                n_estimators=params["n_estimators"],
+                learning_rate=params["learning_rate"],
+                random_state=int(random_state)
+            )
+        elif model_choice == "XGBoost":
+            model = XGBClassifier(
+                n_estimators=params["n_estimators"],
+                learning_rate=params["learning_rate"],
+                max_depth=params["max_depth"],
+                eval_metric="logloss",
+                random_state=int(random_state)
+            )
 
-    run = st.button("Run Models", type="primary")
-    if not run:
-        st.stop()
+        model.fit(X_train_s, y_train)
+        y_pred = model.predict(X_test_s)
+        y_prob = model.predict_proba(X_test_s)[:, 1] if hasattr(model, "predict_proba") else None
 
-    # ------------------------------------------------------------------
-    # Training and Evaluation
-    # ------------------------------------------------------------------
-    results, fitted = [], {}
-    for name in selected_models:
-        if name == "Logistic Regression":
-            model = LogisticRegression(max_iter=1000)
-            Xtr, Xte = X_train_s, X_test_s
-        elif name == "k-Nearest Neighbors":
-            model = KNeighborsClassifier(n_neighbors=5)
-            Xtr, Xte = X_train_s, X_test_s
-        elif name == "Support Vector Classifier":
-            model = SVC(probability=True)
-            Xtr, Xte = X_train_s, X_test_s
-        elif name == "Decision Tree":
-            model = DecisionTreeClassifier(random_state=int(random_state))
-            Xtr, Xte = X_train, X_test
-        elif name == "Random Forest":
-            model = RandomForestClassifier(n_estimators=200, random_state=int(random_state))
-            Xtr, Xte = X_train, X_test
+        # ---------------------------------------------------------------------------------
+        # SCORING TABLE
+        # ---------------------------------------------------------------------------------
+        st.subheader("Model Scores")
+        scores = {
+            "Accuracy": accuracy_score(y_test, y_pred),
+            "Precision": precision_score(y_test, y_pred, average="weighted"),
+            "Recall": recall_score(y_test, y_pred, average="weighted"),
+            "F1 Score": f1_score(y_test, y_pred, average="weighted")
+        }
+        if y_prob is not None and len(np.unique(y)) == 2:
+            fpr, tpr, _ = roc_curve(y_test, y_prob)
+            scores["ROC AUC"] = auc(fpr, tpr)
         else:
-            continue
+            scores["ROC AUC"] = np.nan
 
-        model.fit(Xtr, y_train)
-        fitted[name] = model
-        y_pred = model.predict(Xte)
-        results.append({
-            "Model": name,
-            "Train Accuracy": accuracy_score(y_train, model.predict(Xtr)),
-            "Test Accuracy": accuracy_score(y_test, y_pred)
-        })
+        score_df = pd.DataFrame(list(scores.items()), columns=["Metric", "Value"])
+        st.dataframe(score_df.style.background_gradient(cmap="Greys"), use_container_width=True)
 
-    results_df = pd.DataFrame(results).sort_values("Test Accuracy", ascending=False)
-    st.write("### Model Performance")
-    st.dataframe(results_df, use_container_width=True)
-
-    # ------------------------------------------------------------------
-    # Confusion Matrices
-    # ------------------------------------------------------------------
-    st.write("### Confusion Matrices")
-    cols = st.columns(2)
-    for i, (name, model) in enumerate(fitted.items()):
-        col = cols[i % 2]
-        with col:
-            st.markdown(f"**{name}**")
-            Xte = X_test if name in ("Decision Tree", "Random Forest") else X_test_s
-            preds = model.predict(Xte)
-            cm = confusion_matrix(y_test, preds)
-            fig, ax = plt.subplots()
-            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
-            ax.set_xlabel("Predicted")
-            ax.set_ylabel("Actual")
-            st.pyplot(fig)
-
-    # ------------------------------------------------------------------
-    # Decision Region (2D features only)
-    # ------------------------------------------------------------------
-    if len(features) == 2:
-        st.write("### Decision Region (2D features only)")
-        model_name = st.selectbox(
-            "Model for decision region",
-            list(fitted.keys()), key="cls_region_model"
-        )
-        model = fitted[model_name]
-        Xtr = X_train_s[:, :2]
-        y_enc, _ = pd.factorize(y_train)
-        model.fit(Xtr, y_enc)
-        x_min, x_max = Xtr[:, 0].min() - 1, Xtr[:, 0].max() + 1
-        y_min, y_max = Xtr[:, 1].min() - 1, Xtr[:, 1].max() + 1
-        xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300),
-                             np.linspace(y_min, y_max, 300))
-        Z = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
-        fig, ax = plt.subplots()
-        ax.contourf(xx, yy, Z, alpha=0.3)
-        ax.scatter(Xtr[:, 0], Xtr[:, 1], c=y_enc, edgecolor="k", s=20)
-        ax.set_xlabel(features[0])
-        ax.set_ylabel(features[1])
-        ax.set_title(f"{model_name} — Decision Region")
+        # ---------------------------------------------------------------------------------
+        # CONFUSION MATRIX
+        # ---------------------------------------------------------------------------------
+        st.subheader("Confusion Matrix")
+        cm = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots(facecolor="white")
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
         st.pyplot(fig)
 
-    # ------------------------------------------------------------------
-    # Export
-    # ------------------------------------------------------------------
-    st.download_button(
-        "Export Classification Metrics (CSV)",
-        results_df.to_csv(index=False),
-        "classification_metrics.csv",
-        "text/csv"
-    )
+        # ---------------------------------------------------------------------------------
+        # ROC CURVE (if binary)
+        # ---------------------------------------------------------------------------------
+        if y_prob is not None and len(np.unique(y)) == 2:
+            st.subheader("ROC Curve")
+            fig, ax = plt.subplots(facecolor="white")
+            ax.plot(fpr, tpr, color="blue", lw=2, label=f"AUC = {scores['ROC AUC']:.3f}")
+            ax.plot([0, 1], [0, 1], linestyle="--", color="gray")
+            ax.set_xlabel("False Positive Rate")
+            ax.set_ylabel("True Positive Rate")
+            ax.legend(loc="lower right")
+            st.pyplot(fig)
+
+        # ---------------------------------------------------------------------------------
+        # FEATURE IMPORTANCE
+        # ---------------------------------------------------------------------------------
+        st.subheader("Feature Importance / Coefficients")
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+        elif hasattr(model, "coef_"):
+            importances = np.abs(model.coef_[0])
+        else:
+            importances = None
+
+        if importances is not None:
+            fi_df = pd.DataFrame({"Feature": features, "Importance": importances})
+            fi_df = fi_df.sort_values("Importance", ascending=False)
+            fig, ax = plt.subplots(facecolor="white")
+            sns.barplot(data=fi_df, x="Importance", y="Feature", ax=ax, color="steelblue")
+            ax.set_title("Feature Importance")
+            st.pyplot(fig)
+        else:
+            st.info("Selected model does not provide feature importance coefficients.")
+
