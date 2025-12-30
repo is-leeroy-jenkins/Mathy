@@ -22,6 +22,9 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import StandardScaler as SKStandardScaler
 from sklearn.decomposition import PCA
 from statsmodels.stats.power import TTestPower
+from sklearn.neighbors import NearestNeighbors
+from sklearn.svm import OneClassSVM
+from sklearn.cluster import DBSCAN, KMeans
 
 # -----------------------------------------------------------------------------------------
 # Configuration
@@ -136,8 +139,10 @@ if uploaded or use_fallback:
 tabs = st.tabs([
     "🧹 Data Processing",
     "📈 Descriptive Statistics",
-    "📐 Inferential Statistics"
+    "📐 Inferential Statistics",
+    "🚨 Anomaly Detection"
 ])
+
 
 # =========================================================================================
 # TAB 1 — DATA PROCESSING (FULLY RESTORED)
@@ -433,3 +438,374 @@ with tabs[2]:
         fig.tight_layout()
         st.pyplot(fig, use_container_width=True)
         plt.close(fig)
+
+# =========================================================================================
+# TAB — ANOMALY DETECTION
+# =========================================================================================
+
+with tabs[3]:
+    st.header("🚨 Anomaly Detection")
+
+    # Local imports to prevent NameError / import-order issues
+    from sklearn.neighbors import NearestNeighbors, LocalOutlierFactor
+    from sklearn.ensemble import IsolationForest
+    from sklearn.svm import OneClassSVM
+    from sklearn.cluster import DBSCAN, KMeans
+    from sklearn.preprocessing import StandardScaler as SKStandardScaler
+
+    if st.session_state.df is None:
+        st.info("No data loaded.")
+        st.stop()
+
+    df = st.session_state.df
+    num_df = clean_numeric(df.select_dtypes(include=[np.number]))
+
+    if num_df.empty:
+        st.info("No usable numeric data available.")
+        st.stop()
+
+    all_cols = num_df.columns.tolist()
+
+    preferred = [c for c in all_cols if c.lower() in ("py", "cy", "by")]
+    vars_sel = st.multiselect(
+        "Variables to analyze",
+        all_cols,
+        default=preferred if preferred else default_pick(all_cols, 2)
+    )
+
+    if not vars_sel:
+        st.info("Select at least one variable.")
+        st.stop()
+
+    scale_analysis = st.checkbox(
+        "Use analysis-only standardization (recommended for multivariate methods)",
+        value=True
+    )
+
+    # Analysis-only working frame (never mutate session df)
+    work = num_df[vars_sel].copy()
+
+    # IMPORTANT: Use sklearn StandardScaler (aliased) to avoid Mathy wrapper confusion
+    if scale_analysis and len(vars_sel) > 1:
+        # Fill NA for scaling/modeling only; do not change source df
+        mv_scale = work.dropna(axis=0)
+        if len(mv_scale) >= 2:
+            scaled = SKStandardScaler().fit_transform(mv_scale.values)
+            work.loc[mv_scale.index, :] = scaled
+
+    st.subheader("Detection Methods")
+    blue_divider()
+
+    c1, c2 = st.columns(2)
+    with c1:
+        use_z = st.checkbox("Z-Score", True)
+        use_mz = st.checkbox("Modified Z-Score (MAD)", True)
+        use_iqr = st.checkbox("IQR Fence", True)
+        use_knn = st.checkbox("k-NN Distance", False)
+
+    with c2:
+        use_lof = st.checkbox("Local Outlier Factor (LOF)", False)
+        use_iforest = st.checkbox("Isolation Forest", True)
+        use_ocsvm = st.checkbox("One-Class SVM", False)
+        use_dbscan = st.checkbox("DBSCAN (Noise)", False)
+        use_kmeans = st.checkbox("K-Means Distance", False)
+        use_mahal = st.checkbox("Mahalanobis Distance", True)
+    
+    st.subheader( "Method Parameters" )
+    blue_divider( )
+    
+    # --- Row 1: Statistical thresholds
+    c1, c2 = st.columns( 2 )
+    
+    with c1:
+	    with st.container( border=True ):
+		    st.markdown( "**Statistical Thresholds**" )
+		    z_thresh = st.slider(
+			    "Z / Modified Z threshold",
+			    2.0, 5.0, 3.0, 0.1,
+			    key="z_thresh"
+		    )
+    
+    with c2:
+	    with st.container( border=True ):
+		    st.markdown( "**IQR Fence**" )
+		    iqr_mult = st.slider(
+			    "IQR multiplier",
+			    1.0, 3.0, 1.5, 0.1,
+			    key="iqr_mult"
+		    )
+    
+    # --- Row 2: Proximity methods
+    c3, c4 = st.columns( 2 )
+    
+    with c3:
+	    with st.container( border=True ):
+		    st.markdown( "**k-NN Distance**" )
+		    knn_k = st.slider(
+			    "Neighbors (k)",
+			    5, 50, 20,
+			    key="knn_k"
+		    )
+		    knn_pct = st.slider(
+			    "Distance percentile",
+			    90, 99, 95,
+			    key="knn_pct"
+		    )
+    
+    with c4:
+	    with st.container( border=True ):
+		    st.markdown( "**Local Outlier Factor (LOF)**" )
+		    lof_k = st.slider(
+			    "Neighbors (k)",
+			    5, 50, 20,
+			    key="lof_k"
+		    )
+    
+    # --- Row 3: Boundary & tree methods
+    c5, c6 = st.columns( 2 )
+    
+    with c5:
+	    with st.container( border=True ):
+		    st.markdown( "**One-Class SVM**" )
+		    oc_kernel = st.selectbox(
+			    "Kernel",
+			    [ "rbf",
+			      "linear",
+			      "poly" ],
+			    key="oc_kernel"
+		    )
+		    oc_nu = st.slider(
+			    "ν (outlier fraction)",
+			    0.01, 0.25, 0.05,
+			    key="oc_nu"
+		    )
+    
+    with c6:
+	    with st.container( border=True ):
+		    st.markdown( "**Isolation Forest**" )
+		    st.caption(
+			    "Uses adaptive contamination; no exposed hyperparameters."
+		    )
+    
+    # --- Row 4: Clustering-based methods
+    c7, c8 = st.columns( 2 )
+    
+    with c7:
+	    with st.container( border=True ):
+		    st.markdown( "**DBSCAN (Noise Detection)**" )
+		    db_eps = st.slider(
+			    "eps",
+			    0.1, 5.0, 0.5,
+			    key="db_eps"
+		    )
+		    db_min = st.slider(
+			    "min_samples",
+			    5, 50, 10,
+			    key="db_min"
+		    )
+    
+    with c8:
+	    with st.container( border=True ):
+		    st.markdown( "**K-Means Distance**" )
+		    km_k = st.slider(
+			    "Clusters (k)",
+			    2, 10, 4,
+			    key="km_k"
+		    )
+		    km_pct = st.slider(
+			    "Distance percentile",
+			    90, 99, 95,
+			    key="km_pct"
+		    )
+    
+    # --- Row 5: Consensus logic
+    with st.container( border=True ):
+	    st.markdown( "**Consensus Scoring**" )
+	    min_methods = st.slider(
+		    "Minimum methods flagging a row",
+		    1, 9, 1,
+		    key="min_methods"
+	    )
+    
+    # Flags table
+    flags = pd.DataFrame(index=work.index)
+
+    # -------------------------
+    # Univariate methods
+    # -------------------------
+    for col in vars_sel:
+        s = work[col].dropna()
+        if s.empty:
+            continue
+
+        if use_z:
+            std = s.std()
+            z = (s - s.mean()) / std if std else pd.Series(0.0, index=s.index)
+            flags.loc[s.index, f"{col}_z"] = z.abs() >= z_thresh
+
+        if use_mz:
+            med = s.median()
+            mad = np.median(np.abs(s - med))
+            if mad == 0:
+                mz = pd.Series(0.0, index=s.index)
+            else:
+                mz = 0.6745 * (s - med) / mad
+            flags.loc[s.index, f"{col}_mz"] = mz.abs() >= z_thresh
+
+        if use_iqr:
+            q1, q3 = s.quantile(0.25), s.quantile(0.75)
+            iqr = q3 - q1
+            lo, hi = q1 - iqr_mult * iqr, q3 + iqr_mult * iqr
+            flags.loc[s.index, f"{col}_iqr"] = (s < lo) | (s > hi)
+
+    # -------------------------
+    # Multivariate methods
+    # -------------------------
+    mv = work.dropna(axis=0)
+
+    if mv.shape[0] >= 10 and mv.shape[1] >= 2:
+
+        if use_knn and mv.shape[0] > knn_k:
+            nn = NearestNeighbors(n_neighbors=knn_k).fit(mv.values)
+            d, _ = nn.kneighbors(mv.values)
+            kth = d[:, -1]
+            cutoff = np.percentile(kth, knn_pct)
+            flags.loc[mv.index, "knn"] = kth >= cutoff
+
+        if use_lof:
+            lof = LocalOutlierFactor(n_neighbors=lof_k)
+            preds = lof.fit_predict(mv.values)
+            flags.loc[mv.index, "lof"] = preds == -1
+
+        if use_iforest:
+            iso = IsolationForest(random_state=42, contamination="auto")
+            preds = iso.fit_predict(mv.values)
+            flags.loc[mv.index, "iforest"] = preds == -1
+
+        if use_ocsvm:
+            oc = OneClassSVM(kernel=oc_kernel, nu=oc_nu)
+            preds = oc.fit_predict(mv.values)
+            flags.loc[mv.index, "ocsvm"] = preds == -1
+
+        if use_dbscan:
+            db = DBSCAN(eps=db_eps, min_samples=db_min)
+            labels = db.fit_predict(mv.values)
+            flags.loc[mv.index, "dbscan"] = labels == -1
+
+        if use_kmeans and mv.shape[0] >= km_k:
+            km = KMeans(n_clusters=km_k, random_state=42, n_init="auto")
+            labels = km.fit_predict(mv.values)
+            centers = km.cluster_centers_
+            dist = np.linalg.norm(mv.values - centers[labels], axis=1)
+            cutoff = np.percentile(dist, km_pct)
+            flags.loc[mv.index, "kmeans"] = dist >= cutoff
+
+        if use_mahal:
+            cov = np.cov(mv.values, rowvar=False)
+            det = np.linalg.det(cov)
+            if det != 0 and np.isfinite(det):
+                inv = np.linalg.inv(cov)
+                mean = mv.mean().values
+                diff = mv.values - mean
+                md = np.sqrt(np.einsum("ij,jk,ik->i", diff, inv, diff))
+                cutoff = np.sqrt(stats.chi2.ppf(0.975, mv.shape[1]))
+                flags.loc[mv.index, "mahal"] = md >= cutoff
+            else:
+                st.warning("Mahalanobis skipped: covariance matrix is singular or ill-conditioned.")
+
+    # -------------------------
+    # Consensus and output
+    # -------------------------
+    if flags.empty:
+        st.info("No methods produced results with current settings.")
+        st.stop()
+
+    flags = flags.fillna(False)
+    flags["methods_flagged"] = flags.sum(axis=1)
+
+    anomalies = flags[flags["methods_flagged"] >= min_methods].copy()
+    anomalies = anomalies.sort_values("methods_flagged", ascending=False)
+
+    st.subheader("Anomaly Summary")
+    blue_divider()
+
+    c3, c4 = st.columns(2)
+
+    with c3:
+        st.markdown("### Flagged Observations")
+        render_table(anomalies)
+
+    with c4:
+        st.markdown("### Consensus Strength")
+        fig, ax = plt.subplots(figsize=(7, 5))
+        anomalies["methods_flagged"].value_counts().sort_index().plot(
+            kind="bar", edgecolor="black", ax=ax
+        )
+        ax.set_xlabel("Number of Methods Flagging")
+        ax.set_ylabel("Count")
+        ax.set_title("Consensus Distribution")
+        fig.tight_layout()
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
+
+    # -------------------------
+    # Distributions with anomalies highlighted
+    # -------------------------
+    st.subheader("Distributions with Anomalies Highlighted")
+    blue_divider()
+
+    # Use original (unscaled) series for user interpretation where possible
+    interpret = num_df[vars_sel].copy()
+
+    for col in vars_sel:
+        if col not in interpret.columns:
+            continue
+
+        s = interpret[col].dropna()
+        if s.empty:
+            continue
+
+        flagged_idx = anomalies.index.intersection(s.index)
+        if flagged_idx.empty:
+            continue
+
+        c5, c6 = st.columns(2)
+
+        with c5:
+            fig, ax = plt.subplots(figsize=(7, 5))
+            ax.hist(s, bins=30, alpha=0.75, edgecolor="black")
+            ax.scatter(
+                s.loc[flagged_idx],
+                np.zeros(len(flagged_idx)),
+                color="red",
+                label="Anomalies"
+            )
+            ax.set_title(f"{col} — Histogram with Anomalies")
+            ax.set_xlabel(col)
+            ax.set_ylabel("Frequency")
+            ax.legend()
+            fig.tight_layout()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
+
+        with c6:
+            fig, ax = plt.subplots(figsize=(7, 5))
+            ax.boxplot(s, vert=False)
+            ax.scatter(
+                s.loc[flagged_idx],
+                np.ones(len(flagged_idx)),
+                color="red"
+            )
+            ax.set_title(f"{col} — Boxplot with Anomalies")
+            ax.set_xlabel(col)
+            fig.tight_layout()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
+
+    st.download_button(
+        "Export Anomaly Table (CSV)",
+        anomalies.to_csv(index=True),
+        "anomalies.csv",
+        "text/csv"
+    )
+
