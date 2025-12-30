@@ -879,15 +879,28 @@ with tabs[4]:
 
     test_size = st.slider("Test size", 0.1, 0.5, 0.25)
     random_state = st.number_input("Random seed", value=42, step=1)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=y
+    
+    class_counts = y.value_counts( dropna=False )
+    
+    use_stratify = (
+		    y.nunique( dropna=False ) > 1
+		    and class_counts.min( ) >= 2
     )
-
+    
+    if not use_stratify:
+	    st.warning(
+		    "Stratified train/test split disabled because at least one class "
+		    "contains only a single observation. Proceeding with random split."
+	    )
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+	    X,
+	    y,
+	    test_size=test_size,
+	    random_state=random_state,
+	    stratify=y if use_stratify else None
+    )
+    
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
