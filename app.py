@@ -810,5 +810,209 @@ with tabs[3]:
         "text/csv"
     )
 
+# =========================================================================================
+# TAB — CLASSIFICATION MODELS (NOTEBOOK-ALIGNED, CORRECTED)
+# =========================================================================================
+
+with tabs[4]:
+    st.header("🧠 Classification Models")
+
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.svm import SVC
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+
+    df = st.session_state.df
+    if df is None:
+        st.info("No data loaded.")
+        st.stop()
+
+    # ------------------------------------------------------------------
+    # Target selection (NOTEBOOK RULES)
+    # ------------------------------------------------------------------
+    st.subheader("Target Variable")
+
+    candidate_targets = [
+        c for c in df.columns
+        if df[c].nunique(dropna=False) >= 2
+    ]
+
+    target = st.selectbox("Select target", candidate_targets)
+
+    y = df[target]
+
+    if y.nunique(dropna=False) < 2:
+        st.error(
+            f"Target '{target}' contains only one class. "
+            "Classification requires at least two classes."
+        )
+        st.stop()
+
+    # ------------------------------------------------------------------
+    # Feature selection
+    # ------------------------------------------------------------------
+    st.subheader("Feature Variables")
+
+    numeric_features = df.select_dtypes(include=[np.number]).columns.tolist()
+    numeric_features = [c for c in numeric_features if c != target]
+
+    features = st.multiselect(
+        "Select numeric features",
+        numeric_features,
+        default=numeric_features[:2]
+    )
+
+    if len(features) < 1:
+        st.info("Select at least one numeric feature.")
+        st.stop()
+
+    X = df[features]
+
+    # ------------------------------------------------------------------
+    # Train / Test split
+    # ------------------------------------------------------------------
+    st.subheader("Train / Test Split")
+
+    test_size = st.slider("Test size", 0.1, 0.5, 0.25)
+    random_state = st.number_input("Random seed", value=42, step=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=y
+    )
+
+    scaler = StandardScaler()
+    X_train_s = scaler.fit_transform(X_train)
+    X_test_s = scaler.transform(X_test)
+
+    # ------------------------------------------------------------------
+    # Model selection
+    # ------------------------------------------------------------------
+    st.subheader("Models")
+
+    model_choices = st.multiselect(
+        "Select models",
+        [
+            "Logistic Regression",
+            "k-Nearest Neighbors",
+            "Support Vector Classifier",
+            "Decision Tree",
+            "Random Forest"
+        ],
+        default=["Logistic Regression", "Random Forest"]
+    )
+
+    if not model_choices:
+        st.info("Select at least one model.")
+        st.stop()
+
+    models = {}
+
+    if "Logistic Regression" in model_choices:
+        models["Logistic Regression"] = LogisticRegression(max_iter=1000)
+
+    if "k-Nearest Neighbors" in model_choices:
+        models["k-Nearest Neighbors"] = KNeighborsClassifier(n_neighbors=5)
+
+    if "Support Vector Classifier" in model_choices:
+        models["Support Vector Classifier"] = SVC()
+
+    if "Decision Tree" in model_choices:
+        models["Decision Tree"] = DecisionTreeClassifier(random_state=random_state)
+
+    if "Random Forest" in model_choices:
+        models["Random Forest"] = RandomForestClassifier(
+            n_estimators=200,
+            random_state=random_state
+        )
+
+    # ------------------------------------------------------------------
+    # Training & evaluation (NOTEBOOK STYLE)
+    # ------------------------------------------------------------------
+    st.subheader("Model Performance")
+
+    results = []
+
+    for name, model in models.items():
+
+        Xtr = X_train_s if name != "Decision Tree" and name != "Random Forest" else X_train
+        Xte = X_test_s if name != "Decision Tree" and name != "Random Forest" else X_test
+
+        model.fit(Xtr, y_train)
+
+        train_acc = accuracy_score(y_train, model.predict(Xtr))
+        test_acc = accuracy_score(y_test, model.predict(Xte))
+
+        results.append({
+            "Model": name,
+            "Train Accuracy": train_acc,
+            "Test Accuracy": test_acc
+        })
+
+    results_df = pd.DataFrame(results).sort_values("Test Accuracy", ascending=False)
+    render_table(results_df)
+
+    # ------------------------------------------------------------------
+    # Confusion matrices
+    # ------------------------------------------------------------------
+    st.subheader("Confusion Matrices")
+
+    for name, model in models.items():
+
+        Xte = X_test_s if name != "Decision Tree" and name != "Random Forest" else X_test
+
+        fig, ax = plt.subplots()
+        ConfusionMatrixDisplay.from_estimator(
+            model,
+            Xte,
+            y_test,
+            ax=ax,
+            cmap="Blues",
+            colorbar=False
+        )
+        ax.set_title(name)
+        st.pyplot(fig)
+        plt.close(fig)
+
+    # ------------------------------------------------------------------
+    # Decision regions (STRICT CONDITIONS)
+    # ------------------------------------------------------------------
+    st.subheader("Decision Regions (Optional)")
+
+    if len(features) == 2:
+        show_regions = st.checkbox("Show decision regions (2 features only)")
+
+        if show_regions:
+            from mlxtend.plotting import plot_decision_regions
+
+            X_vis = X_train_s
+            y_vis = y_train.values
+
+            for name, model in models.items():
+                if name not in (
+                    "Logistic Regression",
+                    "k-Nearest Neighbors",
+                    "Support Vector Classifier",
+                    "Decision Tree"
+                ):
+                    continue
+
+                fig, ax = plt.subplots()
+                model.fit(X_vis, y_vis)
+                plot_decision_regions(X_vis, y_vis, clf=model, ax=ax)
+                ax.set_title(name)
+                ax.set_xlabel(features[0])
+                ax.set_ylabel(features[1])
+                st.pyplot(fig)
+                plt.close(fig)
+    else:
+        st.info("Decision regions require exactly two numeric features.")
 
 
