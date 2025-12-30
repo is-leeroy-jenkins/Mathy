@@ -15,10 +15,10 @@
 - Every component—from encoders, scalers, and imputers to neural networks and ensemble models—follows the same method pattern (`train`, `project`, `score`, and `analyze`), enabling seamless pipeline integration, cross-module interoperability, and rapid experimentation. 
 - Mathy offers clarity, consistency, and composability in machine learning workflows.
 
-
+---
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
----
+
 
 ## 📦 Layout
 
