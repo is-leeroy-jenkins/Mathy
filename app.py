@@ -113,6 +113,9 @@ def blue_divider() -> None:
         unsafe_allow_html=True
     )
 
+def is_identifier(col: str) -> bool:
+    col = col.lower()
+    return any(k in col for k in ("id", "key", "index", "symbol"))
 
 def detect_column_types(df: pd.DataFrame) -> tuple[List[str], List[str]]:
     numeric_hints = ("py", "cy", "by", "amount", "total", "value", "balance", "outlay")
@@ -311,246 +314,232 @@ with tabs[0]:
 # =========================================================================================
 # TAB 2 — DESCRIPTIVE STATISTICS
 # =========================================================================================
-
-with tabs[1]:
-    st.header("📈 Descriptive Statistics")
-
-    df = st.session_state.df
-    num_df = df.select_dtypes(include=[np.number])
-
-    if num_df.empty:
-        st.info("No numeric columns available.")
-        st.stop()
-
-    col = st.selectbox(
-        "Select numeric column",
-        num_df.columns.tolist(),
-        key="desc_col"
-    )
-
-    s = num_df[col].dropna()
-    ROW_HEIGHT = 420
-
     # =========================================================================
-    # SECTION 1 — DISTRIBUTION & LOCATION
+    # SECTION — STRUCTURAL RELATIONSHIPS & GEOMETRY (ROBUST)
     # =========================================================================
 
-    st.subheader("Distribution & Location")
+    st.subheader("Structural Relationships & Geometry")
     blue_divider()
 
-    c1, c2 = st.columns(2)
+    # -------------------------------------------------------------------------
+    # Helpers (local, explicit)
+    # -------------------------------------------------------------------------
 
-    with c1:
-        with st.container(height=ROW_HEIGHT):
-            fig, ax = plt.subplots()
-            ax.hist(
-                s,
-                bins=30,
-                edgecolor="black",
-                alpha=0.85
-            )
-            ax.axvline(s.mean(), color="red", linestyle="--", label="Mean")
-            ax.axvline(s.median(), color="green", linestyle=":", label="Median")
-            ax.set_title("Histogram with Mean & Median")
-            ax.legend()
-            st.pyplot(fig)
+    def is_identifier(col: str) -> bool:
+        name = col.lower()
+        return any(k in name for k in ("id", "key", "index", "symbol"))
 
-    with c2:
-        with st.container(height=ROW_HEIGHT):
-            fig, ax = plt.subplots()
-            ax.boxplot(
-                s,
-                vert=True,
-                patch_artist=True,
-                boxprops=dict(facecolor="lightblue", edgecolor="black"),
-                medianprops=dict(color="red"),
-                whiskerprops=dict(color="black"),
-                capprops=dict(color="black"),
-                flierprops=dict(marker="o", markerfacecolor="orange", markersize=4)
-            )
-            ax.set_title("Boxplot with Outliers")
-            st.pyplot(fig)
+    def clean_numeric_frame(frame: pd.DataFrame) -> pd.DataFrame:
+        """Coerce numeric data to float and replace non-finite values with NaN."""
+        out = frame.copy()
+        out = out.replace([np.inf, -np.inf], np.nan)
+        # Force float dtype where possible
+        for c in out.columns:
+            out[c] = pd.to_numeric(out[c], errors="coerce")
+        return out
 
-    render_table(pd.DataFrame({
-        "Metric": [
-            "Count",
-            "Mean",
-            "Median",
-            "Trimmed Mean (10%)",
-            "Min",
-            "Max",
-            "Range"
-        ],
-        "Value": [
-            s.count(),
-            s.mean(),
-            s.median(),
-            stats.trim_mean(s, 0.10),
-            s.min(),
-            s.max(),
-            s.max() - s.min()
-        ]
-    }))
+    # -------------------------------------------------------------------------
+    # Prepare numeric-only frame (safe)
+    # -------------------------------------------------------------------------
 
-    # =========================================================================
-    # SECTION 2 — DISPERSION & VARIABILITY
-    # =========================================================================
+    num_only_raw = df.select_dtypes(include=[np.number])
+    num_only = clean_numeric_frame(num_only_raw)
 
-    st.subheader("Dispersion & Variability")
-    blue_divider()
+    # Drop columns that are entirely NaN
+    num_only = num_only.dropna(axis=1, how="all")
 
-    c3, c4 = st.columns(2)
+    # Drop columns that are constant (no variance)
+    nunique = num_only.nunique(dropna=True)
+    num_only = num_only.loc[:, nunique > 1]
 
-    with c3:
-        with st.container(height=ROW_HEIGHT):
-            render_table(pd.DataFrame({
-                "Metric": [
-                    "Variance",
-                    "Standard Deviation",
-                    "Coefficient of Variation",
-                    "Interquartile Range (IQR)",
-                    "Median Absolute Deviation (MAD)"
-                ],
-                "Value": [
-                    s.var(),
-                    s.std(),
-                    s.std() / s.mean() if s.mean() else np.nan,
-                    s.quantile(0.75) - s.quantile(0.25),
-                    stats.median_abs_deviation(s)
-                ]
-            }))
-
-    with c4:
-        with st.container(height=ROW_HEIGHT):
-            fig, ax = plt.subplots()
-            ax.violinplot(s, showmeans=True, showmedians=True)
-            ax.set_title("Violin Plot (Distribution Density)")
-            st.pyplot(fig)
-
-    # =========================================================================
-    # SECTION 3 — SHAPE, MOMENTS & DISTRIBUTIONAL DIAGNOSTICS
-    # =========================================================================
-
-    st.subheader("Shape, Moments & Distributional Diagnostics")
-    blue_divider()
-
-    c5, c6 = st.columns(2)
-
-    with c5:
-        with st.container(height=ROW_HEIGHT):
-            fig, ax = plt.subplots()
-            stats.probplot(s, plot=ax)
-            ax.set_title("Q–Q Plot (Normal Reference)")
-            st.pyplot(fig)
-
-    with c6:
-        with st.container(height=ROW_HEIGHT):
-            render_table(pd.DataFrame({
-                "Metric": [
-                    "Skewness",
-                    "Kurtosis (Fisher)",
-                    "Kurtosis (Pearson)"
-                ],
-                "Value": [
-                    s.skew(),
-                    s.kurtosis(),
-                    s.kurtosis() + 3
-                ]
-            }))
-
-    # =========================================================================
-    # SECTION 4 — OUTLIER PREVALENCE (DESCRIPTIVE ONLY)
-    # =========================================================================
-
-    st.subheader("Outlier Prevalence (Descriptive)")
-    blue_divider()
-
-    z_scores = np.abs(stats.zscore(s, nan_policy="omit"))
-    q1, q3 = s.quantile([0.25, 0.75])
-    iqr = q3 - q1
-    lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
-
-    render_table(pd.DataFrame({
-        "Method": [
-            "Z-Score > 2",
-            "Z-Score > 3",
-            "IQR Fence"
-        ],
-        "Count": [
-            int((z_scores > 2).sum()),
-            int((z_scores > 3).sum()),
-            int(((s < lower) | (s > upper)).sum())
-        ],
-        "Percent of Observations": [
-            float((z_scores > 2).mean() * 100),
-            float((z_scores > 3).mean() * 100),
-            float(((s < lower) | (s > upper)).mean() * 100)
-        ]
-    }))
-
-    # =========================================================================
-    # SECTION 5 — GROUPED DESCRIPTIVES (FINANCE-CRITICAL)
-    # =========================================================================
-
-    st.subheader("Grouped Descriptive Statistics")
-    blue_divider()
-
-    cat_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
-
-    if cat_cols:
-        group_col = st.selectbox(
-            "Group by (categorical)",
-            cat_cols,
-            key="desc_group_col"
-        )
-
-        grouped = (
-            df[[group_col, col]]
-            .dropna()
-            .groupby(group_col)[col]
-            .agg(
-                count="count",
-                mean="mean",
-                median="median",
-                std="std",
-                min="min",
-                max="max"
-            )
-            .reset_index()
-        )
-
-        render_table(grouped)
-
-        c7, c8 = st.columns(2)
-
-        with c7:
-            with st.container(height=ROW_HEIGHT):
-                fig, ax = plt.subplots()
-                grouped.sort_values("mean").plot.bar(
-                    x=group_col,
-                    y="mean",
-                    ax=ax,
-                    legend=False,
-                    edgecolor="black"
-                )
-                ax.set_title("Group Means")
-                st.pyplot(fig)
-
-        with c8:
-            with st.container(height=ROW_HEIGHT):
-                fig, ax = plt.subplots()
-                df.boxplot(
-                    column=col,
-                    by=group_col,
-                    ax=ax,
-                    grid=False,
-                    rot=45
-                )
-                ax.set_title("Grouped Boxplots")
-                plt.suptitle("")
-                st.pyplot(fig)
+    if num_only.shape[1] < 2:
+        st.info("At least two usable numeric columns are required for this section.")
     else:
-        st.info("No categorical columns available for grouping.")
+        # =========================================================================
+        # CORRELATION ANALYSIS
+        # =========================================================================
+
+        st.markdown("### Correlation Analysis")
+        blue_divider()
+
+        corr_method = st.selectbox(
+            "Correlation method",
+            ["Pearson", "Spearman", "Kendall"],
+            key="corr_method"
+        )
+
+        corr_map = {
+            "Pearson": "pearson",
+            "Spearman": "spearman",
+            "Kendall": "kendall"
+        }
+
+        corr = num_only.corr(method=corr_map[corr_method]).astype(float)
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            with st.container(height=420):
+                st.markdown("#### Correlation Matrix")
+                render_table(corr)
+
+        with c2:
+            with st.container(height=420):
+                st.markdown("#### Correlation Heatmap (NaNs masked)")
+
+                corr_vals = corr.values
+                mask = np.isnan(corr_vals)
+
+                fig, ax = plt.subplots()
+                im = ax.imshow(
+                    np.ma.masked_array(corr_vals, mask),
+                    cmap="coolwarm",
+                    vmin=-1,
+                    vmax=1
+                )
+
+                ax.set_xticks(range(len(corr.columns)))
+                ax.set_yticks(range(len(corr.columns)))
+                ax.set_xticklabels(corr.columns, rotation=45, ha="right")
+                ax.set_yticklabels(corr.columns)
+
+                fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+                ax.set_title(f"{corr_method} Correlation Heatmap")
+                st.pyplot(fig)
+
+        # =========================================================================
+        # MUTUAL INFORMATION (DEPENDENCY)
+        # =========================================================================
+
+        st.markdown("### Mutual Information (Dependency Analysis)")
+        blue_divider()
+
+        try:
+            from sklearn.feature_selection import mutual_info_regression
+
+            valid_targets = [c for c in num_only.columns if not is_identifier(c)]
+            if len(valid_targets) < 1:
+                st.info("No suitable numeric targets available for mutual information analysis.")
+            else:
+                target_col = st.selectbox(
+                    "Target variable",
+                    valid_targets,
+                    key="mi_target"
+                )
+
+                X_full = num_only.drop(columns=[target_col])
+                y_full = num_only[target_col]
+
+                # MI cannot handle NaNs: drop rows where any selected column is missing
+                mi_frame = pd.concat([X_full, y_full.rename("__target__")], axis=1).dropna(axis=0)
+                if mi_frame.shape[0] < 10 or mi_frame.shape[1] < 3:
+                    st.info("Not enough complete observations to compute mutual information reliably.")
+                else:
+                    X = mi_frame.drop(columns=["__target__"])
+                    y = mi_frame["__target__"]
+
+                    mi_scores = mutual_info_regression(X, y, random_state=42)
+
+                    mi_df = (
+                        pd.DataFrame({
+                            "Feature": X.columns,
+                            "Mutual Information": mi_scores
+                        })
+                        .sort_values("Mutual Information", ascending=False)
+                        .reset_index(drop=True)
+                    )
+
+                    c3, c4 = st.columns(2)
+
+                    with c3:
+                        with st.container(height=420):
+                            st.markdown("#### Mutual Information Scores")
+                            render_table(mi_df)
+
+                    with c4:
+                        with st.container(height=420):
+                            fig, ax = plt.subplots()
+                            ax.barh(mi_df["Feature"], mi_df["Mutual Information"], edgecolor="black")
+                            ax.invert_yaxis()
+                            ax.set_xlabel("Mutual Information")
+                            ax.set_title("Dependency Strength (Higher = Stronger Dependency)")
+
+                            for i, v in enumerate(mi_df["Mutual Information"]):
+                                ax.text(v, i, f"{v:.3f}", va="center")
+
+                            st.pyplot(fig)
+
+        except Exception as ex:
+            st.error(f"Mutual information failed: {ex}")
+
+        # =========================================================================
+        # PCA (GEOMETRY OF VARIANCE)
+        # =========================================================================
+
+        st.markdown("### Principal Component Analysis (PCA)")
+        blue_divider()
+
+        try:
+            from sklearn.preprocessing import StandardScaler
+            from sklearn.decomposition import PCA
+
+            # PCA cannot handle NaNs: drop rows with any missing values across numeric columns
+            pca_frame = num_only.dropna(axis=0)
+
+            if pca_frame.shape[0] < 10:
+                st.info("Not enough complete observations for PCA (need more non-missing rows).")
+            else:
+                max_components = min(10, pca_frame.shape[1])
+                if max_components < 2:
+                    st.info("Not enough usable numeric variables for PCA.")
+                else:
+                    n_components = st.slider(
+                        "Number of components",
+                        min_value=2,
+                        max_value=max_components,
+                        value=min(5, max_components),
+                        key="pca_components"
+                    )
+
+                    X_scaled = StandardScaler().fit_transform(pca_frame.values)
+                    pca = PCA(n_components=n_components)
+                    _ = pca.fit_transform(X_scaled)
+
+                    explained_df = pd.DataFrame({
+                        "Component": [f"PC{i+1}" for i in range(n_components)],
+                        "Explained Variance (%)": pca.explained_variance_ratio_ * 100
+                    })
+
+                    loadings_df = pd.DataFrame(
+                        pca.components_.T,
+                        index=pca_frame.columns,
+                        columns=[f"PC{i+1}" for i in range(n_components)]
+                    )
+
+                    c5, c6 = st.columns(2)
+
+                    with c5:
+                        with st.container(height=420):
+                            st.markdown("#### Variance Explained")
+                            render_table(explained_df)
+
+                            fig, ax = plt.subplots()
+                            ax.bar(
+                                explained_df["Component"],
+                                explained_df["Explained Variance (%)"],
+                                edgecolor="black"
+                            )
+                            ax.set_ylabel("% Variance")
+                            ax.set_title("PCA Variance Explained")
+                            st.pyplot(fig)
+
+                    with c6:
+                        with st.container(height=420):
+                            st.markdown("#### Component Loadings")
+                            render_table(loadings_df)
+
+        except Exception as ex:
+            st.error(f"PCA failed: {ex}")
 
 
 # =========================================================================================
