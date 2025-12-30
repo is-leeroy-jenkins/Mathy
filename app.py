@@ -140,7 +140,8 @@ tabs = st.tabs([
     "🧹 Data Processing",
     "📈 Descriptive Statistics",
     "📐 Inferential Statistics",
-    "🚨 Anomaly Detection"
+    "🚨 Anomaly Detection",
+	"🧠 Classification Models"
 ])
 
 
@@ -808,4 +809,6 @@ with tabs[3]:
         "anomalies.csv",
         "text/csv"
     )
+
+
 
