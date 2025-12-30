@@ -812,12 +812,13 @@ with tabs[3]:
 
 
 # =========================================================================================
-# TAB — CLASSIFICATION MODELS (CORRECTED COLUMN LOGIC, DOMAIN-AWARE)
+# TAB — CLASSIFICATION MODELS (STAND-ALONE WORKING SECTION)
 # =========================================================================================
-
 with tabs[4]:
     st.header("🧠 Classification Models")
 
+    import seaborn as sns
+    import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import StandardScaler
     from sklearn.linear_model import LogisticRegression
@@ -825,75 +826,34 @@ with tabs[4]:
     from sklearn.svm import SVC
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import accuracy_score, confusion_matrix
-    import seaborn as sns
+    from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
     df = st.session_state.df
     if df is None or df.empty:
-        st.info("No dataset loaded.")
+        st.warning("No dataset loaded.  Please complete Data-Processing first.")
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Improved column typing logic
-    # ------------------------------------------------------------------
-    def detect_columns(frame: pd.DataFrame):
-        numeric_hints = (
-            "amount", "total", "value", "balance", "outlay", "obligation", "expenditure"
-        )
-        categorical_hints = (
-            "fy", "py", "cy", "by", "code", "id", "name", "type", "line",
-            "account", "tas", "fund", "bureau", "symbol"
-        )
+    # ------------------------------------------------------------------ #
+    # Re-use pre-typed columns from session_state
+    # ------------------------------------------------------------------ #
+    numeric_cols = st.session_state.get("numeric_cols", [])
+    categorical_cols = st.session_state.get("categorical_cols", [])
 
-        num_cols, cat_cols = [], []
-
-        for col in frame.columns:
-            col_l = col.lower()
-            dtype = frame[col].dtype
-
-            if pd.api.types.is_float_dtype(dtype):
-                num_cols.append(col)
-            elif any(h in col_l for h in numeric_hints):
-                num_cols.append(col)
-            elif any(h in col_l for h in categorical_hints):
-                cat_cols.append(col)
-            elif pd.api.types.is_integer_dtype(dtype):
-                # integers treated as categorical if code-like
-                cat_cols.append(col)
-            elif pd.api.types.is_object_dtype(dtype):
-                cat_cols.append(col)
-            else:
-                cat_cols.append(col)
-
-        # Deduplicate just in case
-        num_cols = [c for c in num_cols if c not in cat_cols]
-        return num_cols, cat_cols
-
-    numeric_cols, categorical_cols = detect_columns(df)
-
-    if not numeric_cols:
-        st.warning("No numeric columns detected. Please verify dataset or preprocessing.")
-        st.stop()
-    if not categorical_cols:
-        st.warning("No categorical columns detected. Please verify dataset or preprocessing.")
+    if not numeric_cols or not categorical_cols:
+        st.warning("Column typing not found.  Please classify columns in Data-Processing.")
         st.stop()
 
-    # ------------------------------------------------------------------
+    # ------------------------------------------------------------------ #
     # Target & Features
-    # ------------------------------------------------------------------
+    # ------------------------------------------------------------------ #
     st.subheader("Target & Features")
-    blue_divider()
-
-    c1, c2 = st.columns(2)
-    with c1:
-        target = st.selectbox("Target variable (categorical)", categorical_cols, key="clf_target")
-    with c2:
-        features = st.multiselect(
-            "Numeric feature variables",
-            numeric_cols,
-            default=numeric_cols[:3] if len(numeric_cols) >= 3 else numeric_cols,
-            key="clf_features"
-        )
+    target = st.selectbox("Target (categorical)", categorical_cols, key="cls_target")
+    features = st.multiselect(
+        "Feature columns (numeric)",
+        numeric_cols,
+        default=numeric_cols[:3] if len(numeric_cols) >= 3 else numeric_cols,
+        key="cls_features"
+    )
 
     if not features:
         st.info("Select at least one numeric feature to continue.")
@@ -903,50 +863,50 @@ with tabs[4]:
     y = df[target].copy()
 
     if y.nunique() < 2:
-        st.error(f"Target '{target}' contains only one unique class.")
+        st.error("Target must contain at least two classes.")
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Split & Scale
-    # ------------------------------------------------------------------
+    # ------------------------------------------------------------------ #
+    # Train / Test Split
+    # ------------------------------------------------------------------ #
     test_size = st.slider("Test size", 0.1, 0.5, 0.25)
     random_state = st.number_input("Random seed", value=42, step=1)
+    strat = y if y.value_counts().min() >= 2 else None
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
-        test_size=test_size,
-        random_state=int(random_state),
-        stratify=y if y.value_counts().min() >= 2 else None
+        X, y, test_size=test_size, random_state=int(random_state), stratify=strat
     )
 
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
-    # ------------------------------------------------------------------
-    # Models
-    # ------------------------------------------------------------------
-    st.subheader("Model Selection & Training")
-    blue_divider()
-
-    models_selected = st.multiselect(
-        "Select models to train",
-        ["Logistic Regression", "k-Nearest Neighbors", "Support Vector Classifier", "Decision Tree", "Random Forest"],
-        default=["Logistic Regression", "Random Forest"]
+    # ------------------------------------------------------------------ #
+    # Model Selection
+    # ------------------------------------------------------------------ #
+    st.subheader("Models")
+    model_choices = [
+        "Logistic Regression", "k-Nearest Neighbors",
+        "Support Vector Classifier", "Decision Tree", "Random Forest"
+    ]
+    selected_models = st.multiselect(
+        "Choose models to train", model_choices,
+        default=["Logistic Regression", "Random Forest"], key="cls_models"
     )
-
-    if not models_selected:
+    if not selected_models:
         st.stop()
 
-    run = st.button("Run Classification Models", type="primary")
+    run = st.button("Run Models", type="primary")
     if not run:
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Training
-    # ------------------------------------------------------------------
-    results, fitted = [], {}
-    for name in models_selected:
+    # ------------------------------------------------------------------ #
+    # Training and Evaluation
+    # ------------------------------------------------------------------ #
+    results = []
+    fitted = {}
+
+    for name in selected_models:
         if name == "Logistic Regression":
             model = LogisticRegression(max_iter=1000)
             Xtr, Xte = X_train_s, X_test_s
@@ -954,7 +914,7 @@ with tabs[4]:
             model = KNeighborsClassifier(n_neighbors=5)
             Xtr, Xte = X_train_s, X_test_s
         elif name == "Support Vector Classifier":
-            model = SVC()
+            model = SVC(probability=True)
             Xtr, Xte = X_train_s, X_test_s
         elif name == "Decision Tree":
             model = DecisionTreeClassifier(random_state=int(random_state))
@@ -967,42 +927,74 @@ with tabs[4]:
 
         model.fit(Xtr, y_train)
         fitted[name] = model
+
+        y_pred = model.predict(Xte)
+        acc_train = accuracy_score(y_train, model.predict(Xtr))
+        acc_test = accuracy_score(y_test, y_pred)
+
         results.append({
             "Model": name,
-            "Train Accuracy": accuracy_score(y_train, model.predict(Xtr)),
-            "Test Accuracy": accuracy_score(y_test, model.predict(Xte))
+            "Train Accuracy": acc_train,
+            "Test Accuracy": acc_test
         })
 
     results_df = pd.DataFrame(results).sort_values("Test Accuracy", ascending=False)
-    render_table(results_df)
+    st.write("### Model Performance")
+    st.dataframe(results_df.style.background_gradient(cmap="Greys"))
 
-    # ------------------------------------------------------------------
+    # ------------------------------------------------------------------ #
     # Confusion Matrices
-    # ------------------------------------------------------------------
-    st.subheader("Confusion Matrices")
-    blue_divider()
-
-    max_classes = 25
-    labels = y.unique()[:max_classes]
-    short_labels = [str(l)[:20] + ("…" if len(str(l)) > 20 else "") for l in labels]
-
-    cols = st.columns(2)
+    # ------------------------------------------------------------------ #
+    st.write("### Confusion Matrices")
+    ncols = 2
+    cols = st.columns(ncols)
     for i, (name, model) in enumerate(fitted.items()):
-        col = cols[i % 2]
+        col = cols[i % ncols]
         with col:
             st.markdown(f"**{name}**")
-            is_tree = name in ("Decision Tree", "Random Forest")
-            Xte = X_test if is_tree else X_test_s
+            Xte = X_test if name in ("Decision Tree", "Random Forest") else X_test_s
             preds = model.predict(Xte)
-            cm = confusion_matrix(y_test, preds, labels=labels)
-            cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
-            fig, ax = plt.subplots(figsize=(6, 4))
-            sns.heatmap(cm_norm, ax=ax, cmap="Blues", cbar=False)
+            cm = confusion_matrix(y_test, preds)
+            fig, ax = plt.subplots()
+            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
             ax.set_xlabel("Predicted")
             ax.set_ylabel("Actual")
-            ax.set_title(f"{name} (normalized)")
-            ax.set_xticklabels(short_labels, rotation=45, ha="right", fontsize=7)
-            ax.set_yticklabels(short_labels, rotation=0, fontsize=7)
             st.pyplot(fig)
-            plt.close(fig)
 
+    # ------------------------------------------------------------------ #
+    # Decision Region (if only two numeric features)
+    # ------------------------------------------------------------------ #
+    if len(features) == 2:
+        st.write("### Decision Region (2D features only)")
+        model_name = st.selectbox(
+            "Select model for decision region",
+            [m for m in fitted.keys()],
+            key="cls_region_model"
+        )
+        if model_name:
+            model = fitted[model_name]
+            Xtr = X_train_s[:, :2]
+            y_enc, _ = pd.factorize(y_train)
+            model.fit(Xtr, y_enc)
+            x_min, x_max = Xtr[:, 0].min() - 1, Xtr[:, 0].max() + 1
+            y_min, y_max = Xtr[:, 1].min() - 1, Xtr[:, 1].max() + 1
+            xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300),
+                                 np.linspace(y_min, y_max, 300))
+            Z = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+            fig, ax = plt.subplots()
+            ax.contourf(xx, yy, Z, alpha=0.3)
+            ax.scatter(Xtr[:, 0], Xtr[:, 1], c=y_enc, edgecolor="k", s=20)
+            ax.set_xlabel(features[0])
+            ax.set_ylabel(features[1])
+            ax.set_title(f"{model_name} — Decision Region")
+            st.pyplot(fig)
+
+    # ------------------------------------------------------------------ #
+    # Export
+    # ------------------------------------------------------------------ #
+    st.download_button(
+        "Export Classification Metrics (CSV)",
+        results_df.to_csv(index=False),
+        "classification_metrics.csv",
+        "text/csv"
+    )
