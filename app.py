@@ -812,7 +812,7 @@ with tabs[3]:
 
 
 # =========================================================================================
-# TAB — CLASSIFICATION MODELS (INTEGRATED WITH MATHY PREPROCESSING)
+# TAB — CLASSIFICATION MODELS (CORRECTED COLUMN LOGIC, DOMAIN-AWARE)
 # =========================================================================================
 
 with tabs[4]:
@@ -821,29 +821,61 @@ with tabs[4]:
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import StandardScaler
     from sklearn.linear_model import LogisticRegression
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.tree import DecisionTreeClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.svm import SVC
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import accuracy_score, confusion_matrix
     import seaborn as sns
 
-    # ------------------------------------------------------------------
-    # Ensure data exists
-    # ------------------------------------------------------------------
     df = st.session_state.df
     if df is None or df.empty:
         st.info("No dataset loaded.")
         st.stop()
 
     # ------------------------------------------------------------------
-    # Pull typed columns from session_state (set in earlier tabs)
+    # Improved column typing logic
     # ------------------------------------------------------------------
-    numeric_cols = st.session_state.get("numeric_cols", [])
-    categorical_cols = st.session_state.get("categorical_cols", [])
+    def detect_columns(frame: pd.DataFrame):
+        numeric_hints = (
+            "amount", "total", "value", "balance", "outlay", "obligation", "expenditure"
+        )
+        categorical_hints = (
+            "fy", "py", "cy", "by", "code", "id", "name", "type", "line",
+            "account", "tas", "fund", "bureau", "symbol"
+        )
 
-    if not numeric_cols and not categorical_cols:
-        st.warning("No typed columns detected from preprocessing.")
+        num_cols, cat_cols = [], []
+
+        for col in frame.columns:
+            col_l = col.lower()
+            dtype = frame[col].dtype
+
+            if pd.api.types.is_float_dtype(dtype):
+                num_cols.append(col)
+            elif any(h in col_l for h in numeric_hints):
+                num_cols.append(col)
+            elif any(h in col_l for h in categorical_hints):
+                cat_cols.append(col)
+            elif pd.api.types.is_integer_dtype(dtype):
+                # integers treated as categorical if code-like
+                cat_cols.append(col)
+            elif pd.api.types.is_object_dtype(dtype):
+                cat_cols.append(col)
+            else:
+                cat_cols.append(col)
+
+        # Deduplicate just in case
+        num_cols = [c for c in num_cols if c not in cat_cols]
+        return num_cols, cat_cols
+
+    numeric_cols, categorical_cols = detect_columns(df)
+
+    if not numeric_cols:
+        st.warning("No numeric columns detected. Please verify dataset or preprocessing.")
+        st.stop()
+    if not categorical_cols:
+        st.warning("No categorical columns detected. Please verify dataset or preprocessing.")
         st.stop()
 
     # ------------------------------------------------------------------
@@ -854,15 +886,11 @@ with tabs[4]:
 
     c1, c2 = st.columns(2)
     with c1:
-        target = st.selectbox(
-            "Target variable (categorical)",
-            categorical_cols if categorical_cols else df.columns.tolist(),
-            key="clf_target"
-        )
+        target = st.selectbox("Target variable (categorical)", categorical_cols, key="clf_target")
     with c2:
         features = st.multiselect(
             "Numeric feature variables",
-            numeric_cols if numeric_cols else df.select_dtypes(include=[np.number]).columns.tolist(),
+            numeric_cols,
             default=numeric_cols[:3] if len(numeric_cols) >= 3 else numeric_cols,
             key="clf_features"
         )
@@ -874,13 +902,12 @@ with tabs[4]:
     X = df[features].copy()
     y = df[target].copy()
 
-    # Guard single-class targets
     if y.nunique() < 2:
-        st.error(f"Target '{target}' contains only one class.")
+        st.error(f"Target '{target}' contains only one unique class.")
         st.stop()
 
     # ------------------------------------------------------------------
-    # Split & scale
+    # Split & Scale
     # ------------------------------------------------------------------
     test_size = st.slider("Test size", 0.1, 0.5, 0.25)
     random_state = st.number_input("Random seed", value=42, step=1)
@@ -897,41 +924,27 @@ with tabs[4]:
     X_test_s = scaler.transform(X_test)
 
     # ------------------------------------------------------------------
-    # Model selection
+    # Models
     # ------------------------------------------------------------------
-    st.subheader("Models")
+    st.subheader("Model Selection & Training")
     blue_divider()
 
     models_selected = st.multiselect(
         "Select models to train",
-        [
-            "Logistic Regression",
-            "k-Nearest Neighbors",
-            "Support Vector Classifier",
-            "Decision Tree",
-            "Random Forest"
-        ],
-        default=["Logistic Regression", "Random Forest"],
-        key="clf_models"
+        ["Logistic Regression", "k-Nearest Neighbors", "Support Vector Classifier", "Decision Tree", "Random Forest"],
+        default=["Logistic Regression", "Random Forest"]
     )
 
     if not models_selected:
-        st.info("Select at least one model to proceed.")
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Train button (no auto-execution)
-    # ------------------------------------------------------------------
     run = st.button("Run Classification Models", type="primary")
     if not run:
         st.stop()
 
     # ------------------------------------------------------------------
-    # Train and evaluate
+    # Training
     # ------------------------------------------------------------------
-    st.subheader("Training & Evaluation")
-    blue_divider()
-
     results, fitted = [], {}
     for name in models_selected:
         if name == "Logistic Regression":
@@ -954,10 +967,11 @@ with tabs[4]:
 
         model.fit(Xtr, y_train)
         fitted[name] = model
-
-        train_acc = accuracy_score(y_train, model.predict(Xtr))
-        test_acc = accuracy_score(y_test, model.predict(Xte))
-        results.append({"Model": name, "Train Accuracy": train_acc, "Test Accuracy": test_acc})
+        results.append({
+            "Model": name,
+            "Train Accuracy": accuracy_score(y_train, model.predict(Xtr)),
+            "Test Accuracy": accuracy_score(y_test, model.predict(Xte))
+        })
 
     results_df = pd.DataFrame(results).sort_values("Test Accuracy", ascending=False)
     render_table(results_df)
@@ -992,44 +1006,3 @@ with tabs[4]:
             st.pyplot(fig)
             plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # Optional Decision Regions (only if 2 features, ≤10 classes)
-    # ------------------------------------------------------------------
-    st.subheader("Decision Regions (Optional)")
-    blue_divider()
-
-    if len(features) == 2 and y.nunique() <= 10:
-        model_name = st.selectbox(
-            "Model for decision regions",
-            [m for m in fitted if m in ("Logistic Regression", "k-Nearest Neighbors", "Support Vector Classifier", "Decision Tree")],
-            key="clf_region_model"
-        )
-        if model_name:
-            model = fitted[model_name]
-            Xtr2 = X_train_s[:, :2]
-            y_enc, _ = pd.factorize(y_train)
-            model.fit(Xtr2, y_enc)
-            x_min, x_max = Xtr2[:, 0].min() - 1, Xtr2[:, 0].max() + 1
-            y_min, y_max = Xtr2[:, 1].min() - 1, Xtr2[:, 1].max() + 1
-            xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300), np.linspace(y_min, y_max, 300))
-            Z = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
-            fig, ax = plt.subplots(figsize=(7, 5))
-            ax.contourf(xx, yy, Z, alpha=0.3)
-            ax.scatter(Xtr2[:, 0], Xtr2[:, 1], c=y_enc, edgecolor="k", s=20, linewidth=0.3)
-            ax.set_title(f"{model_name} — Decision Regions")
-            ax.set_xlabel(features[0])
-            ax.set_ylabel(features[1])
-            st.pyplot(fig)
-            plt.close(fig)
-    else:
-        st.info("Decision region plots require exactly two numeric features and ≤10 classes.")
-
-    # ------------------------------------------------------------------
-    # Export
-    # ------------------------------------------------------------------
-    st.download_button(
-        "Export Classification Metrics (CSV)",
-        results_df.to_csv(index=False),
-        "classification_metrics.csv",
-        "text/csv"
-    )
