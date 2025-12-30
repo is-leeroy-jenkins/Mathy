@@ -811,7 +811,7 @@ with tabs[3]:
     )
 
 # =========================================================================================
-# TAB — CLASSIFICATION MODELS (NOTEBOOK-ALIGNED, CORRECTED)
+# TAB — CLASSIFICATION MODELS (NOTEBOOK-ALIGNED, FED-FINANCE TYPING, SAFE DEFAULTS)
 # =========================================================================================
 
 with tabs[4]:
@@ -824,91 +824,209 @@ with tabs[4]:
     from sklearn.svm import SVC
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+    from sklearn.metrics import accuracy_score, ConfusionMatrixDisplay
 
+    # -------------------------------
+    # Data
+    # -------------------------------
     df = st.session_state.df
     if df is None:
         st.info("No data loaded.")
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Target selection (NOTEBOOK RULES)
-    # ------------------------------------------------------------------
+    # -------------------------------
+    # Helpers (tab-local by request)
+    # -------------------------------
+    def _is_probably_categorical_numeric(col: str) -> bool:
+        """
+        Purpose:
+            Determines whether a numeric-typed column is likely categorical in federal finance datasets.
+        Parameters:
+            col: Column name.
+        Returns:
+            True if the column name suggests categorical coding, otherwise False.
+        """
+        name = col.lower()
+        categorical_hints = (
+            "fy", "code", "name", "id", "identifier", "account", "mainaccount", "subaccount",
+            "symbol", "tas", "line", "objectclass", "boc", "agency", "bureau", "fund"
+        )
+        return any(h in name for h in categorical_hints)
+
+    def _true_numeric_candidates(frame: pd.DataFrame) -> list[str]:
+        """
+        Purpose:
+            Returns numeric columns suitable for quantitative modeling (excludes coded identifiers).
+        Parameters:
+            frame: Input DataFrame.
+        Returns:
+            List of numeric feature column names.
+        """
+        numeric_cols = frame.select_dtypes(include=[np.number]).columns.tolist()
+        return [c for c in numeric_cols if not _is_probably_categorical_numeric(c)]
+
+    def _candidate_targets(frame: pd.DataFrame) -> list[str]:
+        """
+        Purpose:
+            Returns classification target candidates aligned with notebook behavior while guarding
+            against single-class targets and unsuitable high-cardinality numeric targets.
+        Parameters:
+            frame: Input DataFrame.
+        Returns:
+            List of target column names.
+        """
+        candidates: list[str] = []
+
+        for c in frame.columns:
+            nunq = frame[c].nunique(dropna=False)
+
+            # Must have at least 2 classes
+            if nunq < 2:
+                continue
+
+            # Object / category types are acceptable
+            if frame[c].dtype == "object":
+                candidates.append(c)
+                continue
+
+            # Low-cardinality integer-like targets can be acceptable, but avoid coded identifiers
+            if pd.api.types.is_integer_dtype(frame[c]) and nunq <= 50 and not _is_probably_categorical_numeric(c):
+                candidates.append(c)
+
+        return candidates
+
+    def _safe_default_multiselect(options: list[str], n: int) -> list[str]:
+        """
+        Purpose:
+            Provides safe defaults for multiselect widgets without triggering rerun loops.
+        Parameters:
+            options: Available options.
+            n: Desired default count.
+        Returns:
+            A safe default list (possibly empty).
+        """
+        if not options:
+            return []
+        return options[: min(n, len(options))]
+
+    # -------------------------------
+    # Target selection
+    # -------------------------------
     st.subheader("Target Variable")
+    blue_divider()
 
-    candidate_targets = [
-        c for c in df.columns
-        if df[c].nunique(dropna=False) >= 2
-    ]
+    targets = _candidate_targets(df)
 
-    target = st.selectbox("Select target", candidate_targets)
+    if not targets:
+        st.warning(
+            "No valid classification targets found. A target must contain at least two distinct classes."
+        )
+        st.stop()
 
-    y = df[target]
+    target = st.selectbox(
+        "Select target",
+        targets,
+        index=0,
+        key="clf_target"
+    )
 
-    if y.nunique(dropna=False) < 2:
+    y = df[target].copy()
+    class_counts = y.value_counts(dropna=False)
+
+    if class_counts.shape[0] < 2:
+        # Defensive (should be filtered out already)
         st.error(
-            f"Target '{target}' contains only one class. "
+            f"Target '{target}' contains only one class ({class_counts.index[0]}). "
             "Classification requires at least two classes."
         )
         st.stop()
 
-    # ------------------------------------------------------------------
-    # Feature selection
-    # ------------------------------------------------------------------
-    st.subheader("Feature Variables")
+    # Show class distribution quickly (useful for Fed data)
+    with st.container(border=True):
+        st.markdown("**Class Distribution**")
+        dist = class_counts.reset_index()
+        dist.columns = ["Class", "Count"]
+        render_table(dist, height=260)
 
-    numeric_features = df.select_dtypes(include=[np.number]).columns.tolist()
-    numeric_features = [c for c in numeric_features if c != target]
+    # -------------------------------
+    # Feature selection (true numeric only)
+    # -------------------------------
+    st.subheader("Feature Variables")
+    blue_divider()
+
+    numeric_features = _true_numeric_candidates(df)
+
+    if not numeric_features:
+        st.warning(
+            "No true numeric feature columns found after excluding coded identifiers "
+            "(e.g., FY, Account, Code, Id)."
+        )
+        st.stop()
+
+    default_features = _safe_default_multiselect(numeric_features, 2)
 
     features = st.multiselect(
         "Select numeric features",
-        numeric_features,
-        default=numeric_features[:2]
+        options=numeric_features,
+        default=default_features,
+        key="clf_features"
     )
 
-    if len(features) < 1:
-        st.info("Select at least one numeric feature.")
+    # Prevent rerun loops / “infinite loading”
+    if not features:
+        st.info("Select at least one numeric feature to proceed.")
         st.stop()
 
-    X = df[features]
+    X = df[features].copy()
 
-    # ------------------------------------------------------------------
+    # -------------------------------
     # Train / Test split
-    # ------------------------------------------------------------------
+    # -------------------------------
     st.subheader("Train / Test Split")
+    blue_divider()
 
-    test_size = st.slider("Test size", 0.1, 0.5, 0.25)
-    random_state = st.number_input("Random seed", value=42, step=1)
-    
-    class_counts = y.value_counts( dropna=False )
-    
-    use_stratify = (
-		    y.nunique( dropna=False ) > 1
-		    and class_counts.min( ) >= 2
-    )
-    
+    c1, c2 = st.columns(2)
+    with c1:
+        test_size = st.slider(
+            "Test size",
+            0.1, 0.5, 0.25,
+            key="clf_test_size"
+        )
+    with c2:
+        random_state = st.number_input(
+            "Random seed",
+            value=42,
+            step=1,
+            key="clf_seed"
+        )
+
+    # Stratify only if every class has >= 2 samples
+    use_stratify = (class_counts.min() >= 2)
+
     if not use_stratify:
-	    st.warning(
-		    "Stratified train/test split disabled because at least one class "
-		    "contains only a single observation. Proceeding with random split."
-	    )
-    
+        st.warning(
+            "Stratified splitting disabled because at least one class occurs only once. "
+            "Proceeding with a random split."
+        )
+
     X_train, X_test, y_train, y_test = train_test_split(
-	    X,
-	    y,
-	    test_size=test_size,
-	    random_state=random_state,
-	    stratify=y if use_stratify else None
+        X,
+        y,
+        test_size=test_size,
+        random_state=int(random_state),
+        stratify=y if use_stratify else None
     )
-    
+
+    # Standardize numeric features for LR/SVC/kNN (tree models use raw X)
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
-    # ------------------------------------------------------------------
-    # Model selection
-    # ------------------------------------------------------------------
+    # -------------------------------
+    # Model selection (notebook-aligned)
+    # -------------------------------
     st.subheader("Models")
+    blue_divider()
 
     model_choices = st.multiselect(
         "Select models",
@@ -919,14 +1037,15 @@ with tabs[4]:
             "Decision Tree",
             "Random Forest"
         ],
-        default=["Logistic Regression", "Random Forest"]
+        default=["Logistic Regression", "Random Forest"],
+        key="clf_models"
     )
 
     if not model_choices:
         st.info("Select at least one model.")
         st.stop()
 
-    models = {}
+    models: dict[str, object] = {}
 
     if "Logistic Regression" in model_choices:
         models["Logistic Regression"] = LogisticRegression(max_iter=1000)
@@ -938,94 +1057,141 @@ with tabs[4]:
         models["Support Vector Classifier"] = SVC()
 
     if "Decision Tree" in model_choices:
-        models["Decision Tree"] = DecisionTreeClassifier(random_state=random_state)
+        models["Decision Tree"] = DecisionTreeClassifier(random_state=int(random_state))
 
     if "Random Forest" in model_choices:
         models["Random Forest"] = RandomForestClassifier(
             n_estimators=200,
-            random_state=random_state
+            random_state=int(random_state)
         )
 
-    # ------------------------------------------------------------------
-    # Training & evaluation (NOTEBOOK STYLE)
-    # ------------------------------------------------------------------
+    # -------------------------------
+    # Training & evaluation (train vs test like notebook)
+    # -------------------------------
     st.subheader("Model Performance")
+    blue_divider()
 
     results = []
 
     for name, model in models.items():
+        is_tree = name in ("Decision Tree", "Random Forest")
 
-        Xtr = X_train_s if name != "Decision Tree" and name != "Random Forest" else X_train
-        Xte = X_test_s if name != "Decision Tree" and name != "Random Forest" else X_test
+        Xtr = X_train if is_tree else X_train_s
+        Xte = X_test if is_tree else X_test_s
 
         model.fit(Xtr, y_train)
 
         train_acc = accuracy_score(y_train, model.predict(Xtr))
         test_acc = accuracy_score(y_test, model.predict(Xte))
 
-        results.append({
-            "Model": name,
-            "Train Accuracy": train_acc,
-            "Test Accuracy": test_acc
-        })
+        results.append(
+            {
+                "Model": name,
+                "Train Accuracy": train_acc,
+                "Test Accuracy": test_acc
+            }
+        )
 
     results_df = pd.DataFrame(results).sort_values("Test Accuracy", ascending=False)
     render_table(results_df)
 
-    # ------------------------------------------------------------------
+    # -------------------------------
     # Confusion matrices
-    # ------------------------------------------------------------------
+    # -------------------------------
     st.subheader("Confusion Matrices")
+    blue_divider()
 
-    for name, model in models.items():
+    # Limit visualizations to 2 per row
+    model_names = list(models.keys())
+    for i in range(0, len(model_names), 2):
+        c_left, c_right = st.columns(2)
+        pair = model_names[i:i + 2]
 
-        Xte = X_test_s if name != "Decision Tree" and name != "Random Forest" else X_test
+        for col, name in zip((c_left, c_right), pair):
+            with col:
+                with st.container(border=True):
+                    st.markdown(f"**{name}**")
 
-        fig, ax = plt.subplots()
-        ConfusionMatrixDisplay.from_estimator(
-            model,
-            Xte,
-            y_test,
-            ax=ax,
-            cmap="Blues",
-            colorbar=False
-        )
-        ax.set_title(name)
-        st.pyplot(fig)
-        plt.close(fig)
+                    model = models[name]
+                    is_tree = name in ("Decision Tree", "Random Forest")
+                    Xte = X_test if is_tree else X_test_s
 
-    # ------------------------------------------------------------------
-    # Decision regions (STRICT CONDITIONS)
-    # ------------------------------------------------------------------
+                    fig, ax = plt.subplots()
+                    ConfusionMatrixDisplay.from_estimator(
+                        model,
+                        Xte,
+                        y_test,
+                        ax=ax,
+                        cmap="Blues",
+                        colorbar=False
+                    )
+                    st.pyplot(fig, use_container_width=True)
+                    plt.close(fig)
+
+    # -------------------------------
+    # Decision regions (your method, correctly gated)
+    # -------------------------------
     st.subheader("Decision Regions (Optional)")
+    blue_divider()
 
     if len(features) == 2:
-        show_regions = st.checkbox("Show decision regions (2 features only)")
+        with st.container(border=True):
+            show_regions = st.checkbox(
+                "Show decision regions (requires exactly 2 numeric features)",
+                value=False,
+                key="clf_show_regions"
+            )
 
         if show_regions:
+            # Your provided method expects mlxtend.plotting.plot_decision_regions style usage.
             from mlxtend.plotting import plot_decision_regions
 
-            X_vis = X_train_s
-            y_vis = y_train.values
+            # Only plot for models where regions are meaningful and stable.
+            allowed = ("Logistic Regression", "k-Nearest Neighbors", "Support Vector Classifier", "Decision Tree")
 
-            for name, model in models.items():
-                if name not in (
-                    "Logistic Regression",
-                    "k-Nearest Neighbors",
-                    "Support Vector Classifier",
-                    "Decision Tree"
-                ):
-                    continue
+            allowed_models = [m for m in model_names if m in allowed]
+            if not allowed_models:
+                st.info("No compatible models selected for decision regions.")
+            else:
+                for i in range(0, len(allowed_models), 2):
+                    c_left, c_right = st.columns(2)
+                    pair = allowed_models[i:i + 2]
 
-                fig, ax = plt.subplots()
-                model.fit(X_vis, y_vis)
-                plot_decision_regions(X_vis, y_vis, clf=model, ax=ax)
-                ax.set_title(name)
-                ax.set_xlabel(features[0])
-                ax.set_ylabel(features[1])
-                st.pyplot(fig)
-                plt.close(fig)
+                    for col, name in zip((c_left, c_right), pair):
+                        with col:
+                            with st.container(border=True):
+                                st.markdown(f"**{name} — Decision Regions**")
+
+                                model = models[name]
+
+                                # Decision regions are plotted in standardized space.
+                                # IMPORTANT: y must be integer-encoded for plot_decision_regions.
+                                y_train_enc, uniques = pd.factorize(y_train, sort=True)
+
+                                # Fit on the standardized 2D features.
+                                model.fit(X_train_s, y_train_enc)
+
+                                fig, ax = plt.subplots()
+                                plot_decision_regions(
+                                    X_train_s,
+                                    y_train_enc,
+                                    clf=model,
+                                    ax=ax
+                                )
+                                ax.set_xlabel(features[0])
+                                ax.set_ylabel(features[1])
+                                st.pyplot(fig, use_container_width=True)
+                                plt.close(fig)
     else:
         st.info("Decision regions require exactly two numeric features.")
 
-
+    # -------------------------------
+    # Export
+    # -------------------------------
+    st.download_button(
+        "Export Classification Metrics (CSV)",
+        results_df.to_csv(index=False),
+        "classification_metrics.csv",
+        "text/csv",
+        key="clf_export_metrics"
+    )
