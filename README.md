@@ -17,9 +17,9 @@
 
 ---
 
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
-
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
+
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
 
 ## 📦 Layout
 
