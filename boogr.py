@@ -42,10 +42,15 @@
   '''
 from __future__ import annotations
 import traceback
-import FreeSimpleGUI as sg
 from sys import exc_info
 from pydantic import BaseModel
 from typing import List, Optional, Tuple, Dict, Any
+try:
+	import FreeSimpleGUI as sg
+	GUI_AVAILABLE = True
+except Exception:
+	sg = None
+	GUI_AVAILABLE = False
 
 
 class Dark( ):
@@ -80,6 +85,8 @@ class Dark( ):
 	context_menu: Optional[ List[ List[ str ] ] ]
 
 	def __init__( self ):
+		if not GUI_AVAILABLE:
+			return
 		sg.theme( 'DarkGrey15' )
 		sg.theme_input_text_color( '#FFFFFF' )
 		sg.theme_element_text_color( '#69B1EF' )
@@ -316,6 +323,8 @@ class ErrorDialog( Dark ):
 
 
 		'''
+		if not GUI_AVAILABLE:
+			raise RuntimeError(self.info)
 		_msg = self.heading if isinstance( self.heading, str ) else None
 		_info = f'Module:\t{self.module}\r\nClass:\t{self.cause}\r\n' \
 		        f'Method:\t{self.method}\r\n \r\n{self.info}'
