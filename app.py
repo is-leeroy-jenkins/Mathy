@@ -192,49 +192,55 @@ with tabs[0]:
     # -------------------------------------------------------------------------------------
     # SCHEMA INFERENCE (ROBUST, DATETIME SAFE)
     # -------------------------------------------------------------------------------------
-
-    def infer_schema(df: pd.DataFrame) -> dict[str, str]:
-        schema = {}
-        n_rows = len(df)
-
-        for col in df.columns:
-            s = df[col]
-            name = col.lower()
-            nunique = s.nunique(dropna=True)
-
-            # Datetime: object/string only
-            if s.dtype == "object":
-                try:
-                    parsed = pd.to_datetime(s, errors="coerce")
-                    if parsed.notna().sum() / max(1, n_rows) > 0.9:
-                        schema[col] = "datetime"
-                        continue
-                except Exception:
-                    pass
-
-            # Identifier
-            if (
-                "id" in name or "code" in name or "key" in name
-                or (pd.api.types.is_integer_dtype(s) and nunique / max(1, n_rows) > 0.8)
-            ):
-                schema[col] = "identifier"
-                continue
-
-            # Ordinal
-            if pd.api.types.is_integer_dtype(s) and nunique <= 20:
-                schema[col] = "ordinal"
-                continue
-
-            # Numeric (continuous)
-            if pd.api.types.is_float_dtype(s):
-                schema[col] = "numeric"
-                continue
-
-            # Categorical (fallback)
-            schema[col] = "categorical"
-
-        return schema
-
+    def infer_schema( df: pd.DataFrame ) -> dict[ str, str ]:
+	    schema: dict[ str, str ] = { }
+	    n_rows = len( df )
+	    
+	    for col in df.columns:
+		    s = df[ col ]
+		    name = col.lower( )
+		    
+		    # Compute once
+		    nunique = s.nunique( dropna=True )
+		    unique_ratio = nunique / max( 1, n_rows )
+		    
+		    # ------------------------------------------------------------------
+		    # 1) Datetime: ONLY for object/string columns (prevents PY/CY/BY errors)
+		    # ------------------------------------------------------------------
+		    if s.dtype == "object":
+			    try:
+				    parsed_dt = pd.to_datetime( s, errors="coerce" )
+				    if parsed_dt.notna( ).sum( ) / max( 1, n_rows ) > 0.9:
+					    schema[ col ] = "datetime"
+					    continue
+			    except Exception:
+				    pass
+		    
+		    # ------------------------------------------------------------------
+		    # 2) Numeric detection: ints AND floats
+		    # ------------------------------------------------------------------
+		    if pd.api.types.is_numeric_dtype( s ):
+			    # Identifier heuristics for numeric codes/keys
+			    if ("id" in name) or ("code" in name) or ("key" in name) or (unique_ratio > 0.8):
+				    schema[ col ] = "identifier"
+				    continue
+			    
+			    # Ordinal: small distinct set and integer-like
+			    if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
+				    schema[ col ] = "ordinal"
+				    continue
+			    
+			    # Otherwise treat as numeric (includes PY/CY/BY/OY-* int columns)
+			    schema[ col ] = "numeric"
+			    continue
+		    
+		    # ------------------------------------------------------------------
+		    # 3) Categorical fallback
+		    # ------------------------------------------------------------------
+		    schema[ col ] = "categorical"
+	    
+	    return schema
+    
     schema = infer_schema(df)
     st.session_state.column_schema = schema
 
