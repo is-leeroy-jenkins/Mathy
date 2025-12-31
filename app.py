@@ -627,228 +627,231 @@ with tabs[ 1 ]:
 			plt.close( fig )
 
 # =========================================================================================
-# TAB 3 — INFERENTIAL STATISTICS (FIXED)
+# TAB — INFERENTIAL STATISTICS (Enhanced Visuals Only)
 # =========================================================================================
 
-with tabs[ 2 ]:
-	st.header( "" )
-	
-	df = st.session_state.get( "df", None )
-	if df is None or df.empty:
-		st.warning( "⚠️ No dataset loaded. Please load or preprocess data first." )
-	else:
-		numeric_cols = st.session_state.get( "numeric_cols", [ ] )
-		if not numeric_cols:
-			st.info( "No numeric columns available." )
-		else:
-			st.subheader( "Correlation Matrix" )
-			corr = df[ numeric_cols ].corr( )
-			
-			fig, ax = plt.subplots( figsize=(8, 6), facecolor="white" )
-			sns.heatmap( corr, cmap="coolwarm", annot=True, ax=ax )
-			ax.set_title( "Inferential Correlation Matrix", color="black" )
-			st.pyplot( fig )
-	# --- ensure Inferential tab context closes cleanly ---
-	st.markdown(
-		"<hr style='border: 1px solid #1f77b4; margin-top: 1rem;'>",
-		unsafe_allow_html=True
-	)
-	
-	# =========================================================================================
-	# TAB — INFERENTIAL STATISTICS (FULL NOTEBOOK-STYLE)
-	# =========================================================================================
-	with tabs[ 2 ]:
-		st.header( "📈 Inferential Statistics" )
-		
-		import matplotlib.pyplot as plt
-		import seaborn as sns
-		import numpy as np
-		import pandas as pd
-		from scipy import stats
-		from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
-		from sklearn.decomposition import PCA
-		from scalers import StandardScaler
-		from itertools import combinations
-		
-		plt.style.use( "default" )
-		sns.set_theme( style="whitegrid" )
-		plt.rcParams[ "font.size" ] = 9
-		
-		# dark table theme
-		st.markdown( """
-            <style>
-            .stDataFrame, .dataframe {
-                background-color: #1e1e1e !important;
-                color: #ddd !important;
-                border: 1px solid #333 !important;
-            }
-            .dataframe th {
-                background-color: #2a2a2a !important;
-                color: #eee !important;
-            }
-            </style>
-        """, unsafe_allow_html=True )
-		
-		df = st.session_state.get( "df", None )
-		if df is None or df.empty:
-			st.warning( "⚠️ No dataset loaded. Please load or preprocess data first." )
-			st.stop( )
-		
-		numeric_cols = st.session_state.get( "numeric_cols", [ ] )
-		categorical_cols = st.session_state.get( "categorical_cols", [ ] )
-		
-		# -------------------------------------------------------------------------
-		# CORRELATION ANALYSIS
-		# -------------------------------------------------------------------------
-		st.subheader( "Correlation and Association" )
-		if numeric_cols:
-			corr = df[ numeric_cols ].corr( method="pearson" )
-			c1, c2 = st.columns( 2 )
-			with c1:
-				st.write( "**Correlation Matrix (Pearson)**" )
-				st.dataframe( corr.style.background_gradient( cmap="Greys" ),
-					use_container_width=True )
-			with c2:
-				fig, ax = plt.subplots( figsize=(7, 5), facecolor="white" )
-				sns.heatmap( corr, cmap="coolwarm", annot=False, ax=ax )
-				ax.set_title( "Correlation Heatmap", fontsize=10 )
-				st.pyplot( fig )
-		else:
-			st.info( "No numeric columns available for correlation analysis." )
-		
-		st.markdown( "<hr>", unsafe_allow_html=True )
-		
-		# -------------------------------------------------------------------------
-		# NORMALITY TESTS
-		# -------------------------------------------------------------------------
-		st.subheader( "Normality Tests" )
-		if numeric_cols:
-			results = [ ]
-			for col in numeric_cols:
-				x = df[ col ].dropna( )
-				if len( x ) > 3:
-					shapiro_p = stats.shapiro( x.sample( min( 500, len( x ) ) ) )[ 1 ]
-					dagostino_p = stats.normaltest( x )[ 1 ]
-					results.append( [ col,
-					                  shapiro_p,
-					                  dagostino_p ] )
-			norm_df = pd.DataFrame( results, columns=[ "Variable",
-			                                           "Shapiro–Wilk p",
-			                                           "D’Agostino p" ] )
-			st.dataframe( norm_df.style.background_gradient( cmap="Greys" ),
-				use_container_width=True )
-			
-			# QQ Plot preview
-			sel_col = st.selectbox( "Select variable for Q–Q Plot", numeric_cols )
-			fig, ax = plt.subplots( figsize=(5, 5), facecolor="white" )
-			stats.probplot( df[ sel_col ].dropna( ), plot=ax )
-			ax.set_title( f"Q–Q Plot: {sel_col}" )
-			st.pyplot( fig )
-		else:
-			st.info( "No numeric variables for normality testing." )
-		
-		st.markdown( "<hr>", unsafe_allow_html=True )
-		
-		# -------------------------------------------------------------------------
-		# ANOVA / KRUSKAL–WALLIS TESTS
-		# -------------------------------------------------------------------------
-		st.subheader( "Group Comparison (ANOVA / Kruskal–Wallis)" )
-		cat_for_anova = st.selectbox( "Select categorical grouping variable", categorical_cols )
-		num_for_anova = st.selectbox( "Select numeric variable", numeric_cols )
-		if cat_for_anova and num_for_anova:
-			groups = [ vals[ 1 ].dropna( ).values for vals in
-			           df.groupby( cat_for_anova )[ num_for_anova ] ]
-			if len( groups ) > 1:
-				try:
-					f_stat, p_val = stats.f_oneway( *groups )
-					test_type = "One-way ANOVA"
-				except Exception:
-					f_stat, p_val = stats.kruskal( *groups )
-					test_type = "Kruskal–Wallis"
-				st.write( f"**{test_type} p-value:** {p_val:.4f}" )
-				
-				fig, ax = plt.subplots( figsize=(7, 4), facecolor="white" )
-				sns.boxplot( data=df, x=cat_for_anova, y=num_for_anova, ax=ax )
-				ax.set_title( f"{test_type} by {cat_for_anova}", fontsize=10 )
-				st.pyplot( fig )
-			else:
-				st.info( "Selected categorical variable must have at least two groups." )
-		
-		st.markdown( "<hr>", unsafe_allow_html=True )
-		
-		# -------------------------------------------------------------------------
-		# MUTUAL INFORMATION
-		# -------------------------------------------------------------------------
-		st.subheader( "Mutual Information (Variable Relevance)" )
-		target_type = st.radio( "Target type", [ "Categorical",
-		                                         "Continuous" ], horizontal=True )
-		target = st.selectbox( "Select target variable", df.columns )
-		features = [ f for f in df.columns if f != target ]
-		df_valid = df[ features + [ target ] ].dropna( )
-		if not df_valid.empty:
-			if target_type == "Categorical":
-				y = pd.factorize( df_valid[ target ] )[ 0 ]
-				X = df_valid[ features ].select_dtypes( include=[ np.number ] )
-				mi = mutual_info_classif( X, y, discrete_features=False )
-			else:
-				y = df_valid[ target ]
-				X = df_valid[ features ].select_dtypes( include=[ np.number ] )
-				mi = mutual_info_regression( X, y, discrete_features=False )
-			mi_df = pd.DataFrame( {
-					"Feature": X.columns,
-					"MI Score": mi } ).sort_values( "MI Score", ascending=False )
-			c1, c2 = st.columns( 2 )
-			with c1:
-				st.dataframe( mi_df.style.background_gradient( cmap="Greys" ),
-					use_container_width=True )
-			with c2:
-				fig, ax = plt.subplots( figsize=(7, 4), facecolor="white" )
-				sns.barplot( data=mi_df, x="MI Score", y="Feature", ax=ax, color="steelblue" )
-				ax.set_title( "Mutual Information Scores", fontsize=10 )
-				st.pyplot( fig )
-		
-		st.markdown( "<hr>", unsafe_allow_html=True )
-		
-		# -------------------------------------------------------------------------
-		# PRINCIPAL COMPONENT ANALYSIS
-		# -------------------------------------------------------------------------
-		st.subheader( "Principal Component Analysis (PCA)" )
-		if len( numeric_cols ) >= 2:
-			X = df[ numeric_cols ].dropna( )
-			pca = PCA( n_components=2 )
-			comps = pca.fit_transform( StandardScaler( ).train_transform( X ) )
-			pca_df = pd.DataFrame( comps, columns=[ "PC1",
-			                                        "PC2" ] )
-			fig, ax = plt.subplots( figsize=(6, 5), facecolor="white" )
-			sns.scatterplot( data=pca_df, x="PC1", y="PC2", s=30, alpha=0.7, ax=ax )
-			exp = pca.explained_variance_ratio_ * 100
-			ax.set_title( f"PCA Biplot — Var Explained: PC1 {exp[ 0 ]:.1f}% · PC2 "
-			              f"{exp[ 1 ]:.1f}%", fontsize=10 )
-			st.pyplot( fig )
-		else:
-			st.info( "Need at least two numeric variables for PCA." )
-		
-		st.markdown( "<hr>", unsafe_allow_html=True )
-		
-		# -------------------------------------------------------------------------
-		# CHI-SQUARE & CRAMÉR'S V
-		# -------------------------------------------------------------------------
-		st.subheader( "Categorical Association (Chi-square / Cramér’s V)" )
-		if len( categorical_cols ) >= 2:
-			cat_x = st.selectbox( "Select variable X", categorical_cols, key="chi_x" )
-			cat_y = st.selectbox( "Select variable Y", [ c for c in categorical_cols if
-			                                             c != cat_x ], key="chi_y" )
-			ctab = pd.crosstab( df[ cat_x ], df[ cat_y ] )
-			chi2, p, _, _ = stats.chi2_contingency( ctab )
-			cramers_v = np.sqrt( chi2 / (ctab.values.sum( ) * (min( ctab.shape ) - 1)) )
-			st.write( f"**Chi² p-value:** {p:.4f} | **Cramér’s V:** {cramers_v:.3f}" )
-			
-			fig, ax = plt.subplots( figsize=(6, 4), facecolor="white" )
-			sns.heatmap( ctab, cmap="Blues", annot=True, fmt="d", ax=ax )
-			ax.set_title( f"Contingency Table: {cat_x} × {cat_y}", fontsize=10 )
-			st.pyplot( fig )
-		else:
-			st.info( "Need at least two categorical variables for Chi-square test." )
+# =========================================================================================
+# TAB — INFERENTIAL STATISTICS (RESTORED + VERIFIED + VISUALLY FIXED)
+# =========================================================================================
+
+with tabs[2]:
+
+    st.subheader("")
+
+    df = st.session_state.df
+
+    if df is None or df.empty:
+        st.info("No data available.")
+        st.stop()
+
+    numeric_cols = st.session_state.numeric_cols
+    categorical_cols = st.session_state.categorical_cols
+
+    if not numeric_cols:
+        st.info("No numeric variables available for inferential analysis.")
+        st.stop()
+
+    # -------------------------------------------------------------------------------------
+    # VARIABLE SELECTION
+    # -------------------------------------------------------------------------------------
+
+    col_y = st.selectbox("Select numeric outcome variable", numeric_cols)
+
+    col_group = None
+    if categorical_cols:
+        col_group = st.selectbox(
+            "Select grouping variable (optional)",
+            ["<None>"] + categorical_cols
+        )
+        if col_group == "<None>":
+            col_group = None
+
+    blue_divider()
+
+    # =====================================================================================
+    # NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT (FIXED LAYOUT)
+    # =====================================================================================
+
+    st.markdown("### Normality Test")
+
+    y = df[col_y].dropna()
+
+    if len(y) >= 3:
+        stat, p_value = stats.shapiro(y)
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        stats.probplot(y, plot=ax)
+
+        ax.set_title(
+            f"Q–Q Plot: {col_y} | Shapiro p = {p_value:.3g} | n = {len(y)}",
+            fontsize=12,
+            fontweight="bold",
+            pad=10
+        )
+
+        # Prevent scientific-notation collision (e.g., 1e10)
+        ax.ticklabel_format(style="plain", axis="both")
+
+        # Visual clarity
+        ax.get_lines()[0].set_marker("o")
+        ax.get_lines()[0].set_alpha(0.7)
+        ax.get_lines()[0].set_markeredgecolor("black")
+
+        fig.tight_layout()
+        st.pyplot(fig)
+        plt.close(fig)
+
+        st.write(
+            f"Shapiro–Wilk statistic = {stat:.4f}, p-value = {p_value:.4g}"
+        )
+    else:
+        st.info("Not enough observations for normality testing.")
+
+    blue_divider()
+
+    # =====================================================================================
+    # GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS (RESTORED)
+    # =====================================================================================
+
+    if col_group:
+        st.markdown("### Group Comparison")
+
+        grouped = [
+            grp[col_y].dropna().values
+            for _, grp in df.groupby(col_group)
+        ]
+
+        valid_groups = [g for g in grouped if len(g) >= 2]
+
+        if len(valid_groups) >= 2:
+
+            # ----------------------------
+            # ANOVA
+            # ----------------------------
+            f_stat, p_anova = stats.f_oneway(*valid_groups)
+
+            fig, ax = inferential_plot(
+                title=f"ANOVA: {col_y} by {col_group}",
+                subtitle=f"p = {p_anova:.3g}",
+                figsize=(6, 4)
+            )
+
+            means = df.groupby(col_group)[col_y].mean()
+            means.plot(
+                kind="bar",
+                ax=ax,
+                edgecolor="black",
+                linewidth=1.2,
+                alpha=0.8
+            )
+
+            ax.set_xlabel(col_group)
+            ax.set_ylabel(col_y)
+
+            st.pyplot(fig)
+            plt.close(fig)
+
+            st.write(
+                f"ANOVA F-statistic = {f_stat:.4f}, p-value = {p_anova:.4g}"
+            )
+
+            # ----------------------------
+            # Kruskal–Wallis
+            # ----------------------------
+            h_stat, p_kw = stats.kruskal(*valid_groups)
+
+            st.write(
+                f"Kruskal–Wallis H-statistic = {h_stat:.4f}, p-value = {p_kw:.4g}"
+            )
+
+        else:
+            st.info("Not enough valid groups for group comparison.")
+
+        blue_divider()
+
+    # =====================================================================================
+    # CORRELATION ANALYSIS — PEARSON + SPEARMAN (RESTORED)
+    # =====================================================================================
+
+    st.markdown("### Correlation Analysis")
+
+    col_x2 = st.selectbox(
+        "Select second numeric variable",
+        [c for c in numeric_cols if c != col_y]
+    )
+
+    x = df[col_x2]
+    y = df[col_y]
+
+    mask = x.notna() & y.notna()
+
+    if mask.sum() >= 3:
+
+        # Pearson
+        r_p, p_p = stats.pearsonr(x[mask], y[mask])
+
+        # Spearman
+        r_s, p_s = stats.spearmanr(x[mask], y[mask])
+
+        fig, ax = inferential_plot(
+            title=f"Correlation: {col_y} vs {col_x2}",
+            subtitle=f"Pearson r = {r_p:.3f} (p={p_p:.3g}) | "
+                     f"Spearman ρ = {r_s:.3f} (p={p_s:.3g})",
+            figsize=(6, 4),
+            ref_line=0.0
+        )
+
+        ax.scatter(
+            x[mask],
+            y[mask],
+            alpha=0.7,
+            edgecolor="black"
+        )
+
+        ax.set_xlabel(col_x2)
+        ax.set_ylabel(col_y)
+
+        st.pyplot(fig)
+        plt.close(fig)
+
+    else:
+        st.info("Not enough paired observations for correlation.")
+
+    blue_divider()
+
+    # =====================================================================================
+    # CATEGORICAL ASSOCIATION — CHI-SQUARE + CRAMÉR’S V (RESTORED)
+    # =====================================================================================
+
+    if categorical_cols:
+        st.markdown("### Categorical Association")
+
+        col_cat1 = st.selectbox("Select first categorical variable", categorical_cols)
+        col_cat2 = st.selectbox(
+            "Select second categorical variable",
+            [c for c in categorical_cols if c != col_cat1]
+        )
+
+        contingency = pd.crosstab(df[col_cat1], df[col_cat2])
+
+        if contingency.size > 0:
+            chi2, p_chi, dof, _ = stats.chi2_contingency(contingency)
+
+            n = contingency.values.sum()
+            cramers_v = np.sqrt(chi2 / (n * (min(contingency.shape) - 1)))
+
+            st.write(
+                f"Chi-square = {chi2:.4f}, "
+                f"p-value = {p_chi:.4g}, "
+                f"Cramér’s V = {cramers_v:.4f}"
+            )
+
+            st.dataframe(contingency, use_container_width=True)
+        else:
+            st.info("Insufficient data for categorical association.")
+
+
 
 # =========================================================================================
 # TAB 4 — ANOMALY DETECTION
