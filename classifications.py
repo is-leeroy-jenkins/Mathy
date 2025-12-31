@@ -1123,7 +1123,7 @@ class LogisticRegression( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
-			multiclass: str='multinomial', solver: str='lbfgs' ) -> None:
+			multiclass: str='multinomial', solver: str='lbfgs', random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -1139,12 +1139,14 @@ class LogisticRegression( Classifier ):
 		super( ).__init__( )
 		self.binarizer = Binarizer( threshold=0.5 )
 		self.C = C
+		self.random_state = random
 		self.penalty = penalty
 		self.max_iter = iters
 		self.multi_class = multiclass
 		self.solver = solver
 		self.model = skc.LogisticRegression( C=self.C, max_iter=self.max_iter,
-			multi_class=self.multi_class, solver=self.solver, penalty=self.penalty )
+			multi_class=self.multi_class, solver=self.solver,
+			random_state=self.random_state, penalty=self.penalty )
 		self.prediction = None
 		self.decision = None
 		self.accuracy = 0.0
@@ -1234,7 +1236,7 @@ class LogisticRegression( Classifier ):
 			return self.model.n_iter_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2 ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray ):
+			size: int=0.2, random: int=42 ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray ):
 		'''
 
 			Purpose:
@@ -1259,7 +1261,7 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=42 )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )

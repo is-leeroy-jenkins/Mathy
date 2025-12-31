@@ -1451,7 +1451,7 @@ with tabs[ 7 ]:
 
     if st.button("Run Clustering"):
 
-        labels = model.fit_predict(X)
+        labels = model.project(X)
 
         df_results = df_cluster.copy()
         df_results["Cluster"] = labels

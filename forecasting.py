@@ -106,7 +106,7 @@ class LaggingSeries( TimeSeries ):
 
 		"""
         self.lag = lag
-        self.model = RegressionResultsWrapper( )
+        self.model = None
         self.prediction = None
         self.training_data = None
         self.training_values = None
