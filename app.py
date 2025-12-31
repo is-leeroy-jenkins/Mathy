@@ -85,6 +85,66 @@ init_state( )
 # -----------------------------------------------------------------------------------------
 # Utilities
 # -----------------------------------------------------------------------------------------
+def inferential_plot(
+    title: str,
+    subtitle: str | None = None,
+    figsize: tuple[int, int] = (6, 4),
+    grid: bool = True,
+    ref_line: float | None = None,
+    legend: bool = True
+):
+    """
+    Purpose:
+        Create a standardized matplotlib figure for inferential plots.
+
+    Parameters:
+        title: Main plot title.
+        subtitle: Optional subtitle (e.g., test context).
+        figsize: Figure size.
+        grid: Whether to show background grid.
+        ref_line: Optional horizontal reference line.
+        legend: Whether to show legend.
+
+    Returns:
+        (fig, ax): Matplotlib figure and axis.
+    """
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Grid (subtle)
+    if grid:
+        ax.grid(True, alpha=0.25, linewidth=0.8)
+
+    # Titles
+    ax.set_title(title, fontsize=12, fontweight="bold", pad=8)
+    if subtitle:
+        ax.text(
+            0.5, 1.02,
+            subtitle,
+            transform=ax.transAxes,
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            alpha=0.85
+        )
+
+    # Reference line
+    if ref_line is not None:
+        ax.axhline(
+            ref_line,
+            color="black",
+            linestyle="--",
+            linewidth=1.2,
+            alpha=0.7
+        )
+
+    # Legend handling
+    if not legend:
+        ax.get_legend().remove()
+    else:
+        ax.legend(frameon=False)
+
+    return fig, ax
 
 def blue_divider( ) -> None:
 	st.markdown(
@@ -143,7 +203,7 @@ def default_pick( items: List[ str ], k: int = 2 ) -> List[ str ]:
 
 st.sidebar.title( "📦 Dataset" )
 
-use_fallback = st.sidebar.checkbox( "Use fallback data", value=True )
+use_fallback = st.sidebar.checkbox( "Use default data", value=True )
 uploaded = st.sidebar.file_uploader( "Upload spreadsheet", type=[ "xlsx",
                                                                   "xls",
                                                                   "csv" ] )
@@ -155,7 +215,7 @@ if uploaded or use_fallback:
 		log_step( f"Loaded uploaded file: {uploaded.name}" )
 	else:
 		df = pd.read_excel( "stores/excel/Combined Schedules.xlsx" )
-		log_step( "Loaded fallback dataset" )
+		log_step( "Loaded Default Dataset" )
 	
 	st.session_state.raw_df = df.copy( )
 	st.session_state.df = df.copy( )
@@ -168,7 +228,7 @@ if uploaded or use_fallback:
 tabs = st.tabs( [ "💻 Dataset",
                   "🔍 Descriptive Stats",
                   "🧠 Inferential Stats",
-                  "🚨 Outliers",
+                  "🚨 Outlier Analysis",
                   "🏗️ Feature Engineering",
                   "📊 Classifications",
                   "📉 Regressions",
@@ -262,7 +322,7 @@ with tabs[0]:
 
     type_counts = pd.Series(schema).value_counts()
 
-    m1, m2, m3, m4, m5 = st.columns(5)
+    m1, m2, m3, m4, m5 = st.columns(5, border=True)
     m1.metric("Rows", len(df))
     m2.metric("Numeric", type_counts.get("numeric", 0))
     m3.metric("Ordinal / ID",
