@@ -177,7 +177,7 @@ tabs = st.tabs( [ "💻 Dataset",
                   ] )
 
 # =========================================================================================
-# TAB 1 — DATASET (Schema-Aware CRUD + Diagnostics)
+# TAB 1 — DATASET (Schema-Aware CRUD + Diagnostics + Two-Column Row Editor)
 # =========================================================================================
 
 with tabs[0]:
@@ -190,7 +190,7 @@ with tabs[0]:
     df = st.session_state.df
 
     # -------------------------------------------------------------------------------------
-    # SCHEMA INFERENCE
+    # SCHEMA INFERENCE (ROBUST, DATETIME SAFE)
     # -------------------------------------------------------------------------------------
 
     def infer_schema(df: pd.DataFrame) -> dict[str, str]:
@@ -202,17 +202,15 @@ with tabs[0]:
             name = col.lower()
             nunique = s.nunique(dropna=True)
 
-            # Datetime
-            if pd.api.types.is_datetime64_any_dtype(s):
-                schema[col] = "datetime"
-                continue
-            try:
-                parsed = pd.to_datetime(s, errors="coerce")
-                if parsed.notna().sum() / max(1, n_rows) > 0.9:
-                    schema[col] = "datetime"
-                    continue
-            except Exception:
-                pass
+            # Datetime: object/string only
+            if s.dtype == "object":
+                try:
+                    parsed = pd.to_datetime(s, errors="coerce")
+                    if parsed.notna().sum() / max(1, n_rows) > 0.9:
+                        schema[col] = "datetime"
+                        continue
+                except Exception:
+                    pass
 
             # Identifier
             if (
@@ -232,7 +230,7 @@ with tabs[0]:
                 schema[col] = "numeric"
                 continue
 
-            # Categorical
+            # Categorical (fallback)
             schema[col] = "categorical"
 
         return schema
@@ -253,118 +251,24 @@ with tabs[0]:
     blue_divider()
 
     # -------------------------------------------------------------------------------------
-    # DATA TYPE METRICS
+    # SCHEMA METRICS
     # -------------------------------------------------------------------------------------
 
     type_counts = pd.Series(schema).value_counts()
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Rows", len(df))
-    c2.metric("Numeric", type_counts.get("numeric", 0))
-    c3.metric("Ordinal / ID", type_counts.get("ordinal", 0) + type_counts.get("identifier", 0))
-    c4.metric("Categorical", type_counts.get("categorical", 0))
-    c5.metric("Datetime", type_counts.get("datetime", 0))
+    m1, m2, m3, m4, m5 = st.columns(5)
+    m1.metric("Rows", len(df))
+    m2.metric("Numeric", type_counts.get("numeric", 0))
+    m3.metric("Ordinal / ID",
+              type_counts.get("ordinal", 0) + type_counts.get("identifier", 0))
+    m4.metric("Categorical", type_counts.get("categorical", 0))
+    m5.metric("Datetime", type_counts.get("datetime", 0))
 
     blue_divider()
 
     # =====================================================================================
-    # DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
+    # ROW EDITOR — TWO-COLUMN, ALTERNATING FIELDS
     # =====================================================================================
-
-    st.subheader("Dataset Diagnostics")
-
-    v1, v2 = st.columns(2)
-
-    # ------------------------------------------------------------------
-    # 1. Data-Type Distribution
-    # ------------------------------------------------------------------
-    with v1:
-        fig, ax = plt.subplots(figsize=(5, 4))
-        type_counts.plot(kind="bar", ax=ax, edgecolor="black")
-        ax.set_title("Column Type Distribution")
-        ax.set_ylabel("Count")
-        ax.set_xlabel("Type")
-        fig.tight_layout()
-        st.pyplot(fig)
-        plt.close(fig)
-
-    # ------------------------------------------------------------------
-    # 2. Missing Value Percentage (Top N)
-    # ------------------------------------------------------------------
-    with v2:
-        missing_pct = (df.isna().mean() * 100).sort_values(ascending=False)
-        missing_pct = missing_pct[missing_pct > 0].head(10)
-
-        if not missing_pct.empty:
-            fig, ax = plt.subplots(figsize=(5, 4))
-            missing_pct.plot(kind="bar", ax=ax, edgecolor="black")
-            ax.set_title("Top Columns by Missing %")
-            ax.set_ylabel("Percent Missing")
-            fig.tight_layout()
-            st.pyplot(fig)
-            plt.close(fig)
-        else:
-            st.info("No missing values detected.")
-
-    blue_divider()
-
-    v3, v4 = st.columns(2)
-
-    # ------------------------------------------------------------------
-    # 3. Cardinality Snapshot (Top N)
-    # ------------------------------------------------------------------
-    with v3:
-        cardinality = df.nunique(dropna=True).sort_values(ascending=False).head(10)
-
-        fig, ax = plt.subplots(figsize=(5, 4))
-        cardinality.plot(kind="bar", ax=ax, edgecolor="black")
-        ax.set_title("Top Columns by Cardinality")
-        ax.set_ylabel("Unique Values")
-        fig.tight_layout()
-        st.pyplot(fig)
-        plt.close(fig)
-
-    # ------------------------------------------------------------------
-    # 4. Row Edit Confirmation (Rendered After Edit)
-    # ------------------------------------------------------------------
-    with v4:
-        st.caption("Row-level changes are confirmed in the editor below.")
-
-    blue_divider()
-
-    # -------------------------------------------------------------------------------------
-    # COLUMN CRUD (DROP / RENAME)
-    # -------------------------------------------------------------------------------------
-
-    c6, c7 = st.columns(2)
-
-    with c6:
-        drop_cols = st.multiselect("Columns to drop", df.columns.tolist())
-        if st.button("Apply Column Drop"):
-            if len(drop_cols) == len(df.columns):
-                st.error("Cannot drop all columns.")
-            else:
-                st.session_state.df = df.drop(columns=drop_cols)
-                log_step(f"Dropped columns: {drop_cols}")
-                st.experimental_rerun()
-
-    with c7:
-        rename_col = st.selectbox("Rename column", ["<None>"] + df.columns.tolist())
-        new_name = st.text_input("New column name")
-        if st.button("Apply Rename"):
-            if rename_col != "<None>" and new_name:
-                if new_name in df.columns:
-                    st.error("Column name already exists.")
-                else:
-                    st.session_state.df = df.rename(columns={rename_col: new_name})
-                    log_step(f"Renamed {rename_col} → {new_name}")
-                    st.experimental_rerun()
-
-    blue_divider()
-
-    # -------------------------------------------------------------------------------------
-    # SINGLE-ROW SELECTION & CRUD
-    # -------------------------------------------------------------------------------------
 
     st.subheader("Row Editor")
 
@@ -372,34 +276,46 @@ with tabs[0]:
         "Select row index",
         min_value=0,
         max_value=len(df) - 1,
-        step=1
+        step=1,
+        key="row_editor_index"
     )
 
     row = df.iloc[row_idx]
     updated = {}
 
+    col_left, col_right = st.columns(2)
+
     with st.form("row_edit_form"):
-        for col, dtype in schema.items():
+        for i, (col, dtype) in enumerate(schema.items()):
+            target = col_left if i % 2 == 0 else col_right
             val = row[col]
 
-            if dtype == "numeric":
-                updated[col] = st.number_input(col, value=float(val) if pd.notna(val) else 0.0)
-            elif dtype == "ordinal":
-                updated[col] = st.number_input(col, value=int(val) if pd.notna(val) else 0)
-            elif dtype == "datetime":
-                updated[col] = st.date_input(
-                    col,
-                    value=pd.to_datetime(val).date() if pd.notna(val) else pd.Timestamp.today().date()
-                )
-            elif dtype == "categorical":
-                options = df[col].dropna().unique().tolist()
-                updated[col] = st.selectbox(
-                    col,
-                    options,
-                    index=options.index(val) if val in options else 0
-                )
-            else:  # identifier
-                updated[col] = st.text_input(col, value=str(val), disabled=True)
+            with target:
+                if dtype == "numeric":
+                    updated[col] = st.number_input(
+                        col, value=float(val) if pd.notna(val) else 0.0
+                    )
+                elif dtype == "ordinal":
+                    updated[col] = st.number_input(
+                        col, value=int(val) if pd.notna(val) else 0
+                    )
+                elif dtype == "datetime":
+                    updated[col] = st.date_input(
+                        col,
+                        value=pd.to_datetime(val).date()
+                        if pd.notna(val)
+                        else pd.Timestamp.today().date()
+                    )
+                elif dtype == "categorical":
+                    options = df[col].dropna().unique().tolist()
+                    updated[col] = st.selectbox(
+                        col, options,
+                        index=options.index(val) if val in options else 0
+                    )
+                else:  # identifier
+                    updated[col] = st.text_input(
+                        col, value=str(val), disabled=True
+                    )
 
         submitted = st.form_submit_button("Apply Row Update")
 
@@ -420,8 +336,88 @@ with tabs[0]:
             pd.DataFrame({"Before": before, "After": after}),
             use_container_width=True
         )
-
         st.experimental_rerun()
+
+    blue_divider()
+
+    # =====================================================================================
+    # DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
+    # =====================================================================================
+
+    st.subheader("Dataset Diagnostics")
+
+    v1, v2 = st.columns(2)
+
+    with v1:
+        fig, ax = plt.subplots(figsize=(5, 4))
+        type_counts.plot(kind="bar", ax=ax, edgecolor="black")
+        ax.set_title("Column Type Distribution")
+        ax.set_ylabel("Count")
+        fig.tight_layout()
+        st.pyplot(fig)
+        plt.close(fig)
+
+    with v2:
+        missing_pct = (df.isna().mean() * 100).sort_values(ascending=False)
+        missing_pct = missing_pct[missing_pct > 0].head(10)
+
+        if not missing_pct.empty:
+            fig, ax = plt.subplots(figsize=(5, 4))
+            missing_pct.plot(kind="bar", ax=ax, edgecolor="black")
+            ax.set_title("Top Columns by Missing %")
+            ax.set_ylabel("Percent Missing")
+            fig.tight_layout()
+            st.pyplot(fig)
+            plt.close(fig)
+        else:
+            st.info("No missing values detected.")
+
+    blue_divider()
+
+    v3, v4 = st.columns(2)
+
+    with v3:
+        cardinality = df.nunique(dropna=True).sort_values(ascending=False).head(10)
+        fig, ax = plt.subplots(figsize=(5, 4))
+        cardinality.plot(kind="bar", ax=ax, edgecolor="black")
+        ax.set_title("Top Columns by Cardinality")
+        ax.set_ylabel("Unique Values")
+        fig.tight_layout()
+        st.pyplot(fig)
+        plt.close(fig)
+
+    with v4:
+        st.caption("Row edits are confirmed above before commit.")
+
+    blue_divider()
+
+    # -------------------------------------------------------------------------------------
+    # COLUMN CRUD
+    # -------------------------------------------------------------------------------------
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        drop_cols = st.multiselect("Columns to drop", df.columns.tolist())
+        if st.button("Apply Column Drop"):
+            if len(drop_cols) == len(df.columns):
+                st.error("Cannot drop all columns.")
+            else:
+                st.session_state.df = df.drop(columns=drop_cols)
+                log_step(f"Dropped columns: {drop_cols}")
+                st.experimental_rerun()
+
+    with c2:
+        rename_col = st.selectbox("Rename column", ["<None>"] + df.columns.tolist())
+        new_name = st.text_input("New column name")
+        if st.button("Apply Rename"):
+            if rename_col != "<None>" and new_name:
+                if new_name in df.columns:
+                    st.error("Column name already exists.")
+                else:
+                    st.session_state.df = df.rename(columns={rename_col: new_name})
+                    log_step(f"Renamed {rename_col} → {new_name}")
+                    st.experimental_rerun()
 
     blue_divider()
 
@@ -429,16 +425,16 @@ with tabs[0]:
     # RESET / EXPORT
     # -------------------------------------------------------------------------------------
 
-    c8, c9 = st.columns(2)
+    r1, r2 = st.columns(2)
 
-    with c8:
+    with r1:
         if st.button("Reset to Raw Data"):
             st.session_state.df = st.session_state.raw_df.copy()
             st.session_state.pipeline_log.clear()
             log_step("Reset dataset to raw")
             st.experimental_rerun()
 
-    with c9:
+    with r2:
         st.download_button(
             "Export Dataset (CSV)",
             st.session_state.df.to_csv(index=False),
@@ -449,6 +445,7 @@ with tabs[0]:
     st.subheader("Pipeline Log")
     for step in st.session_state.pipeline_log:
         st.write(f"• {step}")
+
 
 
 # =========================================================================================
