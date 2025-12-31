@@ -165,10 +165,10 @@ if uploaded or use_fallback:
 # Tabs
 # -----------------------------------------------------------------------------------------
 
-tabs = st.tabs( [ "💻 Data Processing",
-                  "🔍 Descriptive Statistics",
-                  "🧠 Inferential Statistics",
-                  "🚨 Anomaly Detection",
+tabs = st.tabs( [ "💻 Dataset",
+                  "🔍 Descriptive Stats",
+                  "🧠 Inferential Stats",
+                  "🚨 Outliers",
                   "🏗️ Feature Engineering",
                   "📊 Classifications",
                   "📉 Regressions",
@@ -435,6 +435,7 @@ with tabs[ 2 ]:
 		from scipy import stats
 		from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
 		from sklearn.decomposition import PCA
+		from scalers import StandardScaler
 		from itertools import combinations
 		
 		plt.style.use( "default" )
@@ -1189,13 +1190,13 @@ with tabs[ 5 ]:
 	# ------------------------------------------------------------------
 	st.subheader( "Training Configuration" )
 	
-	test_size = st.slider( "Test set size (%)", 10, 50, 20 ) / 100.0
+	test_sz = st.slider( "Test set size (%)", 20, 30, 50, key='classifications' ) / 100.0
 	random_state = st.number_input( "Random state", value=42, step=1 )
 	
 	if st.button( "🚀 Train Classifier" ):
 		try:
 			X_train, X_test, y_train, y_test = model.split_data(
-				X, y, size=test_size, random=random_state
+				X, y, size=test_sz, random=random_state
 			)
 			
 			model.train( X_train, y_train )
@@ -1310,7 +1311,7 @@ with tabs[ 6 ]:
 	# ------------------------------------------------------------------
 	st.subheader( "Training Configuration" )
 	
-	test_size = st.slider( "Test set size (%)", 10, 50, 20 ) / 100.0
+	test_size = st.slider( "Test set size (%)", 20, 30, 50, key='regressions' ) / 100.0
 	random_state = st.number_input( "Random state", value=42, step=1 )
 	
 	if st.button( "🚀 Train Model" ):
