@@ -24,7 +24,7 @@
 #### Inner Webs
 [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)](https://sake-py.streamlit.app/)
 
-![]()
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
 
 ## 📦 Layout
 
