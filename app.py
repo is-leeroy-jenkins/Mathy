@@ -1190,8 +1190,8 @@ with tabs[ 5 ]:
 	# ------------------------------------------------------------------
 	st.subheader( "Training Configuration" )
 	
-	test_sz = st.slider( "Test set size (%)", 20, 30, 50, key='classifications' ) / 100.0
-	random_state = st.number_input( "Random state", value=42, step=1 )
+	test_sz = st.slider( "Test set size (%)", 10, 20, 30, key='classifications' ) / 100.0
+	random_state = st.number_input( "Random state", value=42, step=1, key='classifications' )
 	
 	if st.button( "🚀 Train Classifier" ):
 		try:
@@ -1311,8 +1311,8 @@ with tabs[ 6 ]:
 	# ------------------------------------------------------------------
 	st.subheader( "Training Configuration" )
 	
-	test_size = st.slider( "Test set size (%)", 20, 30, 50, key='regressions' ) / 100.0
-	random_state = st.number_input( "Random state", value=42, step=1 )
+	test_size = st.slider( "Test set size (%)", 10, 20, 30, key='regressions' ) / 100.0
+	random_state = st.number_input( "Random state", value=42, step=1, key='regressions' )
 	
 	if st.button( "🚀 Train Model" ):
 		try:
