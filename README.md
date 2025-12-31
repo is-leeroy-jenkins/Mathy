@@ -16,10 +16,15 @@
 - Mathy offers clarity, consistency, and composability in machine learning workflows.
 
 ---
-
+#### Google Colab
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
+
+#### Inner Webs
+[![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)](https://sake-py.streamlit.app/)
+
+![]()
 
 ## 📦 Layout
 
