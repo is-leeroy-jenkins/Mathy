@@ -177,110 +177,279 @@ tabs = st.tabs( [ "💻 Dataset",
                   ] )
 
 # =========================================================================================
-# TAB 1 — DATA PROCESSING (FULLY RESTORED)
+# TAB 1 — DATASET (Schema-Aware CRUD + Diagnostics)
 # =========================================================================================
 
-with tabs[ 0 ]:
-	st.header( "" )
-	
-	if st.session_state.df is None:
-		st.info( "No data loaded." )
-		st.stop( )
-	
-	df = st.session_state.df
-	
-	st.subheader( "Current Dataset" )
-	render_table( df )
-	blue_divider( )
-	
-	# --- Drop / Rename
-	c1, c2 = st.columns( 2 )
-	
-	with c1:
-		drop_cols = st.multiselect( "Columns to drop", df.columns.tolist( ) )
-		if st.button( "Apply Column Drop" ):
-			df = df.drop( columns=drop_cols )
-			st.session_state.df = df
-			st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types( df )
-			log_step( f"Dropped columns: {drop_cols}" )
-	
-	with c2:
-		rename_col = st.selectbox( "Rename column", [ "<None>" ] + df.columns.tolist( ) )
-		new_name = st.text_input( "New column name" )
-		if st.button( "Apply Rename" ) and rename_col != "<None>" and new_name:
-			df = df.rename( columns={
-					rename_col: new_name } )
-			st.session_state.df = df
-			st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types( df )
-			log_step( f"Renamed {rename_col} → {new_name}" )
-	
-	blue_divider( )
-	
-	# --- Imputation / Scaling
-	c3, c4 = st.columns( 2 )
-	
-	with c3:
-		if st.button( "Impute Missing Values" ):
-			if st.session_state.numeric_cols:
-				imp = SimpleImputer( strategy="mean" )
-				df[ st.session_state.numeric_cols ] = imp.train_transform(
-					df[ st.session_state.numeric_cols ], None
-				)
-			if st.session_state.categorical_cols:
-				imp = SimpleImputer( strategy="most_frequent" )
-				df[ st.session_state.categorical_cols ] = imp.train_transform(
-					df[ st.session_state.categorical_cols ], None
-				)
-			st.session_state.df = df
-			log_step( "Applied imputation" )
-	
-	with c4:
-		scaler_name = st.selectbox(
-			"Scaler",
-			[ "None",
-			  "Standard",
-			  "MinMax",
-			  "Robust",
-			  "Normalize" ]
-		)
-		if st.button( "Apply Scaling" ) and scaler_name != "None":
-			scaler = {
-					"Standard": StandardScaler,
-					"MinMax": MinMaxScaler,
-					"Robust": RobustScaler,
-					"Normalize": NormalScaler
-			}[ scaler_name ]( )
-			if st.session_state.numeric_cols:
-				df[ st.session_state.numeric_cols ] = scaler.train_transform(
-					df[ st.session_state.numeric_cols ]
-				)
-			st.session_state.df = df
-			log_step( f"Applied {scaler_name} scaling" )
-	
-	blue_divider( )
-	
-	# --- Reset / Export
-	c5, c6 = st.columns( 2 )
-	
-	with c5:
-		if st.button( "Reset to Raw Data" ):
-			st.session_state.df = st.session_state.raw_df.copy( )
-			st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types(
-				st.session_state.df
-			)
-			log_step( "Reset dataset to raw" )
-	
-	with c6:
-		st.download_button(
-			"Export Processed Data (CSV)",
-			st.session_state.df.to_csv( index=False ),
-			"processed_data.csv",
-			"text/csv"
-		)
-	
-	st.subheader( "Pipeline Log" )
-	for step in st.session_state.pipeline_log:
-		st.write( f"• {step}" )
+with tabs[0]:
+    st.header("")
+
+    if st.session_state.df is None:
+        st.info("No data loaded.")
+        st.stop()
+
+    df = st.session_state.df
+
+    # -------------------------------------------------------------------------------------
+    # SCHEMA INFERENCE
+    # -------------------------------------------------------------------------------------
+
+    def infer_schema(df: pd.DataFrame) -> dict[str, str]:
+        schema = {}
+        n_rows = len(df)
+
+        for col in df.columns:
+            s = df[col]
+            name = col.lower()
+            nunique = s.nunique(dropna=True)
+
+            # Datetime
+            if pd.api.types.is_datetime64_any_dtype(s):
+                schema[col] = "datetime"
+                continue
+            try:
+                parsed = pd.to_datetime(s, errors="coerce")
+                if parsed.notna().sum() / max(1, n_rows) > 0.9:
+                    schema[col] = "datetime"
+                    continue
+            except Exception:
+                pass
+
+            # Identifier
+            if (
+                "id" in name or "code" in name or "key" in name
+                or (pd.api.types.is_integer_dtype(s) and nunique / max(1, n_rows) > 0.8)
+            ):
+                schema[col] = "identifier"
+                continue
+
+            # Ordinal
+            if pd.api.types.is_integer_dtype(s) and nunique <= 20:
+                schema[col] = "ordinal"
+                continue
+
+            # Numeric (continuous)
+            if pd.api.types.is_float_dtype(s):
+                schema[col] = "numeric"
+                continue
+
+            # Categorical
+            schema[col] = "categorical"
+
+        return schema
+
+    schema = infer_schema(df)
+    st.session_state.column_schema = schema
+
+    # Backward-compatible views
+    st.session_state.numeric_cols = [c for c, t in schema.items() if t == "numeric"]
+    st.session_state.categorical_cols = [c for c, t in schema.items() if t == "categorical"]
+
+    # -------------------------------------------------------------------------------------
+    # DATASET DISPLAY
+    # -------------------------------------------------------------------------------------
+
+    st.subheader("Current Dataset")
+    render_table(df)
+    blue_divider()
+
+    # -------------------------------------------------------------------------------------
+    # DATA TYPE METRICS
+    # -------------------------------------------------------------------------------------
+
+    type_counts = pd.Series(schema).value_counts()
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Rows", len(df))
+    c2.metric("Numeric", type_counts.get("numeric", 0))
+    c3.metric("Ordinal / ID", type_counts.get("ordinal", 0) + type_counts.get("identifier", 0))
+    c4.metric("Categorical", type_counts.get("categorical", 0))
+    c5.metric("Datetime", type_counts.get("datetime", 0))
+
+    blue_divider()
+
+    # =====================================================================================
+    # DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
+    # =====================================================================================
+
+    st.subheader("Dataset Diagnostics")
+
+    v1, v2 = st.columns(2)
+
+    # ------------------------------------------------------------------
+    # 1. Data-Type Distribution
+    # ------------------------------------------------------------------
+    with v1:
+        fig, ax = plt.subplots(figsize=(5, 4))
+        type_counts.plot(kind="bar", ax=ax, edgecolor="black")
+        ax.set_title("Column Type Distribution")
+        ax.set_ylabel("Count")
+        ax.set_xlabel("Type")
+        fig.tight_layout()
+        st.pyplot(fig)
+        plt.close(fig)
+
+    # ------------------------------------------------------------------
+    # 2. Missing Value Percentage (Top N)
+    # ------------------------------------------------------------------
+    with v2:
+        missing_pct = (df.isna().mean() * 100).sort_values(ascending=False)
+        missing_pct = missing_pct[missing_pct > 0].head(10)
+
+        if not missing_pct.empty:
+            fig, ax = plt.subplots(figsize=(5, 4))
+            missing_pct.plot(kind="bar", ax=ax, edgecolor="black")
+            ax.set_title("Top Columns by Missing %")
+            ax.set_ylabel("Percent Missing")
+            fig.tight_layout()
+            st.pyplot(fig)
+            plt.close(fig)
+        else:
+            st.info("No missing values detected.")
+
+    blue_divider()
+
+    v3, v4 = st.columns(2)
+
+    # ------------------------------------------------------------------
+    # 3. Cardinality Snapshot (Top N)
+    # ------------------------------------------------------------------
+    with v3:
+        cardinality = df.nunique(dropna=True).sort_values(ascending=False).head(10)
+
+        fig, ax = plt.subplots(figsize=(5, 4))
+        cardinality.plot(kind="bar", ax=ax, edgecolor="black")
+        ax.set_title("Top Columns by Cardinality")
+        ax.set_ylabel("Unique Values")
+        fig.tight_layout()
+        st.pyplot(fig)
+        plt.close(fig)
+
+    # ------------------------------------------------------------------
+    # 4. Row Edit Confirmation (Rendered After Edit)
+    # ------------------------------------------------------------------
+    with v4:
+        st.caption("Row-level changes are confirmed in the editor below.")
+
+    blue_divider()
+
+    # -------------------------------------------------------------------------------------
+    # COLUMN CRUD (DROP / RENAME)
+    # -------------------------------------------------------------------------------------
+
+    c6, c7 = st.columns(2)
+
+    with c6:
+        drop_cols = st.multiselect("Columns to drop", df.columns.tolist())
+        if st.button("Apply Column Drop"):
+            if len(drop_cols) == len(df.columns):
+                st.error("Cannot drop all columns.")
+            else:
+                st.session_state.df = df.drop(columns=drop_cols)
+                log_step(f"Dropped columns: {drop_cols}")
+                st.experimental_rerun()
+
+    with c7:
+        rename_col = st.selectbox("Rename column", ["<None>"] + df.columns.tolist())
+        new_name = st.text_input("New column name")
+        if st.button("Apply Rename"):
+            if rename_col != "<None>" and new_name:
+                if new_name in df.columns:
+                    st.error("Column name already exists.")
+                else:
+                    st.session_state.df = df.rename(columns={rename_col: new_name})
+                    log_step(f"Renamed {rename_col} → {new_name}")
+                    st.experimental_rerun()
+
+    blue_divider()
+
+    # -------------------------------------------------------------------------------------
+    # SINGLE-ROW SELECTION & CRUD
+    # -------------------------------------------------------------------------------------
+
+    st.subheader("Row Editor")
+
+    row_idx = st.number_input(
+        "Select row index",
+        min_value=0,
+        max_value=len(df) - 1,
+        step=1
+    )
+
+    row = df.iloc[row_idx]
+    updated = {}
+
+    with st.form("row_edit_form"):
+        for col, dtype in schema.items():
+            val = row[col]
+
+            if dtype == "numeric":
+                updated[col] = st.number_input(col, value=float(val) if pd.notna(val) else 0.0)
+            elif dtype == "ordinal":
+                updated[col] = st.number_input(col, value=int(val) if pd.notna(val) else 0)
+            elif dtype == "datetime":
+                updated[col] = st.date_input(
+                    col,
+                    value=pd.to_datetime(val).date() if pd.notna(val) else pd.Timestamp.today().date()
+                )
+            elif dtype == "categorical":
+                options = df[col].dropna().unique().tolist()
+                updated[col] = st.selectbox(
+                    col,
+                    options,
+                    index=options.index(val) if val in options else 0
+                )
+            else:  # identifier
+                updated[col] = st.text_input(col, value=str(val), disabled=True)
+
+        submitted = st.form_submit_button("Apply Row Update")
+
+    if submitted:
+        before = df.loc[row_idx].copy()
+
+        for col, value in updated.items():
+            if schema[col] == "datetime":
+                st.session_state.df.at[row_idx, col] = pd.to_datetime(value)
+            else:
+                st.session_state.df.at[row_idx, col] = value
+
+        after = st.session_state.df.loc[row_idx]
+        log_step(f"Updated row {row_idx}")
+
+        st.success(f"Row {row_idx} updated.")
+        st.dataframe(
+            pd.DataFrame({"Before": before, "After": after}),
+            use_container_width=True
+        )
+
+        st.experimental_rerun()
+
+    blue_divider()
+
+    # -------------------------------------------------------------------------------------
+    # RESET / EXPORT
+    # -------------------------------------------------------------------------------------
+
+    c8, c9 = st.columns(2)
+
+    with c8:
+        if st.button("Reset to Raw Data"):
+            st.session_state.df = st.session_state.raw_df.copy()
+            st.session_state.pipeline_log.clear()
+            log_step("Reset dataset to raw")
+            st.experimental_rerun()
+
+    with c9:
+        st.download_button(
+            "Export Dataset (CSV)",
+            st.session_state.df.to_csv(index=False),
+            "dataset.csv",
+            "text/csv"
+        )
+
+    st.subheader("Pipeline Log")
+    for step in st.session_state.pipeline_log:
+        st.write(f"• {step}")
+
 
 # =========================================================================================
 # TAB 2 — DESCRIPTIVE STATISTICS (NO HEIGHT-CONSTRAINED PLOTS)
