@@ -1426,7 +1426,7 @@ with tabs[ 7 ]:
 
     if model_name == "K-Means":
         n_clusters = st.number_input("Number of clusters (k)", min_value=2, value=3)
-        model = KMeans(n_clusters=n_clusters)
+        model = KMeans( clusters=n_clusters )
 
     elif model_name == "DBSCAN":
         eps = st.number_input("Epsilon (eps)", min_value=0.01, value=0.5)
