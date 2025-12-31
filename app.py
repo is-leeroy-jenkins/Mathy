@@ -1512,9 +1512,155 @@ with tabs[ 7 ]:
 
             st.dataframe(centroid_df, use_container_width=True)
 
-
-
-
 # -------------------------------------------------------------------------------------
 # TAB 9 — TIME SERIES MODELS TAB
 # -------------------------------------------------------------------------------------
+
+with tabs[ 8 ]:
+
+    st.header("")
+
+    # ------------------------------------------------------------------
+    # DATA VALIDATION
+    # ------------------------------------------------------------------
+    df = st.session_state.get("df", None)
+    numeric_cols = st.session_state.get("numeric_cols", [])
+
+    if df is None or df.empty:
+        st.warning("⚠️ No dataset loaded.")
+        st.stop()
+
+    if not numeric_cols:
+        st.warning("⚠️ No numeric columns available for time-series analysis.")
+        st.stop()
+
+    # ------------------------------------------------------------------
+    # SERIES SELECTION
+    # ------------------------------------------------------------------
+    st.subheader("Time-Series Selection")
+
+    series_col = st.selectbox(
+        "Select numeric time-series column",
+        numeric_cols
+    )
+
+    series = df[series_col].dropna().to_numpy()
+
+    if series.ndim != 1 or len(series) < 10:
+        st.warning("⚠️ Selected series is too short for modeling.")
+        st.stop()
+
+    # ------------------------------------------------------------------
+    # MODEL SELECTION
+    # ------------------------------------------------------------------
+    from forecasting import (
+        LaggingSeries,
+        ARIMA,
+        SARIMA,
+        ExpandingWindow
+    )
+
+    model_map = {
+        "Lagged Linear Regression": "lag",
+        "ARIMA": "arima",
+        "SARIMA": "sarima"
+    }
+
+    st.subheader("Model Selection")
+    model_name = st.selectbox("Select time-series model", list(model_map.keys()))
+
+    # ------------------------------------------------------------------
+    # MODEL PARAMETERS
+    # ------------------------------------------------------------------
+    st.subheader("Model Parameters")
+
+    model = None
+
+    if model_name == "Lagged Linear Regression":
+        lag = st.number_input("Lag order", min_value=1, value=5)
+        model = LaggingSeries(lag=lag)
+
+    elif model_name == "ARIMA":
+        p = st.number_input("p (AR)", min_value=0, value=1)
+        d = st.number_input("d (I)", min_value=0, value=0)
+        q = st.number_input("q (MA)", min_value=0, value=0)
+        model = ARIMA(order=(p, d, q))
+
+    elif model_name == "SARIMA":
+        p = st.number_input("p (AR)", min_value=0, value=1)
+        d = st.number_input("d (I)", min_value=0, value=1)
+        q = st.number_input("q (MA)", min_value=0, value=1)
+        P = st.number_input("P (Seasonal AR)", min_value=0, value=0)
+        D = st.number_input("D (Seasonal I)", min_value=0, value=0)
+        Q = st.number_input("Q (Seasonal MA)", min_value=0, value=0)
+        s = st.number_input("Season Length", min_value=0, value=0)
+
+        model = SARIMA(
+            order=(p, d, q),
+            seasonal=(P, D, Q, s)
+        )
+
+    # ------------------------------------------------------------------
+    # TRAIN / FORECAST
+    # ------------------------------------------------------------------
+    st.subheader("Train & Forecast")
+
+    forecast_horizon = st.number_input(
+        "Forecast horizon (steps)",
+        min_value=1,
+        value=5
+    )
+
+    if st.button("🚀 Run Time-Series Model"):
+
+        try:
+            model.train(series)
+
+            forecast = model.project(n_steps=forecast_horizon)
+
+            # ------------------------------------------------------------------
+            # METRICS (IN-SAMPLE)
+            # ------------------------------------------------------------------
+            st.subheader("Model Evaluation")
+
+            metrics = model.analyze()
+            st.dataframe(
+                pd.DataFrame(metrics, index=["Value"]).T,
+                use_container_width=True
+            )
+
+            # ------------------------------------------------------------------
+            # VISUALIZATION
+            # ------------------------------------------------------------------
+            st.subheader("Observed vs Forecast")
+
+            fig, ax = plt.subplots()
+            ax.plot(series, label="Observed")
+            ax.plot(
+                range(len(series), len(series) + len(forecast)),
+                forecast,
+                label="Forecast",
+                linestyle="--"
+            )
+            ax.set_title("Time-Series Forecast")
+            ax.legend()
+            st.pyplot(fig)
+
+        except Exception as e:
+            st.error(f"Time-series modeling failed: {e}")
+
+    # ------------------------------------------------------------------
+    # EXPANDING WINDOW CV (OPTIONAL DIAGNOSTIC)
+    # ------------------------------------------------------------------
+    st.subheader("Expanding Window Cross-Validation")
+
+    with st.expander("Show expanding-window splits"):
+        initial = st.number_input("Initial window size", min_value=10, value=30)
+        window = st.number_input("Test window size", min_value=1, value=10)
+
+        splitter = ExpandingWindow(initial=initial, windows=window)
+
+        if st.button("Visualize CV Splits"):
+            fig = plt.figure()
+            splitter.visualize(series)
+            st.pyplot(fig)
