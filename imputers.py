@@ -49,7 +49,7 @@ import sklearn.impute as im
 from boogr import Error, ErrorDialog
 
 def throw_if( name: str, value: object ):
-	if not value:
+	if value is None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Imputer( ):

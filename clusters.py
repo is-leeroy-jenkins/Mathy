@@ -385,7 +385,6 @@ class KMeans( Cluster ):
 			exception.cause = 'KMeans'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			error = ErrorDialog( exception )
-			error.show( )
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -492,7 +491,7 @@ class DBSCAN( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, max_distance: float=0.5, samples: int=5, measure: str= 'euclidean',
+	def __init__( self, max_distance: float=0.5, samples: int=5, measure: str='euclidean',
 			algorithm: str='auto', size: int=30 ) -> None:
 		"""
 
