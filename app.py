@@ -58,7 +58,7 @@ import seaborn as sns
 # ======================================================================================
 # Headers/Title
 # ======================================================================================
-LOGO = r'resources\img\mathy_logo.ico'
+LOGO = r'resources/img/mathy_logo.ico'
 st.logo( image=LOGO, size='large' )
 
 # -----------------------------------------------------------------------------------------
@@ -209,7 +209,6 @@ def default_pick( items: List[ str ], k: int = 2 ) -> List[ str ]:
 # -----------------------------------------------------------------------------------------
 # Sidebar — Data Source
 # -----------------------------------------------------------------------------------------
-
 st.sidebar.title( '📦 Data Source' )
 
 use_fallback = st.sidebar.checkbox( 'Use default data', value=True )
