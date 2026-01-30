@@ -7,8 +7,6 @@ openpyxl
 scipy
 scikit-learn
 pydantic
-FreeSimpleGUI
 torch
 typing
-streamlit-extras
 xgboost
