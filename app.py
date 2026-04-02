@@ -696,9 +696,7 @@ elif mode == 'Inferential Statistics':
 			st.info( 'No numeric variables available for inferential analysis.' )
 			st.stop( )
 		
-		# -------------------------------------------------------------------------------------
-		# VARIABLE SELECTION
-		# -------------------------------------------------------------------------------------
+		# ------------ VARIABLE SELECTION
 		vco_c1, vco_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with vco_c1:
 			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
@@ -711,11 +709,8 @@ elif mode == 'Inferential Statistics':
 				if col_group == '<None>':
 					col_group = None
 		
-		st.divider( )
 		
-		# =====================================================================================
-		# NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT
-		# =====================================================================================
+		# ------------ NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT
 		st.subheader( 'Normality Test' )
 		y = df_dataset[ col_y ].dropna( )
 		if len( y ) >= 3:
@@ -737,9 +732,7 @@ elif mode == 'Inferential Statistics':
 		
 		st.divider( )
 		
-		# =====================================================================================
-		# GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS
-		# =====================================================================================
+		# ------------ GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS
 		if col_group:
 			st.subheader( 'Group Comparison' )
 			grouped = [ grp[ col_y ].dropna( ).values for _, grp in df_dataset.groupby( col_group ) ]
