@@ -4,25 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b2176169-9a59-410e-8b47-1e2783db7e6a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/mathy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mathy.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.streamlit/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.streamlit/config.toml" afterDir="false" />
+    <list default="true" id="b2176169-9a59-410e-8b47-1e2783db7e6a" name="Changes" comment="update;">
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classifications.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifications.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clusters.py" beforeDir="false" afterPath="$PROJECT_DIR$/clusters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/encoders.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forecasting.py" beforeDir="false" afterPath="$PROJECT_DIR$/forecasting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/imputers.py" beforeDir="false" afterPath="$PROJECT_DIR$/imputers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/outliers.py" beforeDir="false" afterPath="$PROJECT_DIR$/outliers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/regressions.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scalers.py" beforeDir="false" afterPath="$PROJECT_DIR$/scalers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transformers.py" beforeDir="false" afterPath="$PROJECT_DIR$/transformers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,11 +87,24 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1775115253676</updated>
-      <workItem from="1775115255382" duration="14038000" />
+      <workItem from="1775115255382" duration="15631000" />
     </task>
+    <task id="LOCAL-00001" summary="update;">
+      <option name="closed" value="true" />
+      <created>1775139572520</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1775139572520</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="update;" />
+    <option name="LAST_COMMIT_MESSAGE" value="update;" />
   </component>
 </project>

@@ -336,669 +336,677 @@ with st.sidebar:
 # DATA TRANSFORMATION MODE
 # ============================================
 if mode == 'Data Profile':
-	st.header( 'Schema' )
-	st.divider( )
-	
-	if st.session_state.df_dataset is None:
-		st.info( 'No data loaded.' )
-		st.stop( )
-	
-	df_dataset = st.session_state.df_dataset
-	
-	# -------------------------------------------------------------------------------------
-	# SCHEMA INFERENCE
-	# -------------------------------------------------------------------------------------
-	def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
-		schema: dict[ str, str ] = { }
-		n_rows = len( df )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( 'Schema' )
+		st.divider( )
 		
-		for col in df.columns:
-			s = df[ col ]
-			name = col.lower( )
-			nunique = s.nunique( dropna=True )
-			unique_ratio = nunique / max( 1, n_rows )
+		if st.session_state.df_dataset is None:
+			st.info( 'No data loaded.' )
+			st.stop( )
+		
+		df_dataset = st.session_state.df_dataset
+		
+		# -------------------------------------------------------------------------------------
+		# SCHEMA INFERENCE
+		# -------------------------------------------------------------------------------------
+		def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
+			schema: dict[ str, str ] = { }
+			n_rows = len( df )
 			
-			# ------------------------------------------------------------------
-			# 1) Datetime: ONLY for object/string columns (prevents PY/CY/BY errors)
-			# ------------------------------------------------------------------
-			if s.dtype == 'object':
-				try:
-					parsed_dt = pd.to_datetime( s, errors='coerce' )
-					if parsed_dt.notna( ).sum( ) / max( 1, n_rows ) > 0.9:
-						schema[ col ] = 'datetime'
+			for col in df.columns:
+				s = df[ col ]
+				name = col.lower( )
+				nunique = s.nunique( dropna=True )
+				unique_ratio = nunique / max( 1, n_rows )
+				
+				# ------------------------------------------------------------------
+				# 1) Datetime: ONLY for object/string columns (prevents PY/CY/BY errors)
+				# ------------------------------------------------------------------
+				if s.dtype == 'object':
+					try:
+						parsed_dt = pd.to_datetime( s, errors='coerce' )
+						if parsed_dt.notna( ).sum( ) / max( 1, n_rows ) > 0.9:
+							schema[ col ] = 'datetime'
+							continue
+					except Exception:
+						pass
+				
+				# ------------------------------------------------------------------
+				# 2) Numeric detection: ints AND floats
+				# ------------------------------------------------------------------
+				if pd.api.types.is_numeric_dtype( s ):
+					# Identifier heuristics for numeric codes/keys
+					if ('id' in name) or ('code' in name) or ('key' in name) or (unique_ratio > 0.8):
+						schema[ col ] = 'identifier'
 						continue
-				except Exception:
-					pass
-			
-			# ------------------------------------------------------------------
-			# 2) Numeric detection: ints AND floats
-			# ------------------------------------------------------------------
-			if pd.api.types.is_numeric_dtype( s ):
-				# Identifier heuristics for numeric codes/keys
-				if ('id' in name) or ('code' in name) or ('key' in name) or (unique_ratio > 0.8):
-					schema[ col ] = 'identifier'
+					if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
+						schema[ col ] = 'ordinal'
+						continue
+					schema[ col ] = 'numeric'
 					continue
-				if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
-					schema[ col ] = 'ordinal'
-					continue
-				schema[ col ] = 'numeric'
-				continue
+				
+				# ------------------------------------------------------------------
+				# 3) Categorical fallback
+				# ------------------------------------------------------------------
+				schema[ col ] = 'categorical'
 			
-			# ------------------------------------------------------------------
-			# 3) Categorical fallback
-			# ------------------------------------------------------------------
-			schema[ col ] = 'categorical'
+			return schema
 		
-		return schema
-	
-	schema = infer_schema( df_dataset )
-	st.session_state.column_schema = schema
-	st.session_state.numeric_cols = [ c for c, t in schema.items( ) if t == 'numeric' ]
-	st.session_state.categorical_cols = [ c for c, t in schema.items( ) if t == 'categorical' ]
-	
-	# -------------------------------------------------------------------------------------
-	# DATASET DISPLAY
-	# -------------------------------------------------------------------------------------
-
-	st.subheader( 'Data' )
-	render_table( df_dataset )
-	
-	st.divider( )
-	
-	# -------------------------------------------------------------------------------------
-	# SCHEMA METRICS
-	# -------------------------------------------------------------------------------------
-	st.subheader( 'Types' )
-	type_counts = pd.Series( schema ).value_counts( )
-	m1, m2, m3, m4, m5 = st.columns( 5, border=True )
-	m1.metric( 'Rows', len( df_dataset ) )
-	m2.metric( 'Numeric', type_counts.get( 'numeric', 0 ) )
-	m3.metric( 'Ordinal / ID', type_counts.get( 'ordinal', 0 ) + type_counts.get( 'identifier', 0 ) )
-	m4.metric( 'Categorical', type_counts.get( 'categorical', 0 ) )
-	m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
-	
-	st.divider( )
-	
-	st.subheader( 'Records' )
-	with st.expander( 'Editor', expanded=True ):
-		top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
-		with top_c1:
-			row_idx = st.number_input( 'Select Row Index', min_value=0, max_value=len( df_dataset ) - 1,
-				step=1, key='row_editor_index' )
+		schema = infer_schema( df_dataset )
+		st.session_state.column_schema = schema
+		st.session_state.numeric_cols = [ c for c, t in schema.items( ) if t == 'numeric' ]
+		st.session_state.categorical_cols = [ c for c, t in schema.items( ) if t == 'categorical' ]
 		
-		row = df_dataset.iloc[ row_idx ]
-		updated = { }
+		# -------------------------------------------------------------------------------------
+		# DATASET DISPLAY
+		# -------------------------------------------------------------------------------------
+	
+		st.subheader( 'Data' )
+		render_table( df_dataset )
 		
-		col_left, col_right = st.columns( 2, border=True )
+		st.divider( )
 		
-		with st.form( 'row_edit_form' ):
-			for i, (col, dtype) in enumerate( schema.items( ) ):
-				target = col_left if i % 2 == 0 else col_right
-				val = row[ col ]
-				with target:
-					if dtype == 'numeric':
-						updated[ col ] = st.number_input(
-							col, value=float( val ) if pd.notna( val ) else 0.0 )
-					elif dtype == 'ordinal':
-						updated[ col ] = st.number_input(
-							col, value=int( val ) if pd.notna( val ) else 0 )
-					elif dtype == 'datetime':
-						updated[ col ] = st.date_input(
-							col,
-							value=pd.to_datetime( val ).date( )
-							if pd.notna( val )
-							else pd.Timestamp.today( ).date( ) )
-					elif dtype == 'categorical':
-						options = df_dataset[ col ].dropna( ).unique( ).tolist( )
-						updated[ col ] = st.selectbox(
-							col, options,
-							index=options.index( val ) if val in options else 0 )
+		# -------------------------------------------------------------------------------------
+		# SCHEMA METRICS
+		# -------------------------------------------------------------------------------------
+		st.subheader( 'Types' )
+		type_counts = pd.Series( schema ).value_counts( )
+		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+		m1.metric( 'Rows', len( df_dataset ) )
+		m2.metric( 'Numeric', type_counts.get( 'numeric', 0 ) )
+		m3.metric( 'Ordinal / ID', type_counts.get( 'ordinal', 0 ) + type_counts.get( 'identifier', 0 ) )
+		m4.metric( 'Categorical', type_counts.get( 'categorical', 0 ) )
+		m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
+		
+		st.divider( )
+		
+		st.subheader( 'Records' )
+		with st.expander( 'Editor', expanded=True ):
+			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
+			with top_c1:
+				row_idx = st.number_input( 'Select Row Index', min_value=0, max_value=len( df_dataset ) - 1,
+					step=1, key='row_editor_index' )
+			
+			row = df_dataset.iloc[ row_idx ]
+			updated = { }
+			
+			col_left, col_right = st.columns( 2, border=True )
+			
+			with st.form( 'row_edit_form' ):
+				for i, (col, dtype) in enumerate( schema.items( ) ):
+					target = col_left if i % 2 == 0 else col_right
+					val = row[ col ]
+					with target:
+						if dtype == 'numeric':
+							updated[ col ] = st.number_input(
+								col, value=float( val ) if pd.notna( val ) else 0.0 )
+						elif dtype == 'ordinal':
+							updated[ col ] = st.number_input(
+								col, value=int( val ) if pd.notna( val ) else 0 )
+						elif dtype == 'datetime':
+							updated[ col ] = st.date_input(
+								col,
+								value=pd.to_datetime( val ).date( )
+								if pd.notna( val )
+								else pd.Timestamp.today( ).date( ) )
+						elif dtype == 'categorical':
+							options = df_dataset[ col ].dropna( ).unique( ).tolist( )
+							updated[ col ] = st.selectbox(
+								col, options,
+								index=options.index( val ) if val in options else 0 )
+						else:
+							updated[ col ] = st.text_input(
+								col, value=str( val ), disabled=True )
+				
+				submitted = st.form_submit_button( 'Apply Row Update' )
+			
+			if submitted:
+				before = df_dataset.loc[ row_idx ].copy( )
+				for col, value in updated.items( ):
+					if schema[ col ] == 'datetime':
+						st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime( value )
 					else:
-						updated[ col ] = st.text_input(
-							col, value=str( val ), disabled=True )
-			
-			submitted = st.form_submit_button( 'Apply Row Update' )
+						st.session_state.df_dataset.at[ row_idx, col ] = value
+				
+				after = st.session_state.df_dataset.loc[ row_idx ]
+				log_step( f'Updated row {row_idx}' )
+				st.success( f'Row {row_idx} updated.' )
+				st.data_editor( pd.DataFrame( {
+						'Before': before,
+						'After': after } ), use_container_width=True )
+				st.rerun( )
 		
-		if submitted:
-			before = df_dataset.loc[ row_idx ].copy( )
-			for col, value in updated.items( ):
-				if schema[ col ] == 'datetime':
-					st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime( value )
-				else:
-					st.session_state.df_dataset.at[ row_idx, col ] = value
-			
-			after = st.session_state.df_dataset.loc[ row_idx ]
-			log_step( f'Updated row {row_idx}' )
-			st.success( f'Row {row_idx} updated.' )
-			st.data_editor( pd.DataFrame( {
-					'Before': before,
-					'After': after } ), use_container_width=True )
-			st.rerun( )
-	
-	# =====================================================================================
-	# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
-	# =====================================================================================
-	
-	st.divider( )
-	
-	st.subheader( 'Diagnostics' )
-	
-	v1, v2 = st.columns( 2, border=True )
-	with v1:
-		fig, ax = plt.subplots( figsize=(5, 4) )
-		type_counts.plot( kind='bar', ax=ax, edgecolor='black' )
-		ax.set_title( 'Column Type Distribution' )
-		ax.set_ylabel( 'Count' )
-		fig.tight_layout( )
-		st.pyplot( fig )
-		plt.close( fig )
-	
-	with v2:
-		missing_pct = (df_dataset.isna( ).mean( ) * 100).sort_values( ascending=False )
-		missing_pct = missing_pct[ missing_pct > 0 ].head( 10 )
-		if not missing_pct.empty:
+		# =====================================================================================
+		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
+		# =====================================================================================
+		
+		st.divider( )
+		
+		st.subheader( 'Diagnostics' )
+		
+		v1, v2 = st.columns( 2, border=True )
+		with v1:
 			fig, ax = plt.subplots( figsize=(5, 4) )
-			missing_pct.plot( kind='bar', ax=ax, edgecolor='black' )
-			ax.set_title( 'Top Columns by Missing %' )
-			ax.set_ylabel( 'Percent Missing' )
+			type_counts.plot( kind='bar', ax=ax, edgecolor='black' )
+			ax.set_title( 'Column Type Distribution' )
+			ax.set_ylabel( 'Count' )
 			fig.tight_layout( )
 			st.pyplot( fig )
 			plt.close( fig )
-		else:
-			st.info( 'No Missing Values Detected.' )
-	
-	st.divider( )
-	
-	v3, v4 = st.columns( 2, border=True )
-	with v3:
-		cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
-		fig, ax = plt.subplots( figsize=(5, 4) )
-		cardinality.plot( kind='bar', ax=ax, edgecolor='black' )
-		ax.set_title( 'Top Columns by Cardinality' )
-		ax.set_ylabel( 'Unique Values' )
-		fig.tight_layout( )
-		st.pyplot( fig )
-		plt.close( fig )
-	
-	with v4:
-		st.caption( 'Row edits are confirmed above before commit.' )
-	
-	
-	# -------------------------------------------------------------------------------------
-	# COLUMN CRUD
-	# -------------------------------------------------------------------------------------
-
-	st.subheader( 'Labels' )
-	with st.expander( label='Editor', expanded=True ):
-		c1, c2 = st.columns( 2, border=True )
-		with c1:
-			drop_cols = st.multiselect( 'Columns to Drop', df_dataset.columns.tolist( ) )
-			if st.button( 'Apply Column Drop' ):
-				if len( drop_cols ) == len( df_dataset.columns ):
-					st.error( 'Cannot Drop All Columns.' )
-				else:
-					st.session_state.df_dataset = df_dataset.drop( columns=drop_cols )
-					log_step( f'Dropped Columns: {drop_cols}' )
-					st.rerun( )
 		
-		with c2:
-			rename_col = st.selectbox( 'Rename Column', [ '<None>' ] + df_dataset.columns.tolist( ) )
-			new_name = st.text_input( 'New Column Name' )
-			if st.button( 'Apply Rename' ):
-				if rename_col != '<None>' and new_name:
-					if new_name in df_dataset.columns:
-						st.error( 'Column Name Already Exists.' )
+		with v2:
+			missing_pct = (df_dataset.isna( ).mean( ) * 100).sort_values( ascending=False )
+			missing_pct = missing_pct[ missing_pct > 0 ].head( 10 )
+			if not missing_pct.empty:
+				fig, ax = plt.subplots( figsize=(5, 4) )
+				missing_pct.plot( kind='bar', ax=ax, edgecolor='black' )
+				ax.set_title( 'Top Columns by Missing %' )
+				ax.set_ylabel( 'Percent Missing' )
+				fig.tight_layout( )
+				st.pyplot( fig )
+				plt.close( fig )
+			else:
+				st.info( 'No Missing Values Detected.' )
+		
+		st.divider( )
+		
+		v3, v4 = st.columns( 2, border=True )
+		with v3:
+			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
+			fig, ax = plt.subplots( figsize=(5, 4) )
+			cardinality.plot( kind='bar', ax=ax, edgecolor='black' )
+			ax.set_title( 'Top Columns by Cardinality' )
+			ax.set_ylabel( 'Unique Values' )
+			fig.tight_layout( )
+			st.pyplot( fig )
+			plt.close( fig )
+		
+		with v4:
+			st.caption( 'Row edits are confirmed above before commit.' )
+		
+		
+		# -------------------------------------------------------------------------------------
+		# COLUMN CRUD
+		# -------------------------------------------------------------------------------------
+	
+		st.subheader( 'Labels' )
+		with st.expander( label='Editor', expanded=True ):
+			c1, c2 = st.columns( 2, border=True )
+			with c1:
+				drop_cols = st.multiselect( 'Columns to Drop', df_dataset.columns.tolist( ) )
+				if st.button( 'Apply Column Drop' ):
+					if len( drop_cols ) == len( df_dataset.columns ):
+						st.error( 'Cannot Drop All Columns.' )
 					else:
-						st.session_state.df_dataset = df_dataset.rename( columns={ rename_col: new_name } )
-						log_step( f'Renamed {rename_col} → {new_name}' )
+						st.session_state.df_dataset = df_dataset.drop( columns=drop_cols )
+						log_step( f'Dropped Columns: {drop_cols}' )
 						st.rerun( )
-						
-		r1, r2 = st.columns( 2 )
-		with r1:
-			if st.button( 'Reset to Original' ):
-				st.session_state.df_dataset = st.session_state.raw_df.copy( )
-				st.session_state.pipeline_log.clear( )
-				log_step( 'Reset dataset to original' )
-				st.rerun( )
+			
+			with c2:
+				rename_col = st.selectbox( 'Rename Column', [ '<None>' ] + df_dataset.columns.tolist( ) )
+				new_name = st.text_input( 'New Column Name' )
+				if st.button( 'Apply Rename' ):
+					if rename_col != '<None>' and new_name:
+						if new_name in df_dataset.columns:
+							st.error( 'Column Name Already Exists.' )
+						else:
+							st.session_state.df_dataset = df_dataset.rename( columns={ rename_col: new_name } )
+							log_step( f'Renamed {rename_col} → {new_name}' )
+							st.rerun( )
+							
+			r1, r2 = st.columns( 2 )
+			with r1:
+				if st.button( 'Reset to Original' ):
+					st.session_state.df_dataset = st.session_state.raw_df.copy( )
+					st.session_state.pipeline_log.clear( )
+					log_step( 'Reset dataset to original' )
+					st.rerun( )
+			
+			with r2:
+				st.download_button( 'Export Dataset (CSV)', st.session_state.df_dataset.to_csv( index=False ),
+					'dataset.csv', 'text/csv' )
+			
+		# -------------------------------------------------------------------------------------
+		# RESET / EXPORT
+		# -------------------------------------------------------------------------------------
+		st.divider( )
 		
-		with r2:
-			st.download_button( 'Export Dataset (CSV)', st.session_state.df_dataset.to_csv( index=False ),
-				'dataset.csv', 'text/csv' )
-		
-	# -------------------------------------------------------------------------------------
-	# RESET / EXPORT
-	# -------------------------------------------------------------------------------------
-	st.divider( )
-	
-	for step in st.session_state.pipeline_log:
-		st.write( f'• {step}' )
+		for step in st.session_state.pipeline_log:
+			st.write( f'• {step}' )
 
 # ============================================
 #  DESCRIPTIVE STATISTICS MODE
 # ============================================
 elif mode == 'Descriptive Statistics':
-	st.header( cfg.MODE[ 'Descriptive Statistics' ] )
-	st.divider( )
-	
-	df_dataset = st.session_state.df_dataset
-	df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
-	if df_numeric.empty:
-		st.stop( )
-	
-	all_num_cols = df_numeric.columns.tolist( )
-	vars_sel = st.multiselect( 'Select numeric variables', all_num_cols,
-		default=default_pick( all_num_cols, 3 ) )
-	
-	for col in vars_sel:
-		s = df_numeric[ col ].dropna( )
-		
-		st.subheader( f'Distribution & Shape — {col}' )
-	
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Descriptive Statistics' ] )
 		st.divider( )
-		c1, c2 = st.columns( 2, border=True )
 		
-		with c1:
-			fig, ax = plt.subplots( figsize=(7, 5) )
-			ax.hist( s, bins=30, edgecolor='black', alpha=0.85 )
-			ax.set_title( f'Histogram — {col}' )
-			ax.set_xlabel( col )
-			ax.set_ylabel( 'Frequency' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
+		df_dataset = st.session_state.df_dataset
+		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
+		if df_numeric.empty:
+			st.stop( )
 		
-		with c2:
-			fig, ax = plt.subplots( figsize=(7, 5) )
-			stats.probplot( s, plot=ax )
-			ax.set_title( f'Q–Q Plot — {col}' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
-	
-	st.subheader( 'Correlation Structure' )
-	
-	st.divider( )
-	
-	corr_vars = st.multiselect( 'Variables for correlation',
-		all_num_cols, default=default_pick( all_num_cols, 4 ) )
-	
-	if len( corr_vars ) >= 2:
-		df_correlation = analysis_fillna_mean( df_numeric[ corr_vars ] )
-		corr = df_correlation.corr( )
-		c3, c4 = st.columns( 2, border=True )
+		all_num_cols = df_numeric.columns.tolist( )
+		vars_sel = st.multiselect( 'Select numeric variables', all_num_cols,
+			default=default_pick( all_num_cols, 3 ) )
 		
-		with c3:
-			render_table( corr )
+		for col in vars_sel:
+			s = df_numeric[ col ].dropna( )
+			
+			st.subheader( f'Distribution & Shape — {col}' )
 		
-		with c4:
-			fig, ax = plt.subplots( figsize=(7, 6) )
-			im = ax.imshow( corr.values, cmap='coolwarm', vmin=-1, vmax=1 )
-			fig.colorbar( im, ax=ax )
-			ax.set_xticks( range( len( corr_vars ) ) )
-			ax.set_yticks( range( len( corr_vars ) ) )
-			ax.set_xticklabels( corr_vars, rotation=45, ha='right' )
-			ax.set_yticklabels( corr_vars )
-			ax.set_title( 'Correlation Heatmap' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
-	
-	st.subheader( 'Principal Component Analysis' )
-	
-	st.divider( )
-	
-	pca_vars = st.multiselect( 'Variables for PCA', all_num_cols,
-		default=default_pick( all_num_cols, 4 ) )
-	
-	if len( pca_vars ) >= 2:
-		X = analysis_fillna_mean( df_numeric[ pca_vars ] )
-		n_comp = st.slider( 'Components', 2, min( 6, len( pca_vars ) ), 3 )
+			st.divider( )
+			c1, c2 = st.columns( 2, border=True )
+			
+			with c1:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				ax.hist( s, bins=30, edgecolor='black', alpha=0.85 )
+				ax.set_title( f'Histogram — {col}' )
+				ax.set_xlabel( col )
+				ax.set_ylabel( 'Frequency' )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
+			
+			with c2:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				stats.probplot( s, plot=ax )
+				ax.set_title( f'Q–Q Plot — {col}' )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
 		
-		Xs = SKStandardScaler( ).fit_transform( X )
-		pca = PCA( n_components=n_comp ).fit( Xs )
+		st.subheader( 'Correlation Structure' )
 		
-		df_explained = pd.DataFrame( { 'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
-				'Explained Variance (%)': pca.explained_variance_ratio_ * 100 } )
+		st.divider( )
 		
-		c5, c6 = st.columns( 2, border=True )
+		corr_vars = st.multiselect( 'Variables for correlation',
+			all_num_cols, default=default_pick( all_num_cols, 4 ) )
 		
-		with c5:
-			render_table( df_explained )
+		if len( corr_vars ) >= 2:
+			df_correlation = analysis_fillna_mean( df_numeric[ corr_vars ] )
+			corr = df_correlation.corr( )
+			c3, c4 = st.columns( 2, border=True )
+			
+			with c3:
+				render_table( corr )
+			
+			with c4:
+				fig, ax = plt.subplots( figsize=(7, 6) )
+				im = ax.imshow( corr.values, cmap='coolwarm', vmin=-1, vmax=1 )
+				fig.colorbar( im, ax=ax )
+				ax.set_xticks( range( len( corr_vars ) ) )
+				ax.set_yticks( range( len( corr_vars ) ) )
+				ax.set_xticklabels( corr_vars, rotation=45, ha='right' )
+				ax.set_yticklabels( corr_vars )
+				ax.set_title( 'Correlation Heatmap' )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
 		
-		with c6:
-			fig, ax = plt.subplots( figsize=(7, 5) )
-			ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ], edgecolor='black' )
-			ax.set_ylabel( '% Variance Explained' )
-			ax.set_title( 'PCA Variance Explained' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
+		st.subheader( 'Principal Component Analysis' )
+		
+		st.divider( )
+		
+		pca_vars = st.multiselect( 'Variables for PCA', all_num_cols,
+			default=default_pick( all_num_cols, 4 ) )
+		
+		if len( pca_vars ) >= 2:
+			X = analysis_fillna_mean( df_numeric[ pca_vars ] )
+			n_comp = st.slider( 'Components', 2, min( 6, len( pca_vars ) ), 3 )
+			
+			Xs = SKStandardScaler( ).fit_transform( X )
+			pca = PCA( n_components=n_comp ).fit( Xs )
+			
+			df_explained = pd.DataFrame( { 'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
+					'Explained Variance (%)': pca.explained_variance_ratio_ * 100 } )
+			
+			c5, c6 = st.columns( 2, border=True )
+			
+			with c5:
+				render_table( df_explained )
+			
+			with c6:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ], edgecolor='black' )
+				ax.set_ylabel( '% Variance Explained' )
+				ax.set_title( 'PCA Variance Explained' )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
 
 # ============================================
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	st.header( cfg.MODE[ 'Inferential Statistics' ] )
-	st.divider( )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Inferential Statistics' ] )
+		st.divider( )
+		
+		df_dataset = st.session_state.df_dataset
 	
-	df_dataset = st.session_state.df_dataset
-
-	if df_dataset is None or df_dataset.empty:
-		st.info( 'No data available.' )
-		st.stop( )
-	
-	numeric_cols = st.session_state.numeric_cols
-	categorical_cols = st.session_state.categorical_cols
-	
-	if not numeric_cols:
-		st.info( 'No numeric variables available for inferential analysis.' )
-		st.stop( )
-	
-	# -------------------------------------------------------------------------------------
-	# VARIABLE SELECTION
-	# -------------------------------------------------------------------------------------
-	
-	col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
-	
-	col_group = None
-	if categorical_cols:
-		col_group = st.selectbox( 'Select grouping variable (optional)',
-			[ '<None>' ] + categorical_cols )
-		if col_group == '<None>':
-			col_group = None
-	
-	st.divider( )
-	
-	# =====================================================================================
-	# NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT
-	# =====================================================================================
-	st.subheader( 'Normality Test' )
-	y = df_dataset[ col_y ].dropna( )
-	if len( y ) >= 3:
-		stat, p_value = stats.shapiro( y )
-		fig, ax = plt.subplots( figsize=(5, 5) )
-		stats.probplot( y, plot=ax )
-		ax.set_title( f'Q–Q Plot: {col_y} | Shapiro p = {p_value:.3g} | n = {len( y )}',
-			fontsize=12, fontweight='bold', pad=10 )
-		ax.ticklabel_format( style='plain', axis='both' )
-		ax.get_lines( )[ 0 ].set_marker( 'o' )
-		ax.get_lines( )[ 0 ].set_alpha( 0.7 )
-		ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
-		fig.tight_layout( )
-		st.pyplot( fig )
-		plt.close( fig )
-		st.write( f'Shapiro–Wilk statistic = {stat:.4f}, p-value = {p_value:.4g}' )
-	else:
-		st.info( 'Not enough observations for normality testing.' )
-	
-	st.divider( )
-	
-	# =====================================================================================
-	# GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS
-	# =====================================================================================
-	if col_group:
-		st.subheader( 'Group Comparison' )
-		grouped = [ grp[ col_y ].dropna( ).values for _, grp in df_dataset.groupby( col_group ) ]
-		valid_groups = [ g for g in grouped if len( g ) >= 2 ]
-		if len( valid_groups ) >= 2:
-			f_stat, p_anova = stats.f_oneway( *valid_groups )
-			fig, ax = inferential_plot( title=f'ANOVA: {col_y} by {col_group}',
-				subtitle=f'p = {p_anova:.3g}', figsize=(6, 4) )
-			means = df_dataset.groupby( col_group )[ col_y ].mean( )
-			means.plot( kind='bar', ax=ax, edgecolor='black', linewidth=1.2, alpha=0.8 )
-			ax.set_xlabel( col_group )
+		if df_dataset is None or df_dataset.empty:
+			st.info( 'No data available.' )
+			st.stop( )
+		
+		numeric_cols = st.session_state.numeric_cols
+		categorical_cols = st.session_state.categorical_cols
+		
+		if not numeric_cols:
+			st.info( 'No numeric variables available for inferential analysis.' )
+			st.stop( )
+		
+		# -------------------------------------------------------------------------------------
+		# VARIABLE SELECTION
+		# -------------------------------------------------------------------------------------
+		
+		col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
+		
+		col_group = None
+		if categorical_cols:
+			col_group = st.selectbox( 'Select grouping variable (optional)',
+				[ '<None>' ] + categorical_cols )
+			if col_group == '<None>':
+				col_group = None
+		
+		st.divider( )
+		
+		# =====================================================================================
+		# NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT
+		# =====================================================================================
+		st.subheader( 'Normality Test' )
+		y = df_dataset[ col_y ].dropna( )
+		if len( y ) >= 3:
+			stat, p_value = stats.shapiro( y )
+			fig, ax = plt.subplots( figsize=(5, 5) )
+			stats.probplot( y, plot=ax )
+			ax.set_title( f'Q–Q Plot: {col_y} | Shapiro p = {p_value:.3g} | n = {len( y )}',
+				fontsize=12, fontweight='bold', pad=10 )
+			ax.ticklabel_format( style='plain', axis='both' )
+			ax.get_lines( )[ 0 ].set_marker( 'o' )
+			ax.get_lines( )[ 0 ].set_alpha( 0.7 )
+			ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
+			fig.tight_layout( )
+			st.pyplot( fig )
+			plt.close( fig )
+			st.write( f'Shapiro–Wilk statistic = {stat:.4f}, p-value = {p_value:.4g}' )
+		else:
+			st.info( 'Not enough observations for normality testing.' )
+		
+		st.divider( )
+		
+		# =====================================================================================
+		# GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS
+		# =====================================================================================
+		if col_group:
+			st.subheader( 'Group Comparison' )
+			grouped = [ grp[ col_y ].dropna( ).values for _, grp in df_dataset.groupby( col_group ) ]
+			valid_groups = [ g for g in grouped if len( g ) >= 2 ]
+			if len( valid_groups ) >= 2:
+				f_stat, p_anova = stats.f_oneway( *valid_groups )
+				fig, ax = inferential_plot( title=f'ANOVA: {col_y} by {col_group}',
+					subtitle=f'p = {p_anova:.3g}', figsize=(6, 4) )
+				means = df_dataset.groupby( col_group )[ col_y ].mean( )
+				means.plot( kind='bar', ax=ax, edgecolor='black', linewidth=1.2, alpha=0.8 )
+				ax.set_xlabel( col_group )
+				ax.set_ylabel( col_y )
+				st.pyplot( fig )
+				plt.close( fig )
+			st.write( f'ANOVA F-statistic = {f_stat:.4f}, p-value = {p_anova:.4g}' )
+			h_stat, p_kw = stats.kruskal( *valid_groups )
+			st.write( f'Kruskal–Wallis H-statistic = {h_stat:.4f}, p-value = {p_kw:.4g}' )
+		else:
+			st.info( 'Not enough valid groups for group comparison.' )
+			
+			st.divider( )
+		
+		# =====================================================================================
+		# CORRELATION ANALYSIS — PEARSON + SPEARMAN
+		# =====================================================================================
+		st.subheader( 'Correlation Analysis' )
+		
+		col_x2 = st.selectbox( 'Select second numeric variable', [ c for c in numeric_cols if c != col_y ] )
+		x = df_dataset[ col_x2 ]
+		y = df_dataset[ col_y ]
+		mask = x.notna( ) & y.notna( )
+		if mask.sum( ) >= 3:
+			r_p, p_p = stats.pearsonr( x[ mask ], y[ mask ] )
+			r_s, p_s = stats.spearmanr( x[ mask ], y[ mask ] )
+			fig, ax = inferential_plot( title=f'Correlation: {col_y} vs {col_x2}',
+				subtitle=f'Pearson r = {r_p:.3f} (p={p_p:.3g}) |  Spearman ρ = {r_s:.3f} (p='
+				         f'{p_s:.3g})', figsize=(6, 4), ref_line=0.0 )
+			ax.scatter( x[ mask ], y[ mask ], alpha=0.7, edgecolor='black' )
+			ax.set_xlabel( col_x2 )
 			ax.set_ylabel( col_y )
 			st.pyplot( fig )
 			plt.close( fig )
-		st.write( f'ANOVA F-statistic = {f_stat:.4f}, p-value = {p_anova:.4g}' )
-		h_stat, p_kw = stats.kruskal( *valid_groups )
-		st.write( f'Kruskal–Wallis H-statistic = {h_stat:.4f}, p-value = {p_kw:.4g}' )
-	else:
-		st.info( 'Not enough valid groups for group comparison.' )
+		else:
+			st.info( 'Not enough paired observations for correlation.' )
 		
 		st.divider( )
-	
-	# =====================================================================================
-	# CORRELATION ANALYSIS — PEARSON + SPEARMAN
-	# =====================================================================================
-	st.subheader( 'Correlation Analysis' )
-	
-	col_x2 = st.selectbox( 'Select second numeric variable', [ c for c in numeric_cols if c != col_y ] )
-	x = df_dataset[ col_x2 ]
-	y = df_dataset[ col_y ]
-	mask = x.notna( ) & y.notna( )
-	if mask.sum( ) >= 3:
-		r_p, p_p = stats.pearsonr( x[ mask ], y[ mask ] )
-		r_s, p_s = stats.spearmanr( x[ mask ], y[ mask ] )
-		fig, ax = inferential_plot( title=f'Correlation: {col_y} vs {col_x2}',
-			subtitle=f'Pearson r = {r_p:.3f} (p={p_p:.3g}) |  Spearman ρ = {r_s:.3f} (p='
-			         f'{p_s:.3g})', figsize=(6, 4), ref_line=0.0 )
-		ax.scatter( x[ mask ], y[ mask ], alpha=0.7, edgecolor='black' )
-		ax.set_xlabel( col_x2 )
-		ax.set_ylabel( col_y )
-		st.pyplot( fig )
-		plt.close( fig )
-	else:
-		st.info( 'Not enough paired observations for correlation.' )
-	
-	st.divider( )
-	
-	# =====================================================================================
-	# CATEGORICAL ASSOCIATION — CHI-SQUARE + CRAMÉR’S V
-	# =====================================================================================
-	if categorical_cols:
-		st.subheader( 'Categorical Association' )
-		col_cat1 = st.selectbox( 'Select first categorical variable', categorical_cols )
-		col_cat2 = st.selectbox( 'Select second categorical variable',
-			[ c for c in categorical_cols if c != col_cat1 ] )
-		contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
 		
-		if contingency.size > 0:
-			chi2, p_chi, dof, _ = stats.chi2_contingency( contingency )
-			n = contingency.values.sum( )
-			cramers_v = np.sqrt( chi2 / (n * (min( contingency.shape ) - 1)) )
-			st.write( f'Chi-square = {chi2:.4f}, p-value = {p_chi:.4g}, ramér’s V = '
-			          f'{cramers_v:.4f}' )
-			st.data_editor( contingency, use_container_width=True )
-		else:
-			st.info( 'Insufficient data for categorical association.' )
+		# =====================================================================================
+		# CATEGORICAL ASSOCIATION — CHI-SQUARE + CRAMÉR’S V
+		# =====================================================================================
+		if categorical_cols:
+			st.subheader( 'Categorical Association' )
+			col_cat1 = st.selectbox( 'Select first categorical variable', categorical_cols )
+			col_cat2 = st.selectbox( 'Select second categorical variable',
+				[ c for c in categorical_cols if c != col_cat1 ] )
+			contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
+			
+			if contingency.size > 0:
+				chi2, p_chi, dof, _ = stats.chi2_contingency( contingency )
+				n = contingency.values.sum( )
+				cramers_v = np.sqrt( chi2 / (n * (min( contingency.shape ) - 1)) )
+				st.write( f'Chi-square = {chi2:.4f}, p-value = {p_chi:.4g}, ramér’s V = '
+				          f'{cramers_v:.4f}' )
+				st.data_editor( contingency, use_container_width=True )
+			else:
+				st.info( 'Insufficient data for categorical association.' )
 
 # ============================================
 # ANOMALY DETECTION MODE
 # ============================================
 elif mode == 'Anomaly Detection':
-	st.header( cfg.MODE[ 'Anomaly Detection' ] )
-	st.divider( )
-	
-	if st.session_state.df_dataset is None:
-		st.info( 'No data loaded.' )
-		st.stop( )
-	
-	df_dataset = st.session_state.df_dataset
-	
-	df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
-	
-	if df_numeric.empty:
-		st.info( 'No usable numeric columns available for anomaly detection.' )
-		st.stop( )
-	
-	all_num_cols = df_numeric.columns.tolist( )
-	preferred = [ c for c in all_num_cols if c.lower( ) in ( 'py', 'cy', 'by' ) ]
-	default_vars = preferred if preferred else default_pick( all_num_cols, 2 )	
-	vars_sel = st.multiselect( 'Variables to Analyze', all_num_cols, default=default_vars )
-	if not vars_sel:
-		st.info( 'Select at least one numeric variable to run anomaly detection.' )
-		st.stop( )
-	
-	analysis_scale = st.checkbox( 'Use analysis-only standardization', value=True )
-	df_analysis = df_numeric[ vars_sel ].copy( )	
-	if analysis_scale and len( vars_sel ) > 1:
-		df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
-	
-	# -------------------------------------------------------------------------
-	# Method Selection
-	# -------------------------------------------------------------------------
-	st.subheader( 'Detection Methods' )
-	st.divider( )
-	
-	c_m1, c_m2 = st.columns( 2, border=True )
-	
-	with c_m1:
-		use_z = st.checkbox( 'Z-Score', value=True )
-		use_mz = st.checkbox( 'Modified Z-Score (MAD)', value=True )
-		use_iqr = st.checkbox( 'IQR Fence', value=True )
-	
-	with c_m2:
-		use_mahal = st.checkbox( 'Mahalanobis Distance', value=True )
-		use_iforest = st.checkbox( 'Isolation Forest', value=True )
-		use_lof = st.checkbox( 'Local Outlier Factor (LOF)', value=False )
-	
-	# -------------------------------------------------------------------------
-	# Threshold Controls
-	# -------------------------------------------------------------------------
-	st.subheader( 'Thresholds' )
-	st.divider( )
-	
-	c_t1, c_t2 = st.columns( 2, border=True )
-	
-	with c_t1:
-		z_thresh = st.slider( 'Z / Modified Z threshold', 2.0, 5.0, 3.0, 0.1 )
-		iqr_mult = st.slider( 'IQR multiplier', 1.0, 3.0, 1.5, 0.1 )
-	
-	with c_t2:
-		lof_k = st.slider( 'LOF Neighbors (k)', 5, 50, 20, 1 )
-		min_methods = st.slider( 'Consensus: minimum methods flagging a row', 1, 4, 1, 1 )
-	
-	# -------------------------------------------------------------------------
-	# Run Detection
-	# -------------------------------------------------------------------------
-	df_anamolies = pd.DataFrame( index=df_analysis.index )
-	
-	# --- Univariate methods
-	for col in vars_sel:
-		s = df_analysis[ col ].dropna( )
-		if s.empty:
-			continue
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Anomaly Detection' ] )
+		st.divider( )
 		
-		if use_z:
-			z = (s - s.mean( ) ) / s.std( ) if s.std( ) else pd.Series( 0, index=s.index )
-			df_anamolies[ f'{col}_z' ] = z.abs( ) >= z_thresh
+		if st.session_state.df_dataset is None:
+			st.info( 'No data loaded.' )
+			st.stop( )
 		
-		if use_mz:
-			med = s.median( )
-			mad = np.median( np.abs( s - med ) )
-			if mad == 0:
-				mz = pd.Series( 0, index=s.index )
-			else:
-				mz = 0.6745 * (s - med) / mad
-				
-			df_anamolies[ f'{col}_mz' ] = mz.abs( ) >= z_thresh
+		df_dataset = st.session_state.df_dataset
 		
-		if use_iqr:
-			q1, q3 = s.quantile( 0.25 ), s.quantile( 0.75 )
-			iqr = q3 - q1
-			lo = q1 - iqr_mult * iqr
-			hi = q3 + iqr_mult * iqr
-			df_anamolies[ f'{col}_iqr' ] = (s < lo) | (s > hi)
-	
-	# --- Multivariate methods
-	df_muliti = df_analysis.dropna( axis=0 )
-	
-	if df_muliti.shape[ 0 ] >= 10 and df_muliti.shape[ 1 ] >= 2:
-		if use_mahal:
-			cov = np.cov( df_muliti.values, rowvar=False )
-			if np.linalg.det( cov ) != 0:
-				inv_cov = np.linalg.inv( cov )
-				mean = df_muliti.mean( ).values
-				diffs = df_muliti.values - mean
-				md = np.sqrt( np.einsum( 'ij,jk,ik->i', diffs, inv_cov, diffs ) )
-				cutoff = np.sqrt( stats.chi2.ppf( 0.975, df_muliti.shape[ 1 ] ) )
-				df_anamolies.loc[ df_muliti.index, 'mahal' ] = md > cutoff
+		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
 		
-		if use_iforest:
-			from sklearn.ensemble import IsolationForest			
-			iso = IsolationForest( contamination='auto', random_state=42 )
-			preds = iso.fit_predict( df_muliti.values )
-			df_anamolies.loc[ df_muliti.index, 'iforest' ] = preds == -1
+		if df_numeric.empty:
+			st.info( 'No usable numeric columns available for anomaly detection.' )
+			st.stop( )
 		
-		if use_lof:
-			from sklearn.neighbors import LocalOutlierFactor
-			lof = LocalOutlierFactor( n_neighbors=lof_k )
-			preds = lof.fit_predict( df_muliti.values )
-			df_anamolies.loc[ df_muliti.index, 'lof' ] = preds == -1
-	
-	# -------------------------------------------------------------------------
-	# Consensus & Output
-	# -------------------------------------------------------------------------
-	st.subheader( 'Outlier Summary' )
-	st.divider( )
-	if df_anamolies.empty:
-		st.info( 'No anomalies detected under the selected methods and thresholds.' )
-		st.stop( )
-	
-	df_anamolies = df_anamolies.fillna( False )
-	df_anamolies[ 'methods_flagged' ] = df_anamolies.sum( axis=1 )
-	anomalies = df_anamolies[ df_anamolies[ 'methods_flagged' ] >= min_methods ]
-	
-	c_o1, c_o2 = st.columns( 2, border=True )
-	with c_o1:
-		st.subheader( 'Flagged Observations' )
-		render_table( anomalies.sort_values( 'methods_flagged', ascending=False ) )
-	
-	with c_o2:
-		st.subheader( 'Flag Count Distribution' )
-		fig, ax = plt.subplots( figsize=(7, 5) )
-		anomalies[ 'methods_flagged' ].value_counts( ).sort_index( ).plot( kind='bar', 
-			ax=ax, edgecolor='black' )
-		ax.set_xlabel( 'Number of Methods Flagging' )
-		ax.set_ylabel( 'Observation Count' )
-		ax.set_title( 'Consensus Strength' )
-		fig.tight_layout( )
-		st.pyplot( fig, use_container_width=True )
-		plt.close( fig )
-	
-	# -------------------------------------------------------------------------
-	# Visualization — Distribution with Anomalies
-	# -------------------------------------------------------------------------
-	st.subheader( 'Distributions with Anomalies Highlighted' )
-	st.divider( )
-	
-	for col in vars_sel:
-		if col not in df_analysis.columns:
-			continue
+		all_num_cols = df_numeric.columns.tolist( )
+		preferred = [ c for c in all_num_cols if c.lower( ) in ( 'py', 'cy', 'by' ) ]
+		default_vars = preferred if preferred else default_pick( all_num_cols, 2 )
+		vars_sel = st.multiselect( 'Variables to Analyze', all_num_cols, default=default_vars )
+		if not vars_sel:
+			st.info( 'Select at least one numeric variable to run anomaly detection.' )
+			st.stop( )
 		
-		s = df_analysis[ col ]
-		flagged_idx = anomalies.index.intersection( s.index )
+		analysis_scale = st.checkbox( 'Use analysis-only standardization', value=True )
+		df_analysis = df_numeric[ vars_sel ].copy( )
+		if analysis_scale and len( vars_sel ) > 1:
+			df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
 		
-		if flagged_idx.empty:
-			continue
+		# -------------------------------------------------------------------------
+		# Method Selection
+		# -------------------------------------------------------------------------
+		st.subheader( 'Detection Methods' )
+		st.divider( )
 		
-		c_v1, c_v2 = st.columns( 2 )
-		with c_v1:
+		c_m1, c_m2 = st.columns( 2, border=True )
+		
+		with c_m1:
+			use_z = st.checkbox( 'Z-Score', value=True )
+			use_mz = st.checkbox( 'Modified Z-Score (MAD)', value=True )
+			use_iqr = st.checkbox( 'IQR Fence', value=True )
+		
+		with c_m2:
+			use_mahal = st.checkbox( 'Mahalanobis Distance', value=True )
+			use_iforest = st.checkbox( 'Isolation Forest', value=True )
+			use_lof = st.checkbox( 'Local Outlier Factor (LOF)', value=False )
+		
+		# -------------------------------------------------------------------------
+		# Threshold Controls
+		# -------------------------------------------------------------------------
+		st.subheader( 'Thresholds' )
+		st.divider( )
+		
+		c_t1, c_t2 = st.columns( 2, border=True )
+		
+		with c_t1:
+			z_thresh = st.slider( 'Z / Modified Z threshold', 2.0, 5.0, 3.0, 0.1 )
+			iqr_mult = st.slider( 'IQR multiplier', 1.0, 3.0, 1.5, 0.1 )
+		
+		with c_t2:
+			lof_k = st.slider( 'LOF Neighbors (k)', 5, 50, 20, 1 )
+			min_methods = st.slider( 'Consensus: minimum methods flagging a row', 1, 4, 1, 1 )
+		
+		# -------------------------------------------------------------------------
+		# Run Detection
+		# -------------------------------------------------------------------------
+		df_anamolies = pd.DataFrame( index=df_analysis.index )
+		
+		# --- Univariate methods
+		for col in vars_sel:
+			s = df_analysis[ col ].dropna( )
+			if s.empty:
+				continue
+			
+			if use_z:
+				z = (s - s.mean( ) ) / s.std( ) if s.std( ) else pd.Series( 0, index=s.index )
+				df_anamolies[ f'{col}_z' ] = z.abs( ) >= z_thresh
+			
+			if use_mz:
+				med = s.median( )
+				mad = np.median( np.abs( s - med ) )
+				if mad == 0:
+					mz = pd.Series( 0, index=s.index )
+				else:
+					mz = 0.6745 * (s - med) / mad
+					
+				df_anamolies[ f'{col}_mz' ] = mz.abs( ) >= z_thresh
+			
+			if use_iqr:
+				q1, q3 = s.quantile( 0.25 ), s.quantile( 0.75 )
+				iqr = q3 - q1
+				lo = q1 - iqr_mult * iqr
+				hi = q3 + iqr_mult * iqr
+				df_anamolies[ f'{col}_iqr' ] = (s < lo) | (s > hi)
+		
+		# --- Multivariate methods
+		df_muliti = df_analysis.dropna( axis=0 )
+		
+		if df_muliti.shape[ 0 ] >= 10 and df_muliti.shape[ 1 ] >= 2:
+			if use_mahal:
+				cov = np.cov( df_muliti.values, rowvar=False )
+				if np.linalg.det( cov ) != 0:
+					inv_cov = np.linalg.inv( cov )
+					mean = df_muliti.mean( ).values
+					diffs = df_muliti.values - mean
+					md = np.sqrt( np.einsum( 'ij,jk,ik->i', diffs, inv_cov, diffs ) )
+					cutoff = np.sqrt( stats.chi2.ppf( 0.975, df_muliti.shape[ 1 ] ) )
+					df_anamolies.loc[ df_muliti.index, 'mahal' ] = md > cutoff
+			
+			if use_iforest:
+				from sklearn.ensemble import IsolationForest
+				iso = IsolationForest( contamination='auto', random_state=42 )
+				preds = iso.fit_predict( df_muliti.values )
+				df_anamolies.loc[ df_muliti.index, 'iforest' ] = preds == -1
+			
+			if use_lof:
+				from sklearn.neighbors import LocalOutlierFactor
+				lof = LocalOutlierFactor( n_neighbors=lof_k )
+				preds = lof.fit_predict( df_muliti.values )
+				df_anamolies.loc[ df_muliti.index, 'lof' ] = preds == -1
+		
+		# -------------------------------------------------------------------------
+		# Consensus & Output
+		# -------------------------------------------------------------------------
+		st.subheader( 'Outlier Summary' )
+		st.divider( )
+		if df_anamolies.empty:
+			st.info( 'No anomalies detected under the selected methods and thresholds.' )
+			st.stop( )
+		
+		df_anamolies = df_anamolies.fillna( False )
+		df_anamolies[ 'methods_flagged' ] = df_anamolies.sum( axis=1 )
+		anomalies = df_anamolies[ df_anamolies[ 'methods_flagged' ] >= min_methods ]
+		
+		c_o1, c_o2 = st.columns( 2, border=True )
+		with c_o1:
+			st.subheader( 'Flagged Observations' )
+			render_table( anomalies.sort_values( 'methods_flagged', ascending=False ) )
+		
+		with c_o2:
+			st.subheader( 'Flag Count Distribution' )
 			fig, ax = plt.subplots( figsize=(7, 5) )
-			ax.hist( s.dropna( ), bins=30, alpha=0.7, edgecolor='black' )
-			ax.scatter( s.loc[ flagged_idx ], np.zeros( len( flagged_idx ) ),
-				color='red', label='Anomalies' )
-			ax.set_title( f'{col} — Histogram with Anomalies' )
-			ax.legend( )
+			anomalies[ 'methods_flagged' ].value_counts( ).sort_index( ).plot( kind='bar',
+				ax=ax, edgecolor='black' )
+			ax.set_xlabel( 'Number of Methods Flagging' )
+			ax.set_ylabel( 'Observation Count' )
+			ax.set_title( 'Consensus Strength' )
 			fig.tight_layout( )
 			st.pyplot( fig, use_container_width=True )
 			plt.close( fig )
 		
-		with c_v2:
-			fig, ax = plt.subplots( figsize=(7, 5) )
-			ax.boxplot( s.dropna( ), vert=False )
-			ax.scatter( s.loc[ flagged_idx ], np.ones( len( flagged_idx ) ), color='red' )
-			ax.set_title( f'{col} — Boxplot with Anomalies' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
-	
-	# -------------------------------------------------------------------------
-	# Export
-	# -------------------------------------------------------------------------
-	st.download_button( "Export Anomaly Table (CSV)", anomalies.to_csv( ),
-		"anomalies.csv", "text/csv" )
+		# -------------------------------------------------------------------------
+		# Visualization — Distribution with Anomalies
+		# -------------------------------------------------------------------------
+		st.subheader( 'Distributions with Anomalies Highlighted' )
+		st.divider( )
+		
+		for col in vars_sel:
+			if col not in df_analysis.columns:
+				continue
+			
+			s = df_analysis[ col ]
+			flagged_idx = anomalies.index.intersection( s.index )
+			
+			if flagged_idx.empty:
+				continue
+			
+			c_v1, c_v2 = st.columns( 2 )
+			with c_v1:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				ax.hist( s.dropna( ), bins=30, alpha=0.7, edgecolor='black' )
+				ax.scatter( s.loc[ flagged_idx ], np.zeros( len( flagged_idx ) ),
+					color='red', label='Anomalies' )
+				ax.set_title( f'{col} — Histogram with Anomalies' )
+				ax.legend( )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
+			
+			with c_v2:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				ax.boxplot( s.dropna( ), vert=False )
+				ax.scatter( s.loc[ flagged_idx ], np.ones( len( flagged_idx ) ), color='red' )
+				ax.set_title( f'{col} — Boxplot with Anomalies' )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
+		
+		# -------------------------------------------------------------------------
+		# Export
+		# -------------------------------------------------------------------------
+		st.download_button( "Export Anomaly Table (CSV)", anomalies.to_csv( ),
+			"anomalies.csv", "text/csv" )
 
 # ============================================
 # FEATURE ENGINEERING MODE
