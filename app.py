@@ -405,12 +405,12 @@ if mode == 'Data Profile':
 		st.subheader( 'Data' )
 		render_table( df_dataset )
 		
-		st.divider( )
 		
 		# -------------------------------------------------------------------------------------
 		# SCHEMA METRICS
 		# -------------------------------------------------------------------------------------
 		st.subheader( 'Types' )
+		st.divider( )
 		type_counts = pd.Series( schema ).value_counts( )
 		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
 		m1.metric( 'Rows', len( df_dataset ) )
@@ -420,7 +420,6 @@ if mode == 'Data Profile':
 		m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
 		
 		st.divider( )
-		
 		st.subheader( 'Records' )
 		with st.expander( 'Editor', expanded=True ):
 			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
@@ -482,7 +481,6 @@ if mode == 'Data Profile':
 		# =====================================================================================
 		
 		st.divider( )
-		
 		st.subheader( 'Diagnostics' )
 		
 		v1, v2 = st.columns( 2, border=True )
@@ -510,7 +508,7 @@ if mode == 'Data Profile':
 				st.info( 'No Missing Values Detected.' )
 		
 		st.divider( )
-		
+		st.subheader( 'Cardinaltiy' )
 		v3, v4 = st.columns( 2, border=True )
 		with v3:
 			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
@@ -529,7 +527,7 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# COLUMN CRUD
 		# -------------------------------------------------------------------------------------
-	
+		st.divider( )
 		st.subheader( 'Labels' )
 		with st.expander( label='Editor', expanded=True ):
 			c1, c2 = st.columns( 2, border=True )
@@ -588,17 +586,16 @@ elif mode == 'Descriptive Statistics':
 		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
 		if df_numeric.empty:
 			st.stop( )
-		
-		all_num_cols = df_numeric.columns.tolist( )
-		vars_sel = st.multiselect( 'Select numeric variables', all_num_cols,
-			default=default_pick( all_num_cols, 3 ) )
+			
+		num_c1, num_c2c2 = st.columns( [ 0.5, 0.5 ] , border=False )
+		with num_c1:
+			all_num_cols = df_numeric.columns.tolist( )
+			vars_sel = st.multiselect( 'Select Numeric Variables', all_num_cols,
+				default=default_pick( all_num_cols, 3 ) )
 		
 		for col in vars_sel:
 			s = df_numeric[ col ].dropna( )
-			
 			st.subheader( f'Distribution & Shape — {col}' )
-		
-			st.divider( )
 			c1, c2 = st.columns( 2, border=True )
 			
 			with c1:
@@ -620,43 +617,43 @@ elif mode == 'Descriptive Statistics':
 				plt.close( fig )
 		
 		st.subheader( 'Correlation Structure' )
-		
-		st.divider( )
-		
-		corr_vars = st.multiselect( 'Variables for correlation',
-			all_num_cols, default=default_pick( all_num_cols, 4 ) )
-		
-		if len( corr_vars ) >= 2:
-			df_correlation = analysis_fillna_mean( df_numeric[ corr_vars ] )
-			corr = df_correlation.corr( )
-			c3, c4 = st.columns( 2, border=True )
+		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ] )
+		with cor_c1:
+			corr_vars = st.multiselect( 'Variables for Correlation',
+				all_num_cols, default=default_pick( all_num_cols, 4 ) )
 			
-			with c3:
+		c3, c4 = st.columns( 2, border=True )
+		with c3:
+			if len( corr_vars ) >= 2:
+				df_correlation = analysis_fillna_mean( df_numeric[ corr_vars ] )
+				corr = df_correlation.corr( )
 				render_table( corr )
-			
-			with c4:
-				fig, ax = plt.subplots( figsize=(7, 6) )
-				im = ax.imshow( corr.values, cmap='coolwarm', vmin=-1, vmax=1 )
-				fig.colorbar( im, ax=ax )
-				ax.set_xticks( range( len( corr_vars ) ) )
-				ax.set_yticks( range( len( corr_vars ) ) )
-				ax.set_xticklabels( corr_vars, rotation=45, ha='right' )
-				ax.set_yticklabels( corr_vars )
-				ax.set_title( 'Correlation Heatmap' )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+				
+		with c4:
+			fig, ax = plt.subplots( figsize=(7, 6) )
+			im = ax.imshow( corr.values, cmap='coolwarm', vmin=-1, vmax=1 )
+			fig.colorbar( im, ax=ax )
+			ax.set_xticks( range( len( corr_vars ) ) )
+			ax.set_yticks( range( len( corr_vars ) ) )
+			ax.set_xticklabels( corr_vars, rotation=45, ha='right' )
+			ax.set_yticklabels( corr_vars )
+			ax.set_title( 'Correlation Heatmap' )
+			fig.tight_layout( )
+			st.pyplot( fig, use_container_width=True )
+			plt.close( fig )
 		
 		st.subheader( 'Principal Component Analysis' )
 		
-		st.divider( )
+		pca_c1, pca_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with pca_c1:
+			pca_vars = st.multiselect( 'Select Components', all_num_cols,
+				default=default_pick( all_num_cols, 4 ) )
 		
-		pca_vars = st.multiselect( 'Variables for PCA', all_num_cols,
-			default=default_pick( all_num_cols, 4 ) )
-		
+		with pca_c2:
+			n_comp = st.slider( 'Components', 2, min( 6, len( pca_vars ) ), 3 )
+			
 		if len( pca_vars ) >= 2:
 			X = analysis_fillna_mean( df_numeric[ pca_vars ] )
-			n_comp = st.slider( 'Components', 2, min( 6, len( pca_vars ) ), 3 )
 			
 			Xs = SKStandardScaler( ).fit_transform( X )
 			pca = PCA( n_components=n_comp ).fit( Xs )
@@ -664,19 +661,18 @@ elif mode == 'Descriptive Statistics':
 			df_explained = pd.DataFrame( { 'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
 					'Explained Variance (%)': pca.explained_variance_ratio_ * 100 } )
 			
-			c5, c6 = st.columns( 2, border=True )
-			
-			with c5:
-				render_table( df_explained )
-			
-			with c6:
-				fig, ax = plt.subplots( figsize=(7, 5) )
-				ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ], edgecolor='black' )
-				ax.set_ylabel( '% Variance Explained' )
-				ax.set_title( 'PCA Variance Explained' )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+		c5, c6 = st.columns( 2, border=True )
+		with c5:
+			render_table( df_explained )
+		
+		with c6:
+			fig, ax = plt.subplots( figsize=(7, 5) )
+			ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ], edgecolor='black' )
+			ax.set_ylabel( '% Variance Explained' )
+			ax.set_title( 'PCA Variance Explained' )
+			fig.tight_layout( )
+			st.pyplot( fig, use_container_width=True )
+			plt.close( fig )
 
 # ============================================
 # INFERENTIAL STATISTICS MODE
@@ -703,15 +699,17 @@ elif mode == 'Inferential Statistics':
 		# -------------------------------------------------------------------------------------
 		# VARIABLE SELECTION
 		# -------------------------------------------------------------------------------------
+		vco_c1, vco_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with vco_c1:
+			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
 		
-		col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
-		
-		col_group = None
-		if categorical_cols:
-			col_group = st.selectbox( 'Select grouping variable (optional)',
-				[ '<None>' ] + categorical_cols )
-			if col_group == '<None>':
-				col_group = None
+		with vco_c2:
+			col_group = None
+			if categorical_cols:
+				col_group = st.selectbox( 'Select Grouping Variable (optional)',
+					[ '<None>' ] + categorical_cols )
+				if col_group == '<None>':
+					col_group = None
 		
 		st.divider( )
 		
