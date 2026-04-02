@@ -840,7 +840,7 @@ elif mode == 'Anomaly Detection':
 			st.info( 'Select at least one numeric variable to run anomaly detection.' )
 			st.stop( )
 		
-		analysis_scale = st.checkbox( 'Use analysis-only standardization', value=True )
+		analysis_scale = st.checkbox( 'Use analysis-only standardization', value=False )
 		df_analysis = df_numeric[ vars_sel ].copy( )
 		if analysis_scale and len( vars_sel ) > 1:
 			df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
