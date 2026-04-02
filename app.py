@@ -678,41 +678,31 @@ elif mode == 'Descriptive Statistics':
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with center:
-		st.header( cfg.MODE[ 'Inferential Statistics' ] )
-		st.divider( )
-		
-		df_dataset = st.session_state.df_dataset
+	st.header( cfg.MODE[ 'Inferential Statistics' ] )
+	st.divider( )
 	
-		if df_dataset is None or df_dataset.empty:
-			st.info( 'No data available.' )
-			st.stop( )
-		
-		numeric_cols = st.session_state.numeric_cols
-		categorical_cols = st.session_state.categorical_cols
-		
-		if not numeric_cols:
-			st.info( 'No numeric variables available for inferential analysis.' )
-			st.stop( )
-		
-		# ------------ VARIABLE SELECTION
-		vco_c1, vco_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-		with vco_c1:
-			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
-		
-		with vco_c2:
-			col_group = None
-			if categorical_cols:
-				col_group = st.selectbox( 'Select Grouping Variable (optional)',
-					[ '<None>' ] + categorical_cols )
-				if col_group == '<None>':
-					col_group = None
-		
+	df_dataset = st.session_state.df_dataset
+
+	if df_dataset is None or df_dataset.empty:
+		st.info( 'No data available.' )
+		st.stop( )
+	
+	numeric_cols = st.session_state.numeric_cols
+	categorical_cols = st.session_state.categorical_cols
+	
+	if not numeric_cols:
+		st.info( 'No numeric variables available for inferential analysis.' )
+		st.stop( )
+	
+	# ------------ VARIABLE SELECTION
+	nml_c1, nml_c2 = st.columns( [ 0.5, 0.5 ], border=True, gap='medium' )
+	col_group = None
+	with nml_c1:
+		st.markdown( '##### Normality Test' )
+		col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
+		y = df_dataset[ col_y ].dropna( )
 		
 		# ------------ NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT
-		st.subheader( 'Normality Test' )
-		y = df_dataset[ col_y ].dropna( )
 		if len( y ) >= 3:
 			stat, p_value = stats.shapiro( y )
 			fig, ax = plt.subplots( figsize=(5, 5) )
@@ -726,16 +716,23 @@ elif mode == 'Inferential Statistics':
 			fig.tight_layout( )
 			st.pyplot( fig )
 			plt.close( fig )
-			st.write( f'Shapiro–Wilk statistic = {stat:.4f}, p-value = {p_value:.4g}' )
+			st.text( f'Shapiro–Wilk W = {stat:.4f}, p = {p_value:.4g}' )
 		else:
 			st.info( 'Not enough observations for normality testing.' )
-		
-		st.divider( )
+	
+	with nml_c2:
+		st.markdown( '##### Group Comparison' )
+		col_group = None
+		if categorical_cols:
+			col_group = st.selectbox( 'Select Grouping Variable (optional)',
+				[ '<None>' ] + categorical_cols )
+			if col_group == '<None>':
+				col_group = None
 		
 		# ------------ GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS
 		if col_group:
-			st.subheader( 'Group Comparison' )
-			grouped = [ grp[ col_y ].dropna( ).values for _, grp in df_dataset.groupby( col_group ) ]
+			grouped = [ grp[ col_y ].dropna( ).values for _, grp in
+			            df_dataset.groupby( col_group ) ]
 			valid_groups = [ g for g in grouped if len( g ) >= 2 ]
 			if len( valid_groups ) >= 2:
 				f_stat, p_anova = stats.f_oneway( *valid_groups )
@@ -747,58 +744,72 @@ elif mode == 'Inferential Statistics':
 				ax.set_ylabel( col_y )
 				st.pyplot( fig )
 				plt.close( fig )
-			st.write( f'ANOVA F-statistic = {f_stat:.4f}, p-value = {p_anova:.4g}' )
-			h_stat, p_kw = stats.kruskal( *valid_groups )
-			st.write( f'Kruskal–Wallis H-statistic = {h_stat:.4f}, p-value = {p_kw:.4g}' )
+				h_stat, p_kw = stats.kruskal( *valid_groups )
+				A = f'ANOVA: F = {f_stat:.4f}, p = {p_anova:.4f}; '
+				B = f'Kruskal–Wallis: H = {h_stat:.4f}, p- = {p_kw:.4g}'
+				st.text( A + B )
 		else:
 			st.info( 'Not enough valid groups for group comparison.' )
 			
-			st.divider( )
+	
+	# ------------ CORRELATION ANALYSIS — PEARSON + SPEARMAN
+	st.divider( )
+	st.subheader( 'Correlation Analysis' )
+	cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+	with cor_c1:
+		col_x2 = st.selectbox( 'Select second numeric variable',
+			[ c for c in numeric_cols if c != col_y ] )
 		
-		# =====================================================================================
-		# CORRELATION ANALYSIS — PEARSON + SPEARMAN
-		# =====================================================================================
-		st.subheader( 'Correlation Analysis' )
-		
-		col_x2 = st.selectbox( 'Select second numeric variable', [ c for c in numeric_cols if c != col_y ] )
 		x = df_dataset[ col_x2 ]
 		y = df_dataset[ col_y ]
+	
+	with cor_c2:
 		mask = x.notna( ) & y.notna( )
 		if mask.sum( ) >= 3:
 			r_p, p_p = stats.pearsonr( x[ mask ], y[ mask ] )
 			r_s, p_s = stats.spearmanr( x[ mask ], y[ mask ] )
-			fig, ax = inferential_plot( title=f'Correlation: {col_y} vs {col_x2}',
-				subtitle=f'Pearson r = {r_p:.3f} (p={p_p:.3g}) |  Spearman ρ = {r_s:.3f} (p='
-				         f'{p_s:.3g})', figsize=(6, 4), ref_line=0.0 )
-			ax.scatter( x[ mask ], y[ mask ], alpha=0.7, edgecolor='black' )
-			ax.set_xlabel( col_x2 )
-			ax.set_ylabel( col_y )
-			st.pyplot( fig )
-			plt.close( fig )
-		else:
-			st.info( 'Not enough paired observations for correlation.' )
+		st.text( f'Pearson r = {r_p:.3f} (p={p_p:.3g}) ')
+		st.text( f'Spearman ρ = {r_s:.3f} (p= {p_s:.3g})' )
+	mask = x.notna( ) & y.notna( )
+	if mask.sum( ) >= 3:
+		r_p, p_p = stats.pearsonr( x[ mask ], y[ mask ] )
+		r_s, p_s = stats.spearmanr( x[ mask ], y[ mask ] )
+		fig, ax = inferential_plot( title=f'Correlation: {col_y} vs {col_x2}',
+			figsize=(6, 4), ref_line=0.0 )
+		ax.scatter( x[ mask ], y[ mask ], alpha=0.7, edgecolor='black' )
+		ax.set_xlabel( col_x2 )
+		ax.set_ylabel( col_y )
+		st.pyplot( fig )
+		plt.close( fig )
+	else:
+		st.info( 'Not enough paired observations for correlation.' )
+	
 		
-		st.divider( )
-		
-		# =====================================================================================
-		# CATEGORICAL ASSOCIATION — CHI-SQUARE + CRAMÉR’S V
-		# =====================================================================================
+	# ------------  CATEGORICAL ASSOCIATION — CHI-SQUARE + CRAMÉR’S V
+	st.divider( )
+	st.subheader( 'Categorical Association' )
+	cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+	with cat_c1:
 		if categorical_cols:
-			st.subheader( 'Categorical Association' )
-			col_cat1 = st.selectbox( 'Select first categorical variable', categorical_cols )
-			col_cat2 = st.selectbox( 'Select second categorical variable',
-				[ c for c in categorical_cols if c != col_cat1 ] )
+				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
+	
+	with cat_c2:
+		if categorical_cols:
+			col_cat2 = st.selectbox( 'Select Second Categorical Variable',
+						[ c for c in categorical_cols if c != col_cat1 ] )
 			contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
-			
-			if contingency.size > 0:
-				chi2, p_chi, dof, _ = stats.chi2_contingency( contingency )
-				n = contingency.values.sum( )
-				cramers_v = np.sqrt( chi2 / (n * (min( contingency.shape ) - 1)) )
-				st.write( f'Chi-square = {chi2:.4f}, p-value = {p_chi:.4g}, ramér’s V = '
-				          f'{cramers_v:.4f}' )
-				st.data_editor( contingency, use_container_width=True )
-			else:
-				st.info( 'Insufficient data for categorical association.' )
+	
+	st.divider( )
+	
+	if contingency.size > 0:
+			chi2, p_chi, dof, _ = stats.chi2_contingency( contingency )
+			n = contingency.values.sum( )
+			cramers_v = np.sqrt( chi2 / (n * (min( contingency.shape ) - 1)) )
+			st.write( f'Chi-square = {chi2:.4f}, p-value = {p_chi:.4g}, ramér’s V = '
+			          f'{cramers_v:.4f}' )
+			st.data_editor( contingency, use_container_width=True )
+	else:
+		st.info( 'Insufficient data for categorical association.' )
 
 # ============================================
 # ANOMALY DETECTION MODE
@@ -1200,12 +1211,12 @@ elif mode == 'Classifications':
 	
 	model_map = \
 	{
-			'Logistic Regression': LogisticRegression,
-			'Support Vector Machine': SupportVector,
-			'Random Forest': RandomForest,
-			'k-Nearest Neighbors': NearestNeighbor,
-			'Bagging': BaggingModel,
-			'Gradient Boosting': GradientBoost
+		'Logistic Regression': LogisticRegression,
+		'Support Vector Machine': SupportVector,
+		'Random Forest': RandomForest,
+		'k-Nearest Neighbors': NearestNeighbor,
+		'Bagging': BaggingModel,
+		'Gradient Boosting': GradientBoost
 	}
 	
 	st.subheader( 'Model Selection' )
