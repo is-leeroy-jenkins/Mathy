@@ -45,7 +45,7 @@ from __future__ import annotations
 from typing import Optional, List
 import numpy as np
 import sklearn.preprocessing as pp
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -219,8 +219,8 @@ class OneHotEncoder( Encoder ):
 			exception.cause = 'OneHotEncoder'
 			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -249,8 +249,8 @@ class OneHotEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -274,8 +274,8 @@ class OneHotEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class OrdinalEncoder( Encoder ):
 	"""
@@ -353,8 +353,8 @@ class OrdinalEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -383,8 +383,8 @@ class OrdinalEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -408,8 +408,8 @@ class OrdinalEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -434,8 +434,8 @@ class OrdinalEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class LabelEncoder( Encoder ):
 	"""
@@ -505,8 +505,8 @@ class LabelEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'fit( self, y: np.ndarray ) -> LabelEncoder'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -529,8 +529,8 @@ class LabelEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -554,8 +554,8 @@ class LabelEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'fit_transform( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -577,8 +577,8 @@ class LabelEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class TargetEncoder( Encoder ):
 	"""
@@ -707,8 +707,8 @@ class TargetEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
 			exception.method = 'fit( self, y: np.ndarray ) -> LabelEncoder'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -732,8 +732,8 @@ class TargetEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
 			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -757,8 +757,8 @@ class TargetEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
 			exception.method = 'fit_transform( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -781,8 +781,8 @@ class TargetEncoder( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class PolynomialFeatures( Encoder ):
 	"""
@@ -866,8 +866,8 @@ class PolynomialFeatures( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'fit( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -891,8 +891,8 @@ class PolynomialFeatures( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -916,5 +916,5 @@ class PolynomialFeatures( Encoder ):
 			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

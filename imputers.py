@@ -46,7 +46,7 @@ from __future__ import annotations
 from typing import Optional
 import numpy as np
 import sklearn.impute as im
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -198,8 +198,8 @@ class MeanImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
 			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> MeanImputer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -227,8 +227,8 @@ class MeanImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -251,8 +251,8 @@ class MeanImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -271,8 +271,8 @@ class MeanImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'MeanImputer'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class NearestImputer( Imputer ):
 	"""
@@ -347,8 +347,8 @@ class NearestImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'fit( self, X: np.ndarray ) -> NearestNeighborImputer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -377,8 +377,8 @@ class NearestImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -401,8 +401,8 @@ class NearestImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighborImputer'
 			exception.method = 'fit_transform( X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class IterativeImputer( Imputer ):
 	"""
@@ -478,8 +478,8 @@ class IterativeImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray=None ) -> IterativeImputer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -503,8 +503,8 @@ class IterativeImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
 			exception.method = 'transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -527,8 +527,8 @@ class IterativeImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'IterativeImputer'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class SimpleImputer( Imputer ):
 	"""
@@ -597,8 +597,8 @@ class SimpleImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
 			exception.method = 'train( self, X: np.ndarray ) -> SimpleImputer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -621,8 +621,8 @@ class SimpleImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -646,5 +646,5 @@ class SimpleImputer( Imputer ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestImputer'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

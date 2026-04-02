@@ -47,7 +47,7 @@ import numpy as np
 import sklearn.feature_extraction.text as sk
 import sklearn.preprocessing as pp
 import sklearn.compose as sc
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
 	if not value:
@@ -219,8 +219,8 @@ class Binarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
 			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -246,8 +246,8 @@ class Binarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'Binarizer'
 			exception.method = 'transform( self, X: np.ndarray, copy=None ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
 		"""
@@ -275,8 +275,8 @@ class Binarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'Binarizer'
 			exception.method = 'train_transform( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 class LabelBinarizer( Transformer ):
 	"""
@@ -376,8 +376,8 @@ class LabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
 			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -404,8 +404,8 @@ class LabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
 			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -432,8 +432,8 @@ class LabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
 			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, Y: np.ndarray ) -> np.ndarray:
 		"""
@@ -458,8 +458,8 @@ class LabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
 			exception.method = 'inverse_transform( self, y: np.ndarray, thresh: float=None ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class MultiLabelBinarizer( Transformer ):
 	"""
@@ -545,8 +545,8 @@ class MultiLabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
 			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -573,8 +573,8 @@ class MultiLabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
 			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
@@ -601,8 +601,8 @@ class MultiLabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
 			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, Y: np.ndarray ) -> np.ndarray:
 		"""
@@ -627,8 +627,8 @@ class MultiLabelBinarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
 			exception.method = 'inverse_transform( self, y: np.ndarray, thresh: float=None ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class TfidfTransformer( Transformer ):
 	"""
@@ -737,8 +737,8 @@ class TfidfTransformer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
 			exception.method = 'train( self, X: np.ndarray ) -> TfidfTransformer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -765,8 +765,8 @@ class TfidfTransformer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -789,8 +789,8 @@ class TfidfTransformer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class ColumnTransformer( Transformer ):
 	"""
@@ -880,8 +880,8 @@ class ColumnTransformer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'ColumnTransformer'
 			exception.method = 'train( self, X: np.ndarray, y: Optional[np.ndarray]) -> ColumnTransformer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -911,8 +911,8 @@ class ColumnTransformer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'ColumnTransformer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]   ) -> np.ndarray:
 		"""
@@ -943,8 +943,8 @@ class ColumnTransformer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'ColumnTransformer'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class TfidfVectorizer( Transformer ):
 	"""
@@ -1088,8 +1088,8 @@ class TfidfVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
 			exception.method = 'train( self, text: str, y: Optional[ np.ndarray ] ) -> TfidfVectorizer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, text: str ) -> np.ndarray:
 		"""
@@ -1116,8 +1116,8 @@ class TfidfVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfdifVectorizer'
 			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, text: str, y: Optional[ np.ndarry ] ) -> np.ndarray:
 		"""
@@ -1147,8 +1147,8 @@ class TfidfVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
 			exception.method = 'train_transform( self, tokens: list[ str ] ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ] | None:
 		"""
@@ -1175,8 +1175,8 @@ class TfidfVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ]'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class CountVectorizer( Transformer ):
 	"""
@@ -1286,8 +1286,8 @@ class CountVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
 			exception.method = 'train( self, text: str, y: Optional[ np.ndarray ] ) -> CountVectorizer'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, text: str ) -> np.ndarray:
 		"""
@@ -1314,8 +1314,8 @@ class CountVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
 			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, text: str, y: np.ndarray = None ) -> np.ndarray:
 		"""
@@ -1345,8 +1345,8 @@ class CountVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
 			exception.method = 'train_transform( self, tokens: List[ str ] ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class HashVectorizer( Transformer ):
 	"""
@@ -1430,8 +1430,8 @@ class HashVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'HashingVectorizer'
 			exception.method = 'train( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, tokens: List[ str ] ) -> np.ndarray:
 		"""
@@ -1456,5 +1456,5 @@ class HashVectorizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'HashingVectorizer'
 			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

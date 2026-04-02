@@ -52,7 +52,7 @@ import sklearn.svm as sv
 import sklearn.neighbors as nn
 import sklearn.covariance as cv
 from sklearn.metrics import classification_report
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ) -> None:
 	if value is None:
@@ -223,8 +223,8 @@ class IsolationForest( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'IsolationForest'
 			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
@@ -251,8 +251,8 @@ class IsolationForest( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'IsolationForest'
 			exception.method = 'project'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
@@ -288,8 +288,8 @@ class IsolationForest( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -335,8 +335,8 @@ class IsolationForest( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'IsolationForest'
 			exception.method = 'analyze'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class OneClass( Outlier ):
 	"""
@@ -401,8 +401,8 @@ class OneClass( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
@@ -430,8 +430,8 @@ class OneClass( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'OneClass'
 			exception.method = 'project'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
@@ -466,8 +466,8 @@ class OneClass( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'OneClass'
 			exception.method = 'score'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -512,8 +512,8 @@ class OneClass( Outlier ):
 			exception.module = 'outliers'
 			exception.cause = 'OneClass'
 			exception.method = 'analyze'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class OutlierFactor( Outlier ):
 	"""
@@ -582,8 +582,8 @@ class OutlierFactor( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'OutlierFactor'
 			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
@@ -610,8 +610,8 @@ class OutlierFactor( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'OutlierFactor'
 			exception.method = 'project'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
@@ -646,8 +646,8 @@ class OutlierFactor( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'OutlierFactor'
 			exception.method = 'score'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -693,8 +693,8 @@ class OutlierFactor( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 class EllipticSquare( Outlier ):
 	"""
@@ -757,8 +757,8 @@ class EllipticSquare( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'EllipticSquare'
 			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
 		"""
@@ -785,8 +785,8 @@ class EllipticSquare( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'EllipticSquare'
 			exception.method = 'project'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
 		"""
@@ -821,8 +821,8 @@ class EllipticSquare( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = 'EllipticSquare'
 			exception.method = 'score'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
@@ -868,5 +868,5 @@ class EllipticSquare( Outlier ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

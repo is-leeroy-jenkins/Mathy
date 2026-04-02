@@ -52,7 +52,7 @@ from sklearn.base import clone
 from itertools import combinations
 from sklearn.model_selection import train_test_split as split
 from classifications import Classifier, NearestNeighbor
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
     if value is None:
@@ -296,8 +296,8 @@ class VarianceThreshold( Selector ):
 			exception.cause = 'VarianceThreshold'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
 		"""
@@ -321,8 +321,8 @@ class VarianceThreshold( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
 			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -352,8 +352,8 @@ class VarianceThreshold( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
 			exception.method = 'project( self, X: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -401,8 +401,8 @@ class VarianceThreshold( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -425,8 +425,8 @@ class VarianceThreshold( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -455,8 +455,8 @@ class VarianceThreshold( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class CCA( Selector ):
 	"""
@@ -550,8 +550,8 @@ class CCA( Selector ):
 			exception.cause = 'CCA'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -581,8 +581,8 @@ class CCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
 			exception.method = 'project( self, X: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -630,8 +630,8 @@ class CCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> sd.CCA:
 		"""
@@ -660,8 +660,8 @@ class CCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
 			exception.method = 'train( self, X: np.ndarray, Y: np.ndarray ) -> object'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
 		"""
@@ -690,8 +690,8 @@ class CCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
 			exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
 		"""
@@ -717,8 +717,8 @@ class CCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
 			exception.method = 'train_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class PCA( Selector ):
 	"""
@@ -814,8 +814,8 @@ class PCA( Selector ):
 			exception.cause = 'PCA'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray ) -> sd.PCA:
 		"""
@@ -842,8 +842,8 @@ class PCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
 			exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -873,8 +873,8 @@ class PCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
 			exception.method = 'project( self, X: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -922,8 +922,8 @@ class PCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -950,8 +950,8 @@ class PCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -979,8 +979,8 @@ class PCA( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class SelectBest( Selector ):
 	"""
@@ -1068,8 +1068,8 @@ class SelectBest( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
 			exception.method = 'chi_square( self, X: ndarray, y: ndarray ) -> ( ndarray, ndarray)'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 		
 	def split_data( self, X: np.ndarray, y: np.ndarray,
 			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
@@ -1105,8 +1105,8 @@ class SelectBest( Selector ):
 			exception.cause = 'SelectBest'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
 		"""
@@ -1130,8 +1130,8 @@ class SelectBest( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
 			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1161,8 +1161,8 @@ class SelectBest( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
 			exception.method = 'project( self, X: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1210,8 +1210,8 @@ class SelectBest( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1238,8 +1238,8 @@ class SelectBest( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1268,8 +1268,8 @@ class SelectBest( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class SelectPercent( Selector ):
 	"""
@@ -1358,8 +1358,8 @@ class SelectPercent( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
 			exception.method = 'chi_square( self, X: ndarray, y: ndarray ) -> ( ndarray, ndarray)'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
 			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
@@ -1395,8 +1395,8 @@ class SelectPercent( Selector ):
 			exception.cause = 'SelectPercent'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray ) -> sf.SelectPercentile | None:
 		"""
@@ -1420,8 +1420,8 @@ class SelectPercent( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
 			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1451,8 +1451,8 @@ class SelectPercent( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
 			exception.method = 'project( self, X: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1500,8 +1500,8 @@ class SelectPercent( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1528,8 +1528,8 @@ class SelectPercent( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1558,8 +1558,8 @@ class SelectPercent( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class SBS( Selector ):
 	'''
@@ -1647,8 +1647,8 @@ class SBS( Selector ):
 			exception.cause = 'SBS'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) ->  object | None:
 		'''
@@ -1698,8 +1698,8 @@ class SBS( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1725,8 +1725,8 @@ class SBS( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def _calc_score( self, X_train: np.ndarray, y_train: np.ndarray,
 			X_test: np.ndarray, y_test: np.ndarray, indices: List[ int ] ) -> float:
@@ -1766,8 +1766,8 @@ class SBS( Selector ):
 			exception.cause = 'SBS'
 			exception.method = ('_calc_score( self, X_train: ndarray, y_train: ndarray, '
 			                    'X_test: ndarray, y_test: ndarray, indices: List[ int ]) ->float')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class RFE( Selector ):
 	"""
@@ -1899,8 +1899,8 @@ class RFE( Selector ):
 			exception.cause = 'RFE'
 			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
 			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
 		"""
@@ -1923,8 +1923,8 @@ class RFE( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
 			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1954,8 +1954,8 @@ class RFE( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
 			exception.method = 'project( self, X: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -2003,8 +2003,8 @@ class RFE( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -2027,8 +2027,8 @@ class RFE( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -2057,5 +2057,5 @@ class RFE( Selector ):
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
 			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

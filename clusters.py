@@ -46,7 +46,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from typing import Optional, Dict, Any
-from boogr import Error, ErrorDialog
+from boogr import Error
 import sklearn.cluster as skc
 from sklearn.metrics import (silhouette_score, completeness_score, homogeneity_score,
                              mutual_info_score, v_measure_score)
@@ -355,8 +355,8 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -384,7 +384,7 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
+			raise exception
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -428,8 +428,8 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -456,8 +456,8 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class DBSCAN( Cluster ):
 	"""
@@ -586,8 +586,8 @@ class DBSCAN( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -615,8 +615,8 @@ class DBSCAN( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -659,8 +659,8 @@ class DBSCAN( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -686,8 +686,8 @@ class DBSCAN( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class Agglomerative( Cluster ):
 	"""
@@ -803,8 +803,8 @@ class Agglomerative( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -832,8 +832,8 @@ class Agglomerative( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -876,8 +876,8 @@ class Agglomerative( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -905,8 +905,8 @@ class Agglomerative( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class Spectral( Cluster ):
 	"""
@@ -1027,8 +1027,8 @@ class Spectral( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1057,8 +1057,8 @@ class Spectral( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1101,8 +1101,8 @@ class Spectral( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -1128,8 +1128,8 @@ class Spectral( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class MeanShift( Cluster ):
 	"""
@@ -1223,8 +1223,8 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1252,8 +1252,8 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1296,8 +1296,8 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -1323,8 +1323,8 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class AffinityPropagation( Cluster ):
 	"""
@@ -1424,8 +1424,8 @@ class AffinityPropagation( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1453,8 +1453,8 @@ class AffinityPropagation( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1497,8 +1497,8 @@ class AffinityPropagation( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -1524,8 +1524,8 @@ class AffinityPropagation( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class Birch( Cluster ):
 	"""
@@ -1674,8 +1674,8 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1703,8 +1703,8 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1747,8 +1747,8 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -1774,8 +1774,8 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class OPTICS( Cluster ):
 	"""
@@ -1896,8 +1896,8 @@ class OPTICS( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = 'train( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1925,8 +1925,8 @@ class OPTICS( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1969,8 +1969,8 @@ class OPTICS( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = 'score( self, X: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray ) -> None:
 		"""
@@ -1997,5 +1997,5 @@ class OPTICS( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = 'analyze( self, X: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

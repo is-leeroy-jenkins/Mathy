@@ -51,7 +51,7 @@ from sklearn.metrics import (mean_squared_error, mean_absolute_error,
                              median_absolute_error, explained_variance_score, r2_score)
 from statsmodels.regression.linear_model import RegressionResultsWrapper
 
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
     if not value:
@@ -138,8 +138,8 @@ class LaggingSeries( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'LaggingSeries'
             exception.method = 'train'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def train( self, series: np.ndarray ) -> LaggingSeries | None:
         """
@@ -168,8 +168,8 @@ class LaggingSeries( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'LaggingSeries'
             exception.method = 'train'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def project( self, n_steps: int=1 ) -> np.ndarray:
         """
@@ -205,8 +205,8 @@ class LaggingSeries( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'LaggingSeries'
             exception.method = 'project'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def score( self ) -> float | None:
         """
@@ -229,8 +229,8 @@ class LaggingSeries( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'LaggingSeries'
             exception.method = 'score'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def analyze( self ) -> Dict[ str, float ] | None:
         """
@@ -262,8 +262,8 @@ class LaggingSeries( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'LaggingSeries'
             exception.method = 'analyze'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
 
 class ExpandingWindow( ):
     """
@@ -336,8 +336,8 @@ class ExpandingWindow( ):
             exception.cause = 'ExpandingWindow'
             exception.method = ( 'split( self, series: np.ndarray ) -> '
                                 'Generator[ Tuple[ np.ndarray, np.ndarray ], None, None]' )
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def get_splits( self, series: np.ndarray ) -> int | None:
         """
@@ -367,8 +367,8 @@ class ExpandingWindow( ):
             exception.module = 'mathy'
             exception.cause = 'ExpandingWindow'
             exception.method = 'get_splits'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def visualize( self, series: np.ndarray ) -> None:
         """
@@ -405,8 +405,8 @@ class ExpandingWindow( ):
             exception.module = 'mathy'
             exception.cause = 'ExpandingWindow'
             exception.method = 'visualize'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
 
 class ARIMA( TimeSeries ):
     """
@@ -480,8 +480,8 @@ class ARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'ARIMA'
             exception.method = 'train'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def project( self, n_steps: int = 1 ) -> np.ndarray:
         """
@@ -509,8 +509,8 @@ class ARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'ARIMA'
             exception.method = 'project'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def score( self ) -> float | None:
         """
@@ -533,8 +533,8 @@ class ARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'ARIMA'
             exception.method = 'score'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def analyze( self ) -> Dict[ str, float ] | None:
         """
@@ -566,8 +566,8 @@ class ARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'ARIMA'
             exception.method = 'analyze'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
 
 class SARIMA( TimeSeries ):
     """
@@ -640,8 +640,8 @@ class SARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'SARIMA'
             exception.method = 'train'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def project( self, n_steps: int=1 ) -> np.ndarray:
         """
@@ -668,8 +668,8 @@ class SARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'SARIMA'
             exception.method = 'project'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def score( self ) -> float | None:
         """
@@ -693,8 +693,8 @@ class SARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'SARIMA'
             exception.method = 'score'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def analyze( self ) -> Dict[ str, float ] | None:
         """
@@ -726,5 +726,5 @@ class SARIMA( TimeSeries ):
             exception.module = 'mathy'
             exception.cause = 'SARIMA'
             exception.method = 'analyze'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            

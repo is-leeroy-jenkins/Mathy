@@ -41,7 +41,7 @@
 	******************************************************************************************
 """
 from __future__ import annotations
-from boogr import Error, ErrorDialog
+from boogr import Error
 from typing import Dict
 from typing import Optional, List, Tuple
 import matplotlib.pyplot as plt
@@ -374,8 +374,8 @@ class LeastSquares( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
@@ -404,8 +404,8 @@ class LeastSquares( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -434,8 +434,8 @@ class LeastSquares( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	 
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -479,8 +479,8 @@ class LeastSquares( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -527,8 +527,8 @@ class LeastSquares( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -572,8 +572,8 @@ class LeastSquares( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 		
 class Ridge( Regression ):
@@ -713,8 +713,8 @@ class Ridge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Ridge'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -757,8 +757,8 @@ class Ridge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -786,8 +786,8 @@ class Ridge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 		
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -831,8 +831,8 @@ class Ridge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -879,8 +879,8 @@ class Ridge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -924,8 +924,8 @@ class Ridge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> self'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 class Lasso( Regression ):
 	"""
@@ -1093,8 +1093,8 @@ class Lasso( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		"""
@@ -1123,8 +1123,8 @@ class Lasso( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> self'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1151,8 +1151,8 @@ class Lasso( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -1196,8 +1196,8 @@ class Lasso( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -1244,8 +1244,8 @@ class Lasso( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -1290,8 +1290,8 @@ class Lasso( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'scatter_lot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 class ElasticNet( Regression ):
 	"""
@@ -1429,8 +1429,8 @@ class ElasticNet( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 	def train( self, X: np.ndarray, y: np.ndarray ) -> ElasticNet | None:
 		"""
@@ -1460,8 +1460,8 @@ class ElasticNet( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'ElasticNet'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> self'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1489,8 +1489,8 @@ class ElasticNet( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'ElasticNet'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -1534,8 +1534,8 @@ class ElasticNet( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -1582,8 +1582,8 @@ class ElasticNet( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -1628,8 +1628,8 @@ class ElasticNet( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'ElasticNetRegressor'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class LeastAngle( Regression ):
 	"""
@@ -1756,8 +1756,8 @@ class LeastAngle( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastAngle | None:
 		"""
@@ -1787,8 +1787,8 @@ class LeastAngle( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastAngle'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -1814,8 +1814,8 @@ class LeastAngle( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastAngle'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -1859,8 +1859,8 @@ class LeastAngle( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -1907,8 +1907,8 @@ class LeastAngle( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -1952,8 +1952,8 @@ class LeastAngle( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastAngle'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class BayesianRidge( Regression ):
 	"""
@@ -2090,8 +2090,8 @@ class BayesianRidge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BayesianRidge | None:
 		"""
@@ -2121,8 +2121,8 @@ class BayesianRidge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Bayesian'
 			exception.method = "train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline"
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -2148,8 +2148,8 @@ class BayesianRidge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Bayesian'
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -2193,8 +2193,8 @@ class BayesianRidge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -2241,8 +2241,8 @@ class BayesianRidge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -2287,8 +2287,8 @@ class BayesianRidge( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'Bayesian'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class GradientDescent( Regression ):
 	"""
@@ -2440,8 +2440,8 @@ class GradientDescent( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -2507,8 +2507,8 @@ class GradientDescent( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -2534,8 +2534,8 @@ class GradientDescent( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -2579,8 +2579,8 @@ class GradientDescent( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -2627,8 +2627,8 @@ class GradientDescent( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -2673,8 +2673,8 @@ class GradientDescent( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class NearestNeighbor( Regression ):
 	"""
@@ -2812,8 +2812,8 @@ class NearestNeighbor( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -2843,8 +2843,8 @@ class NearestNeighbor( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		'''
@@ -2870,8 +2870,8 @@ class NearestNeighbor( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = "project( self, X: np.ndarray ) -> np.ndarray"
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -2915,8 +2915,8 @@ class NearestNeighbor( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -2963,8 +2963,8 @@ class NearestNeighbor( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -3009,8 +3009,8 @@ class NearestNeighbor( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class DecisionTree( Regression ):
 	'''
@@ -3138,8 +3138,8 @@ class DecisionTree( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		'''
@@ -3169,8 +3169,8 @@ class DecisionTree( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		'''
@@ -3196,8 +3196,8 @@ class DecisionTree( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -3241,8 +3241,8 @@ class DecisionTree( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -3289,8 +3289,8 @@ class DecisionTree( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -3335,8 +3335,8 @@ class DecisionTree( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTreeRegression'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class RandomForest( Regression ):
 	'''
@@ -3478,8 +3478,8 @@ class RandomForest( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		'''
@@ -3508,8 +3508,8 @@ class RandomForest( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -3535,8 +3535,8 @@ class RandomForest( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -3580,8 +3580,8 @@ class RandomForest( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -3628,8 +3628,8 @@ class RandomForest( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -3674,8 +3674,8 @@ class RandomForest( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class GradientBoost( Regression ):
 	"""
@@ -3825,8 +3825,8 @@ class GradientBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -3855,8 +3855,8 @@ class GradientBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -3882,8 +3882,8 @@ class GradientBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -3927,8 +3927,8 @@ class GradientBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -3975,8 +3975,8 @@ class GradientBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -4021,8 +4021,8 @@ class GradientBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class AdaptiveBoost( Regression ):
 	"""
@@ -4183,8 +4183,8 @@ class AdaptiveBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -4213,8 +4213,8 @@ class AdaptiveBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		'''
@@ -4239,8 +4239,8 @@ class AdaptiveBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -4284,8 +4284,8 @@ class AdaptiveBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -4332,8 +4332,8 @@ class AdaptiveBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -4378,8 +4378,8 @@ class AdaptiveBoost( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class BaggingModel( Regression ):
 	"""
@@ -4524,8 +4524,8 @@ class BaggingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
@@ -4554,8 +4554,8 @@ class BaggingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -4580,8 +4580,8 @@ class BaggingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -4625,8 +4625,8 @@ class BaggingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -4673,8 +4673,8 @@ class BaggingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -4719,8 +4719,8 @@ class BaggingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class VotingModel( Regression ):
 	"""
@@ -4858,8 +4858,8 @@ class VotingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		'''
@@ -4888,8 +4888,8 @@ class VotingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		'''
@@ -4916,8 +4916,8 @@ class VotingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -4961,8 +4961,8 @@ class VotingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5009,8 +5009,8 @@ class VotingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -5055,8 +5055,8 @@ class VotingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class StackingModel( Regression ):
 	"""
@@ -5199,8 +5199,8 @@ class StackingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -5229,8 +5229,8 @@ class StackingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -5255,8 +5255,8 @@ class StackingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5300,8 +5300,8 @@ class StackingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5348,8 +5348,8 @@ class StackingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -5394,8 +5394,8 @@ class StackingModel( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class SupportVector( Regression ):
 	"""
@@ -5508,8 +5508,8 @@ class SupportVector( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -5538,8 +5538,8 @@ class SupportVector( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray  ) -> np.ndarray | None:
 		"""
@@ -5563,8 +5563,8 @@ class SupportVector( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5608,8 +5608,8 @@ class SupportVector( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5656,8 +5656,8 @@ class SupportVector( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -5702,8 +5702,8 @@ class SupportVector( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class GaussianProcess( Regression ):
 	'''
@@ -5829,8 +5829,8 @@ class GaussianProcess( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GaussianProcessRegressor | None:
 		"""
@@ -5859,8 +5859,8 @@ class GaussianProcess( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GaussianProcess'
 			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		'''
@@ -5887,8 +5887,8 @@ class GaussianProcess( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GaussianProcess'
 			exception.method = "project"
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5932,8 +5932,8 @@ class GaussianProcess( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -5980,8 +5980,8 @@ class GaussianProcess( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -6026,8 +6026,8 @@ class GaussianProcess( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GaussianProcess'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 class MultiLayerPerceptron( Regression ):
 	"""
@@ -6180,8 +6180,8 @@ class MultiLayerPerceptron( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
@@ -6210,8 +6210,8 @@ class MultiLayerPerceptron( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
@@ -6238,8 +6238,8 @@ class MultiLayerPerceptron( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -6283,8 +6283,8 @@ class MultiLayerPerceptron( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
@@ -6331,8 +6331,8 @@ class MultiLayerPerceptron( Regression ):
 			exception.module = 'mathy'
 			exception.cause = ''
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> DataFrame'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -6377,5 +6377,5 @@ class MultiLayerPerceptron( Regression ):
 			exception.module = 'mathy'
 			exception.cause = 'GaussianProcess'
 			exception.method = ('create_scatter( self, X: np.ndarray, y: np.ndarray ) -> None')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			

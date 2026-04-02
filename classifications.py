@@ -65,7 +65,7 @@ from sklearn.metrics import ( recall_score, precision_score, confusion_matrix, c
                              hinge_loss, log_loss, mean_squared_error, root_mean_squared_error,
                              mean_absolute_error, median_absolute_error)
 from sklearn.preprocessing import Binarizer
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -404,8 +404,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 		
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -436,8 +436,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Perceptron | None:
 		"""
@@ -466,8 +466,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -497,8 +497,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -552,8 +552,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Any:
 		"""
@@ -593,8 +593,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> str'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def confusion_graph( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -634,8 +634,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -679,8 +679,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def region_plot( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=10 ):
 		'''
@@ -725,8 +725,8 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 class LeastSquares( Classifier ):
 	"""
@@ -861,8 +861,8 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
@@ -894,8 +894,8 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'train'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def project( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -928,8 +928,8 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'predict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -989,8 +989,8 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> Any:
 		"""
@@ -1030,8 +1030,8 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> str'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -1075,8 +1075,8 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'create_heatmap( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 class LogisticRegression( Classifier ):
 	"""
@@ -1268,8 +1268,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1300,8 +1300,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 		
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1337,8 +1337,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegression | None:
 		"""
@@ -1367,8 +1367,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -1401,8 +1401,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'project'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1457,8 +1457,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1498,8 +1498,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -1543,8 +1543,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 class Ridge( Classifier ):
 	"""
@@ -1727,8 +1727,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
 		"""
@@ -1758,8 +1758,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -1788,8 +1788,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1844,8 +1844,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -1885,8 +1885,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -1917,8 +1917,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -1962,8 +1962,8 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 			
 class Lasso( Classifier ):
 	"""
@@ -2136,8 +2136,8 @@ class Lasso( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
 		try:
@@ -2150,7 +2150,7 @@ class Lasso( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LassoModel'
-			error = ErrorDialog( exception )
+			raise exception
 			error.show()
 
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
@@ -2184,8 +2184,8 @@ class Lasso( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -2239,8 +2239,8 @@ class Lasso( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -2280,8 +2280,8 @@ class Lasso( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -2325,8 +2325,8 @@ class Lasso( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class GradientDescent( Classifier ):
 	"""
@@ -2537,8 +2537,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
 		"""
@@ -2567,8 +2567,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -2598,8 +2598,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -2653,8 +2653,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -2694,8 +2694,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[str,float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -2727,8 +2727,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -2764,8 +2764,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -2809,8 +2809,8 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class NearestNeighbor( Classifier ):
 	"""
@@ -2988,8 +2988,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
 		"""
@@ -3018,8 +3018,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -3047,8 +3047,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -3076,8 +3076,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -3132,8 +3132,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -3173,8 +3173,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -3218,8 +3218,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class DecisionTree( Classifier ):
 	'''
@@ -3423,8 +3423,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		"""
@@ -3453,8 +3453,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -3482,8 +3482,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -3511,8 +3511,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -3567,8 +3567,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -3608,8 +3608,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -3653,8 +3653,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class RandomForest( Classifier ):
 	"""
@@ -3843,8 +3843,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
@@ -3875,8 +3875,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -3904,8 +3904,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -3933,8 +3933,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -3989,8 +3989,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -4031,8 +4031,8 @@ class RandomForest( Classifier ):
 			exception.cause = 'RandomForest'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -4076,8 +4076,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class GradientBoost( Classifier ):
 	"""
@@ -4294,8 +4294,8 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
@@ -4325,8 +4325,8 @@ class GradientBoost( Classifier ):
 			exception.cause = 'GradientBoost'
 			exception.method = ('train( self, X: np.ndarray, y: np.ndarray ) -> '
 								'GradientBoost')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -4353,8 +4353,8 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -4382,8 +4382,8 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -4438,8 +4438,8 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -4480,8 +4480,8 @@ class GradientBoost( Classifier ):
 			exception.cause = 'GradientBoost'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -4525,8 +4525,8 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class AdaptiveBoost( Classifier ):
 	"""
@@ -4728,8 +4728,8 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
@@ -4758,8 +4758,8 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -4785,8 +4785,8 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -4840,8 +4840,8 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -4882,8 +4882,8 @@ class AdaptiveBoost( Classifier ):
 			exception.cause = 'AdaptiveBoost'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -4927,8 +4927,8 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class BaggingModel( Classifier ):
 	"""
@@ -5094,8 +5094,8 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
 		"""
@@ -5124,8 +5124,8 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -5151,8 +5151,8 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -5206,8 +5206,8 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -5248,8 +5248,8 @@ class BaggingModel( Classifier ):
 			exception.cause = 'BaggingModel'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -5293,8 +5293,8 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class VotingModel( Classifier ):
 	"""
@@ -5447,8 +5447,8 @@ class VotingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
 		"""
@@ -5477,8 +5477,8 @@ class VotingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -5504,8 +5504,8 @@ class VotingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -5561,8 +5561,8 @@ class VotingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -5603,8 +5603,8 @@ class VotingModel( Classifier ):
 			exception.cause = 'VotingModel'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -5648,8 +5648,8 @@ class VotingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class StackingModel( Classifier ):
 	"""
@@ -5819,8 +5819,8 @@ class StackingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
 		"""
@@ -5849,8 +5849,8 @@ class StackingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -5876,8 +5876,8 @@ class StackingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -5933,8 +5933,8 @@ class StackingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingClassifier'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -5975,8 +5975,8 @@ class StackingModel( Classifier ):
 			exception.cause = 'StackingModel'
 			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
 								'float ]')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -6020,8 +6020,8 @@ class StackingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class SupportVector( Classifier ):
 	"""
@@ -6236,8 +6236,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
 		"""
@@ -6262,8 +6262,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -6286,8 +6286,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = ('train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -6315,8 +6315,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray )  -> pd.DataFrame:
 		"""
@@ -6370,8 +6370,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -6411,8 +6411,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'score( self, X: np.ndarray, y_true: np.ndarray ) -> float '
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -6456,8 +6456,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class MultiLayerPerceptron( Classifier ):
 	"""
@@ -6659,8 +6659,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
 		"""
@@ -6689,8 +6689,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'fit( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -6718,8 +6718,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -6747,8 +6747,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -6802,8 +6802,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
@@ -6843,8 +6843,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
 		"""
@@ -6888,8 +6888,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 
 

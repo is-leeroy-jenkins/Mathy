@@ -50,7 +50,7 @@ from pandas.core.interchange.dataframe_protocol import DataFrame
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split as split
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
-from boogr import Error, ErrorDialog
+from boogr import Error
 from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder
 
 def throw_if( name: str, value: object ):
@@ -90,8 +90,8 @@ def entropy( y: np.ndarray ) -> float | None:
         exception.module = 'mathy'
         exception.cause = 'data'
         exception.method = 'entropy( y: np.ndarray ) -> float '
-        error = ErrorDialog( exception )
-        error.show( )
+        raise exception
+        
 
 def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float | None:
     """
@@ -133,8 +133,8 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
         exception.module = 'mathy'
         exception.cause = 'data'
         exception.method = 'information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
+        raise exception
+        
 
 def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, float ] | None:
 	'''
@@ -172,8 +172,8 @@ def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, fl
 		exception.module = 'mathy'
 		exception.cause = 'data'
 		exception.method = ('best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple')
-		error = ErrorDialog( exception )
-		error.show( )
+		raise exception
+		
 
 def gini_impurity( p: float ) -> float | None:
     '''
@@ -202,8 +202,8 @@ def gini_impurity( p: float ) -> float | None:
         exception.module = 'mathy'
         exception.cause = 'data'
         exception.method = 'gini_impurity( p: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
+        raise exception
+        
 
 def decision_tree_stump( X: np.ndarray, y: np.ndarray,  num_thresholds: int=10 ):
     """
@@ -290,8 +290,8 @@ def euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
         exception.module = 'mathy'
         exception.cause = 'data'
         exception.method = 'euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
-        error = ErrorDialog( exception )
-        error.show( )
+        raise exception
+        
 
 def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 	"""
@@ -347,8 +347,8 @@ def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray 
 		exception.module = 'mathy'
 		exception.cause = 'data'
 		exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple')
-		error = ErrorDialog( exception )
-		error.show( )
+		raise exception
+		
 
 def misclassification_error( p: float ) -> float | None:
     '''
@@ -375,8 +375,8 @@ def misclassification_error( p: float ) -> float | None:
         exception.module = 'mathy'
         exception.cause = 'data'
         exception.method = 'misclassification_error( p: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
+        raise exception
+        
 
 def sigmoid( z: float ) -> float | None:
     '''
@@ -408,8 +408,8 @@ def sigmoid( z: float ) -> float | None:
         exception.module = 'mathy'
         exception.cause = 'data'
         exception.method = 'sigmoid( z: float ) -> float'
-        error = ErrorDialog( exception )
-        error.show( )
+        raise exception
+        
 
 class DataSource( ):
     """
@@ -597,8 +597,8 @@ class DataSource( ):
             exception.cause = 'DataSource'
             exception.method = ('transform_columns( self, name: List[ str] , encoder: Encoder, '
                                 'columns: List[ str ] )')
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def standardize( self ) -> pd.DataFrame:
         """
@@ -624,8 +624,8 @@ class DataSource( ):
 	        exception.module = 'mathy'
 	        exception.cause = 'DataSource'
 	        exception.method = 'standardize( self ) -> pd.DataFrame'
-	        error = ErrorDialog( exception )
-	        error.show( )
+	        raise exception
+	        
         
     def maxminize( self ) -> pd.DataFrame:
         """
@@ -651,8 +651,8 @@ class DataSource( ):
 	        exception.module = 'mathy'
 	        exception.cause = 'DataSource'
 	        exception.method = 'standardize( self ) -> pd.DataFrame'
-	        error = ErrorDialog( exception )
-	        error.show( )
+	        raise exception
+	        
 	
     def normalize( self ) -> pd.DataFrame:
         """
@@ -678,8 +678,8 @@ class DataSource( ):
 	        exception.module = 'mathy'
 	        exception.cause = 'DataSource'
 	        exception.method = 'standardize( self ) -> pd.DataFrame'
-	        error = ErrorDialog( exception )
-	        error.show( )
+	        raise exception
+	        
         
         
     def encode_labels( self, col: str ) -> np.ndarray:
@@ -709,8 +709,8 @@ class DataSource( ):
 	        exception.module = 'mathy'
 	        exception.cause = 'DataSource'
 	        exception.method = 'encode_labels( self, col: str ) -> np.ndarray'
-	        error = ErrorDialog( exception )
-	        error.show( )
+	        raise exception
+	        
     
     def encode_features( self ) -> DataFrame:
 	    """
@@ -742,8 +742,8 @@ class DataSource( ):
 		    exception.module = 'mathy'
 		    exception.cause = 'DataSource'
 		    exception.method = 'encode_categorical( self ) -> None'
-		    error = ErrorDialog( exception )
-		    error.show( )
+		    raise exception
+		    
     
     def encode_targets( self ) -> np.ndarray:
         """
@@ -770,8 +770,8 @@ class DataSource( ):
 	        exception.module = 'mathy'
 	        exception.cause = 'DataSource'
 	        exception.method = 'encode_targets( self ) -> p.ndarray'
-	        error = ErrorDialog( exception )
-	        error.show( )
+	        raise exception
+	        
 	
     def create_pivot( self, cols: List, vals: List, idx: List ) -> pd.DataFrame:
         '''
@@ -804,8 +804,8 @@ class DataSource( ):
             exception.module = 'mathy'
             exception.cause = 'DataSource'
             exception.method = 'create_pivot( self ) -> pd.DataFrame '
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def export_excel( self, filepath: str=None ) -> None:
         '''
@@ -828,8 +828,8 @@ class DataSource( ):
             exception.module = 'mathy'
             exception.cause = 'DataSource'
             exception.method = 'export_excel( self, filepath: str=None ) -> None'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def create_histogram( self ) -> None:
         '''
@@ -853,8 +853,8 @@ class DataSource( ):
             exception.module = 'mathy'
             exception.cause = 'DataSource'
             exception.method = 'create_histogram( self )'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            
     
     def create_heatmap( self, numeric: bool=True ) -> None:
         '''
@@ -876,5 +876,5 @@ class DataSource( ):
             exception.module = 'mathy'
             exception.cause = 'DataSource'
             exception.method = 'create_heatmap( self )'
-            error = ErrorDialog( exception )
-            error.show( )
+            raise exception
+            

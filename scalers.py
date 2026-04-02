@@ -45,7 +45,7 @@ from __future__ import annotations
 from typing import Optional
 import numpy as np
 import sklearn.preprocessing as pp
-from boogr import Error, ErrorDialog
+from boogr import Error
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -198,8 +198,8 @@ class StandardScaler( Scaler ):
 			exception.cause = 'StandardScaler'
 			exception.method = ('fit( self, X: np.ndarray, y: Optional[np.ndarray]=None ) -> '
 			                    'Pipeline')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -227,8 +227,8 @@ class StandardScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -257,8 +257,8 @@ class StandardScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = 'fit_transform( self, X: np.ndarray, y:np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -285,8 +285,8 @@ class StandardScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class MinMaxScaler( Scaler ):
 	"""
@@ -351,8 +351,8 @@ class MinMaxScaler( Scaler ):
 			exception.cause = 'MinMaxScaler'
 			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -381,8 +381,8 @@ class MinMaxScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'MinMaxScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -411,8 +411,8 @@ class MinMaxScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'MinMaxScaler'
 			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -438,8 +438,8 @@ class MinMaxScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'MinMaxScaler'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class RobustScaler( Scaler ):
 	"""
@@ -509,8 +509,8 @@ class RobustScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'RobustScaler'
 			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> Pipeline'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -538,8 +538,8 @@ class RobustScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'RobustScaler'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
@@ -562,8 +562,8 @@ class RobustScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'StandardScaler'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
 class NormalScaler( Scaler ):
 	"""
@@ -634,8 +634,8 @@ class NormalScaler( Scaler ):
 			exception.cause = 'Normalizer'
 			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
 			                    'Pipeline')
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -664,8 +664,8 @@ class NormalScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'Normalizer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
@@ -694,6 +694,6 @@ class NormalScaler( Scaler ):
 			exception.module = 'mathy'
 			exception.cause = 'Normalizer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
-			error = ErrorDialog( exception )
-			error.show( )
+			raise exception
+			
 
