@@ -55,6 +55,7 @@ def throw_if( name: str, value: object ):
 	if not value:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
+
 class Cluster( ):
 	"""
 
@@ -65,10 +66,10 @@ class Cluster( ):
 
 		Methods:
 		--------
-		train(X, y=None) -> self
-		project(X) -> np.ndarray
-		score(X, y=None) -> float
-		analyze(X, y=None) -> Dict | None
+		train( X ) -> Cluster | None
+		project( X ) -> np.ndarray | None
+		score( X, y=None ) -> pd.DataFrame | None
+		analyze( X, y=None ) -> Dict[ str, Any ] | None
 
 	"""
 	n_clusters: Optional[ int ]
@@ -82,7 +83,7 @@ class Cluster( ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self ):
+	def __init__( self ) -> None:
 		pass
 	
 	def train( self, X: np.ndarray ) -> object | None:
@@ -90,16 +91,15 @@ class Cluster( ):
 
 			Purpose:
 			---------
-			Fit the linerar_model to the training df.
+			Fit the clustering model to the input samples.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-				y (np.ndarray): Target vector w/shape ( n_samples, ).
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			--------
-				None
+				object | None: Trained wrapper instance or None.
 
 		"""
 		raise NotImplementedError
@@ -109,56 +109,60 @@ class Cluster( ):
 
 			Purpose:
 			---------
-			Generate predictions from  the trained linerar_model.
+			Generate cluster assignments for the supplied samples.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
-			-----------
-				np.ndarray: Predicted target_names or class target_names.
+			--------
+				np.ndarray | None: Cluster labels for each sample.
 
 		"""
 		raise NotImplementedError
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Compute the core metric (e.g., R²) of the model on test df.
+			Compute clustering evaluation metrics for the supplied samples.
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): True target target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			-----------
-				float: Score value (e.g., R² for regressors).
+			--------
+				pd.DataFrame | None: DataFrame containing one or more clustering
+					evaluation metrics.
 
 		"""
 		raise NotImplementedError
 	
-	def analyze( self, X: np.ndarray ) -> Dict[ str, Any ] | None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate the model using multiple performance metrics.
+			Analyze clustering results using visualizations and summary metrics.
 
 			Parameters:
 			-----------
-				X (pd.DataFrame): Feature matrix.
-				y (np.ndarray): Ground truth target_names.
+				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
 
 			Returns:
-			-----------
-				dict: Dictionary containing multiple evaluation metrics.
+			--------
+				Dict[ str, Any ] | None: Analysis results or None.
 
 		"""
 		raise NotImplementedError
+
 
 class KMeans( Cluster ):
 	"""
@@ -185,7 +189,7 @@ class KMeans( Cluster ):
 	n_clusters: Optional[ int ]
 	init: Optional[ str ]
 	n_init: Optional[ str ]
-	tolerance: Optional[ str ]
+	tolerance: Optional[ float ]
 	random_state: Optional[ int ]
 	max_iter: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
@@ -196,18 +200,26 @@ class KMeans( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters: int=8, init: str='k-means++', n_init: str='auto',
-			tol: float=0.0001, rando: int=42, max_iter: int=300 ) -> None:
+	def __init__( self, clusters: int = 8, init: str = 'k-means++', n_init: str = 'auto',
+			tol: float = 0.0001, rando: int = 42, max_iter: int = 300 ) -> None:
 		"""
+
 			Purpose:
 			---------
 			Initialize the KMeans model.
 
 			Parameters:
-			----------
-			num: Number of clusters to form.
-			rando: Random seed for reproducibility.
-			max: number of iterations.
+			-----------
+				clusters (int): Number of clusters to form.
+				init (str): Method used to initialize cluster centroids.
+				n_init (str): Number of initializations to perform.
+				tol (float): Convergence tolerance for centroid movement.
+				rando (int): Random seed for reproducibility.
+				max_iter (int): Maximum number of iterations per run.
+
+			Returns:
+			--------
+				None
 
 		"""
 		super( ).__init__( )
@@ -217,8 +229,9 @@ class KMeans( Cluster ):
 		self.random_state = rando
 		self.max_iter = max_iter
 		self.tolerance = tol
-		self.model = skc.KMeans( n_clusters=self.n_clusters, init=self.init, n_init=self.n_init,
-			random_state=self.random_state, max_iter=self.max_iter )
+		self.model = skc.KMeans( n_clusters=self.n_clusters, init=self.init,
+			n_init=self.n_init, random_state=self.random_state,
+			max_iter=self.max_iter, tol=self.tolerance )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -335,45 +348,49 @@ class KMeans( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> KMeans | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Fit the KMeans model on the dataset.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				KMeans | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> KMeans | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Predict the closest cluster each sample in X belongs to.
-	
+			Generate cluster assignments for the supplied samples.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
 			Returns:
 			--------
-			np.ndarray
-	
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -383,81 +400,106 @@ class KMeans( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
-	
+			Evaluate KMeans clustering performance using intrinsic and optional
+			external clustering metrics.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
+
 			Returns:
-			---------
-			float
-	
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			vals = list( scores.values( ) )
-			data = pd.DataFrame( data=vals, columns=cols )
+			scores = { }
+			
+			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize clustering result using a scatter plot.
-	
+			Visualize clustering result using a scatter plot and return summary
+			analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			labels = self.model.predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='viridis' )
-			plt.title( "K-Means" )
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='viridis' )
+			if Z.shape[ 1 ] >= 2:
+				plt.scatter( self.clusters[ :, 0 ], self.clusters[ :, 1 ],
+					marker='x', s=100 )
+			plt.title( 'K-Means' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Centers': self.clusters,
+					'Inertia': self.inertia,
+					'Iterations': self.iterations,
+					'Features': self.features,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class DBSCAN( Cluster ):
 	"""
@@ -491,8 +533,8 @@ class DBSCAN( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, max_distance: float=0.5, samples: int=5, measure: str='euclidean',
-			algorithm: str='auto', size: int=30 ) -> None:
+	def __init__( self, max_distance: float = 0.5, samples: int = 5, measure: str = 'euclidean',
+			algorithm: str = 'auto', size: int = 30 ) -> None:
 		"""
 
 			Purpose:
@@ -500,28 +542,18 @@ class DBSCAN( Cluster ):
 			Initialize the DBSCAN model.
 
 			Parameters:
-			----------
-			max_distance: float
-			eps - The maximum distance between two samples for one to be considered as in the
-			neighborhood of the other. This is not a maximum bound on the distances of points
-			within a cluster. This is the most important DBSCAN parameter to choose appropriately
-			for your data set and distance function
-			
-			samples: int
-			min_samples - The number of samples (or total weight) in a neighborhood for a point
-			to be considered as a core point. This includes the point itself.
-			
-			measure: str
-			metric - The metric to use when calculating distance between instances in a feature array.
-			
-			strategy: str
-			algorith - The algorithm to be used by the NearestNeighbors module to compute
-			pointwise distances and find nearest neighbors
-			
-			size: int
-			leaf_size - Leaf size passed to BallTree or cKDTree. This can affect the speed of the
-			construction and query, as well as the memory required to store the tree.
-			The optimal value depends on the nature of the problem.
+			-----------
+				max_distance (float): Maximum distance between two samples for one to be
+					considered in the neighborhood of the other.
+				samples (int): Number of samples in a neighborhood for a point to be
+					considered a core point.
+				measure (str): Distance metric used to compute neighborhood distances.
+				algorithm (str): Nearest-neighbor search algorithm.
+				size (int): Leaf size passed to the nearest-neighbor tree.
+
+			Returns:
+			--------
+				None
 
 		"""
 		super( ).__init__( )
@@ -530,8 +562,8 @@ class DBSCAN( Cluster ):
 		self.algorithm = algorithm
 		self.metric = measure
 		self.leaf_size = size
-		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples, metric=self.metric,
-			algorithm=self.algorithm, leaf_size=self.leaf_size )
+		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
+			metric=self.metric, algorithm=self.algorithm, leaf_size=self.leaf_size )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -562,49 +594,53 @@ class DBSCAN( Cluster ):
 		         'mutual_info',
 		         'v_measuere',
 		         'clusters',
-		         'prediction',]
+		         'prediction', ]
 	
 	def train( self, X: np.ndarray ) -> DBSCAN | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Fit the DBSCAN model to the stores.
-	
+			Fit the DBSCAN model to the input samples.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				DBSCAN | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> DBSCAN | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Predict clusters using DBSCAN fit.
-	
+			Generate cluster assignments using DBSCAN.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
 			Returns:
-			---------
-			np.ndarray
-	
+			--------
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -614,80 +650,114 @@ class DBSCAN( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate DBSCAN clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			valid = labels[ labels != -1 ]
+			
+			if len( np.unique( valid ) ) >= 2:
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize DBSCAN clusters.
-	
+			Visualize DBSCAN clusters and return summary analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='plasma' )
-			plt.title( 'DBSCAN Cluster' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='viridis' )
+			plt.title( 'DBSCAN' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Eps': self.eps,
+					'Min-Samples': self.min_samples,
+					'Metric': self.metric,
+					'Algorithm': self.algorithm,
+					'Leaf-Size': self.leaf_size,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class Agglomerative( Cluster ):
 	"""
@@ -729,7 +799,7 @@ class Agglomerative( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters: int=2, distance: str='euclidean',
+	def __init__( self, clusters: int = 2, distance: str='euclidean',
 			full_tree: str='auto', link: str='ward' ) -> None:
 		"""
 
@@ -738,8 +808,15 @@ class Agglomerative( Cluster ):
 			Initialize AgglomerativeCluster.
 
 			Parameters:
-			----------
-			num: int
+			-----------
+				clusters (int): Number of clusters to find.
+				distance (str): Metric used to compute linkage distances.
+				full_tree (str): Whether to compute the full clustering tree.
+				link (str): Linkage criterion used to merge clusters.
+
+			Returns:
+			--------
+				None
 
 		"""
 		super( ).__init__( )
@@ -748,7 +825,8 @@ class Agglomerative( Cluster ):
 		self.compute_full_tree = full_tree
 		self.linkage = link
 		self.model = skc.AgglomerativeClustering( n_clusters=self.n_clusters,
-			affinity=self.affinity, compute_full_tree=self.compute_full_tree, linkage=self.linkage )
+			metric=self.affinity, compute_full_tree=self.compute_full_tree,
+			linkage=self.linkage )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -782,46 +860,49 @@ class Agglomerative( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> Agglomerative | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Fit Agglomerative model to stores.
-	
+			Fit Agglomerative model to samples.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				Agglomerative | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> Agglomerative | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Predict clusters using agglomerative clustering.
-	
+			Generate cluster assignments using agglomerative clustering.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
 			Returns:
-			---------
-			np.ndarray
-	
+			--------
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -831,82 +912,112 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate agglomerative clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			
+			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize agglomerative clustering results.
-	
+			Visualize agglomerative clusters and return summary analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X,
-			                                                      X ] )
-			labels = self.model.fit_predict( X )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='tab10' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='plasma' )
 			plt.title( 'Agglomerative Cluster' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Clusters': self.n_clusters,
+					'Metric': self.affinity,
+					'Full-Tree': self.compute_full_tree,
+					'Linkage': self.linkage,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class Spectral( Cluster ):
 	"""
@@ -943,9 +1054,9 @@ class Spectral( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters=8, random_state: int=42, n_init=10,
-			gama=1.0, distance='rbf', neighbors=10,
-			tolerance=0.0, assign='kmeans'  ) -> None:
+	def __init__( self, clusters: int = 8, random_state: int = 42, n_init: int = 10,
+			gama: float = 1.0, distance: str = 'rbf', neighbors: int = 10,
+			tolerance: float = 0.0, assign: str = 'kmeans' ) -> None:
 		"""
 
 			Purpose:
@@ -953,8 +1064,20 @@ class Spectral( Cluster ):
 			Initialize the SpectralCluster model.
 
 			Parameters:
-			----------
-			num: int
+			-----------
+				clusters (int): Number of clusters to form.
+				random_state (int): Random seed for reproducibility.
+				n_init (int): Number of initializations for the label assignment step.
+				gama (float): Kernel coefficient for the rbf, poly, sigmoid, laplacian,
+					and chi2 kernels.
+				distance (str): Affinity construction strategy.
+				neighbors (int): Number of neighbors to use when affinity is nearest_neighbors.
+				tolerance (float): Stopping criterion for eigen decomposition.
+				assign (str): Strategy used to assign labels in the embedding space.
+
+			Returns:
+			--------
+				None
 
 		"""
 		super( ).__init__( )
@@ -1007,46 +1130,49 @@ class Spectral( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> Spectral | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Fit the SpectralCluster model.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				Spectral | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> Spectral | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Predict clusters using SpectralCluster.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-	
-			Return:
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
 			--------
-			np.ndarray
-	
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1056,80 +1182,116 @@ class Spectral( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate spectral clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			
+			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize Spectral Cluster results.
-	
+			Visualize Spectral Cluster results and return summary analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Accent' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='Accent' )
 			plt.title( 'Spectral Cluster' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Clusters': self.n_clusters,
+					'Random-State': self.random_state,
+					'N-Init': self.n_init,
+					'Gamma': self.gamma,
+					'Affinity': self.affinity,
+					'N-Neighbors': self.n_neighbors,
+					'Eigen-Tolerance': self.eigen_tolerance,
+					'Assign-Labels': self.assign_labels,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class MeanShift( Cluster ):
 	"""
@@ -1162,18 +1324,28 @@ class MeanShift( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, min_bin: int=1, group_all: bool=True ) -> None:
+	def __init__( self, min_bin: int = 1, group_all: bool = True ) -> None:
 		"""
 
 			Purpose:
 			---------
 			Initialize MeanShift model.
 
+			Parameters:
+			-----------
+				min_bin (int): Minimum bin frequency for seed generation.
+				group_all (bool): Whether to assign all samples to a cluster.
+
+			Returns:
+			--------
+				None
+
 		"""
 		super( ).__init__( )
 		self.min_bin_freq = min_bin
 		self.cluster_all = group_all
-		self.model = skc.MeanShift( min_bin_freq=self.min_bin_freq, cluster_all=self.cluster_all )
+		self.model = skc.MeanShift( min_bin_freq=self.min_bin_freq,
+			cluster_all=self.cluster_all )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -1203,45 +1375,49 @@ class MeanShift( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> MeanShift | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Fit MeanShift model to the stores.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				MeanShift | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> MeanShift | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Predict clusters using MeanShift.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-			Return:
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
 			--------
-			np.ndarray
-	
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1251,80 +1427,110 @@ class MeanShift( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate MeanShift clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			
+			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize MeanShift clustering.
-	
+			Visualize MeanShift clustering and return summary analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Set1' )
-			plt.title( 'MeanShift Cluster' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='rainbow' )
+			plt.title( 'MeanShift' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Min-Bin-Freq': self.min_bin_freq,
+					'Cluster-All': self.cluster_all,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class AffinityPropagation( Cluster ):
 	"""
@@ -1361,6 +1567,20 @@ class AffinityPropagation( Cluster ):
 			---------
 			Initialize AffinityPropagation model.
 
+			Parameters:
+			-----------
+				damp (float): Damping factor between 0.5 and 1.0.
+				iters (int): Maximum number of iterations.
+				convergence (int): Number of iterations with no change in the
+					number of estimated clusters that stops convergence.
+				prefer (np.ndarray): Preferences for each point to be chosen as
+					an exemplar.
+				distance (str): Affinity used by the model.
+
+			Returns:
+			--------
+				None
+
 		"""
 		super( ).__init__( )
 		self.damping = damp
@@ -1368,8 +1588,9 @@ class AffinityPropagation( Cluster ):
 		self.convergence_iter = convergence
 		self.preference = prefer
 		self.affinity = distance
-		self.model = skc.AffinityPropagation( damping=self.damping, max_iter=self.max_iter,
-			convergence_iter=self.convergence_iter, preference=self.preference, affinity=self.affinity )
+		self.model = skc.AffinityPropagation( damping=self.damping,
+			max_iter=self.max_iter, convergence_iter=self.convergence_iter,
+			preference=self.preference, affinity=self.affinity )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -1404,128 +1625,166 @@ class AffinityPropagation( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> AffinityPropagation | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Fit the model to stores.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				AffinityPropagation | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'train( self, X: np.ndarray ) -> AffinityPropagation | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Predict clusters.
-	
+			Generate cluster assignments using AffinityPropagation.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
 			Returns:
 			--------
-			np.ndarray
-	
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit( X ).labels_
-			return np.ndarray( labels )
+			self.prediction = self.model.fit_predict( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = \
+				'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize clustering with AffinityPropagation.
-	
+			Visualize clustering with AffinityPropagation and return summary
+			analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit( X ).labels_
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Paired' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='Paired' )
 			plt.title( 'AffinityPropagation Cluster' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Damping': self.damping,
+					'Max-Iter': self.max_iter,
+					'Convergence-Iter': self.convergence_iter,
+					'Preference': self.preference,
+					'Affinity': self.affinity,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class Birch( Cluster ):
 	"""
@@ -1567,8 +1826,8 @@ class Birch( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, threshold=0.5, branching_factor=50, n_clusters=3,
-			compute_labels=True, copy=True ) -> None:
+	def __init__( self, threshold: float=0.5, branching_factor: int=50, n_clusters: int=3,
+			compute_labels: bool=True, copy: bool=True ) -> None:
 		"""
 
 			Purpose:
@@ -1576,12 +1835,17 @@ class Birch( Cluster ):
 			Initialize Birch clustering.
 
 			Parameters:
-			----------
-			n_clusters: Optional[int]
-			threshold: Optional[ float ]
-			branching_factor: Optional[ int ]
-			copy: Optional[ bool ]
-			compute_labels: Optional[ bool ]
+			-----------
+				threshold (float): Radius threshold used to merge new samples into
+					existing subclusters.
+				branching_factor (int): Maximum number of CF subclusters in each node.
+				n_clusters (int): Number of global clusters after the final clustering step.
+				compute_labels (bool): Whether to compute labels for each sample.
+				copy (bool): Whether input data should be copied.
+
+			Returns:
+			--------
+				None
 
 		"""
 		super( ).__init__( )
@@ -1590,8 +1854,9 @@ class Birch( Cluster ):
 		self.n_clusters = n_clusters
 		self.compute_labels = compute_labels
 		self.copy = copy
-		self.model = skc.Birch( threshold=self.threshold, branching_factor=self.branching_factor,
-			n_clusters=self.n_clusters, copy=self.copy, compute_labels=self.compute_labels )
+		self.model = skc.Birch( threshold=self.threshold,
+			branching_factor=self.branching_factor, n_clusters=self.n_clusters,
+			copy=self.copy, compute_labels=self.compute_labels )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -1627,9 +1892,7 @@ class Birch( Cluster ):
 
 			Returns
 			-------
-			n_iter_ (int) is ndarray of shape ( n_classes, )
-			Represents the number of iterations run by the coordinate descent solver
-			to reach the specified tolerance.
+			np.ndarray: Subcluster centers learned by Birch.
 
 		'''
 		if self.model.subcluster_centers_ is None:
@@ -1643,8 +1906,7 @@ class Birch( Cluster ):
 
 			Returns
 			-------
-			n_features_in_
-			The number of features seen during training
+			np.ndarray: Global labels assigned to each subcluster.
 
 		'''
 		if self.model.subcluster_labels_ is None:
@@ -1654,45 +1916,50 @@ class Birch( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> Birch | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Fit Birch clustering model.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				Birch | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			if hasattr( self.model, 'labels_' ):
+				self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> Birch | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Predict clusters with Birch.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
 			Returns:
 			--------
-			np.ndarray
-	
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1702,80 +1969,114 @@ class Birch( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate Birch clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-			{
-				'Silouette': self.silouette,
-				'Homogeneity': self.homogeneity,
-				'Mutual-Info': self.mutual_info,
-				'Completeness': self.completeness,
-				'V-Measure': self.v_measure,
-			}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			
+			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize Birch clustering.
-	
+			Visualize Birch clustering and return summary analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='Dark2' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='Dark2' )
 			plt.title( 'Birch Cluster' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Threshold': self.threshold,
+					'Branching-Factor': self.branching_factor,
+					'N-Clusters': self.n_clusters,
+					'Compute-Labels': self.compute_labels,
+					'Subcluster-Centers': self.subcluster_centers,
+					'Subcluster-Labels': self.subcluster_labels,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
-			
+
 
 class OPTICS( Cluster ):
 	"""
@@ -1823,8 +2124,21 @@ class OPTICS( Cluster ):
 			Initialize OPTICS model.
 
 			Parameters:
-			----------
-			min: int
+			-----------
+				samples (int): Number of samples in a neighborhood for a point to be
+					considered a core point.
+				max_distance (float): Maximum distance between two samples for one to be
+					considered reachable.
+				measure (str): Distance metric used to compute neighborhood distances.
+				distance (float): Maximum distance between points in a cluster extraction.
+				correction (bool): Whether to apply predecessor correction.
+				min_size (int): Minimum number of samples in an OPTICS cluster.
+				method (str): Nearest-neighbor search algorithm.
+				leaf_size (int): Leaf size passed to the nearest-neighbor tree.
+
+			Returns:
+			--------
+				None
 
 		"""
 		super( ).__init__( )
@@ -1839,7 +2153,7 @@ class OPTICS( Cluster ):
 		self.model = skc.OPTICS( min_samples=self.min_samples, max_eps=self.max_eps,
 			algorithm=self.algorith, leaf_size=self.leaf_size, metric=self.metric,
 			predecessor_correction=self.predecessor_correction, eps=self.eps,
-			min_cluster_size=self.min_cluster_size, )
+			min_cluster_size=self.min_cluster_size )
 		self.prediction = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
@@ -1876,45 +2190,49 @@ class OPTICS( Cluster ):
 	
 	def train( self, X: np.ndarray ) -> OPTICS | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Fit OPTICS model.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				OPTICS | None: Trained wrapper instance or None.
+
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
+			self.prediction = self.model.labels_
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
-			exception.method = 'train( self, X: np.ndarray ) -> None'
+			exception.method = 'train( self, X: np.ndarray ) -> OPTICS | None'
 			raise exception
-			
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			---------
 			Predict clusters with OPTICS.
-	
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-			Return:
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
 			--------
-			np.ndarray
-	
+				np.ndarray | None: Cluster labels for each sample.
+
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1924,78 +2242,114 @@ class OPTICS( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using silhouette score.
+			Evaluate OPTICS clustering performance using intrinsic and optional
+			external clustering metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for external clustering metrics.
 
 			Returns:
-			---------
-			float
+			--------
+				pd.DataFrame | None: DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			self.siloutte = silhouette_score( X, labels )
-			self.homogeneity = homogeneity_score( X, labels )
-			self.mutual_info = mutual_info_score( X, labels )
-			self.completeness = completeness_score( X, labels )
-			self.v_measure = v_measure_score( X, labels )
-			scores = \
-				{
-						'Silouette': self.silouette,
-						'Homogeneity': self.homogeneity,
-						'Mutual-Info': self.mutual_info,
-						'Completeness': self.completeness,
-						'V-Measure': self.v_measure,
-				}
-			cols = list( scores.keys( ) )
-			data = pd.DataFrame( data=scores, columns=cols )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			scores = { }
+			valid = labels[ labels != -1 ]
+			
+			if len( np.unique( valid ) ) >= 2:
+				self.silouette = silhouette_score( X, labels )
+				scores[ 'Silouette' ] = self.silouette
+			else:
+				self.silouette = np.nan
+				scores[ 'Silouette' ] = self.silouette
+			
+			if y is not None:
+				self.homogeneity = homogeneity_score( y, labels )
+				self.mutual_info = mutual_info_score( y, labels )
+				self.completeness = completeness_score( y, labels )
+				self.v_measure = v_measure_score( y, labels )
+				scores[ 'Homogeneity' ] = self.homogeneity
+				scores[ 'Mutual-Info' ] = self.mutual_info
+				scores[ 'Completeness' ] = self.completeness
+				scores[ 'V-Measure' ] = self.v_measure
+			
+			data = pd.DataFrame( [ scores ] )
 			return data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
-			exception.method = 'score( self, X: np.ndarray ) -> float'
+			exception.method = \
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
 		"""
-	
+
 			Purpose:
 			---------
-			Visualize OPTICS clustering result.
-	
+			Visualize OPTICS clustering result and return summary analysis values.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (Optional[np.ndarray]): Optional target array  of shape ( n_samples, ).
-	
-	
+				X (np.ndarray): Feature matrix/input samples of shape
+					( n_samples, n_features ).
+				y (Optional[np.ndarray]): Optional reference labels of shape
+					( n_samples, ) for comparison against predicted clusters.
+
+			Returns:
+			--------
+				Dict[ str, Any ] | None: Dictionary containing analysis results.
+
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.fit_predict( X )
-			plt.scatter( X[ :, 0 ], X[ :, 1 ], c=labels, cmap='rainbow' )
+			
+			if self.prediction is None or len( self.prediction ) != len( X ):
+				labels = self.model.fit_predict( X )
+			else:
+				labels = self.prediction
+			
+			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
+			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='rainbow' )
 			plt.title( 'OPTICS Cluster' )
 			plt.show( )
+			return {
+					'Labels': labels,
+					'Min-Samples': self.min_samples,
+					'Max-Eps': self.max_eps,
+					'Metric': self.metric,
+					'Eps': self.eps,
+					'Predecessor-Correction': self.predecessor_correction,
+					'Min-Cluster-Size': self.min_cluster_size,
+					'Algorithm': self.algorith,
+					'Leaf-Size': self.leaf_size,
+			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
-			exception.method = 'analyze( self, X: np.ndarray ) -> None'
+			exception.method = \
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
 			raise exception
 			
