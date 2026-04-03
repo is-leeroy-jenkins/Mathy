@@ -856,7 +856,7 @@ class LeastSquares( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	threshold: Optional[ float ]
 	
-	def __init__( self, threshold: float = 0.5 ) -> None:
+	def __init__( self, threshold: float=0.5 ) -> None:
 		"""
 
 			Purpose:
@@ -949,8 +949,7 @@ class LeastSquares( Classifier ):
 		return self.model.n_features_in_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,  np.ndarray):
 		"""
 
 			Purpose:
@@ -961,7 +960,7 @@ class LeastSquares( Classifier ):
 			-----------
 			X (np.ndarray): Feature matrix.
 			y (np.ndarray): Target vector.
-			size (float): Test set proportion.
+			size (float): Test-set proportion.
 			random (int): Random seed.
 
 			Returns:
@@ -1019,7 +1018,7 @@ class LeastSquares( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Input features.
-			y (np.ndarray): Ignored.
+			y (Optional[ np.ndarray ]): Ignored optional argument.
 
 			Returns:
 			--------
@@ -1141,7 +1140,21 @@ class LogisticRegression( Classifier ):
 
 		Purpose:
 		--------
-		Wrap sklearn.linear_model.LogisticRegression for classification.
+		Logistic is implemented as a linear model for classification rather than regression.
+		The logistic regression is also known in the literature as logit regression,
+		maximum-entropy classification (MaxEnt) or the log-linear classifier.
+		The probabilities describing the possible outcomes of a single trial are
+		modeled using a logistic function.
+		
+		This implementation can fit binary, One-vs-Rest, or multinomial logistic regression
+		with optional, or Elastic-Net regularization. Regularization is applied by default,
+		which is common in machine learning but not in statistics. Another advantage of regularization
+		is that it improves numerical stability. No regularization amounts to setting C to a
+		very high value.
+		
+		The numerical output of the logistic regression, which is the predicted probability, can be
+		used as a classifier by applying a threshold (by default 0.5) to it so it expects a
+		categorical target, making the Logistic Regression a classifier.
 
 	"""
 	model: skc.LogisticRegression
@@ -1196,14 +1209,9 @@ class LogisticRegression( Classifier ):
 		self.multi_class = multiclass
 		self.solver = solver
 		self._validate_configuration( )
-		self.model = skc.LogisticRegression(
-			C=self.C,
-			max_iter=self.max_iter,
-			multi_class=self.multi_class,
-			solver=self.solver,
-			random_state=self.random_state,
-			penalty=self.penalty
-		)
+		self.model = skc.LogisticRegression( C=self.C, max_iter=self.max_iter,
+			multi_class=self.multi_class, solver=self.solver, random_state=self.random_state,
+			penalty=self.penalty )
 	
 	def _validate_configuration( self ) -> None:
 		"""
@@ -1337,8 +1345,7 @@ class LogisticRegression( Classifier ):
 		return self.model.n_iter_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -1454,7 +1461,7 @@ class LogisticRegression( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -3631,7 +3638,7 @@ class RandomForest( Classifier ):
 	max_depth: Optional[ Any ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
-	precision: Optional[ np.ndarray ]
+	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
 	f1_score: Optional[ float ]
@@ -3640,12 +3647,23 @@ class RandomForest( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int=10, criterion: Any='gini', depth: Any=None, rando: int=42 ) -> None:
+	def __init__( self, num: int = 10, criterion: Any = 'gini', depth: Any = None, rando: int = 42 ) -> None:
 		"""
 
 			Purpose:
 			-----------
-			Initializes the RandomForestClassifier.
+			Initialize the Random Forest classifier.
+
+			Parameters:
+			-----------
+			num (int): Number of trees in the forest.
+			criterion (str): Function used to measure split quality.
+			depth (int | None): Maximum tree depth.
+			rando (int): Random seed.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
@@ -3655,35 +3673,34 @@ class RandomForest( Classifier ):
 		self.random_state = rando
 		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
 			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
-		self.prediction = None
-		self.probability = None
-		self.precision = 0.0
-		self.balanced_accuracy = 0.0
-		self.accuracy = 0.0
-		self.recall = 0.0
-		self.f1_score = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
-		
+	
 	def __dir__( self ) -> List[ str ]:
-		'''
+		"""
 
 			Purpose:
-			-------
-			Provides a list of strings representing class members
+			-----------
+			Provide a list of strings representing class members.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]
+
+		"""
 		return [ 'prediction',
-				 'max_depth',
-				 'random_state',
-				 'n_estimators',
-				 'max_depth',
-				 'criterior',
-				 'train',
-				 'project',
-				 'score',
-				 'analyze',
-				 'create_heatmap',
+		         'random_state',
+		         'n_estimators',
+		         'max_depth',
+		         'criterion',
+		         'model',
+		         'train',
+		         'project',
+		         'predict_probability',
+		         'score',
+		         'analyze',
 		         'labels',
 		         'features_in',
 		         'feature_importances',
@@ -3698,107 +3715,128 @@ class RandomForest( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		'''
+		"""
 
-			Returns
-			-------
-			classes_ ndarray of shape (n_classes, )
-			A list of class labels known to the classifier.
+			Purpose:
+			-----------
+			Return class labels known to the classifier.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.classes_
+		return self.model.classes_
 	
 	@property
 	def features_in( self ) -> int:
-		'''
+		"""
 
-			Returns
-			-------
-			ndarray of shape (n_features,)
-			The number of features seen during training.
+			Purpose:
+			-----------
+			Return the number of features seen during training.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			int
+
+		"""
 		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_features_in_
+		return self.model.n_features_in_
 	
 	@property
 	def feature_importances( self ) -> np.ndarray:
-		'''
+		"""
 
-			Returns
-			-------
-			ndarray of shape (n_features,)
-			The impurity-based feature importances.
+			Purpose:
+			-----------
+			Return impurity-based feature importances.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
 		if self.model.feature_importances_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.feature_importances_
+		return self.model.feature_importances_
 	
 	@property
 	def outputs( self ) -> int:
-		'''
-
-			Returns
-			-------
-			n_outputs_ (int):
-			The number of outputs after training.
-
-		'''
-		if self.model.n_outputs_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_outputs_
-		
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
+		"""
 
 			Purpose:
-			_______
-
+			-----------
+			Return the number of outputs after training.
 
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
+			-----------
+			None
 
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
+			--------
+			int
 
+		"""
+		if self.model.n_outputs_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_outputs_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+	                                                  np.ndarray):
+		"""
 
-		'''
+			Purpose:
+			-----------
+			Split input arrays into training and testing subsets.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Test-set proportion.
+			random (int): Random seed.
+
+			Returns:
+			--------
+			tuple
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, stratify=y )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
-			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
 
 			Purpose:
 			-----------
-			Fit the classifier.
-
+			Fit the Random Forest classifier.
 
 			Parameters:
 			-----------
@@ -3807,8 +3845,7 @@ class RandomForest( Classifier ):
 
 			Returns:
 			--------
-				Pipeline
-
+			RandomForest | None
 
 		"""
 		try:
@@ -3820,25 +3857,24 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
-			-------
-			Predict class target_names
-			using the SGD classifier.
+			-----------
+			Predict class labels for the supplied features.
 
 			Parameters:
-			----------
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
 
 			Returns:
-			---------
-			np.ndarray: Predicted class target_names.
+			--------
+			np.ndarray
 
 		"""
 		try:
@@ -3851,23 +3887,21 @@ class RandomForest( Classifier ):
 			exception.cause = 'RandomForest'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
-
 			Purpose:
 			-----------
-			Return probability estimates for the test stores X.
+			Return class-probability estimates for the supplied features.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
+			--------
+			np.ndarray
 
 		"""
 		try:
@@ -3878,114 +3912,68 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
-		
+
 			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-			
-			F1-Score - F1 Score
-			Precision - Prescision Score
-			Accuracy - Accuracy Score
-			Recall - Recall Score
-			
-			
+			-----------
+			Compute scalar summary classification metrics.
+
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
 			Returns:
 			--------
-			Dict[ str, float]
-		
+			pd.DataFrame
+
 		"""
 		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, y_pred, average=None )
-			self.accuracy = accuracy_score( y, y_pred )
-			self.recall = recall_score( y, y_pred, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
-			self.f1_score = f1_score( y, y_pred, average=None )
-			_metrics = \
-			{
-				'Training Score': self.training_score,
-	            'Testing Score': self.testing_score,
-				'Precision Score': self.precision,
-				'Accuracy Score': self.accuracy,
-				'Recall Score': self.recall,
-				'Balanced Accuracy': self.balanced_accuracy,
-				'F Score': self.f1_score,
-			}
-			
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			return self._classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
-
 
 			Purpose:
 			-----------
-			Evaluate classifier performance using standard classification metrics.
+			Render a correlation heatmap for the supplied features.
 
 			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
+			-----------
+			X (np.ndarray): Feature matrix.
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Mean Squared Error (float)
-			- Root Mean Squared Error (float)
-			- Mean Absolute Error (float)
-			- Median Absolute Error (float)
+			--------
+			None
 
 		"""
 		try:
-			throw_if( 'X', X )
 			throw_if( 'y', y )
-			data = pd.DataFrame( X )
-			corr = data.corr( method='pearson' )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
-			plt.tight_layout( )
-			plt.title( 'Correlation Matrix' )
-			plt.grid( False )
-			plt.show( )
+			self._correlation_heatmap( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
-								'float ]')
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
 			raise exception
-			
 	
-	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
 			-----------
-			Plot confusion matrix for classifier predictions.
+			Plot observed labels against predicted labels.
 
 			Parameters:
 			-----------
@@ -3993,24 +3981,23 @@ class RandomForest( Classifier ):
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			-----------
-				None
+			--------
+			None
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_mrk = ( 'o', 's', '^', 'v', '<' )
-			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
 			_trn = self.training_score
 			_tst = self.testing_score
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
+			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4049,10 +4036,10 @@ class GradientBoost( Classifier ):
 	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
 	criterion: Optional[ str ]
-	f1_score: Optional[ float ]
-	hinge_loss: Optional[ float ]
+	loss: Optional[ str ]
+	n_estimators: Optional[ int ]
 	accuracy: Optional[ float ]
-	precision: Optional[ np.ndarray ]
+	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
 	f1_score: Optional[ float ]
@@ -4061,21 +4048,26 @@ class GradientBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, lss: str='log_loss', rate: int=0.1, est: int=100,
-			depth: int=3, rando: int=42, criterion: str='squared_error' ) -> None:
+	def __init__( self, lss: str = 'log_loss', rate: float = 0.1, est: int = 100,
+			depth: int = 3, rando: int = 42, criterion: str = 'friedman_mse' ) -> None:
 		"""
 
 			Purpose:
-			________
-			Initialize the GradientBoostingClassifier.
+			--------
+			Initialize the Gradient Boosting classifier.
 
 			Parameters:
-			___________
-			lss: str
-			rate: int
-			estimators: int
-			max: int
-			rando: int
+			-----------
+			lss (str): Loss function.
+			rate (float): Learning rate.
+			est (int): Number of boosting stages.
+			depth (int): Maximum depth of the individual estimators.
+			rando (int): Random seed.
+			criterion (str): Split criterion for the base learners.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
@@ -4085,43 +4077,48 @@ class GradientBoost( Classifier ):
 		self.max_depth = depth
 		self.random_state = rando
 		self.criterion = criterion
-		self.model = ske.GradientBoostingClassifier( loss=self.loss,
-			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
-			max_depth=self.max_depth, random_state=self.random_state, criterion=self.criterion )
-		self.prediction = None
-		self.probability = None
-		self.precision = 0.0
-		self.balanced_accuracy = 0.0
-		self.accuracy = 0.0
-		self.recall = 0.0
-		self.f1_score = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
-		
+		self.model = ske.GradientBoostingClassifier(
+			loss=self.loss,
+			learning_rate=self.learning_rate,
+			n_estimators=self.n_estimators,
+			max_depth=self.max_depth,
+			random_state=self.random_state,
+			criterion=self.criterion
+		)
+	
 	def __dir__( self ) -> List[ str ]:
-		'''
+		"""
 
 			Purpose:
-			-------
-			Provides a list of strings representing class members
+			--------
+			Provide a list of strings representing class members.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]
+
+		"""
 		return [ 'prediction',
-				 'max_depth',
-				 'random_state',
-				 'loss',
-				 'learning_rate',
-				 'n_estimators',
-				 'model',
-				 'train',
-				 'project',
-				 'score',
-				 'analyze',
-				 'create_heatmap',
-				 'labels',
+		         'max_depth',
+		         'random_state',
+		         'loss',
+		         'learning_rate',
+		         'n_estimators',
+		         'criterion',
+		         'model',
+		         'train',
+		         'project',
+		         'predict_probability',
+		         'score',
+		         'analyze',
+		         'labels',
 		         'features_in',
 		         'trees',
-		         'feature_importances'
+		         'feature_importances',
 		         'estimators',
 		         'accuracy',
 		         'precision',
@@ -4133,131 +4130,158 @@ class GradientBoost( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		'''
+		"""
 
-			Returns
-			-------
-			classes_ ndarray of shape (n_classes, )
-			A list of class labels known to the classifier.
+			Purpose:
+			--------
+			Return class labels known to the classifier.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The data has not been trained!' )
-		else:
-			return self.model.classes_
+		return self.model.classes_
 	
 	@property
 	def trees( self ) -> int:
-		'''
+		"""
 
-			Returns
-			-------
-			n_trees_per_iteration_ - (int):
-			Number of trees per iteration
+			Purpose:
+			--------
+			Return the number of trees fit per boosting iteration.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			int
+
+		"""
 		if self.model.n_trees_per_iteration_ is None:
 			raise AttributeError( 'The data has not been trained!' )
-		else:
-			return self.model.n_trees_per_iteration_
+		return self.model.n_trees_per_iteration_
 	
 	@property
 	def features_in( self ) -> int:
-		'''
-
-			Returns
-			-------
-			n_features_in_
-			The number of features seen during training
-
-		'''
-		if self.model.n_features_in_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_features_in_
-	
-	@property
-	def feature_importances( self ) -> int:
-		'''
-
-			Returns
-			-------
-			feature_importances_ (int):
-			The impurity-based feature importances.
-
-		'''
-		if self.model.feature_importances_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.feature_importances_
-
-	@property
-	def estimators( self ) -> int:
-		'''
-
-			Returns
-			-------
-			n_features_in_
-			The number of features seen during training
-
-		'''
-		if self.model.estimators_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.estimators_
-	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
+		"""
 
 			Purpose:
-			_______
-
+			--------
+			Return the number of features seen during training.
 
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
+			-----------
+			None
 
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
+			--------
+			int
 
+		"""
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
+	
+	@property
+	def feature_importances( self ) -> np.ndarray:
+		"""
 
-		'''
+			Purpose:
+			--------
+			Return impurity-based feature importances.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		if self.model.feature_importances_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.feature_importances_
+	
+	@property
+	def estimators( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Return the fitted stage estimators.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.estimators_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+	                                                  np.ndarray):
+		"""
+
+			Purpose:
+			--------
+			Split input arrays into training and testing subsets.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Test-set proportion.
+			random (int): Random seed.
+
+			Returns:
+			--------
+			tuple
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random )
+				random_state=random, stratify=y )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
-			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
 		"""
 
 			Purpose:
-			________
-			Fit the model to the training df.
+			--------
+			Fit the Gradient Boosting classifier.
 
 			Parameters:
-			__________
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
-			Pipeline
+			GradientBoost | None
 
 		"""
 		try:
@@ -4269,25 +4293,24 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = ('train( self, X: np.ndarray, y: np.ndarray ) -> '
-								'GradientBoost')
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
 			Purpose:
-			________
-			Predict class target_names.
+			--------
+			Predict class labels for the supplied features.
 
 			Parameters:
-			__________
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
 
 			Returns:
-			________
-			np.ndarray: Predicted target_names.
+			--------
+			np.ndarray
 
 		"""
 		try:
@@ -4300,23 +4323,21 @@ class GradientBoost( Classifier ):
 			exception.cause = 'GradientBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
-
 			Purpose:
-			-----------
-			Return probability estimates for the test stores X.
+			--------
+			Return class-probability estimates for the supplied features.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
+			--------
+			np.ndarray
 
 		"""
 		try:
@@ -4327,114 +4348,68 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray '
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
-		
+
 			Purpose:
 			--------
-			Compute the classification accuracy of the model.
-			
-			F1-Score - F1 Score
-			Precision - Prescision Score
-			Accuracy - Accuracy Score
-			Recall - Recall Score
-			
-			
+			Compute scalar summary classification metrics.
+
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
 			Returns:
 			--------
-			Dict[ str, float]
-		
+			pd.DataFrame
+
 		"""
 		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, y_pred, average=None )
-			self.accuracy = accuracy_score( y, y_pred )
-			self.recall = recall_score( y, y_pred, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
-			self.f1_score = f1_score( y, y_pred, average=None )
-			_metrics = \
-			{
-				'Training Score': self.training_score,
-	            'Testing Score': self.testing_score,
-				'Precision Score': self.precision,
-				'Accuracy Score': self.accuracy,
-				'Recall Score': self.recall,
-				'Balanced Accuracy': self.balanced_accuracy,
-				'F Score': self.f1_score,
-			}
-			
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			return self._classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
-
 			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
+			--------
+			Render a correlation heatmap for the supplied features.
 
 			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
+			-----------
+			X (np.ndarray): Feature matrix.
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Mean Squared Error (float)
-			- Root Mean Squared Error (float)
-			- Mean Absolute Error (float)
-			- Median Absolute Error (float)
+			--------
+			None
 
 		"""
 		try:
-			throw_if( 'X', X )
 			throw_if( 'y', y )
-			data = pd.DataFrame( X )
-			corr = data.corr( method='pearson' )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
-			plt.tight_layout( )
-			plt.title( 'Correlation Matrix' )
-			plt.grid( False )
-			plt.show( )
+			self._correlation_heatmap( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
-								'float ]')
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
 			raise exception
-			
 	
-	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
-			-----------
-			Plot confusion matrix for classifier predictions.
+			--------
+			Plot observed labels against predicted labels.
 
 			Parameters:
 			-----------
@@ -4442,24 +4417,23 @@ class GradientBoost( Classifier ):
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			-----------
-				None
+			--------
+			None
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_mrk = ( 'o', 's', '^', 'v', '<' )
-			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
 			_trn = self.training_score
 			_tst = self.testing_score
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
+			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4479,22 +4453,21 @@ class AdaptiveBoost( Classifier ):
 
 		Purpose:
 		---------
-		An Boost classifier is a meta-estimator that begins by fitting a classifier
+		A Boost classifier is a meta-estimator that begins by fitting a classifier
 		on the original dataset and then fits additional copies of the classifier on the
 		same dataset but where the weights of incorrectly classified instances are
 		adjusted such that subsequent classifiers focus more on difficult cases.
 
 	"""
-	model = ske.AdaBoostClassifier
+	model: ske.AdaBoostClassifier
 	prediction: Optional[ np.ndarray ]
+	probability: Optional[ np.ndarray ]
 	n_estimators: Optional[ int ]
-	random_state: Optional[ int ]
-	recall: Optional[ float ]
 	X_scaled: Optional[ pd.DataFrame ]
 	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
 	accuracy: Optional[ float ]
-	precision: Optional[ np.ndarray ]
+	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
 	recall: Optional[ float ]
 	f1_score: Optional[ float ]
@@ -4503,54 +4476,66 @@ class AdaptiveBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int=100, learning: float=1.0 ) -> None:
+	def __init__( self, num: int = 100, learning: float = 1.0, estimator: Any = None ) -> None:
 		"""
 
-			Initialize the Random Forest Classifier.
+			Purpose:
+			---------
+			Initialize the AdaBoost classifier.
+
+			Parameters:
+			-----------
+			num (int): Number of boosting stages.
+			learning (float): Learning rate applied to each classifier contribution.
+			estimator (Any): Base estimator used by the boosting ensemble.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
-		self.estimator = None
+		self.estimator = estimator
 		self.n_estimators = num
 		self.learning_rate = learning
-		self.model = ske.AdaBoostClassifier( estimator=self.estimator,
-			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
+		self.model = ske.AdaBoostClassifier( estimator=self.estimator, n_estimators=self.n_estimators,
+			learning_rate=self.learning_rate )
 		self.X_scaled = None
-		self.prediction = None
-		self.probability = None
-		self.precision = 0.0
-		self.balanced_accuracy = 0.0
-		self.accuracy = 0.0
-		self.recall = 0.0
-		self.f1_score = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
-		
+	
 	def __dir__( self ) -> List[ str ]:
-		'''
+		"""
 
 			Purpose:
-			-------
-			Provides a list of strings representing class members
+			---------
+			Provide a list of strings representing class members.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]
+
+		"""
 		return [ 'prediction',
-				 'max_depth',
-				 'random_state',
-				 'X_scaled',
-				 'n_estimators',
-				 'learning_rate',
-				 'model',
-				 'train',
-				 'project',
-				 'score',
-				 'analyze',
-				 'create_heatmap',
+		         'probability',
+		         'X_scaled',
+		         'n_estimators',
+		         'learning_rate',
+		         'estimator',
+		         'model',
+		         'train',
+		         'project',
+		         'predict_probability',
+		         'score',
+		         'analyze',
 		         'estimator_errors',
 		         'estimator_weights',
 		         'labels',
 		         'features_in',
-		         'importances',
+		         'feature_importances',
+		         'estimators',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
@@ -4560,138 +4545,181 @@ class AdaptiveBoost( Classifier ):
 		         'training_score', ]
 	
 	@property
-	def estimator_errors( self ) -> np.ndarray | None:
+	def estimator_errors( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return per-estimator classification errors.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
 		if self.model.estimator_errors_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.estimator_errors_
-	   
+		return self.model.estimator_errors_
+	
 	@property
 	def estimator_weights( self ) -> np.ndarray:
-		'''
-			
-			Returns
-			-------
-			Weights assigned to the features.
-			ndarray of shape (n_features,) or (n_targets, n_features)
+		"""
 
-		'''
+			Purpose:
+			---------
+			Return per-estimator boosting weights.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
 		if self.model.estimator_weights_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.estimator_weights_
-
+		return self.model.estimator_weights_
+	
 	@property
 	def labels( self ) -> np.ndarray:
-		'''
+		"""
 
-			Returns
-			-------
-			classes_ ndarray of shape (n_classes, )
-			A list of class labels known to the classifier.
+			Purpose:
+			---------
+			Return class labels known to the classifier.
 
-		'''
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The data has not been trained!' )
-		else:
-			return self.model.classes_
+		return self.model.classes_
 	
 	@property
 	def features_in( self ) -> int:
-		'''
-
-			Returns
-			-------
-			n_features_in_
-			The number of features seen during training
-
-		'''
-		if self.model.n_features_in_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_features_in_
-	
-	@property
-	def estimators( self ) -> int:
-		'''
-
-			Returns
-			-------
-			n_features_in_
-			The number of features seen during training
-
-		'''
-		if self.model.estimators_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.estimators_
-	
-	@property
-	def feature_importances( self ) -> int:
-		'''
-
-			Returns
-			-------
-			feature_importances_ (int):
-			The impurity-based feature importances.
-
-		'''
-		if self.model.feature_importances_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.feature_importances_
-	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
+		"""
 
 			Purpose:
-			_______
-
+			---------
+			Return the number of features seen during training.
 
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
+			-----------
+			None
 
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
+			--------
+			int
 
+		"""
+		if self.model.n_features_in_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
+	
+	@property
+	def estimators( self ) -> List[ Any ]:
+		"""
 
-		'''
+			Purpose:
+			---------
+			Return fitted boosting estimators.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ Any ]
+
+		"""
+		if self.model.estimators_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.estimators_
+	
+	@property
+	def feature_importances( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return impurity-based feature importances when available.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		if self.model.feature_importances_ is None:
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.feature_importances_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+	                                                  np.ndarray):
+		"""
+
+			Purpose:
+			---------
+			Split input arrays into training and testing subsets.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Test-set proportion.
+			random (int): Random seed.
+
+			Returns:
+			--------
+			tuple
+
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
+			X_train, X_test, y_train, y_test = split(
+				X, y, test_size=size, random_state=random, stratify=y
+			)
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
-			
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
 		"""
 
 			Purpose:
-			_______
-			Fit the classifier.
+			---------
+			Fit the AdaBoost classifier.
 
 			Parameters:
-			_________
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
-			Pipeline
+			AdaptiveBoost | None
 
 		"""
 		try:
@@ -4703,23 +4731,24 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Pipeline'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
 		"""
 
-			Predict class target_names
-			using the SGD classifier.
+			Purpose:
+			---------
+			Predict class labels for the supplied features.
 
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
 
 			Returns:
-			-----------
-			np.ndarray: Predicted class target_names.
+			--------
+			np.ndarray
 
 		"""
 		try:
@@ -4732,111 +4761,93 @@ class AdaptiveBoost( Classifier ):
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
+	
+	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return class-probability estimates for the supplied features.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.probability = self.model.predict_proba( X )
+			return self.probability
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'AdaptiveBoost'
+			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
-		
+
 			Purpose:
-			--------
-			Compute the classification accuracy of the model.
-			
-			F1-Score - F1 Score
-			Precision - Prescision Score
-			Accuracy - Accuracy Score
-			Recall - Recall Score
-			
-			
+			---------
+			Compute scalar summary classification metrics.
+
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-			
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
 			Returns:
 			--------
-			Dict[ str, float]
-		
+			pd.DataFrame
+
 		"""
 		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.precision = precision_score( y, y_pred, average=None )
-			self.accuracy = accuracy_score( y, y_pred )
-			self.recall = recall_score( y, y_pred, average=None )
-			self.balanced_accuracy = balanced_accuracy_score( y, y_pred )
-			self.f1_score = f1_score( y, y_pred, average=None )
-			_metrics = \
-			{
-				'Training Score': self.training_score,
-	            'Testing Score': self.testing_score,
-				'Precision Score': self.precision,
-				'Accuracy Score': self.accuracy,
-				'Recall Score': self.recall,
-				'Balanced Accuracy': self.balanced_accuracy,
-				'F Score': self.f1_score,
-			}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			return self._classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> float'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
-
 			Purpose:
-			-----------
-			Evaluate classifier performance using standard classification metrics.
+			---------
+			Render a correlation heatmap for the supplied features.
 
 			Parameters:
-			---------
-			X (np.ndarray): Input feature_names of shape (n_samples, n_features).
-			y (np.ndarray): Ground truth class target_names.
+			-----------
+			X (np.ndarray): Feature matrix.
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
-			---------
-			dict: Dictionary of evaluation metrics including:
-			- Mean Squared Error (float)
-			- Root Mean Squared Error (float)
-			- Mean Absolute Error (float)
-			- Median Absolute Error (float)
+			--------
+			None
 
 		"""
 		try:
-			throw_if( 'X', X )
 			throw_if( 'y', y )
-			data = pd.DataFrame( X )
-			corr = data.corr( method='pearson' )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.heatmap( corr, fmt='.1%', cmap='coolwarm', annot=True )
-			plt.tight_layout( )
-			plt.title( 'Correlation Matrix' )
-			plt.grid( False )
-			plt.show( )
+			self._correlation_heatmap( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = ('analyze( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, '
-								'float ]')
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
 			raise exception
-			
 	
-	def scatter_plot( self, X: np.ndarray, y: np.ndarray ):
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
-			-----------
-			Plot confusion matrix for classifier predictions.
+			---------
+			Plot observed labels against predicted labels.
 
 			Parameters:
 			-----------
@@ -4844,24 +4855,23 @@ class AdaptiveBoost( Classifier ):
 			y (np.ndarray): True class target vector of shape ( n_samples, ).
 
 			Returns:
-			-----------
-				None
+			--------
+			None
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_mrk = ( 'o', 's', '^', 'v', '<' )
-			_clr = ( 'red', 'blue', 'lightgreen', 'gray', 'cyan' )
-			_cmap = ListedColormap( _clr[ :len( np.unique( y ) ) ] )
 			_trn = self.training_score
 			_tst = self.testing_score
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
-			plt.figure( figsize=( 8, 6 ) )
-			sns.regplot(x=y, y=y_pred, scatter_kws={'alpha': 0.6}, line_kws={'color': 'red'} )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.figure( figsize=(8, 6) )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
+			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
