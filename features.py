@@ -2168,228 +2168,268 @@ class RFE( Selector ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	
-	def __init__( self, k_features: int=None, verbose: int=0  ) -> None:
+	def __init__( self, k_features: int = None, verbose: int = 0 ) -> None:
 		"""
-
+		
 			Purpose:
-			---------
-			Initialize Recursive Feature Elimination (RFE)
-
-
+			--------
+			Initialize the Recursive Feature Elimination wrapper.
+		
+			Parameters:
+			-----------
+			k_features (int): Number of features to select. If None, half of the
+				features are selected by the underlying estimator.
+			verbose (int): Controls verbosity of the underlying RFE estimator.
+		
+			Returns:
+			--------
+			None
+		
 		"""
 		super( ).__init__( )
 		self.n_features_to_select = k_features
 		self.classifier = NearestNeighbor( )
 		self.verbose = verbose
-		self.model = sf.RFE( estimator=self.classifier,
-			n_features_to_select=self.n_features_to_select, verbose=self.verbose )
+		self.model = sf.RFE( estimator=self.classifier, n_features_to_select=self.n_features_to_select,
+			verbose=self.verbose )
 		self.prediction = None
 		self.transformed_data = None
+		self.accuracy = None
+		self.training_score = None
+		self.testing_score = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings representing class members
-
-		'''
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
+			Purpose:
+			--------
+			Return a list of strings representing class members.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
 		return [ 'classifier',
 		         'n_features_to_select',
 		         'verbose',
+		         'prediction',
 		         'transformed_data',
 		         'features_in',
 		         'ranking',
 		         'split_data',
 		         'train',
+		         'project',
+		         'score',
 		         'transform',
 		         'train_transform' ]
 	
 	@property
 	def features_in( self ) -> int:
-		'''
-
-			Returns
-			-------
-			ndarray of shape (n_features,)
-			The number of features selected features.
-
-		'''
-		if self.model.n_features_in_ is None:
+		"""
+		
+			Purpose:
+			--------
+			Return the number of input features seen during fitting.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			int:
+				The number of fitted input features.
+		
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_features_in_
+		return self.model.n_features_in_
 	
 	@property
-	def ranking( self ) -> np.ndarray :
-		'''
-
-			Returns
-			-------
-			An array of shape [n_features]
-			The feature ranking, such that ranking_[i] corresponds to the ranking
-			position of the i-th feature. Selected (i.e., estimated best)
-			features are assigned rank 1
-			
-
-		'''
-		if self.model.ranking_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.ranking_
-	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
-
+	def ranking( self ) -> np.ndarray:
+		"""
+		
 			Purpose:
-			_______
-
-
+			--------
+			Return the fitted feature-ranking array, where rank 1 indicates a
+			selected feature.
+		
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			-----------
+			None
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			np.ndarray:
+				An array whose entries represent feature rank positions.
+		
+		"""
+		if not hasattr( self.model, 'ranking_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.ranking_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
+			Purpose:
+			--------
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fits the RFE model.
-
+			--------
+			Fit the RFE selector using the specified feature matrix and target
+			vector.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
+			Returns:
+			--------
+			object | None:
+				The fitted wrapper instance.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
+			throw_if( 'y', y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object | None'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
 			--------
-			Predict class labels from input features using the regression model.
-
-
+			Project the specified feature matrix into the retained feature space.
+			For this selector, projection is equivalent to transformation.
+		
 			Parameters:
-			---------
-			X (np.ndarray | pd.DataFrame):
-			Input features.
-
-
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility.
+		
 			Returns:
 			--------
 			np.ndarray:
-
+				The transformed feature matrix containing only retained features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.transform( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'project( self, X: np.ndarray )'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
 		"""
-
+		
 			Purpose:
 			--------
-			Returns the coefficient of determination R^2 of the prediction.
-			The coefficient R^2 is defined as (1 - u/v), where u is the residual sum of squares
-			((y_true - y_pred) ** 2).sum() and v is the total sum of squares
-			((y_true - y_true.mean()) ** 2).sum().
-
-			The best possible score is 1.0 and it can be negative
-			(because the model can be arbitrarily worse). A constant model that always predicts
-			the expected value of y, disregarding the input features, would get a R^2 score of 0.0.
-
-
+			Return selector summary metrics describing feature ranking and
+			selection results for the fitted RFE model.
+		
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility.
+		
 			Returns:
 			--------
-			Dict[ str, float]
-
+			pd.DataFrame:
+				A dataframe containing feature ranking and selection indicators.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.accuracy = accuracy_score( y, y_pred )
-			_metrics = \
-			{
-				'Training Score': self.training_score,
-				'Testing Score': self.testing_score,
-				'Accuracy Score': self.accuracy,
-			}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			_support = self.model.get_support( )
+			df_scores = pd.DataFrame(
+				{
+						'Feature': np.arange( 0, X.shape[ 1 ] ),
+						'Ranking': self.model.ranking_,
+						'Selected': _support,
+				}
+			)
+			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply RFE transformation.
-
+			--------
+			Apply the fitted RFE transformation to the specified feature matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only retained features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2399,36 +2439,38 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit and transform the stores using recursive feature elimination.
-
+			--------
+			Fit the RFE selector and immediately transform the specified feature
+			matrix into the reduced feature space.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-
-			Return:
-			-------
-			np.ndarray
-
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only retained features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.fit_transform( X )
+			throw_if( 'y', y )
+			self.transformed_data = self.model.fit_transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
 			raise exception
+	
 			
