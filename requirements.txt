@@ -10,3 +10,4 @@ pydantic
 torch
 typing
 xgboost
+plotly-express
