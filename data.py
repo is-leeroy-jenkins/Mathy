@@ -507,53 +507,43 @@ class DataSource( ):
 				None
 
 		"""
-		try:
-			throw_if( 'df', df )
-			throw_if( 'target', target )
-			self.data = df.copy( )
-			self.size = size
-			self.seed = rando
-			if target not in df.columns:
-				raise ArgumentError( None, f'target "{target}" not in dataframe' )
-			
-			self.target = target
-			self.feature_names = [ c for c in self.data.columns if c != target ]
-			self.numeric_columns = self.data.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-			self.categorical_columns = self.data.select_dtypes(
-				include=[ 'object', 'category', ] ).columns.tolist( )
-			self.n_samples = self.data.shape[ 0 ]
-			self.n_features = len( self.feature_names )
-			self.targets = self.data[ target ].values
-			self.target_names = np.array( sorted( np.unique( self.data[ target ].to_numpy( ) ) ) )
-			self.numeric_data = self.data[ self.numeric_columns ].copy( )
-			self.categorical_data = self.data[ self.categorical_columns ].copy( )
-			self.skew = self.data.skew( axis=0, numeric_only=True )
-			self.variance = self.data.var( axis=0, ddof=1, numeric_only=True )
-			self.kurtosis = self.data.kurt( axis=0, numeric_only=True )
-			self.average = self.data.mean( axis=0, numeric_only=True )
-			self.mean_standard_error = self.data.sem( axis=0, ddof=1, numeric_only=True )
-			self.standard_deviation = self.data.std( axis=0, ddof=1, numeric_only=True )
-			self.covariance = self.data.cov( ddof=1, numeric_only=True )
-			self.numeric_metrics = self.data[ self.numeric_columns ].describe(
-				percentiles=[ .05, .1, .25, .3, .5, .70, .8, .95 ] )
-			self.datatuple = [ ]
-			self.scaler = None
-			self.label_encoder = None
-			self.target_encoder = None
-			self.pivot_table = None
-			self.column_transformer = None
-			self.X_training, self.X_testing, self.y_training, self.y_testing = split(
-				self.data[ self.feature_names ],
-				self.data[ self.target ],
-				test_size=self.size,
-				random_state=self.seed
-			)
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'DataSource'
-			exception.method = '__init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 )'
-			raise exception
+		throw_if( 'df', df )
+		throw_if( 'target', target )
+		self.data = df.copy( )
+		self.size = size
+		self.seed = rando
+		if target not in df.columns:
+			raise ArgumentError( None, f'target "{target}" not in dataframe' )
+		
+		self.target = target
+		self.feature_names = [ c for c in self.data.columns if c != target ]
+		self.numeric_columns = self.data.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+		self.categorical_columns = self.data.select_dtypes(
+			include=[ 'object', 'category', ] ).columns.tolist( )
+		self.n_samples = self.data.shape[ 0 ]
+		self.n_features = len( self.feature_names )
+		self.targets = self.data[ target ].values
+		self.target_names = np.array( sorted( np.unique( self.data[ target ].to_numpy( ) ) ) )
+		self.numeric_data = self.data[ self.numeric_columns ].copy( )
+		self.categorical_data = self.data[ self.categorical_columns ].copy( )
+		self.skew = self.data.skew( axis=0, numeric_only=True )
+		self.variance = self.data.var( axis=0, ddof=1, numeric_only=True )
+		self.kurtosis = self.data.kurt( axis=0, numeric_only=True )
+		self.average = self.data.mean( axis=0, numeric_only=True )
+		self.mean_standard_error = self.data.sem( axis=0, ddof=1, numeric_only=True )
+		self.standard_deviation = self.data.std( axis=0, ddof=1, numeric_only=True )
+		self.covariance = self.data.cov( ddof=1, numeric_only=True )
+		self.numeric_metrics = self.data[ self.numeric_columns ].describe(
+			percentiles=[ .05, .1, .25, .3, .5, .70, .8, .95 ] )
+		self.datatuple = [ ]
+		self.scaler = None
+		self.label_encoder = None
+		self.target_encoder = None
+		self.pivot_table = None
+		self.column_transformer = None
+		self.X_training, self.X_testing, self.y_training, self.y_testing = split(
+			self.data[ self.feature_names ], self.data[ self.target ], test_size=self.size,
+			random_state=self.seed )
 	
 	def __dir__( self ):
 		'''
