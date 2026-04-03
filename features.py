@@ -56,9 +56,11 @@ from sklearn.model_selection import train_test_split as split
 from classifications import Classifier, NearestNeighbor
 from boogr import Error
 
+
 def throw_if( name: str, value: object ):
     if value is None:
         raise ValueError( f'Argument "{name}" cannot be empty!' )
+
 
 class Selector( ):
 	'''
