@@ -51,18 +51,34 @@ def throw_if( name: str, value: object ):
 	if value is None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
+
 class Encoder( ):
 	"""
 
 		Purpose:
 		---------
-		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
-		`fit_transform` methods.
+		Base interface for encoder and transformer wrappers. Provides standard training,
+		transformation, combined training/transformation, and inverse-transformation hooks.
 
 	"""
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self ):
+	def __init__( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize the shared encoder state.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
 		self.transformed_data = None
 	
 	def train( self, X: np.ndarray ) -> object | None:
@@ -70,89 +86,91 @@ class Encoder( ):
 
 			Purpose:
 			---------
-			Train/flex hook; return self in concrete subclasses.
+			Fit the underlying transformer to the input data.
 
 			Parameters:
 			-----------
-			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( Optional[ np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples.
 
 			Returns:
-			-----------
-			object | None
+			--------
+			object | None: The fitted encoder instance when implemented by a subclass.
 
 		"""
-		raise NotImplementedError
+		raise NotImplementedError( )
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Transform X using a fitted preprocessor; return transformed X.
+			Transform input data using a previously fitted encoder.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples.
 
 			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
+			--------
+			np.ndarray: Transformed output.
 
 		"""
-		raise NotImplementedError
+		raise NotImplementedError( )
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit to X (and y if used) then transform X in one step.
+			Fit the encoder to the input data and return the transformed result.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples.
 
 			Returns:
-			-----------
-			np.ndarray: Transformed feature matrix.
+			--------
+			np.ndarray: Transformed output.
 
 		"""
-		raise NotImplementedError
+		raise NotImplementedError( )
 	
-	def inverse_transform( self, text: list[ str ] ) -> np.ndarray:
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Invert the transformation when supported; raise NotImplementedError otherwise.
+			Map transformed values back to their original representation when supported.
 
-			:param text: List of text.
-			:type text: list[str]
-			:return: TF-IDF vectorized output.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X ( np.ndarray ): Transformed matrix or encoded values.
+
+			Returns:
+			--------
+			np.ndarray: Inverse-transformed output.
+
 		"""
-		return NotImplementedError
+		raise NotImplementedError( )
+
 
 class OneHotEncoder( Encoder ):
 	"""
 
 		Purpose:
 		---------
-		Encode categorical feature_names as a one-hot numeric array. The input to this transformer
-		should be an array-like of integers or strings, denoting the values taken on by categorical
-		(discrete) feature_names. The feature_names are encoded using a one-hot
-		(aka ‘one-of-K’ or ‘dummy’) encoding scheme.
-		This creates a binary column for each category and returns a sparse
-		matrix or dense array (depending on the sparse_output parameter)
+		Encode categorical features as a one-hot numeric array. The input to this
+		transformer should be an array-like of integers or strings denoting the values
+		taken on by categorical features. The features are encoded using a one-hot
+		(aka one-of-K or dummy) encoding scheme.
 
-		By default, the encoder derives the categories based on the unique values in each feature.
-		Alternatively, you can also specify the categories manually. This encoding is needed for
-		feeding categorical stores to many scikit-learn estimators, notably linear models and SVMs
-		with the standard kernels. Note: a one-hot encoding of y target_names should use a
-		LabelBinarizer instead.
+		This creates a binary column for each category and returns a sparse matrix or
+		dense array depending on the sparse_output parameter.
+
+		By default, the encoder derives categories from the unique values in each
+		feature. Alternatively, categories may be specified manually. This encoding is
+		commonly used for feeding categorical data to scikit-learn estimators,
+		especially linear models and support vector machines.
 
 	"""
 	unknown: Optional[ str ]
@@ -160,32 +178,74 @@ class OneHotEncoder( Encoder ):
 	model: pp.OneHotEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, sparse: bool=False, unknown: str='ignore' ) -> None:
+	def __init__( self, sparse: bool = False, unknown: str = 'ignore' ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize the one-hot encoder wrapper.
+
+			Parameters:
+			-----------
+			sparse ( bool ): Specifies whether the transformed output should be returned
+				as a sparse matrix.
+			unknown ( str ): Strategy used to handle unknown categories during transform.
+
+			Returns:
+			--------
+			None
+
+		"""
 		super( ).__init__( )
 		self.unknown = unknown
 		self.sparse = sparse
 		self.model = pp.OneHotEncoder( sparse_output=self.sparse, handle_unknown=self.unknown )
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings comprised of class members.
+			Purpose:
+			---------
+			Return the list of exposed members for interactive inspection.
 
-		'''
-		[ 'unknown',
-		  'model',
-		  'categories',
-		  'transformed_data',
-		  'sparse',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			list[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [
+				'unknown',
+				'model',
+				'categories',
+				'transformed_data',
+				'sparse',
+				'train',
+				'transform',
+				'train_transform',
+				'inverse_transform',
+		]
 	
 	@property
 	def categories( self ):
+		"""
+
+			Purpose:
+			---------
+			Return the learned categories for each encoded feature.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			object: Learned category arrays for each feature.
+
+		"""
 		if self.model.categories_ is None:
 			raise AttributeError( 'Hot Encoder data is untrained' )
 		else:
@@ -194,19 +254,18 @@ class OneHotEncoder( Encoder ):
 	def train( self, X: np.ndarray ) -> OneHotEncoder | None:
 		"""
 
-
 			Purpose:
 			---------
-			Fits the hot_encoder to the categorical df.
+			Fit the one-hot encoder to the categorical input matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
 
 			Returns:
 			--------
-			self
+			OneHotEncoder | None: Fitted encoder wrapper.
 
 		"""
 		try:
@@ -217,27 +276,25 @@ class OneHotEncoder( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
-			exception.method = ('fit( self, X: np.ndarray, y: np.ndarray=None ) -> '
-			                    'Pipeline')
+			exception.method = 'train( self, X: np.ndarray ) -> OneHotEncoder | None'
 			raise exception
-			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
-
 			Purpose:
 			---------
-			Transforms the categorical matrix into one-hot encoded form
+			Transform the categorical matrix into one-hot encoded form.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
 
 			Returns:
-			-----------
-			np.ndarray: One-hot encoded matrix.
+			--------
+			np.ndarray: One-hot encoded matrix or sparse matrix, depending on the
+				encoder configuration.
 
 		"""
 		try:
@@ -250,19 +307,23 @@ class OneHotEncoder( Encoder ):
 			exception.cause = 'OneHotEncoder'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Fit the encoder and transform the stores.
+			---------
+			Fit the one-hot encoder and transform the input matrix in one step.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): IGNORED. Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray: One-hot encoded matrix or sparse matrix, depending on the
+				encoder configuration.
 
 		"""
 		try:
@@ -273,55 +334,116 @@ class OneHotEncoder( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OneHotEncoder'
-			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
+	
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Convert one-hot encoded values back to their original categorical form.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): One-hot encoded matrix or sparse matrix.
+
+			Returns:
+			--------
+			np.ndarray: Decoded categorical values.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			return self.model.inverse_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'OneHotEncoder'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
+			raise exception
+
 
 class OrdinalEncoder( Encoder ):
 	"""
 
+		Purpose:
+		---------
+		Transform each categorical feature into a single integer-valued feature
+		ranging from 0 to n_categories - 1.
 
-			Purpose:
-			---------
-			This estimator transforms each categorical feature to one new feature of integers
-			(0 to n_categories - 1):
-
-			Such integer representation can, however, not be used directly with all scikit-learn
-			estimators, as these expect continuous input, and would interpret the categories as
-			being ordered, which is often not desired (i.e. the set of browsers was
-			ordered arbitrarily).
-
-			By default, OrdinalEncoder will also passthrough missing values that are indicated
-			by np.nan. OrdinalEncoder provides a parameter encoded_missing_value to encode
-			the missing values without the need to create a pipeline and using SimpleImputer.
+		Although this representation is useful for some workflows, the encoded
+		values may imply an ordering that does not exist in the original categories.
+		As a result, ordinal encoding should be used with care when the source
+		features are nominal rather than ordinal.
 
 	"""
 	model: pp.OrdinalEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize the ordinal encoder wrapper.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
 		super( ).__init__( )
 		self.model = pp.OrdinalEncoder( )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings comprised of class members.
+			Purpose:
+			---------
+			Return the list of exposed members for interactive inspection.
 
-		'''
-		[ 'encoder',
-		  'categories',
-		  'transformed_data',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			list[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [
+				'model',
+				'categories',
+				'transformed_data',
+				'train',
+				'transform',
+				'train_transform',
+				'inverse_transform',
+		]
 	
 	@property
 	def categories( self ):
+		"""
+
+			Purpose:
+			---------
+			Return the learned categories for each encoded feature.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			object: Learned category arrays for each feature.
+
+		"""
 		if self.model.categories_ is None:
 			raise AttributeError( 'Encoder data is untrained' )
 		else:
@@ -331,17 +453,17 @@ class OrdinalEncoder( Encoder ):
 		"""
 
 			Purpose:
-			________
-			Fits the ordial encoder to the categorical df.
+			---------
+			Fit the ordinal encoder to the categorical input matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
 
 			Returns:
 			--------
-			self
+			OrdinalEncoder | None: Fitted encoder wrapper.
 
 		"""
 		try:
@@ -352,25 +474,23 @@ class OrdinalEncoder( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
-			exception.method = 'fit( self, X: np.ndarray, y: np.ndarray=None ) -> Pipeline'
+			exception.method = 'train( self, X: np.ndarray ) -> OrdinalEncoder | None'
 			raise exception
-			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Transforms the text df into ordinal-encoded format.
-
+			Transform the categorical matrix into ordinal-encoded form.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
 
 			Returns:
-			-----------
+			--------
 			np.ndarray: Ordinal-encoded matrix.
 
 		"""
@@ -384,19 +504,22 @@ class OrdinalEncoder( Encoder ):
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Fit the encoder and transform the stores.
+			---------
+			Fit the ordinal encoder and transform the input matrix in one step.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray: Ordinal-encoded matrix.
 
 		"""
 		try:
@@ -407,43 +530,44 @@ class OrdinalEncoder( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
-			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Map ordinal-encoded matrix back to original categories.
+			Map ordinal-encoded values back to their original categories.
 
 			Parameters:
 			-----------
-			X: np.ndarray
+			X ( np.ndarray ): Ordinal-encoded matrix.
+
+			Returns:
+			--------
+			np.ndarray: Decoded categorical matrix.
 
 		"""
 		try:
-			if X is None:
-				raise Exception( '"X" cannot be None' )
-			else:
-				throw_if( 'X', X )
-				return self.model.inverse_transform( X ).toarray( )
+			throw_if( 'X', X )
+			return self.model.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OrdinalEncoder'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
+
 
 class LabelEncoder( Encoder ):
 	"""
 
 		Purpose:
-		--------
-		Encode target target_names with value between 0 and n_classes-1.
-		This transformer should be used to encode target values, i.e. y, and not the input X.
+		---------
+		Encode target labels with values between 0 and n_classes - 1.
+		This transformer is intended for encoding a one-dimensional target vector,
+		not a feature matrix.
 
 	"""
 	model: pp.LabelEncoder
@@ -453,151 +577,191 @@ class LabelEncoder( Encoder ):
 		"""
 
 			Purpose:
+			---------
+			Initialize the label encoder wrapper.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
 			--------
-			Initialize LabelEncoder.
+			None
 
 		"""
 		super( ).__init__( )
 		self.model = pp.LabelEncoder( )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings comprised of class members.
-
-		'''
-		[ 'model',
-		  'labels',
-		  'transformed_data',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
-	
-	@property
-	def labels( self ):
-		if self.model.classes_ is None:
-			raise AttributeError( 'The label encoder data is untrained.' )
-		else:
-			return self.model.classes_
-	
-	def train( self, y: np.ndarray ) -> LabelEncoder | None:
+	def __dir__( self ) -> list[ str ]:
 		"""
 
 			Purpose:
-			--------
-			Fit the label encoder to the stores.
+			---------
+			Return the list of exposed members for interactive inspection.
 
 			Parameters:
 			-----------
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			None
+
+			Returns:
+			--------
+			list[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [
+				'model',
+				'classes',
+				'transformed_data',
+				'train',
+				'transform',
+				'train_transform',
+				'inverse_transform',
+		]
+	
+	@property
+	def classes( self ):
+		"""
+
+			Purpose:
+			---------
+			Return the learned class labels.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			object: Learned class labels.
+
+		"""
+		if self.model.classes_ is None:
+			raise AttributeError( 'Label Encoder data is untrained' )
+		else:
+			return self.model.classes_
+	
+	def train( self, X: np.ndarray ) -> LabelEncoder | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the label encoder to the target vector.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Target labels of shape ( n_samples, ).
+
+			Returns:
+			--------
+			LabelEncoder | None: Fitted encoder wrapper.
 
 		"""
 		try:
-			throw_if( 'y', y )
-			self.model.fit( y )
+			throw_if( 'X', X )
+			self.model.fit( X )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
-			exception.method = 'fit( self, y: np.ndarray ) -> LabelEncoder'
+			exception.method = 'train( self, X: np.ndarray ) -> LabelEncoder | None'
 			raise exception
-			
 	
-	def transform( self, y: np.ndarray ) -> np.ndarray:
-		"""
-
-			Purpose:
-			--------
-			Transform target_names to encoded form.
-
-			Parameters:
-			-----------
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-
-		"""
-		try:
-			throw_if( 'y', y )
-			self.transformed_data = self.model.transform( y )
-			return self.transformed_data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LabelEncoder'
-			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
-			raise exception
-			
-	
-	def train_transform( self, y: np.ndarray ) -> np.ndarray:
-		"""
-
-			Purpose:
-			--------
-			Fit and transform the label stores.
-
-			Parameters:
-			-----------
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-
-		"""
-		try:
-			throw_if( 'y', y )
-			values = y.astype( str )
-			self.transformed_data = self.model.fit_transform( values )
-			return self.transformed_data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LabelEncoder'
-			exception.method = 'fit_transform( self, y: np.ndarray ) -> np.ndarray'
-			raise exception
-			
-	
-	def inverse_transform( self, y: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Map integer labels back to original classes.
+			Transform the target labels into encoded integer values.
 
 			Parameters:
 			-----------
-			y: np.ndarray
+			X ( np.ndarray ): Target labels of shape ( n_samples, ).
+
+			Returns:
+			--------
+			np.ndarray: Encoded label vector.
 
 		"""
 		try:
-			throw_if( 'y', y )
-			return self.model.inverse_transform( y )
+			throw_if( 'X', X )
+			self.transformed_data = self.model.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Fit the label encoder and transform the target labels in one step.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Target labels of shape ( n_samples, ).
+
+			Returns:
+			--------
+			np.ndarray: Encoded label vector.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.fit_transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LabelEncoder'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Map encoded integer labels back to their original values.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Encoded label vector.
+
+			Returns:
+			--------
+			np.ndarray: Decoded label vector.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			return self.model.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelEncoder'
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 
 class TargetEncoder( Encoder ):
 	"""
 
 		Purpose:
-		--------
-		Target Encoder for regression and classification targets. Each category is encoded based
-		on a shrunk estimate of the average target values for observations belonging
-		to the category. The encoding scheme mixes the global target mean with the target
-		mean conditioned on the value of the category.
-		
-		When the target type is “multiclass”, encodings are based on the conditional probability
-		estimate for each class. The target is first binarized using the “one-vs-all” scheme
-		via LabelBinarizer, then the average target value for each class and each category is
-		used for encoding, resulting in n_features * n_classes encoded output features.
+		---------
+		Encode categorical features using the target values associated with each category.
+		Each category is encoded using a shrunk estimate of the target mean conditioned on
+		the category value and the global target mean.
 
-		TargetEncoder considers missing values, such as np.nan or None, as another
-		category and encodes them like any other category. Categories that are not seen
-		during fit are encoded with the target mean, i.e. target_mean_.
+		For multiclass targets, encodings are based on one-vs-all conditional target
+		probabilities, which produces n_features * n_classes encoded output features.
+
+		Missing values are treated as their own category. Categories not seen during
+		training are encoded with the learned global target mean.
 
 	"""
 	model: pp.TargetEncoder
@@ -610,78 +774,135 @@ class TargetEncoder( Encoder ):
 		"""
 
 			Purpose:
+			---------
+			Initialize the target encoder wrapper.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
 			--------
-			Initialize LabelEncoder.
+			None
 
 		"""
 		super( ).__init__( )
 		self.model = pp.TargetEncoder( )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings comprised of class members.
+			Purpose:
+			---------
+			Return the list of exposed members for interactive inspection.
 
-		'''
-		[ 'model',
-		  'labels',
-		  'encodings',
-		  'categories',
-		  'features_in'
-		  'transformed_data',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			list[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [
+				'model',
+				'classes',
+				'encodings',
+				'features_in',
+				'categories',
+				'transformed_data',
+				'train',
+				'transform',
+				'train_transform',
+		]
 	
 	@property
-	def labels( self ) -> np.ndarray:
+	def classes( self ):
+		"""
+
+			Purpose:
+			---------
+			Return the learned class labels when the target type is multiclass.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			object: Learned class labels.
+
+		"""
 		if self.model.classes_ is None:
-			raise AttributeError( 'The label encoder data is untrained.' )
+			raise AttributeError( 'The target encoder data is untrained.' )
 		else:
 			return self.model.classes_
 	
 	@property
 	def encodings( self ) -> np.ndarray:
-		'''
-			
+		"""
+
+			Purpose:
+			---------
+			Return the learned category encodings.
+
+			Parameters:
+			-----------
+			None
+
 			Returns:
-			-------
-			Encodings learnt on all of X. For feature i, encodings_[i] are the encodings matching
-			the categories listed in categories_[i]. When target_type_ is “multiclass”, the encoding
-			for feature i and class j is stored in encodings_[j + (i * len(classes_))].
-			E.g., for 2 features (f) and 3 classes (c),
-			encodings are ordered: f0_c0, f0_c1, f0_c2, f1_c0, f1_c1, f1_c2,
-		 
-		'''
+			--------
+			np.ndarray: Encodings learned from the training data.
+
+		"""
 		if self.model.encodings_ is None:
-			raise AttributeError( 'The label encoder data is untrained.' )
+			raise AttributeError( 'The target encoder data is untrained.' )
 		else:
 			return self.model.encodings_
 	
 	@property
 	def features_in( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of input features seen during fitting.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			int: Number of fitted input features.
+
+		"""
 		if self.model.n_features_in_ is None:
-			raise AttributeError( 'The label encoder data is untrained.' )
+			raise AttributeError( 'The target encoder data is untrained.' )
 		else:
 			return self.model.n_features_in_
 	
 	@property
 	def categories( self ) -> np.ndarray:
-		'''
+		"""
+
+			Purpose:
+			---------
+			Return the learned categories for each input feature.
+
+			Parameters:
+			-----------
+			None
 
 			Returns:
-			-------
-			The categories of each input feature determined during fitting or specified
-			in categories (in order of the features in X and
-			corresponding with the output of transform).
+			--------
+			np.ndarray: Learned categories for each input feature.
 
-		'''
+		"""
 		if self.model.categories_ is None:
-			raise AttributeError( 'The label encoder data is untrained.' )
+			raise AttributeError( 'The target encoder data is untrained.' )
 		else:
 			return self.model.categories_
 	
@@ -689,12 +910,18 @@ class TargetEncoder( Encoder ):
 		"""
 
 			Purpose:
-			--------
-			Fit the label encoder to the stores.
+			---------
+			Fit the target encoder to the feature matrix and target vector.
 
 			Parameters:
 			-----------
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_samples, ).
+
+			Returns:
+			--------
+			TargetEncoder | None: Fitted encoder wrapper.
 
 		"""
 		try:
@@ -706,45 +933,54 @@ class TargetEncoder( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
-			exception.method = 'fit( self, y: np.ndarray ) -> LabelEncoder'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> TargetEncoder | None'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Transform target_names to encoded form.
+			---------
+			Transform the feature matrix using encodings learned during fitting.
 
 			Parameters:
 			-----------
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray: Target-encoded feature matrix.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.transformed_data = self.model.transform( X, y )
+			self.transformed_data = self.model.transform( X )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
-			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Fit and transform the label stores.
+			---------
+			Fit the target encoder and transform the training data in one step using
+			scikit-learn's internal cross-fitting behavior.
 
 			Parameters:
 			-----------
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_samples, ).
+
+			Returns:
+			--------
+			np.ndarray: Target-encoded feature matrix.
 
 		"""
 		try:
@@ -756,46 +992,20 @@ class TargetEncoder( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TargetEncoder'
-			exception.method = 'fit_transform( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
-	
-	def inverse_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
-
-			Purpose:
-			---------
-			Map integer labels back to original classes.
-
-			Parameters:
-			-----------
-			y: np.ndarray
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			return self.model.inverse_transform( X, y )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'TargetEncoder'
-			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
-			raise exception
-			
 
 class PolynomialFeatures( Encoder ):
 	"""
 
 		Purpose:
-		--------
-		Generate a new feature matrix consisting of all polynomial combinations of the features
-		with degree less than or equal to the specified degree. For example, if an input sample is
-		two-dimensional and of the form [a, b], the degree-2 polynomial
-		features are [1, a, b, a^2, ab, b^2].
-
-
-
+		---------
+		Generate polynomial and interaction features from the input feature matrix.
+		This transformer creates a new feature matrix consisting of all polynomial
+		combinations of the input features with degree less than or equal to the
+		specified degree. For example, if an input sample is two-dimensional and of
+		the form [a, b], the degree-2 polynomial features are
+		[1, a, b, a^2, ab, b^2].
 
 	"""
 	degree: Optional[ int ]
@@ -803,42 +1013,73 @@ class PolynomialFeatures( Encoder ):
 	model: pp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, degree: int=2, interaction: bool=True ) -> None:
+	def __init__( self, degree: int = 2, interaction: bool = True ) -> None:
 		"""
 
 			Purpose:
-			--------
-			Initialize PolynomialFeatures.
+			---------
+			Initialize the polynomial feature transformer wrapper.
 
-			:param degree: Degree of polynomial terms.
-			:type degree: int
+			Parameters:
+			-----------
+			degree ( int ): Maximum polynomial degree to generate.
+			interaction ( bool ): Specifies whether only interaction terms should be
+				produced, excluding powers of the same feature.
+
+			Returns:
+			--------
+			None
+
 		"""
 		super( ).__init__( )
 		self.degree = degree
 		self.interaction_only = interaction
-		self.model = pp.PolynomialFeatures( degree=self.degree,
-			interaction_only=self.interaction_only )
+		self.model = pp.PolynomialFeatures( degree=self.degree, interaction_only=self.interaction_only )
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings comprised of class members.
+			Purpose:
+			---------
+			Return the list of exposed members for interactive inspection.
 
-		'''
-		[ 'model',
-		  'degree',
-		  'powers',
-		  'interaction_only',
-		  'transformed_data',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			list[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [
+				'model',
+				'degree',
+				'powers',
+				'interaction_only',
+				'transformed_data',
+				'train',
+				'transform',
+				'train_transform',
+		]
 	
 	@property
 	def powers( self ):
+		"""
+
+			Purpose:
+			---------
+			Return the exponent for each input feature in each generated output feature.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			object: Polynomial exponent mapping for generated features.
+
+		"""
 		if self.model.powers_ is None:
 			raise AttributeError( 'The polynomial data is untrained.' )
 		else:
@@ -848,13 +1089,17 @@ class PolynomialFeatures( Encoder ):
 		"""
 
 			Purpose:
-			--------
-			Fit polynomial transformer to stores.
+			---------
+			Fit the polynomial transformer to the input feature matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+
+			Returns:
+			--------
+			PolynomialFeatures | None: Fitted transformer wrapper.
 
 		"""
 		try:
@@ -865,21 +1110,24 @@ class PolynomialFeatures( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
-			exception.method = 'fit( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train( self, X: np.ndarray ) -> PolynomialFeatures | None'
 			raise exception
-			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Transform stores into polynomial feature_names.
+			---------
+			Transform the input matrix into polynomial feature space.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray: Polynomially expanded feature matrix.
 
 		"""
 		try:
@@ -892,19 +1140,22 @@ class PolynomialFeatures( Encoder ):
 			exception.cause = 'PolynomialFeatures'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def train_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Fit and transform stores using polynomial expansion.
+			---------
+			Fit the polynomial transformer and transform the input matrix in one step.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/input samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix or input samples of shape
+				( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray: Polynomially expanded feature matrix.
 
 		"""
 		try:
@@ -915,6 +1166,6 @@ class PolynomialFeatures( Encoder ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PolynomialFeatures'
-			exception.method = 'fit_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
 			
