@@ -4920,7 +4920,7 @@ class VotingModel( Regression ):
 	verbose: bool
 	
 	def __init__( self, est: List[ tuple[ str, object ] ],
-			weights: List[ float ] = None, jobs: int = None, verbose: bool = False ) -> None:
+			weights: List[ float ]=None, jobs: int=None, verbose: bool=False ) -> None:
 		"""
 		
 	        Purpose:
@@ -4944,12 +4944,8 @@ class VotingModel( Regression ):
 		self.weights = weights
 		self.n_jobs = jobs
 		self.verbose = verbose
-		self.model = ske.VotingRegressor(
-			estimators=self.estimators,
-			weights=self.weights,
-			n_jobs=self.n_jobs,
-			verbose=self.verbose
-		)
+		self.model = ske.VotingRegressor( estimators=self.estimators, weights=self.weights,
+			n_jobs=self.n_jobs, verbose=self.verbose )
 		self.prediction = None
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
@@ -4999,9 +4995,8 @@ class VotingModel( Regression ):
 				'testing_score'
 		]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -5024,12 +5019,7 @@ class VotingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -5120,11 +5110,8 @@ class VotingModel( Regression ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
+			_metrics = {  'Training Score': self.training_score, 'Testing Score': self.testing_score,
+					'R-Squared Score': self.r2_score, }
 			
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
@@ -5602,9 +5589,10 @@ class StackingModel( Regression ):
 
 class SupportVector( Regression ):
 	"""
-    Wrapper for sklearn's Support Vector Regression (SVR).
-    """
 	
+      Provides Support Vector Regression (SVR) functionality.
+      
+    """
 	model: skv.SVR
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -5939,9 +5927,9 @@ class GaussianProcess( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, kernel: object = None, alpha: float = 1e-10,
-			optimizer: str = 'fmin_l_bfgs_b', restarts: int = 0,
-			normalize: bool = False, copy: bool = True, rando: int = None ) -> None:
+	def __init__( self, kernel: object=None, alpha: float=1e-10,
+			optimizer: str='fmin_l_bfgs_b', restarts: int=0,
+			normalize: bool=False, copy: bool=True, rando: int=None ) -> None:
 		"""
 		
 	        Purpose:

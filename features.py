@@ -46,6 +46,8 @@ import numpy as np
 import pandas as pd
 import sklearn.cross_decomposition as sd
 import sklearn.decomposition as sd
+from sklearn.decomposition import PCA as PrincipalComponentAnalysis
+from sklearn.cross_decomposition import CCA as CanonicalCorrelationAnalysis
 import sklearn.feature_selection as sf
 from sklearn.metrics import accuracy_score
 from sklearn.base import clone
@@ -72,7 +74,23 @@ class Selector( ):
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	
-	def __init__( self ):
+	def __init__( self ) -> None:
+		"""
+		
+			Purpose:
+			--------
+			Initialize shared selector state and plotting markers used by
+			concrete selector implementations.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			None
+		
+		"""
 		self.markers = [ '.',
 		                 'o',
 		                 'v',
@@ -95,120 +113,146 @@ class Selector( ):
 		                 'X',
 		                 'd',
 		                 'D' ]
+		self.prediction = None
+		self.transformed_data = None
+		self.accuracy = None
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray ) -> (
-			(np.ndarray, np.ndarray, np.ndarray, np.ndarray,) | None):
-		'''
-
-			Purpose:
-			_______
-
-
-			Parameters:
-			__________
-
-
-			Returns:
-			________
-
-
-		'''
-		raise NotImplementedError
-	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def split_data( self, X: np.ndarray, y: np.ndarray ) -> tuple:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the linerar_model to the training df.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
-			Returns:
 			--------
-				None
-
-		"""
-		raise NotImplementedError
-	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
-		"""
-
-			Purpose:
-			---------
-			Generate predictions from  the trained linerar_model.
-
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True target target_names.
-
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
 			Returns:
-			-----------
-			np.ndarray: Predicted target_names or class target_names.
-
+			--------
+			tuple:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
 		"""
 		raise NotImplementedError
 	
-	def transform( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the linerar_model to the training df.
-
+			--------
+			Fit the underlying selector or decomposition model using the
+			specified feature matrix and optional target vector.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector of shape
+				( n_samples, ). Required only for supervised selectors or
+				supervised decomposition models.
+		
 			Returns:
 			--------
-				None
-
+			object | None:
+				The fitted selector instance or None if not implemented by
+				the concrete subclass.
+		
 		"""
 		raise NotImplementedError
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the linerar_model to the training df.
-
+			--------
+			Project or predict from the specified feature matrix using a fitted
+			model when the wrapped estimator supports that operation.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector. This argument is
+				preserved for subclass compatibility where needed.
+		
 			Returns:
 			--------
-				None
-
+			np.ndarray:
+				The projected or predicted output produced by the fitted model.
+		
+		"""
+		raise NotImplementedError
+	
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+		"""
+		
+			Purpose:
+			--------
+			Apply the fitted selector or decomposition model to transform the
+			specified feature matrix into a reduced or alternative feature space.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				subclass compatibility where required by the wrapped estimator.
+		
+			Returns:
+			--------
+			object | None:
+				The transformed data produced by the fitted model.
+		
+		"""
+		raise NotImplementedError
+	
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+		"""
+		
+			Purpose:
+			--------
+			Fit the underlying selector or decomposition model and immediately
+			transform the specified feature matrix.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector of shape
+				( n_samples, ). Required only for supervised selectors or
+				supervised decomposition models.
+		
+			Returns:
+			--------
+			object | None:
+				The transformed data produced by the fitted model.
+		
 		"""
 		raise NotImplementedError
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Compute the core metric (e.g., R²) of the model on test df.
-
+			--------
+			Compute metrics or summary information for the fitted selector or
+			decomposition model using the specified feature matrix and target
+			vector.
+		
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True target target_names.
-
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
 			Returns:
-			-----------
-				float: Score value (e.g., R² for regressors).
-
+			--------
+			Dict[str, float] | None:
+				A metrics dictionary or None if the concrete subclass does not
+				expose scoring information.
+		
 		"""
 		raise NotImplementedError
+
 
 class VarianceThreshold( Selector ):
 	"""
@@ -228,89 +272,115 @@ class VarianceThreshold( Selector ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	
-	def __init__( self, thresh: float=0.0 ) -> None:
+	def __init__( self, thresh: float = 0.0 ) -> None:
 		"""
-
+		
 			Purpose:
-			---------
-			Initialize VarianceThreshold.
-
-			:param threshold: Features with variance below this are removed.
-			:type threshold: float
-
+			--------
+			Initialize the VarianceThreshold selector.
+		
+			Parameters:
+			-----------
+			thresh (float): Features with training-set variance lower than this
+				threshold are removed.
+		
+			Returns:
+			--------
+			None
+		
 		"""
 		super( ).__init__( )
 		self.threshold = thresh
 		self.model = sf.VarianceThreshold( threshold=self.threshold )
 		self.prediction = None
 		self.transformed_data = None
+		self.accuracy = None
+		self.training_score = None
+		self.testing_score = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings representing class members
-
-		'''
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
+			Purpose:
+			--------
+			Return a list of strings representing class members.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
 		return [ 'threshold',
 		         'model',
 		         'prediction',
 		         'transformed_data',
 		         'split_data',
 		         'train',
+		         'project',
+		         'score',
 		         'transform',
 		         'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
-
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
 			Purpose:
-			_______
-
-
+			--------
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
 			Parameters:
-			---------
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return ( X_train, X_test, y_train, y_test )
+			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> sf.VarianceThreshold | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the variance threshold model.
-
+			--------
+			Fit the variance-threshold selector using the specified feature matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this selector.
+		
+			Returns:
+			--------
+			sf.VarianceThreshold | None:
+				The fitted wrapper instance.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -320,101 +390,110 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
 			--------
-			Predict class labels from input features using the regression model.
-
-
+			Project the specified feature matrix into the retained feature space.
+			For this selector, projection is equivalent to transformation.
+		
 			Parameters:
-			---------
-			X (np.ndarray | pd.DataFrame):
-			Input features.
-
-
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this selector.
+		
 			Returns:
 			--------
 			np.ndarray:
-
+				The transformed feature matrix containing only retained features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.transform( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'project( self, X: np.ndarray )'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
 		"""
-
+		
 			Purpose:
 			--------
-			Returns the coefficient of determination R^2 of the prediction.
-			The coefficient R^2 is defined as (1 - u/v), where u is the residual sum of squares
-			((y_true - y_pred) ** 2).sum() and v is the total sum of squares
-			((y_true - y_true.mean()) ** 2).sum().
-
-			The best possible score is 1.0 and it can be negative
-			(because the model can be arbitrarily worse). A constant model that always predicts
-			the expected value of y, disregarding the input features, would get a R^2 score of 0.0.
-
-
+			Return selector summary metrics describing the effect of variance
+			thresholding on the specified feature matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this selector.
+		
 			Returns:
 			--------
-			Dict[ str, float]
-
+			pd.DataFrame:
+				A one-row dataframe containing threshold and retained-feature
+				metrics for the fitted selector.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.accuracy = accuracy_score( y, y_pred )
+			if self.transformed_data is None:
+				self.transformed_data = self.transform( X )
+			_support = self.model.get_support( )
+			_original_count = int( X.shape[ 1 ] )
+			_retained_count = int( self.transformed_data.shape[ 1 ] )
+			_removed_count = int( _original_count - _retained_count )
 			_metrics = \
-				{
-						'Training Score': self.training_score,
-						'Testing Score': self.testing_score,
-						'Accuracy Score': self.accuracy,
-				}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			{
+				'Threshold': [ self.threshold ],
+				'Original Features': [ _original_count ],
+				'Retained Features': [ _retained_count ],
+				'Removed Features': [ _removed_count ],
+				'Selection Ratio': [ _retained_count / _original_count if _original_count else 0.0 ],
+				'Removed Ratio': [ _removed_count / _original_count if _original_count else 0.0 ],
+				'Minimum Retained Variance': [ float( np.min( self.model.variances_[ _support ] ) )
+						if np.any( _support ) else np.nan ],
+				'Maximum Retained Variance': [ float( np.max( self.model.variances_[ _support ] ) )
+						if np.any( _support ) else np.nan ],
+			}
+			return pd.DataFrame( _metrics )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = ('score( self, X: np.ndarray, '
+			                    'y: Optional[ np.ndarray ]=None ) -> pd.DataFrame')
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply variance threshold selection.
-
+			--------
+			Apply variance-threshold feature selection to the specified feature
+			matrix using the fitted selector.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this selector.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only retained features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -424,27 +503,28 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit and transform the stores using variance thresholding.
-
+			--------
+			Fit the variance-threshold selector and immediately transform the
+			specified feature matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-
-			Return:
-			-------
-			np.ndarray
-
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this selector.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only retained features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -454,7 +534,8 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = ('train_transform( self, X: np.ndarray, '
+			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
 			raise exception
 			
 
@@ -466,7 +547,7 @@ class CCA( Selector ):
 		between both datasets.
 
 	"""
-	model: Optional[ sd.CCA ]
+	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
 	n_components: Optional[ int ]
 	scale: Optional[ bool ]
@@ -476,101 +557,126 @@ class CCA( Selector ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	
-	def __init__( self, num: int=2, scale: bool=True, size: int=500 ) -> None:
+	def __init__( self, num: int = 2, scale: bool = True, size: int = 500 ) -> None:
 		"""
-
+		
 			Purpose:
-			---------
-			Initialize CCA.
-
+			--------
+			Initialize the Canonical Correlation Analysis wrapper.
+		
 			Parameters:
 			-----------
-			num (int): Number of components to extract.
-			scale (bool): Whether to scale the correlation analysis.
-			max (int): The maximum number of components to extract.
-
+			num (int): Number of canonical components to extract.
+			scale (bool): Specifies whether X and y should be scaled before
+				fitting the model.
+			size (int): Maximum number of iterations used by the underlying
+				solver.
+		
+			Returns:
+			--------
+			None
+		
 		"""
 		super( ).__init__( )
 		self.scale = scale
 		self.n_components = num
 		self.max_iter = size
-		self.model = sd.CCA( n_components=self.n_components, scale=self.scale, max_iter=self.max_iter )
+		self.model = CanonicalCorrelationAnalysis( n_components=self.n_components, scale=self.scale,
+			max_iter=self.max_iter )
 		self.prediction = None
 		self.transformed_data = None
+		self.accuracy = None
+		self.training_score = None
+		self.testing_score = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			Returns a list of strings representing class members.
-
-		'''
-		return [ 'mdel',
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
+			Purpose:
+			--------
+			Return a list of strings representing class members.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
+		return [ 'model',
 		         'n_components',
+		         'scale',
 		         'max_iter',
 		         'prediction',
 		         'transformed_data',
 		         'split_data',
 		         'train',
+		         'project',
+		         'score',
 		         'transform',
 		         'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2, random: int=42 ) -> ( np.ndarray, np.ndarray, np.ndarray, np.ndarray ):
-		'''
-
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
 			Purpose:
-			_______
-
-
+			--------
+			Split the specified predictor matrix and target matrix into training
+			and testing subsets.
+		
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			-----------
+			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target matrix or vector of shape
+				( n_samples, ) or ( n_samples, n_targets ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return ( X_train, X_test, y_train, y_test )
+			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
 			--------
-			Predict class labels from input features using the regression model.
-
-
+			Predict target values for the specified predictor matrix using the
+			fitted CCA model.
+		
 			Parameters:
-			---------
-			X (np.ndarray | pd.DataFrame):
-			Input features.
-
-
+			-----------
+			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector or matrix preserved
+				for interface compatibility. It is not used by prediction.
+		
 			Returns:
 			--------
 			np.ndarray:
-
+				Predicted target values of shape ( n_samples, ) or
+				( n_samples, n_targets ).
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -580,143 +686,156 @@ class CCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'project( self, X: np.ndarray )'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
-
+		
 			Purpose:
 			--------
-			Returns the coefficient of determination R^2 of the prediction.
-			The coefficient R^2 is defined as (1 - u/v), where u is the residual sum of squares
-			((y_true - y_pred) ** 2).sum() and v is the total sum of squares
-			((y_true - y_true.mean()) ** 2).sum().
-			
-			The best possible score is 1.0 and it can be negative
-			(because the model can be arbitrarily worse). A constant model that always predicts
-			the expected value of y, disregarding the input features, would get a R^2 score of 0.0.
-
-
+			Compute summary metrics for the fitted CCA model, including training
+			and testing coefficient-of-determination scores and output dimensions.
+		
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-
+			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target matrix or vector of shape
+				( n_samples, ) or ( n_samples, n_targets ).
+		
 			Returns:
 			--------
-			Dict[ str, float]
-
+			pd.DataFrame:
+				A one-row dataframe containing model summary metrics.
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			y_pred = self.project( X )
 			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
-			self.accuracy = accuracy_score( y, y_pred )
+			y_pred = self.project( X )
+			_target_count = int( y.shape[ 1 ] ) if len( y.shape ) > 1 else 1
+			_prediction_count = int( y_pred.shape[ 1 ] ) if len( y_pred.shape ) > 1 else 1
 			_metrics = \
 			{
-				'Training Score': self.training_score,
-				'Testing Score': self.testing_score,
-				'Accuracy Score': self.accuracy,
+				'Components': [ self.n_components ],
+				'Training Score': [ float( self.training_score ) ],
+				'Testing Score': [ float( self.testing_score ) ],
+				'Predictor Count': [ int( X.shape[ 1 ] ) ],
+				'Target Count': [ _target_count ],
+				'Prediction Count': [ _prediction_count ],
 			}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			df_metrics = pd.DataFrame( _metrics )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
-			
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) -> sd.CCA:
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the CCA model to X and Y.
-
+			--------
+			Fit the CCA model to the specified predictor and target data.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
-			Return:
-			-------
-			CCA or None
-
+			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target matrix or vector of shape
+				( n_samples, ) or ( n_samples, n_targets ).
+		
+			Returns:
+			--------
+			object | None:
+				The fitted wrapper instance.
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.model.train( X, y )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'train( self, X: np.ndarray, Y: np.ndarray ) -> object'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object | None'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
+	def transform( self, X: np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> Tuple[  np.ndarray, np.ndarray ] | np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply the CCA transformation.
-
+			--------
+			Apply the fitted CCA transformation to the specified predictor matrix
+			and, when provided, the target matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
-			Return:
-			-------
-			(np.ndarray, np.ndarray): Transformed X and Y.
-
+			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target matrix of shape
+				( n_samples, n_targets ).
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray] | np.ndarray:
+				The transformed predictor matrix when y is omitted, or a tuple
+				containing transformed X and transformed y when y is provided.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			self.transformed_data = self.model.transform( X, y )
+			if y is None:
+				self.transformed_data = self.model.transform( X )
+			else:
+				self.transformed_data = self.model.transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
+			exception.method = ('transform( self, X: np.ndarray, '
+			                    'y: Optional[ np.ndarray ]=None )')
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
+	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[
+		                                                             np.ndarray, np.ndarray ] | np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit and transform with CCA.
-
+			--------
+			Fit the CCA model and immediately apply the learned dimension
+			reduction to the specified training data.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
-
+			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target matrix or vector of shape
+				( n_samples, ) or ( n_samples, n_targets ).
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray] | np.ndarray:
+				The transformed predictor matrix and transformed target matrix
+				returned by the fitted CCA model.
+		
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.transformed_data = self.model.train( X, y ).transform( X, y )
+			self.transformed_data = self.model.fit_transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'train_transform( self, X: np.ndarray, Y: np.ndarray ) -> tuple'
+			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 			
 
@@ -733,7 +852,7 @@ class PCA( Selector ):
 		the number of components to extract.
 
 	"""
-	model: sd.PCA
+	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
 	svd_solver: Optional[ str ]
 	n_components: Optional[ int ]
@@ -744,94 +863,117 @@ class PCA( Selector ):
 	
 	def __init__( self, num: int=2, solver: str='auto' ) -> None:
 		"""
-
+		
 			Purpose:
-			---------
-			Initialize PCA.
-
-			:param num: Number of components.
-			:type num: int
-
-			:param solver: The solver used by the model
-			:type solver: str
-
+			--------
+			Initialize the PCA wrapper.
+		
+			Parameters:
+			-----------
+			num (int): Number of principal components to retain.
+			solver (str): Singular value decomposition solver used by the
+				underlying PCA implementation.
+		
+			Returns:
+			--------
+			None
+		
 		"""
 		super( ).__init__( )
 		self.n_components = num
 		self.svd_solver = solver
-		self.model = sd.PCA( n_components=self.n_components, svd_solver=self.svd_solver )
+		self.model = PrincipalComponentAnalysis( n_components=self.n_components,
+			svd_solver=self.svd_solver )
 		self.prediction = None
 		self.transformed_data = None
+		self.accuracy = None
+		self.training_score = None
+		self.testing_score = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings representing class members.
-
-		'''
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
+			Purpose:
+			--------
+			Return a list of strings representing class members.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
 		return [ 'model',
 		         'prediction',
 		         'svd_solver',
 		         'n_components',
 		         'transformed_data',
+		         'split_data',
 		         'train',
+		         'project',
+		         'score',
 		         'transform',
 		         'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
-
+	def split_data( self, X: np.ndarray,  y: np.ndarray,  size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
 			Purpose:
-			_______
-
-
+			--------
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
 			Parameters:
-			---------
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return ( X_train, X_test, y_train, y_test )
+			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def train( self, X: np.ndarray ) -> sd.PCA:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit PCA to the input stores.
-
+			--------
+			Fit the PCA model to the specified feature matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).\
-
-			Return:
-			-------
-			sd.PCA
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by PCA.
+		
+			Returns:
+			--------
+			object | None:
+				The fitted wrapper instance.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -841,105 +983,110 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'def fit( self, X: np.ndarray ) -> ComponentAnalysis'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
 			--------
-			Predict class labels from input features using the regression model.
-
-
+			Project the specified feature matrix into principal component space.
+			For this wrapper, projection is equivalent to transformation.
+		
 			Parameters:
-			---------
-			X (np.ndarray | pd.DataFrame):
-			Input features.
-
-
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by PCA.
+		
 			Returns:
 			--------
 			np.ndarray:
-
+				The transformed feature matrix in principal component space.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.transform( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'project( self, X: np.ndarray )'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
 		"""
-
+		
 			Purpose:
 			--------
-			Returns the coefficient of determination R^2 of the prediction.
-			The coefficient R^2 is defined as (1 - u/v), where u is the residual sum of squares
-			((y_true - y_pred) ** 2).sum() and v is the total sum of squares
-			((y_true - y_true.mean()) ** 2).sum().
-
-			The best possible score is 1.0 and it can be negative
-			(because the model can be arbitrarily worse). A constant model that always predicts
-			the expected value of y, disregarding the input features, would get a R^2 score of 0.0.
-
-
+			Return PCA summary metrics describing dimensionality reduction and
+			explained variance for the fitted model.
+		
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by PCA.
+		
 			Returns:
 			--------
-			Dict[ str, float]
-
+			pd.DataFrame:
+				A one-row dataframe containing PCA summary metrics.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.accuracy = accuracy_score( y, y_pred )
+			if self.transformed_data is None:
+				self.transformed_data = self.transform( X )
+			_original_count = int( X.shape[ 1 ] )
+			_component_count = int( self.transformed_data.shape[ 1 ] )
+			_total_explained = float( np.sum( self.model.explained_variance_ratio_ ) ) \
+				if hasattr( self.model, 'explained_variance_ratio_' ) else np.nan
 			_metrics = \
 			{
-				'Training Score': self.training_score,
-				'Testing Score': self.testing_score,
-				'Accuracy Score': self.accuracy,
+					'Original Features': [ _original_count ],
+					'Components': [ _component_count ],
+					'Explained Variance Total': [ _total_explained ],
+					'Largest Component Variance': [
+							float( np.max( self.model.explained_variance_ratio_ ) )
+							if hasattr( self.model, 'explained_variance_ratio_' )
+							else np.nan ],
+					'Smallest Component Variance': [
+							float( np.min( self.model.explained_variance_ratio_ ) )
+							if hasattr( self.model, 'explained_variance_ratio_' )
+							else np.nan ],
+					'Solver': [ self.svd_solver ],
 			}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			df_metrics = pd.DataFrame( _metrics )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply the PCA transformation.
-
+			--------
+			Apply the fitted PCA transformation to the specified feature matrix.
+		
 			Parameters:
 			-----------
-			X : Feature vector w/shape ( n_samples, n_features ).
-
-			Return:
-			-------
-			(np.ndarray, np.ndarray): Transformed X
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by PCA.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix in principal component space.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -949,26 +1096,28 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit PCA and transform input stores.
-
+			--------
+			Fit the PCA model and immediately transform the specified feature
+			matrix into principal component space.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-			Return:
-			-------
-			np.ndarray
-
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by PCA.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix in principal component space.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -978,7 +1127,8 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = ('train_transform( self, X: np.ndarray, '
+			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
 			raise exception
 			
 
@@ -992,108 +1142,96 @@ class SelectBest( Selector ):
 		
 
 	"""
-	model: sf.SelectKBest
+	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
-	k_best: Optional[ int ]
+	score_function: Optional[ object ]
+	n_features: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
-	score_function: Optional[ callable ]
-	chi2_score: Optional[ Tuple[ float, float ] ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	
-	def __init__( self, score_func: callable=sf.chi2,  k: int=3 ) -> None:
+	def __init__( self, score_func: object=sf.chi2, num: int=10 ) -> None:
 		"""
-
+		
 			Purpose:
-			---------
-			Initialize SelectBest.
-
-			:param threshold: Features with variance below this are removed.
-			:type threshold: float
-
+			--------
+			Initialize the SelectKBest wrapper.
+		
+			Parameters:
+			-----------
+			score_func (object): Univariate scoring function used to rank
+				features.
+			num (int): Number of top-ranked features to retain.
+		
+			Returns:
+			--------
+			None
+		
 		"""
 		super( ).__init__( )
-		self.k_best = k
 		self.score_function = score_func
-		self.model = sf.SelectKBest( score_func=self.score_function, k=self.k_best )
+		self.n_features = num
+		self.model = sf.SelectKBest( score_func=self.score_function, k=self.n_features )
 		self.prediction = None
 		self.transformed_data = None
-		self.chi2_score = None
+		self.accuracy = None
+		self.training_score = None
+		self.testing_score = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings representing class members
-
-		'''
-		return [ 'k_best',
-		         'model',
-		         'prediction',
-		         'accuracy',
-		         'score_function',
-		         'chi2_score',
-		         'transformed_data',
-		         'chi_square', ]
-	
-	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ float, float ]:
-		'''
-			
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
 			Purpose:
-			-------
-			Compute chi-squared stats between each non-negative feature and class.
-			This score can be used to select the n_features features with the highest values
-			for the test chi-squared statistic from X, which must contain only non-negative
-			integer feature values such as booleans or frequencies (e.g., term counts in
-			document classification), relative to the classes.
-			
-			Parameters:
-			----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			
-			
-			Return:
 			--------
-			(float, float) chi2, pvalue
+			Return a list of strings representing class members.
 		
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			( stats, p_vals ) = self.score_function( X, y )
-			return ( stats, p_vals )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'SelectBest'
-			exception.method = 'chi_square( self, X: ndarray, y: ndarray ) -> ( ndarray, ndarray)'
-			raise exception
-			
-		
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
-
-			Purpose:
-			_______
-
-
 			Parameters:
-			---------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			-----------
+			None
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
+		return [ 'model',
+		         'prediction',
+		         'score_function',
+		         'n_features',
+		         'transformed_data',
+		         'split_data',
+		         'chi_square',
+		         'train',
+		         'project',
+		         'score',
+		         'transform',
+		         'train_transform' ]
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
+			Purpose:
+			--------
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -1103,131 +1241,169 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def train( self, X: np.ndarray ) -> sf.VarianceThreshold | None:
+	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the model.
-
+			--------
+			Compute chi-square scores and p-values for the specified feature
+			matrix and target vector.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray] | None:
+				A two-item tuple containing chi-square statistics and p-values.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
+			throw_if( 'y', y )
+			return sf.chi2( X, y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectBest'
+			exception.method = 'chi_square( self, X: np.ndarray, y: np.ndarray )'
+			raise exception
+	
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+		"""
+		
+			Purpose:
+			--------
+			Fit the SelectKBest selector using the specified feature matrix and
+			optional target vector.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
+				This is generally required for supervised scoring functions such
+				as chi-square.
+		
+			Returns:
+			--------
+			object | None:
+				The fitted wrapper instance.
+		
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
 			--------
-			Predict class labels from input features using the regression model.
-
-
+			Project the specified feature matrix into the retained feature space.
+			For this selector, projection is equivalent to transformation.
+		
 			Parameters:
-			---------
-			X (np.ndarray | pd.DataFrame):
-			Input features.
-
-
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used during transformation.
+		
 			Returns:
 			--------
 			np.ndarray:
-
+				The transformed feature matrix containing only the selected
+				features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.transform( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'project( self, X: np.ndarray )'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""
-
+		
 			Purpose:
 			--------
-			Returns the coefficient of determination R^2 of the prediction.
-			The coefficient R^2 is defined as (1 - u/v), where u is the residual sum of squares
-			((y_true - y_pred) ** 2).sum() and v is the total sum of squares
-			((y_true - y_true.mean()) ** 2).sum().
-
-			The best possible score is 1.0 and it can be negative
-			(because the model can be arbitrarily worse). A constant model that always predicts
-			the expected value of y, disregarding the input features, would get a R^2 score of 0.0.
-
-
+			Return selector summary metrics describing feature ranking and
+			selection results for the fitted SelectKBest model.
+		
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility.
+		
 			Returns:
 			--------
-			Dict[ str, float]
-
+			pd.DataFrame:
+				A dataframe containing feature scores, p-values, and selection
+				indicators.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.accuracy = accuracy_score( y, y_pred )
-			_metrics = \
+			if self.transformed_data is None:
+				self.transformed_data = self.transform( X )
+			_support = self.model.get_support( )
+			_scores = self.model.scores_
+			_pvalues = self.model.pvalues_ if hasattr( self.model, 'pvalues_' ) else None
+			df_scores = pd.DataFrame(
 			{
-				'Training Score': self.training_score,
-				'Testing Score': self.testing_score,
-				'Accuracy Score': self.accuracy,
-			}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+					'Feature': np.arange( 0, X.shape[ 1 ] ),
+					'Score': _scores,
+					'PValue': _pvalues if _pvalues is not None else np.full(
+						X.shape[ 1 ], np.nan ),
+					'Selected': _support,
+			} )
+			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply the CCA transformation.
-
+			--------
+			Apply the fitted SelectKBest selector to the specified feature
+			matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-			Return:
-			-------
-			(np.ndarray, np.ndarray): Transformed X and Y.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used during transformation.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only the selected
+				features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1237,37 +1413,41 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit and transform the data.
-
+			--------
+			Fit the SelectKBest selector and immediately transform the specified
+			feature matrix into the reduced feature space.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-
-			Return:
-			-------
-			np.ndarray
-
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
+				This is generally required for supervised scoring functions such
+				as chi-square.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only the selected
+				features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.fit_transform( X )
+			self.transformed_data = self.model.fit_transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = ('train_transform( self, X: np.ndarray, '
+			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
 			raise exception
 			
 
@@ -1282,108 +1462,97 @@ class SelectPercent( Selector ):
 
 
 	"""
-	model: sf.SelectPercentile
+	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
-	percent: Optional[ int ]
+	score_function: Optional[ object ]
+	percentile: Optional[ int ]
 	transformed_data: Optional[ np.ndarray ]
-	score_function: Optional[ callable ]
 	accuracy: Optional[ float ]
-	chi2_score: Optional[ float ]
+	training_score: Optional[ float ]
+	testing_score: Optional[ float ]
 	
-	def __init__( self, score_func: callable=sf.chi2, percent: int=10 ) -> None:
+	def __init__( self, score_func: object = sf.chi2, pct: int = 10 ) -> None:
 		"""
-
+		
 			Purpose:
-			---------
-			Initialize SelectBest.
-
-			score_func:
-
+			--------
+			Initialize the SelectPercentile wrapper.
+		
+			Parameters:
+			-----------
+			score_func (object): Univariate scoring function used to rank
+				features.
+			pct (int): Percentile of top-ranked features to retain.
+		
+			Returns:
+			--------
+			None
+		
 		"""
 		super( ).__init__( )
-		self.percent = percent
-		self.score_function: score_func
-		self.model = sf.SelectPercentile( score_func=self.score_function, percentile=self.percent )
+		self.score_function = score_func
+		self.percentile = pct
+		self.model = sf.SelectPercentile( score_func=self.score_function,
+			percentile=self.percentile )
+		self.prediction = None
 		self.transformed_data = None
+		self.accuracy = None
+		self.training_score = None
+		self.testing_score = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings representing class members
-
-		'''
-		return [ 'percent',
-		         'model',
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
+			Purpose:
+			--------
+			Return a list of strings representing class members.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
+		return [ 'model',
 		         'prediction',
+		         'score_function',
+		         'percentile',
 		         'transformed_data',
 		         'split_data',
-		         'score_function',
+		         'chi_square',
 		         'train',
 		         'project',
-		         'train_transform',
+		         'score',
 		         'transform',
-		         'chi_square' ]
+		         'train_transform' ]
 	
-	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ float, float ]:
-		'''
-
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
 			Purpose:
-			-------
-			Compute chi-squared stats between each non-negative feature and class.
-			This score can be used to select the n_features features with the highest values
-			for the test chi-squared statistic from X, which must contain only non-negative
-			integer feature values such as booleans or frequencies (e.g., term counts in
-			document classification), relative to the classes.
-
-			Parameters:
-			----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-
-
-			Return:
 			--------
-			(float, float) chi2, pvalue
-
-		'''
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			( stats, p_vals ) = self.score_function( X, y )
-			return ( stats, p_vals )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'SelectPercent'
-			exception.method = 'chi_square( self, X: ndarray, y: ndarray ) -> ( ndarray, ndarray)'
-			raise exception
-			
-	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
-
-			Purpose:
-			_______
-
-
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
 			Parameters:
-			---------
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -1393,131 +1562,169 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def train( self, X: np.ndarray ) -> sf.SelectPercentile | None:
+	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit the model.
-
+			--------
+			Compute chi-square scores and p-values for the specified feature
+			matrix and target vector.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray] | None:
+				A two-item tuple containing chi-square statistics and p-values.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
+			throw_if( 'y', y )
+			return sf.chi2( X, y )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SelectPercent'
+			exception.method = 'chi_square( self, X: np.ndarray, y: np.ndarray )'
+			raise exception
+	
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
+		"""
+		
+			Purpose:
+			--------
+			Fit the SelectPercentile selector using the specified feature matrix
+			and optional target vector.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
+				This is generally required for supervised scoring functions such
+				as chi-square.
+		
+			Returns:
+			--------
+			object | None:
+				The fitted wrapper instance.
+		
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'fit( self, X: np.ndarray ) -> object | None'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
 			--------
-			Predict class labels from input features using the regression model.
-
-
+			Project the specified feature matrix into the retained feature space.
+			For this selector, projection is equivalent to transformation.
+		
 			Parameters:
-			---------
-			X (np.ndarray | pd.DataFrame):
-			Input features.
-
-
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used during transformation.
+		
 			Returns:
 			--------
 			np.ndarray:
-
+				The transformed feature matrix containing only the selected
+				features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.transform( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'project( self, X: np.ndarray )'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
 		"""
-
+		
 			Purpose:
 			--------
-			Returns the coefficient of determination R^2 of the prediction.
-			The coefficient R^2 is defined as (1 - u/v), where u is the residual sum of squares
-			((y_true - y_pred) ** 2).sum() and v is the total sum of squares
-			((y_true - y_true.mean()) ** 2).sum().
-
-			The best possible score is 1.0 and it can be negative
-			(because the model can be arbitrarily worse). A constant model that always predicts
-			the expected value of y, disregarding the input features, would get a R^2 score of 0.0.
-
-
+			Return selector summary metrics describing feature ranking and
+			selection results for the fitted SelectPercentile model.
+		
 			Parameters:
 			-----------
-			X (np.ndarray ): Input features.
-			y (np.ndarray ): True binary class labels.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility.
+		
 			Returns:
 			--------
-			Dict[ str, float]
-
+			pd.DataFrame:
+				A dataframe containing feature scores, p-values, and selection
+				indicators.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
-			self.accuracy = accuracy_score( y, y_pred )
-			_metrics = \
-				{
-						'Training Score': self.training_score,
-						'Testing Score': self.testing_score,
-						'Accuracy Score': self.accuracy,
-				}
-			_dataframe = pd.DataFrame( _metrics )
-			return _dataframe
+			if self.transformed_data is None:
+				self.transformed_data = self.transform( X )
+			_support = self.model.get_support( )
+			_scores = self.model.scores_
+			_pvalues = self.model.pvalues_ if hasattr( self.model, 'pvalues_' ) else None
+			df_scores = pd.DataFrame(
+			{
+				'Feature': np.arange( 0, X.shape[ 1 ] ),
+				'Score': _scores,
+				'PValue': _pvalues if _pvalues is not None else np.full(
+					X.shape[ 1 ], np.nan ),
+				'Selected': _support,
+			} )
+			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'project( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply the Sequential Back Selection transformation.
-
+			--------
+			Apply the fitted SelectPercentile selector to the specified feature
+			matrix.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-			Return:
-			-------
-			(np.ndarray, np.ndarray): Transformed X.
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used during transformation.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only the selected
+				features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1527,47 +1734,54 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Fit and transform the data.
-
+			--------
+			Fit the SelectPercentile selector and immediately transform the
+			specified feature matrix into the reduced feature space.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-
-			Return:
-			-------
-			np.ndarray
-
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
+				This is generally required for supervised scoring functions such
+				as chi-square.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix containing only the selected
+				features.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.fit_transform( X )
+			self.transformed_data = self.model.fit_transform( X, y )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = ('train_transform( self, X: np.ndarray, '
+			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
 			raise exception
 			
 
 class SBS( Selector ):
 	'''
 	
-		Purpose:
-		--------
-	
-	
+			Purpose:
+			--------
+			Implement Sequential Backward Selection (SBS) using a supplied
+			classification estimator and scoring function. The algorithm begins with
+			the full feature set and greedily removes one feature at a time until the
+			desired number of features remains.
+			
 	'''
 	scoring: Optional[ callable ]
 	prediction: Optional[ np.ndarray ]
@@ -1576,16 +1790,34 @@ class SBS( Selector ):
 	test_size: Optional[ float ]
 	k_features: Optional[ int ]
 	accuracy: Optional[ float ]
+	indices_: Optional[ Tuple[ int, ... ] ]
+	subsets_: Optional[ List[ Tuple[ int, ... ] ] ]
+	scores_: Optional[ List[ float ] ]
+	k_score_: Optional[ float ]
 	
-	def __init__( self, classifier: Classifier, k_features: int,
-			scoring: callable=accuracy_score, test_size: float=0.25, random_state: int=1 ):
-		'''
-
+	def __init__( self, classifier: Classifier, k_features: int, scoring: callable=accuracy_score,
+			test_size: float=0.25, random_state: int=1 ) -> None:
+		"""
+		
 			Purpose:
 			--------
-			Sequential Back Selection (SBS) Contrstructor
-
-		'''
+			Initialize the Sequential Backward Selection wrapper.
+		
+			Parameters:
+			-----------
+			classifier (Classifier): Estimator used to evaluate feature subsets.
+			k_features (int): Desired number of features to retain.
+			scoring (callable): Scoring function used to evaluate predictions.
+			test_size (float): Proportion of the dataset reserved for internal
+				validation during subset search.
+			random_state (int): Random seed used for the internal train/test
+				split.
+		
+			Returns:
+			--------
+			None
+		
+		"""
 		super( ).__init__( )
 		self.scoring = scoring
 		self.classifier = clone( classifier )
@@ -1593,179 +1825,320 @@ class SBS( Selector ):
 		self.test_size = test_size
 		self.random_state = random_state
 		self.prediction = None
+		self.transformed_data = None
+		self.accuracy = None
+		self.indices_ = None
+		self.subsets_ = None
+		self.scores_ = None
+		self.k_score_ = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings representing class members
-
-		'''
-		return [ 'k',
-		         'model',
+	def __dir__( self ) -> List[ str ]:
+		"""
+		
+			Purpose:
+			--------
+			Return a list of strings representing class members.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			List[str]:
+				A list of member names.
+		
+		"""
+		return [ 'scoring',
+		         'classifier',
+		         'k_features',
+		         'test_size',
+		         'random_state',
 		         'prediction',
 		         'transformed_data',
+		         'indices_',
+		         'subsets_',
+		         'scores_',
+		         'k_score_',
 		         'split_data',
 		         'train',
+		         'project',
+		         'score',
 		         'transform',
-		         '_calc_score'
-		         'train_transform' ]
+		         'train_transform',
+		         'calc_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: int=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		'''
-
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+		
 			Purpose:
-			_______
-			Splits the dataset into to traing and testing splits
-
-
+			--------
+			Split the specified feature matrix and target vector into training
+			and testing subsets.
+		
 			Parameters:
-			---------
+			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary class target_names. ( n_samples, ).
-			size (int): The size of the testing data set
-			random (int): A random seed.
-
-
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+			size (float): Proportion of the dataset to include in the test split.
+			random (int): Random seed used by the splitter.
+		
 			Returns:
-			________
-			tuple ( np.ndarray, np.ndarray, np.ndarray, np.ndarray )
-			ex. ( X_train, X_test, y_train, y_test )
-
-
-		'''
+			--------
+			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+				A four-item tuple in the form
+				( X_train, X_test, y_train, y_test ).
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return ( X_train, X_test, y_train, y_test )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
+			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = ('split_data( self, X: ndarray, y: ndarray, size: int=0.2, '
-			                    'random: int=42 ) -> ( ndarray, ndarray, ndarray, ndarray )')
+			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
+			                    'size: float=0.2, random: int=42 ) -> '
+			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
 			raise exception
-			
 	
-	def train( self, X: np.ndarray, y: np.ndarray ) ->  object | None:
-		'''
-
+	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
+		"""
+		
 			Purpose:
 			--------
-			Fits the data to the model
-
+			Fit the Sequential Backward Selection wrapper by iteratively
+			evaluating reduced feature subsets until the desired number of
+			features remains.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector w/shape ( n_samples, ).
-			
-			
-			Return:
-			---------
-			object: The Sequential Back Selection (SBS) trained model.
-			
-
-		'''
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
+			Returns:
+			--------
+			object | None:
+				The fitted SBS wrapper.
+		
+		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=self.test_size,
-					random_state=self.random_state )
+			X_train, X_test, y_train, y_test = split( X, y,
+				test_size=self.test_size,
+				random_state=self.random_state )
 			dim = X_train.shape[ 1 ]
 			self.indices_ = tuple( range( dim ) )
 			self.subsets_ = [ self.indices_ ]
-			score = self._calc_score( X_train, y_train, X_test, y_test, self.indices_ )
+			score = self.calc_score( X_train, y_train, X_test, y_test, self.indices_ )
 			self.scores_ = [ score ]
 			while dim > self.k_features:
 				scores = [ ]
 				subsets = [ ]
+				
 				for p in combinations( self.indices_, r=dim - 1 ):
-					score = self._calc_score( X_train, y_train, X_test, y_test, p )
+					score = self.calc_score( X_train, y_train, X_test, y_test, p )
 					scores.append( score )
 					subsets.append( p )
-					best = np.argmax( scores )
-					self.indices_ = subsets[ best ]
-					self.subsets_.append( self.indices_ )
-					dim -= 1
-					self.scores_.append( scores[ best ] )
-					self.k_score_ = self.scores_[ -1 ]
-					return self
+				
+				best = int( np.argmax( scores ) )
+				self.indices_ = subsets[ best ]
+				self.subsets_.append( self.indices_ )
+				dim -= 1
+				self.scores_.append( scores[ best ] )
+			
+			self.k_score_ = self.scores_[ -1 ]
+			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object | None'
 			raise exception
-			
 	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""
-
+		
 			Purpose:
-			---------
-			Apply the Sequential Back Selection transformation.
-
+			--------
+			Project the specified feature matrix onto the selected feature subset.
+			For this wrapper, projection is equivalent to transformation.
+		
 			Parameters:
 			-----------
-			X (np.ndarray): Feature vector w/shape ( n_samples, n_features ).
-
-			Return:
-			-------
-			(np.ndarray, np.ndarray): Transformed X .
-
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this method.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The transformed feature matrix restricted to the selected
+				feature indices.
+		
 		"""
 		try:
 			throw_if( 'X', X )
-			return X[ :, self.indices_ ]
+			self.prediction = self.transform( X )
+			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
 			raise exception
-			
 	
-	def _calc_score( self, X_train: np.ndarray, y_train: np.ndarray,
-			X_test: np.ndarray, y_test: np.ndarray, indices: List[ int ] ) -> float:
-		'''
-
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+		"""
+		
 			Purpose:
 			--------
-			Instance method used to calculate the model's performance
-
-
+			Return summary metrics describing the selected feature subset and
+			the SBS search history.
+		
 			Parameters:
 			-----------
-			X_train (np.ndarray, np.ndarray):  Transformed X
-			y_train (np.ndarray, ):  Transformed y
-			X_test (np.ndarray, np.ndarray):  Transformed X
-			y_test (np.ndarray, ):  Transformed y
-			indices (List[ int ]): List of integer indices
-
-			Return:
-			-------
-			float: The resulting score representing performance.
-
-		'''
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not required for summary output.
+		
+			Returns:
+			--------
+			pd.DataFrame:
+				A one-row dataframe containing the number of original features,
+				retained features, and the best SBS score.
+		
+		"""
+		try:
+			throw_if( 'X', X )
+			_original_count = int( X.shape[ 1 ] )
+			_retained_count = len( self.indices_ ) if self.indices_ is not None else 0
+			_metrics = \
+				{
+						'Original Features': [ _original_count ],
+						'Retained Features': [ _retained_count ],
+						'Removed Features': [ _original_count - _retained_count ],
+						'Best Score': [
+								float( self.k_score_ ) if self.k_score_ is not None else np.nan ],
+						'Iterations': [ len( self.subsets_ ) if self.subsets_ is not None else 0 ],
+				}
+			return pd.DataFrame( _metrics )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SBS'
+			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			raise exception
+	
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""
+		
+			Purpose:
+			--------
+			Apply the selected feature subset to the specified feature matrix.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Optional target vector preserved for
+				interface compatibility. It is not used by this method.
+		
+			Returns:
+			--------
+			np.ndarray:
+				The feature matrix restricted to the selected feature indices.
+		
+		"""
+		try:
+			throw_if( 'X', X )
+			if self.indices_ is None:
+				raise ValueError( 'The SBS wrapper must be trained before calling transform.' )
+			self.transformed_data = X[ :, self.indices_ ]
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SBS'
+			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			raise exception
+	
+	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+		
+			Purpose:
+			--------
+			Fit the SBS wrapper and immediately transform the specified feature
+			matrix using the selected subset.
+		
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
+		
+			Returns:
+			--------
+			np.ndarray:
+				The feature matrix restricted to the selected feature indices.
+		
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			self.train( X, y )
+			self.transformed_data = self.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SBS'
+			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def calc_score( self, X_train: np.ndarray, y_train: np.ndarray,
+			X_test: np.ndarray, y_test: np.ndarray, indices: Tuple[ int, ... ] ) -> float:
+		"""
+		
+			Purpose:
+			--------
+			Calculate the validation score for a specified feature subset.
+		
+			Parameters:
+			-----------
+			X_train (np.ndarray): Training feature matrix.
+			y_train (np.ndarray): Training target vector.
+			X_test (np.ndarray): Validation feature matrix.
+			y_test (np.ndarray): Validation target vector.
+			indices (Tuple[int, ...]): Feature indices defining the subset to
+				evaluate.
+		
+			Returns:
+			--------
+			float:
+				The score produced by the configured scoring function.
+		
+		"""
 		try:
 			throw_if( 'X_train', X_train )
 			throw_if( 'y_train', y_train )
-			throw_if( 'X_train', X_train )
-			throw_if( 'y_train', y_train )
+			throw_if( 'X_test', X_test )
+			throw_if( 'y_test', y_test )
 			throw_if( 'indices', indices )
-			self.estimator.fit( X_train[ :, indices ], y_train )
-			y_pred = self.estimator.predict( X_test[ :, indices ] )
+			self.classifier.fit( X_train[ :, indices ], y_train )
+			y_pred = self.classifier.predict( X_test[ :, indices ] )
 			score = self.scoring( y_test, y_pred )
 			return score
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = ('_calc_score( self, X_train: ndarray, y_train: ndarray, '
-			                    'X_test: ndarray, y_test: ndarray, indices: List[ int ]) ->float')
+			exception.method = ('calc_score( self, X_train: np.ndarray, y_train: np.ndarray, '
+			                    'X_test: np.ndarray, y_test: np.ndarray, '
+			                    'indices: Tuple[ int, ... ] ) -> float')
 			raise exception
 			
 
