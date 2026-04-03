@@ -182,44 +182,47 @@ class IsolationForest( Outlier ):
 
 			Purpose:
 			--------
-			Initialize IsolationForestWrapper with a contamination threshold.
-	
+			Initialize the IsolationForest wrapper with the specified contamination rate.
+
 			Parameters:
 			-----------
 			contamination (float): Expected proportion of outliers in the data.
-			kwargs (dict): Additional keyword arguments passed to IsolationForest.
-	
+
 			Returns:
 			--------
 			None
 
 		"""
+		super( ).__init__( )
 		self.contamination = contamination
 		self.model = en.IsolationForest( contamination=self.contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> IsolationForest | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> IsolationForest | None:
 		"""
 
 			Purpose:
 			--------
-			Train the IsolationForest model on input data.
-	
+			Fit the IsolationForest model on the supplied feature matrix.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix.
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored by IsolationForest; present for API consistency.
+
 			Returns:
 			--------
-			self
+			IsolationForest | None: The fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
-			self.prediction = self.model.predict( X )  # -1 = outlier, 1 = inlier
+			self.prediction = self.model.predict( X )
 			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = float( np.sum( self.prediction == -1 ) )
+			self.inliers = float( np.sum( self.prediction == 1 ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -227,22 +230,22 @@ class IsolationForest( Outlier ):
 			exception.cause = 'IsolationForest'
 			exception.method = 'train'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			--------
-			Predict whether new samples are inliers or outliers.
-	
+			Predict whether each sample is an inlier or outlier.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix of unseen data.
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			np.ndarray: Array of predictions (-1 = outlier, 1 = inlier).
+			np.ndarray | None: Prediction vector where 1 denotes inlier and -1 denotes outlier.
 
 		"""
 		try:
@@ -255,84 +258,89 @@ class IsolationForest( Outlier ):
 			exception.cause = 'IsolationForest'
 			exception.method = 'project'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Computes the proportion of training samples classified as inliers.
-
-			Returns:
-			--------
-			float: Fraction of inliers.
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X, y )
-			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_scores = \
-			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _scores )
-			return _data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = ''
-			exception.method = 'score'
-			raise exception
-			
-	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
-
-			Purpose:
-			--------
-			Evaluates outlier detection results, optionally against ground-truth labels.
+			Compute per-sample anomaly outputs and summary-friendly columns for review.
 
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			Dict: Classification report or descriptive summary.
+			pd.DataFrame | None: DataFrame containing per-sample prediction, anomaly score,
+			inlier flag, and outlier flag.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
 			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_analysis = \
+			self.outliers = float( np.sum( y_pred == -1 ) )
+			self.inliers = float( np.sum( y_pred == 1 ) )
+			df_scores = pd.DataFrame( )
+			df_scores[ 'Prediction' ] = y_pred
+			df_scores[ 'Anomaly' ] = self.anomaly_scores
+			df_scores[ 'Inlier' ] = (y_pred == 1).astype( int )
+			df_scores[ 'Outlier' ] = (y_pred == -1).astype( int )
+			return df_scores
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'IsolationForest'
+			exception.method = 'score'
+			raise exception
+	
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
+		"""
+
+			Purpose:
+			--------
+			Create a compact anomaly summary and render a bar chart of inlier versus outlier
+			counts for the supplied samples.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
+			Returns:
+			--------
+			pd.DataFrame | None: Summary DataFrame containing aggregate anomaly counts and
+			quality statistics.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			df_scores = self.score( X, y )
+			df_summary = pd.DataFrame(
 			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _analysis )
-			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
-			_text = f''
-			_total = anomalies.sum( axis=0, numeric_only=True )
+				'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
+				'Value': [ float( self.inliers ), float( self.outliers ),
+						float( self.model.contamination ),
+						float( round( self.inliers / len( df_scores ), 4 ) ) ]
+			} )
+			
+			df_plot = pd.DataFrame(
+			{
+				'Label': [ 'Inliers', 'Outliers' ],
+				'Count': [ float( self.inliers ), float( self.outliers ) ]
+			} )
+			
 			plt.figure( figsize=(8, 6) )
-			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
-			sns.barplot( data=anomalies, legend='full' )
+			sns.barplot( data=df_plot, x='Label', y='Count' )
+			plt.title( 'IsolationForest Detection Summary' )
+			plt.xlabel( 'Classification' )
+			plt.ylabel( 'Count' )
+			plt.tight_layout( )
 			plt.show( )
+			
+			return df_summary
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -347,7 +355,8 @@ class OneClass( Outlier ):
 		Purpose:
 		--------
 		Encapsulates scikit-learn's OneClassSVM for novelty detection on high-dimensional data.
-		The model learns a boundary around "normal" samples and identifies novel deviations.
+		The estimator learns a boundary around normal samples and flags observations
+		outside that boundary as anomalies.
 
 	"""
 	model: Optional[ sv.OneClassSVM ]
@@ -356,76 +365,83 @@ class OneClass( Outlier ):
 	anomaly_scores: Optional[ np.ndarray ]
 	kernel: Optional[ str ]
 	
-	def __init__( self, kernel: str='rbf', nu: float=0.05, gamma: str='scale' ) -> None:
+	def __init__( self, kernel: str = 'rbf', nu: float=0.05, gamma: str='scale' ) -> None:
 		"""
-	
+
 			Purpose:
 			--------
-			Initializes the OneClassSVM model with the specified kernel and hyperparameters.
-	
+			Initialize the OneClassSVM wrapper with the specified kernel parameters.
+
 			Parameters:
 			-----------
-			kernel (str): Kernel type to be used in the SVM ('linear', 'poly', 'rbf', 'sigmoid').
-			nu (float): An upper bound on the fraction of training errors (0 < nu ≤ 1).
-			gamma (str): Kernel coefficient ('scale', 'auto', or float).
-			kwargs (dict): Additional arguments passed to OneClassSVM.
-	
+			kernel (str): Kernel type used by the model.
+			nu (float): Upper bound on the fraction of training errors and lower bound
+				on the fraction of support vectors.
+			gamma (str): Kernel coefficient for 'rbf', 'poly', and 'sigmoid'.
+
 			Returns:
 			--------
 			None
 
 		"""
+		super( ).__init__( )
+		self.kernel = kernel
 		self.model = sv.OneClassSVM( kernel=kernel, nu=nu, gamma=gamma )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> OneClass | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OneClass | None:
 		"""
 
 			Purpose:
 			--------
-			Fits the OneClassSVM model using only inlier training data.
-	
+			Fit the OneClassSVM model using feature data that represents the normal class.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Input training data (inlier-only).
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			self
+			OneClass | None: The fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )  # -1 = outlier, 1 = inlier
+			self.model.fit( X )
+			self.prediction = self.model.predict( X )
+			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = float( np.sum( self.prediction == -1 ) )
+			self.inliers = float( np.sum( self.prediction == 1 ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'SupportVector'
+			exception.cause = 'OneClass'
 			exception.method = 'train'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Applies the trained model to new samples to detect novel anomalies.
-	
+			Predict whether each supplied sample is an inlier or an outlier.
+
 			Parameters:
 			-----------
-			X (np.ndarray): New samples to evaluate.
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			np.ndarray: Prediction array (1 = inlier, -1 = novel/outlier).
+			np.ndarray | None: Prediction vector where 1 denotes inlier and -1 denotes
+			outlier.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
 			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
@@ -434,85 +450,92 @@ class OneClass( Outlier ):
 			exception.cause = 'OneClass'
 			exception.method = 'project'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Computes the proportion of training samples classified as inliers.
+			Compute per-sample OneClassSVM predictions and anomaly scores.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			float: Fraction of inliers.
+			pd.DataFrame | None: DataFrame containing prediction, anomaly score,
+			inlier flag, and outlier flag for each sample.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
 			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_scores = \
-			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			self.outliers = float( np.sum( y_pred == -1 ) )
+			self.inliers = float( np.sum( y_pred == 1 ) )
+			
+			df_scores = pd.DataFrame( )
+			df_scores[ 'Prediction' ] = y_pred
+			df_scores[ 'Anomaly' ] = self.anomaly_scores
+			df_scores[ 'Inlier' ] = (y_pred == 1).astype( int )
+			df_scores[ 'Outlier' ] = (y_pred == -1).astype( int )
+			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OneClass'
 			exception.method = 'score'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Evaluates outlier detection results, optionally against ground-truth labels.
+			Create a compact novelty-detection summary and render a bar chart of inlier
+			versus outlier counts.
 
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			Dict: Classification report or descriptive summary.
+			pd.DataFrame | None: Summary DataFrame containing aggregate anomaly
+			detection metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X, y )
-			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_analysis = \
+			df_scores = self.score( X, y )
+			df_summary = pd.DataFrame(
 			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _analysis )
-			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
-			_text = f''
-			_total = anomalies.sum( axis=0, numeric_only=True )
+				'Metric': [ 'Inliers', 'Outliers', 'Quality' ],
+				'Value': [ float( self.inliers ), float( self.outliers ),
+						float( round( self.inliers / len( df_scores ), 4 ) ) ]
+			} )
+			
+			df_plot = pd.DataFrame(
+			{
+				'Label': [ 'Inliers', 'Outliers' ],
+				'Count': [ float( self.inliers ), float( self.outliers ) ]
+			} )
+			
 			plt.figure( figsize=(8, 6) )
-			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
-			sns.barplot( data=anomalies, legend='full' )
+			sns.barplot( data=df_plot, x='Label', y='Count' )
+			plt.title( 'OneClassSVM Detection Summary' )
+			plt.xlabel( 'Classification' )
+			plt.ylabel( 'Count' )
+			plt.tight_layout( )
 			plt.show( )
+			
+			return df_summary
 		except Exception as e:
 			exception = Error( e )
-			exception.module = 'outliers'
+			exception.module = 'mathy'
 			exception.cause = 'OneClass'
 			exception.method = 'analyze'
 			raise exception
@@ -523,7 +546,7 @@ class OutlierFactor( Outlier ):
 	
 		Purpose:
 		--------
-		Wraps scikit-learn's LocalOutlierFactor for unsupervised or novelty-based outlier detection.
+		LocalOutlierFactor for unsupervised or novelty-based outlier detection.
 		Provides decision function, prediction, and scoring interfaces.
 
 	"""
@@ -531,54 +554,69 @@ class OutlierFactor( Outlier ):
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
 	neighbors: Optional[ int ]
-	containment: Optional[ float]
+	contamination: Optional[ float ]
+	novelty: Optional[ bool ]
 	
-	def __init__( self, n_neighbors: int=20, contamination: float=0.1, novelty: bool=True ) -> None:
+	def __init__( self, n_neighbors: int = 20, contamination: float = 0.1,
+			novelty: bool = True ) -> None:
 		"""
-	
+
 			Purpose:
 			--------
-			Initializes the LOF model with neighborhood and contamination settings.
-	
+			Initialize the LocalOutlierFactor wrapper with neighborhood, contamination,
+			and novelty-detection settings.
+
 			Parameters:
 			-----------
-			n_neighbors (int): Number of neighbors to use for local density estimation.
+			n_neighbors (int): Number of neighbors used for local density estimation.
 			contamination (float): Estimated fraction of outliers in the data.
-			novelty (bool): If True, enables prediction on unseen data (novelty detection).
-			kwargs (dict): Additional arguments for LocalOutlierFactor.
-	
+			novelty (bool): If True, enables novelty detection on unseen samples.
+
 			Returns:
 			--------
 			None
 
 		"""
+		super( ).__init__( )
 		self.neighbors = n_neighbors
 		self.contamination = contamination
 		self.novelty = novelty
-		self.model = nn.LocalOutlierFactor( n_neighbors=self.neighbors,
-			contamination=self.contamination, novelty=self.novelty )
+		self.model = nn.LocalOutlierFactor(
+			n_neighbors=self.neighbors,
+			contamination=self.contamination,
+			novelty=self.novelty
+		)
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> OutlierFactor | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OutlierFactor | None:
 		"""
 
 			Purpose:
 			--------
-			Fit the LOF model to inlier-only data (for novelty detection).
-	
+			Fit the LocalOutlierFactor model on the supplied feature matrix.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Training samples presumed to be normal (non-outliers).
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			self
+			OutlierFactor | None: The fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
+			if self.novelty:
+				self.model.fit( X )
+				self.prediction = None
+				self.anomaly_scores = None
+			else:
+				self.prediction = self.model.fit_predict( X )
+				self.anomaly_scores = self.model.negative_outlier_factor_
+				self.outliers = float( np.sum( self.prediction == -1 ) )
+				self.inliers = float( np.sum( self.prediction == 1 ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -586,27 +624,31 @@ class OutlierFactor( Outlier ):
 			exception.cause = 'OutlierFactor'
 			exception.method = 'train'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
-	
+
 			Purpose:
 			--------
-			Applies the trained LOF model to detect outliers in unseen samples.
-	
+			Predict whether each sample is an inlier or outlier.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Test samples.
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			np.ndarray: Predictions (-1 = outlier, 1 = inlier).
+			np.ndarray | None: Prediction vector where 1 denotes inlier and -1 denotes
+			outlier.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			if self.novelty:
+				self.prediction = self.model.predict( X )
+			else:
+				self.prediction = self.model.fit_predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
@@ -614,87 +656,100 @@ class OutlierFactor( Outlier ):
 			exception.cause = 'OutlierFactor'
 			exception.method = 'project'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Computes the proportion of training samples classified as inliers.
+			Compute per-sample LOF predictions and anomaly scores.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			float: Fraction of inliers.
+			pd.DataFrame | None: DataFrame containing per-sample prediction, anomaly
+			score, inlier flag, and outlier flag.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X, y )
-			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_scores = \
-			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			if self.novelty:
+				y_pred = self.project( X, y )
+				self.anomaly_scores = self.model.decision_function( X )
+			else:
+				y_pred = self.model.fit_predict( X )
+				self.prediction = y_pred
+				self.anomaly_scores = self.model.negative_outlier_factor_
+			
+			self.outliers = float( np.sum( y_pred == -1 ) )
+			self.inliers = float( np.sum( y_pred == 1 ) )
+			
+			df_scores = pd.DataFrame( )
+			df_scores[ 'Prediction' ] = y_pred
+			df_scores[ 'Anomaly' ] = self.anomaly_scores
+			df_scores[ 'Inlier' ] = (y_pred == 1).astype( int )
+			df_scores[ 'Outlier' ] = (y_pred == -1).astype( int )
+			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'OutlierFactor'
 			exception.method = 'score'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Evaluates outlier detection results, optionally against ground-truth labels.
+			Create a compact LOF anomaly summary and render a bar chart of inlier versus
+			outlier counts.
 
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			Dict: Classification report or descriptive summary.
+			pd.DataFrame | None: Summary DataFrame containing aggregate anomaly
+			detection metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X, y )
-			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_analysis = \
+			df_scores = self.score( X, y )		
+			df_summary = pd.DataFrame(
 			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _analysis )
-			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
-			_text = f''
-			_total = anomalies.sum( axis=0, numeric_only=True )
+				'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
+				'Value': [ float( self.inliers ), float( self.outliers ), 
+				           float( self.contamination ), 
+				           float( round( self.inliers / len( df_scores ), 4 ) ) ]
+			} )
+			
+			df_plot = pd.DataFrame(
+			{
+					'Label': [ 'Inliers', 'Outliers' ],
+					'Count': [ float( self.inliers ), float( self.outliers ) ]
+			} )
+			
 			plt.figure( figsize=(8, 6) )
-			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
-			sns.barplot( data=anomalies, legend='full' )
+			sns.barplot( data=df_plot, x='Label', y='Count' )
+			plt.title( 'LocalOutlierFactor Detection Summary' )
+			plt.xlabel( 'Classification' )
+			plt.ylabel( 'Count' )
+			plt.tight_layout( )
 			plt.show( )
+			
+			return df_summary
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'OutlierFactor'
 			exception.method = 'analyze'
 			raise exception
 			
@@ -704,49 +759,52 @@ class EllipticSquare( Outlier ):
 
 		Purpose:
 		--------
-		Encapsulates scikit-learn's EllipticEnvelope for multivariate Gaussian-based outlier detection.
+		Encapsulates  EllipticEnvelope for multivariate Gaussian-based outlier detection.
 		This method is based on Mahalanobis distances under an elliptical (normal) distribution.
 
 	"""
 	model: cv.EllipticEnvelope
 	prediction: Optional[ np.ndarray ]
 	anomaly_scores: Optional[ np.ndarray ]
+	contamination: Optional[ float ]
 	
-	def __init__( self, contamination: float=0.1 ) -> None:
+	def __init__( self, contamination: float = 0.1 ) -> None:
 		"""
-	
+
 			Purpose:
 			--------
-			Initializes the EllipticEnvelope with a contamination rate.
-	
+			Initialize the EllipticEnvelope wrapper with the specified contamination rate.
+
 			Parameters:
 			-----------
 			contamination (float): Estimated proportion of outliers in the dataset.
-			kwargs (dict): Additional keyword arguments passed to EllipticEnvelope.
-	
+
 			Returns:
 			--------
 			None
 
 		"""
+		super( ).__init__( )
+		self.contamination = contamination
 		self.model = cv.EllipticEnvelope( contamination=contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]  ) -> EllipticSquare | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> EllipticSquare | None:
 		"""
 
 			Purpose:
 			--------
-			Fit the Gaussian envelope model to multivariate data.
-	
+			Fit the EllipticEnvelope model to the supplied feature matrix.
+
 			Parameters:
 			-----------
-			X (np.ndarray): Input matrix of inlier training samples.
-		
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			self
+			EllipticSquare | None: The fitted wrapper instance.
 
 		"""
 		try:
@@ -754,6 +812,8 @@ class EllipticSquare( Outlier ):
 			self.model.fit( X )
 			self.prediction = self.model.predict( X )
 			self.anomaly_scores = self.model.decision_function( X )
+			self.outliers = float( np.sum( self.prediction == -1 ) )
+			self.inliers = float( np.sum( self.prediction == 1 ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -761,22 +821,23 @@ class EllipticSquare( Outlier ):
 			exception.cause = 'EllipticSquare'
 			exception.method = 'train'
 			raise exception
-			
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""
 
 			Purpose:
 			--------
-			Classifies new samples as inliers or outliers using Mahalanobis distance.
-	
+			Predict whether each supplied sample is an inlier or outlier.
+
 			Parameters:
 			-----------
-			X (np.ndarray): New observations to classify.
-	
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
+
 			Returns:
 			--------
-			np.ndarray: Array of predictions (1 = inlier, -1 = outlier).
+			np.ndarray | None: Prediction vector where 1 denotes inlier and -1 denotes
+			outlier.
 
 		"""
 		try:
@@ -789,86 +850,93 @@ class EllipticSquare( Outlier ):
 			exception.cause = 'EllipticSquare'
 			exception.method = 'project'
 			raise exception
-			
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Computes the proportion of training samples classified as inliers.
+			Compute per-sample EllipticEnvelope predictions and anomaly scores.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			float: Fraction of inliers.
+			pd.DataFrame | None: DataFrame containing prediction, anomaly score,
+			inlier flag, and outlier flag for each sample.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
 			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_scores = \
-			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _scores )
-			return _data
+			self.outliers = float( np.sum( y_pred == -1 ) )
+			self.inliers = float( np.sum( y_pred == 1 ) )
+			
+			df_scores = pd.DataFrame( )
+			df_scores[ 'Prediction' ] = y_pred
+			df_scores[ 'Anomaly' ] = self.anomaly_scores
+			df_scores[ 'Inlier' ] = (y_pred == 1).astype( int )
+			df_scores[ 'Outlier' ] = (y_pred == -1).astype( int )
+			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'EllipticSquare'
 			exception.method = 'score'
 			raise exception
-			
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			--------
-			Evaluates outlier detection results, optionally against ground-truth labels.
+			Create a compact EllipticEnvelope summary and render a bar chart of inlier
+			versus outlier counts.
 
 			Parameters:
 			-----------
-			true_labels (Optional[np.ndarray]): Actual binary labels (1 = inlier, -1 = outlier).
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[np.ndarray]): Ignored; present for API consistency.
 
 			Returns:
 			--------
-			Dict: Classification report or descriptive summary.
+			pd.DataFrame | None: Summary DataFrame containing aggregate anomaly
+			detection metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			throw_if( 'y', y )
-			y_pred = self.project( X, y )
-			self.anomaly_scores = self.model.decision_function( X )
-			self.outliers = int( np.sum( y_pred == -1 ) )
-			self.inliers = int( np.sum( y_pred == 1 ) )
-			_analysis = \
+			df_scores = self.score( X, y )			
+			df_summary = pd.DataFrame(
 			{
-				'Outliers': float( self.outliers ),
-				'Inliers': float( self.inliers ),
-				'Contamination': float( self.model.contamination ),
-				'Quality': float( round( self.inliers / len( y_pred ), 4 ) ),
-				'Anomaly': self.anomaly_scores,
-			}
-			_data = pd.DataFrame( _analysis )
-			anomalies = _data[ [ 'Inliers', 'Outliers'  ] ].copy( )
-			_text = f''
-			_total = anomalies.sum( axis=0, numeric_only=True )
+				'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
+				'Value': [ float( self.inliers ), float( self.outliers ),
+						float( self.contamination ),
+						float( round( self.inliers / len( df_scores ), 4 ) ) ]
+			} )
+			
+			df_plot = pd.DataFrame(
+			{
+				'Label': [ 'Inliers', 'Outliers' ],
+				'Count': [ float( self.inliers ), float( self.outliers ) ]
+			} )
+			
 			plt.figure( figsize=(8, 6) )
-			plt.text( x=1, y=1, s=_text, fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
-			sns.barplot( data=anomalies, legend='full' )
+			sns.barplot( data=df_plot, x='Label', y='Count' )
+			plt.title( 'EllipticEnvelope Detection Summary' )
+			plt.xlabel( 'Classification' )
+			plt.ylabel( 'Count' )
+			plt.tight_layout( )
 			plt.show( )
+			
+			return df_summary
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = ''
+			exception.cause = 'EllipticSquare'
 			exception.method = 'analyze'
 			raise exception

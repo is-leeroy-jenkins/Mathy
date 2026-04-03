@@ -53,9 +53,11 @@ from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 from boogr import Error
 from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder
 
+
 def throw_if( name: str, value: object ):
     if value is None:
         raise ValueError( f'Argument "{name}" cannot be empty!' )
+
 
 def entropy( y: np.ndarray ) -> float | None:
     """
@@ -178,6 +180,7 @@ def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, fl
 		exception.method = ('best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple')
 		raise exception
 
+
 def gini_impurity( p: float ) -> float | None:
 	'''
 
@@ -262,6 +265,7 @@ def decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 
 		exception.method = 'decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 )'
 		raise exception
 
+
 def euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
     """
     
@@ -300,6 +304,7 @@ def euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
         exception.cause = 'data'
         exception.method = 'euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
         raise exception
+
 
 def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray ] | None:
 	"""
