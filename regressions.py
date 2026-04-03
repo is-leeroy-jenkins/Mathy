@@ -609,7 +609,6 @@ class LeastSquares( Regression ):
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			raise exception
 			
-
 		
 class Ridge( Regression ):
 	"""
@@ -5972,15 +5971,10 @@ class GaussianProcess( Regression ):
 		self.normalize_y = normalize
 		self.copy_X_train = copy
 		self.random_state = rando
-		self.model = GaussianProcessRegressor(
-			kernel=self.kernel,
-			alpha=self.alpha,
-			optimizer=self.optimizer,
-			n_restarts_optimizer=self.n_restarts_optimizer,
-			normalize_y=self.normalize_y,
-			copy_X_train=self.copy_X_train,
-			random_state=self.random_state
-		)
+		self.model = GaussianProcessRegressor( kernel=self.kernel, alpha=self.alpha,
+			optimizer=self.optimizer, n_restarts_optimizer=self.n_restarts_optimizer,
+			normalize_y=self.normalize_y, copy_X_train=self.copy_X_train,
+			random_state=self.random_state )
 		self.prediction = None
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
@@ -6033,9 +6027,8 @@ class GaussianProcess( Regression ):
 				'testing_score'
 		]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray,  size: float=0.2,
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -6058,12 +6051,8 @@ class GaussianProcess( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -6154,11 +6143,8 @@ class GaussianProcess( Regression ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
+			_metrics = { 'Training Score': self.training_score, 'Testing Score': self.testing_score,
+					'R-Squared Score': self.r2_score, }
 			
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
@@ -6240,25 +6226,12 @@ class GaussianProcess( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text,
+				fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
