@@ -748,6 +748,7 @@ class LabelEncoder( Encoder ):
 			exception.method = 'inverse_transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
 
+
 class TargetEncoder( Encoder ):
 	"""
 
@@ -994,6 +995,7 @@ class TargetEncoder( Encoder ):
 			exception.cause = 'TargetEncoder'
 			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
 			raise exception
+
 
 class PolynomialFeatures( Encoder ):
 	"""

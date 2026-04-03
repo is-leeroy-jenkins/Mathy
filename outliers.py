@@ -54,9 +54,11 @@ import sklearn.covariance as cv
 from sklearn.metrics import classification_report
 from boogr import Error
 
+
 def throw_if( name: str, value: object ) -> None:
 	if value is None:
 		raise Exception( f'Argument "{name}" cannot be empty!' )
+
 
 class Outlier( ):
 	"""
@@ -155,6 +157,7 @@ class Outlier( ):
 
 		"""
 		raise NotImplementedError
+
 
 class IsolationForest( Outlier ):
 	"""
@@ -869,4 +872,3 @@ class EllipticSquare( Outlier ):
 			exception.cause = ''
 			exception.method = 'analyze'
 			raise exception
-			
