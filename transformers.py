@@ -53,90 +53,256 @@ def throw_if( name: str, value: object ):
 	if not value:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
+
 class Transformer( ):
 	"""
 
 		Purpose:
 		---------
-		Base interface for all preprocessors. Provides standard `fit`, `transform`, and
-		`fit_transform` methods.
+		Base interface for all preprocessors. Provides standard `train`, `transform`,
+		`train_transform`, and `inverse_transform` methods.
 
 	"""
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self ):
-		self.transformed_data = None
-	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> object | None:
+	def __init__( self ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Train/flex hook; return self in concrete subclasses.
+			Initialize the base transformer state.
 
 			Parameters:
 			-----------
-			X ( np.ndarray ): Feature matrix/samples of shape ( n_samples, n_features )
-			y ( Optional[ np.ndarray ] ): Optional target array  of shape ( n_samples, ).
+			None
 
 			Returns:
-			-----------
-			object | None
+			--------
+			None
 
 		"""
-		raise NotImplementedError
+		self.transformed_data = None
+	
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+		"""
+
+			Purpose:
+			---------
+			Train hook for concrete subclasses.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array of shape ( n_samples, ).
+
+			Returns:
+			--------
+			object | None: Concrete fitted transformer instance.
+
+		"""
+		raise NotImplementedError( )
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Transform X using a fitted preprocessor; return transformed X.
+			Transform input features using a fitted transformer.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
-			-----------
+			--------
 			np.ndarray: Transformed feature matrix.
 
 		"""
-		raise NotImplementedError
+		raise NotImplementedError( )
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit to X (and y if used) then transform X in one step.
+			Fit to X, optionally using y, and return the transformed feature matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array of shape ( n_samples, ).
 
 			Returns:
-			-----------
+			--------
 			np.ndarray: Transformed feature matrix.
 
 		"""
-		raise NotImplementedError
+		raise NotImplementedError( )
 	
-	def inverse_transform( self, text: list[ str ] ) -> np.ndarray:
+	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Invert the transformation when supported; raise NotImplementedError otherwise.
+			Inverse a transformation when supported by the concrete subclass.
 
-			:param text: List of text text.
-			:type text: list[str]
-			:return: TF-IDF vectorized output.
-			:rtype: np.ndarray
+			Parameters:
+			-----------
+			X ( np.ndarray ): Transformed feature matrix.
+
+			Returns:
+			--------
+			np.ndarray: Inverse-transformed data.
+
 		"""
-		return NotImplementedError
+		raise NotImplementedError( )
+
+
+class Binarizer( Transformer ):
+	"""
+
+		Purpose:
+		_______
+		Binarize data according to a threshold. Values greater than the threshold map to 1,
+		while values less than or equal to the threshold map to 0.
+
+	"""
+	model: pp.Binarizer
+	threshold: Optional[ float ]
+	copy: Optional[ bool ]
+	transformed_data: Optional[ np.ndarray ]
+	
+	def __init__( self, threshold: float = 0.0, copy: bool = True ) -> None:
+		"""
+
+			Purpose:
+			_______
+			Initialize the Binarizer wrapper.
+
+			Parameters:
+			-----------
+			threshold ( float ): Threshold used to binarize values.
+			copy ( bool ): Indicates whether to perform the transformation on a copy.
+
+			Returns:
+			--------
+			None
+
+		"""
+		super( ).__init__( )
+		self.threshold = threshold
+		self.copy = copy
+		self.model = pp.Binarizer( threshold=self.threshold, copy=self.copy )
+		self.transformed_data = None
+	
+	def __dir__( self ) -> List[ str ]:
+		"""
+
+			Purpose:
+			_______
+			Return a list of class members.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'threshold',
+		         'copy',
+		         'model',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform' ]
+	
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Binarizer | None:
+		"""
+
+			Purpose:
+			_______
+			Fit the binarizer on X. In sklearn, fit validates parameters and establishes the
+			feature-count metadata for the estimator API.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored.
+
+			Returns:
+			--------
+			Binarizer | None: Fitted wrapper instance.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Binarizer'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Binarizer'
+			raise exception
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			_______
+			Binarize X using the configured threshold.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray: Binarized feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.transform( X )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Binarizer'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			_______
+			Fit the binarizer on X and return the binarized output.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored.
+
+			Returns:
+			--------
+			np.ndarray: Binarized feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.transformed_data = self.model.fit_transform( X, y )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Binarizer'
+			exception.method = 'train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			raise exception
+
 
 class Binarizer( Transformer ):
 	"""
@@ -276,77 +442,120 @@ class Binarizer( Transformer ):
 			exception.cause = 'Binarizer'
 			exception.method = 'train_transform( self, y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
-			
+
+
 class LabelBinarizer( Transformer ):
 	"""
 
 		Purpose:
 		_______
-		At learning time, this simply consists in learning one regressor or binary classifier
-		per class. In doing so, one needs to convert multi-class target_names to binary target_names
-		(belong or does not belong to the class). LabelBinarizer does this process with
-		the transform method.
-
-		At prediction time, one assigns the class for which the corresponding model gave
-		the greatest confidence. LabelBinarizer does this process with
-		the inverse_transform method.
-
+		Binarize labels in a one-vs-all fashion. This wrapper fits on target labels and
+		transforms them to a binary matrix representation. It also supports converting the
+		binary representation back to the original labels.
 
 	"""
 	model: pp.LabelBinarizer
 	pos_label: Optional[ int ]
 	neg_label: Optional[ int ]
-	sparse: Optional[ bool ]
+	sparse_output: Optional[ bool ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, pos_label: int=1, neg_label: int=0, sparse: bool=False ) -> None:
+	def __init__( self, pos_label: int = 1, neg_label: int = 0,
+			sparse_output: bool = False ) -> None:
 		"""
 
-		Purpose:
-		_______
-		Initializes the LabelBinarizerWrapper.
+			Purpose:
+			_______
+			Initialize the LabelBinarizer wrapper.
+
+			Parameters:
+			-----------
+			pos_label ( int ): Value with which positive labels must be encoded.
+			neg_label ( int ): Value with which negative labels must be encoded.
+			sparse_output ( bool ): Indicates whether the transform should return a sparse
+				matrix.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
 		self.pos_label = pos_label
 		self.neg_label = neg_label
-		self.sparse = sparse
-		self.model = pp.LabelBinarizer( pos_label=self.neg_label,
-			neg_label=self.pos_label, sparse=self.sparse )
+		self.sparse_output = sparse_output
+		self.model = pp.LabelBinarizer( neg_label=self.neg_label,
+			pos_label=self.pos_label, sparse_output=self.sparse_output )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
-			
-			Returns
-			-------
-			A list of strings comprised of class members.
-			
-		'''
-		[ 'pos_label',
-		  'neg_label',
-		  'sparse',
-		  'model',
-		  'transformer',
-		  'transformed_data',
-		  'classes',
-		  'types',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
-		
+	def __dir__( self ) -> List[ str ]:
+		"""
+
+			Purpose:
+			_______
+			Return a list of class members.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'pos_label',
+		         'neg_label',
+		         'sparse_output',
+		         'model',
+		         'transformed_data',
+		         'classes',
+		         'types',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
+	
 	@property
 	def classes( self ) -> List[ str ]:
-		if self.model.classes_ is None:
+		"""
+
+			Purpose:
+			_______
+			Return the learned class labels.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Learned class labels.
+
+		"""
+		if getattr( self.model, 'classes_', None ) is None:
 			raise AttributeError( 'LabelBinarizer has not been initialized.' )
 		else:
 			return self.model.classes_
 	
 	@property
-	def types( self ) -> str :
-		if self.model.y_type_ is None:
+	def types( self ) -> str:
+		"""
+
+			Purpose:
+			_______
+			Return the inferred target type for the fitted labels.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			str: Inferred target type.
+
+		"""
+		if getattr( self.model, 'y_type_', None ) is None:
 			raise AttributeError( 'LabelBinarizer has not been initialized.' )
 		else:
 			return self.model.y_type_
@@ -356,15 +565,15 @@ class LabelBinarizer( Transformer ):
 
 			Purpose:
 			_______
-			Fit the label binarizer on target values y.
+			Fit the label binarizer on target labels.
 
 			Parameters:
 			-----------
-			y ( np.ndarray ): target array  of shape ( n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_samples, ).
 
 			Returns:
-			-----------
-			LabelBinarizer | None
+			--------
+			LabelBinarizer | None: Fitted wrapper instance.
 
 		"""
 		try:
@@ -375,25 +584,24 @@ class LabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
-			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
+			exception.method = 'train( self, y: np.ndarray ) -> LabelBinarizer'
 			raise exception
-			
 	
 	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
-			Transform target y to binary matrix.
+			Transform target labels to a binary matrix.
 
-			Args:
+			Parameters:
 			-----------
-			y ( np.ndarray ): Target vector of shape ( n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_samples, ).
 
 			Returns:
-				np.ndarray: Binary-encoded label matrix.
-				:param y:
-				:type y:
+			--------
+			np.ndarray: Binary-encoded label matrix.
+
 		"""
 		try:
 			throw_if( 'y', y )
@@ -403,20 +611,19 @@ class LabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
-			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
-			Fit on y then transform y to binary matrix.
+			Fit on y and transform y to a binary matrix.
 
 			Parameters:
 			-----------
-			y ( np.ndarray ): Target vector of shape ( n_features ).
+			y ( np.ndarray ): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
@@ -431,23 +638,23 @@ class LabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
-			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def inverse_transform( self, Y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
-			Converts binary matrix back to original target_names.
+			Convert a binary matrix back to the original labels.
 
 			Parameters:
-			----------
-			Y (np.ndarray): Binary-encoded label matrix.
+			-----------
+			Y ( np.ndarray ): Binary-encoded label matrix.
 
 			Returns:
-			np.ndarray: Original target_names.
+			--------
+			np.ndarray: Original labels.
 
 		"""
 		try:
@@ -457,65 +664,92 @@ class LabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LabelBinarizer'
-			exception.method = 'inverse_transform( self, y: np.ndarray, thresh: float=None ) -> np.ndarray'
+			exception.method = 'inverse_transform( self, Y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
+
 
 class MultiLabelBinarizer( Transformer ):
 	"""
 
 		Purpose:
 		_______
-		Transform between iterable of iterables and a multilabel format. Although a list of sets
-		or tuples is a very intuitive format for multilabel data, it is unwieldy to process.
-		This transformer converts between this intuitive format and the supported multilabel
-		format: a (samples x classes) binary matrix indicating the presence of a class label.
-
+		Transform between an iterable of iterables and the multilabel binary matrix format.
+		Each row in the transformed output indicates the presence or absence of each class
+		label for a given sample.
 
 	"""
 	model: pp.MultiLabelBinarizer
-	classes: Optional[ np.ndarray ]
 	sparse_output: Optional[ bool ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, classes: np.ndarray, sparse: bool=False ) -> None:
+	def __init__( self, classes: Optional[ np.ndarray ] = None,
+			sparse_output: bool = False ) -> None:
 		"""
 
 			Purpose:
 			_______
-			Initializes the LabelBinarizerWrapper.
+			Initialize the MultiLabelBinarizer wrapper.
+
+			Parameters:
+			-----------
+			classes ( Optional[ np.ndarray ] ): Optional fixed ordering of class labels.
+			sparse_output ( bool ): Indicates whether the transformed output should be
+				returned as a sparse matrix.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
-		self.classes = classes
-		self.sparse_output = sparse
-		self.model = pp.MultiLabelBinarizer( classes=self.classes, sparse_output=self.sparse_output )
+		self.sparse_output = sparse_output
+		self.model = pp.MultiLabelBinarizer( classes=classes,
+			sparse_output=self.sparse_output )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> List[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings comprised of class members.
+			Purpose:
+			_______
+			Return a list of class members.
 
-		'''
-		[ 'classes',
-		  'sparse_output',
-		  'sparse',
-		  'model',
-		  'transformer',
-		  'transformed_data',
-		  'classes',
-		  'types',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'sparse_output',
+		         'model',
+		         'transformed_data',
+		         'classes',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
 	
 	@property
 	def classes( self ) -> List[ str ]:
-		if self.model.classes_ is None:
+		"""
+
+			Purpose:
+			_______
+			Return the learned class labels.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Learned class labels.
+
+		"""
+		if getattr( self.model, 'classes_', None ) is None:
 			raise AttributeError( 'MultiLabelBinarizer has not been initialized.' )
 		else:
 			return self.model.classes_
@@ -525,15 +759,15 @@ class MultiLabelBinarizer( Transformer ):
 
 			Purpose:
 			_______
-			Fit the multi-label binarizer on target values y.
+			Fit the multi-label binarizer on multilabel targets.
 
 			Parameters:
 			-----------
-			y ( np.ndarray ): target array  of shape ( n_features ).
+			y ( np.ndarray ): Iterable of iterables containing labels for each sample.
 
 			Returns:
-			-----------
-			MultiLabelBinarizer | None
+			--------
+			MultiLabelBinarizer | None: Fitted wrapper instance.
 
 		"""
 		try:
@@ -544,25 +778,24 @@ class MultiLabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
-			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
+			exception.method = 'train( self, y: np.ndarray ) -> MultiLabelBinarizer'
 			raise exception
-			
 	
 	def transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
-			Transform target y to binary matrix.
+			Transform multilabel targets to a binary indicator matrix.
 
-			Args:
+			Parameters:
 			-----------
-			y ( np.ndarray ): Target vector of shape ( n_features ).
+			y ( np.ndarray ): Iterable of iterables containing labels for each sample.
 
 			Returns:
-				np.ndarray: Binary-encoded label matrix.
-				:param y:
-				:type y:
+			--------
+			np.ndarray: Binary-encoded multilabel matrix.
+
 		"""
 		try:
 			throw_if( 'y', y )
@@ -572,24 +805,23 @@ class MultiLabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
-			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'transform( self, y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def train_transform( self, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
-			Fit on y then transform y to binary matrix.
+			Fit on multilabel targets and return the binary indicator matrix.
 
 			Parameters:
 			-----------
-			y ( np.ndarray ): Target vector of shape ( n_features ).
+			y ( np.ndarray ): Iterable of iterables containing labels for each sample.
 
 			Returns:
 			--------
-			np.ndarray: Binary-encoded label matrix.
+			np.ndarray: Binary-encoded multilabel matrix.
 
 		"""
 		try:
@@ -600,23 +832,23 @@ class MultiLabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
-			exception.method = 'fit( self, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
 	def inverse_transform( self, Y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			_______
-			Converts binary matrix back to original target_names.
+			Convert a binary multilabel matrix back to the original label collections.
 
 			Parameters:
-			----------
-			Y (np.ndarray): Binary-encoded label matrix.
+			-----------
+			Y ( np.ndarray ): Binary-encoded multilabel matrix.
 
 			Returns:
-			np.ndarray: Original target_names.
+			--------
+			np.ndarray: Original multilabel collections.
 
 		"""
 		try:
@@ -626,9 +858,9 @@ class MultiLabelBinarizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLabelBinarizer'
-			exception.method = 'inverse_transform( self, y: np.ndarray, thresh: float=None ) -> np.ndarray'
+			exception.method = 'inverse_transform( self, Y: np.ndarray ) -> np.ndarray'
 			raise exception
-			
+
 
 class TfidfTransformer( Transformer ):
 	"""
@@ -637,21 +869,8 @@ class TfidfTransformer( Transformer ):
 		---------
 		Transform a count matrix to a normalized tf or tf-idf representation. Tf means
 		term-frequency while tf-idf means term-frequency times inverse document-frequency.
-		This is a common term-weighting scheme in information retrieval, that has also found good
-		use in document classification. The goal of using tf-idf instead of the raw frequencies of
-		occurrence of a token in a given document is to scale down the impact of tokens that occur
-		very frequently in a given corpus and that are hence empirically less informative than
-		feature_names that occur in a small fraction of the training corpus.
-
-		The formula that is used to compute the tf-idf for a term t of a document d in a
-		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
-		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
-		number of text in the document set and df(t) is the document frequency of t;
-		the document frequency is the number of text in the document set that contain
-		the term t. The effect of adding “1” to the idf in the equation above is that
-		terms with zero idf, i.e., terms that occur in all text in a training set,
-		will not be entirely ignored. (Note that the idf formula above differs from the
-		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
+		This is a common term-weighting scheme in information retrieval and document
+		classification.
 
 	"""
 	model: sk.TfidfTransformer
@@ -661,13 +880,28 @@ class TfidfTransformer( Transformer ):
 	sublinear_tf: Optional[ bool ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, norm: str='l2', use_idf: bool=True,
-			smooth_idf: bool=True, sublinear_tf: bool=False ) -> None:
+	def __init__( self, norm: str = 'l2', use_idf: bool = True,
+			smooth_idf: bool = True, sublinear_tf: bool = False ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize TfidfTransformer.
+			Initialize the TfidfTransformer wrapper.
+
+			Parameters:
+			-----------
+			norm ( str ): Norm used to normalize term vectors.
+			use_idf ( bool ): Indicates whether inverse-document-frequency reweighting
+				should be enabled.
+			smooth_idf ( bool ): Indicates whether document frequencies should be
+				smoothed by adding one to document frequencies.
+			sublinear_tf ( bool ): Indicates whether sublinear term-frequency scaling
+				should be applied.
+
+			Returns:
+			--------
+			None
+
 		"""
 		super( ).__init__( )
 		self.norm = norm
@@ -678,41 +912,79 @@ class TfidfTransformer( Transformer ):
 			smooth_idf=self.smooth_idf, sublinear_tf=self.sublinear_tf )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> List[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings comprised of class members.
+			Purpose:
+			---------
+			Return a list of class members.
 
-		'''
-		[ 'norm',
-		  'use_idf',
-		  'smooth_idf',
-		  'sublinear_tf',
-		  'model',
-		  'transformed_data',
-		  'idf_vector',
-		  'features'
-		  'train',
-		  'transform',
-		  'train_transform' ]
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'norm',
+		         'use_idf',
+		         'smooth_idf',
+		         'sublinear_tf',
+		         'model',
+		         'transformed_data',
+		         'idf_vector',
+		         'features',
+		         'train',
+		         'transform',
+		         'train_transform' ]
 	
 	@property
 	def idf_vector( self ) -> np.ndarray:
-		if self.model.idf_ is None:
-			raise AttributeError( 'TfidfTransformer must be initialized' )
+		"""
+
+			Purpose:
+			---------
+			Return the inverse document frequency vector learned during fitting.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray: Inverse document frequency vector.
+
+		"""
+		if getattr( self.model, 'idf_', None ) is None:
+			raise AttributeError( 'TfidfTransformer must be initialized.' )
 		else:
 			return self.model.idf_
 	
 	@property
-	def features( self ) -> np.ndarray:
-		if self.model.n_features_in_ is None:
-			raise AttributeError( 'TfidfTransformer must be initialized' )
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features observed during fitting.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			int: Number of observed input features.
+
+		"""
+		if getattr( self.model, 'n_features_in_', None ) is None:
+			raise AttributeError( 'TfidfTransformer must be initialized.' )
 		else:
 			return self.model.n_features_in_
 	
-	def train( self, X: np.ndarray ) -> TfidfTransformer | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> TfidfTransformer | None:
 		"""
 
 			Purpose:
@@ -721,44 +993,44 @@ class TfidfTransformer( Transformer ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			X ( np.ndarray ): Count matrix of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
 
 			Returns:
-			---------
-			TfidfTransformer | None
+			--------
+			TfidfTransformer | None: Fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'train( self, X: np.ndarray ) -> TfidfTransformer'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> TfidfTransformer'
 			raise exception
-			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Transform a count matrix to TF-IDF.
+			Transform a count matrix to a TF-IDF representation.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			X ( np.ndarray ): Count matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			--------
-			np.ndarray: Dense matrix of tokens of shape ( n_samples, n_features )
+			np.ndarray: Dense TF-IDF-weighted document-term matrix.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.transform( X, copy=True )
+			self.transformed_data = self.model.transform( X, copy=True ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -766,29 +1038,33 @@ class TfidfTransformer( Transformer ):
 			exception.cause = 'TfidfTransformer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit and transform the count matrix.
+			Fit the transformer and return the TF-IDF-transformed matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			X ( np.ndarray ): Count matrix of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
+
+			Returns:
+			--------
+			np.ndarray: Dense TF-IDF-weighted document-term matrix.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.fit_transform( X ).toarray( )
+			self.transformed_data = self.model.fit_transform( X, y ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfTransformer'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 			
 
@@ -814,14 +1090,32 @@ class ColumnTransformer( Transformer ):
 	verbose: Optional[ bool ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, transformers, remainder='drop', sparse_threshold=0.3, n_jobs=None,
-			transformer_weights=None, verbose=False ) -> None:
+	def __init__( self, transformers: List[ Tuple[ str, object, List[ str ] ] ],
+			remainder: str = 'drop', sparse_threshold: float = 0.3,
+			n_jobs: Optional[ int ] = None,
+			transformer_weights: Optional[ Dict[ str, float ] ] = None,
+			verbose: bool = False ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize ColumnTransformer.
-			
+			Initialize the ColumnTransformer wrapper.
+
+			Parameters:
+			-----------
+			transformers ( List[ Tuple[ str, object, List[ str ] ] ] ): List of
+				(name, transformer, columns) tuples.
+			remainder ( str ): Handling for non-specified columns.
+			sparse_threshold ( float ): Threshold for sparse stacking behavior.
+			n_jobs ( Optional[ int ] ): Number of jobs to run in parallel.
+			transformer_weights ( Optional[ Dict[ str, float ] ] ): Optional weights
+				applied to transformer outputs.
+			verbose ( bool ): Indicates whether execution timing should be printed.
+
+			Returns:
+			--------
+			None
+
 		"""
 		super( ).__init__( )
 		self.transformers = transformers
@@ -830,81 +1124,93 @@ class ColumnTransformer( Transformer ):
 		self.n_jobs = n_jobs
 		self.transformer_weights = transformer_weights
 		self.verbose = verbose
-		self.model = sc.ColumnTransformer( transformers=self.transformers, remainder=self.remainder,
-			sparse_threshold=self.sparse_threshold, n_jobs=self.n_jobs, verbose=self.verbose )
+		self.model = sc.ColumnTransformer(
+			transformers=self.transformers,
+			remainder=self.remainder,
+			sparse_threshold=self.sparse_threshold,
+			n_jobs=self.n_jobs,
+			transformer_weights=self.transformer_weights,
+			verbose=self.verbose )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings comprised of class members.
-
-		'''
-		[ 'model',
-		  'transformers',
-		  'remainder',
-		  'transformer_weights',
-		  'sparse_threshold',
-		  'n_jobs',
-		  'verbose',
-		  'transformed_data',
-		  'train',
-		  'transform',
-		  'train_transform' ]
-	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> ColumnTransformer | None:
+	def __dir__( self ) -> List[ str ]:
 		"""
 
 			Purpose:
 			---------
-			Fit all transformers using X.
+			Return a list of class members.
 
 			Parameters:
 			-----------
-			X (np.ndarray): array-like or DataFrame of shape [n_samples, n_features]
-			Input data, of which specified subsets are used to fit the transformers.
+			None
 
 			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'model',
+		         'transformers',
+		         'remainder',
+		         'transformer_weights',
+		         'sparse_threshold',
+		         'n_jobs',
+		         'verbose',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform' ]
+	
+	def train( self, X: np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> ColumnTransformer | None:
+		"""
+
+			Purpose:
 			---------
-			ColumnTransformer | None
+			Fit all configured transformers using X and optional y.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Input data of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array passed through to
+				underlying transformers that accept it.
+
+			Returns:
+			--------
+			ColumnTransformer | None: Fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.model.fit( X )
+			self.model.fit( X, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ColumnTransformer'
-			exception.method = 'train( self, X: np.ndarray, y: Optional[np.ndarray]) -> ColumnTransformer'
+			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> ColumnTransformer'
 			raise exception
-			
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit all transformers using X.
+			Transform X using the fitted column transformers and return a dense matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
+			X ( np.ndarray ): Input data of shape ( n_samples, n_features ).
 
 			Returns:
 			--------
-			X_t : array-like or sparse matrix, shape (n_samples, sum_n_components )
-			hstack of results of transformers. sum_n_components is the sum of n_components
-			(output dimension) over transformers. If any result is a sparse matrix,
-			everything will be converted to sparse matrices.
+			np.ndarray: Dense transformed feature matrix.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.transform( X )
+			result = self.model.transform( X )
+			self.transformed_data = result.toarray( ) if hasattr( result, 'toarray' ) else result
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
@@ -912,37 +1218,37 @@ class ColumnTransformer( Transformer ):
 			exception.cause = 'ColumnTransformer'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]   ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit all transformers, transform the data and concatenate results.
+			Fit all transformers, transform X, and concatenate the results into a dense
+			matrix.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): INGORED
-			
+			X ( np.ndarray ): Input data of shape ( n_samples, n_features ).
+			y ( Optional[ np.ndarray ] ): Optional target array passed through to
+				underlying transformers that accept it.
+
 			Returns:
 			--------
-			X_t : array-like or sparse matrix, shape (n_samples, sum_n_components )
-			hstack of results of transformers. sum_n_components is the sum of n_components
-			(output dimension) over transformers. If any result is a sparse matrix,
-			everything will be converted to sparse matrices.
+			np.ndarray: Dense transformed feature matrix.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.transformed_data = self.model.fit_transform( X ).toarray( )
+			result = self.model.fit_transform( X, y )
+			self.transformed_data = result.toarray( ) if hasattr( result, 'toarray' ) else result
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ColumnTransformer'
-			exception.method = 'train_transform( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 			
 
@@ -974,29 +1280,79 @@ class TfidfVectorizer( Transformer ):
 	input: Optional[ str ]
 	encoding: Optional[ str ]
 	decode_error: Optional[ str ]
-	strip_accents: Optional[ bool ]
+	strip_accents: Optional[ Any ]
 	lowercase: Optional[ bool ]
-	preprocessor: Optional[ object ]
-	tokenizer: Optional[ object ]
-	max_features: Optional[ int ]
-	vocabulary: Optional[ set ]
-	stopwords: Optional[ Any ]
+	preprocessor: Optional[ Any ]
+	tokenizer: Optional[ Any ]
+	analyzer: Optional[ str | Any ]
+	stop_words: Optional[ Any ]
+	token_pattern: Optional[ str ]
+	ngram_range: Optional[ Tuple[ int, int ] ]
+	max_df: Optional[ float | int ]
+	min_df: Optional[ float | int ]
+	max_features: Optional[ int | None ]
+	vocabulary: Optional[ Dict[ str, int ] | List[ str ] | None ]
 	binary: Optional[ bool ]
-	norm: Optional[ str ]
+	dtype: Optional[ Any ]
+	norm: Optional[ str | None ]
 	use_idf: Optional[ bool ]
 	smooth_idf: Optional[ bool ]
 	sublinear_tf: Optional[ bool ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, input: str='content', encoding: str='utf-8', decode_error: str='strict',
-			strip_accents: Any=None, max_features: Any=None, lowercase: bool = True, stopwords: Any=None,
-			preprocessor: Any=None, tokenizer: Any=None, norm: str='l2', use_idf: bool=True,
-			smooth_idf: bool=True, sublinear_tf: bool=False ) -> None:
+	def __init__( self, input: str = 'content', encoding: str = 'utf-8',
+			decode_error: str = 'strict', strip_accents: Any = None,
+			lowercase: bool = True, preprocessor: Any = None, tokenizer: Any = None,
+			analyzer: str | Any = 'word', stop_words: Any = None,
+			token_pattern: str = r'(?u)\b\w\w+\b',
+			ngram_range: Tuple[ int, int ] = (1, 1),
+			max_df: float | int = 1.0, min_df: float | int = 1,
+			max_features: int | None = None,
+			vocabulary: Dict[ str, int ] | List[ str ] | None = None,
+			binary: bool = False, dtype: Any = np.float64, norm: str | None = 'l2',
+			use_idf: bool = True, smooth_idf: bool = True,
+			sublinear_tf: bool = False ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize TfidfVectorizer.
+			Initialize the TfidfVectorizer wrapper.
+
+			Parameters:
+			-----------
+			input ( str ): Input mode for documents.
+			encoding ( str ): Encoding used to decode byte sequences.
+			decode_error ( str ): Instruction on what to do if a byte sequence cannot be
+				decoded.
+			strip_accents ( Any ): Accent-stripping strategy.
+			lowercase ( bool ): Indicates whether text should be lowercased before
+				tokenization.
+			preprocessor ( Any ): Optional preprocessing callable.
+			tokenizer ( Any ): Optional tokenizer callable.
+			analyzer ( str | Any ): Feature extraction mode or callable.
+			stop_words ( Any ): Stop words passed to the vectorizer.
+			token_pattern ( str ): Regular expression denoting what constitutes a token.
+			ngram_range ( Tuple[ int, int ] ): Lower and upper boundary of the n-grams.
+			max_df ( float | int ): Ignore terms with document frequency strictly higher
+				than this threshold.
+			min_df ( float | int ): Ignore terms with document frequency strictly lower
+				than this threshold.
+			max_features ( int | None ): Maximum size of the vocabulary.
+			vocabulary ( Dict[ str, int ] | List[ str ] | None ): Optional fixed
+				vocabulary.
+			binary ( bool ): Indicates whether all nonzero term counts should be set to 1.
+			dtype ( Any ): Type of the matrix returned by fit_transform or transform.
+			norm ( str | None ): Norm used to normalize term vectors.
+			use_idf ( bool ): Indicates whether inverse-document-frequency reweighting
+				should be enabled.
+			smooth_idf ( bool ): Indicates whether document frequencies should be
+				smoothed.
+			sublinear_tf ( bool ): Indicates whether sublinear term-frequency scaling
+				should be applied.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
@@ -1004,107 +1360,158 @@ class TfidfVectorizer( Transformer ):
 		self.encoding = encoding
 		self.decode_error = decode_error
 		self.strip_accents = strip_accents
-		self.max_features = max_features
 		self.lowercase = lowercase
-		self.stopwords = stopwords
 		self.preprocessor = preprocessor
 		self.tokenizer = tokenizer
+		self.analyzer = analyzer
+		self.stop_words = stop_words
+		self.token_pattern = token_pattern
+		self.ngram_range = ngram_range
+		self.max_df = max_df
+		self.min_df = min_df
+		self.max_features = max_features
+		self.vocabulary = vocabulary
+		self.binary = binary
+		self.dtype = dtype
 		self.norm = norm
 		self.use_idf = use_idf
 		self.smooth_idf = smooth_idf
 		self.sublinear_tf = sublinear_tf
-		self.model = sk.TfidfVectorizer( input=self.input, encoding=self.encoding,
-			decode_error=self.decode_error, strip_accents=self.strip_accents,
-			max_features=self.max_features, lowercase=self.lowercase, preprocessor=self.preprocessor,
-			tokenizer=self.tokenizer, norm=self.norm, use_idf=self.use_idf,
-			smooth_idf=self.smooth_idf, sublinear_tf=self.sublinear_tf )
+		self.model = sk.TfidfVectorizer(
+			input=self.input,
+			encoding=self.encoding,
+			decode_error=self.decode_error,
+			strip_accents=self.strip_accents,
+			lowercase=self.lowercase,
+			preprocessor=self.preprocessor,
+			tokenizer=self.tokenizer,
+			analyzer=self.analyzer,
+			stop_words=self.stop_words,
+			token_pattern=self.token_pattern,
+			ngram_range=self.ngram_range,
+			max_df=self.max_df,
+			min_df=self.min_df,
+			max_features=self.max_features,
+			vocabulary=self.vocabulary,
+			binary=self.binary,
+			dtype=self.dtype,
+			norm=self.norm,
+			use_idf=self.use_idf,
+			smooth_idf=self.smooth_idf,
+			sublinear_tf=self.sublinear_tf )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings comprised of class members.
-
-		'''
-		[ 'model',
-		  'input',
-		  'encoding',
-		  'decode_error',
-		  'strip_accents',
-		  'max_features',
-		  'lowercase',
-		  'preprocessor',
-		  'tokenizer',
-		  'norm',
-		  'use_idf',
-		  'smooth_idf',
-		  'sublinear_tf',
-		  'transformed_data',
-		  'classes',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
-	
-	@property
-	def idf_vector( self ) -> np.ndarray:
-		'''
-
-			Returns
-			-------
-			Inverse document frequency vector, only defined if use_idf=True.
-
-		'''
-		if self.model.idf_ is None:
-			raise AttributeError( 'TfidfTransformer must be initialized' )
-		else:
-			return self.model.idf_
-	
-	def train( self, text: str, y: Optional[ np.ndarry ] ) -> TfidfVectorizer | None:
+	def __dir__( self ) -> List[ str ]:
 		"""
 
 			Purpose:
 			---------
-			Learn vocabulary and idf from training set
+			Return a list of class members.
 
 			Parameters:
 			-----------
-			text (str): An iterable which generates either str, unicode or file objects.
-			y: np.ndarray - IGNORED
+			None
 
 			Returns:
 			--------
-			self - Fitted vectorizer.
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'model',
+		         'input',
+		         'encoding',
+		         'decode_error',
+		         'strip_accents',
+		         'lowercase',
+		         'preprocessor',
+		         'tokenizer',
+		         'analyzer',
+		         'stop_words',
+		         'token_pattern',
+		         'ngram_range',
+		         'max_df',
+		         'min_df',
+		         'max_features',
+		         'vocabulary',
+		         'binary',
+		         'dtype',
+		         'norm',
+		         'use_idf',
+		         'smooth_idf',
+		         'sublinear_tf',
+		         'transformed_data',
+		         'idf_vector',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
+	
+	@property
+	def idf_vector( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the inverse document frequency vector learned during fitting.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray: Inverse document frequency vector.
+
+		"""
+		if getattr( self.model, 'idf_', None ) is None:
+			raise AttributeError( 'TfidfVectorizer must be initialized.' )
+		else:
+			return self.model.idf_
+	
+	def train( self, text: List[ str ] | np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> TfidfVectorizer | None:
+		"""
+
+			Purpose:
+			---------
+			Learn the vocabulary and inverse document frequency values from the training
+			documents.
+
+			Parameters:
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
+
+			Returns:
+			--------
+			TfidfVectorizer | None: Fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'text', text )
-			self.model.fit( text )
+			self.model.fit( text, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'train( self, text: str, y: Optional[ np.ndarray ] ) -> TfidfVectorizer'
+			exception.method = 'train( self, text: List[ str ] | np.ndarray, y: Optional[ np.ndarray ] = None ) -> TfidfVectorizer'
 			raise exception
-			
 	
-	def transform( self, text: str ) -> np.ndarray:
+	def transform( self, text: List[ str ] | np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			-------
-			Transform text into count vectors.
+			---------
+			Transform raw documents to a dense TF-IDF document-term matrix.
 
 			Parameters:
 			-----------
-			text (List[ str ]): Feature matrix
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
 
 			Returns:
-			-----------
-			np.ndarray | None
+			--------
+			np.ndarray: Dense TF-IDF-weighted document-term matrix.
 
 		"""
 		try:
@@ -1114,57 +1521,55 @@ class TfidfVectorizer( Transformer ):
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'TfdifVectorizer'
-			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
+			exception.cause = 'TfidfVectorizer'
+			exception.method = 'transform( self, text: List[ str ] | np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
-	def train_transform( self, text: str, y: Optional[ np.ndarry ] ) -> np.ndarray:
+	def train_transform( self, text: List[ str ] | np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit and transform the text.
+			Fit the vectorizer and transform the raw documents to a dense TF-IDF
+			document-term matrix.
 
 			Parameters:
-			----------
-			text (str): An iterable which generates either str, unicode or file objects.
-			y: np.ndarray - IGNORED
-
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
 
 			Returns:
 			--------
-			X:  sparse matrix of (n_samples, n_features)
-			Tf-idf-weighted document-term matrix.
+			np.ndarray: Dense TF-IDF-weighted document-term matrix.
 
 		"""
 		try:
 			throw_if( 'text', text )
-			self.transformed_data = self.model.fit_transform( text ).toarray( )
+			self.transformed_data = self.model.fit_transform( text, y ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'train_transform( self, tokens: list[ str ] ) -> np.ndarray'
+			exception.method = 'train_transform( self, text: List[ str ] | np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
-			
 	
 	def inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ] | None:
 		"""
 
 			Purpose:
 			---------
-			Transform text to TF-IDF vectors.
+			Return terms per document corresponding to the nonzero entries in the
+			document-term matrix.
 
 			Parameters:
-			----------
-			X {array-like, sparse matrix} of shape (n_samples, n_features)
-			Document-term matrix.
+			-----------
+			X ( np.ndarray ): Document-term matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			--------
-			X_original list of arrays of shape (n_samples,)
+			List[ np.ndarray ] | None: List of arrays of terms for each document.
 
 		"""
 		try:
@@ -1174,7 +1579,7 @@ class TfidfVectorizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TfidfVectorizer'
-			exception.method = 'inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ]'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ] | None'
 			raise exception
 			
 
@@ -1196,26 +1601,64 @@ class CountVectorizer( Transformer ):
 	decode_error: Optional[ str ]
 	strip_accents: Optional[ Any ]
 	lowercase: Optional[ bool ]
-	preprocessor: Optional[ object ]
-	tokenizer: Optional[ object ]
-	max_features: Optional[ int ]
-	vocabulary: Optional[ set ]
-	stopwords: Optional[ set ]
+	preprocessor: Optional[ Any ]
+	tokenizer: Optional[ Any ]
+	analyzer: Optional[ str | Any ]
+	stop_words: Optional[ Any ]
+	token_pattern: Optional[ str ]
+	ngram_range: Optional[ Tuple[ int, int ] ]
+	max_df: Optional[ float | int ]
+	min_df: Optional[ float | int ]
+	max_features: Optional[ int | None ]
+	vocabulary: Optional[ Dict[ str, int ] | List[ str ] | None ]
 	binary: Optional[ bool ]
-	norm: Optional[ str ]
-	max_df: Optional[ float ]
-	min_df: Optional[ float ]
+	dtype: Optional[ Any ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, input: str = 'content', encoding: str = 'utf-8', decode_error: str = 'strict',
-			strip_accents: Any=None, max_features: Any=None, lowercase: bool=True, stopwords: Any=None,
-			preprocessor: Any=None, tokenizer: Any=None, norm: str = 'l2', max_df: float = 1.0,
-			min_df: float = 1 ) -> None:
+	def __init__( self, input: str = 'content', encoding: str = 'utf-8',
+			decode_error: str = 'strict', strip_accents: Any = None,
+			lowercase: bool = True, preprocessor: Any = None, tokenizer: Any = None,
+			analyzer: str | Any = 'word', stop_words: Any = None,
+			token_pattern: str = r'(?u)\b\w\w+\b',
+			ngram_range: Tuple[ int, int ] = (1, 1),
+			max_df: float | int = 1.0, min_df: float | int = 1,
+			max_features: int | None = None,
+			vocabulary: Dict[ str, int ] | List[ str ] | None = None,
+			binary: bool = False, dtype: Any = np.int64 ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the CountVectorizerWrapper with default parameters.
+			Initialize the CountVectorizer wrapper.
+
+			Parameters:
+			-----------
+			input ( str ): Input mode for documents.
+			encoding ( str ): Encoding used to decode byte sequences.
+			decode_error ( str ): Instruction on what to do if a byte sequence cannot be
+				decoded.
+			strip_accents ( Any ): Accent-stripping strategy.
+			lowercase ( bool ): Indicates whether text should be lowercased before
+				tokenization.
+			preprocessor ( Any ): Optional preprocessing callable.
+			tokenizer ( Any ): Optional tokenizer callable.
+			analyzer ( str | Any ): Feature extraction mode or callable.
+			stop_words ( Any ): Stop words passed to the vectorizer.
+			token_pattern ( str ): Regular expression denoting what constitutes a token.
+			ngram_range ( Tuple[ int, int ] ): Lower and upper boundary of the n-grams.
+			max_df ( float | int ): Ignore terms with document frequency strictly higher
+				than this threshold.
+			min_df ( float | int ): Ignore terms with document frequency strictly lower
+				than this threshold.
+			max_features ( int | None ): Maximum size of the vocabulary.
+			vocabulary ( Dict[ str, int ] | List[ str ] | None ): Optional fixed
+				vocabulary.
+			binary ( bool ): Indicates whether all nonzero term counts should be set to 1.
+			dtype ( Any ): Type of the matrix returned by fit_transform or transform.
+
+			Returns:
+			--------
+			None
 
 		"""
 		super( ).__init__( )
@@ -1223,86 +1666,122 @@ class CountVectorizer( Transformer ):
 		self.encoding = encoding
 		self.decode_error = decode_error
 		self.strip_accents = strip_accents
-		self.max_features = max_features
 		self.lowercase = lowercase
-		self.stopwords = stopwords
 		self.preprocessor = preprocessor
 		self.tokenizer = tokenizer
-		self.norm = norm
+		self.analyzer = analyzer
+		self.stop_words = stop_words
+		self.token_pattern = token_pattern
+		self.ngram_range = ngram_range
 		self.max_df = max_df
 		self.min_df = min_df
-		self.model = sk.CountVectorizer( input=self.input, encoding=self.encoding,
-			decode_error=self.decode_error, strip_accents=self.strip_accents, stop_words=self.stopwords,
-			max_features=self.max_features, lowercase=self.lowercase, preprocessor=self.preprocessor,
-			tokenizer=self.tokenizer, norm=self.norm, binary=self.binary,
-			max_df=self.max_df, min_df=self.min_df, )
+		self.max_features = max_features
+		self.vocabulary = vocabulary
+		self.binary = binary
+		self.dtype = dtype
+		self.model = sk.CountVectorizer(
+			input=self.input,
+			encoding=self.encoding,
+			decode_error=self.decode_error,
+			strip_accents=self.strip_accents,
+			lowercase=self.lowercase,
+			preprocessor=self.preprocessor,
+			tokenizer=self.tokenizer,
+			analyzer=self.analyzer,
+			stop_words=self.stop_words,
+			token_pattern=self.token_pattern,
+			ngram_range=self.ngram_range,
+			max_df=self.max_df,
+			min_df=self.min_df,
+			max_features=self.max_features,
+			vocabulary=self.vocabulary,
+			binary=self.binary,
+			dtype=self.dtype )
 		self.transformed_data = None
 	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings comprised of class members.
-
-		'''
-		[ 'model',
-		  'input',
-		  'encoding',
-		  'decode_error',
-		  'strip_accents',
-		  'max_features',
-		  'lowercase',
-		  'preprocessor',
-		  'tokenizer',
-		  'norm',
-		  'max_df',
-		  'min_df',
-		  'binary',
-		  'transformed_data',
-		  'classes',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
-	
-	def train( self, text: str, y: Optional[ np.ndarry ] ) -> CountVectorizer | None:
+	def __dir__( self ) -> List[ str ]:
 		"""
 
 			Purpose:
 			---------
-			Convert a collection of tokens to a matrix of token counts.
+			Return a list of class members.
 
-			:param tokens:
-			:type List[ str ]:
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'model',
+		         'input',
+		         'encoding',
+		         'decode_error',
+		         'strip_accents',
+		         'lowercase',
+		         'preprocessor',
+		         'tokenizer',
+		         'analyzer',
+		         'stop_words',
+		         'token_pattern',
+		         'ngram_range',
+		         'max_df',
+		         'min_df',
+		         'max_features',
+		         'vocabulary',
+		         'binary',
+		         'dtype',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
+	
+	def train( self, text: List[ str ] | np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> CountVectorizer | None:
+		"""
+
+			Purpose:
+			---------
+			Learn the vocabulary dictionary from the training documents.
+
+			Parameters:
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
+
+			Returns:
+			--------
+			CountVectorizer | None: Fitted wrapper instance.
 
 		"""
 		try:
 			throw_if( 'text', text )
-			self.model.fit( text )
+			self.model.fit( text, y )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'train( self, text: str, y: Optional[ np.ndarray ] ) -> CountVectorizer'
+			exception.method = 'train( self, text: List[ str ] | np.ndarray, y: Optional[ np.ndarray ] = None ) -> CountVectorizer'
 			raise exception
-			
 	
-	def transform( self, text: str ) -> np.ndarray:
+	def transform( self, text: List[ str ] | np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			-------
-			Transform text into count vectors.
+			---------
+			Transform raw documents to a dense count matrix.
 
 			Parameters:
 			-----------
-			text (List[ str ]): Feature matrix
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
 
 			Returns:
-			-----------
-			np.ndarray | None
+			--------
+			np.ndarray: Dense count-weighted document-term matrix.
 
 		"""
 		try:
@@ -1313,38 +1792,63 @@ class CountVectorizer( Transformer ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
+			exception.method = 'transform( self, text: List[ str ] | np.ndarray ) -> np.ndarray'
 			raise exception
-			
 	
-	def train_transform( self, text: str, y: np.ndarray = None ) -> np.ndarray:
+	def train_transform( self, text: List[ str ] | np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Fit and transform the text.
+			Fit the vectorizer and transform the raw documents to a dense count matrix.
 
 			Parameters:
-			----------
-			text (str): An iterable which generates either str, unicode or file objects.
-			y: np.ndarray - IGNORED
-
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
 
 			Returns:
 			--------
-			X:  sparse matrix of (n_samples, n_features)
-			Count-weighted document-term matrix.
+			np.ndarray: Dense count-weighted document-term matrix.
 
 		"""
 		try:
 			throw_if( 'text', text )
-			self.transformed_data = self.model.fit_transform( text ).toarray( )
+			self.transformed_data = self.model.fit_transform( text, y ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CountVectorizer'
-			exception.method = 'train_transform( self, tokens: List[ str ] ) -> np.ndarray'
+			exception.method = 'train_transform( self, text: List[ str ] | np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			raise exception
+	
+	def inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ] | None:
+		"""
+
+			Purpose:
+			---------
+			Return terms per document corresponding to the nonzero entries in the
+			document-term matrix.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Document-term matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			--------
+			List[ np.ndarray ] | None: List of arrays of terms for each document.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			return self.model.inverse_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'CountVectorizer'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> List[ np.ndarray ] | None'
 			raise exception
 			
 
@@ -1378,83 +1882,242 @@ class HashVectorizer( Transformer ):
 
 	"""
 	vectorizer: sk.HashingVectorizer
+	input: Optional[ str ]
+	encoding: Optional[ str ]
+	decode_error: Optional[ str ]
+	strip_accents: Optional[ Any ]
+	lowercase: Optional[ bool ]
+	preprocessor: Optional[ Any ]
+	tokenizer: Optional[ Any ]
+	analyzer: Optional[ str | Any ]
+	stop_words: Optional[ Any ]
+	token_pattern: Optional[ str ]
+	ngram_range: Optional[ Tuple[ int, int ] ]
+	binary: Optional[ bool ]
+	norm: Optional[ str | None ]
+	alternate_sign: Optional[ bool ]
+	n_features: Optional[ int ]
+	dtype: Optional[ Any ]
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 1048576 ) -> None:
+	def __init__( self, num: int = 1048576, input: str = 'content',
+			encoding: str = 'utf-8', decode_error: str = 'strict',
+			strip_accents: Any = None, lowercase: bool = True,
+			preprocessor: Any = None, tokenizer: Any = None,
+			analyzer: str | Any = 'word', stop_words: Any = None,
+			token_pattern: str = r'(?u)\b\w\w+\b',
+			ngram_range: Tuple[ int, int ] = (1, 1), binary: bool = False,
+			norm: str | None = 'l2', alternate_sign: bool = True,
+			dtype: Any = np.float64 ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the HashingVectorizer with the desired number of feature_names.
-
-		"""
-		super( ).__init__( )
-		self.vectorizer = sk.HashingVectorizer( n_features=num )
-		self.transformed_data = None
-	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings comprised of class members.
-
-		'''
-		[ 'vectorizer',
-		  'transformed_data',
-		  'classes',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
-	
-	def train( self, X: np.ndarray, y: np.ndarray = None ) -> CountVectorizer | None:
-		"""
-
-			Purpose:
-			---------
-			Convert a collection of text text to a matrix of token counts.
+			Initialize the HashVectorizer wrapper.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix/samples of shape ( n_samples, n_features )
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+			num ( int ): Number of hashed features.
+			input ( str ): Input mode for documents.
+			encoding ( str ): Encoding used to decode byte sequences.
+			decode_error ( str ): Instruction on what to do if a byte sequence cannot be
+				decoded.
+			strip_accents ( Any ): Accent-stripping strategy.
+			lowercase ( bool ): Indicates whether text should be lowercased before
+				tokenization.
+			preprocessor ( Any ): Optional preprocessing callable.
+			tokenizer ( Any ): Optional tokenizer callable.
+			analyzer ( str | Any ): Feature extraction mode or callable.
+			stop_words ( Any ): Stop words passed to the vectorizer.
+			token_pattern ( str ): Regular expression denoting what constitutes a token.
+			ngram_range ( Tuple[ int, int ] ): Lower and upper boundary of the n-grams.
+			binary ( bool ): Indicates whether all nonzero term counts should be set to 1.
+			norm ( str | None ): Norm used to normalize term vectors.
+			alternate_sign ( bool ): Indicates whether alternating signs should be used
+				to approximately conserve inner products.
+			dtype ( Any ): Type of the matrix returned by transform.
+
+			Returns:
+			--------
+			None
+
+		"""
+		super( ).__init__( )
+		self.input = input
+		self.encoding = encoding
+		self.decode_error = decode_error
+		self.strip_accents = strip_accents
+		self.lowercase = lowercase
+		self.preprocessor = preprocessor
+		self.tokenizer = tokenizer
+		self.analyzer = analyzer
+		self.stop_words = stop_words
+		self.token_pattern = token_pattern
+		self.ngram_range = ngram_range
+		self.binary = binary
+		self.norm = norm
+		self.alternate_sign = alternate_sign
+		self.n_features = num
+		self.dtype = dtype
+		self.vectorizer = sk.HashingVectorizer(
+			n_features=self.n_features,
+			input=self.input,
+			encoding=self.encoding,
+			decode_error=self.decode_error,
+			strip_accents=self.strip_accents,
+			lowercase=self.lowercase,
+			preprocessor=self.preprocessor,
+			tokenizer=self.tokenizer,
+			analyzer=self.analyzer,
+			stop_words=self.stop_words,
+			token_pattern=self.token_pattern,
+			ngram_range=self.ngram_range,
+			binary=self.binary,
+			norm=self.norm,
+			alternate_sign=self.alternate_sign,
+			dtype=self.dtype )
+		self.transformed_data = None
+	
+	def __dir__( self ) -> List[ str ]:
+		"""
+
+			Purpose:
+			---------
+			Return a list of class members.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'vectorizer',
+		         'input',
+		         'encoding',
+		         'decode_error',
+		         'strip_accents',
+		         'lowercase',
+		         'preprocessor',
+		         'tokenizer',
+		         'analyzer',
+		         'stop_words',
+		         'token_pattern',
+		         'ngram_range',
+		         'binary',
+		         'norm',
+		         'alternate_sign',
+		         'n_features',
+		         'dtype',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
+	
+	def train( self, text: List[ str ] | np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> HashVectorizer | None:
+		"""
+
+			Purpose:
+			---------
+			Validate the input documents and return the wrapper. HashingVectorizer is
+			stateless and does not learn a vocabulary during fitting.
+
+			Parameters:
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored.
+
+			Returns:
+			--------
+			HashVectorizer | None: Wrapper instance.
 
 		"""
 		try:
-			throw_if( 'X', X )
-			self.vectorizer.fit( X )
+			throw_if( 'text', text )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'HashingVectorizer'
-			exception.method = 'train( self, X: np.ndarray ) -> np.ndarray'
+			exception.cause = 'HashVectorizer'
+			exception.method = 'train( self, text: List[ str ] | np.ndarray, y: Optional[ np.ndarray ] = None ) -> HashVectorizer'
 			raise exception
-			
 	
-	def transform( self, tokens: List[ str ] ) -> np.ndarray:
+	def transform( self, text: List[ str ] | np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
 			---------
-			Transform text into hashed token vectors.
+			Transform raw documents to a dense hashed document-term matrix.
 
-			:param tokens: List of input text.
-			:type tokens: List[str]
+			Parameters:
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
 
-			:return: Matrix of hashed feature_names.
-			:rtype: np.ndarray
+			Returns:
+			--------
+			np.ndarray: Dense hashed feature matrix.
 
 		"""
 		try:
-			throw_if( 'tokens', tokens )
-			self.transformed_data = self.vectorizer.transform( tokens ).toarray( )
+			throw_if( 'text', text )
+			self.transformed_data = self.vectorizer.transform( text ).toarray( )
 			return self.transformed_data
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
-			exception.cause = 'HashingVectorizer'
-			exception.method = 'transform( self, tokens: List[ str ] ) -> np.ndarray'
+			exception.cause = 'HashVectorizer'
+			exception.method = 'transform( self, text: List[ str ] | np.ndarray ) -> np.ndarray'
 			raise exception
+	
+	def train_transform( self, text: List[ str ] | np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Validate the input and transform raw documents to a dense hashed document-term
+			matrix.
+
+			Parameters:
+			-----------
+			text ( List[ str ] | np.ndarray ): Iterable of raw documents.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored.
+
+			Returns:
+			--------
+			np.ndarray: Dense hashed feature matrix.
+
+		"""
+		try:
+			throw_if( 'text', text )
+			self.transformed_data = self.vectorizer.transform( text ).toarray( )
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'HashVectorizer'
+			exception.method = 'train_transform( self, text: List[ str ] | np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			raise exception
+	
+	def inverse_transform( self, X: np.ndarray ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Indicate that inverse transformation is not supported for hashed features.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Hashed document-term matrix.
+
+			Returns:
+			--------
+			None
+
+		"""
+		raise NotImplementedError( 'HashingVectorizer does not support inverse_transform.' )
 			
