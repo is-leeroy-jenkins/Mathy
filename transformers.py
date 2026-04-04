@@ -44,10 +44,12 @@
 from __future__ import annotations
 from typing import Optional, List, Tuple, Dict, Any
 import numpy as np
+import sklearn.feature_extraction as fe
 import sklearn.feature_extraction.text as sk
 import sklearn.preprocessing as pp
 import sklearn.compose as sc
 from boogr import Error
+
 
 def throw_if( name: str, value: object ):
 	if not value:
@@ -163,8 +165,16 @@ class Binarizer( Transformer ):
 
 		Purpose:
 		_______
-		Binarize data according to a threshold. Values greater than the threshold map to 1,
-		while values less than or equal to the threshold map to 0.
+		Binarize data (set feature values to 0 or 1) according to a threshold.
+		Values greater than the threshold map to 1, while values less than or equal to the
+		threshold map to 0. With the default threshold of 0, only positive values map to 1.
+		
+		Binarization is a common operation on text count data where the analyst can decide to only
+		consider the presence or absence of a feature rather than a quantified number of
+		occurrences for instance.
+
+		It can also be used as a pre-processing step for estimators that consider boolean random
+		variables (e.g. modelled using the Bernoulli distribution in a Bayesian setting).
 
 	"""
 	model: pp.Binarizer
@@ -301,146 +311,6 @@ class Binarizer( Transformer ):
 			exception.module = 'mathy'
 			exception.cause = 'Binarizer'
 			exception.method = 'train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
-			raise exception
-
-
-class Binarizer( Transformer ):
-	"""
-
-		Purpose:
-		_______
-		Binarize data (set feature values to 0 or 1) according to a threshold.
-		Values greater than the threshold map to 1, while values less than or equal to the
-		threshold map to 0. With the default threshold of 0, only positive values map to 1.
-		
-		Binarization is a common operation on text count data where the analyst can decide to only
-		consider the presence or absence of a feature rather than a quantified number of
-		occurrences for instance.
-
-		It can also be used as a pre-processing step for estimators that consider boolean random
-		variables (e.g. modelled using the Bernoulli distribution in a Bayesian setting).
-
-	"""
-	model: pp.Binarizer
-	threshold: Optional[ float ]
-	copy: Optional[ bool ]
-	transformed_data: Optional[ np.ndarray ]
-	
-	def __init__( self, threshold=0.0, copy=True ) -> None:
-		"""
-
-		Purpose:
-		_______
-		Initializes the Binarizer.
-
-		"""
-		super( ).__init__( )
-		self.threshold = threshold
-		self.copy = copy
-		self.model = pp.Binarizer( threshold=self.threshold, copy=self.copy )
-		self.transformed_data = None
-	
-	def __dir__( self ):
-		'''
-
-			Returns
-			-------
-			A list of strings comprised of class members.
-
-		'''
-		[ 'threshold',
-		  'copy',
-		  'model',
-		  'transformer',
-		  'transformed_data',
-		  'classes',
-		  'types',
-		  'train',
-		  'transform',
-		  'train_transform',
-		  'inverse_transform', ]
-	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> LabelBinarizer | None:
-		"""
-
-			Purpose:
-			_______
-			Fit the label binarizer on target values y.
-
-			Parameters:
-			-----------
-			y ( np.ndarray ): target array  of shape ( n_features ).
-
-			Returns:
-			-----------
-			LabelBinarizer | None
-
-		"""
-		try:
-			throw_if( 'y', y )
-			self.model.fit( y )
-			return self
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'LabelBinarizer'
-			exception.method = 'fit( self, y: Optional[ np.ndarray ] ) -> LabelBinarizer'
-			raise exception
-			
-	
-	def transform( self, X: np.ndarray ) -> np.ndarray:
-		"""
-			
-			Purpose:
-			--------
-			This method is just there to implement the usual API and hence work in pipelines.
-			
-			Parameters:
-			-----------
-			X ( np.ndarray ): Labels to binarize.
-
-			Returns:
-			X ( np.ndarray )
-			
-		"""
-		try:
-			throw_if( 'X', X )
-			self.transformed_data = self.model.transform( X, copy=None )
-			return self.transformed_data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'Binarizer'
-			exception.method = 'transform( self, X: np.ndarray, copy=None ) -> np.ndarray'
-			raise exception
-			
-	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] ) -> np.ndarray:
-		"""
-
-			Purpose:
-			_______
-			Fits transformer to X and optional y and returns a transformed version of X.
-
-			Parameters:
-			-----------
-			X ( np.ndarray ): Training vector of shape [ n_samples, n_features ]
-			y ( np.ndarray ): Target vector of shape [ n_samples ]
-
-			Returns:
-			--------
-			X_new (np.ndarrya): Transformed array.
-
-		"""
-		try:
-			throw_if( 'X', X )
-			self.transformed_data = self.model.fit_transform( X )
-			return self.transformed_data
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'Binarizer'
-			exception.method = 'train_transform( self, y: np.ndarray ) -> np.ndarray'
 			raise exception
 
 
@@ -2120,4 +1990,431 @@ class HashVectorizer( Transformer ):
 
 		"""
 		raise NotImplementedError( 'HashingVectorizer does not support inverse_transform.' )
+
+
+class DictVectorizer( Transformer ):
+	"""
+
+		Purpose:
+		---------
+		Transform lists of feature-value mappings to vectors. String-valued features are
+		expanded using one-of-K style encoding, while numeric values are passed through
+		as numeric feature values.
+
+	"""
+	model: fe.DictVectorizer
+	dtype: Optional[ Any ]
+	separator: Optional[ str ]
+	sparse: Optional[ bool ]
+	sort: Optional[ bool ]
+	transformed_data: Optional[ np.ndarray ]
+	
+	def __init__( self, dtype: Any = np.float64, separator: str = '=',
+			sparse: bool = True, sort: bool = True ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize the DictVectorizer wrapper.
+
+			Parameters:
+			-----------
+			dtype ( Any ): Type used for the output matrix values.
+			separator ( str ): Separator used when constructing one-hot encoded feature
+				names from string-valued mappings.
+			sparse ( bool ): Indicates whether output should be sparse internally.
+			sort ( bool ): Indicates whether feature names should be sorted when fitting.
+
+			Returns:
+			--------
+			None
+
+		"""
+		super( ).__init__( )
+		self.dtype = dtype
+		self.separator = separator
+		self.sparse = sparse
+		self.sort = sort
+		self.model = fe.DictVectorizer( dtype=self.dtype, separator=self.separator,
+			sparse=self.sparse, sort=self.sort )
+		self.transformed_data = None
+	
+	def __dir__( self ) -> List[ str ]:
+		"""
+
+			Purpose:
+			---------
+			Return a list of class members.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'model',
+		         'dtype',
+		         'separator',
+		         'sparse',
+		         'sort',
+		         'transformed_data',
+		         'feature_names',
+		         'vocabulary',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
+	
+	@property
+	def feature_names( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the learned feature names.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray: Learned feature names.
+
+		"""
+		try:
+			return self.model.get_feature_names_out( )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DictVectorizer'
+			exception.method = 'feature_names( self ) -> np.ndarray'
+			raise exception
+	
+	@property
+	def vocabulary( self ) -> Dict[ str, int ]:
+		"""
+
+			Purpose:
+			---------
+			Return the learned vocabulary mapping.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			Dict[ str, int ]: Mapping from feature name to column index.
+
+		"""
+		try:
+			return self.model.vocabulary_
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DictVectorizer'
+			exception.method = 'vocabulary( self ) -> Dict[ str, int ]'
+			raise exception
+	
+	def train( self, X: List[ Dict[ str, Any ] ],
+			y: Optional[ np.ndarray ] = None ) -> DictVectorizer | None:
+		"""
+
+			Purpose:
+			---------
+			Fit the vectorizer on a list of feature-value mappings.
+
+			Parameters:
+			-----------
+			X ( List[ Dict[ str, Any ] ] ): List of mapping objects describing samples.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
+
+			Returns:
+			--------
+			DictVectorizer | None: Fitted wrapper instance.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DictVectorizer'
+			exception.method = 'train( self, X: List[ Dict[ str, Any ] ], y: Optional[ np.ndarray ] = None ) -> DictVectorizer'
+			raise exception
+	
+	def transform( self, X: List[ Dict[ str, Any ] ] ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Transform a list of feature-value mappings to a dense feature matrix.
+
+			Parameters:
+			-----------
+			X ( List[ Dict[ str, Any ] ] ): List of mapping objects describing samples.
+
+			Returns:
+			--------
+			np.ndarray: Dense feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			result = self.model.transform( X )
+			self.transformed_data = result.toarray( ) if hasattr( result, 'toarray' ) else result
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DictVectorizer'
+			exception.method = 'transform( self, X: List[ Dict[ str, Any ] ] ) -> np.ndarray'
+			raise exception
+	
+	def train_transform( self, X: List[ Dict[ str, Any ] ],
+			y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Fit the vectorizer and transform the mappings to a dense feature matrix.
+
+			Parameters:
+			-----------
+			X ( List[ Dict[ str, Any ] ] ): List of mapping objects describing samples.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored by the estimator.
+
+			Returns:
+			--------
+			np.ndarray: Dense feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			result = self.model.fit_transform( X, y )
+			self.transformed_data = result.toarray( ) if hasattr( result, 'toarray' ) else result
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DictVectorizer'
+			exception.method = 'train_transform( self, X: List[ Dict[ str, Any ] ], y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			raise exception
+	
+	def inverse_transform( self, X: np.ndarray ) -> List[ Dict[ str, Any ] ] | None:
+		"""
+
+			Purpose:
+			---------
+			Transform a feature matrix back to a list of feature-value mappings.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Feature matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			--------
+			List[ Dict[ str, Any ] ] | None: Reconstructed feature-value mappings.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			return self.model.inverse_transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DictVectorizer'
+			exception.method = 'inverse_transform( self, X: np.ndarray ) -> List[ Dict[ str, Any ] ] | None'
+			raise exception
+
+
+class FeatureHasher( Transformer ):
+	"""
+
+		Purpose:
+		---------
+		Convert symbolic feature names to a matrix using feature hashing. This estimator
+		is stateless and is intended for large-scale or memory-constrained workflows.
+
+	"""
+	model: fe.FeatureHasher
+	n_features: Optional[ int ]
+	input_type: Optional[ str ]
+	dtype: Optional[ Any ]
+	alternate_sign: Optional[ bool ]
+	transformed_data: Optional[ np.ndarray ]
+	
+	def __init__( self, n_features: int = 1048576, input_type: str = 'dict',
+			dtype: Any = np.float64, alternate_sign: bool = True ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Initialize the FeatureHasher wrapper.
+
+			Parameters:
+			-----------
+			n_features ( int ): Number of output features.
+			input_type ( str ): Type of the input data. Supported values are controlled by
+				sklearn, such as 'dict', 'pair', and 'string'.
+			dtype ( Any ): Type used for the output matrix values.
+			alternate_sign ( bool ): Indicates whether alternating signs should be used to
+				approximately conserve inner products.
+
+			Returns:
+			--------
+			None
+
+		"""
+		super( ).__init__( )
+		self.n_features = n_features
+		self.input_type = input_type
+		self.dtype = dtype
+		self.alternate_sign = alternate_sign
+		self.model = fe.FeatureHasher( n_features=self.n_features,
+			input_type=self.input_type, dtype=self.dtype,
+			alternate_sign=self.alternate_sign )
+		self.transformed_data = None
+	
+	def __dir__( self ) -> List[ str ]:
+		"""
+
+			Purpose:
+			---------
+			Return a list of class members.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			List[ str ]: Member names exposed by the wrapper.
+
+		"""
+		return [ 'model',
+		         'n_features',
+		         'input_type',
+		         'dtype',
+		         'alternate_sign',
+		         'transformed_data',
+		         'train',
+		         'transform',
+		         'train_transform',
+		         'inverse_transform' ]
+	
+	def train( self, X: List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ],
+			y: Optional[ np.ndarray ] = None ) -> FeatureHasher | None:
+		"""
+
+			Purpose:
+			---------
+			Validate the input and return the wrapper. FeatureHasher is stateless and does
+			not learn parameters during fitting.
+
+			Parameters:
+			-----------
+			X ( List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ] ):
+				Input samples compatible with the configured input_type.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored.
+
+			Returns:
+			--------
+			FeatureHasher | None: Wrapper instance.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.model.fit( X, y )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'FeatureHasher'
+			exception.method = 'train( self, X, y: Optional[ np.ndarray ] = None ) -> FeatureHasher'
+			raise exception
+	
+	def transform( self, X: List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ] ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Transform symbolic features to a dense hashed feature matrix.
+
+			Parameters:
+			-----------
+			X ( List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ] ):
+				Input samples compatible with the configured input_type.
+
+			Returns:
+			--------
+			np.ndarray: Dense hashed feature matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			result = self.model.transform( X )
+			self.transformed_data = result.toarray( ) if hasattr( result, 'toarray' ) else result
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'FeatureHasher'
+			exception.method = 'transform( self, X ) -> np.ndarray'
+			raise exception
+	
+	def train_transform( self, X: List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ],
+			y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Validate the input and transform symbolic features to a dense hashed matrix.
+	
+			Parameters:
+			-----------
+			X ( List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ] ] ):
+				Input samples compatible with the configured input_type.
+			y ( Optional[ np.ndarray ] ): Optional target array. Ignored.
+	
+			Returns:
+			--------
+			np.ndarray: Dense hashed feature matrix.
 			
+		"""
+		try:
+			throw_if( 'X', X )
+			result = self.model.fit_transform( X, y )
+			self.transformed_data = result.toarray( ) if hasattr( result, 'toarray' ) else result
+			return self.transformed_data
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'FeatureHasher'
+			exception.method = 'train_transform( self, X, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			raise exception
+	
+	def inverse_transform( self, X: np.ndarray ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Indicate that inverse transformation is not supported for hashed features.
+
+			Parameters:
+			-----------
+			X ( np.ndarray ): Hashed feature matrix.
+
+			Returns:
+			--------
+			None
+
+		"""
+		raise NotImplementedError( 'FeatureHasher does not support inverse_transform.' )
+	
