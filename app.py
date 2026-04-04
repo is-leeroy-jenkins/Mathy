@@ -1686,23 +1686,51 @@ elif mode == 'Anomaly Detection':
 			st.stop( )
 		
 		df_dataset = st.session_state.df_dataset
-		
 		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
 		
 		if df_numeric.empty:
 			st.info( 'No usable numeric columns available for anomaly detection.' )
 			st.stop( )
 		
+		st.markdown(
+			"""
+			<style>
+			[data-testid="stMetricLabel"] p {
+				font-size: 0.72rem;
+			}
+			
+			[data-testid="stMetricValue"] {
+				font-size: 0.95rem;
+			}
+			
+			[data-testid="stMetric"] {
+				padding-top: 0.10rem;
+				padding-bottom: 0.10rem;
+			}
+			</style>
+			""",
+			unsafe_allow_html=True
+		)
+		
 		all_num_cols = df_numeric.columns.tolist( )
-		preferred = [ c for c in all_num_cols if c.lower( ) in ( 'py', 'cy', 'by' ) ]
+		preferred = [ c for c in all_num_cols if c.lower( ) in ('py', 'cy', 'by') ]
 		default_vars = preferred if preferred else default_pick( all_num_cols, 2 )
 		vars_sel = st.multiselect( 'Variables to Analyze', all_num_cols, default=default_vars )
+		
 		if not vars_sel:
 			st.info( 'Select at least one numeric variable to run anomaly detection.' )
 			st.stop( )
 		
 		analysis_scale = st.checkbox( 'Use analysis-only standardization', value=False )
-		df_analysis = df_numeric[ vars_sel ].copy( )
+		df_analysis = df_numeric[ vars_sel ].astype( float ).copy( )
+
+		if analysis_scale and len( vars_sel ) > 1:
+			df_analysis = pd.DataFrame(
+				SKStandardScaler( ).fit_transform( df_analysis.values ),
+				columns=df_analysis.columns,
+				index=df_analysis.index
+			)
+			
 		if analysis_scale and len( vars_sel ) > 1:
 			df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
 		
@@ -1745,24 +1773,22 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		df_anamolies = pd.DataFrame( index=df_analysis.index )
 		
-		# --- Univariate methods
 		for col in vars_sel:
 			s = df_analysis[ col ].dropna( )
 			if s.empty:
 				continue
 			
 			if use_z:
-				z = (s - s.mean( ) ) / s.std( ) if s.std( ) else pd.Series( 0, index=s.index )
+				z = (s - s.mean( )) / s.std( ) if s.std( ) else pd.Series( 0.0, index=s.index )
 				df_anamolies[ f'{col}_z' ] = z.abs( ) >= z_thresh
 			
 			if use_mz:
 				med = s.median( )
 				mad = np.median( np.abs( s - med ) )
 				if mad == 0:
-					mz = pd.Series( 0, index=s.index )
+					mz = pd.Series( 0.0, index=s.index )
 				else:
 					mz = 0.6745 * (s - med) / mad
-					
 				df_anamolies[ f'{col}_mz' ] = mz.abs( ) >= z_thresh
 			
 			if use_iqr:
@@ -1772,7 +1798,6 @@ elif mode == 'Anomaly Detection':
 				hi = q3 + iqr_mult * iqr
 				df_anamolies[ f'{col}_iqr' ] = (s < lo) | (s > hi)
 		
-		# --- Multivariate methods
 		df_muliti = df_analysis.dropna( axis=0 )
 		
 		if df_muliti.shape[ 0 ] >= 10 and df_muliti.shape[ 1 ] >= 2:
@@ -1788,12 +1813,14 @@ elif mode == 'Anomaly Detection':
 			
 			if use_iforest:
 				from sklearn.ensemble import IsolationForest
+				
 				iso = IsolationForest( contamination='auto', random_state=42 )
 				preds = iso.fit_predict( df_muliti.values )
 				df_anamolies.loc[ df_muliti.index, 'iforest' ] = preds == -1
 			
 			if use_lof:
 				from sklearn.neighbors import LocalOutlierFactor
+				
 				lof = LocalOutlierFactor( n_neighbors=lof_k )
 				preds = lof.fit_predict( df_muliti.values )
 				df_anamolies.loc[ df_muliti.index, 'lof' ] = preds == -1
@@ -1803,30 +1830,54 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		st.subheader( 'Outlier Summary' )
 		st.divider( )
+		
 		if df_anamolies.empty:
 			st.info( 'No anomalies detected under the selected methods and thresholds.' )
 			st.stop( )
 		
 		df_anamolies = df_anamolies.fillna( False )
 		df_anamolies[ 'methods_flagged' ] = df_anamolies.sum( axis=1 )
-		anomalies = df_anamolies[ df_anamolies[ 'methods_flagged' ] >= min_methods ]
+		anomalies = df_anamolies[ df_anamolies[ 'methods_flagged' ] >= min_methods ].copy( )
+		
+		m1, m2, m3, m4 = st.columns( 4, border=True )
+		m1.metric( 'Rows Analyzed', f'{len( df_analysis ):,}' )
+		m2.metric( 'Flagged Rows', f'{len( anomalies ):,}' )
+		m3.metric(
+			'Flag Rate %',
+			f'{(100.0 * len( anomalies ) / max( 1, len( df_analysis ) )):,.2f}'
+		)
+		m4.metric( 'Min Methods', f'{min_methods:,}' )
 		
 		c_o1, c_o2 = st.columns( 2, border=True )
+		
 		with c_o1:
 			st.subheader( 'Flagged Observations' )
 			render_table( anomalies.sort_values( 'methods_flagged', ascending=False ) )
 		
 		with c_o2:
 			st.subheader( 'Flag Count Distribution' )
-			fig, ax = plt.subplots( figsize=(7, 5) )
-			anomalies[ 'methods_flagged' ].value_counts( ).sort_index( ).plot( kind='bar',
-				ax=ax, edgecolor='black' )
-			ax.set_xlabel( 'Number of Methods Flagging' )
-			ax.set_ylabel( 'Observation Count' )
-			ax.set_title( 'Consensus Strength' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
+			if anomalies.empty:
+				st.info( 'No rows met the current consensus threshold.' )
+			else:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				vc = anomalies[ 'methods_flagged' ].value_counts( ).sort_index( )
+				bars = ax.bar(
+					vc.index.astype( str ),
+					vc.values,
+					width=0.75,
+					edgecolor='black',
+					linewidth=0.9
+				)
+				ax.set_xlabel( 'Number of Methods Flagging' )
+				ax.set_ylabel( 'Observation Count' )
+				ax.set_title( 'Consensus Strength', fontsize=12, fontweight='bold' )
+				ax.grid( axis='y', alpha=0.25, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.bar_label( bars, padding=3, fontsize=9 )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
 		
 		# -------------------------------------------------------------------------
 		# Visualization — Distribution with Anomalies
@@ -1838,29 +1889,165 @@ elif mode == 'Anomaly Detection':
 			if col not in df_analysis.columns:
 				continue
 			
-			s = df_analysis[ col ]
-			flagged_idx = anomalies.index.intersection( s.index )
+			s = pd.to_numeric( df_analysis[ col ], errors='coerce' ).replace( [ np.inf,
+			                                                                    -np.inf ], np.nan )
+			s_clean = s.dropna( )
 			
-			if flagged_idx.empty:
+			if s_clean.empty:
 				continue
 			
-			c_v1, c_v2 = st.columns( 2 )
+			flagged_idx = anomalies.index.intersection( s_clean.index )
+			flagged_vals = s_clean.loc[
+				flagged_idx ] if not flagged_idx.empty else pd.Series( dtype=float )
+			
+			c_v1, c_v2 = st.columns( 2, border=True )
+			
 			with c_v1:
 				fig, ax = plt.subplots( figsize=(7, 5) )
-				ax.hist( s.dropna( ), bins=30, alpha=0.7, edgecolor='black' )
-				ax.scatter( s.loc[ flagged_idx ], np.zeros( len( flagged_idx ) ),
-					color='red', label='Anomalies' )
-				ax.set_title( f'{col} — Histogram with Anomalies' )
-				ax.legend( )
+				ax.hist(
+					s_clean.values,
+					bins=30,
+					alpha=0.80,
+					edgecolor='black',
+					linewidth=0.8
+				)
+				
+				mean_val = float( s_clean.mean( ) )
+				median_val = float( s_clean.median( ) )
+				
+				ax.axvline(
+					mean_val,
+					linestyle='--',
+					linewidth=1.5,
+					label=f'Mean: {mean_val:,.3f}'
+				)
+				ax.axvline(
+					median_val,
+					linestyle=':',
+					linewidth=1.5,
+					label=f'Median: {median_val:,.3f}'
+				)
+				
+				if not flagged_vals.empty:
+					ymin, ymax = ax.get_ylim( )
+					rug_y = np.full( len( flagged_vals ), ymax * 0.03 )
+					ax.scatter(
+						flagged_vals.values,
+						rug_y,
+						color='crimson',
+						alpha=0.80,
+						s=24,
+						marker='|',
+						linewidths=1.4,
+						label='Flagged'
+					)
+				
+				ax.set_title( f'{col} — Histogram with Anomalies', fontsize=12, fontweight='bold' )
+				ax.set_xlabel( col )
+				ax.set_ylabel( 'Frequency' )
+				ax.grid( axis='y', alpha=0.25, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.legend( frameon=False, fontsize=9 )
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
 			
 			with c_v2:
 				fig, ax = plt.subplots( figsize=(7, 5) )
-				ax.boxplot( s.dropna( ), vert=False )
-				ax.scatter( s.loc[ flagged_idx ], np.ones( len( flagged_idx ) ), color='red' )
-				ax.set_title( f'{col} — Boxplot with Anomalies' )
+				ax.boxplot(
+					s_clean.values,
+					vert=False,
+					widths=0.45,
+					patch_artist=True,
+					boxprops=dict( facecolor='#cbd5e1', edgecolor='black', linewidth=0.9 ),
+					medianprops=dict( color='black', linewidth=1.4 ),
+					whiskerprops=dict( color='black', linewidth=0.9 ),
+					capprops=dict( color='black', linewidth=0.9 ),
+					flierprops=dict(
+						marker='o',
+						markerfacecolor='#475569',
+						markeredgecolor='black',
+						markersize=4,
+						alpha=0.7
+					)
+				)
+				
+				if not flagged_vals.empty:
+					ax.scatter(
+						flagged_vals.values,
+						np.ones( len( flagged_vals ) ),
+						color='crimson',
+						alpha=0.80,
+						s=30,
+						edgecolors='black',
+						linewidths=0.4,
+						label='Flagged',
+						zorder=3
+					)
+				
+				ax.set_title( f'{col} — Boxplot with Anomalies', fontsize=12, fontweight='bold' )
+				ax.set_xlabel( col )
+				ax.set_yticks( [ ] )
+				ax.grid( axis='x', alpha=0.25, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				if not flagged_vals.empty:
+					ax.legend( frameon=False, fontsize=9 )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
+		
+		# -------------------------------------------------------------------------
+		# Bivariate View
+		# -------------------------------------------------------------------------
+		if len( vars_sel ) >= 2:
+			st.subheader( 'Bivariate View' )
+			st.divider( )
+			
+			x_col = vars_sel[ 0 ]
+			y_col = vars_sel[ 1 ]
+			df_scatter = df_analysis[ [ x_col, y_col ] ].copy( ).dropna( )
+			
+			if not df_scatter.empty:
+				flag_mask = df_scatter.index.isin( anomalies.index )
+				
+				fig, ax = plt.subplots( figsize=(8, 5.5) )
+				ax.scatter(
+					df_scatter.loc[ ~flag_mask, x_col ].values,
+					df_scatter.loc[ ~flag_mask, y_col ].values,
+					s=34,
+					alpha=0.70,
+					edgecolors='black',
+					linewidths=0.5,
+					label='Inliers'
+				)
+				
+				if flag_mask.any( ):
+					ax.scatter(
+						df_scatter.loc[ flag_mask, x_col ].values,
+						df_scatter.loc[ flag_mask, y_col ].values,
+						s=52,
+						alpha=0.92,
+						edgecolors='black',
+						linewidths=0.7,
+						c='crimson',
+						marker='X',
+						label='Flagged'
+					)
+				
+				ax.set_title(
+					f'Anomaly Scatter — {x_col} vs {y_col}',
+					fontsize=12,
+					fontweight='bold',
+					pad=10
+				)
+				ax.set_xlabel( x_col )
+				ax.set_ylabel( y_col )
+				ax.grid( True, alpha=0.20, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.legend( frameon=False )
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
@@ -1868,8 +2055,12 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Export
 		# -------------------------------------------------------------------------
-		st.download_button( "Export Anomaly Table (CSV)", anomalies.to_csv( ),
-			"anomalies.csv", "text/csv" )
+		st.download_button(
+			"Export Anomaly Table (CSV)",
+			anomalies.to_csv( ),
+			"anomalies.csv",
+			"text/csv"
+		)
 
 # ============================================
 # FEATURE ENGINEERING MODE
