@@ -50,7 +50,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 from scipy import stats
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 # Mathy
 import config as cfg
@@ -105,7 +105,7 @@ st.logo( image=cfg.LOGO, size='large' )
 st.set_page_config( page_title='Mathy', layout='wide',
 	page_icon=cfg.FAVICON, initial_sidebar_state='expanded' )
 
-pd.options.display.float_format = '{:.4f}'.format
+pd.options.display.float_format = '{:,.4f}'.format
 
 # ============================================
 # Session State
@@ -193,7 +193,9 @@ def log_step( msg: str ) -> None:
 def render_table( df: pd.DataFrame, height: int=360 ) -> None:
 	disp = df.copy( )
 	float_cols = disp.select_dtypes( include=[ np.floating ] ).columns
+	num_cols = disp.select_dtypes( include=[ np.number ] ).columns
 	disp[ float_cols ] = disp[ float_cols ].round( 4 )
+	disp[ num_cols ] = df[ num_cols ].map( '{:,.2f}'.format )
 	st.data_editor( disp, use_container_width=True, height='auto' )
 
 def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]:
@@ -216,6 +218,84 @@ def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]
 			categorical.append( col )
 	
 	return numeric, categorical
+
+def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: int = 0,
+		label: Optional[ str ] = None, size: int = 30, ) -> None:
+	"""
+	
+		Purpose:
+		________
+		Draw a consistently styled scatter plot with clear point boundaries and
+		visually distinct series.
+	
+		Parameters:
+		___________
+		ax : plt.Axes
+			Matplotlib axes to draw on.
+		x : np.ndarray
+			X-coordinates of the points.
+		y : np.ndarray
+			Y-coordinates of the points.
+		series_index : int, optional
+			Index used to pick color and marker from predefined palettes.
+		label : Optional[str], optional
+			Legend label for the series, if any.
+		size : int, optional
+			Marker size for the scatter plot.
+	
+		Returns:
+		________
+		None
+			This function draws on the provided axes in-place.
+		
+	"""
+	color = cfg.PALETTE[ series_index % len( cfg.PALETTE ) ]
+	marker = cfg.MARKERS[ series_index % len( cfg.MARKERS ) ]
+	ax.scatter( x, y, s=size, alpha=0.9, edgecolors="#020617",
+		linewidths=0.6, c=[ color ], marker=marker, label=label, )
+	ax.grid( True, alpha=0.25 )
+
+def auto_float_format( series: pd.Series, max_decimals: int = 4 ) -> str:
+	"""
+	
+		Purpose:
+		________
+		Infer a reasonable float formatting pattern for a numeric series based on
+		its scale, so large values are readable and decimals are not excessive.
+	
+		Parameters:
+		___________
+		series : pd.Series
+			Series whose numeric magnitude is used to pick the format.
+		max_decimals : int, optional
+			Maximum number of decimal places allowed in the format string.
+	
+		Returns:
+		________
+		str
+			A Python format string such as '{:,.2f}' appropriate for the series.
+			
+	"""
+	s = pd.to_numeric( series, errors="coerce" )
+	s = s.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
+	if s.empty:
+		return "{:,.2f}"
+	
+	mag = float( np.nanpercentile( np.abs( s.values ), 95 ) )
+	
+	if mag >= 1e9:
+		decimals = 0
+	elif mag >= 1e6:
+		decimals = 1
+	elif mag >= 1e3:
+		decimals = 2
+	elif mag >= 1:
+		decimals = 3
+	else:
+		decimals = 4
+	
+	decimals = min( decimals, max_decimals )
+	return f"{{:,.{decimals}f}}"
 
 def clean_numeric( df: pd.DataFrame ) -> pd.DataFrame:
 	out = df.replace( [ np.inf,
@@ -290,10 +370,10 @@ def style_subheaders( ) -> None:
 	st.markdown(
 		"""
 		<style>
-		div[data-testid="stMarkdownContainer"] h2,
 		div[data-testid="stMarkdownContainer"] h3,
-		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h2,
-		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h3 {
+		div[data-testid="stMarkdownContainer"] h4,
+		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h3,
+		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h4 {
 			color: rgb(0, 120, 252) !important;
 		}
 		</style>
@@ -361,7 +441,7 @@ if mode == 'Data Profile':
 				unique_ratio = nunique / max( 1, n_rows )
 				
 				# ------------------------------------------------------------------
-				# 1) Datetime: ONLY for object/string columns (prevents PY/CY/BY errors)
+				# 1) Datetime: ONLY for object/string columns
 				# ------------------------------------------------------------------
 				if s.dtype == 'object':
 					try:
@@ -371,7 +451,7 @@ if mode == 'Data Profile':
 							continue
 					except Exception:
 						pass
-				
+					
 				# ------------------------------------------------------------------
 				# 2) Numeric detection: ints AND floats
 				# ------------------------------------------------------------------
@@ -439,7 +519,7 @@ if mode == 'Data Profile':
 					with target:
 						if dtype == 'numeric':
 							updated[ col ] = st.number_input(
-								col, value=float( val ) if pd.notna( val ) else 0.0 )
+								col, value=float( val) if pd.notna( val ) else 0.0 )
 						elif dtype == 'ordinal':
 							updated[ col ] = st.number_input(
 								col, value=int( val ) if pd.notna( val ) else 0 )
@@ -475,20 +555,31 @@ if mode == 'Data Profile':
 						'Before': before,
 						'After': after } ), use_container_width=True )
 				st.rerun( )
-		
+				
 		# =====================================================================================
 		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
 		# =====================================================================================
-		
 		st.divider( )
 		st.subheader( 'Diagnostics' )
 		
 		v1, v2 = st.columns( 2, border=True )
 		with v1:
-			fig, ax = plt.subplots( figsize=(5, 4) )
-			type_counts.plot( kind='bar', ax=ax, edgecolor='black' )
-			ax.set_title( 'Column Type Distribution' )
+			fig, ax = plt.subplots( figsize=(6, 4.5) )
+			type_counts.sort_values( ascending=False ).plot(
+				kind='bar',
+				ax=ax,
+				width=0.75,
+				edgecolor='#0f172a',
+				linewidth=0.9
+			)
+			ax.set_title( 'Column Type Distribution', fontsize=12, fontweight='bold' )
+			ax.set_xlabel( '' )
 			ax.set_ylabel( 'Count' )
+			ax.grid( axis='y', alpha=0.25, linestyle='--' )
+			ax.spines[ 'top' ].set_visible( False )
+			ax.spines[ 'right' ].set_visible( False )
+			for container in ax.containers:
+				ax.bar_label( container, padding=3, fontsize=9 )
 			fig.tight_layout( )
 			st.pyplot( fig )
 			plt.close( fig )
@@ -497,10 +588,24 @@ if mode == 'Data Profile':
 			missing_pct = (df_dataset.isna( ).mean( ) * 100).sort_values( ascending=False )
 			missing_pct = missing_pct[ missing_pct > 0 ].head( 10 )
 			if not missing_pct.empty:
-				fig, ax = plt.subplots( figsize=(5, 4) )
-				missing_pct.plot( kind='bar', ax=ax, edgecolor='black' )
-				ax.set_title( 'Top Columns by Missing %' )
-				ax.set_ylabel( 'Percent Missing' )
+				fig, ax = plt.subplots( figsize=(6, 4.5) )
+				missing_pct.sort_values( ascending=True ).plot(
+					kind='barh',
+					ax=ax,
+					width=0.75,
+					edgecolor='#0f172a',
+					linewidth=0.9
+				)
+				ax.set_title( 'Top Columns by Missing %', fontsize=12, fontweight='bold' )
+				ax.set_xlabel( 'Percent Missing' )
+				ax.set_ylabel( '' )
+				ax.grid( axis='x', alpha=0.25, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				for container in ax.containers:
+					labels = [ f'{v:.1f}%' for v in
+					           missing_pct.sort_values( ascending=True ).values ]
+					ax.bar_label( container, labels=labels, padding=3, fontsize=9 )
 				fig.tight_layout( )
 				st.pyplot( fig )
 				plt.close( fig )
@@ -508,21 +613,32 @@ if mode == 'Data Profile':
 				st.info( 'No Missing Values Detected.' )
 		
 		st.divider( )
-		st.subheader( 'Cardinaltiy' )
+		st.subheader( 'Cardinality' )
 		v3, v4 = st.columns( 2, border=True )
 		with v3:
 			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
-			fig, ax = plt.subplots( figsize=(5, 4) )
-			cardinality.plot( kind='bar', ax=ax, edgecolor='black' )
-			ax.set_title( 'Top Columns by Cardinality' )
-			ax.set_ylabel( 'Unique Values' )
+			fig, ax = plt.subplots( figsize=(6, 4.5) )
+			cardinality.sort_values( ascending=True ).plot(
+				kind='barh',
+				ax=ax,
+				width=0.75,
+				edgecolor='#0f172a',
+				linewidth=0.9
+			)
+			ax.set_title( 'Top Columns by Cardinality', fontsize=12, fontweight='bold' )
+			ax.set_xlabel( 'Unique Values' )
+			ax.set_ylabel( '' )
+			ax.grid( axis='x', alpha=0.25, linestyle='--' )
+			ax.spines[ 'top' ].set_visible( False )
+			ax.spines[ 'right' ].set_visible( False )
+			for container in ax.containers:
+				ax.bar_label( container, padding=3, fontsize=9 )
 			fig.tight_layout( )
 			st.pyplot( fig )
 			plt.close( fig )
 		
 		with v4:
 			st.caption( 'Row edits are confirmed above before commit.' )
-		
 		
 		# -------------------------------------------------------------------------------------
 		# COLUMN CRUD
@@ -564,7 +680,131 @@ if mode == 'Data Profile':
 			with r2:
 				st.download_button( 'Export Dataset (CSV)', st.session_state.df_dataset.to_csv( index=False ),
 					'dataset.csv', 'text/csv' )
+				
+		# -------------------------------------------------------------------------------------
+		# Probability Distributions
+		# -------------------------------------------------------------------------------------
+		st.divider( )
+		st.subheader( 'Numeric Distributions' )
+		
+		numeric_dist_cols = [
+				c for c in df_dataset.columns
+				if pd.api.types.is_numeric_dtype( df_dataset[ c ] )
+				   and not pd.api.types.is_bool_dtype( df_dataset[ c ] )
+		]
+		
+		if not numeric_dist_cols:
+			st.info( 'No numeric columns detected.' )
+		else:
+			st.caption( f'{len( numeric_dist_cols )} numeric column(s) detected.' )
 			
+			ctrl1, ctrl2, ctrl3 = st.columns( 3, border=True )
+			with ctrl1:
+				dist_bins = st.slider(
+					'Bins',
+					min_value=10,
+					max_value=60,
+					value=30,
+					step=5,
+					key='profile_numeric_dist_bins'
+				)
+			
+			with ctrl2:
+				show_kde = st.checkbox(
+					'Show KDE Overlay',
+					value=True,
+					key='profile_numeric_dist_kde'
+				)
+			
+			with ctrl3:
+				dist_mode = st.radio(
+					'Display',
+					options=[ 'Density', 'Frequency' ],
+					horizontal=True,
+					key='profile_numeric_dist_mode'
+				)
+			
+			st.markdown(
+				"""
+				<style>
+				[data-testid="stMetricLabel"] p {
+					font-size: 0.72rem;
+				}
+				
+				[data-testid="stMetricValue"] {
+					font-size: 0.95rem;
+				}
+				
+				[data-testid="stMetric"] {
+					padding-top: 0.10rem;
+					padding-bottom: 0.10rem;
+				}
+				</style>
+				""",
+				unsafe_allow_html=True
+			)
+			
+			stat_mode = 'density' if dist_mode == 'Density' else 'count'
+			grid_cols = st.columns( 2, border=True )
+			
+			for i, col in enumerate( numeric_dist_cols ):
+				with grid_cols[ i % 2 ]:
+					s = pd.to_numeric( df_dataset[ col ], errors='coerce' )
+					s = s.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
+					
+					if s.empty:
+						st.warning( f'{col}: no plottable numeric values.' )
+						continue
+					
+					fig, ax = plt.subplots( figsize=(7, 4.5) )
+					sns.histplot(
+						s,
+						bins=dist_bins,
+						kde=show_kde,
+						stat=stat_mode,
+						ax=ax,
+						edgecolor='#0f172a',
+						line_kws={ 'linewidth': 2.0 } if show_kde else None
+					)
+					
+					mean_val = float( s.mean( ) )
+					median_val = float( s.median( ) )
+					
+					ax.axvline(
+						mean_val,
+						linestyle='--',
+						linewidth=1.5,
+						label=f'Mean: {mean_val:,.3f}'
+					)
+					ax.axvline(
+						median_val,
+						linestyle=':',
+						linewidth=1.5,
+						label=f'Median: {median_val:,.3f}'
+					)
+					
+					ax.set_title( f'Distribution — {col}', fontsize=12, fontweight='bold' )
+					ax.set_xlabel( col )
+					ax.set_ylabel( 'Density' if stat_mode == 'density' else 'Frequency' )
+					ax.grid( True, alpha=0.25, linestyle='--' )
+					ax.spines[ 'top' ].set_visible( False )
+					ax.spines[ 'right' ].set_visible( False )
+					ax.legend( frameon=False, fontsize=9 )
+					
+					fig.tight_layout( )
+					st.pyplot( fig )
+					plt.close( fig )
+					
+					m1, m2, m3, m4 = st.columns( 4 )
+					m1.metric( 'Count', f'{len( s ):,}' )
+					m2.metric( 'Mean', f'{mean_val:,.3f}' )
+					m3.metric( 'Median', f'{median_val:,.3f}' )
+					m4.metric(
+						'Std',
+						f'{float( s.std( ddof=1 ) ):,.3f}' if len( s ) > 1 else '0.000'
+					)
+		
+		
 		# -------------------------------------------------------------------------------------
 		# RESET / EXPORT
 		# -------------------------------------------------------------------------------------
@@ -579,110 +819,358 @@ if mode == 'Data Profile':
 elif mode == 'Descriptive Statistics':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Descriptive Statistics' ] )
+		st.header( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
 		st.divider( )
 		
 		df_dataset = st.session_state.df_dataset
 		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
+		
 		if df_numeric.empty:
+			st.info( 'No numeric variables available for descriptive analysis.' )
 			st.stop( )
+		
+		all_num_cols = df_numeric.columns.tolist( )
+		
+		st.markdown(
+			"""
+			<style>
+			[data-testid="stMetricLabel"] p {
+				font-size: 0.72rem;
+			}
 			
-		num_c1, num_c2c2 = st.columns( [ 0.5, 0.5 ] , border=False )
+			[data-testid="stMetricValue"] {
+				font-size: 0.95rem;
+			}
+			
+			[data-testid="stMetric"] {
+				padding-top: 0.10rem;
+				padding-bottom: 0.10rem;
+			}
+			</style>
+			""",
+			unsafe_allow_html=True
+		)
+		
+		num_c1, num_c2 = st.columns( [ 0.5, 0.5 ], border=False )
 		with num_c1:
-			all_num_cols = df_numeric.columns.tolist( )
-			vars_sel = st.multiselect( 'Select Numeric Variables', all_num_cols,
-				default=default_pick( all_num_cols, 3 ) )
+			vars_sel = st.multiselect(
+				'Select Numeric Variables',
+				all_num_cols,
+				default=default_pick( all_num_cols, 3 )
+			)
+			
+		st.divider( )
+		
+		st.subheader( 'Descriptive Summary' )
+		
+		sum_c1, sum_c2 = st.columns( [ 0.55, 0.45 ], border=False )
+		with sum_c1:
+			summary_vars = st.multiselect(
+				'Variables for Summary Table',
+				all_num_cols,
+				default=all_num_cols[ : min( 8, len( all_num_cols ) ) ],
+				key='desc_summary_vars'
+			)
+		
+		with sum_c2:
+			show_percentiles = st.checkbox(
+				'Include Percentiles',
+				value=True,
+				key='desc_summary_percentiles'
+			)
+		
+		if summary_vars:
+			df_summary_source = df_numeric[ summary_vars ].copy( )
+			percentiles = [ 0.05, 0.25, 0.50, 0.75, 0.95 ] if show_percentiles else None
+			
+			df_descriptive = df_summary_source.describe( percentiles=percentiles ).T.reset_index( )
+			df_descriptive = df_descriptive.rename( columns={ 'index': 'Variable' } )
+			
+			df_descriptive[ 'Variance' ] = df_summary_source.var( ddof=1 ).values
+			df_descriptive[ 'Missing' ] = df_dataset[ summary_vars ].isna( ).sum( ).values
+			df_descriptive[ 'Missing %' ] = (
+					df_dataset[ summary_vars ].isna( ).mean( ).values * 100.0
+			)
+			df_descriptive[ 'Skew' ] = df_summary_source.skew( ).values
+			df_descriptive[ 'Kurtosis' ] = df_summary_source.kurtosis( ).values
+			df_descriptive[ 'Zeros' ] = (df_summary_source == 0).sum( ).values
+			df_descriptive[ 'Zeros %' ] = (
+					(df_summary_source == 0).mean( ).values * 100.0
+			)
+			
+			ordered_cols = [ 'Variable', 'count', 'mean', 'std', 'Variance', 'min' ]
+			if show_percentiles:
+				for pcol in [ '5%', '25%', '50%', '75%', '95%' ]:
+					if pcol in df_descriptive.columns:
+						ordered_cols.append( pcol )
+			ordered_cols += [ 'max', 'Missing', 'Missing %', 'Zeros', 'Zeros %', 'Skew', 'Kurtosis' ]
+			ordered_cols = [ c for c in ordered_cols if c in df_descriptive.columns ]
+			df_descriptive = df_descriptive[ ordered_cols ]
+			
+			for c in df_descriptive.columns:
+				if c != 'Variable':
+					df_descriptive[ c ] = pd.to_numeric( df_descriptive[ c ], errors='coerce' )
+			
+			column_config = {
+					'Variable': st.column_config.TextColumn( 'Variable', width='medium' ),
+					'count': st.column_config.NumberColumn( 'Count', format='%.0f' ),
+					'mean': st.column_config.NumberColumn( 'Mean', format='%.4f' ),
+					'std': st.column_config.NumberColumn( 'Std', format='%.4f' ),
+					'Variance': st.column_config.NumberColumn( 'Variance', format='%.4f' ),
+					'min': st.column_config.NumberColumn( 'Min', format='%.4f' ),
+					'5%': st.column_config.NumberColumn( 'P5', format='%.4f' ),
+					'25%': st.column_config.NumberColumn( 'P25', format='%.4f' ),
+					'50%': st.column_config.NumberColumn( 'Median', format='%.4f' ),
+					'75%': st.column_config.NumberColumn( 'P75', format='%.4f' ),
+					'95%': st.column_config.NumberColumn( 'P95', format='%.4f' ),
+					'max': st.column_config.NumberColumn( 'Max', format='%.4f' ),
+					'Missing': st.column_config.NumberColumn( 'Missing', format='%.0f' ),
+					'Missing %': st.column_config.NumberColumn( 'Missing %', format='%.2f' ),
+					'Zeros': st.column_config.NumberColumn( 'Zeros', format='%.0f' ),
+					'Zeros %': st.column_config.NumberColumn( 'Zeros %', format='%.2f' ),
+					'Skew': st.column_config.NumberColumn( 'Skew', format='%.4f' ),
+					'Kurtosis': st.column_config.NumberColumn( 'Kurtosis', format='%.4f' )
+			}
+			
+			column_config = { k: v for k, v in column_config.items( ) if k in df_descriptive.columns }
+			
+			st.data_editor(
+				df_descriptive,
+				use_container_width=True,
+				hide_index=True,
+				disabled=True,
+				column_config=column_config,
+				key='desc_summary_editor'
+			)
+		else:
+			st.info( 'Select one or more numeric variables to display descriptive statistics.' )
+		
+		st.divider( )
+	
+		with num_c2:
+			dist_bins = st.slider(
+				'Distribution Bins',
+				min_value=10,
+				max_value=60,
+				value=30,
+				step=5,
+				key='desc_dist_bins'
+			)
 		
 		for col in vars_sel:
-			s = df_numeric[ col ].dropna( )
+			s = pd.to_numeric( df_numeric[ col ], errors='coerce' )
+			s = s.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
+			
+			if s.empty:
+				st.warning( f'{col}: no plottable numeric values.' )
+				continue
+			
 			st.subheader( f'Distribution & Shape — {col}' )
 			c1, c2 = st.columns( 2, border=True )
 			
 			with c1:
-				fig, ax = plt.subplots( figsize=(7, 5) )
-				ax.hist( s, bins=30, edgecolor='black', alpha=0.85 )
-				ax.set_title( f'Histogram — {col}' )
+				fig, ax = plt.subplots( figsize=(7, 4.75) )
+				sns.histplot(
+					s,
+					bins=dist_bins,
+					kde=True,
+					stat='count',
+					ax=ax,
+					edgecolor='#0f172a',
+					line_kws={ 'linewidth': 2.0 }
+				)
+				
+				mean_val = float( s.mean( ) )
+				median_val = float( s.median( ) )
+				
+				ax.axvline(
+					mean_val,
+					linestyle='--',
+					linewidth=1.5,
+					label=f'Mean: {mean_val:,.3f}'
+				)
+				ax.axvline(
+					median_val,
+					linestyle=':',
+					linewidth=1.5,
+					label=f'Median: {median_val:,.3f}'
+				)
+				
+				ax.set_title( f'Histogram — {col}', fontsize=12, fontweight='bold' )
 				ax.set_xlabel( col )
 				ax.set_ylabel( 'Frequency' )
+				ax.grid( True, alpha=0.25, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.legend( frameon=False, fontsize=9 )
+				
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
+				
+				m1, m2, m3, m4 = st.columns( 4 )
+				m1.metric( 'Count', f'{len( s ):,}' )
+				m2.metric( 'Mean', f'{mean_val:,.3f}' )
+				m3.metric( 'Median', f'{median_val:,.3f}' )
+				m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.3f}' if len( s ) > 1 else '0.000' )
 			
 			with c2:
-				fig, ax = plt.subplots( figsize=(7, 5) )
+				fig, ax = plt.subplots( figsize=(7, 4.75) )
 				stats.probplot( s, plot=ax )
-				ax.set_title( f'Q–Q Plot — {col}' )
+				ax.set_title( f'Q–Q Plot — {col}', fontsize=12, fontweight='bold' )
+				ax.grid( True, alpha=0.20, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				
+				if len( ax.get_lines( ) ) >= 1:
+					ax.get_lines( )[ 0 ].set_marker( 'o' )
+					ax.get_lines( )[ 0 ].set_alpha( 0.72 )
+					ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
+				
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
-		
-		st.subheader( 'Correlation Structure' )
-		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ] )
-		with cor_c1:
-			corr_vars = st.multiselect( 'Variables for Correlation',
-				all_num_cols, default=default_pick( all_num_cols, 4 ) )
-			
-		c3, c4 = st.columns( 2, border=True )
-		with c3:
-			if len( corr_vars ) >= 2:
-				df_correlation = analysis_fillna_mean( df_numeric[ corr_vars ] )
-				corr = df_correlation.corr( )
-				render_table( corr )
 				
-		with c4:
-			fig, ax = plt.subplots( figsize=(7, 6) )
-			im = ax.imshow( corr.values, cmap='coolwarm', vmin=-1, vmax=1 )
-			fig.colorbar( im, ax=ax )
-			ax.set_xticks( range( len( corr_vars ) ) )
-			ax.set_yticks( range( len( corr_vars ) ) )
-			ax.set_xticklabels( corr_vars, rotation=45, ha='right' )
-			ax.set_yticklabels( corr_vars )
-			ax.set_title( 'Correlation Heatmap' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
+				try:
+					if 3 <= len( s ) <= 5000:
+						shapiro_stat, shapiro_p = stats.shapiro( s )
+						q1, q2, q3 = st.columns( 3 )
+						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
+						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
+						q3.metric( 'Shapiro p', f'{shapiro_p:,.4f}' )
+					else:
+						q1, q2, q3 = st.columns( 3 )
+						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
+						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
+						q3.metric( 'Shapiro p', 'n/a' )
+				except Exception:
+					q1, q2, q3 = st.columns( 3 )
+					q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
+					q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
+					q3.metric( 'Shapiro p', 'n/a' )
 		
-		st.subheader( 'Principal Component Analysis' )
+		st.divider( )
+		st.subheader( 'Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
+		
+		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=False )
+		with cor_c1:
+			corr_vars = st.multiselect(
+				'Variables for Correlation',
+				all_num_cols,
+				default=default_pick( all_num_cols, 4 )
+			)
+		
+		with cor_c2:
+			corr_method = st.radio(
+				'Method',
+				options=[ 'Pearson', 'Spearman' ],
+				horizontal=True,
+				key='desc_corr_method'
+			)
+		
+		c3, c4 = st.columns( 2, border=True )
+		if len( corr_vars ) >= 2:
+			df_correlation = analysis_fillna_mean( df_numeric[ corr_vars ] )
+			corr = df_correlation.corr( method=corr_method.lower( ) )
+			
+			with c3:
+				render_table( corr )
+			
+			with c4:
+				fig, ax = plt.subplots( figsize=(7, 6) )
+				sns.heatmap(
+					corr,
+					ax=ax,
+					cmap='coolwarm',
+					vmin=-1,
+					vmax=1,
+					center=0,
+					annot=True,
+					fmt='.2f',
+					square=False,
+					linewidths=0.5,
+					cbar_kws={ 'shrink': 0.85, 'label': 'Correlation' }
+				)
+				ax.set_title(
+					f'Correlation Heatmap — {corr_method}',
+					fontsize=12,
+					fontweight='bold',
+					pad=10
+				)
+				ax.set_xticklabels( ax.get_xticklabels( ), rotation=45, ha='right' )
+				ax.set_yticklabels( ax.get_yticklabels( ), rotation=0 )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
+		else:
+			with c3:
+				st.info( 'Select at least two numeric variables.' )
+			with c4:
+				st.caption( 'Heatmap will appear here once at least two variables are selected.' )
+		
+		st.divider( )
+		st.subheader( 'Principal Component Analysis', help=cfg.PCA )
 		
 		pca_c1, pca_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with pca_c1:
-			pca_vars = st.multiselect( 'Select Components', all_num_cols,
-				default=default_pick( all_num_cols, 4 ) )
+			pca_vars = st.multiselect(
+				'Select Components',
+				all_num_cols,
+				default=default_pick( all_num_cols, 4 )
+			)
 		
 		with pca_c2:
-			n_comp = st.slider( 'Components', 2, min( 6, len( pca_vars ) ), 3 )
-			
+			max_components = max( 2, min( 6, len( pca_vars ) ) ) if pca_vars else 2
+			n_comp = st.slider( 'Components', 2, max_components, min( 3, max_components ) )
+		
+		c5, c6 = st.columns( 2, border=True )
 		if len( pca_vars ) >= 2:
 			X = analysis_fillna_mean( df_numeric[ pca_vars ] )
-			
 			Xs = SKStandardScaler( ).fit_transform( X )
 			pca = PCA( n_components=n_comp ).fit( Xs )
 			
-			df_explained = pd.DataFrame( { 'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
-					'Explained Variance (%)': pca.explained_variance_ratio_ * 100 } )
+			df_explained = pd.DataFrame(
+				{
+						'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
+						'Explained Variance (%)': pca.explained_variance_ratio_ * 100
+				}
+			)
 			
-		c5, c6 = st.columns( 2, border=True )
-		with c5:
-			render_table( df_explained )
-		
-		with c6:
-			fig, ax = plt.subplots( figsize=(7, 5) )
-			ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ], edgecolor='black' )
-			ax.set_ylabel( '% Variance Explained' )
-			ax.set_title( 'PCA Variance Explained' )
-			fig.tight_layout( )
-			st.pyplot( fig, use_container_width=True )
-			plt.close( fig )
+			with c5:
+				render_table( df_explained )
+			
+			with c6:
+				fig, ax = plt.subplots( figsize=(7, 5) )
+				bars = ax.bar(
+					df_explained[ 'Component' ],
+					df_explained[ 'Explained Variance (%)' ],
+					edgecolor='#0f172a',
+					linewidth=0.9
+				)
+				ax.set_ylabel( '% Variance Explained' )
+				ax.set_title( 'PCA Variance Explained', fontsize=12, fontweight='bold' )
+				ax.grid( axis='y', alpha=0.25, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.bar_label( bars, fmt='%.1f', padding=3, fontsize=9 )
+				fig.tight_layout( )
+				st.pyplot( fig, use_container_width=True )
+				plt.close( fig )
+		else:
+			with c5:
+				st.info( 'Select at least two numeric variables for PCA.' )
+			with c6:
+				st.caption( 'Explained variance chart will appear here once at least two variables are selected.' )
 
 # ============================================
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	st.header( cfg.MODE[ 'Inferential Statistics' ] )
+	st.header( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
 	st.divider( )
 	
 	df_dataset = st.session_state.df_dataset
-
+	
 	if df_dataset is None or df_dataset.empty:
 		st.info( 'No data available.' )
 		st.stop( )
@@ -694,122 +1182,495 @@ elif mode == 'Inferential Statistics':
 		st.info( 'No numeric variables available for inferential analysis.' )
 		st.stop( )
 	
-	# ------------ VARIABLE SELECTION
+	st.markdown(
+		"""
+		<style>
+		[data-testid="stMetricLabel"] p {
+			font-size: 0.72rem;
+		}
+		
+		[data-testid="stMetricValue"] {
+			font-size: 0.95rem;
+		}
+		
+		[data-testid="stMetric"] {
+			padding-top: 0.10rem;
+			padding-bottom: 0.10rem;
+		}
+		</style>
+		""",
+		unsafe_allow_html=True
+	)
+	# -------------------------------------------------------------------------------------
+	# INFERENTIAL SUMMARY
+	# -------------------------------------------------------------------------------------
+	st.subheader( 'Inferential Summary' )
+	
+	sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=False )
+	with sum_r1c1:
+		summary_y = st.selectbox(
+			'Summary Outcome Variable',
+			numeric_cols,
+			key='infer_summary_y'
+		)
+	
+	with sum_r1c2:
+		summary_x = st.selectbox(
+			'Summary Second Numeric Variable',
+			[ '<None>' ] + [ c for c in numeric_cols if c != summary_y ],
+			key='infer_summary_x'
+		)
+		if summary_x == '<None>':
+			summary_x = None
+	
+	with sum_r1c3:
+		if categorical_cols:
+			summary_group = st.selectbox(
+				'Summary Grouping Variable',
+				[ '<None>' ] + categorical_cols,
+				key='infer_summary_group'
+			)
+			if summary_group == '<None>':
+				summary_group = None
+		else:
+			summary_group = None
+			st.caption( 'No categorical grouping variables available.' )
+	
+	sum_r2c1, sum_r2c2 = st.columns( 2, border=False )
+	with sum_r2c1:
+		if len( categorical_cols ) >= 2:
+			summary_cat1 = st.selectbox(
+				'Summary First Categorical Variable',
+				categorical_cols,
+				key='infer_summary_cat1'
+			)
+		else:
+			summary_cat1 = None
+			st.caption( 'At least two categorical variables are required.' )
+	
+	with sum_r2c2:
+		if summary_cat1 and len( categorical_cols ) >= 2:
+			summary_cat2 = st.selectbox(
+				'Summary Second Categorical Variable',
+				[ c for c in categorical_cols if c != summary_cat1 ],
+				key='infer_summary_cat2'
+			)
+		else:
+			summary_cat2 = None
+	
+	infer_rows = [ ]
+	
+	# -----------------------------------------------------------------
+	# Normality Summary
+	# -----------------------------------------------------------------
+	summary_series = pd.to_numeric( df_dataset[ summary_y ], errors='coerce' ).dropna( )
+	if len( summary_series ) >= 3:
+		try:
+			shapiro_stat, shapiro_p = stats.shapiro( summary_series )
+			infer_rows.append(
+				{
+						'Analysis': 'Outcome Distribution',
+						'Test': 'Shapiro-Wilk',
+						'Statistic': shapiro_stat,
+						'P-Value': shapiro_p,
+						'DoF': np.nan,
+						'Effect Size': np.nan,
+						'N': float( len( summary_series ) ),
+						'Notes': 'Normality assessment'
+				}
+			)
+		except Exception:
+			pass
+	
+	# -----------------------------------------------------------------
+	# Group Comparison Summary
+	# -----------------------------------------------------------------
+	if summary_group:
+		df_group_summary = df_dataset[ [ summary_group, summary_y ] ].copy( )
+		df_group_summary[ summary_y ] = pd.to_numeric(
+			df_group_summary[ summary_y ], errors='coerce' )
+		df_group_summary = df_group_summary.dropna( subset=[ summary_group, summary_y ] )
+		
+		group_arrays = [ grp[ summary_y ].values for _, grp in
+		                 df_group_summary.groupby( summary_group ) ]
+		valid_group_arrays = [ g for g in group_arrays if len( g ) >= 2 ]
+		
+		if len( valid_group_arrays ) >= 2:
+			try:
+				f_stat, p_anova = stats.f_oneway( *valid_group_arrays )
+				infer_rows.append(
+					{
+							'Analysis': 'Group Comparison',
+							'Test': 'One-Way ANOVA',
+							'Statistic': f_stat,
+							'P-Value': p_anova,
+							'DoF': float( len( valid_group_arrays ) - 1 ),
+							'Effect Size': np.nan,
+							'N': float( sum( len( g ) for g in valid_group_arrays ) ),
+							'Notes': f'{summary_y} by {summary_group}'
+					}
+				)
+			except Exception:
+				pass
+			
+			try:
+				h_stat, p_kw = stats.kruskal( *valid_group_arrays )
+				infer_rows.append(
+					{
+							'Analysis': 'Group Comparison',
+							'Test': 'Kruskal-Wallis',
+							'Statistic': h_stat,
+							'P-Value': p_kw,
+							'DoF': float( len( valid_group_arrays ) - 1 ),
+							'Effect Size': np.nan,
+							'N': float( sum( len( g ) for g in valid_group_arrays ) ),
+							'Notes': f'{summary_y} by {summary_group}'
+					}
+				)
+			except Exception:
+				pass
+	
+	# -----------------------------------------------------------------
+	# Correlation Summary
+	# -----------------------------------------------------------------
+	if summary_x:
+		x_summary = pd.to_numeric( df_dataset[ summary_x ], errors='coerce' )
+		y_summary = pd.to_numeric( df_dataset[ summary_y ], errors='coerce' )
+		pair_mask = x_summary.notna( ) & y_summary.notna( )
+		
+		if pair_mask.sum( ) >= 3:
+			try:
+				pearson_r, pearson_p = stats.pearsonr(
+					x_summary[ pair_mask ], y_summary[ pair_mask ] )
+				infer_rows.append(
+					{
+							'Analysis': 'Association',
+							'Test': 'Pearson Correlation',
+							'Statistic': pearson_r,
+							'P-Value': pearson_p,
+							'DoF': float( pair_mask.sum( ) - 2 ),
+							'Effect Size': abs( pearson_r ),
+							'N': float( pair_mask.sum( ) ),
+							'Notes': f'{summary_y} vs {summary_x}'
+					}
+				)
+			except Exception:
+				pass
+			
+			try:
+				spearman_rho, spearman_p = stats.spearmanr(
+					x_summary[ pair_mask ],
+					y_summary[ pair_mask ]
+				)
+				infer_rows.append(
+					{
+							'Analysis': 'Association',
+							'Test': 'Spearman Correlation',
+							'Statistic': spearman_rho,
+							'P-Value': spearman_p,
+							'DoF': np.nan,
+							'Effect Size': abs( spearman_rho ),
+							'N': float( pair_mask.sum( ) ),
+							'Notes': f'{summary_y} vs {summary_x}'
+					}
+				)
+			except Exception:
+				pass
+	
+	# -----------------------------------------------------------------
+	# Categorical Association Summary
+	# -----------------------------------------------------------------
+	if summary_cat1 and summary_cat2:
+		contingency_summary = pd.crosstab( df_dataset[ summary_cat1 ], df_dataset[ summary_cat2 ] )
+		
+		if not contingency_summary.empty and contingency_summary.shape[ 0 ] >= 2 and \
+				contingency_summary.shape[ 1 ] >= 2:
+			try:
+				chi2_stat, chi2_p, chi2_dof, expected = stats.chi2_contingency( contingency_summary )
+				n_total = contingency_summary.to_numpy( ).sum( )
+				phi2 = chi2_stat / n_total if n_total > 0 else np.nan
+				r_dim, c_dim = contingency_summary.shape
+				cramers_v = (
+						np.sqrt( phi2 / min( c_dim - 1, r_dim - 1 ) )
+						if min( c_dim - 1, r_dim - 1 ) > 0
+						else np.nan
+				)
+				
+				infer_rows.append(
+					{
+							'Analysis': 'Categorical Association',
+							'Test': 'Chi-Square',
+							'Statistic': chi2_stat,
+							'P-Value': chi2_p,
+							'DoF': float( chi2_dof ),
+							'Effect Size': cramers_v,
+							'N': float( n_total ),
+							'Notes': f'{summary_cat1} vs {summary_cat2}'
+					}
+				)
+			except Exception:
+				pass
+	
+	if infer_rows:
+		df_infer_summary = pd.DataFrame( infer_rows )
+		
+		for c in [ 'Statistic', 'P-Value', 'DoF', 'Effect Size', 'N' ]:
+			if c in df_infer_summary.columns:
+				df_infer_summary[ c ] = pd.to_numeric( df_infer_summary[ c ], errors='coerce' )
+		
+		infer_column_config = {
+				'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
+				'Test': st.column_config.TextColumn( 'Test', width='medium' ),
+				'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.4f' ),
+				'P-Value': st.column_config.NumberColumn( 'P-Value', format='%.4g' ),
+				'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
+				'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.4f' ),
+				'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
+				'Notes': st.column_config.TextColumn( 'Notes', width='large' )
+		}
+		
+		st.data_editor(
+			df_infer_summary,
+			use_container_width=True,
+			hide_index=True,
+			disabled=True,
+			column_config=infer_column_config,
+			key='infer_summary_editor'
+		)
+	else:
+		st.info( 'Unable to compute inferential summary for the current selections.' )
+	
+	st.divider( )
+	
+	# -------------------------------------------------------------------------------------
+	# NORMALITY + GROUP COMPARISON
+	# -------------------------------------------------------------------------------------
 	nml_c1, nml_c2 = st.columns( [ 0.5, 0.5 ], border=True, gap='medium' )
 	col_group = None
+	
 	with nml_c1:
-		st.markdown( '##### Normality Test' )
+		st.subheader( 'Normality Test', help=cfg.NORMALITY_TESTING )
 		col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
-		y = df_dataset[ col_y ].dropna( )
+		y = pd.to_numeric( df_dataset[ col_y ], errors='coerce' ).dropna( )
 		
-		# ------------ NORMALITY TEST — SHAPIRO–WILK + Q–Q PLOT
 		if len( y ) >= 3:
 			stat, p_value = stats.shapiro( y )
-			fig, ax = plt.subplots( figsize=(5, 5) )
+			
+			fig, ax = plt.subplots( figsize=(6.25, 5.25) )
 			stats.probplot( y, plot=ax )
-			ax.set_title( f'Q–Q Plot: {col_y} | Shapiro p = {p_value:.3g} | n = {len( y )}',
-				fontsize=12, fontweight='bold', pad=10 )
+			ax.set_title( f'Q–Q Plot — {col_y}', fontsize=12, fontweight='bold', pad=10 )
+			ax.grid( True, alpha=0.20, linestyle='--' )
+			ax.spines[ 'top' ].set_visible( False )
+			ax.spines[ 'right' ].set_visible( False )
 			ax.ticklabel_format( style='plain', axis='both' )
-			ax.get_lines( )[ 0 ].set_marker( 'o' )
-			ax.get_lines( )[ 0 ].set_alpha( 0.7 )
-			ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
+			
+			if len( ax.get_lines( ) ) >= 1:
+				ax.get_lines( )[ 0 ].set_marker( 'o' )
+				ax.get_lines( )[ 0 ].set_alpha( 0.72 )
+				ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
+			
 			fig.tight_layout( )
 			st.pyplot( fig )
 			plt.close( fig )
-			st.text( f'Shapiro–Wilk W = {stat:.4f}, p = {p_value:.4g}' )
+			
+			m1, m2, m3 = st.columns( 3 )
+			m1.metric( 'Count', f'{len( y ):,}' )
+			m2.metric( 'Shapiro W', f'{stat:,.4f}' )
+			m3.metric( 'Shapiro p', f'{p_value:,.4g}' )
+			
+			if p_value < 0.05:
+				st.caption( 'Distribution departs from normality at α = 0.05.' )
+			else:
+				st.caption( 'Distribution does not significantly depart from normality at α = 0.05.' )
 		else:
 			st.info( 'Not enough observations for normality testing.' )
 	
 	with nml_c2:
-		st.markdown( '##### Group Comparison' )
-		col_group = None
+		st.subheader( 'Group Comparison' )
+		
 		if categorical_cols:
 			col_group = st.selectbox( 'Select Grouping Variable (optional)',
 				[ '<None>' ] + categorical_cols )
 			if col_group == '<None>':
 				col_group = None
 		
-		# ------------ GROUP COMPARISON — ANOVA + KRUSKAL–WALLIS
 		if col_group:
-			grouped = [ grp[ col_y ].dropna( ).values for _, grp in
-			            df_dataset.groupby( col_group ) ]
+			df_group = df_dataset[ [ col_group, col_y ] ].copy( )
+			df_group[ col_y ] = pd.to_numeric( df_group[ col_y ], errors='coerce' )
+			df_group = df_group.dropna( subset=[ col_group, col_y ] )
+			
+			grouped = [ grp[ col_y ].values for _, grp in df_group.groupby( col_group ) ]
 			valid_groups = [ g for g in grouped if len( g ) >= 2 ]
+			
 			if len( valid_groups ) >= 2:
 				f_stat, p_anova = stats.f_oneway( *valid_groups )
-				fig, ax = inferential_plot( title=f'ANOVA: {col_y} by {col_group}',
-					subtitle=f'p = {p_anova:.3g}', figsize=(6, 4) )
-				means = df_dataset.groupby( col_group )[ col_y ].mean( )
-				means.plot( kind='bar', ax=ax, edgecolor='black', linewidth=1.2, alpha=0.8 )
+				h_stat, p_kw = stats.kruskal( *valid_groups )
+				
+				fig, ax = plt.subplots( figsize=(6.5, 5.25) )
+				sns.boxplot(
+					data=df_group,
+					x=col_group,
+					y=col_y,
+					ax=ax
+				)
+				sns.stripplot(
+					data=df_group,
+					x=col_group,
+					y=col_y,
+					ax=ax,
+					color='black',
+					alpha=0.45,
+					size=4
+				)
+				ax.set_title( f'Group Comparison — {col_y} by {col_group}',
+					fontsize=12, fontweight='bold', pad=10 )
 				ax.set_xlabel( col_group )
 				ax.set_ylabel( col_y )
+				ax.grid( axis='y', alpha=0.20, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.tick_params( axis='x', rotation=30 )
+				fig.tight_layout( )
 				st.pyplot( fig )
 				plt.close( fig )
-				h_stat, p_kw = stats.kruskal( *valid_groups )
-				A = f'ANOVA: F = {f_stat:.4f}, p = {p_anova:.4f}; '
-				B = f'Kruskal–Wallis: H = {h_stat:.4f}, p- = {p_kw:.4g}'
-				st.text( A + B )
+				
+				g1, g2, g3, g4 = st.columns( 4 )
+				g1.metric( 'Groups', f'{len( valid_groups ):,}' )
+				g2.metric( 'ANOVA F', f'{f_stat:,.4f}' )
+				g3.metric( 'ANOVA p', f'{p_anova:,.4g}' )
+				g4.metric( 'Kruskal p', f'{p_kw:,.4g}' )
+				
+				st.caption(
+					f'Kruskal–Wallis H = {h_stat:.4f}. '
+					f'Use the nonparametric result when normality or homoscedasticity is doubtful.'
+				)
+			else:
+				st.info( 'Not enough valid groups for group comparison.' )
 		else:
-			st.info( 'Not enough valid groups for group comparison.' )
-			
+			st.info( 'Select a grouping variable to compare groups.' )
 	
-	# ------------ CORRELATION ANALYSIS — PEARSON + SPEARMAN
+	# -------------------------------------------------------------------------------------
+	# CORRELATION ANALYSIS
+	# -------------------------------------------------------------------------------------
 	st.divider( )
 	st.subheader( 'Correlation Analysis' )
+	
 	cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 	with cor_c1:
-		col_x2 = st.selectbox( 'Select second numeric variable',
-			[ c for c in numeric_cols if c != col_y ] )
-		
-		x = df_dataset[ col_x2 ]
-		y = df_dataset[ col_y ]
+		candidate_x = [ c for c in numeric_cols if c != col_y ]
+		if not candidate_x:
+			st.info( 'A second numeric variable is required for correlation analysis.' )
+			col_x2 = None
+		else:
+			col_x2 = st.selectbox( 'Select Second Numeric Variable', candidate_x )
 	
 	with cor_c2:
-		mask = x.notna( ) & y.notna( )
-		if mask.sum( ) >= 3:
-			r_p, p_p = stats.pearsonr( x[ mask ], y[ mask ] )
-			r_s, p_s = stats.spearmanr( x[ mask ], y[ mask ] )
-		st.text( f'Pearson r = {r_p:.3f} (p={p_p:.3g}) ')
-		st.text( f'Spearman ρ = {r_s:.3f} (p= {p_s:.3g})' )
-	mask = x.notna( ) & y.notna( )
-	if mask.sum( ) >= 3:
-		r_p, p_p = stats.pearsonr( x[ mask ], y[ mask ] )
-		r_s, p_s = stats.spearmanr( x[ mask ], y[ mask ] )
-		fig, ax = inferential_plot( title=f'Correlation: {col_y} vs {col_x2}',
-			figsize=(6, 4), ref_line=0.0 )
-		ax.scatter( x[ mask ], y[ mask ], alpha=0.7, edgecolor='black' )
-		ax.set_xlabel( col_x2 )
-		ax.set_ylabel( col_y )
-		st.pyplot( fig )
-		plt.close( fig )
-	else:
-		st.info( 'Not enough paired observations for correlation.' )
+		if col_x2:
+			x = pd.to_numeric( df_dataset[ col_x2 ], errors='coerce' )
+			y2 = pd.to_numeric( df_dataset[ col_y ], errors='coerce' )
+			mask = x.notna( ) & y2.notna( )
+			
+			if mask.sum( ) >= 3:
+				r_p, p_p = stats.pearsonr( x[ mask ], y2[ mask ] )
+				r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
+				
+				r1, r2, r3, r4 = st.columns( 4 )
+				r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
+				r2.metric( 'Pearson r', f'{r_p:,.3f}' )
+				r3.metric( 'Pearson p', f'{p_p:,.4g}' )
+				r4.metric( 'Spearman ρ', f'{r_s:,.3f}' )
+				
+				st.caption( f'Spearman p = {p_s:.4g}' )
+			else:
+				st.info( 'Not enough paired observations for correlation.' )
 	
-		
-	# ------------  CATEGORICAL ASSOCIATION — CHI-SQUARE + CRAMÉR’S V
+	if col_x2:
+		mask = x.notna( ) & y2.notna( )
+		if mask.sum( ) >= 3:
+			fig, ax = plt.subplots( figsize=(7, 5.25) )
+			ax.scatter( x[ mask ], y2[ mask ], alpha=0.70, edgecolor='black' )
+			
+			if mask.sum( ) >= 2:
+				try:
+					m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
+					xline = np.linspace( float( x[ mask ].min( ) ), float( x[ mask ].max( ) ), 100 )
+					ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
+				except Exception:
+					pass
+			
+			ax.set_title( f'Correlation — {col_y} vs {col_x2}',
+				fontsize=12, fontweight='bold', pad=10 )
+			ax.set_xlabel( col_x2 )
+			ax.set_ylabel( col_y )
+			ax.grid( True, alpha=0.20, linestyle='--' )
+			ax.spines[ 'top' ].set_visible( False )
+			ax.spines[ 'right' ].set_visible( False )
+			fig.tight_layout( )
+			st.pyplot( fig )
+			plt.close( fig )
+	
+	# -------------------------------------------------------------------------------------
+	# CATEGORICAL ASSOCIATION
+	# -------------------------------------------------------------------------------------
 	st.divider( )
 	st.subheader( 'Categorical Association' )
-	cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-	with cat_c1:
-		if categorical_cols:
-				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
 	
-	with cat_c2:
-		if categorical_cols:
-			col_cat2 = st.selectbox( 'Select Second Categorical Variable',
-						[ c for c in categorical_cols if c != col_cat1 ] )
-			contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
-	
-	st.divider( )
-	
-	if contingency.size > 0:
-			chi2, p_chi, dof, _ = stats.chi2_contingency( contingency )
-			n = contingency.values.sum( )
-			cramers_v = np.sqrt( chi2 / (n * (min( contingency.shape ) - 1)) )
-			st.write( f'Chi-square = {chi2:.4f}, p-value = {p_chi:.4g}, ramér’s V = '
-			          f'{cramers_v:.4f}' )
-			st.data_editor( contingency, use_container_width=True )
+	if not categorical_cols or len( categorical_cols ) < 2:
+		st.info( 'At least two categorical variables are required for categorical association.' )
 	else:
-		st.info( 'Insufficient data for categorical association.' )
+		cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with cat_c1:
+			col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
+		
+		with cat_c2:
+			col_cat2 = st.selectbox(
+				'Select Second Categorical Variable',
+				[ c for c in categorical_cols if c != col_cat1 ]
+			)
+		
+		contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
+		
+		if contingency.empty or contingency.shape[ 0 ] < 2 or contingency.shape[ 1 ] < 2:
+			st.info( 'Not enough categorical variation for chi-square analysis.' )
+		else:
+			chi2, p_chi, dof, expected = stats.chi2_contingency( contingency )
+			n = contingency.to_numpy( ).sum( )
+			phi2 = chi2 / n if n > 0 else np.nan
+			r, k = contingency.shape
+			cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1, r - 1 ) > 0 else np.nan
+			
+			ca1, ca2 = st.columns( 2, border=True )
+			with ca1:
+				render_table( contingency.reset_index( ) )
+			
+			with ca2:
+				fig, ax = plt.subplots( figsize=(7, 5.5) )
+				sns.heatmap(
+					contingency,
+					annot=True,
+					fmt='d',
+					cmap='Blues',
+					linewidths=0.5,
+					ax=ax,
+					cbar_kws={ 'shrink': 0.85, 'label': 'Count' }
+				)
+				ax.set_title(
+					f'Contingency Heatmap — {col_cat1} vs {col_cat2}',
+					fontsize=12,
+					fontweight='bold',
+					pad=10
+				)
+				ax.set_xlabel( col_cat2 )
+				ax.set_ylabel( col_cat1 )
+				fig.tight_layout( )
+				st.pyplot( fig )
+				plt.close( fig )
+			
+			cm1, cm2, cm3, cm4 = st.columns( 4 )
+			cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
+			cm2.metric( 'p-value', f'{p_chi:,.4g}' )
+			cm3.metric( 'DoF', f'{dof:,}' )
+			cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
 
 # ============================================
 # ANOMALY DETECTION MODE

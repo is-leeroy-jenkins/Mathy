@@ -57,7 +57,7 @@ CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Processing', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
           'Feature Engineering', 'Classifications', 'Regressions', 'Clustering', 'Time-Series', 'Database' ]
 
-MODE = { 'Data Profile': '🔰 Overview',
+MODE = { 'Data Profile': '🔰 Schema',
        'Descriptive Statistics': '🔍 Descriptive Statistics',
        'Inferential Statistics': '🧠 Inferential Statistics',
        'Anomaly Detection': '🚨 Anomaly Detection',
@@ -67,3 +67,93 @@ MODE = { 'Data Profile': '🔰 Overview',
        'Clustering': '🕸️ Clustering Models',
        'Time-Series': '⏱️ Time-Series Models',
        'Database': '💻 Database'  }
+
+# ------------- DEFINITIONS ---------------------
+
+PCA = r'''PCA (Principal Component Analysis) is a dimensionality reduction technique and helps
+to reduce the number of features in a dataset while keeping the most important information. It changes
+complex datasets by transforming correlated features into a smaller set of uncorrelated components.
+It removes redundancy, improves computational efficiency and makes data easier to visualize and analyze.
+
+PCA uses linear algebra to transform data into new features called principal components. It finds
+these by calculating eigenvectors (directions) and eigenvalues (importance) from the covariance matrix.
+PCA selects the top components with the highest eigenvalues and projects the data onto them simplify the dataset.
+'''
+
+CCA = r'''Canonical Correlation Analysis (CCA) is a multivariate statistical method used to
+identify and quantify the relationships between two sets of variables, and measured on the same
+subjects. It finds linear combinations of variables—canonical variates—that are maximally correlated.
+
+'''
+
+QQ_PLOT = r'''A Q-Q (Quantile-Quantile) plot is a graphical tool used to assess if a data set
+follows a specific theoretical distribution (commonly normal) by plotting sample quantiles against
+theoretical quantiles. Points falling along a straight 45-degree line indicate a strong match,
+while deviations suggest differences in distribution, skewness, or outliers.
+'''
+
+DESCRIPTIVE_STATISTICS = r'''Descriptive statistics summarize and organize data features using
+measures of central tendency (mean, median, mode), variability (range, standard deviation, variance),
+and shape (skewness). They provide simple, actionable summaries of a sample's characteristics without
+making inferences about a larger population. Key types include measures of distribution, central tendency, and dispersion
+'''
+
+INFERENTIAL_STATISTICS = r'''Inferential statistics allows researchers to draw conclusions, make predictions,
+or generalize findings about a large population based on data analyzed from a smaller sample. It uses
+probability theory and hypothesis testing to determine if patterns are significant or due to chance,
+helping to make informed decisions despite data limitations.
+'''
+
+CORRELATION_ANALYSIS = r'''Correlation analysis is a statistical method used to measure the
+strength and direction of the relationship between two variables, yielding a coefficient (\(r\))
+between -1 and +1. It identifies patterns (positive/negative) but does not prove causation.
+Common types include Pearson (linear), Spearman (monotonic), and Kendall, crucial for finance,
+research, and data analysis
+'''
+
+CORRELATION_STRUCTURE = r'''Correlation structures define the pattern of dependence between observations
+in a dataset, crucial for analyzing repeated measures or clustered data where observations within subjects
+are correlated. Common types include compound symmetry (constant correlation), AR(1) (decaying correlation over time),
+and unstructured (unique correlations)
+'''
+
+NORMALITY_TESTING = r'''A normality test determines if a data set is well-modeled by a normal
+distribution, a key assumption for parametric tests like t-tests and ANOVA. It uses graphical
+methods (Q-Q plots, histograms) or statistical tests (Shapiro-Wilk, Kolmogorov-Smirnov) to check
+if data follows a bell-shaped curve. A non-significant result (\(p > 0.05\)) generally indicates
+the data is normally distributed.
+'''
+
+SHAPIRO_WILK = r'''The Shapiro-Wilk test is a formal statistical method to determine if a data set
+follows a normal distribution (bell-shaped curve), with 'H': Data is normally distributed. A p-value
+< 0.5 indicates the data deviates significantly from normality. It is highly effective for small
+sample sizes (< 50)
+'''
+
+ANOVA = r'''Analysis of Variance (ANOVA) is a statistical method used to compare the means of three
+or more groups to determine if at least one group mean is significantly different from the others.
+It evaluates the importance of1 or more factors by comparing the variance between groups to the
+variance within groups using an F-statistic: (Between-group variance) divided by (Within-group variance).
+
+ANOVA partitions the total variability of a dataset into two components: variance between sample
+means and variance within each sample. If the variance between groups is significantly higher than
+within-group variance, the means are likely different.
+'''
+
+CATEGORICAL_ASSOCIATION_TEST = r'''A categorical association test, primarily the
+Chi-Square Test of Independence, determines if a significant relationship exists between two
+categorical variables by comparing observed frequencies to expected frequencies in a contingency table.
+It tests the null hypothesis that variables are independent (no association). Common methods include
+Chi-Square for large samples, Fisher’s exact test for small samples, and McNemar's for paired data.
+'''
+
+PEARSON_COEFFICIENT = r'''linear relationship between two continuous variables, ranging from -1 to +1.
+A value of +1 indicates a perfect positive linear relationship, -1 a perfect negative relationship,
+and 0 no linear correlation.
+'''
+
+SPEARMAN_COEFFICIENT = r'''Spearman's rank correlation coefficient 'rho' or 's' is a non-parametric
+measure that assesses the strength and direction of the monotonic relationship between two ranked or
+continuous variables. Ranging from -1 to +1, it evaluates how well the relationship can be described
+by a monotonic function, without requiring normally distributed data.
+'''

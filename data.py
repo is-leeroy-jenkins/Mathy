@@ -50,6 +50,8 @@ from pandas.core.interchange.dataframe_protocol import DataFrame
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split as split
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
+import scipy.stats as stats
+from typing import Dict, Optional, List, Any
 from boogr import Error
 from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder
 
@@ -963,4 +965,135 @@ class DataSource( ):
 			exception.cause = 'DataSource'
 			exception.method = 'create_heatmap( self )'
 			raise exception
+	
+	def safe_numeric_series( self, df: pd.DataFrame, col: str ) -> np.ndarray:
+		"""
+		
+			Purpose:
+			________
+			Convert a DataFrame column to a clean numeric NumPy array, dropping any
+			non-numeric or missing values.
+		
+			Parameters:
+			___________
+			df : pd.DataFrame
+				Source DataFrame containing the column.
+			col : str
+				Name of the column to convert.
+		
+			Returns:
+			________
+			np.ndarray
+				One-dimensional array of float values with NaNs removed.
+				
+		"""
+		v = pd.to_numeric( df[ col ], errors="coerce" ).dropna( ).values.astype( float )
+		return v
+
+	def create_profile( self, df: pd.DataFrame, cols: List[ str ] ) -> pd.DataFrame:
+		"""
+		
+			Purpose:
+			________
+			Compute an extended descriptive statistics profile for a set of numeric
+			columns, including tails, dispersion measures, and simple outlier rates.
+		
+			Parameters:
+			___________
+			df : pd.DataFrame
+				DataFrame containing the numeric columns.
+			cols : List[str]
+				List of column names to profile.
+		
+			Returns:
+			________
+			pd.DataFrame
+				DataFrame with one row per feature and many descriptive statistics
+				columns (mean, std, quantiles, skew, kurtosis, outlier rates, etc.).
+				
+		"""
+		rows: List[ Dict[ str, Any ] ] = [ ]
+		n = df.shape[ 0 ]
+		percentiles = [ 0, 1, 5, 10, 25, 50, 75, 90, 95, 99, 100 ]
+		
+		for c in cols:
+			v = self.safe_numeric_series( df, c )
+			non_missing = int( np.isfinite( v ).sum( ) )
+			missing = int( n - non_missing )
+			if non_missing == 0:
+				continue
+			
+			q_vals = np.nanpercentile( v, percentiles )
+			q = dict( zip( percentiles, q_vals ) )
+			
+			mean = float( np.nanmean( v ) )
+			std = float( np.nanstd( v, ddof=0 ) )
+			var = float( np.nanvar( v, ddof=0 ) )
+			med = float( np.nanmedian( v ) )
+			mad = float( np.nanmedian( np.abs( v - med ) ) )
+			iqr = float( q[ 75 ] - q[ 25 ] )
+			rng = float( q[ 100 ] - q[ 0 ] )
+			
+			skew = float( stats.skew( v ) ) if v.size >= 3 else 0.0
+			kurt = float( stats.kurtosis( v ) ) if v.size >= 4 else 0.0
+			zero_pct = float( (v == 0).mean( ) * 100.0 )
+			
+			lo = q[ 25 ] - 1.5 * iqr
+			hi = q[ 75 ] + 1.5 * iqr
+			out_iqr = float( ((v < lo) | (v > hi)).mean( ) * 100.0 )
+			
+			z = (v - mean) / (std + 1e-12)
+			out_z3 = float( (np.abs( z ) > 3.0).mean( ) * 100.0 )
+			
+			normal_p: Optional[ float ] = None
+			try:
+				if 8 <= v.size <= 5000:
+					_, p = stats.shapiro( v )
+					normal_p = float( p )
+				elif v.size > 5000:
+					_, p = stats.normaltest( v[ :5000 ] )
+					normal_p = float( p )
+				elif v.size >= 8:
+					_, p = stats.normaltest( v )
+					normal_p = float( p )
+			except Exception:
+				normal_p = None
+			
+			rows.append(
+				{
+						"feature": c,
+						"count": int( v.size ),
+						"missing_pct": float( (missing / n) * 100.0 ) if n else 0.0,
+						"mean": mean,
+						"std": std,
+						"var": var,
+						"min": float( q[ 0 ] ),
+						"p01": float( q[ 1 ] ),
+						"p05": float( q[ 5 ] ),
+						"p10": float( q[ 10 ] ),
+						"q1": float( q[ 25 ] ),
+						"median": float( q[ 50 ] ),
+						"q3": float( q[ 75 ] ),
+						"p90": float( q[ 90 ] ),
+						"p95": float( q[ 95 ] ),
+						"p99": float( q[ 99 ] ),
+						"max": float( q[ 100 ] ),
+						"iqr": iqr,
+						"range": rng,
+						"mad": mad,
+						"skew": skew,
+						"kurtosis": kurt,
+						"zero_pct": zero_pct,
+						"outlier_iqr_pct": out_iqr,
+						"outlier_z3_pct": out_z3,
+						"normality_p": normal_p,
+				}
+			)
+		
+		out = pd.DataFrame( rows )
+		if out.empty:
+			return out
+		return out.sort_values(
+			[ "missing_pct", "outlier_iqr_pct" ], ascending=[ True, False ]
+		)
             
