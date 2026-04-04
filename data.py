@@ -93,8 +93,8 @@ def entropy( y: np.ndarray ) -> float | None:
         exception.cause = 'data'
         exception.method = 'entropy( y: np.ndarray ) -> float '
         raise exception
+ 
         
-
 def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float | None:
     """
     
@@ -136,6 +136,7 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
         exception.cause = 'data'
         exception.method = 'information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float'
         raise exception
+
 
 def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, float ] | None:
 	'''
@@ -209,6 +210,7 @@ def gini_impurity( p: float ) -> float | None:
 		exception.cause = 'data'
 		exception.method = 'gini_impurity( p: float ) -> float'
 		raise exception
+
 
 def decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 ):
 	"""
@@ -372,7 +374,6 @@ def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray 
 		exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple')
 		raise exception
 		
-
 def misclassification_error( p: float ) -> float | None:
     '''
 
@@ -399,8 +400,8 @@ def misclassification_error( p: float ) -> float | None:
         exception.cause = 'data'
         exception.method = 'misclassification_error( p: float ) -> float'
         raise exception
-        
 
+   
 def sigmoid( z: float ) -> float | None:
     '''
 
@@ -432,6 +433,7 @@ def sigmoid( z: float ) -> float | None:
         exception.cause = 'data'
         exception.method = 'sigmoid( z: float ) -> float'
         raise exception
+
 
 class DataSource( ):
 	"""
