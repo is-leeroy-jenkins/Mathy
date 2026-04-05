@@ -250,8 +250,18 @@ class LeastSquares( Regression ):
 	max_error: Optional[ float ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	fit_intercept: bool
+	copy_X: bool
+	tol: float
+	n_jobs: Optional[ int ]
+	positive: bool
+	X_train: Optional[ np.ndarray ]
+	X_test: Optional[ np.ndarray ]
+	y_train: Optional[ np.ndarray ]
+	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, fit: bool = True, copy: bool = True ) -> None:
+	def __init__( self, fit: bool = True, copy: bool = True, tol: float = 1e-6,
+			jobs: Optional[ int ] = None, positive: bool = False ) -> None:
 		"""
 		
 	        Purpose:
@@ -262,6 +272,9 @@ class LeastSquares( Regression ):
 	        -----------
 	        fit (bool): Specifies whether to calculate the intercept for the model.
 	        copy (bool): Specifies whether to copy the input feature matrix.
+	        tol (float): Solver precision used by sparse least-squares routines.
+	        jobs (Optional[int]): Number of parallel jobs used when supported by sklearn.
+	        positive (bool): Specifies whether coefficients are constrained to be positive.
 		
 	        Returns:
 	        --------
@@ -271,7 +284,16 @@ class LeastSquares( Regression ):
 		super( ).__init__( )
 		self.fit_intercept = fit
 		self.copy_X = copy
-		self.model = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X )
+		self.tol = tol
+		self.n_jobs = jobs
+		self.positive = positive
+		self.model = skl.LinearRegression(
+			fit_intercept=self.fit_intercept,
+			copy_X=self.copy_X,
+			tol=self.tol,
+			n_jobs=self.n_jobs,
+			positive=self.positive
+		)
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -282,6 +304,10 @@ class LeastSquares( Regression ):
 		self.max_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
+		self.X_train = None
+		self.X_test = None
+		self.y_train = None
+		self.y_test = None
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -304,6 +330,9 @@ class LeastSquares( Regression ):
 				'prediction',
 				'fit_intercept',
 				'copy_X',
+				'tol',
+				'n_jobs',
+				'positive',
 				'weights',
 				'intercept',
 				'features',
@@ -342,8 +371,7 @@ class LeastSquares( Regression ):
         """
 		if not hasattr( self.model, 'intercept_' ):
 			raise AttributeError( 'The data has not been trained!' )
-		else:
-			return self.model.intercept_
+		return self.model.intercept_
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -364,8 +392,7 @@ class LeastSquares( Regression ):
         """
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The data has not been trained!' )
-		else:
-			return self.model.coef_
+		return self.model.coef_
 	
 	@property
 	def features( self ) -> int:
@@ -386,11 +413,10 @@ class LeastSquares( Regression ):
         """
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The data has not been trained!' )
-		else:
-			return self.model.n_features_in_
+		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -413,9 +439,13 @@ class LeastSquares( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			self.X_train, self.X_test, self.y_train, self.y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random
+			)
+			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -444,6 +474,14 @@ class LeastSquares( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.prediction = None
+			
+			if self.X_train is not None and self.y_train is not None:
+				self.training_score = self.model.score( self.X_train, self.y_train )
+			
+			if self.X_test is not None and self.y_test is not None:
+				self.testing_score = self.model.score( self.X_test, self.y_test )
+			
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -484,7 +522,7 @@ class LeastSquares( Regression ):
 		
 	        Purpose:
 	        --------
-	        Compute training, testing, and R-squared scores for the fitted OLS model.
+	        Compute regression scores for the fitted OLS model.
 		
 	        Parameters:
 	        -----------
@@ -493,26 +531,25 @@ class LeastSquares( Regression ):
 		
 	        Returns:
 	        --------
-	        pd.DataFrame | None: A DataFrame containing training, testing, and R-squared scores.
+	        pd.DataFrame | None: A DataFrame containing score values.
 		
         """
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training': self.training_score,
-					'Testing': self.testing_score,
-					'R-Squared': self.r2_score,
-			}
-			
-			_index = range( len( _metrics.items( ) ) )
-			df_metrics = pd.DataFrame( _metrics, index=_index )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -545,19 +582,34 @@ class LeastSquares( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.max_error = max_error( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
-			
-			_data = pd.Series( _metrics )
-			df_metrics = pd.DataFrame( _data )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [
+								'Training Score',
+								'Testing Score',
+								'R-Squared',
+								'MAE',
+								'MSE',
+								'RMSE',
+								'EVS',
+								'MAX'
+						],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score,
+								self.mean_absolute_error,
+								self.mean_squared_error,
+								self.root_mean_squared_error,
+								self.explained_variance_score,
+								self.max_error
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -586,16 +638,34 @@ class LeastSquares( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			y_pred = self.project( X )
 			_training = self.training_score if self.training_score is not None else 0.0
 			_testing = self.testing_score if self.testing_score is not None else 0.0
-			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
-			y_pred = self.model.predict( X )
+			_text = (
+					f'Training Score = {_training:.1%}\n'
+					f'Testing Score = {_testing:.1%}\n'
+			)
+			
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
-				label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text,
-				fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -608,7 +678,7 @@ class LeastSquares( Regression ):
 			exception.cause = 'LeastSquares'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			raise exception
-			
+	
 		
 class Ridge( Regression ):
 	"""
@@ -641,12 +711,25 @@ class Ridge( Regression ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	max_error: Optional[ float ]
 	alpha: float
+	fit_intercept: bool
+	copy_X: bool
+	max_iter: Optional[ int ]
+	tol: float
 	solver: str
+	positive: bool
+	random_state: Optional[ int ]
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	X_train: Optional[ np.ndarray ]
+	X_test: Optional[ np.ndarray ]
+	y_train: Optional[ np.ndarray ]
+	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, solver: str='auto', iters: int=1000, rando: int=42 ) -> None:
+	def __init__( self, alpha: float = 1.0, fit: bool = True, copy: bool = True,
+			iters: Optional[ int ] = None, tol: float = 1e-4, solver: str = 'auto',
+			positive: bool = False, rando: Optional[ int ] = None ) -> None:
 		"""
 		
 	        Purpose:
@@ -656,9 +739,13 @@ class Ridge( Regression ):
 	        Parameters:
 	        -----------
 	        alpha (float): Regularization strength.
+	        fit (bool): Specifies whether to calculate the intercept for the model.
+	        copy (bool): Specifies whether to copy the input feature matrix.
+	        iters (Optional[int]): Maximum number of iterations for iterative solvers.
+	        tol (float): Precision of the solution for iterative solvers.
 	        solver (str): Solver used by the Ridge estimator.
-	        iters (int): Maximum number of iterations for iterative solvers.
-	        rando (int): Random seed used by supported solvers.
+	        positive (bool): Specifies whether to constrain coefficients to be positive.
+	        rando (Optional[int]): Random seed used by supported stochastic solvers.
 		
 	        Returns:
 	        --------
@@ -667,11 +754,23 @@ class Ridge( Regression ):
         """
 		super( ).__init__( )
 		self.alpha = alpha
-		self.solver = solver
+		self.fit_intercept = fit
+		self.copy_X = copy
 		self.max_iter = iters
+		self.tol = tol
+		self.solver = solver
+		self.positive = positive
 		self.random_state = rando
-		self.model = skl.Ridge( alpha=self.alpha, solver=self.solver, max_iter=self.max_iter,
-			random_state=self.random_state )
+		self.model = skl.Ridge(
+			alpha=self.alpha,
+			fit_intercept=self.fit_intercept,
+			copy_X=self.copy_X,
+			max_iter=self.max_iter,
+			tol=self.tol,
+			solver=self.solver,
+			positive=self.positive,
+			random_state=self.random_state
+		)
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -679,9 +778,14 @@ class Ridge( Regression ):
 		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 		self.max_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
+		self.X_train = None
+		self.X_test = None
+		self.y_train = None
+		self.y_test = None
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -703,10 +807,16 @@ class Ridge( Regression ):
 				'model',
 				'prediction',
 				'alpha',
-				'solver',
-				'random_state',
+				'fit_intercept',
+				'copy_X',
 				'max_iter',
+				'tol',
+				'solver',
+				'positive',
+				'random_state',
 				'weights',
+				'intercept',
+				'features',
 				'mean_absolute_error',
 				'mean_squared_error',
 				'root_mean_squared_error',
@@ -722,6 +832,27 @@ class Ridge( Regression ):
 				'training_score',
 				'testing_score'
 		]
+	
+	@property
+	def intercept( self ) -> np.ndarray | float | None:
+		"""
+		
+	        Purpose:
+	        --------
+	        Return the intercept term learned by the Ridge model.
+		
+	        Parameters:
+	        -----------
+	        None
+		
+	        Returns:
+	        --------
+	        np.ndarray | float | None: The learned intercept term.
+		
+        """
+		if not hasattr( self.model, 'intercept_' ):
+			raise AttributeError( 'The model has not been trained!' )
+		return self.model.intercept_
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -742,11 +873,32 @@ class Ridge( Regression ):
         """
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model has not been trained!' )
-		else:
-			return self.model.coef_
+		return self.model.coef_
+	
+	@property
+	def features( self ) -> int:
+		"""
+		
+	        Purpose:
+	        --------
+	        Return the number of features seen during training.
+		
+	        Parameters:
+	        -----------
+	        None
+		
+	        Returns:
+	        --------
+	        int: The number of fitted input features.
+		
+        """
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model has not been trained!' )
+		return self.model.n_features_in_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -769,9 +921,13 @@ class Ridge( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y,
-				test_size=size, random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			self.X_train, self.X_test, self.y_train, self.y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random
+			)
+			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -800,6 +956,14 @@ class Ridge( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.prediction = None
+			
+			if self.X_train is not None and self.y_train is not None:
+				self.training_score = self.model.score( self.X_train, self.y_train )
+			
+			if self.X_test is not None and self.y_test is not None:
+				self.testing_score = self.model.score( self.X_test, self.y_test )
+			
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -856,19 +1020,18 @@ class Ridge( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
-			
-			_index = range( len( _metrics.items( ) ) )
-			df_metrics = pd.DataFrame( _metrics, index=_index )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -901,19 +1064,37 @@ class Ridge( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.max_error = max_error( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
-			
-			_data = pd.Series( _metrics )
-			df_metrics = pd.DataFrame( _data )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [
+								'Training Score',
+								'Testing Score',
+								'R-Squared',
+								'MAE',
+								'MSE',
+								'RMSE',
+								'EVS',
+								'Median AE',
+								'MAX'
+						],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score,
+								self.mean_absolute_error,
+								self.mean_squared_error,
+								self.root_mean_squared_error,
+								self.explained_variance_score,
+								self.median_absolute_error,
+								self.max_error
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -942,16 +1123,34 @@ class Ridge( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
+			y_pred = self.project( X )
 			_training = self.training_score if self.training_score is not None else 0.0
 			_testing = self.testing_score if self.testing_score is not None else 0.0
-			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
-			y_pred = self.model.predict( X )
+			_text = (
+					f'Training Score = {_training:.1%}\n'
+					f'Testing Score = {_testing:.1%}\n'
+			)
+			
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
-				label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -994,13 +1193,28 @@ class Lasso( Regression ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
+	max_error: Optional[ float ]
 	alpha: float
+	fit_intercept: bool
+	precompute: bool
+	copy_X: bool
 	max_iter: int
-	random_state: int
+	tol: float
+	warm_start: bool
+	positive: bool
+	random_state: Optional[ int ]
+	selection: str
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	X_train: Optional[ np.ndarray ]
+	X_test: Optional[ np.ndarray ]
+	y_train: Optional[ np.ndarray ]
+	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.01, iters: int=500, rando: int=42 ) -> None:
+	def __init__( self, alpha: float = 0.01, fit: bool = True, precompute: bool = False,
+			copy: bool = True, iters: int = 1000, tol: float = 1e-4, warm: bool = False,
+			positive: bool = False, rando: Optional[ int ] = None,
+			select: str = 'cyclic' ) -> None:
 		"""
 		
 	        Purpose:
@@ -1010,8 +1224,15 @@ class Lasso( Regression ):
 	        Parameters:
 	        -----------
 	        alpha (float): Regularization strength for the L1 penalty.
+	        fit (bool): Specifies whether to calculate the intercept for the model.
+	        precompute (bool): Specifies whether to use a precomputed Gram matrix.
+	        copy (bool): Specifies whether to copy the input feature matrix.
 	        iters (int): Maximum number of iterations.
-	        rando (int): Random seed used by supported routines.
+	        tol (float): Tolerance used by the coordinate descent optimizer.
+	        warm (bool): Specifies whether to reuse the previous solution as initialization.
+	        positive (bool): Specifies whether coefficients are constrained to be positive.
+	        rando (Optional[int]): Random seed used when selection is random.
+	        select (str): Coefficient update strategy used by the optimizer.
 		
 	        Returns:
 	        --------
@@ -1020,12 +1241,26 @@ class Lasso( Regression ):
         """
 		super( ).__init__( )
 		self.alpha = alpha
+		self.fit_intercept = fit
+		self.precompute = precompute
+		self.copy_X = copy
 		self.max_iter = iters
+		self.tol = tol
+		self.warm_start = warm
+		self.positive = positive
 		self.random_state = rando
+		self.selection = select
 		self.model = skl.Lasso(
 			alpha=self.alpha,
+			fit_intercept=self.fit_intercept,
+			precompute=self.precompute,
+			copy_X=self.copy_X,
 			max_iter=self.max_iter,
-			random_state=self.random_state
+			tol=self.tol,
+			warm_start=self.warm_start,
+			positive=self.positive,
+			random_state=self.random_state,
+			selection=self.selection
 		)
 		self.prediction = None
 		self.transformed_data = None
@@ -1034,9 +1269,14 @@ class Lasso( Regression ):
 		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 		self.max_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
+		self.X_train = None
+		self.X_test = None
+		self.y_train = None
+		self.y_test = None
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1058,9 +1298,18 @@ class Lasso( Regression ):
 				'model',
 				'prediction',
 				'alpha',
+				'fit_intercept',
+				'precompute',
+				'copy_X',
 				'max_iter',
+				'tol',
+				'warm_start',
+				'positive',
 				'random_state',
+				'selection',
 				'weights',
+				'intercept',
+				'features',
 				'mean_absolute_error',
 				'mean_squared_error',
 				'root_mean_squared_error',
@@ -1076,6 +1325,27 @@ class Lasso( Regression ):
 				'training_score',
 				'testing_score'
 		]
+	
+	@property
+	def intercept( self ) -> np.ndarray | float | None:
+		"""
+		
+	        Purpose:
+	        --------
+	        Return the intercept term learned by the Lasso model.
+		
+	        Parameters:
+	        -----------
+	        None
+		
+	        Returns:
+	        --------
+	        np.ndarray | float | None: The learned intercept term.
+		
+        """
+		if not hasattr( self.model, 'intercept_' ):
+			raise AttributeError( 'The model has not been trained!' )
+		return self.model.intercept_
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
@@ -1096,11 +1366,32 @@ class Lasso( Regression ):
         """
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model has not been trained!' )
-		else:
-			return self.model.coef_
+		return self.model.coef_
+	
+	@property
+	def features( self ) -> int:
+		"""
+		
+	        Purpose:
+	        --------
+	        Return the number of features seen during training.
+		
+	        Parameters:
+	        -----------
+	        None
+		
+	        Returns:
+	        --------
+	        int: The number of fitted input features.
+		
+        """
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model has not been trained!' )
+		return self.model.n_features_in_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -1123,8 +1414,13 @@ class Lasso( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			self.X_train, self.X_test, self.y_train, self.y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random
+			)
+			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1153,6 +1449,14 @@ class Lasso( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.prediction = None
+			
+			if self.X_train is not None and self.y_train is not None:
+				self.training_score = self.model.score( self.X_train, self.y_train )
+			
+			if self.X_test is not None and self.y_test is not None:
+				self.testing_score = self.model.score( self.X_test, self.y_test )
+			
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1209,16 +1513,18 @@ class Lasso( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = { 'Training Score': self.training_score, 'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score, }
-			
-			_index = range( len( _metrics.items( ) ) )
-			df_metrics = pd.DataFrame( _metrics, index=_index )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1251,19 +1557,37 @@ class Lasso( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.max_error = max_error( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
-			
-			_data = pd.Series( _metrics )
-			df_metrics = pd.DataFrame( _data )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [
+								'Training Score',
+								'Testing Score',
+								'R-Squared',
+								'MAE',
+								'MSE',
+								'RMSE',
+								'EVS',
+								'Median AE',
+								'MAX'
+						],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score,
+								self.mean_absolute_error,
+								self.mean_squared_error,
+								self.root_mean_squared_error,
+								self.explained_variance_score,
+								self.median_absolute_error,
+								self.max_error
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1295,13 +1619,27 @@ class Lasso( Regression ):
 			_training = self.training_score if self.training_score is not None else 0.0
 			_testing = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' })
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
-				label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text,
-				fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1339,28 +1677,47 @@ class ElasticNet( Regression ):
 	r2_score: Optional[ float ]
 	explained_variance_score: Optional[ float ]
 	median_absolute_error: Optional[ float ]
-	random_state: Optional[ int ]
-	ratio: float
+	max_error: Optional[ float ]
 	alpha: float
+	l1_ratio: float
+	fit_intercept: bool
+	precompute: bool
 	max_iter: int
+	copy_X: bool
+	tol: float
+	warm_start: bool
+	positive: bool
+	random_state: Optional[ int ]
 	selection: str
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
+	X_train: Optional[ np.ndarray ]
+	X_test: Optional[ np.ndarray ]
+	y_train: Optional[ np.ndarray ]
+	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, ratio: float=0.5, max: int=200,
-			rando: int=None, select: str='random' ) -> None:
+	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, fit: bool = True,
+			precompute: bool = False, iters: int = 1000, copy: bool = True,
+			tol: float = 1e-4, warm: bool = False, positive: bool = False,
+			rando: Optional[ int ] = None, select: str = 'cyclic' ) -> None:
 		"""
 		
 	        Purpose:
 	        --------
-	        Initialize the ElasticNet regression wrapper.
+	        Initialize the Elastic Net regression wrapper.
 		
 	        Parameters:
 	        -----------
 	        alpha (float): Overall regularization strength.
-	        ratio (float): Mixing parameter where 0.0 trends toward Ridge and 1.0 equals Lasso.
-	        max (int): Maximum number of iterations.
-	        rando (int): Random seed used by supported routines.
+	        ratio (float): Mixing parameter between L1 and L2 penalties.
+	        fit (bool): Specifies whether to calculate the intercept for the model.
+	        precompute (bool): Specifies whether to use a precomputed Gram matrix.
+	        iters (int): Maximum number of iterations.
+	        copy (bool): Specifies whether to copy the input feature matrix.
+	        tol (float): Tolerance used by the coordinate descent optimizer.
+	        warm (bool): Specifies whether to reuse the previous solution as initialization.
+	        positive (bool): Specifies whether coefficients are constrained to be positive.
+	        rando (Optional[int]): Random seed used when selection is random.
 	        select (str): Coefficient update strategy used by the optimizer.
 		
 	        Returns:
@@ -1370,12 +1727,29 @@ class ElasticNet( Regression ):
         """
 		super( ).__init__( )
 		self.alpha = alpha
-		self.ratio = ratio
+		self.l1_ratio = ratio
+		self.fit_intercept = fit
+		self.precompute = precompute
+		self.max_iter = iters
+		self.copy_X = copy
+		self.tol = tol
+		self.warm_start = warm
+		self.positive = positive
 		self.random_state = rando
 		self.selection = select
-		self.max_iter = max
-		self.model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.ratio,
-			random_state=self.random_state, max_iter=self.max_iter, selection=self.selection )
+		self.model = skl.ElasticNet(
+			alpha=self.alpha,
+			l1_ratio=self.l1_ratio,
+			fit_intercept=self.fit_intercept,
+			precompute=self.precompute,
+			max_iter=self.max_iter,
+			copy_X=self.copy_X,
+			tol=self.tol,
+			warm_start=self.warm_start,
+			positive=self.positive,
+			random_state=self.random_state,
+			selection=self.selection
+		)
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -1383,9 +1757,14 @@ class ElasticNet( Regression ):
 		self.root_mean_squared_error = 0.0
 		self.r2_score = 0.0
 		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
 		self.max_error = 0.0
 		self.training_score = 0.0
 		self.testing_score = 0.0
+		self.X_train = None
+		self.X_test = None
+		self.y_train = None
+		self.y_test = None
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1407,11 +1786,19 @@ class ElasticNet( Regression ):
 				'model',
 				'prediction',
 				'alpha',
-				'ratio',
+				'l1_ratio',
+				'fit_intercept',
+				'precompute',
+				'max_iter',
+				'copy_X',
+				'tol',
+				'warm_start',
+				'positive',
 				'random_state',
 				'selection',
-				'max_iter',
 				'weights',
+				'intercept',
+				'features',
 				'mean_absolute_error',
 				'mean_squared_error',
 				'root_mean_squared_error',
@@ -1429,12 +1816,33 @@ class ElasticNet( Regression ):
 		]
 	
 	@property
+	def intercept( self ) -> np.ndarray | float | None:
+		"""
+		
+	        Purpose:
+	        --------
+	        Return the intercept term learned by the Elastic Net model.
+		
+	        Parameters:
+	        -----------
+	        None
+		
+	        Returns:
+	        --------
+	        np.ndarray | float | None: The learned intercept term.
+		
+        """
+		if not hasattr( self.model, 'intercept_' ):
+			raise AttributeError( 'The model has not been trained!' )
+		return self.model.intercept_
+	
+	@property
 	def weights( self ) -> np.ndarray | None:
 		"""
 		
 	        Purpose:
 	        --------
-	        Return the learned ElasticNet regression coefficients.
+	        Return the learned Elastic Net regression coefficients.
 		
 	        Parameters:
 	        -----------
@@ -1447,11 +1855,32 @@ class ElasticNet( Regression ):
         """
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model has not been trained!' )
-		else:
-			return self.model.coef_
+		return self.model.coef_
+	
+	@property
+	def features( self ) -> int:
+		"""
+		
+	        Purpose:
+	        --------
+	        Return the number of features seen during training.
+		
+	        Parameters:
+	        -----------
+	        None
+		
+	        Returns:
+	        --------
+	        int: The number of fitted input features.
+		
+        """
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model has not been trained!' )
+		return self.model.n_features_in_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -1474,8 +1903,13 @@ class ElasticNet( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
-			return (X_train, X_test, y_train, y_test)
+			self.X_train, self.X_test, self.y_train, self.y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random
+			)
+			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1488,7 +1922,7 @@ class ElasticNet( Regression ):
 		
 	        Purpose:
 	        --------
-	        Fit the ElasticNet regression model.
+	        Fit the Elastic Net regression model.
 		
 	        Parameters:
 	        -----------
@@ -1504,6 +1938,14 @@ class ElasticNet( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.prediction = None
+			
+			if self.X_train is not None and self.y_train is not None:
+				self.training_score = self.model.score( self.X_train, self.y_train )
+			
+			if self.X_test is not None and self.y_test is not None:
+				self.testing_score = self.model.score( self.X_test, self.y_test )
+			
 			return self
 		except Exception as e:
 			exception = Error( e )
@@ -1517,7 +1959,7 @@ class ElasticNet( Regression ):
 		
 	        Purpose:
 	        --------
-	        Predict continuous target values using the trained ElasticNet model.
+	        Predict continuous target values using the trained Elastic Net model.
 		
 	        Parameters:
 	        -----------
@@ -1544,7 +1986,7 @@ class ElasticNet( Regression ):
 		
 	        Purpose:
 	        --------
-	        Compute training, testing, and R-squared scores for the fitted ElasticNet model.
+	        Compute training, testing, and R-squared scores for the fitted Elastic Net model.
 		
 	        Parameters:
 	        -----------
@@ -1560,19 +2002,18 @@ class ElasticNet( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
-			X_training, X_testing, y_training, y_testing = split( X, y, test_size=0.2 )
-			self.training_score = self.model.score( X_training, y_training )
-			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
-			
-			idx = range( len( _metrics.items( ) ) )
-			df_metrics = pd.DataFrame( _metrics, index=idx )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1586,7 +2027,7 @@ class ElasticNet( Regression ):
 		
 	        Purpose:
 	        --------
-	        Evaluate the fitted ElasticNet model using multiple regression metrics.
+	        Evaluate the fitted Elastic Net model using multiple regression metrics.
 		
 	        Parameters:
 	        -----------
@@ -1605,19 +2046,37 @@ class ElasticNet( Regression ):
 			self.mean_absolute_error = mean_absolute_error( y, self.prediction )
 			self.mean_squared_error = mean_squared_error( y, self.prediction )
 			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
-			self.max_error = max_error( y, self.prediction )
+			self.r2_score = r2_score( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
+			self.median_absolute_error = median_absolute_error( y, self.prediction )
+			self.max_error = max_error( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
-			
-			_data = pd.Series( _metrics )
-			df_metrics = pd.DataFrame( _data )
+			df_metrics = pd.DataFrame(
+				{
+						'Metric': [
+								'Training Score',
+								'Testing Score',
+								'R-Squared',
+								'MAE',
+								'MSE',
+								'RMSE',
+								'EVS',
+								'Median AE',
+								'MAX'
+						],
+						'Value': [
+								self.training_score if self.training_score is not None else np.nan,
+								self.testing_score if self.testing_score is not None else np.nan,
+								self.r2_score,
+								self.mean_absolute_error,
+								self.mean_squared_error,
+								self.root_mean_squared_error,
+								self.explained_variance_score,
+								self.median_absolute_error,
+								self.max_error
+						]
+				}
+			)
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1649,7 +2108,7 @@ class ElasticNet( Regression ):
 			_training = self.training_score if self.training_score is not None else 0.0
 			_testing = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
-			y_pred = self.model.predict( X )
+			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
 			sns.regplot(
 				x=y,

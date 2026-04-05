@@ -87,7 +87,6 @@ import base64
 from pathlib import Path
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import StandardScaler as SKStandardScaler
-from sklearn.decomposition import PCA
 from statsmodels.stats.power import TTestPower
 from sklearn.neighbors import NearestNeighbors
 from sklearn.svm import OneClassSVM
@@ -129,6 +128,19 @@ from transformers import (
 	HashVectorizer,
 	DictVectorizer,
 	FeatureHasher
+)
+
+from classifications import (
+	Perceptron,
+	LeastSquares,
+	LogisticRegression,
+	DecisionTree,
+	SupportVector,
+	RandomForest,
+	NearestNeighbor,
+	BaggingModel,
+	AdaptiveBoost,
+	GradientBoost
 )
 
 from features import (
@@ -901,7 +913,7 @@ if mode == 'Data Profile':
 		
 		st.divider( )
 		st.subheader( 'Records' )
-		with st.expander( 'Editor', expanded=True ):
+		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
 			with top_c1:
 				row_idx = st.number_input( 'Select Row Index', min_value=0, max_value=len( df_dataset ) - 1,
@@ -1045,11 +1057,11 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		st.divider( )
 		st.subheader( 'Labels' )
-		with st.expander( label='Editor', expanded=True ):
+		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
 				drop_cols = st.multiselect( 'Columns to Drop', df_dataset.columns.tolist( ) )
-				if st.button( 'Apply Column Drop' ):
+				if st.button( 'Drop Column' ):
 					if len( drop_cols ) == len( df_dataset.columns ):
 						st.error( 'Cannot Drop All Columns.' )
 					else:
@@ -1060,7 +1072,7 @@ if mode == 'Data Profile':
 			with c2:
 				rename_col = st.selectbox( 'Rename Column', [ '<None>' ] + df_dataset.columns.tolist( ) )
 				new_name = st.text_input( 'New Column Name' )
-				if st.button( 'Apply Rename' ):
+				if st.button( 'Rename' ):
 					if rename_col != '<None>' and new_name:
 						if new_name in df_dataset.columns:
 							st.error( 'Column Name Already Exists.' )
@@ -1071,15 +1083,16 @@ if mode == 'Data Profile':
 							
 			r1, r2 = st.columns( 2 )
 			with r1:
-				if st.button( 'Reset to Original' ):
+				if st.button( label='Reset to Original', icon='🔄' ):
 					st.session_state.df_dataset = st.session_state.raw_df.copy( )
 					st.session_state.pipeline_log.clear( )
 					log_step( 'Reset dataset to original' )
 					st.rerun( )
 			
 			with r2:
-				st.download_button( 'Export Dataset (CSV)', st.session_state.df_dataset.to_csv( index=False ),
-					'dataset.csv', 'text/csv' )
+				st.download_button( 'Export Dataset (CSV)',
+					st.session_state.df_dataset.to_csv( index=False ),
+					'dataset.csv', 'text/csv', icon='📥', )
 				
 		# -------------------------------------------------------------------------------------
 		# Probability Distributions
@@ -1087,11 +1100,9 @@ if mode == 'Data Profile':
 		st.divider( )
 		st.subheader( 'Numeric Distributions' )
 		
-		numeric_dist_cols = [
-				c for c in df_dataset.columns
+		numeric_dist_cols = [ c for c in df_dataset.columns
 				if pd.api.types.is_numeric_dtype( df_dataset[ c ] )
-				   and not pd.api.types.is_bool_dtype( df_dataset[ c ] )
-		]
+				   and not pd.api.types.is_bool_dtype( df_dataset[ c ] ) ]
 		
 		if not numeric_dist_cols:
 			st.info( 'No numeric columns detected.' )
@@ -1100,29 +1111,16 @@ if mode == 'Data Profile':
 			
 			ctrl1, ctrl2, ctrl3 = st.columns( 3, border=True )
 			with ctrl1:
-				dist_bins = st.slider(
-					'Bins',
-					min_value=10,
-					max_value=60,
-					value=30,
-					step=5,
-					key='profile_numeric_dist_bins'
-				)
+				dist_bins = st.slider( 'Bins', min_value=10, max_value=60,
+					value=30, step=5, key='profile_numeric_dist_bins' )
 			
 			with ctrl2:
-				show_kde = st.checkbox(
-					'Show KDE Overlay',
-					value=True,
-					key='profile_numeric_dist_kde'
-				)
+				show_kde = st.checkbox( 'Show KDE Overlay', value=True,
+					key='profile_numeric_dist_kde' )
 			
 			with ctrl3:
-				dist_mode = st.radio(
-					'Display',
-					options=[ 'Density', 'Frequency' ],
-					horizontal=True,
-					key='profile_numeric_dist_mode'
-				)
+				dist_mode = st.radio( 'Display', options=[ 'Density', 'Frequency' ],
+					horizontal=True, key='profile_numeric_dist_mode' )
 			
 			st.markdown(
 				"""
@@ -1170,18 +1168,11 @@ if mode == 'Data Profile':
 					mean_val = float( s.mean( ) )
 					median_val = float( s.median( ) )
 					
-					ax.axvline(
-						mean_val,
-						linestyle='--',
-						linewidth=1.5,
-						label=f'Mean: {mean_val:,.3f}'
-					)
-					ax.axvline(
-						median_val,
-						linestyle=':',
-						linewidth=1.5,
-						label=f'Median: {median_val:,.3f}'
-					)
+					ax.axvline( mean_val, linestyle='--', linewidth=1.5,
+						label=f'Mean: {mean_val:,.3f}' )
+					
+					ax.axvline( median_val, linestyle=':', linewidth=1.5,
+						label=f'Median: {median_val:,.3f}' )
 					
 					ax.set_title( f'Distribution — {col}', fontsize=12, fontweight='bold' )
 					ax.set_xlabel( col )
@@ -1199,10 +1190,7 @@ if mode == 'Data Profile':
 					m1.metric( 'Count', f'{len( s ):,}' )
 					m2.metric( 'Mean', f'{mean_val:,.3f}' )
 					m3.metric( 'Median', f'{median_val:,.3f}' )
-					m4.metric(
-						'Std',
-						f'{float( s.std( ddof=1 ) ):,.3f}' if len( s ) > 1 else '0.000'
-					)
+					m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.3f}' if len( s ) > 1 else '0.000' )
 		
 		
 		# -------------------------------------------------------------------------------------
@@ -1334,14 +1322,8 @@ elif mode == 'Descriptive Statistics':
 			
 			column_config = { k: v for k, v in column_config.items( ) if k in df_descriptive.columns }
 			
-			st.data_editor(
-				df_descriptive,
-				use_container_width=True,
-				hide_index=True,
-				disabled=True,
-				column_config=column_config,
-				key='desc_summary_editor'
-			)
+			st.data_editor( df_descriptive, use_container_width=True, hide_index=True,
+				disabled=True, column_config=column_config, key='desc_summary_editor' )
 		else:
 			st.info( 'Select one or more numeric variables to display descriptive statistics.' )
 		
@@ -1527,12 +1509,12 @@ elif mode == 'Descriptive Statistics':
 		if len( pca_vars ) >= 2:
 			X = analysis_fillna_mean( df_numeric[ pca_vars ] )
 			Xs = SKStandardScaler( ).fit_transform( X )
-			pca = PCA( n_components=n_comp ).fit( Xs )
+			pca = PCA( num=n_comp ).train( Xs )
 			
 			df_explained = pd.DataFrame(
 				{
 						'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
-						'Explained Variance (%)': pca.explained_variance_ratio_ * 100
+						'Explained Variance (%)': pca.explained_variance_ratio * 100
 				}
 			)
 			
@@ -2471,7 +2453,6 @@ elif mode == 'Anomaly Detection':
 			"anomalies.csv",
 			"text/csv"
 		)
-
 
 # ============================================
 # DATA PLUMBING MODE
@@ -4170,9 +4151,13 @@ elif mode == 'Classifications':
 	# ------------------------------------------------------------------
 	# TARGET & FEATURES
 	# ------------------------------------------------------------------
-	st.subheader( 'Target & Features' )	
+	st.subheader( 'Target & Features' )
 	target = st.selectbox( 'Target (Categorical)', categorical_cols )
-	features = st.multiselect( 'Feature Columns (Numeric)', numeric_cols, default=numeric_cols[ :3 ] )
+	features = st.multiselect(
+		'Feature Columns (Numeric)',
+		numeric_cols,
+		default=numeric_cols[ :3 ]
+	)
 	
 	if not features:
 		st.info( 'Please select at least one feature.' )
@@ -4184,21 +4169,23 @@ elif mode == 'Classifications':
 	# ------------------------------------------------------------------
 	# MODEL SELECTION
 	# ------------------------------------------------------------------
-	from classifications import ( LogisticRegression, SupportVector, RandomForest,
-		NearestNeighbor, BaggingModel, GradientBoost )
 	
 	model_map = \
-	{
-		'Logistic Regression': LogisticRegression,
-		'Support Vector Machine': SupportVector,
-		'Random Forest': RandomForest,
-		'k-Nearest Neighbors': NearestNeighbor,
-		'Bagging': BaggingModel,
-		'Gradient Boosting': GradientBoost
-	}
+		{
+				'Perceptron': Perceptron,
+				'Least Squares Classifier': LeastSquares,
+				'Logistic Regression': LogisticRegression,
+				'Decision Tree': DecisionTree,
+				'Support Vector Machine': SupportVector,
+				'Random Forest': RandomForest,
+				'k-Nearest Neighbors': NearestNeighbor,
+				'Bagging': BaggingModel,
+				'AdaBoost': AdaptiveBoost,
+				'Gradient Boosting': GradientBoost
+		}
 	
 	st.subheader( 'Model Selection' )
-	model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )	
+	model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
 	model = model_map[ model_name ]( )
 	
 	# ------------------------------------------------------------------
@@ -4207,35 +4194,136 @@ elif mode == 'Classifications':
 	st.subheader( 'Training Configuration' )
 	test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
 	random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
+	
 	if st.button( '🚀 Train Classifier' ):
 		try:
-			X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz, 
-				random=random_state )			
+			X_train, X_test, y_train, y_test = model.split_data(
+				X,
+				y,
+				size=test_sz,
+				random=random_state
+			)
 			model.train( X_train, y_train )
+			y_pred = model.project( X_test )
+			target_count = len( np.unique( y_test ) )
 			
 			# ------------------------------------------------------------------
-			# METRICS & ANALYSIS 
+			# METRICS & ANALYSIS
 			# ------------------------------------------------------------------
-			st.subheader( 'Model Performance' )			
+			st.subheader( 'Model Performance' )
 			df_classifier = model.analyze( X_test, y_test )
 			st.data_editor( df_classifier, use_container_width=True )
 			
 			# ------------------------------------------------------------------
-			# CONFUSION MATRIX 
+			# CONFUSION MATRIX
 			# ------------------------------------------------------------------
 			st.subheader( 'Confusion Matrix' )
-			fig_cm = plt.figure( )
+			plt.close( 'all' )
 			model.confusion_matrix( X_test, y_test )
-			st.pyplot( fig_cm )
+			st.pyplot( plt.gcf( ) )
+			plt.close( 'all' )
 			
 			# ------------------------------------------------------------------
-			# ROC CURVE (IF SUPPORTED)
+			# ACTUAL VS PREDICTED CLASS COUNTS
 			# ------------------------------------------------------------------
-			if hasattr( model, 'roc_curve' ):
-				st.subheader( 'ROC Curve' )
-				fig_roc = plt.figure( )
-				model.roc_curve( X_test, y_test )
-				st.pyplot( fig_roc )
+			st.subheader( 'Actual vs Predicted Counts' )
+			actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
+			pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
+			df_counts = pd.DataFrame(
+				{
+						'Actual': actual_counts,
+						'Predicted': pred_counts
+				}
+			).fillna( 0 )
+			
+			fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
+			df_counts.plot( kind='bar', ax=ax_counts )
+			ax_counts.set_xlabel( 'Class' )
+			ax_counts.set_ylabel( 'Count' )
+			ax_counts.set_title( 'Actual vs Predicted Class Counts' )
+			ax_counts.grid( axis='y', alpha=0.3 )
+			fig_counts.tight_layout( )
+			st.pyplot( fig_counts )
+			plt.close( fig_counts )
+			
+			# ------------------------------------------------------------------
+			# PER-CLASS ACCURACY
+			# ------------------------------------------------------------------
+			st.subheader( 'Per-Class Accuracy' )
+			df_eval = pd.DataFrame(
+				{
+						'Actual': y_test,
+						'Predicted': y_pred
+				}
+			)
+			df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
+			df_class_acc = df_eval.groupby( 'Actual', dropna=False )[
+				'Correct' ].mean( ).sort_index( )
+			
+			fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
+			ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
+			ax_acc.set_xlabel( 'Class' )
+			ax_acc.set_ylabel( 'Accuracy' )
+			ax_acc.set_ylim( 0.0, 1.05 )
+			ax_acc.set_title( 'Per-Class Accuracy' )
+			ax_acc.grid( axis='y', alpha=0.3 )
+			fig_acc.tight_layout( )
+			st.pyplot( fig_acc )
+			plt.close( fig_acc )
+			
+			# ------------------------------------------------------------------
+			# PREDICTION CONFIDENCE
+			# ------------------------------------------------------------------
+			if hasattr( model, 'predict_probability' ):
+				try:
+					proba = model.predict_probability( X_test )
+					if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1:
+						st.subheader( 'Prediction Confidence' )
+						max_conf = np.max( proba, axis=1 )
+						
+						fig_conf, ax_conf = plt.subplots( figsize=(8, 5) )
+						ax_conf.hist( max_conf, bins=20 )
+						ax_conf.set_xlabel( 'Maximum Predicted Probability' )
+						ax_conf.set_ylabel( 'Frequency' )
+						ax_conf.set_title( 'Prediction Confidence Distribution' )
+						ax_conf.grid( axis='y', alpha=0.3 )
+						fig_conf.tight_layout( )
+						st.pyplot( fig_conf )
+						plt.close( fig_conf )
+				except Exception:
+					pass
+			
+			# ------------------------------------------------------------------
+			# OBSERVED VS PREDICTED
+			# ------------------------------------------------------------------
+			st.subheader( 'Observed vs Predicted' )
+			if target_count <= 2 and hasattr( model, 'scatter_plot' ):
+				try:
+					plt.close( 'all' )
+					model.scatter_plot( X_test, y_test )
+					st.pyplot( plt.gcf( ) )
+					plt.close( 'all' )
+				except Exception as e:
+					st.info( f'Observed vs Predicted plot skipped: {e}' )
+					plt.close( 'all' )
+			else:
+				st.info( 'Observed vs Predicted is shown only when the target has two or fewer classes.' )
+			
+			# ------------------------------------------------------------------
+			# ROC CURVE
+			# ------------------------------------------------------------------
+			st.subheader( 'ROC Curve' )
+			if target_count == 2 and hasattr( model, 'roc_curve' ):
+				try:
+					plt.close( 'all' )
+					model.roc_curve( X_test, y_test )
+					st.pyplot( plt.gcf( ) )
+					plt.close( 'all' )
+				except Exception as e:
+					st.info( f'ROC curve skipped: {e}' )
+					plt.close( 'all' )
+			else:
+				st.info( 'ROC curve is available only for binary classification targets.' )
 		
 		except Exception as e:
 			st.error( f'Classification failed: {e}' )

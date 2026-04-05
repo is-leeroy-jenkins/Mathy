@@ -50,9 +50,14 @@ import sklearn.preprocessing as pp
 import sklearn.compose as sc
 from boogr import Error
 
-
-def throw_if( name: str, value: object ):
-	if not value:
+def throw_if( name: str, value: object ) -> None:
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (list, tuple, dict, set, str) ) and len( value ) == 0:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 

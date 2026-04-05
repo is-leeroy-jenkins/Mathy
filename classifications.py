@@ -59,8 +59,8 @@ from matplotlib.colors import ListedColormap
 import seaborn as sns
 from seaborn import colors
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import ( recall_score, precision_score, confusion_matrix, classification_report,
-                             auc, average_precision_score, balanced_accuracy_score,
+from sklearn.metrics import (recall_score, precision_score, confusion_matrix, classification_report,
+                             auc, roc_curve, average_precision_score, balanced_accuracy_score,
                              ConfusionMatrixDisplay, accuracy_score, top_k_accuracy_score, f1_score,
                              hinge_loss, log_loss, mean_squared_error, root_mean_squared_error,
                              mean_absolute_error, median_absolute_error)
@@ -70,6 +70,7 @@ from boogr import Error
 def throw_if( name: str, value: object ):
 	if value is None:
 		raise Exception( f'Argument "{name}" cannot be empty!' )
+
 
 class Classifier( ):
 	"""
@@ -95,7 +96,7 @@ class Classifier( ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	markers: Optional[ List[ str ] ]
 	
 	def __init__( self ) -> None:
@@ -146,13 +147,13 @@ class Classifier( ):
 		self.recall = 0.0
 		self.balanced_accuracy = 0.0
 		self.f1_score = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
+		self.training_score = None
+		self.testing_score = None
 		self.classification_report = None
-		self.confusion_matrix = None
+		self.confusion_matrix_values = None
 	
 	def split_data( self, X: np.ndarray,
-			y: np.ndarray ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray) | None:
+			y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ] | None:
 		"""
 
 			Purpose:
@@ -166,7 +167,7 @@ class Classifier( ):
 
 			Returns:
 			--------
-			tuple | None
+			tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ] | None
 
 		"""
 		raise NotImplementedError
@@ -200,7 +201,8 @@ class Classifier( ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ignored.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -228,12 +230,12 @@ class Classifier( ):
 		"""
 		raise NotImplementedError
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Perform visual or diagnostic analysis for the classifier.
+			Perform tabular or diagnostic analysis for the classifier.
 
 			Parameters:
 			-----------
@@ -242,17 +244,18 @@ class Classifier( ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame | None
 
 		"""
 		raise NotImplementedError
 	
-	def _classification_scores( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
+	def classification_scores( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			---------
-			Compute stable scalar classification metrics for UI display.
+			Compute stable scalar classification metrics for UI display using
+			the supplied evaluation data.
 
 			Parameters:
 			-----------
@@ -268,35 +271,51 @@ class Classifier( ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			y_pred = self.project( X )
-			X_training, X_testing, y_training, y_testing = self.split_data( X, y )
-			self.training_score = float( self.model.score( X_training, y_training ) )
-			self.testing_score = float( self.model.score( X_testing, y_testing ) )
+			self.testing_score = float( self.model.score( X, y ) )
+			
+			if self.training_score is None:
+				self.training_score = self.testing_score
+			
 			self.misclass = float( np.sum( y != y_pred ) )
-			self.precision = float( precision_score( y, y_pred, average='weighted', zero_division=0 ) )
+			self.precision = float(
+				precision_score( y, y_pred, average='weighted', zero_division=0 )
+			)
 			self.accuracy = float( accuracy_score( y, y_pred ) )
-			self.recall = float( recall_score( y, y_pred, average='weighted', zero_division=0 ) )
+			self.recall = float(
+				recall_score( y, y_pred, average='weighted', zero_division=0 )
+			)
 			self.balanced_accuracy = float( balanced_accuracy_score( y, y_pred ) )
-			self.f1_score = float( f1_score( y, y_pred, average='weighted', zero_division=0 ) )
-			self.classification_report = classification_report( y, y_pred, output_dict=True,
-				zero_division=0 )
-			self.confusion_matrix = confusion_matrix( y, y_pred )
-			_metrics = { 'Training Score': self.training_score,
+			self.f1_score = float(
+				f1_score( y, y_pred, average='weighted', zero_division=0 )
+			)
+			self.classification_report = classification_report(
+				y,
+				y_pred,
+				output_dict=True,
+				zero_division=0
+			)
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			
+			_metrics = {
+					'Training Score': self.training_score,
 					'Testing Score': self.testing_score,
 					'Mis-Classifications': self.misclass,
 					'Precision Score': self.precision,
 					'Accuracy Score': self.accuracy,
 					'Recall Score': self.recall,
 					'Balanced Accuracy': self.balanced_accuracy,
-					'F Score': self.f1_score, }
+					'F Score': self.f1_score,
+			}
+			
 			return pd.DataFrame( [ _metrics ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Classifier'
-			exception.method = '_classification_scores( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'classification_scores( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def _correlation_heatmap( self, X: np.ndarray ) -> None:
+	def correlation_heatmap( self, X: np.ndarray ) -> None:
 		"""
 
 			Purpose:
@@ -314,10 +333,10 @@ class Classifier( ):
 		"""
 		try:
 			throw_if( 'X', X )
-			data = pd.DataFrame( X )
-			corr = data.corr( method='pearson' )
+			df_data = pd.DataFrame( X )
+			df_corr = df_data.corr( method='pearson' )
 			plt.figure( figsize=(8, 6) )
-			sns.heatmap( corr, cmap='coolwarm', annot=True )
+			sns.heatmap( df_corr, cmap='coolwarm', annot=True )
 			plt.tight_layout( )
 			plt.title( 'Correlation Matrix' )
 			plt.grid( False )
@@ -326,8 +345,45 @@ class Classifier( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Classifier'
-			exception.method = '_correlation_heatmap( self, X: np.ndarray ) -> None'
+			exception.method = 'correlation_heatmap( self, X: np.ndarray ) -> None'
 			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Classifier'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	_classification_scores = classification_scores
+	_correlation_heatmap = correlation_heatmap
 
 
 class Perceptron( Classifier ):
@@ -335,11 +391,8 @@ class Perceptron( Classifier ):
 
 		Purpose:
 		---------
-		Perceptron for classification.
-
-		The Perceptron is a linear classifier suitable for large-scale learning.
-		This wrapper preserves the existing interface used by the surrounding module
-		while standardizing scoring and documentation behavior.
+		Perceptron functionality behind the Mathy
+		classification interface used by the surrounding module.
 
 	"""
 	model: skc.Perceptron
@@ -354,10 +407,11 @@ class Perceptron( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, alpha: float = 0.001, eta: float = 1.0, iters: int = 1000,
-			shuffle: bool = False, penalty=None ) -> None:
+			shuffle: bool = False, penalty: Optional[ str ] = None,
+			random: int = 42 ) -> None:
 		"""
 
 			Purpose:
@@ -370,7 +424,8 @@ class Perceptron( Classifier ):
 			eta (float): Initial learning-rate value passed as eta0.
 			iters (int): Maximum number of iterations.
 			shuffle (bool): Whether to shuffle the training data after each epoch.
-			penalty (str | None): Penalty term applied during fitting.
+			penalty (Optional[ str ]): Penalty term applied during fitting.
+			random (int): Random seed.
 
 			Returns:
 			--------
@@ -384,12 +439,15 @@ class Perceptron( Classifier ):
 		self.shuffle = shuffle
 		self.penalty = penalty
 		self.learning_rate = eta
+		self.random_state = random
+		self.validate_configuration( )
 		self.model = skc.Perceptron(
 			alpha=self.alpha,
 			max_iter=self.max_iter,
 			shuffle=self.shuffle,
 			eta0=self.learning_rate,
-			penalty=self.penalty
+			penalty=self.penalty,
+			random_state=self.random_state
 		)
 	
 	def __dir__( self ) -> List[ str ]:
@@ -421,7 +479,7 @@ class Perceptron( Classifier ):
 		         'penalty',
 		         'shuffle',
 		         'alpha',
-		         'confusion_graph',
+		         'confusion_matrix',
 		         'scatter_plot',
 		         'region_plot',
 		         'weights',
@@ -429,7 +487,44 @@ class Perceptron( Classifier ):
 		         'iterations',
 		         'labels',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid_penalties = { None, 'l2', 'l1', 'elasticnet' }
+			
+			if self.penalty not in _valid_penalties:
+				raise ValueError( f'Unsupported penalty: {self.penalty}' )
+			
+			if self.alpha is None or self.alpha < 0.0:
+				raise ValueError( 'Argument "alpha" must be greater than or equal to zero.' )
+			
+			if self.learning_rate is None or self.learning_rate <= 0.0:
+				raise ValueError( 'Argument "eta" must be greater than zero.' )
+			
+			if self.max_iter is None or self.max_iter < 1:
+				raise ValueError( 'Argument "iters" must be greater than zero.' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'Perceptron'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -448,7 +543,7 @@ class Perceptron( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.coef_ is None:
+		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The Perceptron data is untrained.' )
 		return self.model.coef_
 	
@@ -469,7 +564,7 @@ class Perceptron( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.n_iter_ is None:
+		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_iter_
 	
@@ -490,13 +585,13 @@ class Perceptron( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -512,7 +607,7 @@ class Perceptron( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
@@ -523,7 +618,10 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
@@ -574,15 +672,16 @@ class Perceptron( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Perceptron | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -592,7 +691,8 @@ class Perceptron( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -607,7 +707,7 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
@@ -636,12 +736,12 @@ class Perceptron( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			---------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for analysis.
 
 			Parameters:
 			-----------
@@ -650,20 +750,23 @@ class Perceptron( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def confusion_graph( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -677,25 +780,24 @@ class Perceptron( Classifier ):
 
 			Returns:
 			--------
-			None
+			np.ndarray
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			y_pred = self.project( X )
-			plt.figure( figsize=(8, 6) )
-			cm = confusion_matrix( y, y_pred )
-			ConfusionMatrixDisplay( cm ).plot( )
-			plt.tight_layout( )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
 			plt.title( 'Confusion Matrix' )
 			plt.grid( False )
-			plt.show( )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'confusion_graph( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -707,8 +809,8 @@ class Perceptron( Classifier ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): True class labels.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
 			--------
@@ -718,16 +820,30 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
-			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			_training = self.training_score if self.training_score is not None else 0.0
+			_testing = self.testing_score if self.testing_score is not None else 0.0
+			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ np.min( y ), np.max( y ) ], [ np.min( y ), np.max( y ) ], 'k--',
-				label='Perfect Prediction' )
-			plt.text( x=np.min( y ), y=np.max( y ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -740,89 +856,8 @@ class Perceptron( Classifier ):
 			exception.cause = 'Perceptron'
 			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
 			raise exception
-	
-	def region_plot( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution: float = 0.02 ) -> None:
-		"""
 
-			Purpose:
-			---------
-			Plot two-dimensional decision regions for the classifier.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix with exactly two columns.
-			y (np.ndarray): True class labels.
-			test_idx (Any): Optional test-set indices to highlight.
-			resolution (float): Mesh resolution.
-
-			Returns:
-			--------
-			None
-
-		"""
-		try:
-			throw_if( 'X', X )
-			throw_if( 'y', y )
-			X_plot = np.asarray( X )
-			y_plot = np.asarray( y )
-			if X_plot.ndim != 2 or X_plot.shape[ 1 ] != 2:
-				raise ValueError( 'region_plot requires exactly two feature columns.' )
-			
-			colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-			cmap = ListedColormap( colors[ :len( np.unique( y_plot ) ) ] )
-			
-			x1_min, x1_max = X_plot[ :, 0 ].min( ) - 1, X_plot[ :, 0 ].max( ) + 1
-			x2_min, x2_max = X_plot[ :, 1 ].min( ) - 1, X_plot[ :, 1 ].max( ) + 1
-			xx1, xx2 = np.meshgrid(
-				np.arange( x1_min, x1_max, resolution ),
-				np.arange( x2_min, x2_max, resolution ),
-				copy=False
-			)
-			lab = self.project( np.array( [ xx1.ravel( ), xx2.ravel( ) ] ).T )
-			lab = lab.reshape( xx1.shape )
-			
-			plt.figure( figsize=(8, 6) )
-			plt.contourf( xx1, xx2, lab, alpha=0.3, cmap=cmap )
-			plt.xlim( xx1.min( ), xx1.max( ) )
-			plt.ylim( xx2.min( ), xx2.max( ) )
-			
-			for idx, cl in enumerate( np.unique( y_plot ) ):
-				plt.scatter(
-					x=X_plot[ y_plot == cl, 0 ],
-					y=X_plot[ y_plot == cl, 1 ],
-					alpha=0.8,
-					c=colors[ idx ],
-					marker=self.markers[ idx ],
-					label=f'Class {cl}',
-					edgecolor='black'
-				)
-			
-			if test_idx is not None:
-				X_test, y_test = X_plot[ test_idx, : ], y_plot[ test_idx ]
-				plt.scatter(
-					X_test[ :, 0 ],
-					X_test[ :, 1 ],
-					c='none',
-					edgecolor='black',
-					alpha=1.0,
-					linewidth=1,
-					marker='o',
-					s=100,
-					label='Test set'
-				)
-			
-			plt.grid( visible=True )
-			plt.legend( loc='best' )
-			plt.tight_layout( )
-			plt.show( )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'Perceptron'
-			exception.method = 'region_plot( self, X: np.ndarray, y: np.ndarray, test_idx=None, resolution=0.02 ) -> None'
-			raise exception
-			
-	
 class LeastSquares( Classifier ):
 	"""
 	
@@ -838,50 +873,68 @@ class LeastSquares( Classifier ):
 		Threshold above which predictions are considered class 1 (default: 0.5).
 		
 	"""
-	model: skc.LinearRegression
+	model: skc.SGDClassifier
 	binarizer: Optional[ Binarizer ]
 	prediction: Optional[ np.ndarray ]
-	misclass: Optional[ float ]
-	probability: Optional[ np.ndarray ]
 	decision: Optional[ np.ndarray ]
 	random_state: Optional[ int ]
-	accuracy: Optional[ float ]
-	precision: Optional[ float ]
-	balanced_accuracy: Optional[ float ]
-	recall: Optional[ float ]
-	f1_score: Optional[ float ]
+	alpha: Optional[ float ]
+	max_iter: Optional[ int ]
+	shuffle: Optional[ bool ]
+	penalty: Optional[ str ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
-	threshold: Optional[ float ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, threshold: float=0.5 ) -> None:
+	def __init__( self, alpha: float = 0.0001, eta: float = 0.01, iters: int = 1000,
+			shuffle: bool = False, penalty: Optional[ str ] = 'l2',
+			random: int = 42 ) -> None:
 		"""
 
 			Purpose:
-			--------
-			Initialize the thresholded Least Squares wrapper.
+			---------
+			Initialize the Least Squares classification wrapper.
 
 			Parameters:
 			-----------
-			threshold (float): Threshold used to convert regression output to class labels.
+			alpha (float): Regularization strength.
+			eta (float): Initial learning-rate value passed as eta0.
+			iters (int): Maximum number of iterations.
+			shuffle (bool): Whether to shuffle the training data after each epoch.
+			penalty (Optional[ str ]): Penalty term applied during fitting.
+			random (int): Random seed.
 
 			Returns:
 			--------
 			None
-			
+
 		"""
 		super( ).__init__( )
-		self.threshold = threshold
-		self.model = skc.LinearRegression( )
-		self.binarizer = Binarizer( threshold=self.threshold )
+		self.binarizer = Binarizer( threshold=0.5 )
+		self.alpha = alpha
+		self.max_iter = iters
+		self.shuffle = shuffle
+		self.penalty = penalty
+		self.learning_rate = eta
+		self.random_state = random
+		self.validate_configuration( )
+		self.model = skc.SGDClassifier(
+			loss='perceptron',
+			alpha=self.alpha,
+			max_iter=self.max_iter,
+			shuffle=self.shuffle,
+			eta0=self.learning_rate,
+			learning_rate='constant',
+			penalty=self.penalty,
+			random_state=self.random_state
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
 
 			Purpose:
-			--------
+			---------
 			Provide a list of strings representing class members.
 
 			Parameters:
@@ -891,28 +944,74 @@ class LeastSquares( Classifier ):
 			Returns:
 			--------
 			List[ str ]
-		
+
 		"""
 		return [ 'model',
 		         'prediction',
-		         'threshold',
+		         'misclass',
+		         'max_iter',
+		         'random_state',
+		         'decision',
 		         'train',
 		         'project',
 		         'score',
 		         'analyze',
-		         'weights',
-		         'features_in',
+		         'penalty',
+		         'shuffle',
+		         'alpha',
+		         'confusion_matrix',
 		         'scatter_plot',
+		         'weights',
+		         'decision_function',
+		         'iterations',
+		         'labels',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid_penalties = { None, 'l2', 'l1', 'elasticnet' }
+			
+			if self.penalty not in _valid_penalties:
+				raise ValueError( f'Unsupported penalty: {self.penalty}' )
+			
+			if self.alpha is None or self.alpha < 0.0:
+				raise ValueError( 'Argument "alpha" must be greater than or equal to zero.' )
+			
+			if self.learning_rate is None or self.learning_rate <= 0.0:
+				raise ValueError( 'Argument "eta" must be greater than zero.' )
+			
+			if self.max_iter is None or self.max_iter < 1:
+				raise ValueError( 'Argument "iters" must be greater than zero.' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LeastSquares'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def weights( self ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Return fitted regression coefficients.
+			---------
+			Return fitted feature weights.
 
 			Parameters:
 			-----------
@@ -923,17 +1022,17 @@ class LeastSquares( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.coef_ is None:
-			raise AttributeError( 'The weights have not been initialized!!' )
+		if not hasattr( self.model, 'coef_' ):
+			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.coef_
 	
 	@property
-	def features_in( self ) -> int:
+	def iterations( self ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Return the number of features seen during training.
+			---------
+			Return the number of completed fitting iterations.
 
 			Parameters:
 			-----------
@@ -941,31 +1040,53 @@ class LeastSquares( Classifier ):
 
 			Returns:
 			--------
-			int
+			np.ndarray
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		return self.model.n_features_in_
+		return self.model.n_iter_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,  np.ndarray):
+	@property
+	def labels( self ) -> np.ndarray:
 		"""
 
 			Purpose:
+			---------
+			Return class labels known to the classifier.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
 			--------
+			np.ndarray
+
+		"""
+		if not hasattr( self.model, 'classes_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.classes_
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray,
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""
+
+			Purpose:
+			---------
 			Split input arrays into training and testing subsets.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target vector.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 			size (float): Test-set proportion.
 			random (int): Random seed.
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
@@ -976,84 +1097,114 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
+			raise exception
+	
+	def decision_function( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Compute decision scores for the supplied features.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.decision = self.model.decision_function( X )
+			return self.decision
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LeastSquares'
+			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
 		"""
 
 			Purpose:
-			--------
-			Train the least-squares regression model on input features and targets.
+			---------
+			Fit the Least Squares classification wrapper.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Binary targets encoded numerically.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Target vector of shape ( n_samples, ).
 
 			Returns:
 			--------
 			LeastSquares | None
-			
+
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'train'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Convert continuous regression predictions to binary class labels.
+			---------
+			Predict class labels for the supplied features.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
-			y (Optional[ np.ndarray ]): Ignored optional argument.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
 			np.ndarray
-			
+
 		"""
 		try:
 			throw_if( 'X', X )
-			y_pred = self.model.predict( X )
-			_shape = y_pred.reshape( -1, 1 )
-			self.prediction = self.binarizer.fit_transform( _shape ).astype( int ).flatten( )
+			self.prediction = self.model.predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'project'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
-			--------
-			Compute scalar summary classification metrics for thresholded predictions.
+			---------
+			Compute scalar summary classification metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True binary class labels.
+			X (np.ndarray): Feature matrix.
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
 			--------
 			pd.DataFrame
-		
+
 		"""
 		try:
 			return self._classification_scores( X, y )
@@ -1064,12 +1215,42 @@ class LeastSquares( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
+			---------
+			Return tabular classifier metrics for analysis.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
 			--------
-			Render a correlation heatmap for the supplied features.
+			pd.DataFrame
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LeastSquares'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Render a confusion matrix for classifier predictions.
 
 			Parameters:
 			-----------
@@ -1078,30 +1259,37 @@ class LeastSquares( Classifier ):
 
 			Returns:
 			--------
-			None
+			np.ndarray
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
-			--------
-			Plot observed labels against continuous regression estimates.
+			---------
+			Plot observed labels against predicted labels.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): True class labels.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
 			--------
@@ -1111,16 +1299,30 @@ class LeastSquares( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
-			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
-			y_pred = self.model.predict( X )
+			_training = self.training_score if self.training_score is not None else 0.0
+			_testing = self.testing_score if self.testing_score is not None else 0.0
+			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
+			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ np.min( y ), np.max( y ) ], [ np.min( y ), np.max( y ) ], 'k--',
-				label='Perfect Prediction' )
-			plt.text( x=np.min( y ), y=np.max( y ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1140,21 +1342,10 @@ class LogisticRegression( Classifier ):
 
 		Purpose:
 		--------
-		Logistic is implemented as a linear model for classification rather than regression.
-		The logistic regression is also known in the literature as logit regression,
-		maximum-entropy classification (MaxEnt) or the log-linear classifier.
-		The probabilities describing the possible outcomes of a single trial are
-		modeled using a logistic function.
-		
-		This implementation can fit binary, One-vs-Rest, or multinomial logistic regression
-		with optional, or Elastic-Net regularization. Regularization is applied by default,
-		which is common in machine learning but not in statistics. Another advantage of regularization
-		is that it improves numerical stability. No regularization amounts to setting C to a
-		very high value.
-		
-		The numerical output of the logistic regression, which is the predicted probability, can be
-		used as a classifier by applying a threshold (by default 0.5) to it so it expects a
-		categorical target, making the Logistic Regression a classifier.
+		Wrap scikit-learn LogisticRegression behind the Mathy classification
+		interface used by the Streamlit application. This implementation
+		supports binary and multiclass classification, tabular metric analysis,
+		confusion matrix rendering, and binary ROC visualization.
 
 	"""
 	model: skc.LogisticRegression
@@ -1177,10 +1368,11 @@ class LogisticRegression( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, C: float = 1.0, penalty: str = 'l2', iters: int = 1000,
-			multiclass: str = 'multinomial', solver: str = 'lbfgs', random: int = 42 ) -> None:
+			multiclass: str = 'multinomial', solver: str = 'lbfgs',
+			random: int = 42 ) -> None:
 		"""
 
 			Purpose:
@@ -1190,9 +1382,10 @@ class LogisticRegression( Classifier ):
 			Parameters:
 			-----------
 			C (float): Inverse regularization strength.
-			penalty (str): Penalty norm.
-			iters (int): Maximum number of iterations.
-			multiclass (str): Multiclass mode requested by the caller.
+			penalty (str): Penalty norm retained for wrapper compatibility.
+			iters (int): Maximum number of optimization iterations.
+			multiclass (str): Requested multiclass mode retained for wrapper
+				compatibility.
 			solver (str): Optimization solver.
 			random (int): Random seed.
 
@@ -1208,39 +1401,13 @@ class LogisticRegression( Classifier ):
 		self.max_iter = iters
 		self.multi_class = multiclass
 		self.solver = solver
-		self._validate_configuration( )
-		self.model = skc.LogisticRegression( C=self.C, max_iter=self.max_iter,
-			multi_class=self.multi_class, solver=self.solver, random_state=self.random_state,
-			penalty=self.penalty )
-	
-	def _validate_configuration( self ) -> None:
-		"""
-
-			Purpose:
-			--------
-			Validate solver and penalty combinations before estimator construction.
-
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
-		"""
-		l1_solvers = { 'liblinear', 'saga' }
-		elastic_solvers = { 'saga' }
-		multinomial_solvers = { 'lbfgs', 'newton-cg', 'newton-cholesky', 'sag', 'saga' }
-		
-		if self.penalty == 'l1' and self.solver not in l1_solvers:
-			raise ValueError( 'penalty="l1" requires solver "liblinear" or "saga".' )
-		
-		if self.penalty == 'elasticnet' and self.solver not in elastic_solvers:
-			raise ValueError( 'penalty="elasticnet" requires solver "saga".' )
-		
-		if self.multi_class == 'multinomial' and self.solver not in multinomial_solvers:
-			raise ValueError( 'multi_class="multinomial" is not supported by the selected solver.' )
+		self.validate_configuration( )
+		self.model = skc.LogisticRegression(
+			C=self.C,
+			max_iter=self.max_iter,
+			solver=self.solver,
+			random_state=self.random_state
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1270,6 +1437,8 @@ class LogisticRegression( Classifier ):
 		         'project',
 		         'score',
 		         'analyze',
+		         'confusion_matrix',
+		         'roc_curve',
 		         'weights',
 		         'iterations',
 		         'labels',
@@ -1279,7 +1448,45 @@ class LogisticRegression( Classifier ):
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			--------
+			Validate wrapper-level settings before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			supported_solvers = { 'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag',
+			                      'saga' }
+			
+			if self.solver not in supported_solvers:
+				raise ValueError( f'Unsupported solver: {self.solver}' )
+			
+			if self.penalty not in { 'l1', 'l2', 'elasticnet', 'none', None }:
+				raise ValueError( f'Unsupported penalty setting: {self.penalty}' )
+			
+			if self.penalty == 'l1' and self.solver not in { 'liblinear', 'saga' }:
+				raise ValueError( 'penalty="l1" requires solver "liblinear" or "saga".' )
+			
+			if self.penalty == 'elasticnet' and self.solver != 'saga':
+				raise ValueError( 'penalty="elasticnet" requires solver "saga".' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def weights( self ) -> np.ndarray:
@@ -1298,7 +1505,7 @@ class LogisticRegression( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.coef_ is None:
+		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.coef_
 	
@@ -1319,7 +1526,7 @@ class LogisticRegression( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
@@ -1340,12 +1547,12 @@ class LogisticRegression( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.n_iter_ is None:
+		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_iter_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -1361,21 +1568,28 @@ class LogisticRegression( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split(
-				X, y, test_size=size, random_state=random, stratify=y
+				X,
+				y,
+				test_size=size,
+				random_state=random,
+				stratify=y
 			)
-			return (X_train, X_test, y_train, y_test)
+			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
@@ -1453,15 +1667,16 @@ class LogisticRegression( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegression | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -1471,7 +1686,8 @@ class LogisticRegression( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Input features.
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -1486,7 +1702,7 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
@@ -1515,12 +1731,12 @@ class LogisticRegression( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			--------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for Streamlit display.
 
 			Parameters:
 			-----------
@@ -1529,17 +1745,100 @@ class LogisticRegression( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			--------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LogisticRegression'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -1562,16 +1861,30 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
-			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
+			_training = self.training_score if self.training_score is not None else 0.0
+			_testing = self.testing_score if self.testing_score is not None else 0.0
+			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
-			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -2824,10 +3137,10 @@ class NearestNeighbor( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, num: int = 5, algorithm: str = 'auto',
-			power: int = 1, metric: str = 'minkowski', leafs: int = 30 ) -> None:
+			power: int = 2, metric: str = 'minkowski', leafs: int = 30 ) -> None:
 		"""
 
 			Purpose:
@@ -2850,13 +3163,14 @@ class NearestNeighbor( Classifier ):
 		super( ).__init__( )
 		self.n_neighbors = num
 		self.algorithm = algorithm
+		self.power = power
 		self.metric = metric
 		self.leaf_size = leafs
-		self.power = power
+		self.validate_configuration( )
 		self.model = skn.KNeighborsClassifier(
 			n_neighbors=self.n_neighbors,
-			p=self.power,
 			algorithm=self.algorithm,
+			p=self.power,
 			metric=self.metric,
 			leaf_size=self.leaf_size
 		)
@@ -2877,18 +3191,22 @@ class NearestNeighbor( Classifier ):
 			List[ str ]
 
 		"""
-		return [ 'prediction',
+		return [ 'model',
+		         'prediction',
+		         'probability',
 		         'n_neighbors',
-		         'algorithm',
-		         'metric',
 		         'leaf_size',
 		         'power',
-		         'model',
-		         'predict_probability',
+		         'algorithm',
+		         'metric',
 		         'train',
 		         'project',
+		         'predict_probability',
 		         'score',
 		         'analyze',
+		         'confusion_matrix',
+		         'roc_curve',
+		         'scatter_plot',
 		         'labels',
 		         'features_in',
 		         'samples',
@@ -2898,7 +3216,49 @@ class NearestNeighbor( Classifier ):
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			--------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid_algorithms = { 'auto', 'ball_tree', 'kd_tree', 'brute' }
+			_valid_metrics = {
+					'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'hamming',
+					'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
+					'nan_euclidean', 'mahalanobis', 'seuclidean'
+			}
+			
+			if self.algorithm not in _valid_algorithms:
+				raise ValueError( f'Unsupported algorithm: {self.algorithm}' )
+			
+			if self.metric not in _valid_metrics:
+				raise ValueError( f'Unsupported metric: {self.metric}' )
+			
+			if self.n_neighbors is None or self.n_neighbors < 1:
+				raise ValueError( 'Argument "num" must be greater than zero.' )
+			
+			if self.leaf_size is None or self.leaf_size < 1:
+				raise ValueError( 'Argument "leafs" must be greater than zero.' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighbor'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -2917,7 +3277,7 @@ class NearestNeighbor( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
@@ -2938,7 +3298,7 @@ class NearestNeighbor( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
@@ -2959,13 +3319,13 @@ class NearestNeighbor( Classifier ):
 			int
 
 		"""
-		if self.model.n_samples_fit_ is None:
+		if not hasattr( self.model, 'n_samples_fit_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_samples_fit_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -2981,21 +3341,28 @@ class NearestNeighbor( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split(
-				X, y, test_size=size, random_state=random, stratify=y
+				X,
+				y,
+				test_size=size,
+				random_state=random,
+				stratify=y
 			)
-			return (X_train, X_test, y_train, y_test)
+			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
@@ -3019,15 +3386,16 @@ class NearestNeighbor( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -3037,7 +3405,8 @@ class NearestNeighbor( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -3052,7 +3421,7 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
@@ -3084,7 +3453,7 @@ class NearestNeighbor( Classifier ):
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
-		
+
 			Purpose:
 			--------
 			Compute scalar summary classification metrics.
@@ -3093,11 +3462,11 @@ class NearestNeighbor( Classifier ):
 			-----------
 			X (np.ndarray): Input features.
 			y (np.ndarray): True class labels.
-			
+
 			Returns:
 			--------
 			pd.DataFrame
-		
+
 		"""
 		try:
 			return self._classification_scores( X, y )
@@ -3108,12 +3477,12 @@ class NearestNeighbor( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			--------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for Streamlit display.
 
 			Parameters:
 			-----------
@@ -3122,17 +3491,100 @@ class NearestNeighbor( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighbor'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			--------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'NearestNeighbor'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -3155,16 +3607,30 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
+			_trn = self.training_score if self.training_score is not None else 0.0
+			_tst = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
-			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ np.min( y ), np.max( y ) ],
+				[ np.min( y ), np.max( y ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=np.min( y ),
+				y=np.max( y ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -3196,11 +3662,12 @@ class DecisionTree( Classifier ):
 	model: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
-	min_split: Optional[ float ]
 	random_state: Optional[ int ]
-	splitter: Optional[ str ]
 	criterion: Optional[ str ]
+	splitter: Optional[ str ]
+	max_depth: Optional[ int ]
+	min_samples_split: Optional[ int ]
+	min_samples_leaf: Optional[ int ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
@@ -3209,23 +3676,25 @@ class DecisionTree( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, criterion='gini', splitter='best', depth=5, split: float = 0.8,
-			rando: int = 42 ) -> None:
+	def __init__( self, criterion: str = 'gini', splitter: str = 'best',
+			depth: Optional[ int ] = None, min_split: int = 2,
+			min_leaf: int = 1, random: int = 42 ) -> None:
 		"""
 
 			Purpose:
-			--------
-			Initialize the Decision Tree classifier.
+			---------
+			Initialize the Decision Tree classifier wrapper.
 
 			Parameters:
 			-----------
-			criterion (str): Function used to measure split quality.
-			splitter (str): Strategy used to choose splits at each node.
-			depth (int): Maximum tree depth.
-			split (float): Minimum samples required to split an internal node.
-			rando (int): Random seed.
+			criterion (str): Split quality criterion.
+			splitter (str): Strategy used to choose the split at each node.
+			depth (Optional[ int ]): Maximum tree depth.
+			min_split (int): Minimum number of samples required to split an internal node.
+			min_leaf (int): Minimum number of samples required at a leaf node.
+			random (int): Random seed.
 
 			Returns:
 			--------
@@ -3236,13 +3705,16 @@ class DecisionTree( Classifier ):
 		self.criterion = criterion
 		self.splitter = splitter
 		self.max_depth = depth
-		self.random_state = rando
-		self.min_split = split
+		self.min_samples_split = min_split
+		self.min_samples_leaf = min_leaf
+		self.random_state = random
+		self.validate_configuration( )
 		self.model = skd.DecisionTreeClassifier(
 			criterion=self.criterion,
 			splitter=self.splitter,
 			max_depth=self.max_depth,
-			min_samples_split=self.min_split,
+			min_samples_split=self.min_samples_split,
+			min_samples_leaf=self.min_samples_leaf,
 			random_state=self.random_state
 		)
 	
@@ -3250,7 +3722,7 @@ class DecisionTree( Classifier ):
 		"""
 
 			Purpose:
-			--------
+			---------
 			Provide a list of strings representing class members.
 
 			Parameters:
@@ -3263,36 +3735,82 @@ class DecisionTree( Classifier ):
 
 		"""
 		return [ 'prediction',
-		         'max_depth',
-		         'min_split',
+		         'probability',
 		         'random_state',
 		         'criterion',
 		         'splitter',
+		         'max_depth',
+		         'min_samples_split',
+		         'min_samples_leaf',
 		         'model',
 		         'train',
 		         'project',
+		         'predict_probability',
 		         'score',
 		         'analyze',
-		         'predict_probability',
+		         'confusion_matrix',
+		         'roc_curve',
+		         'scatter_plot',
 		         'labels',
 		         'features_in',
 		         'feature_importances',
+		         'classes_count',
 		         'outputs',
-		         'tree',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid_criteria = { 'gini', 'entropy', 'log_loss' }
+			_valid_splitters = { 'best', 'random' }
+			
+			if self.criterion not in _valid_criteria:
+				raise ValueError( f'Unsupported criterion: {self.criterion}' )
+			
+			if self.splitter not in _valid_splitters:
+				raise ValueError( f'Unsupported splitter: {self.splitter}' )
+			
+			if self.min_samples_split is None or self.min_samples_split < 2:
+				raise ValueError( 'Argument "min_split" must be greater than or equal to two.' )
+			
+			if self.min_samples_leaf is None or self.min_samples_leaf < 1:
+				raise ValueError( 'Argument "min_leaf" must be greater than or equal to one.' )
+			
+			if self.max_depth is not None and self.max_depth < 1:
+				raise ValueError( 'Argument "depth" must be greater than zero when specified.' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTree'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
+			---------
 			Return class labels known to the classifier.
 
 			Parameters:
@@ -3304,7 +3822,7 @@ class DecisionTree( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
@@ -3313,7 +3831,7 @@ class DecisionTree( Classifier ):
 		"""
 
 			Purpose:
-			--------
+			---------
 			Return the number of features seen during training.
 
 			Parameters:
@@ -3325,7 +3843,7 @@ class DecisionTree( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
@@ -3334,7 +3852,7 @@ class DecisionTree( Classifier ):
 		"""
 
 			Purpose:
-			--------
+			---------
 			Return impurity-based feature importances.
 
 			Parameters:
@@ -3346,16 +3864,37 @@ class DecisionTree( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.feature_importances_ is None:
+		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.feature_importances_
+	
+	@property
+	def classes_count( self ) -> np.ndarray | int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of classes after training.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray | int
+
+		"""
+		if not hasattr( self.model, 'n_classes_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_classes_
 	
 	@property
 	def outputs( self ) -> int:
 		"""
 
 			Purpose:
-			--------
+			---------
 			Return the number of outputs after training.
 
 			Parameters:
@@ -3367,38 +3906,17 @@ class DecisionTree( Classifier ):
 			int
 
 		"""
-		if self.model.n_outputs_ is None:
+		if not hasattr( self.model, 'n_outputs_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_outputs_
 	
-	@property
-	def tree( self ) -> Any:
-		"""
-
-			Purpose:
-			--------
-			Return the underlying fitted tree object.
-
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			Any
-
-		"""
-		if self.model.tree_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		return self.model.tree_
-	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
-			--------
+			---------
 			Split input arrays into training and testing subsets.
 
 			Parameters:
@@ -3410,27 +3928,28 @@ class DecisionTree( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
-			return (X_train, X_test, y_train, y_test)
+			return split( X, y, test_size=size, random_state=random, stratify=y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
 		"""
 
 			Purpose:
-			--------
+			---------
 			Fit the Decision Tree classifier.
 
 			Parameters:
@@ -3447,25 +3966,27 @@ class DecisionTree( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
-			Predict class labels using the Decision Tree classifier.
+			---------
+			Predict class labels for the supplied features.
 
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -3480,19 +4001,19 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			--------
+			---------
 			Return class-probability estimates for the supplied features.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input feature matrix.
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
 
 			Returns:
 			--------
@@ -3514,12 +4035,12 @@ class DecisionTree( Classifier ):
 		"""
 
 			Purpose:
-			--------
+			---------
 			Compute scalar summary classification metrics.
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
+			X (np.ndarray): Feature matrix.
 			y (np.ndarray): Ground-truth labels.
 
 			Returns:
@@ -3536,12 +4057,122 @@ class DecisionTree( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
+			---------
+			Return tabular classifier metrics for analysis.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
 			--------
-			Render a correlation heatmap for the supplied features.
+			pd.DataFrame
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTree'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTree'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			---------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'DecisionTree'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			raise exception
+	
+	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Plot observed labels against predicted labels.
 
 			Parameters:
 			-----------
@@ -3554,45 +4185,32 @@ class DecisionTree( Classifier ):
 
 		"""
 		try:
-			throw_if( 'y', y )
-			self._correlation_heatmap( X )
-		except Exception as e:
-			exception = Error( e )
-			exception.module = 'mathy'
-			exception.cause = 'DecisionTree'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
-			raise exception
-	
-	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
-
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
-
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
-
-			Returns:
-			--------
-			None
-
-		"""
-		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
-			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
-			y_pred = self.model.predict( X )
+			_training = self.training_score if self.training_score is not None else 0.0
+			_testing = self.testing_score if self.testing_score is not None else 0.0
+			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
+			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
-			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -3628,13 +4246,15 @@ class RandomForest( Classifier ):
 		The variance reduction is often significant hence yielding an overall better model.
 
 	"""
-	n_estimators: int
-	criterion: Optional[ Any ]
 	model: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	max_depth: Optional[ Any ]
+	decision: Optional[ np.ndarray ]
 	random_state: Optional[ int ]
+	n_estimators: Optional[ int ]
+	max_depth: Optional[ int ]
+	criterion: Optional[ str ]
+	n_jobs: Optional[ int ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
@@ -3643,21 +4263,23 @@ class RandomForest( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 10, criterion: Any = 'gini', depth: Any = None, rando: int = 42 ) -> None:
+	def __init__( self, estimators: int = 100, depth: Optional[ int ] = None,
+			criterion: str = 'gini', jobs: int = -1, random: int = 42 ) -> None:
 		"""
 
 			Purpose:
-			-----------
-			Initialize the Random Forest classifier.
+			---------
+			Initialize the Random Forest classifier wrapper.
 
 			Parameters:
 			-----------
-			num (int): Number of trees in the forest.
-			criterion (str): Function used to measure split quality.
-			depth (int | None): Maximum tree depth.
-			rando (int): Random seed.
+			estimators (int): Number of trees in the forest.
+			depth (Optional[ int ]): Maximum tree depth.
+			criterion (str): Split quality criterion.
+			jobs (int): Number of parallel worker processes.
+			random (int): Random seed.
 
 			Returns:
 			--------
@@ -3665,18 +4287,25 @@ class RandomForest( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.n_estimators = num
-		self.criterion = criterion
+		self.n_estimators = estimators
 		self.max_depth = depth
-		self.random_state = rando
-		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
-			criterion=self.criterion, max_depth=self.max_depth, random_state=self.random_state )
+		self.criterion = criterion
+		self.n_jobs = jobs
+		self.random_state = random
+		self.validate_configuration( )
+		self.model = ske.RandomForestClassifier(
+			n_estimators=self.n_estimators,
+			max_depth=self.max_depth,
+			criterion=self.criterion,
+			n_jobs=self.n_jobs,
+			random_state=self.random_state
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Provide a list of strings representing class members.
 
 			Parameters:
@@ -3689,16 +4318,21 @@ class RandomForest( Classifier ):
 
 		"""
 		return [ 'prediction',
+		         'probability',
 		         'random_state',
 		         'n_estimators',
 		         'max_depth',
 		         'criterion',
+		         'n_jobs',
 		         'model',
 		         'train',
 		         'project',
 		         'predict_probability',
 		         'score',
 		         'analyze',
+		         'confusion_matrix',
+		         'roc_curve',
+		         'scatter_plot',
 		         'labels',
 		         'features_in',
 		         'feature_importances',
@@ -3709,14 +4343,44 @@ class RandomForest( Classifier ):
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid = { 'gini', 'entropy', 'log_loss' }
+			if self.criterion not in _valid:
+				raise ValueError( f'Unsupported criterion: {self.criterion}' )
+			
+			if self.n_estimators is None or self.n_estimators < 1:
+				raise ValueError( 'Argument "estimators" must be greater than zero.' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'RandomForest'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Return class labels known to the classifier.
 
 			Parameters:
@@ -3728,7 +4392,7 @@ class RandomForest( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
@@ -3737,7 +4401,7 @@ class RandomForest( Classifier ):
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Return the number of features seen during training.
 
 			Parameters:
@@ -3749,7 +4413,7 @@ class RandomForest( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
@@ -3758,7 +4422,7 @@ class RandomForest( Classifier ):
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Return impurity-based feature importances.
 
 			Parameters:
@@ -3770,7 +4434,7 @@ class RandomForest( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.feature_importances_ is None:
+		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.feature_importances_
 	
@@ -3779,7 +4443,7 @@ class RandomForest( Classifier ):
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Return the number of outputs after training.
 
 			Parameters:
@@ -3791,17 +4455,17 @@ class RandomForest( Classifier ):
 			int
 
 		"""
-		if self.model.n_outputs_ is None:
+		if not hasattr( self.model, 'n_outputs_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_outputs_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Split input arrays into training and testing subsets.
 
 			Parameters:
@@ -3813,27 +4477,35 @@ class RandomForest( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
-			return (X_train, X_test, y_train, y_test)
+			X_train, X_test, y_train, y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random,
+				stratify=y
+			)
+			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Fit the Random Forest classifier.
 
 			Parameters:
@@ -3850,25 +4522,27 @@ class RandomForest( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Predict class labels for the supplied features.
 
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -3883,14 +4557,14 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Return class-probability estimates for the supplied features.
 
 			Parameters:
@@ -3917,7 +4591,7 @@ class RandomForest( Classifier ):
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Compute scalar summary classification metrics.
 
 			Parameters:
@@ -3939,12 +4613,12 @@ class RandomForest( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
-			-----------
-			Render a correlation heatmap for the supplied features.
+			---------
+			Return tabular classifier metrics for Streamlit display.
 
 			Parameters:
 			-----------
@@ -3953,24 +4627,107 @@ class RandomForest( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'RandomForest'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			---------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'RandomForest'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
 		"""
 
 			Purpose:
-			-----------
+			---------
 			Plot observed labels against predicted labels.
 
 			Parameters:
@@ -3986,16 +4743,30 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
+			_trn = self.training_score if self.training_score is not None else 0.0
+			_tst = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
-			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4031,11 +4802,11 @@ class GradientBoost( Classifier ):
 	model: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	max_depth: Optional[ int ]
 	random_state: Optional[ int ]
-	criterion: Optional[ str ]
-	loss: Optional[ str ]
 	n_estimators: Optional[ int ]
+	learning_rate: Optional[ float ]
+	max_depth: Optional[ int ]
+	criterion: Optional[ str ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
@@ -4044,24 +4815,24 @@ class GradientBoost( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, lss: str = 'log_loss', rate: float = 0.1, est: int = 100,
-			depth: int = 3, rando: int = 42, criterion: str = 'friedman_mse' ) -> None:
+	def __init__( self, estimators: int = 100, rate: float = 0.1,
+			depth: int = 3, criterion: str = 'friedman_mse',
+			random: int = 42 ) -> None:
 		"""
 
 			Purpose:
 			--------
-			Initialize the Gradient Boosting classifier.
+			Initialize the Gradient Boosting classifier wrapper.
 
 			Parameters:
 			-----------
-			lss (str): Loss function.
-			rate (float): Learning rate.
-			est (int): Number of boosting stages.
-			depth (int): Maximum depth of the individual estimators.
-			rando (int): Random seed.
-			criterion (str): Split criterion for the base learners.
+			estimators (int): Number of boosting stages.
+			rate (float): Learning rate applied to each boosting stage.
+			depth (int): Maximum depth of each regression tree estimator.
+			criterion (str): Split quality criterion used by the individual trees.
+			random (int): Random seed.
 
 			Returns:
 			--------
@@ -4069,19 +4840,18 @@ class GradientBoost( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.loss = lss
+		self.n_estimators = estimators
 		self.learning_rate = rate
-		self.n_estimators = est
 		self.max_depth = depth
-		self.random_state = rando
 		self.criterion = criterion
+		self.random_state = random
+		self.validate_configuration( )
 		self.model = ske.GradientBoostingClassifier(
-			loss=self.loss,
-			learning_rate=self.learning_rate,
 			n_estimators=self.n_estimators,
+			learning_rate=self.learning_rate,
 			max_depth=self.max_depth,
-			random_state=self.random_state,
-			criterion=self.criterion
+			criterion=self.criterion,
+			random_state=self.random_state
 		)
 	
 	def __dir__( self ) -> List[ str ]:
@@ -4101,11 +4871,11 @@ class GradientBoost( Classifier ):
 
 		"""
 		return [ 'prediction',
-		         'max_depth',
+		         'probability',
 		         'random_state',
-		         'loss',
-		         'learning_rate',
 		         'n_estimators',
+		         'learning_rate',
+		         'max_depth',
 		         'criterion',
 		         'model',
 		         'train',
@@ -4113,18 +4883,57 @@ class GradientBoost( Classifier ):
 		         'predict_probability',
 		         'score',
 		         'analyze',
+		         'confusion_matrix',
+		         'roc_curve',
+		         'scatter_plot',
 		         'labels',
 		         'features_in',
-		         'trees',
 		         'feature_importances',
-		         'estimators',
+		         'outputs',
+		         'stages',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			--------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid = { 'friedman_mse', 'squared_error' }
+			if self.criterion not in _valid:
+				raise ValueError( f'Unsupported criterion: {self.criterion}' )
+			
+			if self.n_estimators is None or self.n_estimators < 1:
+				raise ValueError( 'Argument "estimators" must be greater than zero.' )
+			
+			if self.learning_rate is None or self.learning_rate <= 0.0:
+				raise ValueError( 'Argument "rate" must be greater than zero.' )
+			
+			if self.max_depth is None or self.max_depth < 1:
+				raise ValueError( 'Argument "depth" must be greater than zero.' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoost'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4143,30 +4952,9 @@ class GradientBoost( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
-			raise AttributeError( 'The data has not been trained!' )
+		if not hasattr( self.model, 'classes_' ):
+			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
-	
-	@property
-	def trees( self ) -> int:
-		"""
-
-			Purpose:
-			--------
-			Return the number of trees fit per boosting iteration.
-
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			int
-
-		"""
-		if self.model.n_trees_per_iteration_ is None:
-			raise AttributeError( 'The data has not been trained!' )
-		return self.model.n_trees_per_iteration_
 	
 	@property
 	def features_in( self ) -> int:
@@ -4185,7 +4973,7 @@ class GradientBoost( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
@@ -4206,17 +4994,38 @@ class GradientBoost( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.feature_importances_ is None:
+		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.feature_importances_
 	
 	@property
-	def estimators( self ) -> np.ndarray:
+	def outputs( self ) -> int:
 		"""
 
 			Purpose:
 			--------
-			Return the fitted stage estimators.
+			Return the number of outputs after training.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			int
+
+		"""
+		if not hasattr( self.model, 'n_trees_per_iteration_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_trees_per_iteration_
+	
+	@property
+	def stages( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Return the staged estimators array.
 
 			Parameters:
 			-----------
@@ -4227,13 +5036,13 @@ class GradientBoost( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.estimators_ is None:
+		if not hasattr( self.model, 'estimators_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -4249,20 +5058,28 @@ class GradientBoost( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
-			return (X_train, X_test, y_train, y_test)
+			X_train, X_test, y_train, y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random,
+				stratify=y
+			)
+			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
@@ -4286,15 +5103,16 @@ class GradientBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -4304,7 +5122,8 @@ class GradientBoost( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -4319,7 +5138,7 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
@@ -4375,12 +5194,12 @@ class GradientBoost( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			--------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for Streamlit display.
 
 			Parameters:
 			-----------
@@ -4389,17 +5208,100 @@ class GradientBoost( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoost'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			--------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'GradientBoost'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -4422,16 +5324,30 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
+			_trn = self.training_score if self.training_score is not None else 0.0
+			_tst = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
-			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4458,12 +5374,13 @@ class AdaptiveBoost( Classifier ):
 
 	"""
 	model: ske.AdaBoostClassifier
+	base_estimator: object
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
+	random_state: Optional[ int ]
 	n_estimators: Optional[ int ]
-	X_scaled: Optional[ pd.DataFrame ]
-	estimator: Optional[ Any ]
 	learning_rate: Optional[ float ]
+	algorithm: Optional[ str ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
@@ -4472,20 +5389,26 @@ class AdaptiveBoost( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int=100, learning: float=1.0, estimator: Any=None ) -> None:
+	def __init__( self, base: object = None, estimators: int = 50,
+			rate: float = 1.0, algorithm: str = 'SAMME',
+			random: int = 42 ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the AdaBoost classifier.
+			Initialize the AdaBoost classifier wrapper.
 
 			Parameters:
 			-----------
-			num (int): Number of boosting stages.
-			learning (float): Learning rate applied to each classifier contribution.
-			estimator (Any): Base estimator used by the boosting ensemble.
+			base (object): Base estimator used inside the ensemble. If None,
+				scikit-learn uses its default DecisionTreeClassifier.
+			estimators (int): Number of boosting stages.
+			rate (float): Learning rate applied to each boosting stage.
+			algorithm (str): Discrete boosting algorithm identifier retained
+				for wrapper compatibility.
+			random (int): Random seed.
 
 			Returns:
 			--------
@@ -4493,12 +5416,18 @@ class AdaptiveBoost( Classifier ):
 
 		"""
 		super( ).__init__( )
-		self.estimator = estimator
-		self.n_estimators = num
-		self.learning_rate = learning
-		self.model = ske.AdaBoostClassifier( estimator=self.estimator,
-			n_estimators=self.n_estimators, learning_rate=self.learning_rate )
-		self.X_scaled = None
+		self.base_estimator = base
+		self.n_estimators = estimators
+		self.learning_rate = rate
+		self.algorithm = algorithm
+		self.random_state = random
+		self.validate_configuration( )
+		self.model = ske.AdaBoostClassifier(
+			estimator=self.base_estimator,
+			n_estimators=self.n_estimators,
+			learning_rate=self.learning_rate,
+			random_state=self.random_state
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -4518,37 +5447,40 @@ class AdaptiveBoost( Classifier ):
 		"""
 		return [ 'prediction',
 		         'probability',
-		         'X_scaled',
+		         'random_state',
+		         'base_estimator',
 		         'n_estimators',
 		         'learning_rate',
-		         'estimator',
+		         'algorithm',
 		         'model',
 		         'train',
 		         'project',
 		         'predict_probability',
 		         'score',
 		         'analyze',
-		         'estimator_errors',
-		         'estimator_weights',
+		         'confusion_matrix',
+		         'roc_curve',
+		         'scatter_plot',
 		         'labels',
 		         'features_in',
 		         'feature_importances',
 		         'estimators',
+		         'estimator_weights',
+		         'estimator_errors',
 		         'accuracy',
 		         'precision',
 		         'balanced_accuracy',
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
 	
-	@property
-	def estimator_errors( self ) -> np.ndarray:
+	def validate_configuration( self ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Return per-estimator classification errors.
+			Validate wrapper configuration before estimator construction.
 
 			Parameters:
 			-----------
@@ -4556,33 +5488,24 @@ class AdaptiveBoost( Classifier ):
 
 			Returns:
 			--------
-			np.ndarray
-
-		"""
-		if self.model.estimator_errors_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		return self.model.estimator_errors_
-	
-	@property
-	def estimator_weights( self ) -> np.ndarray:
-		"""
-
-			Purpose:
-			---------
-			Return per-estimator boosting weights.
-
-			Parameters:
-			-----------
 			None
 
-			Returns:
-			--------
-			np.ndarray
-
 		"""
-		if self.model.estimator_weights_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		return self.model.estimator_weights_
+		try:
+			if self.n_estimators is None or self.n_estimators < 1:
+				raise ValueError( 'Argument "estimators" must be greater than zero.' )
+			
+			if self.learning_rate is None or self.learning_rate <= 0.0:
+				raise ValueError( 'Argument "rate" must be greater than zero.' )
+			
+			if self.algorithm not in { 'SAMME', 'deprecated', None }:
+				raise ValueError( f'Unsupported algorithm setting: {self.algorithm}' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'AdaptiveBoost'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4601,8 +5524,8 @@ class AdaptiveBoost( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
-			raise AttributeError( 'The data has not been trained!' )
+		if not hasattr( self.model, 'classes_' ):
+			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
 	@property
@@ -4622,30 +5545,9 @@ class AdaptiveBoost( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
-	
-	@property
-	def estimators( self ) -> List[ Any ]:
-		"""
-
-			Purpose:
-			---------
-			Return fitted boosting estimators.
-
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ Any ]
-
-		"""
-		if self.model.estimators_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
-		return self.model.estimators_
 	
 	@property
 	def feature_importances( self ) -> np.ndarray:
@@ -4664,12 +5566,76 @@ class AdaptiveBoost( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.feature_importances_ is None:
-			raise AttributeError( 'The model data has not been trained!' )
+		if not hasattr( self.model, 'feature_importances_' ):
+			raise AttributeError( 'Feature importances are not available for the trained model.' )
 		return self.model.feature_importances_
 	
+	@property
+	def estimators( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted boosting estimators.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		if not hasattr( self.model, 'estimators_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return np.array( self.model.estimators_, dtype=object )
+	
+	@property
+	def estimator_weights( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted estimator weights.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		if not hasattr( self.model, 'estimator_weights_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.estimator_weights_
+	
+	@property
+	def estimator_errors( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted estimator errors.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		if not hasattr( self.model, 'estimator_errors_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.estimator_errors_
+	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -4685,20 +5651,21 @@ class AdaptiveBoost( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
-			return (X_train, X_test, y_train, y_test)
+			return split( X, y, test_size=size, random_state=random, stratify=y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
@@ -4722,15 +5689,16 @@ class AdaptiveBoost( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -4740,7 +5708,8 @@ class AdaptiveBoost( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -4755,7 +5724,7 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
@@ -4794,7 +5763,7 @@ class AdaptiveBoost( Classifier ):
 
 			Parameters:
 			-----------
-			X (np.ndarray): Input features.
+			X (np.ndarray): Feature matrix.
 			y (np.ndarray): Ground-truth labels.
 
 			Returns:
@@ -4811,12 +5780,12 @@ class AdaptiveBoost( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			---------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for analysis.
 
 			Parameters:
 			-----------
@@ -4825,17 +5794,100 @@ class AdaptiveBoost( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'AdaptiveBoost'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			---------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'AdaptiveBoost'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -4848,7 +5900,7 @@ class AdaptiveBoost( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+			y (np.ndarray): Ground-truth labels.
 
 			Returns:
 			--------
@@ -4858,15 +5910,30 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
-			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
-			y_pred = self.model.predict( X )
+			_training = self.training_score if self.training_score is not None else 0.0
+			_testing = self.testing_score if self.testing_score is not None else 0.0
+			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
+			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),  y.max( ) ], 'k--', label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4899,12 +5966,12 @@ class BaggingModel( Classifier ):
 
 	"""
 	model: ske.BaggingClassifier
+	base_estimator: object
+	n_estimators: int
+	max_features: int | float
+	random_state: int
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
-	max_features: Optional[ int ]
-	random_state: Optional[ int ]
-	base_estimator: Optional[ Any ]
-	n_estimators: Optional[ int ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
 	balanced_accuracy: Optional[ float ]
@@ -4913,9 +5980,10 @@ class BaggingModel( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object=None, num: int=10, size: int=1, rando: int=42 ) -> None:
+	def __init__( self, base: object = None, num: int = 10, max: int | float = 1.0,
+			rando: int = 42 ) -> None:
 		"""
 
 			Purpose:
@@ -4924,10 +5992,11 @@ class BaggingModel( Classifier ):
 
 			Parameters:
 			-----------
-			base (object): Base estimator.
+			base (object): Base estimator used inside the ensemble. If None,
+				scikit-learn uses its default DecisionTreeClassifier.
 			num (int): Number of estimators in the ensemble.
-			size (int): Number of features drawn for each base estimator.
-			rando (int): Random seed.
+			max (int | float): Number or fraction of features drawn for each base estimator.
+			rando (int): Random seed used by supported routines.
 
 			Returns:
 			--------
@@ -4937,11 +6006,15 @@ class BaggingModel( Classifier ):
 		super( ).__init__( )
 		self.base_estimator = base
 		self.n_estimators = num
-		self.max_features = size
+		self.max_features = max
 		self.random_state = rando
-		self.model = ske.BaggingClassifier( estimator=self.base_estimator,
-			n_estimators=self.n_estimators, max_features=self.max_features,
-			random_state=self.random_state )
+		self.validate_configuration( )
+		self.model = ske.BaggingClassifier(
+			estimator=self.base_estimator,
+			n_estimators=self.n_estimators,
+			max_features=self.max_features,
+			random_state=self.random_state
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -4970,6 +6043,9 @@ class BaggingModel( Classifier ):
 		         'predict_probability',
 		         'score',
 		         'analyze',
+		         'confusion_matrix',
+		         'roc_curve',
+		         'scatter_plot',
 		         'labels',
 		         'features',
 		         'estimators',
@@ -4979,7 +6055,36 @@ class BaggingModel( Classifier ):
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			--------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			if self.n_estimators is None or self.n_estimators < 1:
+				raise ValueError( 'Argument "num" must be greater than zero.' )
+			
+			if self.max_features is None:
+				raise ValueError( 'Argument "max" cannot be empty!' )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'BaggingModel'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -4998,7 +6103,7 @@ class BaggingModel( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.classes_
 	
@@ -5019,7 +6124,7 @@ class BaggingModel( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
@@ -5040,12 +6145,13 @@ class BaggingModel( Classifier ):
 			List[ Any ]
 
 		"""
-		if self.model.estimators_ is None:
+		if not hasattr( self.model, 'estimators_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -5061,20 +6167,28 @@ class BaggingModel( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
-			return (X_train, X_test, y_train, y_test)
+			X_train, X_test, y_train, y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random,
+				stratify=y
+			)
+			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
@@ -5098,15 +6212,16 @@ class BaggingModel( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -5187,12 +6302,12 @@ class BaggingModel( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			--------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for Streamlit display.
 
 			Parameters:
 			-----------
@@ -5201,17 +6316,100 @@ class BaggingModel( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			--------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'BaggingModel'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			--------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'BaggingModel'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -5234,14 +6432,14 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
+			_trn = self.training_score if self.training_score is not None else 0.0
+			_tst = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
 			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ),
-			                                    y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
 				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
@@ -6036,6 +7234,7 @@ class SupportVector( Classifier ):
 	prediction: Optional[ np.ndarray ]
 	misclass: Optional[ float ]
 	probability: Optional[ np.ndarray ]
+	decision: Optional[ np.ndarray ]
 	random_state: Optional[ int ]
 	accuracy: Optional[ float ]
 	precision: Optional[ float ]
@@ -6045,9 +7244,11 @@ class SupportVector( Classifier ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]
-	confusion_matrix: Optional[ np.ndarray ]
+	confusion_matrix_values: Optional[ np.ndarray ]
+	degree: int
 	
-	def __init__( self, C: float = 1.0, kernel: str = 'rbf', degree: int = 3 ) -> None:
+	def __init__( self, C: float = 1.0, kernel: str = 'rbf', degree: int = 3,
+			random: int = 42 ) -> None:
 		"""
 
 			Purpose:
@@ -6059,6 +7260,7 @@ class SupportVector( Classifier ):
 			C (float): Regularization parameter.
 			kernel (str): Kernel type.
 			degree (int): Polynomial degree used when kernel='poly'.
+			random (int): Random seed used when probability estimation is enabled.
 
 			Returns:
 			--------
@@ -6069,8 +7271,15 @@ class SupportVector( Classifier ):
 		self.regulation = C
 		self.kernel = kernel
 		self.degree = degree
-		self.model = skv.SVC( C=self.regulation, kernel=self.kernel,
-			degree=self.degree, probability=True )
+		self.random_state = random
+		self.validate_configuration( )
+		self.model = skv.SVC(
+			C=self.regulation,
+			kernel=self.kernel,
+			degree=self.degree,
+			probability=True,
+			random_state=self.random_state
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -6090,6 +7299,7 @@ class SupportVector( Classifier ):
 		"""
 		return [ 'prediction',
 		         'probability',
+		         'decision',
 		         'random_state',
 		         'model',
 		         'kernel',
@@ -6098,8 +7308,11 @@ class SupportVector( Classifier ):
 		         'train',
 		         'project',
 		         'predict_probability',
+		         'decision_function',
 		         'score',
 		         'analyze',
+		         'confusion_matrix',
+		         'roc_curve',
 		         'scatter_plot',
 		         'vectors',
 		         'weights',
@@ -6113,7 +7326,37 @@ class SupportVector( Classifier ):
 		         'f1_score',
 		         'recall',
 		         'testing_score',
-		         'training_score', ]
+		         'training_score' ]
+	
+	def validate_configuration( self ) -> None:
+		"""
+
+			Purpose:
+			---------
+			Validate wrapper configuration before estimator construction.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+
+		"""
+		try:
+			_valid_kernels = { 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' }
+			if self.kernel not in _valid_kernels:
+				raise ValueError( f'Unsupported kernel: {self.kernel}' )
+			
+			if self.kernel != 'poly' and self.degree is None:
+				self.degree = 3
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SupportVector'
+			exception.method = 'validate_configuration( self ) -> None'
+			raise exception
 	
 	@property
 	def vectors( self ) -> np.ndarray:
@@ -6132,7 +7375,7 @@ class SupportVector( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.support_vectors_ is None:
+		if not hasattr( self.model, 'support_vectors_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.support_vectors_
 	
@@ -6156,9 +7399,8 @@ class SupportVector( Classifier ):
 		if self.kernel != 'linear':
 			raise AttributeError( 'The weights are only available when kernel="linear".' )
 		
-		if self.model.coef_ is None:
+		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		
 		return self.model.coef_
 	
 	@property
@@ -6178,7 +7420,7 @@ class SupportVector( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.classes_ is None:
+		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.classes_
 	
@@ -6199,7 +7441,7 @@ class SupportVector( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.n_iter_ is None:
+		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_iter_
 	
@@ -6220,7 +7462,7 @@ class SupportVector( Classifier ):
 			int
 
 		"""
-		if self.model.n_features_in_ is None:
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
@@ -6241,12 +7483,13 @@ class SupportVector( Classifier ):
 			np.ndarray
 
 		"""
-		if self.model.n_support_ is None:
+		if not hasattr( self.model, 'n_support_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_support_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -6262,20 +7505,28 @@ class SupportVector( Classifier ):
 
 			Returns:
 			--------
-			tuple
+			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
 
 		"""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
-			return (X_train, X_test, y_train, y_test)
+			X_train, X_test, y_train, y_test = split(
+				X,
+				y,
+				test_size=size,
+				random_state=random,
+				stratify=y
+			)
+			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = (
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
+					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+			)
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
@@ -6299,15 +7550,16 @@ class SupportVector( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
+			self.training_score = float( self.model.score( X, y ) )
 			return self
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -6317,7 +7569,8 @@ class SupportVector( Classifier ):
 			Parameters:
 			-----------
 			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
+				signature consistency.
 
 			Returns:
 			--------
@@ -6332,7 +7585,34 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			raise exception
+	
+	def decision_function( self, X: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Compute decision scores for the supplied features.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			self.decision = self.model.decision_function( X )
+			return self.decision
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SupportVector'
+			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
@@ -6388,12 +7668,12 @@ class SupportVector( Classifier ):
 			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
+	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
 		"""
 
 			Purpose:
 			---------
-			Render a correlation heatmap for the supplied features.
+			Return tabular classifier metrics for Streamlit display.
 
 			Parameters:
 			-----------
@@ -6402,17 +7682,100 @@ class SupportVector( Classifier ):
 
 			Returns:
 			--------
-			None
+			pd.DataFrame
 
 		"""
 		try:
+			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self._correlation_heatmap( X )
+			df_metrics = self.score( X, y )
+			self.testing_score = float( self.model.score( X, y ) )
+			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			raise exception
+	
+	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Render a confusion matrix for classifier predictions.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth labels.
+
+			Returns:
+			--------
+			np.ndarray
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			y_pred = self.project( X )
+			self.confusion_matrix_values = confusion_matrix( y, y_pred )
+			ConfusionMatrixDisplay( self.confusion_matrix_values ).plot( values_format='d' )
+			plt.title( 'Confusion Matrix' )
+			plt.grid( False )
+			plt.tight_layout( )
+			return self.confusion_matrix_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SupportVector'
+			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			raise exception
+	
+	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
+		"""
+
+			Purpose:
+			---------
+			Render a binary ROC curve using predicted class probabilities.
+
+			Parameters:
+			-----------
+			X (np.ndarray): Input features.
+			y (np.ndarray): Ground-truth binary labels.
+
+			Returns:
+			--------
+			Tuple[ np.ndarray, np.ndarray, float ]
+
+		"""
+		try:
+			throw_if( 'X', X )
+			throw_if( 'y', y )
+			classes = np.unique( y )
+			if len( classes ) != 2:
+				raise ValueError( 'roc_curve is supported only for binary classification.' )
+			
+			probability = self.predict_probability( X )
+			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
+			roc_auc = auc( fpr, tpr )
+			
+			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
+			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
+			plt.xlim( [ -0.01, 1.01 ] )
+			plt.ylim( [ -0.01, 1.01 ] )
+			plt.xlabel( 'False Positive Rate' )
+			plt.ylabel( 'True Positive Rate' )
+			plt.title( 'Receiver Operating Characteristic' )
+			plt.legend( loc='lower right' )
+			plt.grid( visible=True )
+			plt.tight_layout( )
+			return fpr, tpr, roc_auc
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SupportVector'
+			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
@@ -6435,16 +7798,30 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			_trn = self.training_score
-			_tst = self.testing_score
+			_trn = self.training_score if self.training_score is not None else 0.0
+			_tst = self.testing_score if self.testing_score is not None else 0.0
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
-				label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 ) )
+			sns.regplot(
+				x=y,
+				y=y_pred,
+				scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' }
+			)
+			plt.plot(
+				[ y.min( ), y.max( ) ],
+				[ y.min( ), y.max( ) ],
+				'k--',
+				label='Perfect Prediction'
+			)
+			plt.text(
+				x=y.min( ),
+				y=y.max( ) * 0.95,
+				s=_text,
+				fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 )
+			)
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )

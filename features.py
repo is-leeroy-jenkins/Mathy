@@ -921,6 +921,11 @@ class PCA( Selector ):
 		         'transform',
 		         'train_transform' ]
 	
+	@property
+	def explained_variance_ratio( self ):
+		if self.model is not None:
+			return self.model.explained_variance_ratio_
+		
 	def split_data( self, X: np.ndarray,  y: np.ndarray,  size: float=0.2,
 			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
