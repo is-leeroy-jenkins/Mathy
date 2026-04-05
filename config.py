@@ -57,10 +57,11 @@ CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Processing', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
           'Feature Engineering', 'Classifications', 'Regressions', 'Clustering', 'Time-Series', 'Database' ]
 
-MODE = { 'Data Profile': '🔰 Schema',
+MODE = { 'Data Profile': '🕵️ Data Profiling',
        'Descriptive Statistics': '🔍 Descriptive Statistics',
        'Inferential Statistics': '🧠 Inferential Statistics',
-       'Anomaly Detection': '🚨 Anomaly Detection',
+       'Anomaly Detection': '🛸 Anomaly Detection',
+       'Data Plumbing': '🛠️ Data Plumbing',
        'Feature Engineering': '🏗️ Feature Engineering',
        'Classifications': '📊 Classification Models',
        'Regressions': '📉 Regression Models',
@@ -156,4 +157,62 @@ SPEARMAN_COEFFICIENT = r'''Spearman's rank correlation coefficient 'rho' or 's' 
 measure that assesses the strength and direction of the monotonic relationship between two ranked or
 continuous variables. Ranging from -1 to +1, it evaluates how well the relationship can be described
 by a monotonic function, without requiring normally distributed data.
+'''
+
+ECDF = r'''The Empirical Cumulative Distribution Function (ECDF) is a step function that represents
+the fraction of data points less than or equal to a specific value, providing an empirical estimate
+of the underlying cumulative distribution. It is calculated by sorting  observations and increasing
+the function by 1/n at each data point, with values ranging from 0 to 1.
+'''
+
+Z_SCORE = r'''Score flags observations whose values are a specified number of standard deviations
+away from the mean. This method works best when the variable is roughly symmetric and not
+dominated by extreme skew or heavy tails.
+'''
+
+MODIFIED_Z = r'''Modified Z-Score uses the median and median absolute deviation (MAD) instead of
+the mean and standard deviation. It is more robust than the standard Z-Score when the data contain
+skew, heavy tails, or existing outliers.
+'''
+
+IQR = r'''IQR Fence flags observations below Q1 - k×IQR or above Q3 + k×IQR, where IQR is the
+interquartile range. This is a simple and robust rule for detecting unusually low or high values
+without assuming normality.
+'''
+
+MAHALANOBIS = r'''Mahalanobis Distance detects multivariate outliers by measuring how far each
+observation is from the center of the data while accounting for covariance between variables.
+It is  useful when unusual combinations of values matter more than extreme values in a single column.
+'''
+
+
+ISOLATION_FOREST = r'''Isolation Forest is an ensemble method that isolates unusual observations
+through random partitioning. Points that are easier to isolate are treated as anomalies. It works
+well for  nonlinear and high-dimensional patterns and does not require the data to be normally distributed.
+'''
+
+LOF = r'''Local Outlier Factor (LOF) compares the local density of each observation to the density
+of its nearest neighbors. Points that lie in much sparser neighborhoods than nearby points are
+flagged as anomalies. It is useful for detecting local anomalies that may not look extreme globally.
+'''
+
+Z_THRESHOLD = r'''Sets the cutoff used by both Z-Score and Modified Z-Score. Larger values make the
+ rule more conservative and reduce the number of observations flagged as anomalies.
+'''
+
+IQR_MULTIPLIER = r'''Sets the multiplier applied to the interquartile range when building the lower
+and upper IQR fences. Larger multipliers widen the fence and make the rule less sensitive.
+'''
+
+LOF_K = r'''Sets the number of nearest neighbors used by Local Outlier Factor. Smaller values
+emphasize very local structure, while larger values smooth the density comparison over a broader neighborhood.
+'''
+
+MIN_METHODS = r'''Controls the consensus threshold. A row must be flagged by at least this many
+methods before it is included in the final anomaly table.
+'''
+
+ANALYSIS_SCALE = r'''When enabled, the selected variables are standardized for analysis only.
+This puts variables on a comparable scale so that multivariate methods are less dominated by columns
+with large numeric ranges. The underlying dataset is not changed.
 '''
