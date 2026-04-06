@@ -130,6 +130,16 @@ from transformers import (
 	FeatureHasher
 )
 
+from features import (
+	VarianceThreshold,
+	CCA,
+	PCA,
+	SelectBest,
+	SelectPercent,
+	SBS,
+	RFE
+)
+
 from classifications import (
 	Perceptron,
 	LeastSquares,
@@ -143,15 +153,24 @@ from classifications import (
 	GradientBoost
 )
 
-from features import (
-	VarianceThreshold,
-	CCA,
-	PCA,
-	SelectBest,
-	SelectPercent,
-	SBS,
-	RFE
+from regressions import (
+	LeastSquares,
+	Ridge,
+	Lasso,
+	ElasticNet,
+	BayesianRidge,
+	SupportVector,
+	GradientDescent,
+	NearestNeighbor,
+	BaggingModel,
+	ExtraTreesModel,
+	AdaptiveBoost,
+	GradientBoost,
+	RandomForest,
+	VotingModel,
+	StackingModel
 )
+
 
 # ============================================
 # Session State
@@ -4351,38 +4370,70 @@ elif mode == 'Regressions':
 	st.subheader( 'Target & Features' )
 	
 	target = st.selectbox( 'Target (Numeric)', numeric_cols )
-	features = st.multiselect( 'Feature Columns (Numeric)',
-		[ c for c in numeric_cols if c != target ],
-		default=[ c for c in numeric_cols if c != target ][ :3 ] )
+	feature_candidates = [ c for c in numeric_cols if c != target ]
+	feature_defaults = feature_candidates[ : min( 3, len( feature_candidates ) ) ]
+	
+	features = st.multiselect(
+		'Feature Columns (Numeric)',
+		feature_candidates,
+		default=feature_defaults
+	)
 	
 	if not features:
 		st.info( 'Please select at least one feature.' )
 		st.stop( )
 	
-	X = df_dataset[ features ].to_numpy( )
-	y = df_dataset[ target ].to_numpy( )
+	# ------------------------------------------------------------------
+	# DATASET PREPARATION
+	# ------------------------------------------------------------------
+	df_regression = df_dataset[ features + [ target ] ].copy( )
+	df_regression = df_regression.replace( [ np.inf, -np.inf ], np.nan )
+	df_regression = df_regression.apply( pd.to_numeric, errors='coerce' )
+	
+	rows_before = len( df_regression )
+	df_regression = df_regression.dropna( axis=0, how='any' )
+	rows_after = len( df_regression )
+	
+	if rows_after == 0:
+		st.warning( '⚠️ No complete numeric rows remain after removing missing or invalid values.' )
+		st.stop( )
+	
+	if rows_after < 5:
+		st.warning( '⚠️ Regression requires at least 5 complete rows after cleaning.' )
+		st.stop( )
+	
+	if rows_after != rows_before:
+		st.info( f'Using {rows_after:,} complete rows after removing {rows_before - rows_after:,} row(s) with missing or invalid values.' )
+	
+	if df_regression[ target ].nunique( dropna=True ) < 2:
+		st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
+		st.stop( )
+	
+	X = df_regression[ features ].to_numpy( dtype=float )
+	y = df_regression[ target ].to_numpy( dtype=float )
 	
 	# ------------------------------------------------------------------
 	# MODEL SELECTION
 	# ------------------------------------------------------------------
-	from regressions import ( LeastSquares, Ridge, LeastAngle, ElasticNet, BayesianRidge,
-		SupportVector, GradientDescent, BaggingModel, GradientBoost, RandomForest,
-		GaussianProcess )
 	
 	model_map = \
-	{
-			'Ordinary Least Squares': LeastSquares,
-			'Ridge Regression': Ridge,
-			'Lasso (Least Angle)': LeastAngle,
-			'Elastic Net': ElasticNet,
-			'Bayesian Ridge': BayesianRidge,
-			'Support Vector': SupportVector,
-			'Stochastic Gradient Descent': GradientDescent,
-			'Bagging Regressor': BaggingModel,
-			'Gradient Boosting': GradientBoost,
-			'Random Forest': RandomForest,
-			'Gaussian Process': GaussianProcess
-	}
+		{
+				'Ordinary Least Squares': LeastSquares,
+				'Ridge Regression': Ridge,
+				'Lasso Regression': Lasso,
+				'Elastic Net': ElasticNet,
+				'Bayesian Ridge': BayesianRidge,
+				'Support Vector': SupportVector,
+				'Stochastic Gradient Descent': GradientDescent,
+				'k-Nearest Neighbors': NearestNeighbor,
+				'Bagging Regressor': BaggingModel,
+				'Extra Trees Regressor': ExtraTreesModel,
+				'AdaBoost Regressor': AdaptiveBoost,
+				'Gradient Boosting': GradientBoost,
+				'Random Forest': RandomForest,
+				'Voting Regressor': VotingModel,
+				'Stacking Regressor': StackingModel
+		}
 	
 	st.subheader( 'Model Selection' )
 	model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
@@ -4392,31 +4443,111 @@ elif mode == 'Regressions':
 	# TRAIN / TEST SPLIT
 	# ------------------------------------------------------------------
 	st.subheader( 'Training Configuration' )
+	test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
+	random_state = int( st.number_input( 'Random state', value=42, step=1, key='regressions-2' ) )
 	
-	test_size = st.slider( 'Test Set Size (%)', 10, 20, 30, key='regressions-1' ) / 100.0
-	random_state = st.number_input( 'Random state', value=42, step=1, key='regressions-2' )
+	min_test_rows = max( 2, int( np.ceil( len( df_regression ) * test_size ) ) )
+	min_train_rows = len( df_regression ) - min_test_rows
+	
+	if min_train_rows < 2:
+		st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
+		st.stop( )
 	
 	if st.button( '🚀 Train Model' ):
 		try:
-			X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_size, 
-				random=random_state )			
+			X_train, X_test, y_train, y_test = model.split_data(
+				X,
+				y,
+				size=test_size,
+				random=random_state
+			)
 			model.train( X_train, y_train )
 			
 			# ------------------------------------------------------------------
 			# METRICS
 			# ------------------------------------------------------------------
 			st.subheader( 'Model Performance' )
-			
 			df_regressor = model.analyze( X_test, y_test )
 			st.data_editor( df_regressor, use_container_width=True )
 			
 			# ------------------------------------------------------------------
-			# SCATTER PLOT (BUILT-IN)
+			# PREDICTIONS
 			# ------------------------------------------------------------------
-			st.subheader( 'Observed vs Predicted' )			
-			fig = plt.figure( )
+			st.subheader( 'Predictions' )
+			y_pred = model.project( X_test )
+			df_predictions = pd.DataFrame(
+				{
+						'Observed': y_test,
+						'Predicted': y_pred,
+						'Residual': y_test - y_pred
+				}
+			)
+			st.data_editor( df_predictions, use_container_width=True )
+			
+			# ------------------------------------------------------------------
+			# MODEL DETAILS
+			# ------------------------------------------------------------------
+			st.subheader( 'Model Details' )
+			detail_rows = [ ]
+			
+			if hasattr( model, 'features' ):
+				try:
+					detail_rows.append( { 'Property': 'Features', 'Value': model.features } )
+				except Exception:
+					pass
+			
+			if hasattr( model, 'training_score' ):
+				try:
+					detail_rows.append( { 'Property': 'Training Score',
+					                      'Value': model.training_score } )
+				except Exception:
+					pass
+			
+			if hasattr( model, 'testing_score' ):
+				try:
+					detail_rows.append( { 'Property': 'Testing Score',
+					                      'Value': model.testing_score } )
+				except Exception:
+					pass
+			
+			if hasattr( model, 'weights' ):
+				try:
+					weights = model.weights
+					if weights is not None:
+						df_weights = pd.DataFrame(
+							{
+									'Feature': features,
+									'Weight': np.asarray( weights ).reshape( -1 )
+							}
+						)
+						st.caption( 'Coefficients' )
+						st.data_editor( df_weights, use_container_width=True )
+				except Exception:
+					pass
+			
+			if hasattr( model, 'intercept' ):
+				try:
+					intercept = model.intercept
+					if intercept is not None:
+						detail_rows.append( { 'Property': 'Intercept', 'Value': intercept } )
+				except Exception:
+					pass
+			
+			if detail_rows:
+				df_details = pd.DataFrame( detail_rows )
+				st.data_editor( df_details, use_container_width=True )
+			else:
+				st.info( 'No additional model details are exposed for this regressor.' )
+			
+			# ------------------------------------------------------------------
+			# SCATTER PLOT
+			# ------------------------------------------------------------------
+			st.subheader( 'Observed vs Predicted' )
+			plt.close( 'all' )
 			model.scatter_plot( X_test, y_test )
-			st.pyplot( fig )		
+			st.pyplot( plt.gcf( ) )
+			plt.close( 'all' )
+		
 		except Exception as e:
 			st.error( f'Regression failed: {e}' )
 
