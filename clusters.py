@@ -187,11 +187,14 @@ class KMeans( Cluster ):
 	"""
 	model: skc.KMeans
 	n_clusters: Optional[ int ]
-	init: Optional[ str ]
-	n_init: Optional[ str ]
+	init: object
+	n_init: object
 	tolerance: Optional[ float ]
 	random_state: Optional[ int ]
 	max_iter: Optional[ int ]
+	verbose: Optional[ int ]
+	copy_x: Optional[ bool ]
+	algorithm: Optional[ str ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -200,22 +203,30 @@ class KMeans( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters: int = 8, init: str = 'k-means++', n_init: str = 'auto',
-			tol: float = 0.0001, rando: int = 42, max_iter: int = 300 ) -> None:
+	def __init__( self, clusters: int = 8, init: object = 'k-means++',
+			n_init: object = 'auto', tol: float = 0.0001, rando: int | None = 42,
+			max_iter: int = 300, verbose: int = 0, copy_x: bool = True,
+			algorithm: str = 'lloyd', n_clusters: int | None = None,
+			random_state: int | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the KMeans model.
+			Initialize the KMeans clustering wrapper.
 
 			Parameters:
 			-----------
-				clusters (int): Number of clusters to form.
-				init (str): Method used to initialize cluster centroids.
-				n_init (str): Number of initializations to perform.
-				tol (float): Convergence tolerance for centroid movement.
-				rando (int): Random seed for reproducibility.
-				max_iter (int): Maximum number of iterations per run.
+				clusters (int): Legacy alias for the number of clusters.
+				init (object): Centroid initialization strategy.
+				n_init (object): Number of initializations to perform.
+				tol (float): Relative convergence tolerance.
+				rando (int | None): Legacy alias for random_state.
+				max_iter (int): Maximum iterations for a single run.
+				verbose (int): Verbosity mode.
+				copy_x (bool): Whether to preserve the original input data.
+				algorithm (str): KMeans algorithm to use.
+				n_clusters (int | None): Explicit scikit-learn style cluster count.
+				random_state (int | None): Explicit scikit-learn style random state.
 
 			Returns:
 			--------
@@ -223,144 +234,226 @@ class KMeans( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.n_clusters = clusters
+		self.n_clusters = n_clusters if n_clusters is not None else clusters
 		self.init = init
 		self.n_init = n_init
-		self.random_state = rando
+		self.random_state = random_state if random_state is not None else rando
 		self.max_iter = max_iter
 		self.tolerance = tol
-		self.model = skc.KMeans( n_clusters=self.n_clusters, init=self.init,
-			n_init=self.n_init, random_state=self.random_state,
-			max_iter=self.max_iter, tol=self.tolerance )
+		self.verbose = verbose
+		self.copy_x = copy_x
+		self.algorithm = algorithm
+		self.model = skc.KMeans(
+			n_clusters=self.n_clusters,
+			init=self.init,
+			n_init=self.n_init,
+			max_iter=self.max_iter,
+			tol=self.tolerance,
+			verbose=self.verbose,
+			random_state=self.random_state,
+			copy_x=self.copy_x,
+			algorithm=self.algorithm
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
-			
-			Returns
-			-------
-			A list of strings repreenting members
-			
-		'''
-		return [ 'model',
-		         'train',
-		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
-		         'n_clusters',
-		         'init',
-		         'n_init',
-		         'random_state',
-		         'tolerance',
-		         'max_iter',
-		         'clusters',
-		         'labels',
-		         'inertia',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'iterations',
-		         'features',
-		         'prediction',
-		         'accuracy' ]
+	def __dir__( self ) -> list[ str ]:
+		"""
+
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'train',
+				'score',
+				'project',
+				'transform',
+				'analyze',
+				'n_clusters',
+				'init',
+				'n_init',
+				'random_state',
+				'tolerance',
+				'max_iter',
+				'verbose',
+				'copy_x',
+				'algorithm',
+				'clusters',
+				'centroids_',
+				'labels',
+				'inertia',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'iterations',
+				'features',
+				'prediction'
+		]
 	
 	@property
 	def clusters( self ) -> np.ndarray:
-		'''
-	
-			Returns
-			-------
-			cluster_centers_ : ndarray of shape (n_clusters, n_features )
-	
-		'''
-		if self.model.cluster_centers_ is None:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster centers.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster centers.
+
+		"""
+		if not hasattr( self.model, 'cluster_centers_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.cluster_centers_
+		return self.model.cluster_centers_
+	
+	@property
+	def centroids_( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster centers using the name expected by app.py.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster centers.
+
+		"""
+		return self.clusters
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		'''
-	
-			Returns
-			-------
-			labels_ : ndarray of shape (n_samples,)
-	
-		'''
-		if self.model.labels_ is None:
+		"""
+
+			Purpose:
+			---------
+			Return fitted sample labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.labels_
+		return self.model.labels_
 	
 	@property
 	def inertia( self ) -> float:
-		'''
-	
-			Returns
-			-------
-			inertia_ (float):
-			Sum of squared distances of samples to their closest cluster center,
-			weighted by the sample weights if provided.
-	
-		'''
-		if self.model.inertia_ is None:
+		"""
+
+			Purpose:
+			---------
+			Return the fitted within-cluster sum of squares.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				float:
+					Cluster inertia.
+
+		"""
+		if not hasattr( self.model, 'inertia_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.inertia_
+		return self.model.inertia_
 	
 	@property
 	def iterations( self ) -> int:
-		'''
-	
-			Returns
-			-------
-			n_iter_ (int) is ndarray of shape ( n_classes, )
-			Represents the number of iterations run by the coordinate descent solver
-			to reach the specified tolerance.
-	
-		'''
-		if self.model.n_iter_ is None:
+		"""
+
+			Purpose:
+			---------
+			Return the number of iterations run during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of iterations.
+
+		"""
+		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_iter_
+		return self.model.n_iter_
 	
 	@property
 	def features( self ) -> int:
-		'''
-	
-			Returns
-			-------
-			n_features_in_
-			The number of features seen during training
-	
-		'''
-		if self.model.n_features_in_ is None:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.n_features_in_
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> KMeans | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the KMeans model on the dataset.
+			Fit the KMeans model on the supplied data.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
 
 			Returns:
 			--------
-				KMeans | None: Trained wrapper instance or None.
+				KMeans | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -382,25 +475,68 @@ class KMeans( Cluster ):
 			---------
 			Generate cluster assignments for the supplied samples.
 
+			If the estimator has not yet been fitted, this method fits and predicts
+			in a single step so it remains compatible with the current app.py
+			clustering execution path.
+
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			
+			if hasattr( self.model, 'cluster_centers_' ):
+				self.prediction = self.model.predict( X )
+			else:
+				self.prediction = self.model.fit_predict( X )
+			
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			raise exception
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Return distances from samples to fitted cluster centers.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Feature matrix of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				np.ndarray | None:
+					Distance matrix.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			
+			if not hasattr( self.model, 'cluster_centers_' ):
+				self.model.fit( X )
+				self.prediction = self.model.labels_
+			
+			return self.model.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'clusters'
+			exception.cause = 'KMeans'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
@@ -413,27 +549,39 @@ class KMeans( Cluster ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
+			
+			if hasattr( self.model, 'cluster_centers_' ):
+				labels = self.model.predict( X )
+			else:
+				labels = self.model.fit_predict( X )
+			
+			self.prediction = labels
 			scores = { }
 			
-			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+			unique_labels = np.unique( labels )
+			if len( unique_labels ) >= 2 and len( unique_labels ) < len( labels ):
 				self.silouette = silhouette_score( X, labels )
 				scores[ 'Silouette' ] = self.silouette
 			else:
 				self.silouette = np.nan
 				scores[ 'Silouette' ] = self.silouette
+			
+			scores[ 'Inertia' ] = self.inertia
+			scores[ 'Iterations' ] = self.iterations
+			scores[ 'Clusters' ] = len( unique_labels )
 			
 			if y is not None:
 				self.homogeneity = homogeneity_score( y, labels )
@@ -445,14 +593,13 @@ class KMeans( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -460,44 +607,38 @@ class KMeans( Cluster ):
 
 			Purpose:
 			---------
-			Visualize clustering result using a scatter plot and return summary
-			analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+				y (Optional[np.ndarray]): Optional reference labels.
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Analysis details and metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			labels = self.model.predict( X )
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='viridis' )
-			if Z.shape[ 1 ] >= 2:
-				plt.scatter( self.clusters[ :, 0 ], self.clusters[ :, 1 ],
-					marker='x', s=100 )
-			plt.title( 'K-Means' )
-			plt.show( )
+			
+			df_score = self.score( X, y )
 			return {
-					'Labels': labels,
-					'Centers': self.clusters,
-					'Inertia': self.inertia,
-					'Iterations': self.iterations,
-					'Features': self.features,
+					'labels': self.prediction,
+					'centroids': self.centroids_,
+					'inertia': self.inertia,
+					'iterations': self.iterations,
+					'features': self.features,
+					'score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -520,11 +661,14 @@ class DBSCAN( Cluster ):
 
 	"""
 	model: skc.DBSCAN
-	eps: Optional[ float ]
+	epsilon: Optional[ float ]
 	min_samples: Optional[ int ]
+	metric: object
+	metric_params: Optional[ Dict[ str, Any ] ]
 	algorithm: Optional[ str ]
-	metric: Optional[ str ]
 	leaf_size: Optional[ int ]
+	p: Optional[ float ]
+	n_jobs: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -533,23 +677,31 @@ class DBSCAN( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, max_distance: float = 0.5, samples: int = 5, measure: str = 'euclidean',
-			algorithm: str = 'auto', size: int = 30 ) -> None:
+	def __init__( self, eps: float = 0.5, samples: int = 5,
+			metric: object = 'euclidean',
+			metric_params: Dict[ str, Any ] | None = None,
+			algorithm: str = 'auto', leaf_size: int = 30,
+			p: float | None = None, n_jobs: int | None = None,
+			min_samples: int | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the DBSCAN model.
+			Initialize the DBSCAN clustering wrapper.
 
 			Parameters:
 			-----------
-				max_distance (float): Maximum distance between two samples for one to be
-					considered in the neighborhood of the other.
-				samples (int): Number of samples in a neighborhood for a point to be
-					considered a core point.
-				measure (str): Distance metric used to compute neighborhood distances.
-				algorithm (str): Nearest-neighbor search algorithm.
-				size (int): Leaf size passed to the nearest-neighbor tree.
+				eps (float): Maximum neighborhood distance.
+				samples (int): Legacy alias for min_samples.
+				metric (object): Distance metric name or callable.
+				metric_params (Dict[ str, Any ] | None): Additional metric
+					keyword arguments.
+				algorithm (str): Neighbor search algorithm.
+				leaf_size (int): Leaf size for BallTree or KDTree.
+				p (float | None): Power parameter for the Minkowski metric.
+				n_jobs (int | None): Number of parallel jobs.
+				min_samples (int | None): Explicit scikit-learn style
+					min_samples value.
 
 			Returns:
 			--------
@@ -557,60 +709,200 @@ class DBSCAN( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.eps = max_distance
-		self.min_samples = samples
+		self.epsilon = eps
+		self.min_samples = min_samples if min_samples is not None else samples
+		self.metric = metric
+		self.metric_params = metric_params
 		self.algorithm = algorithm
-		self.metric = measure
-		self.leaf_size = size
-		self.model = skc.DBSCAN( eps=self.eps, min_samples=self.min_samples,
-			metric=self.metric, algorithm=self.algorithm, leaf_size=self.leaf_size )
+		self.leaf_size = leaf_size
+		self.p = p
+		self.n_jobs = n_jobs
+		self.model = skc.DBSCAN(
+			eps=self.epsilon,
+			min_samples=self.min_samples,
+			metric=self.metric,
+			metric_params=self.metric_params,
+			algorithm=self.algorithm,
+			leaf_size=self.leaf_size,
+			p=self.p,
+			n_jobs=self.n_jobs
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'train',
-		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
-		         'min_samples',
-		         'algorithm',
-		         'eps',
-		         'leaf_size',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'clusters',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'train',
+				'score',
+				'project',
+				'analyze',
+				'epsilon',
+				'eps',
+				'min_samples',
+				'metric',
+				'metric_params',
+				'algorithm',
+				'leaf_size',
+				'p',
+				'n_jobs',
+				'labels',
+				'core_samples',
+				'components',
+				'features',
+				'prediction',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness'
+		]
+	
+	@property
+	def eps( self ) -> float:
+		"""
+
+			Purpose:
+			---------
+			Return the configured epsilon value using sklearn naming.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				float:
+					Epsilon value.
+
+		"""
+		return self.epsilon
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
+	
+	@property
+	def core_samples( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the indices of core samples.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Core sample indices.
+
+		"""
+		if not hasattr( self.model, 'core_sample_indices_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.core_sample_indices_
+	
+	@property
+	def components( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the fitted core sample feature vectors.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Core sample components.
+
+		"""
+		if not hasattr( self.model, 'components_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.components_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> DBSCAN | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the DBSCAN model to the input samples.
+			Fit the DBSCAN model on the supplied data.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
 
 			Returns:
 			--------
-				DBSCAN | None: Trained wrapper instance or None.
+				DBSCAN | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -630,16 +922,20 @@ class DBSCAN( Cluster ):
 
 			Purpose:
 			---------
-			Generate cluster assignments using DBSCAN.
+			Generate cluster assignments for the supplied samples.
+
+			DBSCAN does not expose predict for unseen samples, so this method
+			fits and returns labels for the supplied data.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
@@ -663,30 +959,36 @@ class DBSCAN( Cluster ):
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
-			
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
-			valid = labels[ labels != -1 ]
 			
-			if len( np.unique( valid ) ) >= 2:
-				self.silouette = silhouette_score( X, labels )
-				scores[ 'Silouette' ] = self.silouette
+			unique_labels = np.unique( labels )
+			cluster_labels = unique_labels[ unique_labels != -1 ]
+			scores[ 'Clusters' ] = len( cluster_labels )
+			scores[ 'Noise' ] = int( np.sum( labels == -1 ) )
+			
+			if len( cluster_labels ) >= 2:
+				mask = labels != -1
+				if np.sum( mask ) >= 2 and len( np.unique( labels[ mask ] ) ) >= 2:
+					self.silouette = silhouette_score( X[ mask ], labels[ mask ] )
+					scores[ 'Silouette' ] = self.silouette
+				else:
+					self.silouette = np.nan
+					scores[ 'Silouette' ] = self.silouette
 			else:
 				self.silouette = np.nan
 				scores[ 'Silouette' ] = self.silouette
@@ -701,14 +1003,13 @@ class DBSCAN( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -716,46 +1017,42 @@ class DBSCAN( Cluster ):
 
 			Purpose:
 			---------
-			Visualize DBSCAN clusters and return summary analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
+				X (np.ndarray): Feature matrix of shape
 					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+				y (Optional[np.ndarray]): Optional reference labels.
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Analysis details and metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
+			df_score = self.score( X, y )
 			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
+			core_samples = self.core_samples if hasattr(
+				self.model, 'core_sample_indices_' ) else np.array( [ ] )
+			components = self.components if hasattr(
+				self.model, 'components_' ) else np.empty( (0, X.shape[ 1 ]) )
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='viridis' )
-			plt.title( 'DBSCAN' )
-			plt.show( )
 			return {
-					'Labels': labels,
-					'Eps': self.eps,
-					'Min-Samples': self.min_samples,
-					'Metric': self.metric,
-					'Algorithm': self.algorithm,
-					'Leaf-Size': self.leaf_size,
+					'labels': self.prediction,
+					'core_samples': core_samples,
+					'components': components,
+					'features': self.features,
+					'score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -788,9 +1085,14 @@ class Agglomerative( Cluster ):
 	"""
 	model: skc.AgglomerativeClustering
 	n_clusters: Optional[ int ]
-	affinity: Optional[ str ]
-	compute_full_tree: Optional[ str ]
+	metric: object
+	affinity: object
+	memory: object
+	connectivity: object
+	compute_full_tree: object
 	linkage: Optional[ str ]
+	distance_threshold: Optional[ float ]
+	compute_distances: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -799,20 +1101,31 @@ class Agglomerative( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters: int = 2, distance: str='euclidean',
-			full_tree: str='auto', link: str='ward' ) -> None:
+	def __init__( self, clusters: int = 2, affinity: object = 'euclidean',
+			linkage: str = 'ward', metric: object | None = None,
+			memory: object = None, connectivity: object = None,
+			compute_full_tree: object = 'auto',
+			distance_threshold: float | None = None,
+			compute_distances: bool = False,
+			n_clusters: int | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize AgglomerativeCluster.
+			Initialize the Agglomerative clustering wrapper.
 
 			Parameters:
 			-----------
-				clusters (int): Number of clusters to find.
-				distance (str): Metric used to compute linkage distances.
-				full_tree (str): Whether to compute the full clustering tree.
-				link (str): Linkage criterion used to merge clusters.
+				clusters (int): Legacy alias for the number of clusters.
+				affinity (object): Legacy alias for metric.
+				linkage (str): Linkage criterion.
+				metric (object | None): Distance metric name or callable.
+				memory (object): Optional joblib memory or cache path.
+				connectivity (object): Optional connectivity constraint.
+				compute_full_tree (object): Whether to compute the full tree.
+				distance_threshold (float | None): Linkage distance threshold.
+				compute_distances (bool): Whether to compute distances_.
+				n_clusters (int | None): Explicit scikit-learn style cluster count.
 
 			Returns:
 			--------
@@ -820,63 +1133,274 @@ class Agglomerative( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.n_clusters = clusters
-		self.affinity = distance
-		self.compute_full_tree = full_tree
-		self.linkage = link
-		self.model = skc.AgglomerativeClustering( n_clusters=self.n_clusters,
-			metric=self.affinity, compute_full_tree=self.compute_full_tree,
-			linkage=self.linkage )
+		self.n_clusters = n_clusters if n_clusters is not None else clusters
+		self.metric = metric if metric is not None else affinity
+		self.affinity = self.metric
+		self.memory = memory
+		self.connectivity = connectivity
+		self.compute_full_tree = compute_full_tree
+		self.linkage = linkage
+		self.distance_threshold = distance_threshold
+		self.compute_distances = compute_distances
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
+		self.model = self.create_model( )
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'n_clusters',
-		         'affinity',
-		         'compute_ful_tree',
-		         'linkage',
-		         'train',
-		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'train',
+				'score',
+				'project',
+				'analyze',
+				'create_model',
+				'n_clusters',
+				'metric',
+				'affinity',
+				'memory',
+				'connectivity',
+				'compute_full_tree',
+				'linkage',
+				'distance_threshold',
+				'compute_distances',
+				'labels',
+				'children',
+				'distances',
+				'leaves',
+				'connected_components',
+				'features',
+				'prediction',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness'
+		]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
+	
+	@property
+	def children( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the hierarchical merge structure.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Merge tree children.
+
+		"""
+		if not hasattr( self.model, 'children_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.children_
+	
+	@property
+	def distances( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the fitted linkage distances when available.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Distances between merged nodes.
+
+		"""
+		if not hasattr( self.model, 'distances_' ):
+			raise AttributeError( 'The model distances are not available!' )
+		return self.model.distances_
+	
+	@property
+	def leaves( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of leaves in the hierarchical tree.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of leaves.
+
+		"""
+		if not hasattr( self.model, 'n_leaves_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_leaves_
+	
+	@property
+	def connected_components( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of connected components.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Connected components.
+
+		"""
+		if not hasattr( self.model, 'n_connected_components_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_connected_components_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
+	
+	def create_model( self ) -> skc.AgglomerativeClustering:
+		"""
+
+			Purpose:
+			---------
+			Construct a validated AgglomerativeClustering estimator using the
+			current wrapper state.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				skc.AgglomerativeClustering:
+					Configured estimator.
+
+		"""
+		try:
+			n_clusters = self.n_clusters
+			compute_full_tree = self.compute_full_tree
+			
+			if self.linkage == 'ward' and self.metric != 'euclidean':
+				raise ValueError(
+					'When linkage is "ward", metric must be "euclidean".'
+				)
+			
+			if self.distance_threshold is not None:
+				n_clusters = None
+				compute_full_tree = True
+			
+			return skc.AgglomerativeClustering(
+				n_clusters=n_clusters,
+				metric=self.metric,
+				memory=self.memory,
+				connectivity=self.connectivity,
+				compute_full_tree=compute_full_tree,
+				linkage=self.linkage,
+				distance_threshold=self.distance_threshold,
+				compute_distances=self.compute_distances
+			)
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'clusters'
+			exception.cause = 'Agglomerative'
+			exception.method = \
+				'create_model( self ) -> skc.AgglomerativeClustering'
+			raise exception
 	
 	def train( self, X: np.ndarray ) -> Agglomerative | None:
 		"""
 
 			Purpose:
 			---------
-			Fit Agglomerative model to samples.
+			Fit the Agglomerative clustering model on the supplied data.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				X (np.ndarray): Feature matrix of shape
+					( n_samples, n_features ) or a distance matrix when using
+					metric='precomputed'.
 
 			Returns:
 			--------
-				Agglomerative | None: Trained wrapper instance or None.
+				Agglomerative | None:
+					Trained wrapper instance.
 
 		"""
 		try:
 			throw_if( 'X', X )
+			self.model = self.create_model( )
 			self.model.fit( X )
 			self.prediction = self.model.labels_
 			return self
@@ -884,7 +1408,8 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = 'train( self, X: np.ndarray ) -> Agglomerative | None'
+			exception.method = \
+				'train( self, X: np.ndarray ) -> Agglomerative | None'
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
@@ -892,60 +1417,72 @@ class Agglomerative( Cluster ):
 
 			Purpose:
 			---------
-			Generate cluster assignments using agglomerative clustering.
+			Generate cluster assignments for the supplied samples.
+
+			AgglomerativeClustering does not expose predict for unseen samples,
+			so this method fits and returns labels for the supplied data.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				X (np.ndarray): Feature matrix of shape
+					( n_samples, n_features ) or a distance matrix when using
+					metric='precomputed'.
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
 			throw_if( 'X', X )
+			self.model = self.create_model( )
 			self.prediction = self.model.fit_predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			exception.method = \
+				'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate agglomerative clustering performance using intrinsic and optional
-			external clustering metrics.
+			Evaluate Agglomerative clustering performance using intrinsic and
+			optional external clustering metrics.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				X (np.ndarray): Feature matrix of shape
+					( n_samples, n_features ) or a distance matrix when using
+					metric='precomputed'.
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
-			
+			self.model = self.create_model( )
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
 			
-			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+			unique_labels = np.unique( labels )
+			scores[ 'Clusters' ] = len( unique_labels )
+			scores[ 'Leaves' ] = self.leaves
+			scores[ 'Connected-Components' ] = self.connected_components
+			
+			if self.metric != 'precomputed' and len( unique_labels ) >= 2 \
+					and len( unique_labels ) < len( labels ):
 				self.silouette = silhouette_score( X, labels )
 				scores[ 'Silouette' ] = self.silouette
 			else:
@@ -962,14 +1499,18 @@ class Agglomerative( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			if hasattr( self.model, 'distances_' ):
+				scores[ 'Distances-Computed' ] = True
+			else:
+				scores[ 'Distances-Computed' ] = False
+			
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -977,45 +1518,43 @@ class Agglomerative( Cluster ):
 
 			Purpose:
 			---------
-			Visualize agglomerative clusters and return summary analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+				X (np.ndarray): Feature matrix of shape
+					( n_samples, n_features ) or a distance matrix when using
+					metric='precomputed'.
+				y (Optional[np.ndarray]): Optional reference labels.
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Analysis details and metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
+			df_score = self.score( X, y )
 			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
+			distances = self.distances if hasattr(
+				self.model, 'distances_' ) else np.array( [ ] )
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='plasma' )
-			plt.title( 'Agglomerative Cluster' )
-			plt.show( )
 			return {
-					'Labels': labels,
-					'Clusters': self.n_clusters,
-					'Metric': self.affinity,
-					'Full-Tree': self.compute_full_tree,
-					'Linkage': self.linkage,
+					'labels': self.prediction,
+					'children': self.children,
+					'distances': distances,
+					'leaves': self.leaves,
+					'connected_components': self.connected_components,
+					'features': self.features,
+					'score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -1039,13 +1578,20 @@ class Spectral( Cluster ):
 	"""
 	model: skc.SpectralClustering
 	n_clusters: Optional[ int ]
+	eigen_solver: Optional[ str ]
+	n_components: Optional[ int ]
 	random_state: Optional[ int ]
 	n_init: Optional[ int ]
 	gamma: Optional[ float ]
+	affinity: object
 	n_neighbors: Optional[ int ]
-	eigen_tolerance: Optional[ float ]
-	affinity: Optional[ str ]
+	eigen_tolerance: object
 	assign_labels: Optional[ str ]
+	degree: Optional[ float ]
+	coef0: Optional[ float ]
+	kernel_params: Optional[ Dict[ str, Any ] ]
+	n_jobs: Optional[ int ]
+	verbose: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -1054,26 +1600,47 @@ class Spectral( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, clusters: int = 8, random_state: int = 42, n_init: int = 10,
-			gama: float = 1.0, distance: str = 'rbf', neighbors: int = 10,
-			tolerance: float = 0.0, assign: str = 'kmeans' ) -> None:
+	def __init__( self, clusters: int = 8, random_state: int | None = 42,
+			n_init: int = 10, gama: float = 1.0, distance: object = 'rbf',
+			neighbors: int = 10, tolerance: object = 'auto',
+			assign: str = 'kmeans', eigen_solver: str | None = None,
+			n_components: int | None = None, degree: float = 3,
+			coef0: float = 1, kernel_params: Dict[ str, Any ] | None = None,
+			n_jobs: int | None = None, verbose: bool = False,
+			n_clusters: int | None = None, gamma: float | None = None,
+			affinity: object | None = None, n_neighbors: int | None = None,
+			eigen_tol: object | None = None,
+			assign_labels: str | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize the SpectralCluster model.
+			Initialize the Spectral clustering wrapper.
 
 			Parameters:
 			-----------
-				clusters (int): Number of clusters to form.
-				random_state (int): Random seed for reproducibility.
-				n_init (int): Number of initializations for the label assignment step.
-				gama (float): Kernel coefficient for the rbf, poly, sigmoid, laplacian,
-					and chi2 kernels.
-				distance (str): Affinity construction strategy.
-				neighbors (int): Number of neighbors to use when affinity is nearest_neighbors.
-				tolerance (float): Stopping criterion for eigen decomposition.
-				assign (str): Strategy used to assign labels in the embedding space.
+				clusters (int): Legacy alias for the number of clusters.
+				random_state (int | None): Random seed for reproducibility.
+				n_init (int): Number of initializations for label assignment.
+				gama (float): Legacy alias for gamma.
+				distance (object): Legacy alias for affinity.
+				neighbors (int): Legacy alias for n_neighbors.
+				tolerance (object): Legacy alias for eigen_tol.
+				assign (str): Legacy alias for assign_labels.
+				eigen_solver (str | None): Eigenvalue decomposition strategy.
+				n_components (int | None): Number of eigenvectors to use.
+				degree (float): Degree for polynomial kernels.
+				coef0 (float): Zero coefficient for poly and sigmoid kernels.
+				kernel_params (Dict[ str, Any ] | None): Parameters for a
+					callable kernel.
+				n_jobs (int | None): Number of parallel jobs.
+				verbose (bool): Verbose mode.
+				n_clusters (int | None): Explicit scikit-learn style cluster count.
+				gamma (float | None): Explicit scikit-learn style gamma value.
+				affinity (object | None): Explicit scikit-learn style affinity.
+				n_neighbors (int | None): Explicit scikit-learn style neighbor count.
+				eigen_tol (object | None): Explicit scikit-learn style eigen tolerance.
+				assign_labels (str | None): Explicit scikit-learn style label assignment.
 
 			Returns:
 			--------
@@ -1081,59 +1648,144 @@ class Spectral( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.n_clusters = clusters
+		self.n_clusters = n_clusters if n_clusters is not None else clusters
+		self.eigen_solver = eigen_solver
+		self.n_components = n_components
 		self.random_state = random_state
 		self.n_init = n_init
-		self.gamma = gama
-		self.affinity = distance
-		self.n_neighbors = neighbors
-		self.eigen_tolerance = tolerance
-		self.assign_labels = assign
-		self.model = skc.SpectralClustering( n_clusters=self.n_clusters,
-			random_state=self.random_state, n_init=self.n_init, gamma=self.gamma,
-			affinity=self.affinity, n_neighbors=self.n_neighbors,
-			eigen_tol=self.eigen_tolerance, assign_labels=self.assign_labels )
+		self.gamma = gamma if gamma is not None else gama
+		self.affinity = affinity if affinity is not None else distance
+		self.n_neighbors = n_neighbors if n_neighbors is not None else neighbors
+		self.eigen_tolerance = eigen_tol if eigen_tol is not None else tolerance
+		self.assign_labels = assign_labels if assign_labels is not None else assign
+		self.degree = degree
+		self.coef0 = coef0
+		self.kernel_params = kernel_params
+		self.n_jobs = n_jobs
+		self.verbose = verbose
+		self.model = skc.SpectralClustering(
+			n_clusters=self.n_clusters,
+			eigen_solver=self.eigen_solver,
+			n_components=self.n_components,
+			random_state=self.random_state,
+			n_init=self.n_init,
+			gamma=self.gamma,
+			affinity=self.affinity,
+			n_neighbors=self.n_neighbors,
+			eigen_tol=self.eigen_tolerance,
+			assign_labels=self.assign_labels,
+			degree=self.degree,
+			coef0=self.coef0,
+			kernel_params=self.kernel_params,
+			n_jobs=self.n_jobs,
+			verbose=self.verbose
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'n_clusters',
-		         'random_state',
-		         'n_init',
-		         'gamma',
-		         'affinity',
-		         'n_neighbors',
-		         'eigen_tolerance',
-		         'assign_labels',
-		         'train',
-		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'n_clusters',
+				'eigen_solver',
+				'n_components',
+				'random_state',
+				'n_init',
+				'gamma',
+				'affinity',
+				'n_neighbors',
+				'eigen_tolerance',
+				'assign_labels',
+				'degree',
+				'coef0',
+				'kernel_params',
+				'n_jobs',
+				'verbose',
+				'labels',
+				'features',
+				'train',
+				'score',
+				'project',
+				'analyze',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness',
+				'prediction'
+		]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> Spectral | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the SpectralCluster model.
+			Fit the Spectral clustering model.
 
 			Parameters:
 			-----------
@@ -1142,7 +1794,8 @@ class Spectral( Cluster ):
 
 			Returns:
 			--------
-				Spectral | None: Trained wrapper instance or None.
+				Spectral | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -1162,7 +1815,10 @@ class Spectral( Cluster ):
 
 			Purpose:
 			---------
-			Predict clusters using SpectralCluster.
+			Generate cluster assignments for the supplied samples.
+
+			SpectralClustering exposes fit_predict for the supplied data, so this
+			method fits and returns labels for the supplied samples.
 
 			Parameters:
 			-----------
@@ -1171,7 +1827,8 @@ class Spectral( Cluster ):
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
@@ -1198,24 +1855,24 @@ class Spectral( Cluster ):
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
-			
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
 			
-			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+			unique_labels = np.unique( labels )
+			scores[ 'Clusters' ] = len( unique_labels )
+			
+			if len( unique_labels ) >= 2 and len( unique_labels ) < len( labels ):
 				self.silouette = silhouette_score( X, labels )
 				scores[ 'Silouette' ] = self.silouette
 			else:
@@ -1232,14 +1889,13 @@ class Spectral( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -1247,18 +1903,19 @@ class Spectral( Cluster ):
 
 			Purpose:
 			---------
-			Visualize Spectral Cluster results and return summary analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+					( n_samples, ).
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Dictionary containing analysis results.
 
 		"""
 		try:
@@ -1266,16 +1923,17 @@ class Spectral( Cluster ):
 			
 			if self.prediction is None or len( self.prediction ) != len( X ):
 				labels = self.model.fit_predict( X )
+				self.prediction = labels
 			else:
 				labels = self.prediction
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='Accent' )
-			plt.title( 'Spectral Cluster' )
-			plt.show( )
+			df_score = self.score( X, y )
+			
 			return {
 					'Labels': labels,
 					'Clusters': self.n_clusters,
+					'Eigen-Solver': self.eigen_solver,
+					'N-Components': self.n_components,
 					'Random-State': self.random_state,
 					'N-Init': self.n_init,
 					'Gamma': self.gamma,
@@ -1283,13 +1941,19 @@ class Spectral( Cluster ):
 					'N-Neighbors': self.n_neighbors,
 					'Eigen-Tolerance': self.eigen_tolerance,
 					'Assign-Labels': self.assign_labels,
+					'Degree': self.degree,
+					'Coef0': self.coef0,
+					'N-Jobs': self.n_jobs,
+					'Verbose': self.verbose,
+					'Features': self.features,
+					'Score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -1314,8 +1978,13 @@ class MeanShift( Cluster ):
 
 	"""
 	model: skc.MeanShift
+	bandwidth: Optional[ float ]
+	seeds: Optional[ np.ndarray ]
+	bin_seeding: Optional[ bool ]
 	min_bin_freq: Optional[ int ]
 	cluster_all: Optional[ bool ]
+	n_jobs: Optional[ int ]
+	max_iter: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -1324,17 +1993,30 @@ class MeanShift( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, min_bin: int = 1, group_all: bool = True ) -> None:
+	def __init__( self, min_bin: int = 1, group_all: bool = True,
+			bandwidth: float | None = None, seeds: np.ndarray | None = None,
+			bin_seeding: bool = False, n_jobs: int | None = None,
+			max_iter: int = 300, min_bin_freq: int | None = None,
+			cluster_all: bool | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize MeanShift model.
+			Initialize the MeanShift clustering wrapper.
 
 			Parameters:
 			-----------
-				min_bin (int): Minimum bin frequency for seed generation.
-				group_all (bool): Whether to assign all samples to a cluster.
+				min_bin (int): Legacy alias for min_bin_freq.
+				group_all (bool): Legacy alias for cluster_all.
+				bandwidth (float | None): Bandwidth used in the flat kernel.
+				seeds (np.ndarray | None): Seed points used to initialize kernels.
+				bin_seeding (bool): Whether to initialize kernels from binned seeds.
+				n_jobs (int | None): Number of parallel jobs.
+				max_iter (int): Maximum iterations per seed point.
+				min_bin_freq (int | None): Explicit scikit-learn style minimum
+					bin frequency.
+				cluster_all (bool | None): Explicit scikit-learn style
+					cluster-all behavior.
 
 			Returns:
 			--------
@@ -1342,43 +2024,188 @@ class MeanShift( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.min_bin_freq = min_bin
-		self.cluster_all = group_all
-		self.model = skc.MeanShift( min_bin_freq=self.min_bin_freq,
-			cluster_all=self.cluster_all )
+		self.bandwidth = bandwidth
+		self.seeds = seeds
+		self.bin_seeding = bin_seeding
+		self.min_bin_freq = min_bin_freq if min_bin_freq is not None else min_bin
+		self.cluster_all = cluster_all if cluster_all is not None else group_all
+		self.n_jobs = n_jobs
+		self.max_iter = max_iter
+		self.model = skc.MeanShift(
+			bandwidth=self.bandwidth,
+			seeds=self.seeds,
+			bin_seeding=self.bin_seeding,
+			min_bin_freq=self.min_bin_freq,
+			cluster_all=self.cluster_all,
+			n_jobs=self.n_jobs,
+			max_iter=self.max_iter
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'train',
-		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'train',
+				'score',
+				'project',
+				'predict',
+				'analyze',
+				'bandwidth',
+				'seeds',
+				'bin_seeding',
+				'min_bin_freq',
+				'cluster_all',
+				'n_jobs',
+				'max_iter',
+				'labels',
+				'clusters',
+				'centroids_',
+				'iterations',
+				'features',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness',
+				'prediction'
+		]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
+	
+	@property
+	def clusters( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster centers.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster centers.
+
+		"""
+		if not hasattr( self.model, 'cluster_centers_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.cluster_centers_
+	
+	@property
+	def centroids_( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster centers using the name expected by app.py.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster centers.
+
+		"""
+		return self.clusters
+	
+	@property
+	def iterations( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the maximum number of iterations performed on each seed.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Iteration count.
+
+		"""
+		if not hasattr( self.model, 'n_iter_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_iter_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> MeanShift | None:
 		"""
 
 			Purpose:
 			---------
-			Fit MeanShift model to the stores.
+			Fit the MeanShift clustering model.
 
 			Parameters:
 			-----------
@@ -1387,7 +2214,8 @@ class MeanShift( Cluster ):
 
 			Returns:
 			--------
-				MeanShift | None: Trained wrapper instance or None.
+				MeanShift | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -1407,7 +2235,10 @@ class MeanShift( Cluster ):
 
 			Purpose:
 			---------
-			Predict clusters using MeanShift.
+			Generate cluster assignments for the supplied samples.
+
+			MeanShift exposes fit_predict for the supplied data, so this
+			method fits and returns labels for the supplied samples.
 
 			Parameters:
 			-----------
@@ -1416,7 +2247,8 @@ class MeanShift( Cluster ):
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
@@ -1428,6 +2260,38 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			raise exception
+	
+	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Predict the closest cluster each sample in X belongs to.
+
+			Parameters:
+			-----------
+				X (np.ndarray): New samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				np.ndarray | None:
+					Cluster labels for each sample.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			
+			if not hasattr( self.model, 'cluster_centers_' ):
+				raise AttributeError( 'The model data has not been trained!' )
+			
+			return self.model.predict( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'clusters'
+			exception.cause = 'MeanShift'
+			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
@@ -1443,24 +2307,25 @@ class MeanShift( Cluster ):
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
-			
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
 			
-			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+			unique_labels = np.unique( labels )
+			scores[ 'Clusters' ] = len( unique_labels )
+			scores[ 'Iterations' ] = self.iterations
+			
+			if len( unique_labels ) >= 2 and len( unique_labels ) < len( labels ):
 				self.silouette = silhouette_score( X, labels )
 				scores[ 'Silouette' ] = self.silouette
 			else:
@@ -1477,14 +2342,13 @@ class MeanShift( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -1492,18 +2356,19 @@ class MeanShift( Cluster ):
 
 			Purpose:
 			---------
-			Visualize MeanShift clustering and return summary analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+					( n_samples, ).
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Dictionary containing analysis results.
 
 		"""
 		try:
@@ -1511,24 +2376,31 @@ class MeanShift( Cluster ):
 			
 			if self.prediction is None or len( self.prediction ) != len( X ):
 				labels = self.model.fit_predict( X )
+				self.prediction = labels
 			else:
 				labels = self.prediction
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='rainbow' )
-			plt.title( 'MeanShift' )
-			plt.show( )
+			df_score = self.score( X, y )
+			
 			return {
 					'Labels': labels,
+					'Bandwidth': self.bandwidth,
+					'Bin-Seeding': self.bin_seeding,
 					'Min-Bin-Freq': self.min_bin_freq,
 					'Cluster-All': self.cluster_all,
+					'N-Jobs': self.n_jobs,
+					'Max-Iter': self.max_iter,
+					'Iterations': self.iterations,
+					'Centroids': self.centroids_,
+					'Features': self.features,
+					'Score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -1548,34 +2420,42 @@ class AffinityPropagation( Cluster ):
 	"""
 	model: skc.AffinityPropagation
 	damping: Optional[ float ]
+	max_iter: Optional[ int ]
+	convergence_iter: Optional[ int ]
+	copy: Optional[ bool ]
+	preference: object
+	affinity: Optional[ str ]
+	verbose: Optional[ bool ]
+	random_state: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
-	preference: Optional[ np.ndarray ]
-	affinity: Optional[ str ]
-	convergence_iter: Optional[ int ]
 	homogeneity: Optional[ float ]
 	mutual_info: Optional[ float ]
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, damp: float=0.5, iters: int=200, convergence: int=15,
-			prefer: np.ndarray=None, distance: str='euclidean' ) -> None:
+	def __init__( self, damping: float = 0.5, max_iter: int = 200,
+			convergence_iter: int = 15, preference: object = None,
+			affinity: str = 'euclidean', copy: bool = True,
+			verbose: bool = False, random_state: int | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize AffinityPropagation model.
+			Initialize the AffinityPropagation clustering wrapper.
 
 			Parameters:
 			-----------
-				damp (float): Damping factor between 0.5 and 1.0.
-				iters (int): Maximum number of iterations.
-				convergence (int): Number of iterations with no change in the
-					number of estimated clusters that stops convergence.
-				prefer (np.ndarray): Preferences for each point to be chosen as
-					an exemplar.
-				distance (str): Affinity used by the model.
+				damping (float): Damping factor in the range [0.5, 1.0).
+				max_iter (int): Maximum number of iterations.
+				convergence_iter (int): Convergence window size.
+				preference (object): Preferences for each sample or a single
+					float preference value.
+				affinity (str): Similarity measure to use.
+				copy (bool): Whether to copy the input data.
+				verbose (bool): Whether to enable verbose output.
+				random_state (int | None): Random state for reproducibility.
 
 			Returns:
 			--------
@@ -1583,61 +2463,225 @@ class AffinityPropagation( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.damping = damp
-		self.max_iter = iters
-		self.convergence_iter = convergence
-		self.preference = prefer
-		self.affinity = distance
-		self.model = skc.AffinityPropagation( damping=self.damping,
-			max_iter=self.max_iter, convergence_iter=self.convergence_iter,
-			preference=self.preference, affinity=self.affinity )
+		self.damping = damping
+		self.max_iter = max_iter
+		self.convergence_iter = convergence_iter
+		self.copy = copy
+		self.preference = preference
+		self.affinity = affinity
+		self.verbose = verbose
+		self.random_state = random_state
+		self.model = skc.AffinityPropagation(
+			damping=self.damping,
+			max_iter=self.max_iter,
+			convergence_iter=self.convergence_iter,
+			copy=self.copy,
+			preference=self.preference,
+			affinity=self.affinity,
+			verbose=self.verbose,
+			random_state=self.random_state
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'damping',
-		         'max_iter',
-		         'convergence_iter',
-		         'preference',
-		         'affinity',
-		         'train',
-		         'score',
-		         'project',
-		         'transform',
-		         'analyze',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'train',
+				'score',
+				'project',
+				'predict',
+				'analyze',
+				'damping',
+				'max_iter',
+				'convergence_iter',
+				'copy',
+				'preference',
+				'affinity',
+				'verbose',
+				'random_state',
+				'labels',
+				'clusters',
+				'centroids_',
+				'affinity_matrix',
+				'iterations',
+				'features',
+				'prediction',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness'
+		]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
+	
+	@property
+	def clusters( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster centers.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster centers.
+
+		"""
+		if not hasattr( self.model, 'cluster_centers_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.cluster_centers_
+	
+	@property
+	def centroids_( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster centers using the name expected by app.py.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster centers.
+
+		"""
+		return self.clusters
+	
+	@property
+	def affinity_matrix( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the learned affinity matrix.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Affinity matrix.
+
+		"""
+		if not hasattr( self.model, 'affinity_matrix_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.affinity_matrix_
+	
+	@property
+	def iterations( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of iterations run by the estimator.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Iteration count.
+
+		"""
+		if not hasattr( self.model, 'n_iter_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_iter_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> AffinityPropagation | None:
 		"""
 
 			Purpose:
 			---------
-			Fit the model to stores.
+			Fit the AffinityPropagation clustering model.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+					( n_samples, n_features ) or similarity matrix when
+					affinity='precomputed'.
 
 			Returns:
 			--------
-				AffinityPropagation | None: Trained wrapper instance or None.
+				AffinityPropagation | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -1658,16 +2702,21 @@ class AffinityPropagation( Cluster ):
 
 			Purpose:
 			---------
-			Generate cluster assignments using AffinityPropagation.
+			Generate cluster assignments for the supplied samples.
+
+			AffinityPropagation exposes fit_predict for the supplied data, so this
+			method fits and returns labels for the supplied samples.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+					( n_samples, n_features ) or similarity matrix when
+					affinity='precomputed'.
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
@@ -1682,35 +2731,73 @@ class AffinityPropagation( Cluster ):
 				'project( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
 	
+	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Predict the closest cluster each sample in X belongs to.
+
+			Parameters:
+			-----------
+				X (np.ndarray): New samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				np.ndarray | None:
+					Cluster labels for each sample.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			
+			if not hasattr( self.model, 'cluster_centers_' ):
+				raise AttributeError( 'The model data has not been trained!' )
+			
+			return self.model.predict( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'clusters'
+			exception.cause = 'AffinityPropagation'
+			exception.method = \
+				'predict( self, X: np.ndarray ) -> np.ndarray | None'
+			raise exception
+	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
 		"""
 
 			Purpose:
 			---------
-			Evaluate clustering performance using intrinsic and optional
-			external clustering metrics.
+			Evaluate AffinityPropagation clustering performance using intrinsic
+			and optional external clustering metrics.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+					( n_samples, n_features ) or similarity matrix when
+					affinity='precomputed'.
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
-			
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
-			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+			
+			unique_labels = np.unique( labels )
+			scores[ 'Clusters' ] = len( unique_labels )
+			scores[ 'Iterations' ] = self.iterations
+			
+			if self.affinity != 'precomputed' and len( unique_labels ) >= 2 \
+					and len( unique_labels ) < len( labels ):
 				self.silouette = silhouette_score( X, labels )
 				scores[ 'Silouette' ] = self.silouette
 			else:
@@ -1727,14 +2814,13 @@ class AffinityPropagation( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -1742,19 +2828,20 @@ class AffinityPropagation( Cluster ):
 
 			Purpose:
 			---------
-			Visualize clustering with AffinityPropagation and return summary
-			analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+					( n_samples, n_features ) or similarity matrix when
+					affinity='precomputed'.
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+					( n_samples, ).
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Dictionary containing analysis results.
 
 		"""
 		try:
@@ -1762,27 +2849,33 @@ class AffinityPropagation( Cluster ):
 			
 			if self.prediction is None or len( self.prediction ) != len( X ):
 				labels = self.model.fit_predict( X )
+				self.prediction = labels
 			else:
 				labels = self.prediction
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='Paired' )
-			plt.title( 'AffinityPropagation Cluster' )
-			plt.show( )
+			df_score = self.score( X, y )
+			
 			return {
 					'Labels': labels,
 					'Damping': self.damping,
 					'Max-Iter': self.max_iter,
 					'Convergence-Iter': self.convergence_iter,
+					'Copy': self.copy,
 					'Preference': self.preference,
 					'Affinity': self.affinity,
+					'Verbose': self.verbose,
+					'Random-State': self.random_state,
+					'Iterations': self.iterations,
+					'Centroids': self.centroids_,
+					'Features': self.features,
+					'Score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -1813,10 +2906,9 @@ class Birch( Cluster ):
 
 	"""
 	model: skc.Birch
-	n_clusters: Optional[ int ]
 	threshold: Optional[ float ]
 	branching_factor: Optional[ int ]
-	copy: Optional[ bool ]
+	n_clusters: object
 	compute_labels: Optional[ bool ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -1826,22 +2918,22 @@ class Birch( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, threshold: float=0.5, branching_factor: int=50, n_clusters: int=3,
-			compute_labels: bool=True, copy: bool=True ) -> None:
+	def __init__( self, threshold: float = 0.5, branching_factor: int = 50,
+			n_clusters: object = 3, compute_labels: bool = True ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize Birch clustering.
+			Initialize the Birch clustering wrapper.
 
 			Parameters:
 			-----------
 				threshold (float): Radius threshold used to merge new samples into
 					existing subclusters.
 				branching_factor (int): Maximum number of CF subclusters in each node.
-				n_clusters (int): Number of global clusters after the final clustering step.
+				n_clusters (object): Number of global clusters after the final
+					clustering step, None, or another cluster model instance.
 				compute_labels (bool): Whether to compute labels for each sample.
-				copy (bool): Whether input data should be copied.
 
 			Returns:
 			--------
@@ -1853,73 +2945,176 @@ class Birch( Cluster ):
 		self.branching_factor = branching_factor
 		self.n_clusters = n_clusters
 		self.compute_labels = compute_labels
-		self.copy = copy
-		self.model = skc.Birch( threshold=self.threshold,
-			branching_factor=self.branching_factor, n_clusters=self.n_clusters,
-			copy=self.copy, compute_labels=self.compute_labels )
+		self.model = skc.Birch(
+			threshold=self.threshold,
+			branching_factor=self.branching_factor,
+			n_clusters=self.n_clusters,
+			compute_labels=self.compute_labels
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'score',
-		         'project',
-		         'train',
-		         'transform',
-		         'analyze',
-		         'subcluster_centers',
-		         'subcluster_labels',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'score',
+				'project',
+				'predict',
+				'train',
+				'transform',
+				'analyze',
+				'threshold',
+				'branching_factor',
+				'n_clusters',
+				'compute_labels',
+				'labels',
+				'subcluster_centers',
+				'centroids_',
+				'subcluster_labels',
+				'features',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness',
+				'prediction'
+		]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted sample labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
 	
 	@property
 	def subcluster_centers( self ) -> np.ndarray:
-		'''
+		"""
 
-			Returns
-			-------
-			np.ndarray: Subcluster centers learned by Birch.
+			Purpose:
+			---------
+			Return subcluster centers learned by Birch.
 
-		'''
-		if self.model.subcluster_centers_ is None:
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Subcluster centers.
+
+		"""
+		if not hasattr( self.model, 'subcluster_centers_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.subcluster_centers_
+		return self.model.subcluster_centers_
+	
+	@property
+	def centroids_( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return subcluster centers using the centroid name expected by app.py.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Subcluster centers.
+
+		"""
+		return self.subcluster_centers
 	
 	@property
 	def subcluster_labels( self ) -> np.ndarray:
-		'''
+		"""
 
-			Returns
-			-------
-			np.ndarray: Global labels assigned to each subcluster.
+			Purpose:
+			---------
+			Return global labels assigned to each subcluster.
 
-		'''
-		if self.model.subcluster_labels_ is None:
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Subcluster labels.
+
+		"""
+		if not hasattr( self.model, 'subcluster_labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
-		else:
-			return self.model.subcluster_labels_
+		return self.model.subcluster_labels_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> Birch | None:
 		"""
 
 			Purpose:
 			---------
-			Fit Birch clustering model.
+			Fit the Birch clustering model.
 
 			Parameters:
 			-----------
@@ -1928,7 +3123,8 @@ class Birch( Cluster ):
 
 			Returns:
 			--------
-				Birch | None: Trained wrapper instance or None.
+				Birch | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -1949,7 +3145,10 @@ class Birch( Cluster ):
 
 			Purpose:
 			---------
-			Predict clusters with Birch.
+			Generate cluster assignments for the supplied samples.
+
+			Birch exposes fit_predict for the supplied data, so this method
+			fits and returns labels for the supplied samples.
 
 			Parameters:
 			-----------
@@ -1958,18 +3157,85 @@ class Birch( Cluster ):
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			self.prediction = self.model.predict( X )
+			self.prediction = self.model.fit_predict( X )
 			return self.prediction
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			raise exception
+	
+	def predict( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Predict the closest cluster each sample in X belongs to.
+
+			Parameters:
+			-----------
+				X (np.ndarray): New samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				np.ndarray | None:
+					Cluster labels for each sample.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			
+			if not hasattr( self.model, 'subcluster_centers_' ):
+				raise AttributeError( 'The model data has not been trained!' )
+			
+			return self.model.predict( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'clusters'
+			exception.cause = 'Birch'
+			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray | None'
+			raise exception
+	
+	def transform( self, X: np.ndarray ) -> np.ndarray | None:
+		"""
+
+			Purpose:
+			---------
+			Transform X into subcluster centroids distance space.
+
+			Parameters:
+			-----------
+				X (np.ndarray): Input samples of shape
+					( n_samples, n_features ).
+
+			Returns:
+			--------
+				np.ndarray | None:
+					Distance matrix to subcluster centroids.
+
+		"""
+		try:
+			throw_if( 'X', X )
+			
+			if not hasattr( self.model, 'subcluster_centers_' ):
+				self.model.fit( X )
+				if hasattr( self.model, 'labels_' ):
+					self.prediction = self.model.labels_
+			
+			return self.model.transform( X )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'clusters'
+			exception.cause = 'Birch'
+			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray | None'
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
@@ -1985,24 +3251,25 @@ class Birch( Cluster ):
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.predict( X )
-			else:
-				labels = self.prediction
-			
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
 			
-			if len( np.unique( labels ) ) >= 2 and len( np.unique( labels ) ) < len( labels ):
+			unique_labels = np.unique( labels )
+			scores[ 'Clusters' ] = len( unique_labels )
+			scores[ 'Subclusters' ] = len( self.subcluster_centers )
+			
+			if len( unique_labels ) >= 2 and len( unique_labels ) < len( labels ):
 				self.silouette = silhouette_score( X, labels )
 				scores[ 'Silouette' ] = self.silouette
 			else:
@@ -2019,14 +3286,13 @@ class Birch( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -2034,32 +3300,32 @@ class Birch( Cluster ):
 
 			Purpose:
 			---------
-			Visualize Birch clustering and return summary analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+					( n_samples, ).
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Dictionary containing analysis results.
 
 		"""
 		try:
 			throw_if( 'X', X )
 			
 			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.predict( X )
+				labels = self.model.fit_predict( X )
+				self.prediction = labels
 			else:
 				labels = self.prediction
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='Dark2' )
-			plt.title( 'Birch Cluster' )
-			plt.show( )
+			df_score = self.score( X, y )
+			
 			return {
 					'Labels': labels,
 					'Threshold': self.threshold,
@@ -2068,13 +3334,15 @@ class Birch( Cluster ):
 					'Compute-Labels': self.compute_labels,
 					'Subcluster-Centers': self.subcluster_centers,
 					'Subcluster-Labels': self.subcluster_labels,
+					'Features': self.features,
+					'Score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 
 
@@ -2099,13 +3367,18 @@ class OPTICS( Cluster ):
 	model: skc.OPTICS
 	min_samples: Optional[ int ]
 	max_eps: Optional[ float ]
-	metric: Optional[ str ]
+	metric: object
+	p: Optional[ float ]
+	metric_params: Optional[ Dict[ str, Any ] ]
+	cluster_method: Optional[ str ]
 	eps: Optional[ float ]
 	xi: Optional[ float ]
-	min_cluster_size: Optional[ int ]
-	algorith: Optional[ str ]
-	leaf_size: Optional[ int ]
 	predecessor_correction: Optional[ bool ]
+	min_cluster_size: object
+	algorithm: Optional[ str ]
+	leaf_size: Optional[ int ]
+	memory: object
+	n_jobs: Optional[ int ]
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
 	completeness: Optional[ float ]
@@ -2114,27 +3387,39 @@ class OPTICS( Cluster ):
 	silouette: Optional[ float ]
 	v_measure: Optional[ float ]
 	
-	def __init__( self, samples: int=5, max_distance: float=np.inf, measure: str='minkowski',
-			distance: float=None, correction: bool=True, min_size: int=None,
-			method: str='auto', leaf_size: int=30 ) -> None:
+	def __init__( self, samples: int = 5, max_eps: float = np.inf,
+			metric: object = 'minkowski', algorithm: str = 'auto',
+			leaf_size: int = 30, eps: float | None = None,
+			predecessor_correction: bool = True,
+			min_cluster_size: int | float | None = None,
+			min_samples: int | None = None, p: float = 2,
+			metric_params: Dict[ str, Any ] | None = None,
+			cluster_method: str = 'xi', xi: float = 0.05,
+			memory: object = None, n_jobs: int | None = None ) -> None:
 		"""
 
 			Purpose:
 			---------
-			Initialize OPTICS model.
+			Initialize the OPTICS clustering wrapper.
 
 			Parameters:
 			-----------
-				samples (int): Number of samples in a neighborhood for a point to be
-					considered a core point.
-				max_distance (float): Maximum distance between two samples for one to be
-					considered reachable.
-				measure (str): Distance metric used to compute neighborhood distances.
-				distance (float): Maximum distance between points in a cluster extraction.
-				correction (bool): Whether to apply predecessor correction.
-				min_size (int): Minimum number of samples in an OPTICS cluster.
-				method (str): Nearest-neighbor search algorithm.
-				leaf_size (int): Leaf size passed to the nearest-neighbor tree.
+				samples (int): Legacy alias for min_samples.
+				max_eps (float): Maximum reachability distance.
+				metric (object): Distance metric name or callable.
+				algorithm (str): Neighbor search algorithm.
+				leaf_size (int): Leaf size for BallTree or KDTree.
+				eps (float | None): Extraction cutoff for DBSCAN-style extraction.
+				predecessor_correction (bool): Whether predecessor correction is used.
+				min_cluster_size (int | float | None): Minimum cluster size.
+				min_samples (int | None): Explicit scikit-learn style min_samples.
+				p (float): Power parameter for the Minkowski metric.
+				metric_params (Dict[ str, Any ] | None): Additional metric
+					keyword arguments.
+				cluster_method (str): Cluster extraction method.
+				xi (float): Minimum steepness on the reachability plot.
+				memory (object): Optional joblib memory or cache path.
+				n_jobs (int | None): Number of parallel jobs.
 
 			Returns:
 			--------
@@ -2142,58 +3427,233 @@ class OPTICS( Cluster ):
 
 		"""
 		super( ).__init__( )
-		self.min_samples = samples
-		self.max_eps = max_distance
-		self.metric = measure
-		self.eps = distance
-		self.predecessor_correction = correction
-		self.min_cluster_size = min_size
-		self.algorith = method
+		self.min_samples = min_samples if min_samples is not None else samples
+		self.max_eps = max_eps
+		self.metric = metric
+		self.p = p
+		self.metric_params = metric_params
+		self.cluster_method = cluster_method
+		self.eps = eps
+		self.xi = xi
+		self.predecessor_correction = predecessor_correction
+		self.min_cluster_size = min_cluster_size
+		self.algorithm = algorithm
 		self.leaf_size = leaf_size
-		self.model = skc.OPTICS( min_samples=self.min_samples, max_eps=self.max_eps,
-			algorithm=self.algorith, leaf_size=self.leaf_size, metric=self.metric,
-			predecessor_correction=self.predecessor_correction, eps=self.eps,
-			min_cluster_size=self.min_cluster_size )
+		self.memory = memory
+		self.n_jobs = n_jobs
+		self.model = skc.OPTICS(
+			min_samples=self.min_samples,
+			max_eps=self.max_eps,
+			metric=self.metric,
+			p=self.p,
+			metric_params=self.metric_params,
+			cluster_method=self.cluster_method,
+			eps=self.eps,
+			xi=self.xi,
+			predecessor_correction=self.predecessor_correction,
+			min_cluster_size=self.min_cluster_size,
+			algorithm=self.algorithm,
+			leaf_size=self.leaf_size,
+			memory=self.memory,
+			n_jobs=self.n_jobs
+		)
 		self.prediction = None
+		self.probability = None
 		self.silouette = 0.0
 		self.homogeneity = 0.0
 		self.mutual_info = 0.0
 		self.v_measure = 0.0
 		self.completeness = 0.0
 	
-	def __dir__( self ):
-		'''
+	def __dir__( self ) -> list[ str ]:
+		"""
 
-			Returns
-			-------
-			A list of strings repreenting members
+			Purpose:
+			---------
+			Return the primary public members exposed by the wrapper.
 
-		'''
-		return [ 'model',
-		         'max_eps',
-		         'min_samples',
-		         'metric',
-		         'eps',
-		         'predecessor_correction',
-		         'min_cluster_size',
-		         'leaf_size',
-		         'score',
-		         'project',
-		         'train',
-		         'transform',
-		         'analyze',
-		         'silouette',
-		         'homogeneity',
-		         'mutual_info',
-		         'v_measuere',
-		         'prediction', ]
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				list[ str ]:
+					Member names.
+
+		"""
+		return [
+				'model',
+				'train',
+				'score',
+				'project',
+				'analyze',
+				'min_samples',
+				'max_eps',
+				'metric',
+				'p',
+				'metric_params',
+				'cluster_method',
+				'eps',
+				'xi',
+				'predecessor_correction',
+				'min_cluster_size',
+				'algorithm',
+				'leaf_size',
+				'memory',
+				'n_jobs',
+				'labels',
+				'ordering',
+				'reachability',
+				'core_distances',
+				'predecessor',
+				'features',
+				'prediction',
+				'silouette',
+				'homogeneity',
+				'mutual_info',
+				'v_measure',
+				'completeness'
+		]
+	
+	@property
+	def labels( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return fitted cluster labels.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Cluster labels.
+
+		"""
+		if not hasattr( self.model, 'labels_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.labels_
+	
+	@property
+	def ordering( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return the OPTICS ordering of samples.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Ordering indices.
+
+		"""
+		if not hasattr( self.model, 'ordering_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.ordering_
+	
+	@property
+	def reachability( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return reachability distances.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Reachability distances.
+
+		"""
+		if not hasattr( self.model, 'reachability_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.reachability_
+	
+	@property
+	def core_distances( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return core distances.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Core distances.
+
+		"""
+		if not hasattr( self.model, 'core_distances_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.core_distances_
+	
+	@property
+	def predecessor( self ) -> np.ndarray:
+		"""
+
+			Purpose:
+			---------
+			Return predecessor indices.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				np.ndarray:
+					Predecessor indices.
+
+		"""
+		if not hasattr( self.model, 'predecessor_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.predecessor_
+	
+	@property
+	def features( self ) -> int:
+		"""
+
+			Purpose:
+			---------
+			Return the number of features seen during fitting.
+
+			Parameters:
+			-----------
+				None
+
+			Returns:
+			--------
+				int:
+					Number of fitted features.
+
+		"""
+		if not hasattr( self.model, 'n_features_in_' ):
+			raise AttributeError( 'The model data has not been trained!' )
+		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> OPTICS | None:
 		"""
 
 			Purpose:
 			---------
-			Fit OPTICS model.
+			Fit the OPTICS clustering model.
 
 			Parameters:
 			-----------
@@ -2202,7 +3662,8 @@ class OPTICS( Cluster ):
 
 			Returns:
 			--------
-				OPTICS | None: Trained wrapper instance or None.
+				OPTICS | None:
+					Trained wrapper instance.
 
 		"""
 		try:
@@ -2222,7 +3683,10 @@ class OPTICS( Cluster ):
 
 			Purpose:
 			---------
-			Predict clusters with OPTICS.
+			Generate cluster assignments for the supplied samples.
+
+			OPTICS exposes fit_predict for the supplied data, so this method
+			fits and returns labels for the supplied samples.
 
 			Parameters:
 			-----------
@@ -2231,7 +3695,8 @@ class OPTICS( Cluster ):
 
 			Returns:
 			--------
-				np.ndarray | None: Cluster labels for each sample.
+				np.ndarray | None:
+					Cluster labels for each sample.
 
 		"""
 		try:
@@ -2258,26 +3723,28 @@ class OPTICS( Cluster ):
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
+					( n_samples, ).
 
 			Returns:
 			--------
-				pd.DataFrame | None: DataFrame containing clustering metrics.
+				pd.DataFrame | None:
+					DataFrame containing clustering metrics.
 
 		"""
 		try:
 			throw_if( 'X', X )
-			
-			if self.prediction is None or len( self.prediction ) != len( X ):
-				labels = self.model.fit_predict( X )
-			else:
-				labels = self.prediction
-			
+			labels = self.model.fit_predict( X )
+			self.prediction = labels
 			scores = { }
-			valid = labels[ labels != -1 ]
 			
-			if len( np.unique( valid ) ) >= 2:
-				self.silouette = silhouette_score( X, labels )
+			unique_labels = np.unique( labels )
+			cluster_labels = unique_labels[ unique_labels != -1 ]
+			scores[ 'Clusters' ] = len( cluster_labels )
+			scores[ 'Noise' ] = int( np.sum( labels == -1 ) )
+			
+			mask = labels != -1
+			if np.sum( mask ) >= 2 and len( np.unique( labels[ mask ] ) ) >= 2:
+				self.silouette = silhouette_score( X[ mask ], labels[ mask ] )
 				scores[ 'Silouette' ] = self.silouette
 			else:
 				self.silouette = np.nan
@@ -2293,14 +3760,13 @@ class OPTICS( Cluster ):
 				scores[ 'Completeness' ] = self.completeness
 				scores[ 'V-Measure' ] = self.v_measure
 			
-			data = pd.DataFrame( [ scores ] )
-			return data
+			return pd.DataFrame( [ scores ] )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None'
+				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
@@ -2308,18 +3774,19 @@ class OPTICS( Cluster ):
 
 			Purpose:
 			---------
-			Visualize OPTICS clustering result and return summary analysis values.
+			Produce a summary analysis payload for the fitted clustering model.
 
 			Parameters:
 			-----------
 				X (np.ndarray): Feature matrix/input samples of shape
 					( n_samples, n_features ).
 				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+					( n_samples, ).
 
 			Returns:
 			--------
-				Dict[ str, Any ] | None: Dictionary containing analysis results.
+				Dict[ str, Any ] | None:
+					Dictionary containing analysis results.
 
 		"""
 		try:
@@ -2327,29 +3794,39 @@ class OPTICS( Cluster ):
 			
 			if self.prediction is None or len( self.prediction ) != len( X ):
 				labels = self.model.fit_predict( X )
+				self.prediction = labels
 			else:
 				labels = self.prediction
 			
-			Z = X[ :, :2 ] if X.shape[ 1 ] >= 2 else np.hstack( [ X, X ] )
-			plt.scatter( Z[ :, 0 ], Z[ :, 1 ], c=labels, cmap='rainbow' )
-			plt.title( 'OPTICS Cluster' )
-			plt.show( )
+			df_score = self.score( X, y )
+			
 			return {
 					'Labels': labels,
 					'Min-Samples': self.min_samples,
 					'Max-Eps': self.max_eps,
 					'Metric': self.metric,
+					'P': self.p,
+					'Metric-Params': self.metric_params,
+					'Cluster-Method': self.cluster_method,
 					'Eps': self.eps,
+					'Xi': self.xi,
 					'Predecessor-Correction': self.predecessor_correction,
 					'Min-Cluster-Size': self.min_cluster_size,
-					'Algorithm': self.algorith,
+					'Algorithm': self.algorithm,
 					'Leaf-Size': self.leaf_size,
+					'N-Jobs': self.n_jobs,
+					'Ordering': self.ordering,
+					'Reachability': self.reachability,
+					'Core-Distances': self.core_distances,
+					'Predecessor': self.predecessor,
+					'Features': self.features,
+					'Score': df_score
 			}
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None'
+				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
 			raise exception
 			
