@@ -161,7 +161,8 @@ from classifications import (
 	NearestNeighbor,
 	BaggingModel,
 	AdaptiveBoost,
-	GradientBoost )
+	GradientBoost
+)
 
 from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
 
@@ -182,6 +183,8 @@ from regressions import (
 	VotingModel,
 	StackingModel
 )
+
+from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
 
 # ============================================
 # Session State
@@ -2014,9 +2017,7 @@ elif mode == 'Anomaly Detection':
 
 		if analysis_scale and len( vars_sel ) > 1:
 			df_analysis = pd.DataFrame( SKStandardScaler( ).fit_transform( df_analysis.values ),
-				columns=df_analysis.columns,
-				index=df_analysis.index
-			)
+				columns=df_analysis.columns, index=df_analysis.index )
 			
 		if analysis_scale and len( vars_sel ) > 1:
 			df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
@@ -2113,8 +2114,8 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Consensus & Output
 		# -------------------------------------------------------------------------
-		st.divider( )
-		st.subheader( 'Outlier Summary' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Outlier Summary' )
 		
 		if df_anamolies.empty:
 			st.info( 'No anomalies detected under the selected methods and thresholds.' )
@@ -2136,11 +2137,11 @@ elif mode == 'Anomaly Detection':
 		c_o1, c_o2 = st.columns( 2, border=True )
 		
 		with c_o1:
-			st.subheader( 'Flagged Observations' )
+			st.markdown( '##### Flagged Observations' )
 			render_table( anomalies.sort_values( 'methods_flagged', ascending=False ) )
 		
 		with c_o2:
-			st.subheader( 'Flag Count Distribution' )
+			st.markdown( '##### Flag Count Distribution' )
 			if anomalies.empty:
 				st.info( 'No rows met the current consensus threshold.' )
 			else:
@@ -2162,26 +2163,24 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Visualization — Distribution with Anomalies
 		# -------------------------------------------------------------------------
-		st.divider( )
-		st.subheader( 'Anomalous Distributions' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Anomalous Distributions' )
 		
 		for col in vars_sel:
 			if col not in df_analysis.columns:
 				continue
 			
-			s = pd.to_numeric( df_analysis[ col ], errors='coerce' ).replace( [ np.inf,
-			                                                                    -np.inf ], np.nan )
-			s_clean = s.dropna( )
+			s = pd.to_numeric( df_analysis[ col ], errors='coerce' ).replace(
+				[ np.inf, -np.inf ], np.nan )
 			
+			s_clean = s.dropna( )
 			if s_clean.empty:
 				continue
 			
 			flagged_idx = anomalies.index.intersection( s_clean.index )
-			flagged_vals = s_clean.loc[
-				flagged_idx ] if not flagged_idx.empty else pd.Series( dtype=float )
-			
+			flagged_vals = s_clean.loc[ flagged_idx ] if not flagged_idx.empty else pd.Series( dtype=float )
+		
 			c_v1, c_v2 = st.columns( 2, border=True )
-			
 			with c_v1:
 				fig, ax = plt.subplots( figsize=(7, 5) )
 				
@@ -2194,32 +2193,17 @@ elif mode == 'Anomaly Detection':
 				if not flagged_vals.empty:
 					flagged_array = flagged_vals.values.astype( float )
 					flagged_y = np.searchsorted( s_sorted, flagged_array, side='right' ) / n_vals
-					ax.scatter(
-						flagged_array,
-						flagged_y,
-						color='crimson',
-						alpha=0.90,
-						s=42,
-						edgecolors='black',
-						linewidths=0.5,
-						label='Flagged'
-					)
+					ax.scatter( flagged_array, flagged_y, color='crimson', alpha=0.90, s=42,
+						edgecolors='black', linewidths=0.5, label='Flagged' )
 				
 				mean_val = float( s_clean.mean( ) )
 				median_val = float( s_clean.median( ) )
 				
-				ax.axvline(
-					mean_val,
-					linestyle='--',
-					linewidth=1.4,
-					label=f'Mean: {mean_val:,.3f}'
-				)
-				ax.axvline(
-					median_val,
-					linestyle=':',
-					linewidth=1.4,
-					label=f'Median: {median_val:,.3f}'
-				)
+				ax.axvline( mean_val, linestyle='--', linewidth=1.4,
+					label=f'Mean: {mean_val:,.3f}' )
+				
+				ax.axvline( median_val, linestyle=':', linewidth=1.4,
+					label=f'Median: {median_val:,.3f}' )
 				
 				ax.set_title( f'{col} — ECDF with Anomalies', fontsize=12, fontweight='bold' )
 				ax.set_xlabel( col )
@@ -2229,52 +2213,25 @@ elif mode == 'Anomaly Detection':
 				ax.spines[ 'top' ].set_visible( False )
 				ax.spines[ 'right' ].set_visible( False )
 				ax.legend( frameon=False, fontsize=9 )
-				
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
 			
 			with c_v2:
 				fig, ax = plt.subplots( figsize=(7, 5) )
-				
-				sns.violinplot(
-					x=s_clean.values,
-					ax=ax,
-					inner=None,
-					cut=0,
-					linewidth=0.9
-				)
-				
-				ax.boxplot(
-					s_clean.values,
-					vert=False,
-					widths=0.20,
-					patch_artist=True,
+				sns.violinplot( x=s_clean.values, ax=ax, inner=None, cut=0, linewidth=0.9 )
+				ax.boxplot( s_clean.values, vert=False, widths=0.20, patch_artist=True,
 					boxprops=dict( facecolor='white', edgecolor='black', linewidth=1.0 ),
 					medianprops=dict( color='black', linewidth=1.4 ),
 					whiskerprops=dict( color='black', linewidth=0.9 ),
 					capprops=dict( color='black', linewidth=0.9 ),
-					flierprops=dict(
-						marker='o',
-						markerfacecolor='#475569',
-						markeredgecolor='black',
-						markersize=4,
-						alpha=0.7
-					)
-				)
+					flierprops=dict( marker='o', markerfacecolor='#475569', markeredgecolor='black',
+						markersize=4, alpha=0.7 ) )
 				
 				if not flagged_vals.empty:
-					ax.scatter(
-						flagged_vals.values,
-						np.ones( len( flagged_vals ) ),
-						color='crimson',
-						alpha=0.85,
-						s=34,
-						edgecolors='black',
-						linewidths=0.4,
-						label='Flagged',
-						zorder=3
-					)
+					ax.scatter( flagged_vals.values, np.ones( len( flagged_vals ) ), color='crimson',
+						alpha=0.85, s=34, edgecolors='black', linewidths=0.4, label='Flagged',
+						zorder=3 )
 				
 				ax.axvline( float( s_clean.mean( ) ), linestyle='--', linewidth=1.4 )
 				ax.axvline( float( s_clean.median( ) ), linestyle=':', linewidth=1.4 )
@@ -2292,12 +2249,12 @@ elif mode == 'Anomaly Detection':
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
 		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		# -------------------------------------------------------------------------
 		# Bivariate View
 		# -------------------------------------------------------------------------
 		if len( vars_sel ) >= 2:
-			st.divider( )
-			st.subheader( 'Bivariate View' )
+			st.markdown( '##### Bivariate View' )
 			
 			x_col = vars_sel[ 0 ]
 			y_col = vars_sel[ 1 ]
@@ -2307,35 +2264,17 @@ elif mode == 'Anomaly Detection':
 				flag_mask = df_scatter.index.isin( anomalies.index )
 				
 				fig, ax = plt.subplots( figsize=(8, 5.5) )
-				ax.scatter(
-					df_scatter.loc[ ~flag_mask, x_col ].values,
-					df_scatter.loc[ ~flag_mask, y_col ].values,
-					s=34,
-					alpha=0.70,
-					edgecolors='black',
-					linewidths=0.5,
-					label='Inliers'
-				)
+				ax.scatter( df_scatter.loc[ ~flag_mask, x_col ].values,
+					df_scatter.loc[ ~flag_mask, y_col ].values, s=34, alpha=0.70, edgecolors='black',
+					linewidths=0.5, label='Inliers' )
 				
 				if flag_mask.any( ):
-					ax.scatter(
-						df_scatter.loc[ flag_mask, x_col ].values,
-						df_scatter.loc[ flag_mask, y_col ].values,
-						s=52,
-						alpha=0.92,
-						edgecolors='black',
-						linewidths=0.7,
-						c='crimson',
-						marker='X',
-						label='Flagged'
-					)
+					ax.scatter( df_scatter.loc[ flag_mask, x_col ].values,
+						df_scatter.loc[ flag_mask, y_col ].values, s=52, alpha=0.92, edgecolors='black',
+						linewidths=0.7, c='crimson', marker='X', label='Flagged' )
 				
-				ax.set_title(
-					f'Anomaly Scatter — {x_col} vs {y_col}',
-					fontsize=12,
-					fontweight='bold',
-					pad=10
-				)
+				ax.set_title( f'Anomaly Scatter — {x_col} vs {y_col}', fontsize=12,
+					fontweight='bold', pad=10 )
 				ax.set_xlabel( x_col )
 				ax.set_ylabel( y_col )
 				ax.grid( True, alpha=0.20, linestyle='--' )
@@ -2349,12 +2288,8 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Export
 		# -------------------------------------------------------------------------
-		st.download_button(
-			"Export Anomaly Table (CSV)",
-			anomalies.to_csv( ),
-			"anomalies.csv",
-			"text/csv"
-		)
+		st.download_button( "Export Anomaly Table (CSV)", anomalies.to_csv( ), "anomalies.csv",
+			"text/csv" )
 
 # ============================================
 # DATA PLUMBING MODE
@@ -2362,7 +2297,7 @@ elif mode == 'Anomaly Detection':
 elif mode == 'Data Plumbing':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Data Plumbing' ] )
+		st.subheader( cfg.MODE[ 'Data Plumbing' ] )
 		st.divider( )
 		if df_dataset is None or df_dataset.empty:
 			st.warning( 'No dataset loaded.' )
@@ -2378,7 +2313,7 @@ elif mode == 'Data Plumbing':
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
-		st.subheader( 'Selection' )
+		st.markdown( '##### Selection' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			selected_columns = st.multiselect( 'Select Features',
@@ -2390,8 +2325,7 @@ elif mode == 'Data Plumbing':
 			selected_target_options = [ c for c in df_original.columns
 					if c not in selected_columns ]
 			
-			selected_targets = st.multiselect( 'Select Targets',
-				options=selected_target_options,
+			selected_targets = st.multiselect( 'Select Targets', options=selected_target_options,
 				default=st.session_state.get( 'plumbing_target_columns', [ ] ),
 				key='plumbing_select_targets' )
 		
@@ -2441,7 +2375,8 @@ elif mode == 'Data Plumbing':
 		# ======================================================================================
 		# Data Processing
 		# ======================================================================================
-		st.subheader( 'Preprocessing' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Preprocessing' )
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
 			with st.expander( label='Data Scaling', key='scalers' ):
@@ -3506,8 +3441,8 @@ elif mode == 'Data Plumbing':
 		# ======================================================================================
 		# Data Transformation
 		# ======================================================================================
-		st.divider( )
-		st.subheader( 'Transformation' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Transformation' )
 		st.data_editor( get_working_frame( ), key='engineering_table',
 			use_container_width=True, height=420 )
 		
@@ -3524,7 +3459,7 @@ elif mode == 'Data Plumbing':
 elif mode == 'Feature Engineering':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Feature Engineering' ] )
+		st.subheader( cfg.MODE[ 'Feature Engineering' ] )
 		st.divider( )
 		st.caption( 'Apply Feature Transformations' )
 		if 'df_dataset' not in locals( ) or df_dataset is None or df_dataset.empty:
@@ -3546,7 +3481,7 @@ elif mode == 'Feature Engineering':
 		# ------------------------------------------------------------------
 		# Column selection
 		# ------------------------------------------------------------------
-		st.subheader( 'Column Selection' )
+		st.markdown( '##### Column Selection' )
 		selected_columns = st.multiselect( 'Select columns for feature engineering',
 			options=df_original.columns.tolist( ) )
 		
@@ -3559,129 +3494,146 @@ elif mode == 'Feature Engineering':
 		# ======================================================================================
 		# Missing Value Handling
 		# ======================================================================================
-		st.divider( )
-		st.subheader( 'Missing Value Handling' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Missing Value Handling' )
+		sel_c1, sel_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with sel_c1:
+			impute_columns = st.multiselect( 'Columns to Impute', options=df_features.columns.tolist( ) )
 		
-		from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
-		
-		impute_columns = st.multiselect( 'Columns to Impute', options=df_features.columns.tolist( ) )
-		imputer_type = st.selectbox( 'Imputation Strategy',
-			[ 'None', 'Mean', 'Median', 'Most Frequent', 'Nearest Neighbors', 'Iterative' ] )
-		
-		if imputer_type != 'None' and impute_columns:
-			X_impute = df_features[ impute_columns ].to_numpy( )
-			if imputer_type == 'Mean':
-				imputer = MeanImputer( )
-			elif imputer_type == 'Median':
-				imputer = SimpleImputer( strategy='median' )
-			elif imputer_type == 'Most Frequent':
-				imputer = SimpleImputer( strategy='most_frequent' )
-			elif imputer_type == 'Nearest Neighbors':
-				imputer = NearestImputer( )
-			elif imputer_type == 'Iterative':
-				imputer = IterativeImputer( )
+		with sel_c2:
+			imputer_type = st.selectbox( 'Imputation Strategy',
+				[ 'None', 'Mean', 'Median', 'Most Frequent', 'Nearest Neighbors', 'Iterative' ] )
 			
-			X_imputed = imputer.train_transform( X_impute )
-			df_features[ impute_columns ] = X_imputed
-			st.caption( 'Imputation Preview (First 5 Rows)' )
-			st.data_editor( df_features.head( ) )
+			if imputer_type != 'None' and impute_columns:
+				X_impute = df_features[ impute_columns ].to_numpy( )
+				if imputer_type == 'Mean':
+					imputer = MeanImputer( )
+				elif imputer_type == 'Median':
+					imputer = SimpleImputer( strategy='median' )
+				elif imputer_type == 'Most Frequent':
+					imputer = SimpleImputer( strategy='most_frequent' )
+				elif imputer_type == 'Nearest Neighbors':
+					imputer = NearestImputer( )
+				elif imputer_type == 'Iterative':
+					imputer = IterativeImputer( )
+				
+				X_imputed = imputer.train_transform( X_impute )
+				df_features[ impute_columns ] = X_imputed
+				
+		st.caption( 'Imputation Preview (First 5 Rows)' )
+		st.data_editor( df_features.head( ), key='imputation_data' )
 		
 		# ======================================================================================
 		# Encoding
 		# ======================================================================================
-		st.divider( )
-		st.subheader( 'Encoding' )
-		encode_columns = st.multiselect( 'Categorical Columns to Encode',
-			options=[ c for c in df_features.columns if c in categorical_columns ] )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Encoding' )
+		enc_c1, enc_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with enc_c1:
+			encode_columns = st.multiselect( 'Categorical Columns to Encode',
+				options=[ c for c in df_features.columns if c in categorical_columns ] )
 		
-		encoding_type = st.selectbox( 'Encoding Method', [ 'None', 'One-Hot', 'Ordinal', 'Target' ] )
-		if encoding_type != 'None' and encode_columns:
-			X_encode = df_features[ encode_columns ].astype( str ).to_numpy( )
-			
-			if encoding_type == 'One-Hot':
-				encoder = OneHotEncoder( sparse=False )
-				X_encoded = encoder.train_transform( X_encode )
-				df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
-				df_features = df_features.drop( columns=encode_columns )
-				df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
-			elif encoding_type == 'Ordinal':
-				encoder = OrdinalEncoder( )
-				X_encoded = encoder.train_transform( X_encode )
-				df_features[ encode_columns ] = X_encoded
-			elif encoding_type == 'Target':
-				target_col = st.selectbox( 'Select target column', options=df_original.columns.tolist( ) )
-				y = df_original[ target_col ].to_numpy( )
-				encoder = TargetEncoder( )
-				X_encoded = encoder.train_transform( X_encode, y )
-				df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
-				df_features = df_features.drop( columns=encode_columns )
-				df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
+		with enc_c2:
+			encoding_type = st.selectbox( 'Encoding Method', [ 'None', 'One-Hot', 'Ordinal', 'Target' ] )
+			if encoding_type != 'None' and encode_columns:
+				X_encode = df_features[ encode_columns ].astype( str ).to_numpy( )
 				
-			st.caption( 'Encoding Preview (First 5 Rows)' )
-			st.data_editor( df_features.head( ) )
+				if encoding_type == 'One-Hot':
+					encoder = OneHotEncoder( sparse=False )
+					X_encoded = encoder.train_transform( X_encode )
+					df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
+					df_features = df_features.drop( columns=encode_columns )
+					df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
+				elif encoding_type == 'Ordinal':
+					encoder = OrdinalEncoder( )
+					X_encoded = encoder.train_transform( X_encode )
+					df_features[ encode_columns ] = X_encoded
+				elif encoding_type == 'Target':
+					target_col = st.selectbox( 'Select target column', options=df_original.columns.tolist( ) )
+					y = df_original[ target_col ].to_numpy( )
+					encoder = TargetEncoder( )
+					X_encoded = encoder.train_transform( X_encode, y )
+					df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
+					df_features = df_features.drop( columns=encode_columns )
+					df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
+				
+		st.caption( 'Encoding Preview (First 5 Rows)' )
+		st.data_editor( df_features.head( ), key='encoding_data' )
 		
 		# ======================================================================================
 		# Scaling / Normalization
 		# ======================================================================================
-		st.subheader( 'Scaling & Normalization' )
-		scale_columns = st.multiselect( 'Numeric Columns to Scale',
-			options=[ c for c in df_features.columns if c in numeric_columns ] )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Scaling & Normalization' )
+		sca_c1, sca_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with sca_c1:
+			scale_columns = st.multiselect( 'Numeric Columns to Scale',
+				options=[ c for c in df_features.columns if c in numeric_columns ] )
 		
-		scaler_type = st.selectbox( 'Scaler', [ 'None', 'Standard', 'Min-Max', 'Robust', 'Normalize' ] )
-		if scaler_type != 'None' and scale_columns:
-			X_scale = df_features[ scale_columns ].to_numpy( )
-			if scaler_type == 'Standard':
-				scaler = StandardScaler( )
-			elif scaler_type == 'Min-Max':
-				scaler = MinMaxScaler( )
-			elif scaler_type == 'Robust':
-				scaler = RobustScaler( )
-			elif scaler_type == 'Normalize':
-				scaler = NormalScaler( )
-				X_scaled = scaler.train_transform( X_scale )
-				df_features[ scale_columns ] = X_scaled
+		with sca_c2:
+			scaler_type = st.selectbox( 'Scaler', [ 'None', 'Standard', 'Min-Max', 'Robust', 'Normalize' ] )
+			if scaler_type != 'None' and scale_columns:
+				X_scale = df_features[ scale_columns ].to_numpy( )
+				if scaler_type == 'Standard':
+					scaler = StandardScaler( )
+				elif scaler_type == 'Min-Max':
+					scaler = MinMaxScaler( )
+				elif scaler_type == 'Robust':
+					scaler = RobustScaler( )
+				elif scaler_type == 'Normalize':
+					scaler = NormalScaler( )
+					X_scaled = scaler.train_transform( X_scale )
+					df_features[ scale_columns ] = X_scaled
 				
-			st.caption( 'Scaling preview (First 5 rows)' )
-			st.data_editor( df_features.head( ) )
+		st.caption( 'Scaling preview (First 5 rows)' )
+		st.data_editor( df_features.head( ), key='scaling_data' )
 		
 		# ======================================================================================
 		# Feature Generation
 		# ======================================================================================
-		st.subheader( 'Feature Generation' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Feature Generation' )
 		from encoders import PolynomialFeatures
-		poly_columns = st.multiselect( 'Columns for Polynomial Features',
-			options=[ c for c in df_features.columns if c in numeric_columns ] )
+		fet_c1, fet_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with fet_c1:
+			poly_columns = st.multiselect( 'Columns for Polynomial Features',
+				options=[ c for c in df_features.columns if c in numeric_columns ] )
 		
-		poly_degree = st.slider( 'Polynomial Degree', min_value=2, max_value=4, value=2 )
-		if poly_columns:
-			X_poly = df_features[ poly_columns ].to_numpy( )
-			poly = PolynomialFeatures( degree=poly_degree )
-			X_poly_out = poly.train_transform( X_poly )
-			df_polynomial = pd.DataFrame( X_poly_out, index=df_features.index )
-			df_features = df_features.drop( columns=poly_columns )
-			df_features = pd.concat( [ df_features, df_polynomial ], axis=1 )
+		with fet_c2:
+			poly_degree = st.slider( 'Polynomial Degree', min_value=2, max_value=4, value=2 )
+			if poly_columns:
+				X_poly = df_features[ poly_columns ].to_numpy( )
+				poly = PolynomialFeatures( degree=poly_degree )
+				X_poly_out = poly.train_transform( X_poly )
+				df_polynomial = pd.DataFrame( X_poly_out, index=df_features.index )
+				df_features = df_features.drop( columns=poly_columns )
+				df_features = pd.concat( [ df_features, df_polynomial ], axis=1 )
 			
-			st.caption( 'Polynomial Feature preview (First 5 Rows)' )
-			st.data_editor( df_features.head( ) )
+		st.caption( 'Polynomial Feature preview (First 5 Rows)' )
+		st.data_editor( df_features.head( ), key='feature_data' )
 		
 		# ======================================================================================
 		# Apply / Export
 		# ======================================================================================
-		st.subheader( 'Apply or Export' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Apply or Export' )
 		
-		if st.button( 'Apply Feature Engineering' ):
-			st.session_state[ 'df_features' ] = df_features.copy( )
-			st.success( 'Feature-Engineered Dataset Stored in Session State.' )
+		app_c1, app_c2, app_c3 = st.columns( [ 0.2, 0.5, 0.3 ] )
+		with app_c1:
+			if st.button( 'Apply Feature Engineering' ):
+				st.session_state[ 'df_features' ] = df_features.copy( )
+				st.success( 'Feature-Engineered Dataset Stored in Session State.' )
 		
-		st.download_button( label='Download Feature-Engineered Dataset (CSV)',
-			data=df_features.to_csv( index=False ), file_name='feature_engineered_data.csv',
-			mime='text/csv' )
+		with app_c2:
+			st.download_button( label='Download Feature-Engineered Dataset (CSV)',
+				data=df_features.to_csv( index=False ), file_name='feature_engineered_data.csv',
+				mime='text/csv' )
 
 # ============================================
 # CLASSIFICATION MODE
 # ============================================
 elif mode == 'Classifications':
-	st.header( cfg.MODE[ 'Classifications' ] )
+	st.subheader( cfg.MODE[ 'Classifications' ] )
 	st.divider( )
 	df_dataset = st.session_state.get( 'df_dataset', None )
 	numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
@@ -3698,14 +3650,14 @@ elif mode == 'Classifications':
 	# ------------------------------------------------------------------
 	# TARGET & FEATURES
 	# ------------------------------------------------------------------
-	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 	st.markdown( '##### Target & Features' )
-	target = st.selectbox( 'Target (Categorical)', categorical_cols )
-	features = st.multiselect(
-		'Feature Columns (Numeric)',
-		numeric_cols,
-		default=numeric_cols[ :3 ]
-	)
+	tgt_c1, tgt_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+	with tgt_c1:
+		target = st.selectbox( 'Target (Categorical)', categorical_cols )
+		
+	with tgt_c2:
+		features = st.multiselect( 'Feature Columns (Numeric)', numeric_cols,
+			default=numeric_cols[ :3 ] )
 	
 	if not features:
 		st.info( 'Please select at least one feature.' )
@@ -3717,19 +3669,6 @@ elif mode == 'Classifications':
 	# ------------------------------------------------------------------
 	# MODEL SELECTION
 	# ------------------------------------------------------------------
-	from classifications import (
-		Perceptron,
-		LeastSquares,
-		LogisticRegression,
-		DecisionTree,
-		SupportVector,
-		RandomForest,
-		NearestNeighbor,
-		BaggingModel,
-		AdaptiveBoost,
-		GradientBoost
-	)
-	
 	model_map = \
 		{
 				'Perceptron': Perceptron,
@@ -3745,26 +3684,22 @@ elif mode == 'Classifications':
 		}
 	
 	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-	st.markdown( '##### Model Selection' )
-	model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
-	model = model_map[ model_name ]( )
+	st.markdown( '##### Model Selection & Configuration' )
+	mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
+	with mdl_c1:
+		model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
+		model = model_map[ model_name ]( )
 	
-	# ------------------------------------------------------------------
-	# TRAIN / TEST SPLIT
-	# ------------------------------------------------------------------
-	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-	st.markdown( '##### Training Configuration' )
-	test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
-	random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
+	with mdl_c2:
+		test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
+	
+	with mdl_c3:
+		random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
 	
 	if st.button( '🚀 Train Classifier' ):
 		try:
-			X_train, X_test, y_train, y_test = model.split_data(
-				X,
-				y,
-				size=test_sz,
-				random=random_state
-			)
+			X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
+				random=random_state )
 			model.train( X_train, y_train )
 			y_pred = model.project( X_test )
 			target_count = len( np.unique( y_test ) )
@@ -4531,6 +4466,7 @@ elif mode == 'Time-Series':
 	st.subheader( 'Time-Series Selection' )
 	series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_cols )
 	series = df_dataset[ series_col ].dropna( ).to_numpy( )
+	
 	if series.ndim != 1 or len( series ) < 10:
 		st.warning( '⚠️ Selected series is too short for modeling.' )
 		st.stop( )
@@ -4538,7 +4474,7 @@ elif mode == 'Time-Series':
 	# ------------------------------------------------------------------
 	# MODEL SELECTION
 	# ------------------------------------------------------------------
-	from forecasting import (LaggingSeries, ARIMA, SARIMA, ExpandingWindow)
+	from forecasting import (LaggingSeries, ARIMA, SARIMA, TimeSeriesSpliter)
 	
 	model_map = \
 		{
@@ -4565,7 +4501,7 @@ elif mode == 'Time-Series':
 		p = st.number_input( 'p (AR)', min_value=0, value=1 )
 		d = st.number_input( 'd (I)', min_value=0, value=0 )
 		q = st.number_input( 'q (MA)', min_value=0, value=0 )
-		model = ARIMA( order=(p, d, q) )
+		model = ARIMA( order=(int( p ), int( d ), int( q )) )
 	
 	elif model_name == 'SARIMA':
 		p = st.number_input( 'p (AR)', min_value=0, value=1 )
@@ -4575,8 +4511,10 @@ elif mode == 'Time-Series':
 		D = st.number_input( 'D (Seasonal I)', min_value=0, value=0 )
 		Q = st.number_input( 'Q (Seasonal MA)', min_value=0, value=0 )
 		s = st.number_input( 'Season Length', min_value=0, value=0 )
-	
-	model = SARIMA( order=(p, d, q), seasonal=(P, D, Q, s) )
+		model = SARIMA(
+			order=(int( p ), int( d ), int( q )),
+			seasonal=(int( P ), int( D ), int( Q ), int( s ))
+		)
 	
 	# ------------------------------------------------------------------
 	# TRAIN / FORECAST
@@ -4586,33 +4524,58 @@ elif mode == 'Time-Series':
 	
 	if st.button( '🚀 Run Time-Series Model' ):
 		try:
+			plt.close( 'all' )
 			model.train( series )
-			forecast = model.project( n_steps=forecast_horizon )
+			forecast = model.project( n_steps=int( forecast_horizon ) )
+			
 			st.subheader( 'Model Evaluation' )
 			metrics = model.analyze( )
-			st.data_editor( pd.DataFrame( metrics, index=[ 'Value' ] ).T, use_container_width=True )
+			
+			if isinstance( metrics, pd.DataFrame ):
+				st.data_editor( metrics, use_container_width=True )
+			else:
+				df_metrics = pd.DataFrame( metrics, index=[ 'Value' ] ).T
+				st.data_editor( df_metrics, use_container_width=True )
+			
 			st.subheader( 'Observed vs Forecast' )
 			fig, ax = plt.subplots( )
-			ax.plot( series, label='Observed' )
-			ax.plot( range( len( series ), len( series ) + len( forecast ) ), forecast,
-				label='Forecast', linestyle='--' )
+			ax.plot( range( len( series ) ), series, label='Observed' )
+			ax.plot(
+				range( len( series ), len( series ) + len( forecast ) ),
+				forecast,
+				label='Forecast',
+				linestyle='--'
+			)
 			ax.set_title( 'Time-Series Forecast' )
 			ax.legend( )
 			st.pyplot( fig )
+			plt.close( fig )
 		except Exception as e:
 			st.error( f'Time-Series Modeling failed: {e}' )
 	
 	# ------------------------------------------------------------------
-	# EXPANDING WINDOW CV (OPTIONAL DIAGNOSTIC)
+	# TIME-SERIES SPLITS (OPTIONAL DIAGNOSTIC)
 	# ------------------------------------------------------------------
-	st.subheader( 'Expanding Window Cross-Validation' )
+	st.subheader( 'Time-Series Cross-Validation' )
 	
-	with st.expander( 'Show expanding-window splits' ):
-		initial = st.number_input( 'Initial window size', min_value=10, value=30 )
-		window = st.number_input( 'Test window size', min_value=1, value=10 )
-		splitter = ExpandingWindow( initial=initial, windows=window )
+	with st.expander( 'Show time-series splits' ):
+		splits = st.number_input( 'Number of splits', min_value=2, value=5 )
+		test_size = st.number_input( 'Test window size', min_value=1, value=10 )
+		gap = st.number_input( 'Gap size', min_value=0, value=0 )
+		max_train_size = st.number_input( 'Max train size (0 = unlimited )', min_value=0, value=0 )
+		
+		splitter = TimeSeriesSpliter(
+			splits=int( splits ),
+			test_size=int( test_size ),
+			gap=int( gap ),
+			max_train_size=int( max_train_size ) if int( max_train_size ) > 0 else None
+		)
 		
 		if st.button( 'Visualize CV Splits' ):
-			fig = plt.figure( )
-			splitter.visualize( series )
-			st.pyplot( fig )
+			try:
+				plt.close( 'all' )
+				fig = splitter.visualize( series )
+				st.pyplot( fig )
+				plt.close( fig )
+			except Exception as e:
+				st.error( f'Time-Series split visualization failed: {e}' )

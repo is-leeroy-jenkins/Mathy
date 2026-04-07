@@ -51,6 +51,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import (mean_squared_error, mean_absolute_error,
                              median_absolute_error, explained_variance_score, r2_score)
 from statsmodels.regression.linear_model import RegressionResultsWrapper
+import sklearn.ensemble as ske
 
 
 def throw_if( name: str, value: object ):
@@ -75,7 +76,490 @@ class TimeSeries( ):
 		self.tranining_values = None
 		self.prediction = None
 
+
+class ExpandingWindow( ):
+	"""
+
+		Purpose:
+		--------
+		Custom expanding-window time series cross-validator. Compatible with statsmodels.
+		Each split yields a growing training set and fixed-size test set. Expanding window
+		cross-validation (or forward-chaining) is a time series validation technique where the
+		training set grows over time, incorporating more historical data in each subsequent fold
+		while testing on the following period. It ensures temporal order is maintained, preventing
+		data leakage, and is ideal for scenarios with limited data.
+
+	"""
+	initial_window: int
+	test_window: int
+	max_splits: Optional[ int ]
+	n_splits: Optional[ int ]
+	max_train_size: Optional[ int ]
+	gap: int
+	
+	def __init__( self, initial: int = 30, windows: int = 10, splits: int | None = None,
+			n_splits: int | None = None, max_train_size: int | None = None,
+			test_size: int | None = None, gap: int = 0 ) -> None:
+		"""
 		
+			Purpose:
+			--------
+			Initialize the expanding-window cross-validator. The legacy parameters
+			`initial`, `windows`, and `splits` are preserved for drop-in compatibility.
+			The sklearn-like parameters `n_splits`, `max_train_size`, `test_size`, and
+			`gap` are also supported.
+		
+			Parameters:
+			-----------
+			initial (int): Minimum number of observations in the first training window.
+			windows (int): Legacy name for test window size.
+			splits (int | None): Legacy name for the maximum number of splits.
+			n_splits (int | None): Maximum number of splits to generate.
+			max_train_size (int | None): Optional rolling cap on the training window size.
+			test_size (int | None): Size of each test window. Overrides `windows` when set.
+			gap (int): Number of observations between each train and test partition.
+		
+			Returns:
+			--------
+			None
+		
+		"""
+		self.initial_window = int( initial )
+		self.test_window = int( test_size ) if test_size is not None else int( windows )
+		self.max_splits = int( splits ) if splits is not None else None
+		self.n_splits = int( n_splits ) if n_splits is not None else self.max_splits
+		self.max_train_size = int( max_train_size ) if max_train_size is not None else None
+		self.gap = int( gap )
+	
+	def split( self, series: np.ndarray, y: np.ndarray = None,
+			groups: np.ndarray = None ) -> Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
+		"""
+		
+			Purpose:
+			--------
+			Yield expanding train/test index pairs for a one-dimensional time-series.
+			The signature accepts `y` and `groups` for sklearn-style compatibility,
+			although they are not used.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series array.
+			y (Optional[np.ndarray]): Unused. Present for API compatibility.
+			groups (Optional[np.ndarray]): Unused. Present for API compatibility.
+		
+			Returns:
+			--------
+			Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
+				Train/test index pairs.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			values = np.asarray( series ).reshape( -1 )
+			n_obs = len( values )
+			
+			if self.initial_window < 1:
+				raise ValueError( 'Argument "initial" must be greater than zero.' )
+			
+			if self.test_window < 1:
+				raise ValueError( 'Argument "test_size" must be greater than zero.' )
+			
+			if self.gap < 0:
+				raise ValueError( 'Argument "gap" cannot be negative.' )
+			
+			if self.max_train_size is not None and self.max_train_size < 1:
+				raise ValueError( 'Argument "max_train_size" must be greater than zero.' )
+			
+			if self.n_splits is not None and self.n_splits < 1:
+				raise ValueError( 'Argument "n_splits" must be greater than zero.' )
+			
+			if self.initial_window + self.gap + self.test_window > n_obs:
+				message = (
+						'Argument "series" does not contain enough observations for the '
+						'requested initial window, gap, and test size.'
+				)
+				raise ValueError( message )
+			
+			split_count = 0
+			train_stop = self.initial_window
+			
+			while (train_stop + self.gap + self.test_window) <= n_obs:
+				if self.max_train_size is None:
+					train_start = 0
+				else:
+					train_start = max( 0, train_stop - self.max_train_size )
+				
+				test_start = train_stop + self.gap
+				test_stop = test_start + self.test_window
+				
+				train_idx = np.arange( train_start, train_stop, dtype=int )
+				test_idx = np.arange( test_start, test_stop, dtype=int )
+				
+				if len( train_idx ) == 0 or len( test_idx ) == 0:
+					break
+				
+				yield train_idx, test_idx
+				
+				split_count += 1
+				if self.n_splits is not None and split_count >= self.n_splits:
+					break
+				
+				train_stop = test_stop
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ExpandingWindow'
+			exception.method = 'split'
+			raise exception
+	
+	def get_splits( self, series: np.ndarray ) -> list[ Tuple[ np.ndarray, np.ndarray ] ]:
+		"""
+		
+			Purpose:
+			--------
+			Materialize and return all expanding-window train/test splits.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series array.
+		
+			Returns:
+			--------
+			list[ Tuple[ np.ndarray, np.ndarray ] ]:
+				List of train/test index pairs.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			return list( self.split( series ) )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ExpandingWindow'
+			exception.method = 'get_splits'
+			raise exception
+	
+	def get_n_splits( self, series: Optional[ np.ndarray ] = None,
+			y: Optional[ np.ndarray ] = None, groups: Optional[ np.ndarray ] = None ) -> int:
+		"""
+		
+			Purpose:
+			--------
+			Return the number of splits. When a series is provided, compute the actual
+			number of realizable splits from the data. Otherwise, return the configured
+			maximum when available.
+		
+			Parameters:
+			-----------
+			series (Optional[np.ndarray]): Optional one-dimensional time-series array.
+			y (Optional[np.ndarray]): Unused. Present for API compatibility.
+			groups (Optional[np.ndarray]): Unused. Present for API compatibility.
+		
+			Returns:
+			--------
+			int:
+				Number of splits.
+		
+		"""
+		try:
+			if series is None:
+				if self.n_splits is not None:
+					return int( self.n_splits )
+				
+				raise ValueError(
+					'Argument "series" is required when the number of splits is not '
+					'explicitly configured.'
+				)
+			
+			throw_if( 'series', series )
+			return len( list( self.split( series ) ) )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ExpandingWindow'
+			exception.method = 'get_n_splits'
+			raise exception
+	
+	def visualize( self, series: np.ndarray ) -> plt.Figure | None:
+		"""
+		
+			Purpose:
+			--------
+			Build and return a matplotlib figure showing each train/test split.
+			Returning the figure avoids the Streamlit blank-figure issue caused by
+			calling plt.show() internally.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series array.
+		
+			Returns:
+			--------
+			plt.Figure | None:
+				Figure containing the split visualization.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			values = np.asarray( series, dtype=float ).reshape( -1 )
+			splits = self.get_splits( values )
+			
+			if not splits:
+				raise ValueError( 'No train/test splits were generated for visualization.' )
+			
+			n_splits = len( splits )
+			fig, axes = plt.subplots( n_splits, 1, figsize=(10, 2.5 * n_splits) )
+			
+			if n_splits == 1:
+				axes = [ axes ]
+			
+			x_axis = np.arange( len( values ) )
+			
+			for i, (train_idx, test_idx) in enumerate( splits ):
+				axis = axes[ i ]
+				axis.plot( x_axis[ train_idx ], values[ train_idx ], label='Train' )
+				axis.plot( x_axis[ test_idx ], values[ test_idx ], label='Test' )
+				axis.set_title( f'Split {i + 1}' )
+				axis.legend( )
+				axis.grid( True, alpha=0.25 )
+			
+			plt.tight_layout( )
+			return fig
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'ExpandingWindow'
+			exception.method = 'visualize'
+			raise exception
+
+
+class TimeSeriesSpliter( ):
+	"""
+	
+		Purpose:
+		--------
+		Provide a time-series cross-validator that mirrors the current sklearn
+		TimeSeriesSplit behavior and returning train/test index pairs for ordered data.
+	
+	"""
+	n_splits: int
+	max_train_size: Optional[ int ]
+	test_size: Optional[ int ]
+	gap: int
+	
+	def __init__( self, splits: int = 5, max_train_size: Optional[ int ] = None,
+			test_size: Optional[ int ] = None, gap: int = 0 ) -> None:
+		"""
+		
+			Purpose:
+			--------
+			Initialize the time-series cross-validator.
+		
+			Parameters:
+			-----------
+			splits (int): Number of splits to generate.
+			max_train_size (Optional[int]): Optional cap on the training window size.
+			test_size (Optional[int]): Optional fixed size for each test window.
+			gap (int): Number of observations excluded between train and test windows.
+		
+			Returns:
+			--------
+			None
+		
+		"""
+		self.n_splits = int( splits )
+		self.max_train_size = max_train_size
+		self.test_size = test_size
+		self.gap = int( gap )
+	
+	def split( self, series: np.ndarray, y: np.ndarray = None,
+			groups: np.ndarray = None ) -> Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
+		"""
+		
+			Purpose:
+			--------
+			Yield expanding train/test index pairs for an ordered one-dimensional
+			time-series using sklearn-like temporal cross-validation semantics.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional ordered time-series array.
+			y (Optional[np.ndarray]): Unused placeholder for API compatibility.
+			groups (Optional[np.ndarray]): Unused placeholder for API compatibility.
+		
+			Returns:
+			--------
+			Generator[Tuple[np.ndarray, np.ndarray], None, None]:
+				A generator of train/test index pairs.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			
+			values = np.asarray( series ).reshape( -1 )
+			n_samples = len( values )
+			
+			if self.n_splits < 2:
+				raise ValueError( 'Argument "splits" must be at least 2.' )
+			
+			if self.gap < 0:
+				raise ValueError( 'Argument "gap" cannot be negative.' )
+			
+			if self.max_train_size is not None and self.max_train_size < 1:
+				raise ValueError( 'Argument "max_train_size" must be greater than zero.' )
+			
+			if self.test_size is None:
+				computed_test_size = n_samples // (self.n_splits + 1)
+			else:
+				computed_test_size = int( self.test_size )
+			
+			if computed_test_size < 1:
+				raise ValueError( 'Argument "test_size" must be greater than zero.' )
+			
+			required = self.n_splits * computed_test_size + self.gap
+			if required >= n_samples:
+				raise ValueError(
+					'The series does not contain enough observations for the '
+					'requested number of splits, test size, and gap.'
+				)
+			
+			test_starts = range( n_samples - (self.n_splits * computed_test_size),
+				n_samples, computed_test_size )
+			
+			for test_start in test_starts:
+				train_end = test_start - self.gap
+				
+				if train_end <= 0:
+					raise ValueError(
+						'The requested gap leaves no observations available for training.'
+					)
+				
+				if self.max_train_size is not None and self.max_train_size < train_end:
+					train_start = train_end - self.max_train_size
+				else:
+					train_start = 0
+				
+				train_index = np.arange( train_start, train_end, dtype=int )
+				test_index = np.arange( test_start,
+					min( test_start + computed_test_size, n_samples ), dtype=int )
+				
+				if len( train_index ) == 0 or len( test_index ) == 0:
+					continue
+				
+				yield train_index, test_index
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TimeSeriesSpliter'
+			exception.method = 'split'
+			raise exception
+	
+	def get_n_splits( self, series: np.ndarray = None,
+			y: np.ndarray = None, groups: np.ndarray = None ) -> int | None:
+		"""
+		
+			Purpose:
+			--------
+			Return the configured number of time-series splits.
+		
+			Parameters:
+			-----------
+			series (Optional[np.ndarray]): Unused placeholder for API compatibility.
+			y (Optional[np.ndarray]): Unused placeholder for API compatibility.
+			groups (Optional[np.ndarray]): Unused placeholder for API compatibility.
+		
+			Returns:
+			--------
+			int | None:
+				The configured number of splits.
+		
+		"""
+		try:
+			return self.n_splits
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TimeSeriesSpliter'
+			exception.method = 'get_n_splits'
+			raise exception
+	
+	def get_splits( self, series: np.ndarray ) -> list[ Tuple[ np.ndarray, np.ndarray ] ]:
+		"""
+		
+			Purpose:
+			--------
+			Materialize all train/test index pairs for the supplied series.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional ordered time-series array.
+		
+			Returns:
+			--------
+			list[Tuple[np.ndarray, np.ndarray]]:
+				A list of train/test index pairs.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			return list( self.split( series ) )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TimeSeriesSpliter'
+			exception.method = 'get_splits'
+			raise exception
+	
+	def visualize( self, series: np.ndarray ) -> plt.Figure | None:
+		"""
+		
+			Purpose:
+			--------
+			Build and return a matplotlib figure showing each train/test split.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional ordered time-series array.
+		
+			Returns:
+			--------
+			plt.Figure | None:
+				A matplotlib figure containing the split visualization.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			values = np.asarray( series, dtype=float ).reshape( -1 )
+			splits = self.get_splits( values )
+			
+			if not splits:
+				raise ValueError( 'No time-series splits were generated.' )
+			
+			fig, axes = plt.subplots( len( splits ), 1, figsize=(10, 2.5 * len( splits )) )
+			
+			if len( splits ) == 1:
+				axes = [ axes ]
+			
+			x_axis = np.arange( len( values ) )
+			
+			for i, (train_idx, test_idx) in enumerate( splits ):
+				axis = axes[ i ]
+				axis.plot( x_axis[ train_idx ], values[ train_idx ], label='Train' )
+				axis.plot( x_axis[ test_idx ], values[ test_idx ], label='Test' )
+				axis.set_title( f'Split {i + 1}' )
+				axis.grid( True, alpha=0.25 )
+				axis.legend( )
+			
+			plt.tight_layout( )
+			return fig
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'TimeSeriesSpliter'
+			exception.method = 'visualize'
+			raise exception
+
+
 class LaggingSeries( TimeSeries ):
     """
     
@@ -279,160 +763,6 @@ class LaggingSeries( TimeSeries ):
 		    exception.method = 'analyze'
 		    raise exception
             
-
-class ExpandingWindow( ):
-    """
-
-        Purpose:
-        --------
-        Custom expanding-window time series cross-validator. Compatible with statsmodels.
-        Each split yields a growing training set and fixed-size test set.
-
-    """
-    initial_window: int
-    test_window: int
-    max_splits: Optional[ int ]
-    
-    def __init__( self, initial: int=30, windows: int=10, splits: int=None ) -> None:
-	    """
-	
-			Purpose:
-			--------
-			Initializes the expanding window splitter.
-	
-			Parameters:
-			-----------
-			initial (int): Minimum number of observations in the training set.
-			windows (int): Number of observations in each test split.
-			splits (Optional[int]): Maximum number of splits to generate.
-	
-			Returns:
-			--------
-			None
-
-		"""
-	    self.initial_window = initial
-	    self.test_window = windows
-	    self.max_splits = splits
-    
-    def split( self, series: np.ndarray ) -> Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
-	    """
-	
-			Purpose:
-			--------
-			Yields train/test index pairs for expanding cross-validation.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): 1D time-series array.
-		
-			Returns:
-			--------
-			Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]: Train/test index pairs.
-
-		"""
-	    try:
-		    throw_if( 'series', series )
-		    if self.initial_window < 1:
-			    raise ValueError( 'Argument "initial" must be greater than zero.' )
-		    if self.test_window < 1:
-			    raise ValueError( 'Argument "windows" must be greater than zero.' )
-		    if self.max_splits is not None and self.max_splits < 1:
-			    raise ValueError( 'Argument "splits" must be greater than zero when provided.' )
-		    
-		    values = np.asarray( series ).reshape( -1 )
-		    n_obs = len( values )
-		    mess = 'Argument "series" must contain more observations than the initial window.'
-		    if self.initial_window >= n_obs:
-			    raise ValueError( mess )
-		    split_count = 0
-		    start = self.initial_window
-		    while (start + self.test_window) <= n_obs:
-			    train_idx = np.arange( 0, start )
-			    test_idx = np.arange( start, start + self.test_window )
-			    yield train_idx, test_idx
-			    start += self.test_window
-			    split_count += 1
-			    if self.max_splits is not None and split_count >= self.max_splits:
-				    break
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'ExpandingWindow'
-		    exception.method = 'split'
-		    raise exception
-    
-    def get_splits( self, series: np.ndarray ) -> list[ Tuple[ np.ndarray, np.ndarray ] ]:
-	    """
-	
-			Purpose:
-			--------
-			Materializes and returns all expanding-window splits.
-	
-			Parameters:
-			-----------
-			series (np.ndarray): 1D time-series array.
-	
-			Returns:
-			--------
-			list[ Tuple[ np.ndarray, np.ndarray ] ]: List of train/test index pairs.
-
-		"""
-	    try:
-		    throw_if( 'series', series )
-		    return list( self.split( series ) )
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'ExpandingWindow'
-		    exception.method = 'get_splits'
-		    raise exception
-    
-    def visualize( self, series: np.ndarray ) -> None:
-	    """
-	
-			Purpose:
-			--------
-			Visualizes each expanding-window train/test split using line plots.
-	
-			Parameters:
-			-----------
-			series (np.ndarray): 1D time-series array.
-	
-			Returns:
-			--------
-			None
-
-		"""
-	    try:
-		    throw_if( 'series', series )
-		    values = np.asarray( series, dtype=float ).reshape( -1 )
-		    splits = self.get_splits( values )
-		    if not splits:
-			    raise ValueError( 'No train/test splits were generated for visualization.' )
-		    
-		    n_splits = len( splits )
-		    fig, axes = plt.subplots( n_splits, 1, figsize=(10, 2.5 * n_splits) )
-		    if n_splits == 1:
-			    axes = [ axes ]
-		    
-		    x_axis = np.arange( len( values ) )
-		    for i, (train_idx, test_idx) in enumerate( splits ):
-			    axis = axes[ i ]
-			    axis.plot( x_axis[ train_idx ], values[ train_idx ], label='Train' )
-			    axis.plot( x_axis[ test_idx ], values[ test_idx ], label='Test' )
-			    axis.set_title( f'Split {i + 1}' )
-			    axis.legend( )
-		    
-		    plt.tight_layout( )
-		    plt.show( )
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'ExpandingWindow'
-		    exception.method = 'visualize'
-		    raise exception
-
 
 class ARIMA( TimeSeries ):
 	"""
@@ -802,4 +1132,6 @@ class SARIMA( TimeSeries ):
 		    exception.cause = 'SARIMA'
 		    exception.method = 'analyze'
 		    raise exception
+
+
             
