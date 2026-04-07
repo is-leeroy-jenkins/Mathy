@@ -1562,9 +1562,9 @@ elif mode == 'Inferential Statistics':
 		# -------------------------------------------------------------------------------------
 		# INFERENTIAL SUMMARY
 		# -------------------------------------------------------------------------------------
-		st.markdown( '##### Inferential Summary' )
+		st.markdown( '##### Summary' )
 		
-		sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=False )
+		sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=True )
 		with sum_r1c1:
 			summary_y = st.selectbox( 'Summary Outcome Variable', numeric_cols, key='infer_summary_y' )
 		
@@ -1584,7 +1584,7 @@ elif mode == 'Inferential Statistics':
 				summary_group = None
 				st.caption( 'No categorical grouping variables available.' )
 		
-		sum_r2c1, sum_r2c2 = st.columns( 2, border=False )
+		sum_r2c1, sum_r2c2 = st.columns( 2, border=True )
 		with sum_r2c1:
 			if len( categorical_cols ) >= 2:
 				summary_cat1 = st.selectbox( 'Summary First Categorical Variable',
@@ -1853,112 +1853,116 @@ elif mode == 'Inferential Statistics':
 					st.info( 'Not enough valid groups for group comparison.' )
 			else:
 				st.info( 'Select a grouping variable to compare groups.' )
-			
-			# -------------------------------------------------------------------------------------
-			# CORRELATION ANALYSIS
-			# -------------------------------------------------------------------------------------
-			st.markdown( '##### Correlation Analysis' )
-			cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-			with cor_c1:
-				candidate_x = [ c for c in numeric_cols if c != col_y ]
-				if not candidate_x:
-					st.info( 'A second numeric variable is required for correlation analysis.' )
-					col_x2 = None
-				else:
-					col_x2 = st.selectbox( 'Select Second Numeric Variable', candidate_x )
-			
-			with cor_c2:
-				if col_x2:
-					x = pd.to_numeric( df_dataset[ col_x2 ], errors='coerce' )
-					y2 = pd.to_numeric( df_dataset[ col_y ], errors='coerce' )
-					mask = x.notna( ) & y2.notna( )
-					if mask.sum( ) >= 3:
-						r_p, p_p = stats.pearsonr( x[ mask ], y2[ mask ] )
-						r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
-						r1, r2, r3, r4 = st.columns( 4 )
-						r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
-						r2.metric( 'Pearson r', f'{r_p:,.3f}' )
-						r3.metric( 'Pearson p', f'{p_p:,.4g}' )
-						r4.metric( 'Spearman ρ', f'{r_s:,.3f}' )
-						st.caption( f'Spearman p = {p_s:.4g}' )
-					else:
-						st.info( 'Not enough paired observations for correlation.' )
-			
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		
+		# -------------------------------------------------------------------------------------
+		# CORRELATION ANALYSIS
+		# -------------------------------------------------------------------------------------
+		st.markdown( '##### Correlation Analysis' )
+		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with cor_c1:
+			candidate_x = [ c for c in numeric_cols if c != col_y ]
+			if not candidate_x:
+				st.info( 'A second numeric variable is required for correlation analysis.' )
+				col_x2 = None
+			else:
+				col_x2 = st.selectbox( 'Select Second Numeric Variable', candidate_x )
+		
+		with cor_c2:
 			if col_x2:
+				x = pd.to_numeric( df_dataset[ col_x2 ], errors='coerce' )
+				y2 = pd.to_numeric( df_dataset[ col_y ], errors='coerce' )
 				mask = x.notna( ) & y2.notna( )
 				if mask.sum( ) >= 3:
-					fig, ax = plt.subplots( figsize=(7, 5.25) )
-					ax.scatter( x[ mask ], y2[ mask ], alpha=0.70, edgecolor='black' )
-					if mask.sum( ) >= 2:
-						try:
-							m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
-							xline = np.linspace( float( x[ mask ].min( ) ),
-								float( x[ mask ].max( ) ), 100 )
-							ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
-						except Exception:
-							pass
+					r_p, p_p = stats.pearsonr( x[ mask ], y2[ mask ] )
+					r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
+					r1, r2, r3, r4 = st.columns( 4 )
+					r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
+					r2.metric( 'Pearson r', f'{r_p:,.3f}' )
+					r3.metric( 'Pearson p', f'{p_p:,.4g}' )
+					r4.metric( 'Spearman ρ', f'{r_s:,.3f}' )
+					st.caption( f'Spearman p = {p_s:.4g}' )
+				else:
+					st.info( 'Not enough paired observations for correlation.' )
+		
+		if col_x2:
+			mask = x.notna( ) & y2.notna( )
+			if mask.sum( ) >= 3:
+				fig, ax = plt.subplots( figsize=(7, 5.25) )
+				ax.scatter( x[ mask ], y2[ mask ], alpha=0.70, edgecolor='black' )
+				if mask.sum( ) >= 2:
+					try:
+						m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
+						xline = np.linspace( float( x[ mask ].min( ) ),
+							float( x[ mask ].max( ) ), 100 )
+						ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
+					except Exception:
+						pass
+				
+				ax.set_title( f'Correlation — {col_y} vs {col_x2}', fontsize=12,
+					fontweight='bold', pad=10 )
+				
+				ax.set_xlabel( col_x2 )
+				ax.set_ylabel( col_y )
+				ax.grid( True, alpha=0.20, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				fig.tight_layout( )
+				st.pyplot( fig )
+				plt.close( fig )
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		
+		# -------------------------------------------------------------------------------------
+		# CATEGORICAL ASSOCIATION
+		# -------------------------------------------------------------------------------------
+		st.markdown( '##### Categorical Association' )
+		if not categorical_cols or len( categorical_cols ) < 2:
+			st.info( 'At least two categorical variables are required for categorical association.' )
+		else:
+			cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+			with cat_c1:
+				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
+				
+			with cat_c2:
+				col_cat2 = st.selectbox( 'Select Second Categorical Variable',
+					[ c for c in categorical_cols if c != col_cat1 ] )
+			
+			contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
+			
+			if contingency.empty or contingency.shape[ 0 ] < 2 or contingency.shape[ 1 ] < 2:
+				st.info( 'Not enough categorical variation for chi-square analysis.' )
+			else:
+				chi2, p_chi, dof, expected = stats.chi2_contingency( contingency )
+				n = contingency.to_numpy( ).sum( )
+				phi2 = chi2 / n if n > 0 else np.nan
+				r, k = contingency.shape
+				cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1, r - 1 ) > 0 else np.nan
+				
+				ca1, ca2 = st.columns( 2, border=True )
+				with ca1:
+					render_table( contingency.reset_index( ) )
+				
+				with ca2:
+					fig, ax = plt.subplots( figsize=( 7, 5.5 ) )
+					sns.heatmap( contingency, annot=True, fmt='d', cmap='Blues',
+						linewidths=0.5, ax=ax, cbar_kws={ 'shrink': 0.85, 'label': 'Count' } )
 					
-					ax.set_title( f'Correlation — {col_y} vs {col_x2}', fontsize=12,
-						fontweight='bold', pad=10 )
+					ax.set_title( f'Contingency Heatmap — {col_cat1} vs {col_cat2}',
+						fontsize=12, fontweight='bold', pad=10 )
 					
-					ax.set_xlabel( col_x2 )
-					ax.set_ylabel( col_y )
-					ax.grid( True, alpha=0.20, linestyle='--' )
-					ax.spines[ 'top' ].set_visible( False )
-					ax.spines[ 'right' ].set_visible( False )
+					ax.set_xlabel( col_cat2 )
+					ax.set_ylabel( col_cat1 )
 					fig.tight_layout( )
 					st.pyplot( fig )
 					plt.close( fig )
-			
-			# -------------------------------------------------------------------------------------
-			# CATEGORICAL ASSOCIATION
-			# -------------------------------------------------------------------------------------
-			st.markdown( '##### Categorical Association' )
-			if not categorical_cols or len( categorical_cols ) < 2:
-				st.info( 'At least two categorical variables are required for categorical association.' )
-			else:
-				cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-				with cat_c1:
-					col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
-					
-				with cat_c2:
-					col_cat2 = st.selectbox( 'Select Second Categorical Variable',
-						[ c for c in categorical_cols if c != col_cat1 ] )
 				
-				contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
-				
-				if contingency.empty or contingency.shape[ 0 ] < 2 or contingency.shape[ 1 ] < 2:
-					st.info( 'Not enough categorical variation for chi-square analysis.' )
-				else:
-					chi2, p_chi, dof, expected = stats.chi2_contingency( contingency )
-					n = contingency.to_numpy( ).sum( )
-					phi2 = chi2 / n if n > 0 else np.nan
-					r, k = contingency.shape
-					cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1, r - 1 ) > 0 else np.nan
-					
-					ca1, ca2 = st.columns( 2, border=True )
-					with ca1:
-						render_table( contingency.reset_index( ) )
-					
-					with ca2:
-						fig, ax = plt.subplots( figsize=( 7, 5.5 ) )
-						sns.heatmap( contingency, annot=True, fmt='d', cmap='Blues',
-							linewidths=0.5, ax=ax, cbar_kws={ 'shrink': 0.85, 'label': 'Count' } )
-						
-						ax.set_title( f'Contingency Heatmap — {col_cat1} vs {col_cat2}',
-							fontsize=12, fontweight='bold', pad=10 )
-						
-						ax.set_xlabel( col_cat2 )
-						ax.set_ylabel( col_cat1 )
-						fig.tight_layout( )
-						st.pyplot( fig )
-						plt.close( fig )
-					
-					cm1, cm2, cm3, cm4 = st.columns( 4 )
-					cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
-					cm2.metric( 'p-value', f'{p_chi:,.4g}' )
-					cm3.metric( 'DoF', f'{dof:,}' )
-					cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
+				cm1, cm2, cm3, cm4 = st.columns( 4 )
+				cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
+				cm2.metric( 'p-value', f'{p_chi:,.4g}' )
+				cm3.metric( 'DoF', f'{dof:,}' )
+				cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
 
 # ============================================
 # ANOMALY DETECTION MODE
