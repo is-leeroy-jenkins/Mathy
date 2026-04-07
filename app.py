@@ -60,6 +60,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
+import sqlite3
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -775,6 +776,612 @@ def score_function_from_name( name: str ) -> object:
 	}
 	return mapper[ name ]
 
+# ----------------- Database Utilities
+
+def initialize_database( ) -> None:
+	Path( "stores/sqlite" ).mkdir( parents=True, exist_ok=True )
+	with sqlite3.connect( cfg.DB_PATH ) as conn:
+		conn.execute( """
+                      CREATE TABLE IF NOT EXISTS chat_history
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY
+                          AUTOINCREMENT,
+                          role
+                          TEXT,
+                          content
+                          TEXT
+                      )
+		              """ )
+		conn.execute( """
+                      CREATE TABLE IF NOT EXISTS embeddings
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY
+                          AUTOINCREMENT,
+                          chunk
+                          TEXT,
+                          vector
+                          BLOB
+                      )
+		              """ )
+		conn.execute( """
+                      CREATE TABLE IF NOT EXISTS Prompts
+                      (
+                          PromptsId
+                          INTEGER
+                          NOT
+                          NULL
+                          UNIQUE,
+                          Name
+                          TEXT
+                      (
+                          80
+                      ),
+                          Text TEXT,
+                          Version TEXT
+                      (
+                          80
+                      ),
+                          ID TEXT
+                      (
+                          80
+                      ),
+                          PRIMARY KEY
+                      (
+                          PromptsId
+                          AUTOINCREMENT
+                      )
+                          )
+		              """ )
+
+def create_connection( ) -> sqlite3.Connection:
+	return sqlite3.connect( DM_DB_PATH )
+
+def list_tables( ) -> List[ str ]:
+	with create_connection( ) as conn:
+		_query = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+		rows = conn.execute( _query ).fetchall( )
+		return [ r[ 0 ] for r in rows ]
+
+def create_schema( table: str ) -> List[ Tuple ]:
+	with create_connection( ) as conn:
+		return conn.execute( f'PRAGMA table_info("{table}");' ).fetchall( )
+
+def read_table( table: str, limit: int = None, offset: int = 0 ) -> pd.DataFrame:
+	query = f'SELECT rowid, * FROM "{table}"'
+	if limit:
+		query += f" LIMIT {limit} OFFSET {offset}"
+	with create_connection( ) as conn:
+		return pd.read_sql_query( query, conn )
+
+def drop_table( table: str ) -> None:
+	"""
+		Purpose:
+		--------
+		Safely drop a table if it exists.
+	
+		Parameters:
+		-----------
+		table : str
+			Table name.
+	"""
+	if not table:
+		return
+	
+	with create_connection( ) as conn:
+		conn.execute( f'DROP TABLE IF EXISTS "{table}";' )
+		conn.commit( )
+
+def create_index( table: str, column: str ) -> None:
+	"""
+		Purpose:
+		--------
+		Create a safe SQLite index on a specified table column.
+	
+		Handles:
+			- Spaces in column names
+			- Special characters
+			- Reserved words
+			- Duplicate index names
+			- Validation against actual table schema
+	
+		Parameters:
+		-----------
+		table : str
+			Table name.
+		column : str
+			Column name to index.
+	"""
+	if not table or not column:
+		return
+	
+	# ------------------------------------------------------------------
+	# Validate table exists
+	# ------------------------------------------------------------------
+	tables = list_tables( )
+	if table not in tables:
+		raise ValueError( "Invalid table name." )
+	
+	# ------------------------------------------------------------------
+	# Validate column exists
+	# ------------------------------------------------------------------
+	schema = create_schema( table )
+	valid_columns = [ col[ 1 ] for col in schema ]
+	
+	if column not in valid_columns:
+		raise ValueError( "Invalid column name." )
+	
+	# ------------------------------------------------------------------
+	# Sanitize index name (identifier only)
+	# ------------------------------------------------------------------
+	safe_index_name = re.sub( r"[^0-9a-zA-Z_]+", "_", f"idx_{table}_{column}" )
+	
+	# ------------------------------------------------------------------
+	# Create index safely (quote identifiers)
+	# ------------------------------------------------------------------
+	sql = f'CREATE INDEX IF NOT EXISTS "{safe_index_name}" ON "{table}"("{column}");'
+	
+	with create_connection( ) as conn:
+		conn.execute( sql )
+		conn.commit( )
+
+def apply_filters( df: pd.DataFrame ) -> pd.DataFrame:
+	st.subheader( 'Advanced Filters' )
+	conditions = [ ]
+	col1, col2, col3 = st.columns( 3 )
+	column = col1.selectbox( 'Column', df.columns )
+	operator = col2.selectbox( 'Operator', [ '=', '!=', '>', '<', '>=', '<=', 'contains' ] )
+	value = col3.text_input( 'Value' )
+	if value:
+		if operator == '=':
+			df = df[ df[ column ] == value ]
+		elif operator == '!=':
+			df = df[ df[ column ] != value ]
+		elif operator == '>':
+			df = df[ df[ column ].astype( float ) > float( value ) ]
+		elif operator == '<':
+			df = df[ df[ column ].astype( float ) < float( value ) ]
+		elif operator == '>=':
+			df = df[ df[ column ].astype( float ) >= float( value ) ]
+		elif operator == '<=':
+			df = df[ df[ column ].astype( float ) <= float( value ) ]
+		elif operator == 'contains':
+			df = df[ df[ column ].astype( str ).str.contains( value ) ]
+	
+	return df
+
+def create_aggregation( df: pd.DataFrame ):
+	st.subheader( 'Aggregation Engine' )
+	
+	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+	
+	if not numeric_cols:
+		st.info( 'No numeric columns available.' )
+		return
+	
+	col = st.selectbox( 'Column', numeric_cols )
+	agg = st.selectbox( 'Aggregation', [ 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'MEDIAN' ] )
+	
+	if agg == 'COUNT':
+		result = df[ col ].count( )
+	elif agg == 'SUM':
+		result = df[ col ].sum( )
+	elif agg == 'AVG':
+		result = df[ col ].mean( )
+	elif agg == 'MIN':
+		result = df[ col ].min( )
+	elif agg == 'MAX':
+		result = df[ col ].max( )
+	elif agg == 'MEDIAN':
+		result = df[ col ].median( )
+	
+	st.metric( 'Result', result )
+
+def create_visualization( df: pd.DataFrame ):
+	st.subheader( 'Visualization Engine' )
+	
+	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+	categorical_cols = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
+	
+	chart = st.selectbox( 'Chart Type', [ 'Histogram', 'Bar', 'Line',
+	                                      'Scatter', 'Box', 'Pie', 'Correlation' ] )
+	
+	if chart == 'Histogram' and numeric_cols:
+		col = st.selectbox( 'Column', numeric_cols )
+		fig = px.histogram( df, x=col )
+		st.plotly_chart( fig, use_container_width=True )
+	
+	elif chart == 'Bar':
+		x = st.selectbox( 'X', df.columns )
+		y = st.selectbox( 'Y', numeric_cols )
+		fig = px.bar( df, x=x, y=y )
+		st.plotly_chart( fig, use_container_width=True )
+	
+	elif chart == 'Line':
+		x = st.selectbox( 'X', df.columns )
+		y = st.selectbox( 'Y', numeric_cols )
+		fig = px.line( df, x=x, y=y )
+		st.plotly_chart( fig, use_container_width=True )
+	
+	elif chart == 'Scatter':
+		x = st.selectbox( 'X', numeric_cols )
+		y = st.selectbox( 'Y', numeric_cols )
+		fig = px.scatter( df, x=x, y=y )
+		st.plotly_chart( fig, use_container_width=True )
+	
+	elif chart == 'Box':
+		col = st.selectbox( 'Column', numeric_cols )
+		fig = px.box( df, y=col )
+		st.plotly_chart( fig, use_container_width=True )
+	
+	elif chart == 'Pie':
+		col = st.selectbox( 'Category Column', categorical_cols )
+		fig = px.pie( df, names=col )
+		st.plotly_chart( fig, use_container_width=True )
+	
+	elif chart == 'Correlation' and len( numeric_cols ) > 1:
+		corr = df[ numeric_cols ].corr( )
+		fig = px.imshow( corr, text_auto=True )
+		st.plotly_chart( fig, use_container_width=True )
+
+def dm_create_table_from_df( table_name: str, df: pd.DataFrame ):
+	columns = [ ]
+	for col in df.columns:
+		sql_type = get_sqlite_type( df[ col ].dtype )
+		safe_col = col.replace( ' ', '_' )
+		columns.append( f'{safe_col} {sql_type}' )
+	
+	create_stmt = f'CREATE TABLE IF NOT EXISTS {table_name} ({", ".join( columns )});'
+	
+	with create_connection( ) as conn:
+		conn.execute( create_stmt )
+		conn.commit( )
+
+def insert_data( table_name: str, df: pd.DataFrame ):
+	df = df.copy( )
+	df.columns = [ c.replace( ' ', '_' ) for c in df.columns ]
+	
+	placeholders = ', '.join( [ '?' ] * len( df.columns ) )
+	stmt = f'INSERT INTO {table_name} VALUES ({placeholders});'
+	
+	with create_connection( ) as conn:
+		conn.executemany( stmt, df.values.tolist( ) )
+		conn.commit( )
+
+def get_sqlite_type( dtype ) -> str:
+	"""
+		Purpose:
+		--------
+		Map a pandas dtype to an appropriate SQLite column type.
+	
+		Parameters:
+		-----------
+		dtype : pandas dtype
+			The dtype of a pandas Series.
+	
+		Returns:
+		--------
+		str
+			SQLite column type.
+	"""
+	dtype_str = str( dtype ).lower( )
+	
+	# ------------------------------------------------------------------
+	# Integer Types (including nullable Int64)
+	# ------------------------------------------------------------------
+	if "int" in dtype_str:
+		return "INTEGER"
+	
+	# ------------------------------------------------------------------
+	# Float Types
+	# ------------------------------------------------------------------
+	if "float" in dtype_str:
+		return "REAL"
+	
+	# ------------------------------------------------------------------
+	# Boolean
+	# ------------------------------------------------------------------
+	if "bool" in dtype_str:
+		return "INTEGER"
+	
+	# ------------------------------------------------------------------
+	# Datetime
+	# ------------------------------------------------------------------
+	if "datetime" in dtype_str:
+		return "TEXT"
+	
+	# ------------------------------------------------------------------
+	# Categorical
+	# ------------------------------------------------------------------
+	if "category" in dtype_str:
+		return "TEXT"
+	
+	# ------------------------------------------------------------------
+	# Default fallback
+	# ------------------------------------------------------------------
+	return "TEXT"
+
+def create_custom_table( table_name: str, columns: list ) -> None:
+	"""
+		Purpose:
+		--------
+		Create a custom SQLite table from column definitions.
+	
+		Parameters:
+		-----------
+		table_name : str
+			Name of table.
+	
+		columns : list of dict
+			[
+				{
+					"name": str,
+					"type": str,
+					"not_null": bool,
+					"primary_key": bool,
+					"auto_increment": bool
+				}
+			]
+	"""
+	if not table_name:
+		raise ValueError( "Table name required." )
+	
+	# Validate identifier
+	if not re.match( r"^[A-Za-z_][A-Za-z0-9_]*$", table_name ):
+		raise ValueError( "Invalid table name." )
+	
+	col_defs = [ ]
+	
+	for col in columns:
+		col_name = col[ "name" ]
+		col_type = col[ "type" ].upper( )
+		
+		if not re.match( r"^[A-Za-z_][A-Za-z0-9_]*$", col_name ):
+			raise ValueError( f"Invalid column name: {col_name}" )
+		
+		definition = f'"{col_name}" {col_type}'
+		
+		if col[ "primary_key" ]:
+			definition += " PRIMARY KEY"
+			if col[ "auto_increment" ] and col_type == "INTEGER":
+				definition += " AUTOINCREMENT"
+		
+		if col[ "not_null" ]:
+			definition += " NOT NULL"
+		
+		col_defs.append( definition )
+	
+	sql = f'CREATE TABLE IF NOT EXISTS "{table_name}" ({", ".join( col_defs )});'
+	
+	with create_connection( ) as conn:
+		conn.execute( sql )
+		conn.commit( )
+
+def is_safe_query( query: str ) -> bool:
+	"""
+	
+		Purpose:
+		--------
+		Determine whether a SQL query is read-only and safe to execute.
+	
+		Allows:
+			SELECT
+			WITH (CTE returning SELECT)
+			EXPLAIN SELECT
+			PRAGMA (read-only)
+	
+		Blocks:
+			INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, ATTACH,
+			DETACH, VACUUM, REPLACE, TRIGGER, and multiple statements.
+			
+	"""
+	if not query or not isinstance( query, str ):
+		return False
+	
+	q = query.strip( ).lower( )
+	
+	# ------------------------------------------------------------------
+	# Block multiple statements
+	# ------------------------------------------------------------------
+	if ';' in q[ :-1 ]:
+		return False
+	
+	# ------------------------------------------------------------------
+	# Remove SQL comments
+	# ------------------------------------------------------------------
+	q = re.sub( r"--.*?$", "", q, flags=re.MULTILINE )
+	q = re.sub( r"/\*.*?\*/", "", q, flags=re.DOTALL )
+	q = q.strip( )
+	
+	# ------------------------------------------------------------------
+	# Allowed starting keywords
+	# ------------------------------------------------------------------
+	allowed_starts = ('select', 'with', 'explain', 'pragma')
+	if not q.startswith( allowed_starts ):
+		return False
+	
+	# ------------------------------------------------------------------
+	# Block dangerous keywords anywhere
+	# ------------------------------------------------------------------
+	blocked_keywords = ('insert ', 'update ', 'delete ', 'drop ', 'alter ',
+	                    'create ', 'attach ', 'detach ', 'vacuum ', 'replace ', 'trigger ')
+	
+	for keyword in blocked_keywords:
+		if keyword in q:
+			return False
+	
+	return True
+
+def create_identifier( name: str ) -> str:
+	"""
+	
+		Purpose:
+		--------
+		Sanitize a string into a safe SQLite identifier.
+	
+		- Replaces invalid characters with underscores
+		- Ensures it starts with a letter or underscore
+		- Prevents empty names
+		
+	"""
+	if not name or not isinstance( name, str ):
+		raise ValueError( 'Invalid Identifier.' )
+	
+	safe = re.sub( r'[^0-9a-zA-Z_]', '_', name.strip( ) )
+	if not re.match( r'^[A-Za-z_]', safe ):
+		safe = f'_{safe}'
+	
+	if not safe:
+		raise ValueError( 'Invalid identifier after sanitization.' )
+	
+	return safe
+
+def get_indexes( table: str ):
+	with create_connection( ) as conn:
+		rows = conn.execute( f'PRAGMA index_list("{table}");' ).fetchall( )
+		return rows
+
+def add_column( table: str, column: str, col_type: str ):
+	column = create_identifier( column )
+	col_type = col_type.upper( )
+	
+	with create_connection( ) as conn:
+		conn.execute(
+			f'ALTER TABLE "{table}" ADD COLUMN "{column}" {col_type};' )
+		conn.commit( )
+
+def create_profile_table( table: str ):
+	df = read_table( table )
+	profile_rows = [ ]
+	total_rows = len( df )
+	for col in df.columns:
+		series = df[ col ]
+		null_count = series.isna( ).sum( )
+		distinct_count = series.nunique( dropna=True )
+		row = \
+			{
+					'column': col, 'dtype': str( series.dtype ),
+					'null_%': round( (null_count / total_rows) * 100, 2 ) if total_rows else 0,
+					'distinct_%': round( (
+								                     distinct_count / total_rows) * 100, 2 ) if total_rows else 0,
+			}
+		
+		if pd.api.types.is_numeric_dtype( series ):
+			row[ "min" ] = series.min( )
+			row[ "max" ] = series.max( )
+			row[ "mean" ] = series.mean( )
+		else:
+			row[ "min" ] = None
+			row[ "max" ] = None
+			row[ "mean" ] = None
+		
+		profile_rows.append( row )
+	
+	return pd.DataFrame( profile_rows )
+
+def drop_column( table: str, column: str ):
+	if not table or not column:
+		raise ValueError( "Table and column required." )
+	
+	with create_connection( ) as conn:
+		# ------------------------------------------------------------
+		# Fetch original CREATE TABLE statement
+		# ------------------------------------------------------------
+		row = conn.execute(
+			"""
+            SELECT sql
+            FROM sqlite_master
+            WHERE type ='table' AND name =?
+			""",
+			(table,)
+		).fetchone( )
+		
+		if not row or not row[ 0 ]:
+			raise ValueError( "Table definition not found." )
+		
+		create_sql = row[ 0 ]
+		
+		# ------------------------------------------------------------
+		# Extract column definitions
+		# ------------------------------------------------------------
+		open_paren = create_sql.find( "(" )
+		close_paren = create_sql.rfind( ")" )
+		
+		if open_paren == -1 or close_paren == -1:
+			raise ValueError( "Malformed CREATE TABLE statement." )
+		
+		inner = create_sql[ open_paren + 1: close_paren ]
+		
+		column_defs = [ c.strip( ) for c in inner.split( "," ) ]
+		
+		# Remove target column
+		new_defs = [ ]
+		for col_def in column_defs:
+			col_name = col_def.split( )[ 0 ].strip( '"' )
+			if col_name != column:
+				new_defs.append( col_def )
+		
+		if len( new_defs ) == len( column_defs ):
+			raise ValueError( "Column not found." )
+		
+		# ------------------------------------------------------------
+		# Build new CREATE TABLE statement
+		# ------------------------------------------------------------
+		temp_table = f"{table}_rebuild_temp"
+		
+		new_create_sql = (
+				f'CREATE TABLE "{temp_table}" ('
+				+ ", ".join( new_defs )
+				+ ");"
+		)
+		
+		# ------------------------------------------------------------
+		# Begin transaction
+		# ------------------------------------------------------------
+		conn.execute( "BEGIN" )
+		
+		conn.execute( new_create_sql )
+		
+		remaining_cols = [
+				c.split( )[ 0 ].strip( '"' )
+				for c in new_defs
+		]
+		
+		col_list = ", ".join( [ f'"{c}"' for c in remaining_cols ] )
+		
+		conn.execute(
+			f'INSERT INTO "{temp_table}" ({col_list}) '
+			f'SELECT {col_list} FROM "{table}";'
+		)
+		
+		# Preserve indexes
+		indexes = conn.execute(
+			"""
+            SELECT sql
+            FROM sqlite_master
+            WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
+			""",
+			(table,)
+		).fetchall( )
+		
+		conn.execute( f'DROP TABLE "{table}";' )
+		conn.execute(
+			f'ALTER TABLE "{temp_table}" RENAME TO "{table}";'
+		)
+		
+		# Recreate indexes
+		for idx in indexes:
+			idx_sql = idx[ 0 ]
+			if column not in idx_sql:
+				conn.execute( idx_sql )
+		
+		conn.commit( )
+
 # ============================================
 # Page Configuration
 # ============================================
@@ -790,8 +1397,8 @@ pd.options.display.float_format = '{:,.4f}'.format
 # ============================================
 
 with st.sidebar:
-	st.title( '📦 Data Source' )
 	st.sidebar.divider( )
+	st.subheader( 'Source' )
 	use_fallback = st.sidebar.checkbox( 'Use Default Data', value=True )
 	uploaded = st.sidebar.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx',  'xls',  'csv' ] )
 	if uploaded or use_fallback:
@@ -3528,7 +4135,6 @@ elif mode == 'Feature Engineering':
 		# ======================================================================================
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Feature Generation' )
-		from encoders import PolynomialFeatures
 		fet_c1, fet_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with fet_c1:
 			poly_columns = st.multiselect( 'Columns for Polynomial Features',
@@ -3563,208 +4169,215 @@ elif mode == 'Feature Engineering':
 			st.download_button( label='Download Feature-Engineered Dataset (CSV)',
 				data=df_features.to_csv( index=False ), file_name='feature_engineered_data.csv',
 				mime='text/csv' )
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Feature-Transformed Data')
+		if st.download_button:
+			st.data_editor( df_features )
 
 # ============================================
 # CLASSIFICATION MODE
 # ============================================
 elif mode == 'Classifications':
-	st.subheader( cfg.MODE[ 'Classifications' ] )
-	st.divider( )
-	df_dataset = st.session_state.get( 'df_dataset', None )
-	numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
-	categorical_cols = st.session_state.get( 'categorical_cols', [ ] )
-	
-	if df_dataset is None or df_dataset.empty:
-		st.warning( '⚠️ No dataset loaded.' )
-		st.stop( )
-	
-	if not numeric_cols or not categorical_cols:
-		st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# TARGET & FEATURES
-	# ------------------------------------------------------------------
-	st.markdown( '##### Target & Features' )
-	tgt_c1, tgt_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-	with tgt_c1:
-		target = st.selectbox( 'Target (Categorical)', categorical_cols )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'Classifications' ] )
+		st.divider( )
+		df_dataset = st.session_state.get( 'df_dataset', None )
+		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
+		categorical_cols = st.session_state.get( 'categorical_cols', [ ] )
 		
-	with tgt_c2:
-		features = st.multiselect( 'Feature Columns (Numeric)', numeric_cols,
-			default=numeric_cols[ :3 ] )
-	
-	if not features:
-		st.info( 'Please select at least one feature.' )
-		st.stop( )
-	
-	X = df_dataset[ features ].to_numpy( )
-	y = df_dataset[ target ].to_numpy( )
-	
-	# ------------------------------------------------------------------
-	# MODEL SELECTION
-	# ------------------------------------------------------------------
-	model_map = \
-		{
-				'Perceptron': Perceptron,
-				'Least Squares Classifier': LeastSquares,
-				'Logistic Regression': LogisticRegression,
-				'Decision Tree': DecisionTree,
-				'Support Vector Machine': SupportVector,
-				'Random Forest': RandomForest,
-				'k-Nearest Neighbors': NearestNeighbor,
-				'Bagging': BaggingModel,
-				'AdaBoost': AdaptiveBoost,
-				'Gradient Boosting': GradientBoost
-		}
-	
-	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-	st.markdown( '##### Model Selection & Configuration' )
-	mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
-	with mdl_c1:
-		model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
-		model = model_map[ model_name ]( )
-	
-	with mdl_c2:
-		test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
-	
-	with mdl_c3:
-		random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
-	
-	if st.button( '🚀 Train Classifier' ):
-		try:
-			X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
-				random=random_state )
-			model.train( X_train, y_train )
-			y_pred = model.project( X_test )
-			target_count = len( np.unique( y_test ) )
-			
-			# ------------------------------------------------------------------
-			# METRICS & ANALYSIS
-			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-			st.subheader( 'Model Performance' )
-			df_classifier = model.analyze( X_test, y_test )
-			st.data_editor( df_classifier, use_container_width=True )
-			
-			# ------------------------------------------------------------------
-			# CONFUSION MATRIX
-			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-			st.subheader( 'Confusion Matrix' )
-			plt.close( 'all' )
-			model.confusion_matrix( X_test, y_test )
-			st.pyplot( plt.gcf( ) )
-			plt.close( 'all' )
-			
-			# ------------------------------------------------------------------
-			# ACTUAL VS PREDICTED CLASS COUNTS
-			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-			st.subheader( 'Actual vs Predicted Counts' )
-			actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
-			pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
-			df_counts = pd.DataFrame(
-				{
-						'Actual': actual_counts,
-						'Predicted': pred_counts
-				}
-			).fillna( 0 )
-			
-			fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
-			df_counts.plot( kind='bar', ax=ax_counts )
-			ax_counts.set_xlabel( 'Class' )
-			ax_counts.set_ylabel( 'Count' )
-			ax_counts.set_title( 'Actual vs Predicted Class Counts' )
-			ax_counts.grid( axis='y', alpha=0.3 )
-			fig_counts.tight_layout( )
-			st.pyplot( fig_counts )
-			plt.close( fig_counts )
-			
-			# ------------------------------------------------------------------
-			# PER-CLASS ACCURACY
-			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-			st.subheader( 'Per-Class Accuracy' )
-			df_eval = pd.DataFrame(
-				{
-						'Actual': y_test,
-						'Predicted': y_pred
-				}
-			)
-			df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
-			df_class_acc = df_eval.groupby( 'Actual', dropna=False )[
-				'Correct' ].mean( ).sort_index( )
-			
-			fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
-			ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
-			ax_acc.set_xlabel( 'Class' )
-			ax_acc.set_ylabel( 'Accuracy' )
-			ax_acc.set_ylim( 0.0, 1.05 )
-			ax_acc.set_title( 'Per-Class Accuracy' )
-			ax_acc.grid( axis='y', alpha=0.3 )
-			fig_acc.tight_layout( )
-			st.pyplot( fig_acc )
-			plt.close( fig_acc )
-			
-			# ------------------------------------------------------------------
-			# PREDICTION CONFIDENCE
-			# ------------------------------------------------------------------
-			if hasattr( model, 'predict_probability' ):
-				try:
-					proba = model.predict_probability( X_test )
-					if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1:
-						st.subheader( 'Prediction Confidence' )
-						max_conf = np.max( proba, axis=1 )
-						
-						fig_conf, ax_conf = plt.subplots( figsize=(8, 5) )
-						ax_conf.hist( max_conf, bins=20 )
-						ax_conf.set_xlabel( 'Maximum Predicted Probability' )
-						ax_conf.set_ylabel( 'Frequency' )
-						ax_conf.set_title( 'Prediction Confidence Distribution' )
-						ax_conf.grid( axis='y', alpha=0.3 )
-						fig_conf.tight_layout( )
-						st.pyplot( fig_conf )
-						plt.close( fig_conf )
-				except Exception:
-					pass
-			
-			# ------------------------------------------------------------------
-			# OBSERVED VS PREDICTED
-			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-			st.subheader( 'Observed vs Predicted' )
-			if target_count <= 2 and hasattr( model, 'scatter_plot' ):
-				try:
-					plt.close( 'all' )
-					model.scatter_plot( X_test, y_test )
-					st.pyplot( plt.gcf( ) )
-					plt.close( 'all' )
-				except Exception as e:
-					st.info( f'Observed vs Predicted plot skipped: {e}' )
-					plt.close( 'all' )
-			else:
-				st.info( 'Observed vs Predicted is shown only when the target has two or fewer classes.' )
-			
-			# ------------------------------------------------------------------
-			# ROC CURVE
-			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-			st.subheader( 'ROC Curve' )
-			if target_count == 2 and hasattr( model, 'roc_curve' ):
-				try:
-					plt.close( 'all' )
-					model.roc_curve( X_test, y_test )
-					st.pyplot( plt.gcf( ) )
-					plt.close( 'all' )
-				except Exception as e:
-					st.info( f'ROC curve skipped: {e}' )
-					plt.close( 'all' )
-			else:
-				st.info( 'ROC curve is available only for binary classification targets.' )
+		if df_dataset is None or df_dataset.empty:
+			st.warning( '⚠️ No dataset loaded.' )
+			st.stop( )
 		
-		except Exception as e:
-			st.error( f'Classification failed: {e}' )
+		if not numeric_cols or not categorical_cols:
+			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# TARGET & FEATURES
+		# ------------------------------------------------------------------
+		st.markdown( '##### Target & Features' )
+		tgt_c1, tgt_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with tgt_c1:
+			target = st.selectbox( 'Target (Categorical)', categorical_cols )
+			
+		with tgt_c2:
+			features = st.multiselect( 'Feature Columns (Numeric)', numeric_cols,
+				default=numeric_cols[ :3 ] )
+		
+		if not features:
+			st.info( 'Please select at least one feature.' )
+			st.stop( )
+		
+		X = df_dataset[ features ].to_numpy( )
+		y = df_dataset[ target ].to_numpy( )
+		
+		# ------------------------------------------------------------------
+		# MODEL SELECTION
+		# ------------------------------------------------------------------
+		model_map = \
+			{
+					'Perceptron': Perceptron,
+					'Least Squares Classifier': LeastSquares,
+					'Logistic Regression': LogisticRegression,
+					'Decision Tree': DecisionTree,
+					'Support Vector Machine': SupportVector,
+					'Random Forest': RandomForest,
+					'k-Nearest Neighbors': NearestNeighbor,
+					'Bagging': BaggingModel,
+					'AdaBoost': AdaptiveBoost,
+					'Gradient Boosting': GradientBoost
+			}
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Model Selection & Configuration' )
+		mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
+		with mdl_c1:
+			model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
+			model = model_map[ model_name ]( )
+		
+		with mdl_c2:
+			test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
+		
+		with mdl_c3:
+			random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
+		
+		if st.button( '🚀 Train Classifier' ):
+			try:
+				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
+					random=random_state )
+				model.train( X_train, y_train )
+				y_pred = model.project( X_test )
+				target_count = len( np.unique( y_test ) )
+				
+				# ------------------------------------------------------------------
+				# METRICS & ANALYSIS
+				# ------------------------------------------------------------------
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.subheader( 'Model Performance' )
+				df_classifier = model.analyze( X_test, y_test )
+				st.data_editor( df_classifier, use_container_width=True )
+				
+				# ------------------------------------------------------------------
+				# CONFUSION MATRIX
+				# ------------------------------------------------------------------
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.subheader( 'Confusion Matrix' )
+				plt.close( 'all' )
+				model.confusion_matrix( X_test, y_test )
+				st.pyplot( plt.gcf( ) )
+				plt.close( 'all' )
+				
+				# ------------------------------------------------------------------
+				# ACTUAL VS PREDICTED CLASS COUNTS
+				# ------------------------------------------------------------------
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.subheader( 'Actual vs Predicted Counts' )
+				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
+				pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
+				df_counts = pd.DataFrame(
+					{
+							'Actual': actual_counts,
+							'Predicted': pred_counts
+					}
+				).fillna( 0 )
+				
+				fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
+				df_counts.plot( kind='bar', ax=ax_counts )
+				ax_counts.set_xlabel( 'Class' )
+				ax_counts.set_ylabel( 'Count' )
+				ax_counts.set_title( 'Actual vs Predicted Class Counts' )
+				ax_counts.grid( axis='y', alpha=0.3 )
+				fig_counts.tight_layout( )
+				st.pyplot( fig_counts )
+				plt.close( fig_counts )
+				
+				# ------------------------------------------------------------------
+				# PER-CLASS ACCURACY
+				# ------------------------------------------------------------------
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.subheader( 'Per-Class Accuracy' )
+				df_eval = pd.DataFrame(
+					{
+							'Actual': y_test,
+							'Predicted': y_pred
+					}
+				)
+				df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
+				df_class_acc = df_eval.groupby( 'Actual', dropna=False )[
+					'Correct' ].mean( ).sort_index( )
+				
+				fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
+				ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
+				ax_acc.set_xlabel( 'Class' )
+				ax_acc.set_ylabel( 'Accuracy' )
+				ax_acc.set_ylim( 0.0, 1.05 )
+				ax_acc.set_title( 'Per-Class Accuracy' )
+				ax_acc.grid( axis='y', alpha=0.3 )
+				fig_acc.tight_layout( )
+				st.pyplot( fig_acc )
+				plt.close( fig_acc )
+				
+				# ------------------------------------------------------------------
+				# PREDICTION CONFIDENCE
+				# ------------------------------------------------------------------
+				if hasattr( model, 'predict_probability' ):
+					try:
+						proba = model.predict_probability( X_test )
+						if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1:
+							st.subheader( 'Prediction Confidence' )
+							max_conf = np.max( proba, axis=1 )
+							
+							fig_conf, ax_conf = plt.subplots( figsize=(8, 5) )
+							ax_conf.hist( max_conf, bins=20 )
+							ax_conf.set_xlabel( 'Maximum Predicted Probability' )
+							ax_conf.set_ylabel( 'Frequency' )
+							ax_conf.set_title( 'Prediction Confidence Distribution' )
+							ax_conf.grid( axis='y', alpha=0.3 )
+							fig_conf.tight_layout( )
+							st.pyplot( fig_conf )
+							plt.close( fig_conf )
+					except Exception:
+						pass
+				
+				# ------------------------------------------------------------------
+				# OBSERVED VS PREDICTED
+				# ------------------------------------------------------------------
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.subheader( 'Observed vs Predicted' )
+				if target_count <= 2 and hasattr( model, 'scatter_plot' ):
+					try:
+						plt.close( 'all' )
+						model.scatter_plot( X_test, y_test )
+						st.pyplot( plt.gcf( ) )
+						plt.close( 'all' )
+					except Exception as e:
+						st.info( f'Observed vs Predicted plot skipped: {e}' )
+						plt.close( 'all' )
+				else:
+					st.info( 'Observed vs Predicted is shown only when the target has two or fewer classes.' )
+				
+				# ------------------------------------------------------------------
+				# ROC CURVE
+				# ------------------------------------------------------------------
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.subheader( 'ROC Curve' )
+				if target_count == 2 and hasattr( model, 'roc_curve' ):
+					try:
+						plt.close( 'all' )
+						model.roc_curve( X_test, y_test )
+						st.pyplot( plt.gcf( ) )
+						plt.close( 'all' )
+					except Exception as e:
+						st.info( f'ROC curve skipped: {e}' )
+						plt.close( 'all' )
+				else:
+					st.info( 'ROC curve is available only for binary classification targets.' )
+			
+			except Exception as e:
+				st.error( f'Classification failed: {e}' )
 
 # ============================================
 # REGRESSION MODE
@@ -4306,377 +4919,841 @@ elif mode == 'Clustering':
 		cluster_signature = ( data_source, tuple( feature_columns ),
 				model_name, tuple( (k, str( v )) for k, v in model_parameters.items( ) ) )
 		
-	# ------------------------------------------------------------------
-	# FIT CLUSTERING MODEL
-	# ------------------------------------------------------------------
-	st.markdown( '##### Run Clustering' )
-	
-	if st.button( 'Run Clustering' ):
-		try:
-			labels = model.project( X )
-			
-			df_results = df_cluster_input.copy( )
-			df_results[ 'Cluster' ] = labels
-			
-			df_counts = (
-					df_results[ 'Cluster' ]
-					.value_counts( dropna=False )
-					.rename_axis( 'Cluster' )
-					.reset_index( name='Count' )
-					.sort_values( by='Cluster' )
-					.reset_index( drop=True ) )
-			
+		# ------------------------------------------------------------------
+		# FIT CLUSTERING MODEL
+		# ------------------------------------------------------------------
+		st.markdown( '##### Run Clustering' )
+		
+		if st.button( 'Run Clustering' ):
 			try:
-				df_metrics = model.score( X )
-				if df_metrics is None:
+				labels = model.project( X )
+				
+				df_results = df_cluster_input.copy( )
+				df_results[ 'Cluster' ] = labels
+				
+				df_counts = (
+						df_results[ 'Cluster' ]
+						.value_counts( dropna=False )
+						.rename_axis( 'Cluster' )
+						.reset_index( name='Count' )
+						.sort_values( by='Cluster' )
+						.reset_index( drop=True ) )
+				
+				try:
+					df_metrics = model.score( X )
+					if df_metrics is None:
+						df_metrics = pd.DataFrame( )
+				except Exception:
 					df_metrics = pd.DataFrame( )
-			except Exception:
-				df_metrics = pd.DataFrame( )
-			
-			detail_rows = [ ]
-			for prop in [ 'features', 'inertia', 'iterations', 'epsilon', 'eps',
-					'min_samples', 'metric', 'linkage', 'cluster_method', 'bandwidth',
-					'threshold', 'branching_factor', 'damping', 'convergence_iter', 'affinity' ]:
-				if hasattr( model, prop ):
+				
+				detail_rows = [ ]
+				for prop in [ 'features', 'inertia', 'iterations', 'epsilon', 'eps',
+						'min_samples', 'metric', 'linkage', 'cluster_method', 'bandwidth',
+						'threshold', 'branching_factor', 'damping', 'convergence_iter', 'affinity' ]:
+					if hasattr( model, prop ):
+						try:
+							value = getattr( model, prop )
+							if value is not None and not isinstance( value, (np.ndarray,
+							                                                 pd.DataFrame) ):
+								detail_rows.append( { 'Property': prop, 'Value': value } )
+						except Exception:
+							pass
+				
+				df_details = pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( )
+				
+				df_centroids = pd.DataFrame( )
+				if hasattr( model, 'centroids_' ):
 					try:
-						value = getattr( model, prop )
-						if value is not None and not isinstance( value, (np.ndarray,
-						                                                 pd.DataFrame) ):
-							detail_rows.append( { 'Property': prop, 'Value': value } )
+						centroids = model.centroids_
+						if centroids is not None:
+							df_centroids = pd.DataFrame( centroids, columns=feature_columns )
+							df_centroids.insert( 0, 'Cluster', range( len( df_centroids ) ) )
+					except Exception:
+						df_centroids = pd.DataFrame( )
+				
+				st.session_state[ 'df_cluster_results' ] = df_results
+				st.session_state[ 'df_cluster_counts' ] = df_counts
+				st.session_state[ 'df_cluster_metrics' ] = df_metrics
+				st.session_state[ 'df_cluster_centroids' ] = df_centroids
+				st.session_state[ 'df_cluster_details' ] = df_details
+				st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
+				st.session_state[ 'cluster_signature' ] = cluster_signature
+				
+				st.success( 'Clustering complete.' )
+			
+			except Exception as e:
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.error( f'Clustering failed: {e}' )
+		
+		df_results = pd.DataFrame( )
+		df_counts = pd.DataFrame( )
+		df_metrics = pd.DataFrame( )
+		df_centroids = pd.DataFrame( )
+		df_details = pd.DataFrame( )
+		
+		if st.session_state.get( 'cluster_signature', None ) == cluster_signature:
+			df_results = st.session_state.get( 'df_cluster_results', pd.DataFrame( ) )
+			df_counts = st.session_state.get( 'df_cluster_counts', pd.DataFrame( ) )
+			df_metrics = st.session_state.get( 'df_cluster_metrics', pd.DataFrame( ) )
+			df_centroids = st.session_state.get( 'df_cluster_centroids', pd.DataFrame( ) )
+			df_details = st.session_state.get( 'df_cluster_details', pd.DataFrame( ) )
+		
+		# ------------------------------------------------------------------
+		# CLUSTER SUMMARY
+		# ------------------------------------------------------------------
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Cluster Summary' )
+		
+		if df_counts is not None and not df_counts.empty:
+			st.data_editor( df_counts, use_container_width=True )
+			
+			if df_metrics is not None and not df_metrics.empty:
+				st.caption( 'Metrics' )
+				st.data_editor( df_metrics, use_container_width=True )
+			
+			if df_details is not None and not df_details.empty:
+				st.caption( 'Model Details' )
+				st.data_editor( df_details, use_container_width=True )
+		else:
+			st.info( 'Run clustering to view cluster counts and metrics.' )
+		
+		# ------------------------------------------------------------------
+		# VISUALIZATION
+		# ------------------------------------------------------------------
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.subheader( 'Cluster Visualization' )
+		
+		if df_results is not None and not df_results.empty:
+			if len( feature_columns ) == 2:
+				plt.close( 'all' )
+				fig, ax = plt.subplots( )
+				ax.scatter(
+					df_results[ feature_columns[ 0 ] ],
+					df_results[ feature_columns[ 1 ] ],
+					c=df_results[ 'Cluster' ],
+					alpha=0.7
+				)
+				ax.set_xlabel( feature_columns[ 0 ] )
+				ax.set_ylabel( feature_columns[ 1 ] )
+				ax.set_title( 'Cluster Assignments' )
+				
+				if df_centroids is not None and not df_centroids.empty:
+					try:
+						ax.scatter(
+							df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ],
+							marker='x',
+							s=100
+						)
 					except Exception:
 						pass
-			
-			df_details = pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( )
-			
-			df_centroids = pd.DataFrame( )
-			if hasattr( model, 'centroids_' ):
-				try:
-					centroids = model.centroids_
-					if centroids is not None:
-						df_centroids = pd.DataFrame( centroids, columns=feature_columns )
-						df_centroids.insert( 0, 'Cluster', range( len( df_centroids ) ) )
-				except Exception:
-					df_centroids = pd.DataFrame( )
-			
-			st.session_state[ 'df_cluster_results' ] = df_results
-			st.session_state[ 'df_cluster_counts' ] = df_counts
-			st.session_state[ 'df_cluster_metrics' ] = df_metrics
-			st.session_state[ 'df_cluster_centroids' ] = df_centroids
-			st.session_state[ 'df_cluster_details' ] = df_details
-			st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
-			st.session_state[ 'cluster_signature' ] = cluster_signature
-			
-			st.success( 'Clustering complete.' )
-		
-		except Exception as e:
-			st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-			st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-			st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-			st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-			st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-			st.session_state[ 'cluster_plot_features' ] = [ ]
-			st.session_state[ 'cluster_signature' ] = None
-			st.error( f'Clustering failed: {e}' )
-	
-	df_results = pd.DataFrame( )
-	df_counts = pd.DataFrame( )
-	df_metrics = pd.DataFrame( )
-	df_centroids = pd.DataFrame( )
-	df_details = pd.DataFrame( )
-	
-	if st.session_state.get( 'cluster_signature', None ) == cluster_signature:
-		df_results = st.session_state.get( 'df_cluster_results', pd.DataFrame( ) )
-		df_counts = st.session_state.get( 'df_cluster_counts', pd.DataFrame( ) )
-		df_metrics = st.session_state.get( 'df_cluster_metrics', pd.DataFrame( ) )
-		df_centroids = st.session_state.get( 'df_cluster_centroids', pd.DataFrame( ) )
-		df_details = st.session_state.get( 'df_cluster_details', pd.DataFrame( ) )
-	
-	# ------------------------------------------------------------------
-	# CLUSTER SUMMARY
-	# ------------------------------------------------------------------
-	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-	st.markdown( '##### Cluster Summary' )
-	
-	if df_counts is not None and not df_counts.empty:
-		st.data_editor( df_counts, use_container_width=True )
-		
-		if df_metrics is not None and not df_metrics.empty:
-			st.caption( 'Metrics' )
-			st.data_editor( df_metrics, use_container_width=True )
-		
-		if df_details is not None and not df_details.empty:
-			st.caption( 'Model Details' )
-			st.data_editor( df_details, use_container_width=True )
-	else:
-		st.info( 'Run clustering to view cluster counts and metrics.' )
-	
-	# ------------------------------------------------------------------
-	# VISUALIZATION
-	# ------------------------------------------------------------------
-	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-	st.subheader( 'Cluster Visualization' )
-	
-	if df_results is not None and not df_results.empty:
-		if len( feature_columns ) == 2:
-			plt.close( 'all' )
-			fig, ax = plt.subplots( )
-			ax.scatter(
-				df_results[ feature_columns[ 0 ] ],
-				df_results[ feature_columns[ 1 ] ],
-				c=df_results[ 'Cluster' ],
-				alpha=0.7
-			)
-			ax.set_xlabel( feature_columns[ 0 ] )
-			ax.set_ylabel( feature_columns[ 1 ] )
-			ax.set_title( 'Cluster Assignments' )
-			
-			if df_centroids is not None and not df_centroids.empty:
-				try:
-					ax.scatter(
-						df_centroids[ feature_columns[ 0 ] ],
-						df_centroids[ feature_columns[ 1 ] ],
-						marker='x',
-						s=100
-					)
-				except Exception:
-					pass
-			
-			st.pyplot( fig )
-			plt.close( fig )
+				
+				st.pyplot( fig )
+				plt.close( fig )
+			else:
+				st.info( 'Visualization limited to two features.' )
 		else:
-			st.info( 'Visualization limited to two features.' )
-	else:
-		st.info( 'Run clustering to view the scatter plot.' )
-	
-	# ------------------------------------------------------------------
-	# CENTROIDS (IF AVAILABLE)
-	# ------------------------------------------------------------------
-	if df_centroids is not None and not df_centroids.empty:
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Cluster Centroids' )
-		st.data_editor( df_centroids, use_container_width=True )
+			st.info( 'Run clustering to view the scatter plot.' )
+		
+		# ------------------------------------------------------------------
+		# CENTROIDS (IF AVAILABLE)
+		# ------------------------------------------------------------------
+		if df_centroids is not None and not df_centroids.empty:
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Centroids' )
+			st.data_editor( df_centroids, use_container_width=True )
 
 # ============================================
 # TIME SERIES MODE
 # ============================================
 elif mode == 'Time-Series':
-	st.header( cfg.MODE[ 'Time-Series' ] )
-	st.divider( )
-	
-	# ------------------------------------------------------------------
-	# DATA VALIDATION
-	# ------------------------------------------------------------------
-	df_dataset = st.session_state.get( 'df_infer', None )
-	numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
-	
-	if df_dataset is None or df_dataset.empty:
-		st.warning( '⚠️ No dataset loaded.' )
-		st.stop( )
-	
-	if not numeric_cols:
-		st.warning( '⚠️ No numeric columns available for time-series analysis.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# SERIES SELECTION
-	# ------------------------------------------------------------------
-	st.subheader( 'Time-Series Selection' )
-	series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_cols )
-	series = df_dataset[ series_col ].dropna( ).to_numpy( )
-	
-	if series.ndim != 1 or len( series ) < 10:
-		st.warning( '⚠️ Selected series is too short for modeling.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# MODEL SELECTION
-	# ------------------------------------------------------------------
-	model_map = \
-		{
-				'Lagged Linear Regression': 'lag',
-				'Lagged Boosting Regression': 'boost',
-				'ARIMA': 'arima',
-				'SARIMA': 'sarima'
-		}
-	
-	st.subheader( 'Model Selection' )
-	model_name = st.selectbox( 'Select time-series model', list( model_map.keys( ) ) )
-	
-	# ------------------------------------------------------------------
-	# MODEL PARAMETERS
-	# ------------------------------------------------------------------
-	st.subheader( 'Model Parameters' )
-	model = None
-	
-	if model_name == 'Lagged Linear Regression':
-		lag = st.number_input( 'Lag order', min_value=1, value=5 )
-		model = LaggingSeries( lag=int( lag ) )
-	
-	elif model_name == 'Lagged Boosting Regression':
-		lag = st.number_input( 'Lag order', min_value=1, value=12 )
-		loss = st.selectbox(
-			'Loss',
-			[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ],
-			index=0
-		)
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Time-Series' ] )
+		st.divider( )
 		
-		quantile = None
-		if loss == 'quantile':
-			quantile = st.number_input(
-				'Quantile',
+		# ------------------------------------------------------------------
+		# DATA VALIDATION
+		# ------------------------------------------------------------------
+		df_dataset = st.session_state.get( 'df_infer', None )
+		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
+		
+		if df_dataset is None or df_dataset.empty:
+			st.warning( '⚠️ No dataset loaded.' )
+			st.stop( )
+		
+		if not numeric_cols:
+			st.warning( '⚠️ No numeric columns available for time-series analysis.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# SERIES SELECTION
+		# ------------------------------------------------------------------
+		st.subheader( 'Time-Series Selection' )
+		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_cols )
+		series = df_dataset[ series_col ].dropna( ).to_numpy( )
+		
+		if series.ndim != 1 or len( series ) < 10:
+			st.warning( '⚠️ Selected series is too short for modeling.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# MODEL SELECTION
+		# ------------------------------------------------------------------
+		model_map = \
+			{
+					'Lagged Linear Regression': 'lag',
+					'Lagged Boosting Regression': 'boost',
+					'ARIMA': 'arima',
+					'SARIMA': 'sarima'
+			}
+		
+		st.subheader( 'Model Selection' )
+		model_name = st.selectbox( 'Select time-series model', list( model_map.keys( ) ) )
+		
+		# ------------------------------------------------------------------
+		# MODEL PARAMETERS
+		# ------------------------------------------------------------------
+		st.subheader( 'Model Parameters' )
+		model = None
+		
+		if model_name == 'Lagged Linear Regression':
+			lag = st.number_input( 'Lag order', min_value=1, value=5 )
+			model = LaggingSeries( lag=int( lag ) )
+		
+		elif model_name == 'Lagged Boosting Regression':
+			lag = st.number_input( 'Lag order', min_value=1, value=12 )
+			loss = st.selectbox(
+				'Loss',
+				[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ],
+				index=0
+			)
+			
+			quantile = None
+			if loss == 'quantile':
+				quantile = st.number_input(
+					'Quantile',
+					min_value=0.01,
+					max_value=0.99,
+					value=0.50,
+					step=0.01
+				)
+			
+			rate = st.number_input(
+				'Learning Rate',
+				min_value=0.001,
+				max_value=1.0,
+				value=0.1,
+				step=0.001,
+				format='%.3f'
+			)
+			iters = st.number_input( 'Max Iterations', min_value=10, value=100 )
+			leaf_nodes = st.number_input( 'Max Leaf Nodes (0 = None)', min_value=0, value=31 )
+			depth = st.number_input( 'Max Depth (0 = None)', min_value=0, value=0 )
+			leaf = st.number_input( 'Min Samples Leaf', min_value=1, value=20 )
+			regularization = st.number_input(
+				'L2 Regularization',
+				min_value=0.0,
+				value=0.0,
+				step=0.001,
+				format='%.3f'
+			)
+			features = st.number_input(
+				'Max Features',
+				min_value=0.1,
+				max_value=1.0,
+				value=1.0,
+				step=0.1,
+				format='%.1f'
+			)
+			bins = st.number_input( 'Max Bins', min_value=2, max_value=255, value=255 )
+			stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ], index=0 )
+			validation = st.number_input(
+				'Validation Fraction',
 				min_value=0.01,
-				max_value=0.99,
-				value=0.50,
-				step=0.01
+				max_value=0.50,
+				value=0.10,
+				step=0.01,
+				format='%.2f'
+			)
+			no_change = st.number_input( 'Iterations No Change', min_value=1, value=10 )
+			tol = st.number_input(
+				'Tolerance',
+				min_value=0.0,
+				value=1e-7,
+				step=1e-7,
+				format='%.7f'
+			)
+			verbose = st.number_input( 'Verbose', min_value=0, value=0 )
+			rando = st.number_input( 'Random State (-1 = None)', min_value=-1, value=-1 )
+			
+			model = LagBoostingSeries(
+				lag=int( lag ),
+				loss=loss,
+				quantile=float( quantile ) if quantile is not None else None,
+				rate=float( rate ),
+				iters=int( iters ),
+				leaf_nodes=int( leaf_nodes ) if int( leaf_nodes ) > 0 else None,
+				depth=int( depth ) if int( depth ) > 0 else None,
+				leaf=int( leaf ),
+				regularization=float( regularization ),
+				features=float( features ),
+				bins=int( bins ),
+				stopping=stopping,
+				validation=float( validation ),
+				no_change=int( no_change ),
+				tol=float( tol ),
+				verbose=int( verbose ),
+				rando=None if int( rando ) < 0 else int( rando )
 			)
 		
-		rate = st.number_input(
-			'Learning Rate',
-			min_value=0.001,
-			max_value=1.0,
-			value=0.1,
-			step=0.001,
-			format='%.3f'
-		)
-		iters = st.number_input( 'Max Iterations', min_value=10, value=100 )
-		leaf_nodes = st.number_input( 'Max Leaf Nodes (0 = None)', min_value=0, value=31 )
-		depth = st.number_input( 'Max Depth (0 = None)', min_value=0, value=0 )
-		leaf = st.number_input( 'Min Samples Leaf', min_value=1, value=20 )
-		regularization = st.number_input(
-			'L2 Regularization',
-			min_value=0.0,
-			value=0.0,
-			step=0.001,
-			format='%.3f'
-		)
-		features = st.number_input(
-			'Max Features',
-			min_value=0.1,
-			max_value=1.0,
-			value=1.0,
-			step=0.1,
-			format='%.1f'
-		)
-		bins = st.number_input( 'Max Bins', min_value=2, max_value=255, value=255 )
-		stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ], index=0 )
-		validation = st.number_input(
-			'Validation Fraction',
-			min_value=0.01,
-			max_value=0.50,
-			value=0.10,
-			step=0.01,
-			format='%.2f'
-		)
-		no_change = st.number_input( 'Iterations No Change', min_value=1, value=10 )
-		tol = st.number_input(
-			'Tolerance',
-			min_value=0.0,
-			value=1e-7,
-			step=1e-7,
-			format='%.7f'
-		)
-		verbose = st.number_input( 'Verbose', min_value=0, value=0 )
-		rando = st.number_input( 'Random State (-1 = None)', min_value=-1, value=-1 )
+		elif model_name == 'ARIMA':
+			p = st.number_input( 'p (AR)', min_value=0, value=1 )
+			d = st.number_input( 'd (I)', min_value=0, value=0 )
+			q = st.number_input( 'q (MA)', min_value=0, value=0 )
+			model = ARIMA( order=(int( p ), int( d ), int( q )) )
 		
-		model = LagBoostingSeries(
-			lag=int( lag ),
-			loss=loss,
-			quantile=float( quantile ) if quantile is not None else None,
-			rate=float( rate ),
-			iters=int( iters ),
-			leaf_nodes=int( leaf_nodes ) if int( leaf_nodes ) > 0 else None,
-			depth=int( depth ) if int( depth ) > 0 else None,
-			leaf=int( leaf ),
-			regularization=float( regularization ),
-			features=float( features ),
-			bins=int( bins ),
-			stopping=stopping,
-			validation=float( validation ),
-			no_change=int( no_change ),
-			tol=float( tol ),
-			verbose=int( verbose ),
-			rando=None if int( rando ) < 0 else int( rando )
-		)
-	
-	elif model_name == 'ARIMA':
-		p = st.number_input( 'p (AR)', min_value=0, value=1 )
-		d = st.number_input( 'd (I)', min_value=0, value=0 )
-		q = st.number_input( 'q (MA)', min_value=0, value=0 )
-		model = ARIMA( order=(int( p ), int( d ), int( q )) )
-	
-	elif model_name == 'SARIMA':
-		p = st.number_input( 'p (AR)', min_value=0, value=1 )
-		d = st.number_input( 'd (I)', min_value=0, value=1 )
-		q = st.number_input( 'q (MA)', min_value=0, value=1 )
-		P = st.number_input( 'P (Seasonal AR)', min_value=0, value=0 )
-		D = st.number_input( 'D (Seasonal I)', min_value=0, value=0 )
-		Q = st.number_input( 'Q (Seasonal MA)', min_value=0, value=0 )
-		s = st.number_input( 'Season Length', min_value=0, value=0 )
-		model = SARIMA(
-			order=(int( p ), int( d ), int( q )),
-			seasonal=(int( P ), int( D ), int( Q ), int( s ))
-		)
-	
-	# ------------------------------------------------------------------
-	# TRAIN / FORECAST
-	# ------------------------------------------------------------------
-	st.subheader( 'Train & Forecast' )
-	forecast_horizon = st.number_input( 'Forecast Horizon (Steps)', min_value=1, value=5 )
-	
-	if st.button( '🚀 Run Time-Series Model' ):
-		try:
-			plt.close( 'all' )
-			model.train( series )
-			forecast = model.project( n_steps=int( forecast_horizon ) )
-			
-			st.subheader( 'Model Evaluation' )
-			metrics = model.analyze( )
-			
-			if isinstance( metrics, pd.DataFrame ):
-				st.data_editor( metrics, use_container_width=True )
-			else:
-				df_metrics = pd.DataFrame( metrics, index=[ 'Value' ] ).T
-				st.data_editor( df_metrics, use_container_width=True )
-			
-			st.subheader( 'Observed vs Forecast' )
-			fig, ax = plt.subplots( )
-			ax.plot( range( len( series ) ), series, label='Observed' )
-			ax.plot(
-				range( len( series ), len( series ) + len( forecast ) ),
-				forecast,
-				label='Forecast',
-				linestyle='--'
+		elif model_name == 'SARIMA':
+			p = st.number_input( 'p (AR)', min_value=0, value=1 )
+			d = st.number_input( 'd (I)', min_value=0, value=1 )
+			q = st.number_input( 'q (MA)', min_value=0, value=1 )
+			P = st.number_input( 'P (Seasonal AR)', min_value=0, value=0 )
+			D = st.number_input( 'D (Seasonal I)', min_value=0, value=0 )
+			Q = st.number_input( 'Q (Seasonal MA)', min_value=0, value=0 )
+			s = st.number_input( 'Season Length', min_value=0, value=0 )
+			model = SARIMA(
+				order=(int( p ), int( d ), int( q )),
+				seasonal=(int( P ), int( D ), int( Q ), int( s ))
 			)
-			ax.set_title( 'Time-Series Forecast' )
-			ax.legend( )
-			st.pyplot( fig )
-			plt.close( fig )
-		except Exception as e:
-			st.error( f'Time-Series Modeling failed: {e}' )
-	
-	# ------------------------------------------------------------------
-	# TIME-SERIES CROSS-VALIDATION
-	# ------------------------------------------------------------------
-	st.subheader( 'Time-Series Cross-Validation' )
-	
-	with st.expander( 'Show time-series splits' ):
-		splits = st.number_input( 'Number of splits', min_value=2, value=5 )
-		test_size = st.number_input( 'Test window size', min_value=1, value=10 )
-		gap = st.number_input( 'Gap size', min_value=0, value=0 )
-		max_train_size = st.number_input( 'Max train size (0 = unlimited)', min_value=0, value=0 )
 		
-		splitter = TimeSeriesSpliter(
-			splits=int( splits ),
-			test_size=int( test_size ),
-			gap=int( gap ),
-			max_train_size=int( max_train_size ) if int( max_train_size ) > 0 else None
-		)
+		# ------------------------------------------------------------------
+		# TRAIN / FORECAST
+		# ------------------------------------------------------------------
+		st.subheader( 'Train & Forecast' )
+		forecast_horizon = st.number_input( 'Forecast Horizon (Steps)', min_value=1, value=5 )
 		
-		if st.button( 'Visualize CV Splits' ):
+		if st.button( '🚀 Run Time-Series Model' ):
 			try:
 				plt.close( 'all' )
-				fig = splitter.visualize( series )
+				model.train( series )
+				forecast = model.project( n_steps=int( forecast_horizon ) )
+				
+				st.subheader( 'Model Evaluation' )
+				metrics = model.analyze( )
+				
+				if isinstance( metrics, pd.DataFrame ):
+					st.data_editor( metrics, use_container_width=True )
+				else:
+					df_metrics = pd.DataFrame( metrics, index=[ 'Value' ] ).T
+					st.data_editor( df_metrics, use_container_width=True )
+				
+				st.subheader( 'Observed vs Forecast' )
+				fig, ax = plt.subplots( )
+				ax.plot( range( len( series ) ), series, label='Observed' )
+				ax.plot(
+					range( len( series ), len( series ) + len( forecast ) ),
+					forecast,
+					label='Forecast',
+					linestyle='--'
+				)
+				ax.set_title( 'Time-Series Forecast' )
+				ax.legend( )
 				st.pyplot( fig )
 				plt.close( fig )
 			except Exception as e:
-				st.error( f'Time-Series split visualization failed: {e}' )
+				st.error( f'Time-Series Modeling failed: {e}' )
+		
+		# ------------------------------------------------------------------
+		# TIME-SERIES CROSS-VALIDATION
+		# ------------------------------------------------------------------
+		st.subheader( 'Time-Series Cross-Validation' )
+		
+		with st.expander( 'Show time-series splits' ):
+			splits = st.number_input( 'Number of splits', min_value=2, value=5 )
+			test_size = st.number_input( 'Test window size', min_value=1, value=10 )
+			gap = st.number_input( 'Gap size', min_value=0, value=0 )
+			max_train_size = st.number_input( 'Max train size (0 = unlimited)', min_value=0, value=0 )
+			
+			splitter = TimeSeriesSpliter(
+				splits=int( splits ),
+				test_size=int( test_size ),
+				gap=int( gap ),
+				max_train_size=int( max_train_size ) if int( max_train_size ) > 0 else None
+			)
+			
+			if st.button( 'Visualize CV Splits' ):
+				try:
+					plt.close( 'all' )
+					fig = splitter.visualize( series )
+					st.pyplot( fig )
+					plt.close( fig )
+				except Exception as e:
+					st.error( f'Time-Series split visualization failed: {e}' )
+
+# ==============================================================================
+# DATA MANAGEMENT MODE
+# ==============================================================================
+elif mode == 'Database':
+	st.subheader( "🏛️ Data Management" )
+	st.divider( )
+	left, center, right = st.columns( [ 0.05, 0.90, 0.05 ] )
+	with center:
+		tabs = st.tabs( [ "📥 Import", "🗂 Browse", "💉 CRUD", "📊 Explore", "🔎 Filter",
+		                  "🧮 Aggregate", "📈 Visualize", "⚙ Admin", "🧠 SQL" ] )
+		
+		tables = list_tables( )
+		if not tables:
+			st.info( "No tables available." )
+		else:
+			table = st.selectbox( "Table", tables )
+			df_full = read_table( table )
+		
+		# ------------------------------------------------------------------------------
+		# UPLOAD TAB
+		# ------------------------------------------------------------------------------
+		with tabs[ 0 ]:
+			uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
+			overwrite = st.checkbox( 'Overwrite existing tables', value=True )
+			if uploaded_file:
+				try:
+					sheets = pd.read_excel( uploaded_file, sheet_name=None )
+					with create_connection( ) as conn:
+						conn.execute( 'BEGIN' )
+						for sheet_name, df in sheets.items( ):
+							table_name = create_identifier( sheet_name )
+							if overwrite:
+								conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
+							
+							# --- Create Table ---
+							columns = [ ]
+							df.columns = [ create_identifier( c ) for c in df.columns ]
+							for col in df.columns:
+								sql_type = get_sqlite_type( df[ col ].dtype )
+								columns.append( f'"{col}" {sql_type}' )
+							
+							create_stmt = (
+									f'CREATE TABLE "{table_name}" '
+									f'({", ".join( columns )});'
+							)
+							
+							conn.execute( create_stmt )
+							
+							# --- Insert Data ---
+							placeholders = ", ".join( [ "?" ] * len( df.columns ) )
+							insert_stmt = (
+									f'INSERT INTO "{table_name}" '
+									f'VALUES ({placeholders});'
+							)
+							
+							conn.executemany(
+								insert_stmt,
+								df.where( pd.notnull( df ), None ).values.tolist( )
+							)
+						
+						conn.commit( )
+					
+					st.success( 'Import completed successfully (transaction committed).' )
+					st.rerun( )
+				
+				except Exception as e:
+					try:
+						conn.rollback( )
+					except:
+						pass
+					st.error( f'Import failed — transaction rolled back.\n\n{e}' )
+		
+		# ------------------------------------------------------------------------------
+		# BROWSE TAB
+		# ------------------------------------------------------------------------------
+		with tabs[ 1 ]:
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Table', tables, key='table_name' )
+				df = read_table( table )
+				st.dataframe( df, use_container_width=True )
+			else:
+				st.info( 'No tables available.' )
+		
+		# ------------------------------------------------------------------------------
+		# CRUD (Schema-Aware)
+		# ------------------------------------------------------------------------------
+		with tabs[ 2 ]:
+			tables = list_tables( )
+			if not tables:
+				st.info( 'No tables available.' )
+			else:
+				table = st.selectbox( 'Select Table', tables, key='crud_table' )
+				df = read_table( table )
+				schema = create_schema( table )
+				
+				# Build type map
+				type_map = { col[ 1 ]: col[ 2 ].upper( ) for col in schema if col[ 1 ] != 'rowid' }
+				
+				# ------------------------------------------------------------------
+				# INSERT
+				# ------------------------------------------------------------------
+				st.subheader( 'Insert Row' )
+				insert_data = { }
+				for column, col_type in type_map.items( ):
+					if 'INT' in col_type:
+						insert_data[
+							column ] = st.number_input( column, step=1, key=f'ins_{column}' )
+					
+					elif 'REAL' in col_type:
+						insert_data[
+							column ] = st.number_input( column, format='%.6f', key=f'ins_{column}' )
+					
+					elif 'BOOL' in col_type:
+						insert_data[
+							column ] = 1 if st.checkbox( column, key=f'ins_{column}' ) else 0
+					
+					else:
+						insert_data[ column ] = st.text_input( column, key=f'ins_{column}' )
+				
+				if st.button( 'Insert Row' ):
+					cols = list( insert_data.keys( ) )
+					placeholders = ', '.join( [ '?' ] * len( cols ) )
+					stmt = f'INSERT INTO "{table}" ({", ".join( cols )}) VALUES ({placeholders});'
+					
+					with create_connection( ) as conn:
+						conn.execute( stmt, list( insert_data.values( ) ) )
+						conn.commit( )
+					
+					st.success( 'Row inserted.' )
+					st.rerun( )
+				
+				# ------------------------------------------------------------------
+				# UPDATE
+				# ------------------------------------------------------------------
+				st.subheader( 'Update Row' )
+				rowid = st.number_input( 'Row ID', min_value=1, step=1 )
+				update_data = { }
+				for column, col_type in type_map.items( ):
+					if 'INT' in col_type:
+						val = st.number_input( column, step=1, key=f'upd_{column}' )
+						update_data[ column ] = val
+					
+					elif 'REAL' in col_type:
+						val = st.number_input( column, format='%.6f', key=f'upd_{column}' )
+						update_data[ column ] = val
+					
+					elif 'BOOL' in col_type:
+						val = 1 if st.checkbox( column, key=f'upd_{column}' ) else 0
+						update_data[ column ] = val
+					
+					else:
+						val = st.text_input( column, key=f"upd_{column}" )
+						update_data[ column ] = val
+				
+				if st.button( 'Update Row' ):
+					set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
+					stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
+					
+					with create_connection( ) as conn:
+						conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
+						conn.commit( )
+					
+					st.success( 'Row updated.' )
+					st.rerun( )
+				
+				# ------------------------------------------------------------------
+				# DELETE
+				# ------------------------------------------------------------------
+				st.subheader( 'Delete Row' )
+				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
+				if st.button( 'Delete Row' ):
+					with create_connection( ) as conn:
+						conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
+						conn.commit( )
+					
+					st.success( 'Row deleted.' )
+					st.rerun( )
+		
+		# ------------------------------------------------------------------------------
+		# EXPLORE
+		# ------------------------------------------------------------------------------
+		with tabs[ 3 ]:
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Table', tables, key='explore_table' )
+				page_size = st.slider( 'Rows per page', 10, 500, 50 )
+				page = st.number_input( 'Page', min_value=1, step=1 )
+				offset = (page - 1) * page_size
+				df_page = read_table( table, page_size, offset )
+				st.dataframe( df_page, use_container_width=True )
+		
+		# ------------------------------------------------------------------------------
+		# FILTER
+		# ------------------------------------------------------------------------------
+		with tabs[ 4 ]:
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Table', tables, key='filter_table' )
+				df = read_table( table )
+				column = st.selectbox( 'Column', df.columns )
+				value = st.text_input( 'Contains' )
+				if value:
+					df = df[ df[ column ].astype( str ).str.contains( value ) ]
+				st.dataframe( df, use_container_width=True )
+		
+		# ------------------------------------------------------------------------------
+		# AGGREGATE
+		# ------------------------------------------------------------------------------
+		with tabs[ 5 ]:
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Table', tables, key='agg_table' )
+				df = read_table( table )
+				numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+				if numeric_cols:
+					col = st.selectbox( 'Column', numeric_cols )
+					agg = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ] )
+					if agg == 'SUM':
+						st.metric( 'Result', df[ col ].sum( ) )
+					elif agg == 'AVG':
+						st.metric( 'Result', df[ col ].mean( ) )
+					elif agg == 'COUNT':
+						st.metric( 'Result', df[ col ].count( ) )
+		
+		# ------------------------------------------------------------------------------
+		# VISUALIZE
+		# ------------------------------------------------------------------------------
+		with tabs[ 6 ]:
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Table', tables, key='viz_table' )
+				df = read_table( table )
+				numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+				if numeric_cols:
+					col = st.selectbox( 'Column', numeric_cols )
+					fig = px.histogram( df, x=col )
+					st.plotly_chart( fig, use_container_width=True )
+		
+		# ------------------------------------------------------------------------------
+		# ADMIN
+		# ------------------------------------------------------------------------------
+		with tabs[ 7 ]:
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Table', tables, key='admin_table' )
+			
+			st.divider( )
+			
+			st.subheader( 'Data Profiling' )
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Select Table', tables, key='profile_table' )
+				if st.button( 'Generate Profile' ):
+					profile_df = create_profile_table( table )
+					st.dataframe( profile_df, use_container_width=True )
+			
+			st.subheader( 'Drop Table' )
+			
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Select Table to Drop', tables, key='admin_drop_table' )
+				
+				# Initialize confirmation state
+				if 'dm_confirm_drop' not in st.session_state:
+					st.session_state.dm_confirm_drop = False
+				
+				# Step 1: Initial Drop click
+				if st.button( 'Drop Table', key='admin_drop_button' ):
+					st.session_state.dm_confirm_drop = True
+				
+				# Step 2: Confirmation UI
+				if st.session_state.dm_confirm_drop:
+					st.warning( f'You are about to permanently delete table {table}. '
+					            'This action cannot be undone.' )
+					
+					col1, col2 = st.columns( 2 )
+					
+					if col1.button( 'Confirm Drop', key='admin_confirm_drop' ):
+						try:
+							drop_table( table )
+							st.success( f'Table {table} dropped successfully.' )
+						except Exception as e:
+							st.error( f'Drop failed: {e}' )
+						
+						st.session_state.dm_confirm_drop = False
+						st.rerun( )
+					
+					if col2.button( 'Cancel', key='admin_cancel_drop' ):
+						st.session_state.dm_confirm_drop = False
+						st.rerun( )
+				
+				df = read_table( table )
+				col = st.selectbox( 'Create Index On', df.columns )
+				
+				if st.button( 'Create Index' ):
+					create_index( table, col )
+					st.success( 'Index created.' )
+			
+			st.divider( )
+			
+			st.subheader( 'Create Custom Table' )
+			new_table_name = st.text_input( 'Table Name' )
+			column_count = st.number_input( 'Number of Columns', min_value=1, max_value=20, value=1 )
+			columns = [ ]
+			for i in range( column_count ):
+				st.markdown( f'### Column {i + 1}' )
+				col_name = st.text_input( 'Column Name', key=f'col_name_{i}' )
+				col_type = st.selectbox( 'Column Type', [ 'INTEGER', 'REAL', 'TEXT' ],
+					key=f'col_type_{i}' )
+				
+				not_null = st.checkbox( 'NOT NULL', key=f'not_null_{i}' )
+				primary_key = st.checkbox( 'PRIMARY KEY', key=f'pk_{i}' )
+				auto_inc = st.checkbox( 'AUTOINCREMENT (INTEGER only)', key=f'ai_{i}' )
+				
+				columns.append( {
+						'name': col_name,
+						'type': col_type,
+						'not_null': not_null,
+						'primary_key': primary_key,
+						'auto_increment': auto_inc } )
+			
+			if st.button( 'Create Table' ):
+				try:
+					create_custom_table( new_table_name, columns )
+					st.success( 'Table created successfully.' )
+					st.rerun( )
+				
+				except Exception as e:
+					st.error( f'Error: {e}' )
+			
+			st.divider( )
+			st.subheader( 'Schema Viewer' )
+			
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Select Table', tables, key='schema_view_table' )
+				
+				# Column schema
+				schema = create_schema( table )
+				schema_df = pd.DataFrame(
+					schema,
+					columns=[ 'cid', 'name', 'type', 'notnull', 'default', 'pk' ] )
+				
+				st.markdown( "### Columns" )
+				st.dataframe( schema_df, use_container_width=True )
+				
+				# Row count
+				with create_connection( ) as conn:
+					count = conn.execute(
+						f'SELECT COUNT(*) FROM "{table}"'
+					).fetchone( )[ 0 ]
+				
+				st.metric( "Row Count", f"{count:,}" )
+				
+				# Indexes
+				indexes = get_indexes( table )
+				if indexes:
+					idx_df = pd.DataFrame(
+						indexes,
+						columns=[ 'seq', 'name', 'unique', 'origin', 'partial' ]
+					)
+					st.markdown( "### Indexes" )
+					st.dataframe( idx_df, use_container_width=True )
+				else:
+					st.info( "No indexes defined." )
+			
+			st.divider( )
+			st.subheader( "ALTER TABLE Operations" )
+			
+			tables = list_tables( )
+			if tables:
+				table = st.selectbox( 'Select Table', tables, key='alter_table_select' )
+				operation = st.selectbox( 'Operation',
+					[ 'Add Column', 'Rename Column', 'Rename Table', 'Drop Column' ] )
+				
+				if operation == 'Add Column':
+					new_col = st.text_input( 'Column Name' )
+					col_type = st.selectbox( 'Column Type', [ 'INTEGER', 'REAL', 'TEXT' ] )
+					
+					if st.button( 'Add Column' ):
+						add_column( table, new_col, col_type )
+						st.success( 'Column added.' )
+						st.rerun( )
+				
+				elif operation == 'Rename Column':
+					schema = create_schema( table )
+					col_names = [ col[ 1 ] for col in schema ]
+					
+					old_col = st.selectbox( 'Column to Rename', col_names )
+					new_col = st.text_input( 'New Column Name' )
+					
+					if st.button( 'Rename Column' ):
+						dm_rename_column( table, old_col, new_col )
+						st.success( 'Column renamed.' )
+						st.rerun( )
+				
+				elif operation == 'Rename Table':
+					new_name = st.text_input( 'New Table Name' )
+					
+					if st.button( 'Rename Table' ):
+						dm_rename_table( table, new_name )
+						st.success( 'Table renamed.' )
+						st.rerun( )
+				
+				elif operation == 'Drop Column':
+					schema = create_schema( table )
+					col_names = [ col[ 1 ] for col in schema ]
+					
+					drop_col = st.selectbox( 'Column to Drop', col_names )
+					
+					if st.button( 'Drop Column' ):
+						drop_column( table, drop_col )
+						st.success( 'Column dropped.' )
+						st.rerun( )
+		
+		# ------------------------------------------------------------------------------
+		# SQL
+		# ------------------------------------------------------------------------------
+		with tabs[ 8 ]:
+			st.subheader( 'SQL Console' )
+			query = st.text_area( 'Enter SQL Query' )
+			if st.button( 'Run Query' ):
+				if not is_safe_query( query ):
+					st.error( 'Query blocked: Only read-only SELECT statements are allowed.' )
+				else:
+					try:
+						start_time = time.perf_counter( )
+						with create_connection( ) as conn:
+							result = pd.read_sql_query( query, conn )
+						
+						end_time = time.perf_counter( )
+						elapsed = end_time - start_time
+						
+						# ----------------------------------------------------------
+						# Display Results
+						# ----------------------------------------------------------
+						st.dataframe( result, use_container_width=True )
+						row_count = len( result )
+						
+						# ----------------------------------------------------------
+						# Execution Metrics
+						# ----------------------------------------------------------
+						col1, col2 = st.columns( 2 )
+						col1.metric( 'Rows Returned', f'{row_count:,}' )
+						col2.metric( 'Execution Time (seconds)', f'{elapsed:.6f}' )
+						
+						# Optional slow query warning
+						if elapsed > 2.0:
+							st.warning( 'Slow query detected (> 2 seconds). Consider indexing.' )
+						
+						# ----------------------------------------------------------
+						# Download
+						# ----------------------------------------------------------
+						if not result.empty:
+							csv = result.to_csv( index=False ).encode( 'utf-8' )
+							st.download_button( 'Download CSV', csv,
+								'query_results.csv', 'text/csv' )
+					
+					except Exception as e:
+						st.error( f'Execution failed: {e}' )
