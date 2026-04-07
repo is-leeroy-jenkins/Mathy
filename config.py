@@ -48,7 +48,7 @@ import multiprocessing
 BASE_DIR = os.path.dirname( os.path.abspath( __file__ ) )
 LOGO = r'resources/img/mathy_logo.ico'
 FAVICON = r'resources/favicon.ico'
-BLUE_DIVIDER = "<div style='height:2px;align:left;background:#0078FC;margin:6px 0 10px 0;'></div>"
+BLUE_DIVIDER = "<div style='height:1.5px;align:left;background:#0078FC;margin:20px 0px 20px 0px;'></div>"
 DEFAULT_DATA = r'stores/excel/Combined Schedules.xlsx'
 DB_PATH = r'stores/sqlite/Data.db'
 LLM_PATH = ''
@@ -57,13 +57,13 @@ CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Processing', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
           'Feature Engineering', 'Classifications', 'Regressions', 'Clustering', 'Time-Series', 'Database' ]
 
-MODE = { 'Data Profile': '🕵️ Data Profiling',
-       'Descriptive Statistics': '🔍 Descriptive Statistics',
+MODE = { 'Data Profile': '🏗️ Data Profiling',
+       'Descriptive Statistics': '📊 Descriptive Statistics',
        'Inferential Statistics': '🧠 Inferential Statistics',
        'Anomaly Detection': '🛸 Anomaly Detection',
-       'Data Plumbing': '🛠️ Data Plumbing',
-       'Feature Engineering': '🏗️ Feature Engineering',
-       'Classifications': '📊 Classification Models',
+       'Data Plumbing': '🔧 Data Plumbing',
+       'Feature Engineering': '🔩 Feature Engineering',
+       'Classifications': '🔠 Classification Models',
        'Regressions': '📉 Regression Models',
        'Clustering': '🕸️ Clustering Models',
        'Time-Series': '⏱️ Time-Series Models',

@@ -130,6 +130,17 @@ from transformers import (
 	FeatureHasher
 )
 
+from clusters import (
+	KMeans,
+	DBSCAN,
+	Agglomerative,
+	Spectral,
+	OPTICS,
+	MeanShift,
+	AffinityPropagation,
+	Birch
+)
+
 from features import (
 	VarianceThreshold,
 	CCA,
@@ -150,8 +161,9 @@ from classifications import (
 	NearestNeighbor,
 	BaggingModel,
 	AdaptiveBoost,
-	GradientBoost
-)
+	GradientBoost )
+
+from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
 
 from regressions import (
 	LeastSquares,
@@ -170,7 +182,6 @@ from regressions import (
 	VotingModel,
 	StackingModel
 )
-
 
 # ============================================
 # Session State
@@ -204,7 +215,29 @@ if 'plumbing_feature_columns' not in st.session_state:
 
 if 'plumbing_target_columns' not in st.session_state:
 	st.session_state[ 'plumbing_target_columns' ] = [ ]
+	
+if 'df_cluster_results' not in st.session_state:
+	st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+	
+# ----------- Clustering Members
 
+if 'df_cluster_counts' not in st.session_state:
+	st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+
+if 'df_cluster_metrics' not in st.session_state:
+	st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+
+if 'df_cluster_centroids' not in st.session_state:
+	st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+
+if 'df_cluster_details' not in st.session_state:
+	st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+
+if 'cluster_plot_features' not in st.session_state:
+	st.session_state[ 'cluster_plot_features' ] = [ ]
+
+if 'cluster_signature' not in st.session_state:
+	st.session_state[ 'cluster_signature' ] = None
 
 # ============================================
 # Session State
@@ -812,7 +845,6 @@ st.set_page_config( page_title='Mathy', layout='wide',
 	page_icon=cfg.FAVICON, initial_sidebar_state='expanded' )
 
 st.logo( image=cfg.LOGO, size='large' )
-
 pd.options.display.float_format = '{:,.4f}'.format
 
 # ============================================
@@ -821,9 +853,9 @@ pd.options.display.float_format = '{:,.4f}'.format
 
 with st.sidebar:
 	st.title( '📦 Data Source' )
-	use_fallback = st.sidebar.checkbox( 'Use default data', value=True )
+	st.sidebar.divider( )
+	use_fallback = st.sidebar.checkbox( 'Use Default Data', value=True )
 	uploaded = st.sidebar.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx',  'xls',  'csv' ] )
-	
 	if uploaded or use_fallback:
 		if uploaded:
 			df_dataset = pd.read_excel( uploaded ) if uploaded.name.endswith( 'xls' ) else pd.read_csv( uploaded )
@@ -837,10 +869,8 @@ with st.sidebar:
 		st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types( df_dataset )
 		
 	st.sidebar.divider( )
-	
 	st.subheader( 'Mode' )
 	mode = st.sidebar.radio( 'Select', cfg.MODE.keys( ), index=0 )
-	
 	style_subheaders( )
 
 # ============================================
@@ -849,7 +879,7 @@ with st.sidebar:
 if mode == 'Data Profile':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( 'Schema' )
+		st.subheader( cfg.MODE[ 'Data Profile' ] )
 		st.divider( )
 		
 		if st.session_state.df_dataset is None:
@@ -912,16 +942,14 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# DATASET DISPLAY
 		# -------------------------------------------------------------------------------------
-	
-		st.subheader( 'Data' )
+		st.markdown( '##### Data' )
 		render_table( df_dataset )
-		
 		
 		# -------------------------------------------------------------------------------------
 		# SCHEMA METRICS
 		# -------------------------------------------------------------------------------------
-		st.subheader( 'Types' )
-		st.divider( )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Types' )
 		type_counts = pd.Series( schema ).value_counts( )
 		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
 		m1.metric( 'Rows', len( df_dataset ) )
@@ -930,13 +958,13 @@ if mode == 'Data Profile':
 		m4.metric( 'Categorical', type_counts.get( 'categorical', 0 ) )
 		m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
 		
-		st.divider( )
-		st.subheader( 'Records' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Records' )
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
 			with top_c1:
-				row_idx = st.number_input( 'Select Row Index', min_value=0, max_value=len( df_dataset ) - 1,
-					step=1, key='row_editor_index' )
+				row_idx = st.number_input( 'Select Row Index', min_value=0,
+					max_value=len( df_dataset ) - 1, step=1, key='row_editor_index' )
 			
 			row = df_dataset.iloc[ row_idx ]
 			updated = { }
@@ -982,27 +1010,22 @@ if mode == 'Data Profile':
 				after = st.session_state.df_dataset.loc[ row_idx ]
 				log_step( f'Updated row {row_idx}' )
 				st.success( f'Row {row_idx} updated.' )
-				st.data_editor( pd.DataFrame( {
-						'Before': before,
-						'After': after } ), use_container_width=True )
+				st.data_editor( pd.DataFrame( { 'Before': before, 'After': after } ),
+					use_container_width=True )
+				
 				st.rerun( )
 				
 		# =====================================================================================
 		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
 		# =====================================================================================
-		st.divider( )
-		st.subheader( 'Diagnostics' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Diagnostics' )
 		
 		v1, v2 = st.columns( 2, border=True )
 		with v1:
 			fig, ax = plt.subplots( figsize=(6, 4.5) )
 			type_counts.sort_values( ascending=False ).plot(
-				kind='bar',
-				ax=ax,
-				width=0.75,
-				edgecolor='#0f172a',
-				linewidth=0.9
-			)
+				kind='bar', ax=ax, width=0.75, edgecolor='#0f172a', linewidth=0.9 )
 			ax.set_title( 'Column Type Distribution', fontsize=12, fontweight='bold' )
 			ax.set_xlabel( '' )
 			ax.set_ylabel( 'Count' )
@@ -1043,8 +1066,8 @@ if mode == 'Data Profile':
 			else:
 				st.info( 'No Missing Values Detected.' )
 		
-		st.divider( )
-		st.subheader( 'Cardinality' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Cardinality' )
 		v3, v4 = st.columns( 2, border=True )
 		with v3:
 			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
@@ -1074,8 +1097,8 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# COLUMN CRUD
 		# -------------------------------------------------------------------------------------
-		st.divider( )
-		st.subheader( 'Labels' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Labels' )
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
@@ -1116,8 +1139,8 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# Probability Distributions
 		# -------------------------------------------------------------------------------------
-		st.divider( )
-		st.subheader( 'Numeric Distributions' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Numeric Distributions' )
 		
 		numeric_dist_cols = [ c for c in df_dataset.columns
 				if pd.api.types.is_numeric_dtype( df_dataset[ c ] )
@@ -1226,7 +1249,7 @@ if mode == 'Data Profile':
 elif mode == 'Descriptive Statistics':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
+		st.subheader( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
 		st.divider( )
 		
 		df_dataset = st.session_state.df_dataset
@@ -1254,56 +1277,40 @@ elif mode == 'Descriptive Statistics':
 				padding-bottom: 0.10rem;
 			}
 			</style>
-			""",
-			unsafe_allow_html=True
-		)
+			""", unsafe_allow_html=True )
 		
-		num_c1, num_c2 = st.columns( [ 0.5, 0.5 ], border=False )
+		st.markdown( '##### Summary' )
+		
+		num_c1, num_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with num_c1:
-			vars_sel = st.multiselect(
-				'Select Numeric Variables',
-				all_num_cols,
-				default=default_pick( all_num_cols, 3 )
-			)
+			vars_sel = st.multiselect( 'Select Numeric Variables', all_num_cols,
+				default=default_pick( all_num_cols, 3 ) )
 			
-		st.divider( )
-		
-		st.subheader( 'Descriptive Summary' )
-		
-		sum_c1, sum_c2 = st.columns( [ 0.55, 0.45 ], border=False )
+		sum_c1, sum_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with sum_c1:
-			summary_vars = st.multiselect(
-				'Variables for Summary Table',
-				all_num_cols,
-				default=all_num_cols[ : min( 8, len( all_num_cols ) ) ],
-				key='desc_summary_vars'
-			)
+			summary_vars = st.multiselect( 'Variables for Summary Table',
+				all_num_cols, default=all_num_cols[ : min( 8, len( all_num_cols ) ) ],
+				key='desc_summary_vars' )
 		
 		with sum_c2:
-			show_percentiles = st.checkbox(
-				'Include Percentiles',
-				value=True,
-				key='desc_summary_percentiles'
-			)
+			show_percentiles = st.checkbox( 'Include Percentiles', value=True,
+				key='desc_summary_percentiles' )
 		
 		if summary_vars:
 			df_summary_source = df_numeric[ summary_vars ].copy( )
 			percentiles = [ 0.05, 0.25, 0.50, 0.75, 0.95 ] if show_percentiles else None
-			
 			df_descriptive = df_summary_source.describe( percentiles=percentiles ).T.reset_index( )
 			df_descriptive = df_descriptive.rename( columns={ 'index': 'Variable' } )
-			
 			df_descriptive[ 'Variance' ] = df_summary_source.var( ddof=1 ).values
 			df_descriptive[ 'Missing' ] = df_dataset[ summary_vars ].isna( ).sum( ).values
 			df_descriptive[ 'Missing %' ] = (
-					df_dataset[ summary_vars ].isna( ).mean( ).values * 100.0
-			)
+					df_dataset[ summary_vars ].isna( ).mean( ).values * 100.0 )
+			
 			df_descriptive[ 'Skew' ] = df_summary_source.skew( ).values
 			df_descriptive[ 'Kurtosis' ] = df_summary_source.kurtosis( ).values
 			df_descriptive[ 'Zeros' ] = (df_summary_source == 0).sum( ).values
 			df_descriptive[ 'Zeros %' ] = (
-					(df_summary_source == 0).mean( ).values * 100.0
-			)
+					(df_summary_source == 0).mean( ).values * 100.0 )
 			
 			ordered_cols = [ 'Variable', 'count', 'mean', 'std', 'Variance', 'min' ]
 			if show_percentiles:
@@ -1321,16 +1328,16 @@ elif mode == 'Descriptive Statistics':
 			column_config = {
 					'Variable': st.column_config.TextColumn( 'Variable', width='medium' ),
 					'count': st.column_config.NumberColumn( 'Count', format='%.0f' ),
-					'mean': st.column_config.NumberColumn( 'Mean', format='%.4f' ),
-					'std': st.column_config.NumberColumn( 'Std', format='%.4f' ),
-					'Variance': st.column_config.NumberColumn( 'Variance', format='%.4f' ),
-					'min': st.column_config.NumberColumn( 'Min', format='%.4f' ),
-					'5%': st.column_config.NumberColumn( 'P5', format='%.4f' ),
-					'25%': st.column_config.NumberColumn( 'P25', format='%.4f' ),
-					'50%': st.column_config.NumberColumn( 'Median', format='%.4f' ),
-					'75%': st.column_config.NumberColumn( 'P75', format='%.4f' ),
-					'95%': st.column_config.NumberColumn( 'P95', format='%.4f' ),
-					'max': st.column_config.NumberColumn( 'Max', format='%.4f' ),
+					'mean': st.column_config.NumberColumn( 'Mean', format='%.2f' ),
+					'std': st.column_config.NumberColumn( 'Std', format='%.2f' ),
+					'Variance': st.column_config.NumberColumn( 'Variance', format='%.2f' ),
+					'min': st.column_config.NumberColumn( 'Min', format='%.2f' ),
+					'5%': st.column_config.NumberColumn( 'P5', format='%.2f' ),
+					'25%': st.column_config.NumberColumn( 'P25', format='%.2f' ),
+					'50%': st.column_config.NumberColumn( 'Median', format='%.2f' ),
+					'75%': st.column_config.NumberColumn( 'P75', format='%.2f' ),
+					'95%': st.column_config.NumberColumn( 'P95', format='%.2f' ),
+					'max': st.column_config.NumberColumn( 'Max', format='%.2f' ),
 					'Missing': st.column_config.NumberColumn( 'Missing', format='%.0f' ),
 					'Missing %': st.column_config.NumberColumn( 'Missing %', format='%.2f' ),
 					'Zeros': st.column_config.NumberColumn( 'Zeros', format='%.0f' ),
@@ -1346,17 +1353,9 @@ elif mode == 'Descriptive Statistics':
 		else:
 			st.info( 'Select one or more numeric variables to display descriptive statistics.' )
 		
-		st.divider( )
-	
 		with num_c2:
-			dist_bins = st.slider(
-				'Distribution Bins',
-				min_value=10,
-				max_value=60,
-				value=30,
-				step=5,
-				key='desc_dist_bins'
-			)
+			dist_bins = st.slider( 'Distribution Bins', min_value=10, max_value=60, value=30,
+				step=5, key='desc_dist_bins' )
 		
 		for col in vars_sel:
 			s = pd.to_numeric( df_numeric[ col ], errors='coerce' )
@@ -1365,37 +1364,23 @@ elif mode == 'Descriptive Statistics':
 			if s.empty:
 				st.warning( f'{col}: no plottable numeric values.' )
 				continue
+		
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( f'##### Distribution & Shape — {col}' )
 			
-			st.subheader( f'Distribution & Shape — {col}' )
 			c1, c2 = st.columns( 2, border=True )
-			
 			with c1:
 				fig, ax = plt.subplots( figsize=(7, 4.75) )
-				sns.histplot(
-					s,
-					bins=dist_bins,
-					kde=True,
-					stat='count',
-					ax=ax,
-					edgecolor='#0f172a',
-					line_kws={ 'linewidth': 2.0 }
-				)
+				sns.histplot( s, bins=dist_bins, kde=True, stat='count', ax=ax,
+					edgecolor='#0f172a', line_kws={ 'linewidth': 2.0 } )
 				
 				mean_val = float( s.mean( ) )
 				median_val = float( s.median( ) )
+				ax.axvline( mean_val, linestyle='--',
+					linewidth=1.5, label=f'Mean: {mean_val:,.3f}' )
 				
-				ax.axvline(
-					mean_val,
-					linestyle='--',
-					linewidth=1.5,
-					label=f'Mean: {mean_val:,.3f}'
-				)
-				ax.axvline(
-					median_val,
-					linestyle=':',
-					linewidth=1.5,
-					label=f'Median: {median_val:,.3f}'
-				)
+				ax.axvline( median_val, linestyle=':', linewidth=1.5,
+					label=f'Median: {median_val:,.3f}' )
 				
 				ax.set_title( f'Histogram — {col}', fontsize=12, fontweight='bold' )
 				ax.set_xlabel( col )
@@ -1404,7 +1389,6 @@ elif mode == 'Descriptive Statistics':
 				ax.spines[ 'top' ].set_visible( False )
 				ax.spines[ 'right' ].set_visible( False )
 				ax.legend( frameon=False, fontsize=9 )
-				
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
@@ -1449,25 +1433,18 @@ elif mode == 'Descriptive Statistics':
 					q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
 					q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
 					q3.metric( 'Shapiro p', 'n/a' )
+
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
 		
-		st.divider( )
-		st.subheader( 'Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
-		
-		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=False )
+		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with cor_c1:
-			corr_vars = st.multiselect(
-				'Variables for Correlation',
-				all_num_cols,
-				default=default_pick( all_num_cols, 4 )
-			)
+			corr_vars = st.multiselect( 'Variables for Correlation', all_num_cols,
+				default=default_pick( all_num_cols, 4 ) )
 		
 		with cor_c2:
-			corr_method = st.radio(
-				'Method',
-				options=[ 'Pearson', 'Spearman' ],
-				horizontal=True,
-				key='desc_corr_method'
-			)
+			corr_method = st.radio( 'Method', options=[ 'Pearson', 'Spearman' ],
+				horizontal=True, key='desc_corr_method' )
 		
 		c3, c4 = st.columns( 2, border=True )
 		if len( corr_vars ) >= 2:
@@ -1479,25 +1456,13 @@ elif mode == 'Descriptive Statistics':
 			
 			with c4:
 				fig, ax = plt.subplots( figsize=(7, 6) )
-				sns.heatmap(
-					corr,
-					ax=ax,
-					cmap='coolwarm',
-					vmin=-1,
-					vmax=1,
-					center=0,
-					annot=True,
-					fmt='.2f',
-					square=False,
-					linewidths=0.5,
-					cbar_kws={ 'shrink': 0.85, 'label': 'Correlation' }
-				)
-				ax.set_title(
-					f'Correlation Heatmap — {corr_method}',
-					fontsize=12,
-					fontweight='bold',
-					pad=10
-				)
+				sns.heatmap( corr, ax=ax, cmap='coolwarm', vmin=-1, vmax=1,
+					center=0, annot=True, fmt='.2f', square=False, linewidths=0.5,
+					cbar_kws={ 'shrink': 0.85, 'label': 'Correlation' } )
+				
+				ax.set_title( f'Correlation Heatmap — {corr_method}', fontsize=12,
+					fontweight='bold', pad=10 )
+				
 				ax.set_xticklabels( ax.get_xticklabels( ), rotation=45, ha='right' )
 				ax.set_yticklabels( ax.get_yticklabels( ), rotation=0 )
 				fig.tight_layout( )
@@ -1508,17 +1473,14 @@ elif mode == 'Descriptive Statistics':
 				st.info( 'Select at least two numeric variables.' )
 			with c4:
 				st.caption( 'Heatmap will appear here once at least two variables are selected.' )
-		
-		st.divider( )
-		st.subheader( 'Principal Component Analysis', help=cfg.PCA )
+			
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Principal Component Analysis', help=cfg.PCA )
 		
 		pca_c1, pca_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with pca_c1:
-			pca_vars = st.multiselect(
-				'Select Components',
-				all_num_cols,
-				default=default_pick( all_num_cols, 4 )
-			)
+			pca_vars = st.multiselect( 'Select Components', all_num_cols,
+				default=default_pick( all_num_cols, 4 ) )
 		
 		with pca_c2:
 			max_components = max( 2, min( 6, len( pca_vars ) ) ) if pca_vars else 2
@@ -1532,22 +1494,17 @@ elif mode == 'Descriptive Statistics':
 			
 			df_explained = pd.DataFrame(
 				{
-						'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
-						'Explained Variance (%)': pca.explained_variance_ratio * 100
-				}
-			)
+					'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
+					'Explained Variance (%)': pca.explained_variance_ratio * 100
+				} )
 			
 			with c5:
 				render_table( df_explained )
 			
 			with c6:
 				fig, ax = plt.subplots( figsize=(7, 5) )
-				bars = ax.bar(
-					df_explained[ 'Component' ],
-					df_explained[ 'Explained Variance (%)' ],
-					edgecolor='#0f172a',
-					linewidth=0.9
-				)
+				bars = ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ],
+					edgecolor='#0f172a', linewidth=0.9 )
 				ax.set_ylabel( '% Variance Explained' )
 				ax.set_title( 'PCA Variance Explained', fontsize=12, fontweight='bold' )
 				ax.grid( axis='y', alpha=0.25, linestyle='--' )
@@ -1567,139 +1524,124 @@ elif mode == 'Descriptive Statistics':
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	st.header( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
-	st.divider( )
-	
-	df_dataset = st.session_state.df_dataset
-	
-	if df_dataset is None or df_dataset.empty:
-		st.info( 'No data available.' )
-		st.stop( )
-	
-	numeric_cols = st.session_state.numeric_cols
-	categorical_cols = st.session_state.categorical_cols
-	
-	if not numeric_cols:
-		st.info( 'No numeric variables available for inferential analysis.' )
-		st.stop( )
-	
-	st.markdown(
-		"""
-		<style>
-		[data-testid="stMetricLabel"] p {
-			font-size: 0.72rem;
-		}
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
+		st.divider( )
 		
-		[data-testid="stMetricValue"] {
-			font-size: 0.95rem;
-		}
+		df_dataset = st.session_state.df_dataset
+		if df_dataset is None or df_dataset.empty:
+			st.info( 'No data available.' )
+			st.stop( )
 		
-		[data-testid="stMetric"] {
-			padding-top: 0.10rem;
-			padding-bottom: 0.10rem;
-		}
-		</style>
-		""",
-		unsafe_allow_html=True
-	)
-	# -------------------------------------------------------------------------------------
-	# INFERENTIAL SUMMARY
-	# -------------------------------------------------------------------------------------
-	st.subheader( 'Inferential Summary' )
-	
-	sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=False )
-	with sum_r1c1:
-		summary_y = st.selectbox(
-			'Summary Outcome Variable',
-			numeric_cols,
-			key='infer_summary_y'
-		)
-	
-	with sum_r1c2:
-		summary_x = st.selectbox(
-			'Summary Second Numeric Variable',
-			[ '<None>' ] + [ c for c in numeric_cols if c != summary_y ],
-			key='infer_summary_x'
-		)
-		if summary_x == '<None>':
-			summary_x = None
-	
-	with sum_r1c3:
-		if categorical_cols:
-			summary_group = st.selectbox(
-				'Summary Grouping Variable',
-				[ '<None>' ] + categorical_cols,
-				key='infer_summary_group'
-			)
-			if summary_group == '<None>':
+		numeric_cols = st.session_state.numeric_cols
+		categorical_cols = st.session_state.categorical_cols
+		
+		if not numeric_cols:
+			st.info( 'No numeric variables available for inferential analysis.' )
+			st.stop( )
+		
+		st.markdown(
+			"""
+			<style>
+			[data-testid="stMetricLabel"] p {
+				font-size: 0.72rem;
+			}
+			
+			[data-testid="stMetricValue"] {
+				font-size: 0.95rem;
+			}
+			
+			[data-testid="stMetric"] {
+				padding-top: 0.10rem;
+				padding-bottom: 0.10rem;
+			}
+			</style>
+			""", unsafe_allow_html=True )
+		
+		# -------------------------------------------------------------------------------------
+		# INFERENTIAL SUMMARY
+		# -------------------------------------------------------------------------------------
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Inferential Summary' )
+		
+		sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=False )
+		with sum_r1c1:
+			summary_y = st.selectbox( 'Summary Outcome Variable', numeric_cols, key='infer_summary_y' )
+		
+		with sum_r1c2:
+			summary_x = st.selectbox( 'Summary Second Numeric Variable',
+				[ '<None>' ] + [ c for c in numeric_cols if c != summary_y ], key='infer_summary_x' )
+			if summary_x == '<None>':
+				summary_x = None
+		
+		with sum_r1c3:
+			if categorical_cols:
+				summary_group = st.selectbox( 'Summary Grouping Variable',
+					[ '<None>' ] + categorical_cols, key='infer_summary_group' )
+				if summary_group == '<None>':
+					summary_group = None
+			else:
 				summary_group = None
-		else:
-			summary_group = None
-			st.caption( 'No categorical grouping variables available.' )
-	
-	sum_r2c1, sum_r2c2 = st.columns( 2, border=False )
-	with sum_r2c1:
-		if len( categorical_cols ) >= 2:
-			summary_cat1 = st.selectbox(
-				'Summary First Categorical Variable',
-				categorical_cols,
-				key='infer_summary_cat1'
-			)
-		else:
-			summary_cat1 = None
-			st.caption( 'At least two categorical variables are required.' )
-	
-	with sum_r2c2:
-		if summary_cat1 and len( categorical_cols ) >= 2:
-			summary_cat2 = st.selectbox(
-				'Summary Second Categorical Variable',
-				[ c for c in categorical_cols if c != summary_cat1 ],
-				key='infer_summary_cat2'
-			)
-		else:
-			summary_cat2 = None
-	
-	infer_rows = [ ]
-	
-	# -----------------------------------------------------------------
-	# Normality Summary
-	# -----------------------------------------------------------------
-	summary_series = pd.to_numeric( df_dataset[ summary_y ], errors='coerce' ).dropna( )
-	if len( summary_series ) >= 3:
-		try:
-			shapiro_stat, shapiro_p = stats.shapiro( summary_series )
-			infer_rows.append(
-				{
-						'Analysis': 'Outcome Distribution',
-						'Test': 'Shapiro-Wilk',
-						'Statistic': shapiro_stat,
-						'P-Value': shapiro_p,
-						'DoF': np.nan,
-						'Effect Size': np.nan,
-						'N': float( len( summary_series ) ),
-						'Notes': 'Normality assessment'
-				}
-			)
-		except Exception:
-			pass
-	
-	# -----------------------------------------------------------------
-	# Group Comparison Summary
-	# -----------------------------------------------------------------
-	if summary_group:
-		df_group_summary = df_dataset[ [ summary_group, summary_y ] ].copy( )
-		df_group_summary[ summary_y ] = pd.to_numeric(
-			df_group_summary[ summary_y ], errors='coerce' )
-		df_group_summary = df_group_summary.dropna( subset=[ summary_group, summary_y ] )
+				st.caption( 'No categorical grouping variables available.' )
 		
-		group_arrays = [ grp[ summary_y ].values for _, grp in
-		                 df_group_summary.groupby( summary_group ) ]
-		valid_group_arrays = [ g for g in group_arrays if len( g ) >= 2 ]
+		sum_r2c1, sum_r2c2 = st.columns( 2, border=False )
+		with sum_r2c1:
+			if len( categorical_cols ) >= 2:
+				summary_cat1 = st.selectbox( 'Summary First Categorical Variable',
+					categorical_cols, key='infer_summary_cat1' )
+			else:
+				summary_cat1 = None
+				st.caption( 'At least two categorical variables are required.' )
 		
-		if len( valid_group_arrays ) >= 2:
+		with sum_r2c2:
+			if summary_cat1 and len( categorical_cols ) >= 2:
+				summary_cat2 = st.selectbox( 'Summary Second Categorical Variable',
+					[ c for c in categorical_cols if c != summary_cat1 ],
+					key='infer_summary_cat2' )
+			else:
+				summary_cat2 = None
+		
+		infer_rows = [ ]
+		
+		# -----------------------------------------------------------------
+		# Normality Summary
+		# -----------------------------------------------------------------
+		summary_series = pd.to_numeric( df_dataset[ summary_y ], errors='coerce' ).dropna( )
+		if len( summary_series ) >= 3:
 			try:
-				f_stat, p_anova = stats.f_oneway( *valid_group_arrays )
+				shapiro_stat, shapiro_p = stats.shapiro( summary_series )
 				infer_rows.append(
+				{
+					'Analysis': 'Outcome Distribution',
+					'Test': 'Shapiro-Wilk',
+					'Statistic': shapiro_stat,
+					'P-Value': shapiro_p,
+					'DoF': np.nan,
+					'Effect Size': np.nan,
+					'N': float( len( summary_series ) ),
+					'Notes': 'Normality assessment'
+				})
+			except Exception:
+				pass
+		
+		# -----------------------------------------------------------------
+		# Group Comparison Summary
+		# -----------------------------------------------------------------
+		if summary_group:
+			df_group_summary = df_dataset[ [ summary_group, summary_y ] ].copy( )
+			df_group_summary[ summary_y ] = pd.to_numeric(
+				df_group_summary[ summary_y ], errors='coerce' )
+			df_group_summary = df_group_summary.dropna( subset=[ summary_group, summary_y ] )
+			
+			group_arrays = [ grp[ summary_y ].values for _, grp in
+			                 df_group_summary.groupby( summary_group ) ]
+			
+			valid_group_arrays = [ g for g in group_arrays if len( g ) >= 2 ]
+			if len( valid_group_arrays ) >= 2:
+				try:
+					f_stat, p_anova = stats.f_oneway( *valid_group_arrays )
+					infer_rows.append(
 					{
 							'Analysis': 'Group Comparison',
 							'Test': 'One-Way ANOVA',
@@ -1709,41 +1651,38 @@ elif mode == 'Inferential Statistics':
 							'Effect Size': np.nan,
 							'N': float( sum( len( g ) for g in valid_group_arrays ) ),
 							'Notes': f'{summary_y} by {summary_group}'
-					}
-				)
-			except Exception:
-				pass
-			
-			try:
-				h_stat, p_kw = stats.kruskal( *valid_group_arrays )
-				infer_rows.append(
+					} )
+				except Exception:
+					pass
+				
+				try:
+					h_stat, p_kw = stats.kruskal( *valid_group_arrays )
+					infer_rows.append(
 					{
-							'Analysis': 'Group Comparison',
-							'Test': 'Kruskal-Wallis',
-							'Statistic': h_stat,
-							'P-Value': p_kw,
-							'DoF': float( len( valid_group_arrays ) - 1 ),
-							'Effect Size': np.nan,
-							'N': float( sum( len( g ) for g in valid_group_arrays ) ),
-							'Notes': f'{summary_y} by {summary_group}'
-					}
-				)
-			except Exception:
-				pass
-	
-	# -----------------------------------------------------------------
-	# Correlation Summary
-	# -----------------------------------------------------------------
-	if summary_x:
-		x_summary = pd.to_numeric( df_dataset[ summary_x ], errors='coerce' )
-		y_summary = pd.to_numeric( df_dataset[ summary_y ], errors='coerce' )
-		pair_mask = x_summary.notna( ) & y_summary.notna( )
+						'Analysis': 'Group Comparison',
+						'Test': 'Kruskal-Wallis',
+						'Statistic': h_stat,
+						'P-Value': p_kw,
+						'DoF': float( len( valid_group_arrays ) - 1 ),
+						'Effect Size': np.nan,
+						'N': float( sum( len( g ) for g in valid_group_arrays ) ),
+						'Notes': f'{summary_y} by {summary_group}'
+					} )
+				except Exception:
+					pass
 		
-		if pair_mask.sum( ) >= 3:
-			try:
-				pearson_r, pearson_p = stats.pearsonr(
-					x_summary[ pair_mask ], y_summary[ pair_mask ] )
-				infer_rows.append(
+		# -----------------------------------------------------------------
+		# Correlation Summary
+		# -----------------------------------------------------------------
+		if summary_x:
+			x_summary = pd.to_numeric( df_dataset[ summary_x ], errors='coerce' )
+			y_summary = pd.to_numeric( df_dataset[ summary_y ], errors='coerce' )
+			pair_mask = x_summary.notna( ) & y_summary.notna( )
+			if pair_mask.sum( ) >= 3:
+				try:
+					pearson_r, pearson_p = stats.pearsonr( x_summary[ pair_mask ],
+						y_summary[ pair_mask ] )
+					infer_rows.append(
 					{
 							'Analysis': 'Association',
 							'Test': 'Pearson Correlation',
@@ -1753,325 +1692,278 @@ elif mode == 'Inferential Statistics':
 							'Effect Size': abs( pearson_r ),
 							'N': float( pair_mask.sum( ) ),
 							'Notes': f'{summary_y} vs {summary_x}'
-					}
-				)
-			except Exception:
-				pass
-			
-			try:
-				spearman_rho, spearman_p = stats.spearmanr(
-					x_summary[ pair_mask ],
-					y_summary[ pair_mask ]
-				)
-				infer_rows.append(
-					{
-							'Analysis': 'Association',
-							'Test': 'Spearman Correlation',
-							'Statistic': spearman_rho,
-							'P-Value': spearman_p,
-							'DoF': np.nan,
-							'Effect Size': abs( spearman_rho ),
-							'N': float( pair_mask.sum( ) ),
-							'Notes': f'{summary_y} vs {summary_x}'
-					}
-				)
-			except Exception:
-				pass
-	
-	# -----------------------------------------------------------------
-	# Categorical Association Summary
-	# -----------------------------------------------------------------
-	if summary_cat1 and summary_cat2:
-		contingency_summary = pd.crosstab( df_dataset[ summary_cat1 ], df_dataset[ summary_cat2 ] )
-		
-		if not contingency_summary.empty and contingency_summary.shape[ 0 ] >= 2 and \
-				contingency_summary.shape[ 1 ] >= 2:
-			try:
-				chi2_stat, chi2_p, chi2_dof, expected = stats.chi2_contingency( contingency_summary )
-				n_total = contingency_summary.to_numpy( ).sum( )
-				phi2 = chi2_stat / n_total if n_total > 0 else np.nan
-				r_dim, c_dim = contingency_summary.shape
-				cramers_v = (
-						np.sqrt( phi2 / min( c_dim - 1, r_dim - 1 ) )
-						if min( c_dim - 1, r_dim - 1 ) > 0
-						else np.nan
-				)
-				
-				infer_rows.append(
-					{
-							'Analysis': 'Categorical Association',
-							'Test': 'Chi-Square',
-							'Statistic': chi2_stat,
-							'P-Value': chi2_p,
-							'DoF': float( chi2_dof ),
-							'Effect Size': cramers_v,
-							'N': float( n_total ),
-							'Notes': f'{summary_cat1} vs {summary_cat2}'
-					}
-				)
-			except Exception:
-				pass
-	
-	if infer_rows:
-		df_infer_summary = pd.DataFrame( infer_rows )
-		
-		for c in [ 'Statistic', 'P-Value', 'DoF', 'Effect Size', 'N' ]:
-			if c in df_infer_summary.columns:
-				df_infer_summary[ c ] = pd.to_numeric( df_infer_summary[ c ], errors='coerce' )
-		
-		infer_column_config = {
-				'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
-				'Test': st.column_config.TextColumn( 'Test', width='medium' ),
-				'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.4f' ),
-				'P-Value': st.column_config.NumberColumn( 'P-Value', format='%.4g' ),
-				'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
-				'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.4f' ),
-				'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
-				'Notes': st.column_config.TextColumn( 'Notes', width='large' )
-		}
-		
-		st.data_editor(
-			df_infer_summary,
-			use_container_width=True,
-			hide_index=True,
-			disabled=True,
-			column_config=infer_column_config,
-			key='infer_summary_editor'
-		)
-	else:
-		st.info( 'Unable to compute inferential summary for the current selections.' )
-	
-	st.divider( )
-	
-	# -------------------------------------------------------------------------------------
-	# NORMALITY + GROUP COMPARISON
-	# -------------------------------------------------------------------------------------
-	nml_c1, nml_c2 = st.columns( [ 0.5, 0.5 ], border=True, gap='medium' )
-	col_group = None
-	
-	with nml_c1:
-		st.subheader( 'Normality Test', help=cfg.NORMALITY_TESTING )
-		col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
-		y = pd.to_numeric( df_dataset[ col_y ], errors='coerce' ).dropna( )
-		
-		if len( y ) >= 3:
-			stat, p_value = stats.shapiro( y )
-			
-			fig, ax = plt.subplots( figsize=(6.25, 5.25) )
-			stats.probplot( y, plot=ax )
-			ax.set_title( f'Q–Q Plot — {col_y}', fontsize=12, fontweight='bold', pad=10 )
-			ax.grid( True, alpha=0.20, linestyle='--' )
-			ax.spines[ 'top' ].set_visible( False )
-			ax.spines[ 'right' ].set_visible( False )
-			ax.ticklabel_format( style='plain', axis='both' )
-			
-			if len( ax.get_lines( ) ) >= 1:
-				ax.get_lines( )[ 0 ].set_marker( 'o' )
-				ax.get_lines( )[ 0 ].set_alpha( 0.72 )
-				ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
-			
-			fig.tight_layout( )
-			st.pyplot( fig )
-			plt.close( fig )
-			
-			m1, m2, m3 = st.columns( 3 )
-			m1.metric( 'Count', f'{len( y ):,}' )
-			m2.metric( 'Shapiro W', f'{stat:,.4f}' )
-			m3.metric( 'Shapiro p', f'{p_value:,.4g}' )
-			
-			if p_value < 0.05:
-				st.caption( 'Distribution departs from normality at α = 0.05.' )
-			else:
-				st.caption( 'Distribution does not significantly depart from normality at α = 0.05.' )
-		else:
-			st.info( 'Not enough observations for normality testing.' )
-	
-	with nml_c2:
-		st.subheader( 'Group Comparison' )
-		
-		if categorical_cols:
-			col_group = st.selectbox( 'Select Grouping Variable (optional)',
-				[ '<None>' ] + categorical_cols )
-			if col_group == '<None>':
-				col_group = None
-		
-		if col_group:
-			df_group = df_dataset[ [ col_group, col_y ] ].copy( )
-			df_group[ col_y ] = pd.to_numeric( df_group[ col_y ], errors='coerce' )
-			df_group = df_group.dropna( subset=[ col_group, col_y ] )
-			
-			grouped = [ grp[ col_y ].values for _, grp in df_group.groupby( col_group ) ]
-			valid_groups = [ g for g in grouped if len( g ) >= 2 ]
-			
-			if len( valid_groups ) >= 2:
-				f_stat, p_anova = stats.f_oneway( *valid_groups )
-				h_stat, p_kw = stats.kruskal( *valid_groups )
-				
-				fig, ax = plt.subplots( figsize=(6.5, 5.25) )
-				sns.boxplot(
-					data=df_group,
-					x=col_group,
-					y=col_y,
-					ax=ax
-				)
-				sns.stripplot(
-					data=df_group,
-					x=col_group,
-					y=col_y,
-					ax=ax,
-					color='black',
-					alpha=0.45,
-					size=4
-				)
-				ax.set_title( f'Group Comparison — {col_y} by {col_group}',
-					fontsize=12, fontweight='bold', pad=10 )
-				ax.set_xlabel( col_group )
-				ax.set_ylabel( col_y )
-				ax.grid( axis='y', alpha=0.20, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.tick_params( axis='x', rotation=30 )
-				fig.tight_layout( )
-				st.pyplot( fig )
-				plt.close( fig )
-				
-				g1, g2, g3, g4 = st.columns( 4 )
-				g1.metric( 'Groups', f'{len( valid_groups ):,}' )
-				g2.metric( 'ANOVA F', f'{f_stat:,.4f}' )
-				g3.metric( 'ANOVA p', f'{p_anova:,.4g}' )
-				g4.metric( 'Kruskal p', f'{p_kw:,.4g}' )
-				
-				st.caption(
-					f'Kruskal–Wallis H = {h_stat:.4f}. '
-					f'Use the nonparametric result when normality or homoscedasticity is doubtful.'
-				)
-			else:
-				st.info( 'Not enough valid groups for group comparison.' )
-		else:
-			st.info( 'Select a grouping variable to compare groups.' )
-	
-	# -------------------------------------------------------------------------------------
-	# CORRELATION ANALYSIS
-	# -------------------------------------------------------------------------------------
-	st.divider( )
-	st.subheader( 'Correlation Analysis' )
-	
-	cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-	with cor_c1:
-		candidate_x = [ c for c in numeric_cols if c != col_y ]
-		if not candidate_x:
-			st.info( 'A second numeric variable is required for correlation analysis.' )
-			col_x2 = None
-		else:
-			col_x2 = st.selectbox( 'Select Second Numeric Variable', candidate_x )
-	
-	with cor_c2:
-		if col_x2:
-			x = pd.to_numeric( df_dataset[ col_x2 ], errors='coerce' )
-			y2 = pd.to_numeric( df_dataset[ col_y ], errors='coerce' )
-			mask = x.notna( ) & y2.notna( )
-			
-			if mask.sum( ) >= 3:
-				r_p, p_p = stats.pearsonr( x[ mask ], y2[ mask ] )
-				r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
-				
-				r1, r2, r3, r4 = st.columns( 4 )
-				r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
-				r2.metric( 'Pearson r', f'{r_p:,.3f}' )
-				r3.metric( 'Pearson p', f'{p_p:,.4g}' )
-				r4.metric( 'Spearman ρ', f'{r_s:,.3f}' )
-				
-				st.caption( f'Spearman p = {p_s:.4g}' )
-			else:
-				st.info( 'Not enough paired observations for correlation.' )
-	
-	if col_x2:
-		mask = x.notna( ) & y2.notna( )
-		if mask.sum( ) >= 3:
-			fig, ax = plt.subplots( figsize=(7, 5.25) )
-			ax.scatter( x[ mask ], y2[ mask ], alpha=0.70, edgecolor='black' )
-			
-			if mask.sum( ) >= 2:
-				try:
-					m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
-					xline = np.linspace( float( x[ mask ].min( ) ), float( x[ mask ].max( ) ), 100 )
-					ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
+					} )
 				except Exception:
 					pass
+				
+				try:
+					spearman_rho, spearman_p = stats.spearmanr( x_summary[ pair_mask ],
+						y_summary[ pair_mask ] )
+					infer_rows.append(
+						{
+								'Analysis': 'Association',
+								'Test': 'Spearman Correlation',
+								'Statistic': spearman_rho,
+								'P-Value': spearman_p,
+								'DoF': np.nan,
+								'Effect Size': abs( spearman_rho ),
+								'N': float( pair_mask.sum( ) ),
+								'Notes': f'{summary_y} vs {summary_x}'
+						}
+					)
+				except Exception:
+					pass
+		
+		# -----------------------------------------------------------------
+		# Categorical Association Summary
+		# -----------------------------------------------------------------
+		if summary_cat1 and summary_cat2:
+			contingency_summary = pd.crosstab( df_dataset[ summary_cat1 ], df_dataset[ summary_cat2 ] )
 			
-			ax.set_title( f'Correlation — {col_y} vs {col_x2}',
-				fontsize=12, fontweight='bold', pad=10 )
-			ax.set_xlabel( col_x2 )
-			ax.set_ylabel( col_y )
-			ax.grid( True, alpha=0.20, linestyle='--' )
-			ax.spines[ 'top' ].set_visible( False )
-			ax.spines[ 'right' ].set_visible( False )
-			fig.tight_layout( )
-			st.pyplot( fig )
-			plt.close( fig )
-	
-	# -------------------------------------------------------------------------------------
-	# CATEGORICAL ASSOCIATION
-	# -------------------------------------------------------------------------------------
-	st.divider( )
-	st.subheader( 'Categorical Association' )
-	
-	if not categorical_cols or len( categorical_cols ) < 2:
-		st.info( 'At least two categorical variables are required for categorical association.' )
-	else:
-		cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-		with cat_c1:
-			col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
+			if not contingency_summary.empty and contingency_summary.shape[ 0 ] >= 2 and \
+					contingency_summary.shape[ 1 ] >= 2:
+				try:
+					chi2_stat, chi2_p, chi2_dof, expected = stats.chi2_contingency( contingency_summary )
+					n_total = contingency_summary.to_numpy( ).sum( )
+					phi2 = chi2_stat / n_total if n_total > 0 else np.nan
+					r_dim, c_dim = contingency_summary.shape
+					cramers_v = ( np.sqrt( phi2 / min( c_dim - 1, r_dim - 1 ) )
+							if min( c_dim - 1, r_dim - 1 ) > 0
+							else np.nan )
+					
+					infer_rows.append(
+					{
+						'Analysis': 'Categorical Association',
+						'Test': 'Chi-Square',
+						'Statistic': chi2_stat,
+						'P-Value': chi2_p,
+						'DoF': float( chi2_dof ),
+						'Effect Size': cramers_v,
+						'N': float( n_total ),
+						'Notes': f'{summary_cat1} vs {summary_cat2}'
+					} )
+				except Exception:
+					pass
 		
-		with cat_c2:
-			col_cat2 = st.selectbox(
-				'Select Second Categorical Variable',
-				[ c for c in categorical_cols if c != col_cat1 ]
-			)
-		
-		contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
-		
-		if contingency.empty or contingency.shape[ 0 ] < 2 or contingency.shape[ 1 ] < 2:
-			st.info( 'Not enough categorical variation for chi-square analysis.' )
+		if infer_rows:
+			df_infer_summary = pd.DataFrame( infer_rows )
+			
+			for c in [ 'Statistic', 'P-Value', 'DoF', 'Effect Size', 'N' ]:
+				if c in df_infer_summary.columns:
+					df_infer_summary[ c ] = pd.to_numeric( df_infer_summary[ c ], errors='coerce' )
+			
+			infer_column_config = {
+					'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
+					'Test': st.column_config.TextColumn( 'Test', width='medium' ),
+					'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.4f' ),
+					'P-Value': st.column_config.NumberColumn( 'P-Value', format='%.4g' ),
+					'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
+					'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.4f' ),
+					'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
+					'Notes': st.column_config.TextColumn( 'Notes', width='large' )
+			}
+			
+			st.data_editor( df_infer_summary, use_container_width=True, hide_index=True,
+				disabled=True, column_config=infer_column_config, key='infer_summary_editor' )
 		else:
-			chi2, p_chi, dof, expected = stats.chi2_contingency( contingency )
-			n = contingency.to_numpy( ).sum( )
-			phi2 = chi2 / n if n > 0 else np.nan
-			r, k = contingency.shape
-			cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1, r - 1 ) > 0 else np.nan
-			
-			ca1, ca2 = st.columns( 2, border=True )
-			with ca1:
-				render_table( contingency.reset_index( ) )
-			
-			with ca2:
-				fig, ax = plt.subplots( figsize=(7, 5.5) )
-				sns.heatmap(
-					contingency,
-					annot=True,
-					fmt='d',
-					cmap='Blues',
-					linewidths=0.5,
-					ax=ax,
-					cbar_kws={ 'shrink': 0.85, 'label': 'Count' }
-				)
-				ax.set_title(
-					f'Contingency Heatmap — {col_cat1} vs {col_cat2}',
-					fontsize=12,
-					fontweight='bold',
-					pad=10
-				)
-				ax.set_xlabel( col_cat2 )
-				ax.set_ylabel( col_cat1 )
+			st.info( 'Unable to compute inferential summary for the current selections.' )
+		
+		st.divider( )
+		
+		# -------------------------------------------------------------------------------------
+		# NORMALITY + GROUP COMPARISON
+		# -------------------------------------------------------------------------------------
+		nml_c1, nml_c2 = st.columns( [ 0.5, 0.5 ], border=True, gap='medium' )
+		col_group = None
+		
+		with nml_c1:
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Normality Test', help=cfg.NORMALITY_TESTING )
+			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
+			y = pd.to_numeric( df_dataset[ col_y ], errors='coerce' ).dropna( )
+			if len( y ) >= 3:
+				stat, p_value = stats.shapiro( y )
+				fig, ax = plt.subplots( figsize=(6.25, 5.25) )
+				stats.probplot( y, plot=ax )
+				ax.set_title( f'Q–Q Plot — {col_y}', fontsize=12, fontweight='bold', pad=10 )
+				ax.grid( True, alpha=0.20, linestyle='--' )
+				ax.spines[ 'top' ].set_visible( False )
+				ax.spines[ 'right' ].set_visible( False )
+				ax.ticklabel_format( style='plain', axis='both' )
+				
+				if len( ax.get_lines( ) ) >= 1:
+					ax.get_lines( )[ 0 ].set_marker( 'o' )
+					ax.get_lines( )[ 0 ].set_alpha( 0.72 )
+					ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
+				
 				fig.tight_layout( )
 				st.pyplot( fig )
 				plt.close( fig )
+				m1, m2, m3 = st.columns( 3 )
+				m1.metric( 'Count', f'{len( y ):,}' )
+				m2.metric( 'Shapiro W', f'{stat:,.4f}' )
+				m3.metric( 'Shapiro p', f'{p_value:,.4g}' )
+				
+				if p_value < 0.05:
+					st.caption( 'Distribution departs from normality at α = 0.05.' )
+				else:
+					st.caption( 'Distribution does not significantly depart from normality at α = 0.05.' )
+			else:
+				st.info( 'Not enough observations for normality testing.' )
+		
+		with nml_c2:
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Group Comparison' )
+			if categorical_cols:
+				col_group = st.selectbox( 'Select Grouping Variable (optional)',
+					[ '<None>' ] + categorical_cols )
+				if col_group == '<None>':
+					col_group = None
 			
-			cm1, cm2, cm3, cm4 = st.columns( 4 )
-			cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
-			cm2.metric( 'p-value', f'{p_chi:,.4g}' )
-			cm3.metric( 'DoF', f'{dof:,}' )
-			cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
+			if col_group:
+				df_group = df_dataset[ [ col_group, col_y ] ].copy( )
+				df_group[ col_y ] = pd.to_numeric( df_group[ col_y ], errors='coerce' )
+				df_group = df_group.dropna( subset=[ col_group, col_y ] )
+				grouped = [ grp[ col_y ].values for _, grp in df_group.groupby( col_group ) ]
+				valid_groups = [ g for g in grouped if len( g ) >= 2 ]
+				
+				if len( valid_groups ) >= 2:
+					f_stat, p_anova = stats.f_oneway( *valid_groups )
+					h_stat, p_kw = stats.kruskal( *valid_groups )
+					fig, ax = plt.subplots( figsize=(6.5, 5.25) )
+					sns.boxplot( data=df_group, x=col_group, y=col_y, ax=ax )
+					sns.stripplot( data=df_group, x=col_group, y=col_y, ax=ax,
+						color='black', alpha=0.45, size=4 )
+					ax.set_title( f'Group Comparison — {col_y} by {col_group}',
+						fontsize=12, fontweight='bold', pad=10 )
+					ax.set_xlabel( col_group )
+					ax.set_ylabel( col_y )
+					ax.grid( axis='y', alpha=0.20, linestyle='--' )
+					ax.spines[ 'top' ].set_visible( False )
+					ax.spines[ 'right' ].set_visible( False )
+					ax.tick_params( axis='x', rotation=30 )
+					fig.tight_layout( )
+					st.pyplot( fig )
+					plt.close( fig )
+					g1, g2, g3, g4 = st.columns( 4 )
+					g1.metric( 'Groups', f'{len( valid_groups ):,}' )
+					g2.metric( 'ANOVA F', f'{f_stat:,.4f}' )
+					g3.metric( 'ANOVA p', f'{p_anova:,.4g}' )
+					g4.metric( 'Kruskal p', f'{p_kw:,.4g}' )
+					st.caption( f'Kruskal–Wallis H = {h_stat:.4f}. '
+						f'Use the nonparametric result when normality or homoscedasticity is doubtful.' )
+				else:
+					st.info( 'Not enough valid groups for group comparison.' )
+			else:
+				st.info( 'Select a grouping variable to compare groups.' )
+			
+			# -------------------------------------------------------------------------------------
+			# CORRELATION ANALYSIS
+			# -------------------------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Correlation Analysis' )
+			cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+			with cor_c1:
+				candidate_x = [ c for c in numeric_cols if c != col_y ]
+				if not candidate_x:
+					st.info( 'A second numeric variable is required for correlation analysis.' )
+					col_x2 = None
+				else:
+					col_x2 = st.selectbox( 'Select Second Numeric Variable', candidate_x )
+			
+			with cor_c2:
+				if col_x2:
+					x = pd.to_numeric( df_dataset[ col_x2 ], errors='coerce' )
+					y2 = pd.to_numeric( df_dataset[ col_y ], errors='coerce' )
+					mask = x.notna( ) & y2.notna( )
+					if mask.sum( ) >= 3:
+						r_p, p_p = stats.pearsonr( x[ mask ], y2[ mask ] )
+						r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
+						r1, r2, r3, r4 = st.columns( 4 )
+						r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
+						r2.metric( 'Pearson r', f'{r_p:,.3f}' )
+						r3.metric( 'Pearson p', f'{p_p:,.4g}' )
+						r4.metric( 'Spearman ρ', f'{r_s:,.3f}' )
+						st.caption( f'Spearman p = {p_s:.4g}' )
+					else:
+						st.info( 'Not enough paired observations for correlation.' )
+			
+			if col_x2:
+				mask = x.notna( ) & y2.notna( )
+				if mask.sum( ) >= 3:
+					fig, ax = plt.subplots( figsize=(7, 5.25) )
+					ax.scatter( x[ mask ], y2[ mask ], alpha=0.70, edgecolor='black' )
+					if mask.sum( ) >= 2:
+						try:
+							m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
+							xline = np.linspace( float( x[ mask ].min( ) ),
+								float( x[ mask ].max( ) ), 100 )
+							ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
+						except Exception:
+							pass
+					
+					ax.set_title( f'Correlation — {col_y} vs {col_x2}', fontsize=12,
+						fontweight='bold', pad=10 )
+					
+					ax.set_xlabel( col_x2 )
+					ax.set_ylabel( col_y )
+					ax.grid( True, alpha=0.20, linestyle='--' )
+					ax.spines[ 'top' ].set_visible( False )
+					ax.spines[ 'right' ].set_visible( False )
+					fig.tight_layout( )
+					st.pyplot( fig )
+					plt.close( fig )
+			
+			# -------------------------------------------------------------------------------------
+			# CATEGORICAL ASSOCIATION
+			# -------------------------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Categorical Association' )
+			if not categorical_cols or len( categorical_cols ) < 2:
+				st.info( 'At least two categorical variables are required for categorical association.' )
+			else:
+				cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+				with cat_c1:
+					col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
+					
+				with cat_c2:
+					col_cat2 = st.selectbox( 'Select Second Categorical Variable',
+						[ c for c in categorical_cols if c != col_cat1 ] )
+				
+				contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
+				
+				if contingency.empty or contingency.shape[ 0 ] < 2 or contingency.shape[ 1 ] < 2:
+					st.info( 'Not enough categorical variation for chi-square analysis.' )
+				else:
+					chi2, p_chi, dof, expected = stats.chi2_contingency( contingency )
+					n = contingency.to_numpy( ).sum( )
+					phi2 = chi2 / n if n > 0 else np.nan
+					r, k = contingency.shape
+					cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1, r - 1 ) > 0 else np.nan
+					
+					ca1, ca2 = st.columns( 2, border=True )
+					with ca1:
+						render_table( contingency.reset_index( ) )
+					
+					with ca2:
+						fig, ax = plt.subplots( figsize=( 7, 5.5 ) )
+						sns.heatmap( contingency, annot=True, fmt='d', cmap='Blues',
+							linewidths=0.5, ax=ax, cbar_kws={ 'shrink': 0.85, 'label': 'Count' } )
+						
+						ax.set_title( f'Contingency Heatmap — {col_cat1} vs {col_cat2}',
+							fontsize=12, fontweight='bold', pad=10 )
+						
+						ax.set_xlabel( col_cat2 )
+						ax.set_ylabel( col_cat1 )
+						fig.tight_layout( )
+						st.pyplot( fig )
+						plt.close( fig )
+					
+					cm1, cm2, cm3, cm4 = st.columns( 4 )
+					cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
+					cm2.metric( 'p-value', f'{p_chi:,.4g}' )
+					cm3.metric( 'DoF', f'{dof:,}' )
+					cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
 
 # ============================================
 # ANOMALY DETECTION MODE
@@ -2081,14 +1973,12 @@ elif mode == 'Anomaly Detection':
 	with center:
 		st.header( cfg.MODE[ 'Anomaly Detection' ] )
 		st.divider( )
-		
 		if st.session_state.df_dataset is None:
 			st.info( 'No data loaded.' )
 			st.stop( )
 		
 		df_dataset = st.session_state.df_dataset
 		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
-		
 		if df_numeric.empty:
 			st.info( 'No usable numeric columns available for anomaly detection.' )
 			st.stop( )
@@ -2109,9 +1999,7 @@ elif mode == 'Anomaly Detection':
 				padding-bottom: 0.10rem;
 			}
 			</style>
-			""",
-			unsafe_allow_html=True
-		)
+			""", unsafe_allow_html=True )
 		
 		all_num_cols = df_numeric.columns.tolist( )
 		preferred = [ c for c in all_num_cols if c.lower( ) in ('py', 'cy', 'by') ]
@@ -2142,7 +2030,6 @@ elif mode == 'Anomaly Detection':
 		st.subheader( 'Detection Methods' )
 		
 		c_m1, c_m2 = st.columns( 2, border=True )
-		
 		with c_m1:
 			use_z = st.checkbox( 'Z-Score', value=True, help=cfg.Z_SCORE )
 			use_mz = st.checkbox( 'Modified Z-Score (MAD)', value=True, help=cfg.MODIFIED_Z )
@@ -2160,7 +2047,6 @@ elif mode == 'Anomaly Detection':
 		st.subheader( 'Thresholds' )
 		
 		c_t1, c_t2 = st.columns( 2, border=True )
-		
 		with c_t1:
 			z_thresh = st.slider( 'Z / Modified Z threshold', 2.0, 5.0, 3.0, 0.1, help=cfg.MODIFIED_Z )
 			iqr_mult = st.slider( 'IQR multiplier', 1.0, 3.0, 1.5, 0.1, help=cfg.IQR_MULTIPLIER )
@@ -2174,7 +2060,6 @@ elif mode == 'Anomaly Detection':
 		# Run Detection
 		# -------------------------------------------------------------------------
 		df_anamolies = pd.DataFrame( index=df_analysis.index )
-		
 		for col in vars_sel:
 			s = df_analysis[ col ].dropna( )
 			if s.empty:
@@ -2477,1678 +2362,1323 @@ elif mode == 'Anomaly Detection':
 # DATA PLUMBING MODE
 # ============================================
 elif mode == 'Data Plumbing':
-	st.header( cfg.MODE[ 'Data Plumbing' ] )
-	st.divider( )
-	
-	if df_dataset is None or df_dataset.empty:
-		st.warning( 'No dataset loaded.' )
-		st.stop( )
-	
-	df_original = df_dataset.copy( )
-	
-	numeric_columns = [ c for c in df_original.columns
-	                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
-	
-	categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
-	
-	# ======================================================================================
-	# Data Selection
-	# ======================================================================================
-	st.subheader( 'Selection' )
-	col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-	
-	with col_c1:
-		selected_columns = st.multiselect( 'Select Features',
-			options=df_original.columns.tolist( ),
-			default=st.session_state.get( 'plumbing_feature_columns', [ ] ),
-			key='plumbing_select_features' )
-	
-	with col_c2:
-		selected_target_options = [ c for c in df_original.columns
-				if c not in selected_columns ]
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Data Plumbing' ] )
+		st.divider( )
+		if df_dataset is None or df_dataset.empty:
+			st.warning( 'No dataset loaded.' )
+			st.stop( )
 		
-		selected_targets = st.multiselect( 'Select Targets',
-			options=selected_target_options,
-			default=st.session_state.get( 'plumbing_target_columns', [ ] ),
-			key='plumbing_select_targets' )
-	
-	sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
-	
-	with sel_b1:
-		if st.button( 'Create Working Dataset', key='plumbing_create_dataset', use_container_width=True ):
-			selected_all = selected_columns + [ c for c in selected_targets
+		df_original = df_dataset.copy( )
+		
+		numeric_columns = [ c for c in df_original.columns
+		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
+		
+		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
+		
+		# ======================================================================================
+		# Data Selection
+		# ======================================================================================
+		st.subheader( 'Selection' )
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with col_c1:
+			selected_columns = st.multiselect( 'Select Features',
+				options=df_original.columns.tolist( ),
+				default=st.session_state.get( 'plumbing_feature_columns', [ ] ),
+				key='plumbing_select_features' )
+		
+		with col_c2:
+			selected_target_options = [ c for c in df_original.columns
 					if c not in selected_columns ]
 			
-			if selected_all:
-				df_base = df_original[ selected_all ].copy( )
-			else:
-				df_base = df_original.copy( )
-			
-			st.session_state[ 'plumbing_feature_columns' ] = selected_columns.copy( )
-			st.session_state[ 'plumbing_target_columns' ] = selected_targets.copy( )
-			st.session_state[ 'df_plumbing_base' ] = df_base.copy( )
-			commit_frame( df_base )
-			st.success( 'Working dataframe created.' )
-	
-	with sel_b2:
-		if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset', use_container_width=True ):
-			df_base = st.session_state.get( 'df_plumbing_base' )
-			if df_base is None or df_base.empty:
-				df_base = st.session_state[ 'df_original' ].copy( )
-			commit_frame( df_base.copy( ) )
-			st.success( 'Working dataframe reset.' )
-	
-	with sel_b3:
-		if st.button( 'Reset To Original', key='plumbing_reset_to_original', use_container_width=True ):
-			st.session_state[ 'plumbing_feature_columns' ] = [ ]
-			st.session_state[ 'plumbing_target_columns' ] = [ ]
-			reset_to_original( )
-			st.success( 'Reset back to df_original.' )
-	
-	df_working = get_working_frame( )
-	active_numeric_columns = get_numeric_columns( df_working )
-	active_categorical_columns = get_categorical_columns( df_working )
-	
-	st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_working.columns ):,}')
-	
-	# ======================================================================================
-	# Data Processing
-	# ======================================================================================
-	st.subheader( 'Preprocessing' )
-	feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
-	
-	with feature_c1:
-		with st.expander( label='Data Scaling', key='scalers' ):
-			with st.expander( 'StandardScaler', expanded=False ):
-				scale_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns,
-					key='plumbing_standard_scaler_cols' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply StandardScaler', key='plumbing_standard_scaler_apply', use_container_width=True ):
-						if scale_cols:
-							df_apply = get_working_frame( )
-							scaler = StandardScaler( )
-							result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
-							df_apply[ scale_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'StandardScaler applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_standard_scaler_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'MinMaxScaler', expanded=False ):
-				scale_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns,
-					key='plumbing_minmax_scaler_cols' )
-				
-				a1, a2 = st.columns( 2 )
-				with a1:
-					if st.button( 'Apply MinMaxScaler', key='plumbing_minmax_scaler_apply', use_container_width=True ):
-						if scale_cols:
-							df_apply = get_working_frame( )
-							scaler = MinMaxScaler( )
-							result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
-							df_apply[ scale_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'MinMaxScaler applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_minmax_scaler_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'RobustScaler', expanded=False ):
-				scale_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns,
-					key='plumbing_robust_scaler_cols' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply RobustScaler', key='plumbing_robust_scaler_apply', use_container_width=True ):
-						if scale_cols:
-							df_apply = get_working_frame( )
-							scaler = RobustScaler( )
-							result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
-							df_apply[ scale_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'RobustScaler applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_robust_scaler_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'NormalScaler', expanded=False ):
-				scale_cols = st.multiselect(
-					'Columns',
-					options=active_numeric_columns,
-					key='plumbing_normal_scaler_cols'
-				)
-				
-				norm = st.selectbox(
-					'Norm',
-					options=[ 'l1', 'l2', 'max' ],
-					index=1,
-					key='plumbing_normal_scaler_norm'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply NormalScaler', key='plumbing_normal_scaler_apply', use_container_width=True ):
-						if scale_cols:
-							df_apply = get_working_frame( )
-							scaler = NormalScaler( norm=norm )
-							result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
-							df_apply[ scale_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'NormalScaler applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_normal_scaler_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'MaxAbsScaler', expanded=False ):
-				scale_cols = st.multiselect(
-					'Columns',
-					options=active_numeric_columns,
-					key='plumbing_maxabs_scaler_cols'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				with a1:
-					if st.button( 'Apply MaxAbsScaler', key='plumbing_maxabs_scaler_apply', use_container_width=True ):
-						if scale_cols:
-							df_apply = get_working_frame( )
-							scaler = MaxAbsScaler( )
-							result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
-							df_apply[ scale_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'MaxAbsScaler applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_maxabs_scaler_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to Original.' )
+			selected_targets = st.multiselect( 'Select Targets',
+				options=selected_target_options,
+				default=st.session_state.get( 'plumbing_target_columns', [ ] ),
+				key='plumbing_select_targets' )
 		
-		with st.expander( label='Data Imputation', key='imputers' ):
-			with st.expander( 'MeanImputer', expanded=False ):
-				impute_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns,
-					key='plumbing_mean_imputer_cols' )
+		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		with sel_b1:
+			if st.button( 'Create Working Dataset', key='plumbing_create_dataset',
+					use_container_width=True ):
 				
-				add_indicator = st.checkbox( 'Add Indicator Columns',
-					value=False,
-					key='plumbing_mean_imputer_indicator' )
+				selected_all = selected_columns + [ c for c in selected_targets
+						if c not in selected_columns ]
 				
-				a1, a2 = st.columns( 2 )
-				with a1:
-					if st.button( 'Apply MeanImputer', key='plumbing_mean_imputer_apply', use_container_width=True ):
-						if impute_cols:
-							df_apply = get_working_frame( )
-							imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
-							result = imputer.train_transform( df_apply[ impute_cols ].to_numpy( ) )
-							df_apply = replace_columns( df_apply, impute_cols,
-								result, 'mean_imputer' )
-							commit_frame( df_apply )
-							st.success( 'MeanImputer applied.' )
+				if selected_all:
+					df_base = df_original[ selected_all ].copy( )
+				else:
+					df_base = df_original.copy( )
 				
-				with a2:
-					if st.button( 'Reset', key='plumbing_mean_imputer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
-				impute_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns,
-					key='plumbing_nearest_imputer_cols' )
-				
-				neighbors = st.number_input( 'Neighbors', min_value=1,
-					value=5, step=1,
-					key='plumbing_nearest_imputer_neighbors' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply Nearest Neighbor Imputer', key='plumbing_nearest_imputer_apply',
-							use_container_width=True ):
-						if impute_cols:
-							df_apply = get_working_frame( )
-							imputer = NearestImputer( neighbors=int( neighbors ) )
-							result = imputer.train_transform( df_apply[ impute_cols ].to_numpy( ) )
-							df_apply = replace_columns(
-								df_apply,
-								impute_cols,
-								result,
-								'nearest_imputer'
-							)
-							commit_frame( df_apply )
-							st.success( 'Nearest Imputer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_nearest_imputer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset Data' )
-			
-			with st.expander( 'Iterative Imputer', expanded=False ):
-				impute_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns,
-					key='plumbing_iterative_imputer_cols' )
-				
-				max_iter = st.number_input( 'Max Iterations', min_value=1,
-					value=10, step=1, key='plumbing_iterative_imputer_max_iter' )
-				
-				random_state = st.number_input( 'Random State', min_value=0,
-					value=0, step=1, key='plumbing_iterative_imputer_random_state' )
-				
-				a1, a2 = st.columns( 2 )
-				with a1:
-					if st.button( 'Apply Iterative Imputer', key='plumbing_iterative_imputer_apply', use_container_width=True ):
-						if impute_cols:
-							df_apply = get_working_frame( )
-							imputer = IterativeImputer( max_iter=int( max_iter ),
-								random_state=int( random_state ) )
-							result = imputer.train_transform( df_apply[ impute_cols ].to_numpy( ) )
-							df_apply = replace_columns( df_apply, impute_cols,
-								result, 'iterative_imputer' )
-							commit_frame( df_apply )
-							st.success( 'Iterative Imputer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_iterative_imputer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset Data' )
-			
-			with st.expander( 'Simple Imputer', expanded=False ):
-				impute_cols = st.multiselect( 'Columns',
-					options=df_working.columns.tolist( ),
-					key='plumbing_simple_imputer_cols' )
-				
-				strategy = st.selectbox( 'Strategy',
-					options=[ 'mean', 'median', 'most_frequent', 'constant' ],
-					key='plumbing_simple_imputer_strategy' )
-				
-				fill_value = st.text_input( 'Fill Value', value='0.0',
-					key='plumbing_simple_imputer_fill_value' )
-				
-				add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
-					key='plumbing_simple_imputer_indicator' )
-				
-				keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
-					key='plumbing_simple_imputer_keep_empty' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply SimpleImputer', key='plumbing_simple_imputer_apply',
-							use_container_width=True ):
-						if impute_cols:
-							df_apply = get_working_frame( )
-							
-							if strategy in [ 'mean', 'median' ]:
-								df_input = df_apply[
-									impute_cols ].apply( pd.to_numeric, errors='coerce' )
-								fill_object: object = 0.0
-							elif strategy == 'constant':
-								df_input = df_apply[ impute_cols ].copy( )
-								fill_object = fill_value
-							else:
-								df_input = df_apply[ impute_cols ].copy( )
-								fill_object = fill_value
-							
-							imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
-								add_indicator=add_indicator, keep_empty_features=keep_empty_features )
-							
-							result = imputer.train_transform( df_input.to_numpy( ) )
-							df_apply = replace_columns( df_apply, impute_cols,
-								result, 'simple_imputer' )
-							commit_frame( df_apply )
-							st.success( 'SimpleImputer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_simple_imputer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
+				st.session_state[ 'plumbing_feature_columns' ] = selected_columns.copy( )
+				st.session_state[ 'plumbing_target_columns' ] = selected_targets.copy( )
+				st.session_state[ 'df_plumbing_base' ] = df_base.copy( )
+				commit_frame( df_base )
+				st.success( 'Working dataframe created.' )
 		
-		with st.expander( label='Data Encoding', key='encoders' ):
-			
-			with st.expander( 'One-Hot Encoder', expanded=False ):
-				encode_cols = st.multiselect( 'Columns', options=active_categorical_columns,
-					key='plumbing_onehot_cols' )
-				
-				sparse = st.checkbox( 'Sparse Output', value=False,
-					key='plumbing_onehot_sparse' )
-				
-				unknown = st.selectbox( 'Unknown Category Handling',
-					options=[ 'ignore', 'error' ], index=0,
-					key='plumbing_onehot_unknown' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply One-Hot Encoder', key='plumbing_onehot_apply', use_container_width=True ):
-						if encode_cols:
-							df_apply = get_working_frame( )
-							encoder = OneHotEncoder(
-								sparse=bool( sparse ),
-								unknown=unknown
-							)
-							result = encoder.train_transform(
-								df_apply[ encode_cols ].astype( str ).to_numpy( )
-							)
-							df_apply = replace_columns(
-								df_apply,
-								encode_cols,
-								result,
-								'onehot'
-							)
-							commit_frame( df_apply )
-							st.success( 'OneHotEncoder applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_onehot_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'OrdinalEncoder', expanded=False ):
-				encode_cols = st.multiselect(
-					'Columns',
-					options=active_categorical_columns,
-					key='plumbing_ordinal_cols'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply OrdinalEncoder', key='plumbing_ordinal_apply', use_container_width=True ):
-						if encode_cols:
-							df_apply = get_working_frame( )
-							encoder = OrdinalEncoder( )
-							result = encoder.train_transform(
-								df_apply[ encode_cols ].astype( str ).to_numpy( )
-							)
-							df_apply[ encode_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'OrdinalEncoder applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_ordinal_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'LabelEncoder', expanded=False ):
-				target_col = st.selectbox(
-					'Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_label_encoder_col'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply LabelEncoder', key='plumbing_label_encoder_apply', use_container_width=True ):
-						if target_col:
-							df_apply = get_working_frame( )
-							encoder = LabelEncoder( )
-							result = encoder.train_transform(
-								df_apply[ target_col ].astype( str ).to_numpy( )
-							)
-							df_apply[ target_col ] = result
-							commit_frame( df_apply )
-							st.success( 'LabelEncoder applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_label_encoder_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'TargetEncoder', expanded=False ):
-				encode_cols = st.multiselect(
-					'Categorical Feature Columns',
-					options=active_categorical_columns,
-					key='plumbing_target_encoder_cols'
-				)
-				
-				target_col = st.selectbox( 'Target Column',
-					options=df_working.columns.tolist( ), key='plumbing_target_encoder_target_col' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply TargetEncoder', key='plumbing_target_encoder_apply', use_container_width=True ):
-						if encode_cols and target_col:
-							df_apply = get_working_frame( )
-							encoder = TargetEncoder( )
-							X = df_apply[ encode_cols ].astype( str ).to_numpy( )
-							y = df_apply[ target_col ].to_numpy( )
-							result = encoder.train_transform( X, y )
-							df_apply = replace_columns(
-								df_apply,
-								encode_cols,
-								result,
-								'target_encoder'
-							)
-							commit_frame( df_apply )
-							st.success( 'TargetEncoder applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_target_encoder_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'PolynomialFeatures', expanded=False ):
-				poly_cols = st.multiselect( 'Columns',
-					options=active_numeric_columns, key='plumbing_polynomial_cols' )
-				
-				degree = st.slider( 'Degree', min_value=2, max_value=4,
-					value=2, key='plumbing_polynomial_degree' )
-				
-				interaction = st.checkbox( 'Interaction Only', value=True,
-					key='plumbing_polynomial_interaction' )
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply PolynomialFeatures', key='plumbing_polynomial_apply', use_container_width=True ):
-						if poly_cols:
-							df_apply = get_working_frame( )
-							encoder = PolynomialFeatures(
-								degree=int( degree ),
-								interaction=bool( interaction )
-							)
-							result = encoder.train_transform(
-								df_apply[ poly_cols ].to_numpy( )
-							)
-							df_apply = replace_columns(
-								df_apply,
-								poly_cols,
-								result,
-								'polynomial'
-							)
-							commit_frame( df_apply )
-							st.success( 'PolynomialFeatures applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_polynomial_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-	
-	with feature_c2:
-		with st.expander( label='Data Transformation', key='transformers' ):
-			with st.expander( 'Binarizer', expanded=False ):
-				transform_cols = st.multiselect(
-					'Columns',
-					options=active_numeric_columns,
-					key='plumbing_binarizer_cols'
-				)
-				
-				threshold = st.number_input(
-					'Threshold',
-					value=0.0,
-					step=0.1,
-					key='plumbing_binarizer_threshold'
-				)
-				
-				copy = st.checkbox(
-					'Copy',
-					value=True,
-					key='plumbing_binarizer_copy'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply Binarizer', key='plumbing_binarizer_apply', use_container_width=True ):
-						if transform_cols:
-							df_apply = get_working_frame( )
-							transformer = Binarizer(
-								threshold=float( threshold ),
-								copy=bool( copy )
-							)
-							result = transformer.train_transform(
-								df_apply[ transform_cols ].to_numpy( )
-							)
-							df_apply[ transform_cols ] = result
-							commit_frame( df_apply )
-							st.success( 'Binarizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_binarizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'LabelBinarizer', expanded=False ):
-				target_col = st.selectbox(
-					'Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_label_binarizer_col'
-				)
-				
-				pos_label = st.number_input(
-					'Positive Label',
-					value=1,
-					step=1,
-					key='plumbing_label_binarizer_pos'
-				)
-				
-				neg_label = st.number_input(
-					'Negative Label',
-					value=0,
-					step=1,
-					key='plumbing_label_binarizer_neg'
-				)
-				
-				sparse_output = st.checkbox(
-					'Sparse Output',
-					value=False,
-					key='plumbing_label_binarizer_sparse'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply LabelBinarizer', key='plumbing_label_binarizer_apply', use_container_width=True ):
-						if target_col:
-							df_apply = get_working_frame( )
-							transformer = LabelBinarizer(
-								pos_label=int( pos_label ),
-								neg_label=int( neg_label ),
-								sparse_output=bool( sparse_output )
-							)
-							result = transformer.train_transform(
-								df_apply[ target_col ].astype( str ).to_numpy( )
-							)
-							df_apply = replace_columns(
-								df_apply,
-								[ target_col ],
-								result,
-								'label_binarizer'
-							)
-							commit_frame( df_apply )
-							st.success( 'LabelBinarizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_label_binarizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'MultiLabelBinarizer', expanded=False ):
-				target_col = st.selectbox(
-					'Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_multilabel_binarizer_col'
-				)
-				
-				delimiter = st.text_input(
-					'Delimiter',
-					value=',',
-					key='plumbing_multilabel_binarizer_delimiter'
-				)
-				
-				sparse_output = st.checkbox(
-					'Sparse Output',
-					value=False,
-					key='plumbing_multilabel_binarizer_sparse'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply MultiLabelBinarizer', key='plumbing_multilabel_binarizer_apply', use_container_width=True ):
-						if target_col:
-							df_apply = get_working_frame( )
-							y_multi = parse_multilabel_series(
-								df_apply[ target_col ],
-								delimiter=delimiter
-							)
-							transformer = MultiLabelBinarizer(
-								classes=None,
-								sparse_output=bool( sparse_output )
-							)
-							result = transformer.train_transform( y_multi )
-							df_apply = replace_columns(
-								df_apply,
-								[ target_col ],
-								result,
-								'multilabel_binarizer'
-							)
-							commit_frame( df_apply )
-							st.success( 'MultiLabelBinarizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_multilabel_binarizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'TfidfTransformer', expanded=False ):
-				text_count_cols = st.multiselect(
-					'Count Matrix Columns',
-					options=active_numeric_columns,
-					key='plumbing_tfidf_transformer_cols'
-				)
-				
-				norm = st.selectbox(
-					'Norm',
-					options=[ 'l1', 'l2', None ],
-					index=1,
-					key='plumbing_tfidf_transformer_norm'
-				)
-				
-				use_idf = st.checkbox(
-					'Use IDF',
-					value=True,
-					key='plumbing_tfidf_transformer_use_idf'
-				)
-				
-				smooth_idf = st.checkbox(
-					'Smooth IDF',
-					value=True,
-					key='plumbing_tfidf_transformer_smooth_idf'
-				)
-				
-				sublinear_tf = st.checkbox(
-					'Sublinear TF',
-					value=False,
-					key='plumbing_tfidf_transformer_sublinear'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply TfidfTransformer', key='plumbing_tfidf_transformer_apply', use_container_width=True ):
-						if text_count_cols:
-							df_apply = get_working_frame( )
-							transformer = TfidfTransformer(
-								norm=norm,
-								use_idf=bool( use_idf ),
-								smooth_idf=bool( smooth_idf ),
-								sublinear_tf=bool( sublinear_tf )
-							)
-							result = transformer.train_transform(
-								df_apply[
-									text_count_cols ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-							)
-							df_apply = replace_columns(
-								df_apply,
-								text_count_cols,
-								result,
-								'tfidf_transformer'
-							)
-							commit_frame( df_apply )
-							st.success( 'TfidfTransformer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_tfidf_transformer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'ColumnTransformer', expanded=False ):
-				numeric_cols = st.multiselect(
-					'Numeric Columns',
-					options=active_numeric_columns,
-					key='plumbing_column_transformer_numeric_cols'
-				)
-				
-				categorical_cols = st.multiselect(
-					'Categorical Columns',
-					options=active_categorical_columns,
-					key='plumbing_column_transformer_categorical_cols'
-				)
-				
-				numeric_transform = st.selectbox(
-					'Numeric Transformer',
-					options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler', 'MaxAbsScaler',
-					          'Binarizer', 'None' ],
-					key='plumbing_column_transformer_numeric_transform'
-				)
-				
-				categorical_transform = st.selectbox(
-					'Categorical Transformer',
-					options=[ 'OneHotEncoder', 'OrdinalEncoder', 'None' ],
-					key='plumbing_column_transformer_categorical_transform'
-				)
-				
-				remainder = st.selectbox(
-					'Remainder',
-					options=[ 'drop', 'passthrough' ],
-					key='plumbing_column_transformer_remainder'
-				)
-				
-				sparse_threshold = st.slider(
-					'Sparse Threshold',
-					min_value=0.0,
-					max_value=1.0,
-					value=0.3,
-					key='plumbing_column_transformer_sparse_threshold'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply ColumnTransformer', key='plumbing_column_transformer_apply', use_container_width=True ):
-						df_apply = get_working_frame( )
-						transformers = [ ]
-						
-						if numeric_cols and numeric_transform != 'None':
-							if numeric_transform == 'StandardScaler':
-								numeric_model = StandardScaler( ).model
-							elif numeric_transform == 'MinMaxScaler':
-								numeric_model = MinMaxScaler( ).model
-							elif numeric_transform == 'RobustScaler':
-								numeric_model = RobustScaler( ).model
-							elif numeric_transform == 'MaxAbsScaler':
-								numeric_model = MaxAbsScaler( ).model
-							else:
-								numeric_model = Binarizer( ).model
-							
-							transformers.append(
-								('numeric', numeric_model, numeric_cols)
-							)
-						
-						if categorical_cols and categorical_transform != 'None':
-							if categorical_transform == 'OneHotEncoder':
-								categorical_model = OneHotEncoder( sparse=False, unknown='ignore' ).model
-							else:
-								categorical_model = OrdinalEncoder( ).model
-							
-							transformers.append(
-								('categorical', categorical_model, categorical_cols)
-							)
-						
-						if transformers:
-							transformer = ColumnTransformer(
-								transformers=transformers,
-								remainder=remainder,
-								sparse_threshold=float( sparse_threshold ),
-								n_jobs=None,
-								transformer_weights=None,
-								verbose=False
-							)
-							
-							result = transformer.train_transform( df_apply )
-							df_apply = normalize_result_frame(
-								result=result,
-								index=df_apply.index,
-								prefix='column_transformer',
-								columns=None
-							)
-							commit_frame( df_apply )
-							st.success( 'ColumnTransformer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_column_transformer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'TfidfVectorizer', expanded=False ):
-				text_cols = st.multiselect(
-					'Text Columns',
-					options=df_working.columns.tolist( ),
-					key='plumbing_tfidf_vectorizer_cols'
-				)
-				
-				ngram_max = st.slider(
-					'Max N-Gram',
-					min_value=1,
-					max_value=3,
-					value=1,
-					key='plumbing_tfidf_vectorizer_ngram_max'
-				)
-				
-				max_features = st.number_input(
-					'Max Features',
-					min_value=0,
-					value=0,
-					step=1,
-					key='plumbing_tfidf_vectorizer_max_features'
-				)
-				
-				use_idf = st.checkbox(
-					'Use IDF',
-					value=True,
-					key='plumbing_tfidf_vectorizer_use_idf'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply TfidfVectorizer', key='plumbing_tfidf_vectorizer_apply', use_container_width=True ):
-						if text_cols:
-							df_apply = get_working_frame( )
-							transformer = TfidfVectorizer(
-								ngram_range=(1, int( ngram_max )),
-								max_features=None if int( max_features ) == 0 else int( max_features ),
-								use_idf=bool( use_idf )
-							)
-							df_apply = apply_text_vectorizer(
-								df_apply,
-								text_cols,
-								transformer,
-								'tfidf_vectorizer'
-							)
-							commit_frame( df_apply )
-							st.success( 'TfidfVectorizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_tfidf_vectorizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'CountVectorizer', expanded=False ):
-				text_cols = st.multiselect(
-					'Text Columns',
-					options=df_working.columns.tolist( ),
-					key='plumbing_count_vectorizer_cols'
-				)
-				
-				ngram_max = st.slider(
-					'Max N-Gram',
-					min_value=1,
-					max_value=3,
-					value=1,
-					key='plumbing_count_vectorizer_ngram_max'
-				)
-				
-				max_features = st.number_input(
-					'Max Features',
-					min_value=0,
-					value=0,
-					step=1,
-					key='plumbing_count_vectorizer_max_features'
-				)
-				
-				binary = st.checkbox(
-					'Binary Counts',
-					value=False,
-					key='plumbing_count_vectorizer_binary'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply CountVectorizer', key='plumbing_count_vectorizer_apply', use_container_width=True ):
-						if text_cols:
-							df_apply = get_working_frame( )
-							transformer = CountVectorizer(
-								ngram_range=(1, int( ngram_max )),
-								max_features=None if int( max_features ) == 0 else int( max_features ),
-								binary=bool( binary )
-							)
-							df_apply = apply_text_vectorizer(
-								df_apply,
-								text_cols,
-								transformer,
-								'count_vectorizer'
-							)
-							commit_frame( df_apply )
-							st.success( 'CountVectorizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_count_vectorizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'HashVectorizer', expanded=False ):
-				text_cols = st.multiselect(
-					'Text Columns',
-					options=df_working.columns.tolist( ),
-					key='plumbing_hash_vectorizer_cols'
-				)
-				
-				n_features = st.number_input(
-					'Number of Features',
-					min_value=8,
-					value=1024,
-					step=8,
-					key='plumbing_hash_vectorizer_n_features'
-				)
-				
-				ngram_max = st.slider(
-					'Max N-Gram',
-					min_value=1,
-					max_value=3,
-					value=1,
-					key='plumbing_hash_vectorizer_ngram_max'
-				)
-				
-				binary = st.checkbox(
-					'Binary',
-					value=False,
-					key='plumbing_hash_vectorizer_binary'
-				)
-				
-				alternate_sign = st.checkbox(
-					'Alternate Sign',
-					value=True,
-					key='plumbing_hash_vectorizer_alternate_sign'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply HashVectorizer', key='plumbing_hash_vectorizer_apply', use_container_width=True ):
-						if text_cols:
-							df_apply = get_working_frame( )
-							transformer = HashVectorizer(
-								num=int( n_features ),
-								ngram_range=(1, int( ngram_max )),
-								binary=bool( binary ),
-								alternate_sign=bool( alternate_sign )
-							)
-							df_apply = apply_text_vectorizer(
-								df_apply,
-								text_cols,
-								transformer,
-								'hash_vectorizer'
-							)
-							commit_frame( df_apply )
-							st.success( 'HashVectorizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_hash_vectorizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'DictVectorizer', expanded=False ):
-				dict_cols = st.multiselect(
-					'Columns',
-					options=df_working.columns.tolist( ),
-					key='plumbing_dict_vectorizer_cols'
-				)
-				
-				separator = st.text_input(
-					'Separator',
-					value='=',
-					key='plumbing_dict_vectorizer_separator'
-				)
-				
-				sparse = st.checkbox(
-					'Sparse Output',
-					value=True,
-					key='plumbing_dict_vectorizer_sparse'
-				)
-				
-				sort = st.checkbox(
-					'Sort Feature Names',
-					value=True,
-					key='plumbing_dict_vectorizer_sort'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply DictVectorizer', key='plumbing_dict_vectorizer_apply', use_container_width=True ):
-						if dict_cols:
-							df_apply = get_working_frame( )
-							transformer = DictVectorizer(
-								dtype=np.float64,
-								separator=separator,
-								sparse=bool( sparse ),
-								sort=bool( sort )
-							)
-							df_apply = apply_dict_transform(
-								df_apply,
-								dict_cols,
-								transformer,
-								'dict_vectorizer'
-							)
-							commit_frame( df_apply )
-							st.success( 'DictVectorizer applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_dict_vectorizer_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'FeatureHasher', expanded=False ):
-				hash_cols = st.multiselect(
-					'Columns',
-					options=df_working.columns.tolist( ),
-					key='plumbing_feature_hasher_cols'
-				)
-				
-				n_features = st.number_input(
-					'Number of Features',
-					min_value=8,
-					value=1024,
-					step=8,
-					key='plumbing_feature_hasher_n_features'
-				)
-				
-				alternate_sign = st.checkbox(
-					'Alternate Sign',
-					value=True,
-					key='plumbing_feature_hasher_alternate_sign'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply FeatureHasher', key='plumbing_feature_hasher_apply', use_container_width=True ):
-						if hash_cols:
-							df_apply = get_working_frame( )
-							transformer = FeatureHasher(
-								n_features=int( n_features ),
-								input_type='dict',
-								dtype=np.float64,
-								alternate_sign=bool( alternate_sign )
-							)
-							df_apply = apply_dict_transform(
-								df_apply,
-								hash_cols,
-								transformer,
-								'feature_hasher'
-							)
-							commit_frame( df_apply )
-							st.success( 'FeatureHasher applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_feature_hasher_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
+		with sel_b2:
+			if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset',
+					use_container_width=True ):
+				
+				df_base = st.session_state.get( 'df_plumbing_base' )
+				if df_base is None or df_base.empty:
+					df_base = st.session_state[ 'df_original' ].copy( )
+				commit_frame( df_base.copy( ) )
+				st.success( 'Working dataframe reset.' )
 		
-		with st.expander( label='Feature Selection', key='selectors' ):
-			with st.expander( 'VarianceThreshold', expanded=False ):
-				select_cols = st.multiselect(
-					'Columns',
-					options=active_numeric_columns,
-					key='plumbing_variance_threshold_cols'
-				)
+		with sel_b3:
+			if st.button( 'Reset To Original', key='plumbing_reset_to_original',
+					use_container_width=True ):
 				
-				threshold = st.number_input(
-					'Threshold',
-					min_value=0.0,
-					value=0.0,
-					step=0.01,
-					key='plumbing_variance_threshold_value'
-				)
+				st.session_state[ 'plumbing_feature_columns' ] = [ ]
+				st.session_state[ 'plumbing_target_columns' ] = [ ]
+				reset_to_original( )
+				st.success( 'Reset back to df_original.' )
+		
+		df_working = get_working_frame( )
+		active_numeric_columns = get_numeric_columns( df_working )
+		active_categorical_columns = get_categorical_columns( df_working )
+		st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_working.columns ):,}')
+		
+		# ======================================================================================
+		# Data Processing
+		# ======================================================================================
+		st.subheader( 'Preprocessing' )
+		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
+		with feature_c1:
+			with st.expander( label='Data Scaling', key='scalers' ):
 				
-				a1, a2 = st.columns( 2 )
+				with st.expander( 'Standard Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_standard_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_standard_scaler_apply',
+								use_container_width=True ):
+							
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = StandardScaler( )
+								result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'StandardScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_standard_scaler_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				with a1:
-					if st.button( 'Apply VarianceThreshold', key='plumbing_variance_threshold_apply', use_container_width=True ):
-						if select_cols:
-							df_apply = get_working_frame( )
-							selector = VarianceThreshold( thresh=float( threshold ) )
-							result = selector.train_transform(
-								df_apply[ select_cols ].to_numpy( )
-							)
-							df_apply = replace_columns(
-								df_apply,
-								select_cols,
-								result,
-								'variance_threshold'
-							)
-							commit_frame( df_apply )
-							st.success( 'VarianceThreshold applied.' )
+				with st.expander( 'Min-Max Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_minmax_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_minmax_scaler_apply',
+								use_container_width=True ):
+							
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = MinMaxScaler( )
+								result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'MinMaxScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_minmax_scaler_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				with a2:
-					if st.button( 'Reset', key='plumbing_variance_threshold_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
+				with st.expander( 'Robust Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_robust_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_robust_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = RobustScaler( )
+								result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'RobustScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_robust_scaler_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Normal Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_normal_scaler_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
+						index=1, key='plumbing_normal_scaler_norm' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_normal_scaler_apply',
+								use_container_width=True ):
+							
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = NormalScaler( norm=norm )
+								result = scaler.train_transform( 
+									df_apply[ scale_cols ].to_numpy( ) )
+								
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'NormalScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_normal_scaler_reset', 
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_maxabs_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_maxabs_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = MaxAbsScaler( )
+								result = scaler.train_transform( df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'MaxAbsScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_maxabs_scaler_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 			
-			with st.expander( 'CCA', expanded=False ):
-				X_cols = st.multiselect(
-					'Predictor Columns',
-					options=active_numeric_columns,
-					key='plumbing_cca_x_cols'
-				)
+			with st.expander( label='Data Imputation', key='imputers' ):
 				
-				y_cols = st.multiselect(
-					'Target Columns',
-					options=active_numeric_columns,
-					key='plumbing_cca_y_cols'
-				)
+				with st.expander( 'Mean Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_mean_imputer_cols' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='plumbing_mean_imputer_indicator' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_mean_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+								result = imputer.train_transform( df_apply[ impute_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'mean_imputer' )
+								commit_frame( df_apply )
+								st.success( 'MeanImputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_mean_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				n_components = st.number_input(
-					'Components',
-					min_value=1,
-					value=2,
-					step=1,
-					key='plumbing_cca_components'
-				)
+				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_nearest_imputer_cols' )
+					
+					neighbors = st.number_input( 'Neighbors', min_value=1,
+						value=5, step=1, key='plumbing_nearest_imputer_neighbors' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_nearest_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								imputer = NearestImputer( neighbors=int( neighbors ) )
+								result = imputer.train_transform( df_apply[ impute_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'nearest_imputer' )
+								
+								commit_frame( df_apply )
+								st.success( 'Nearest Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_nearest_imputer_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset Data' )
 				
-				scale = st.checkbox(
-					'Scale',
-					value=True,
-					key='plumbing_cca_scale'
-				)
+				with st.expander( 'Iterative Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_iterative_imputer_cols' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1,
+						value=10, step=1, key='plumbing_iterative_imputer_max_iter' )
+					
+					random_state = st.number_input( 'Random State', min_value=0,
+						value=0, step=1, key='plumbing_iterative_imputer_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Iterative Imputer', key='plumbing_iterative_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								imputer = IterativeImputer( max_iter=int( max_iter ),
+									random_state=int( random_state ) )
+								result = imputer.train_transform( df_apply[ impute_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'iterative_imputer' )
+								commit_frame( df_apply )
+								st.success( 'Iterative Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_iterative_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset Data' )
 				
-				max_iter = st.number_input(
-					'Max Iterations',
-					min_value=1,
-					value=500,
-					step=1,
-					key='plumbing_cca_max_iter'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply CCA', key='plumbing_cca_apply', use_container_width=True ):
-						if X_cols and y_cols:
-							df_apply = get_working_frame( )
-							selector = CCA(
-								num=int( n_components ),
-								scale=bool( scale ),
-								size=int( max_iter )
-							)
-							result = selector.train_transform(
-								df_apply[ X_cols ].to_numpy( ),
-								df_apply[ y_cols ].to_numpy( )
-							)
-							df_result = normalize_result_frame(
-								result=result,
-								index=df_apply.index,
-								prefix='cca',
-								columns=None
-							)
-							df_apply = pd.concat(
-								[
-										df_apply.drop( columns=X_cols + y_cols, errors='ignore' ),
-										df_result
-								],
-								axis=1
-							)
-							commit_frame( df_apply )
-							st.success( 'CCA applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_cca_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
+				with st.expander( 'Simple Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=df_working.columns.tolist( ),
+						key='plumbing_simple_imputer_cols' )
+					
+					strategy = st.selectbox( 'Strategy',
+						options=[ 'mean', 'median', 'most_frequent', 'constant' ],
+						key='plumbing_simple_imputer_strategy' )
+					
+					fill_value = st.text_input( 'Fill Value', value='0.0',
+						key='plumbing_simple_imputer_fill_value' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='plumbing_simple_imputer_indicator' )
+					
+					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
+						key='plumbing_simple_imputer_keep_empty' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply SimpleImputer', key='plumbing_simple_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								if strategy in [ 'mean', 'median' ]:
+									df_input = df_apply[ impute_cols ].apply(
+										pd.to_numeric, errors='coerce' )
+									fill_object: object = 0.0
+								elif strategy == 'constant':
+									df_input = df_apply[ impute_cols ].copy( )
+									fill_object = fill_value
+								else:
+									df_input = df_apply[ impute_cols ].copy( )
+									fill_object = fill_value
+									
+								imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
+									add_indicator=add_indicator, keep_empty_features=keep_empty_features )
+								
+								result = imputer.train_transform( df_input.to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'simple_imputer' )
+								commit_frame( df_apply )
+								st.success( 'Simple Imputer Applied' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_simple_imputer_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 			
-			with st.expander( 'PCA', expanded=False ):
-				select_cols = st.multiselect(
-					'Columns',
-					options=active_numeric_columns,
-					key='plumbing_pca_cols'
-				)
+			with st.expander( label='Data Encoding', key='encoders' ):
 				
-				n_components = st.number_input(
-					'Components',
-					min_value=1,
-					value=2,
-					step=1,
-					key='plumbing_pca_components'
-				)
+				with st.expander( 'One-Hot Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=active_categorical_columns,
+						key='plumbing_onehot_cols' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=False,
+						key='plumbing_onehot_sparse' )
+					
+					unknown = st.selectbox( 'Unknown Category Handling',
+						options=[ 'ignore', 'error' ], index=0,
+						key='plumbing_onehot_unknown' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_onehot_apply', use_container_width=True ):
+							if encode_cols:
+								df_apply = get_working_frame( )
+								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
+								result = encoder.train_transform(
+									df_apply[ encode_cols ].astype( str ).to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, encode_cols,
+									result, 'onehot' )
+								commit_frame( df_apply )
+								st.success( 'OneHotEncoder applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_onehot_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				solver = st.selectbox(
-					'SVD Solver',
-					options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
-					key='plumbing_pca_solver'
-				)
+				with st.expander( 'Ordinal Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=active_categorical_columns,
+						key='plumbing_ordinal_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_ordinal_apply', use_container_width=True ):
+							if encode_cols:
+								df_apply = get_working_frame( )
+								encoder = OrdinalEncoder( )
+								result = encoder.train_transform(
+									df_apply[ encode_cols ].astype( str ).to_numpy( ) )
+								df_apply[ encode_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'Ordinal Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_ordinal_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				a1, a2 = st.columns( 2 )
+				with st.expander( 'Label Encoder', expanded=False ):
+					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+						key='plumbing_label_encoder_col' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_label_encoder_apply',
+								use_container_width=True ):
+							if target_col:
+								df_apply = get_working_frame( )
+								encoder = LabelEncoder( )
+								result = encoder.train_transform(
+									df_apply[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_apply[ target_col ] = result
+								commit_frame( df_apply )
+								st.success( 'Label Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_label_encoder_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				with a1:
-					if st.button( 'Apply PCA', key='plumbing_pca_apply', use_container_width=True ):
-						if select_cols:
+				with st.expander( 'Target Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Categorical Feature Columns',
+						options=active_categorical_columns, key='plumbing_target_encoder_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_target_encoder_target_col' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_target_encoder_apply',
+								use_container_width=True ):
+							if encode_cols and target_col:
+								df_apply = get_working_frame( )
+								encoder = TargetEncoder( )
+								X = df_apply[ encode_cols ].astype( str ).to_numpy( )
+								y = df_apply[ target_col ].to_numpy( )
+								result = encoder.train_transform( X, y )
+								df_apply = replace_columns( df_apply, encode_cols, result,
+									'target_encoder' )
+								commit_frame( df_apply )
+								st.success( 'Target Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_target_encoder_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Polynomial Features', expanded=False ):
+					poly_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_polynomial_cols' )
+					
+					degree = st.slider( 'Degree', min_value=2, max_value=4,
+						value=2, key='plumbing_polynomial_degree' )
+					
+					interaction = st.checkbox( 'Interaction Only', value=True,
+						key='plumbing_polynomial_interaction' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_polynomial_apply',
+								use_container_width=True ):
+							if poly_cols:
+								df_apply = get_working_frame( )
+								encoder = PolynomialFeatures(
+									degree=int( degree ),
+									interaction=bool( interaction ) )
+								
+								result = encoder.train_transform( df_apply[ poly_cols ].to_numpy( ))
+								df_apply = replace_columns( df_apply, poly_cols, result,
+									'polynomial' )
+								commit_frame( df_apply )
+								st.success( 'PolynomialFeatures applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_polynomial_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+		
+		with feature_c2:
+			with st.expander( label='Data Transformation', key='transformers' ):
+				
+				with st.expander( 'Binarizer', expanded=False ):
+					transform_cols = st.multiselect( 'Columns',
+						options=active_numeric_columns, key='plumbing_binarizer_cols' )
+					
+					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
+						key='plumbing_binarizer_threshold' )
+					
+					copy = st.checkbox( 'Copy', value=True, key='plumbing_binarizer_copy' )
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Binarizer', key='plumbing_binarizer_apply',
+								use_container_width=True ):
+							
+							if transform_cols:
+								df_apply = get_working_frame( )
+								transformer = Binarizer( threshold=float( threshold ),
+									copy=bool( copy ) )
+								result = transformer.train_transform(
+									df_apply[ transform_cols ].to_numpy( ) )
+								
+								df_apply[ transform_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'Binarizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_binarizer_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+						key='plumbing_label_binarizer_col' )
+					
+					pos_label = st.number_input( 'Positive Label', value=1, step=1,
+						key='plumbing_label_binarizer_pos' )
+					
+					neg_label = st.number_input( 'Negative Label', value=0, step=1,
+						key='plumbing_label_binarizer_neg' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='plumbing_label_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply LabelBinarizer', key='plumbing_label_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_apply = get_working_frame( )
+								transformer = LabelBinarizer( pos_label=int( pos_label ),
+									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+								result = transformer.train_transform(
+									df_apply[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, [ target_col ], result,
+									'label_binarizer' )
+								commit_frame( df_apply )
+								st.success( 'Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_label_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Multi-Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+						key='plumbing_multilabel_binarizer_col' )
+					
+					delimiter = st.text_input( 'Delimiter', value=',',
+						key='plumbing_multilabel_binarizer_delimiter' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='plumbing_multilabel_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_multilabel_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_apply = get_working_frame( )
+								y_multi = parse_multilabel_series( df_apply[ target_col ],
+									delimiter=delimiter )
+								
+								transformer = MultiLabelBinarizer( classes=None,
+									sparse_output=bool( sparse_output ) )
+								
+								result = transformer.train_transform( y_multi )
+								df_apply = replace_columns( df_apply, [ target_col ],
+									result, 'multilabel_binarizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'Multi-Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_multilabel_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'TFIDF Transformer', expanded=False ):
+					text_count_cols = st.multiselect( 'Count Matrix Columns',
+						options=active_numeric_columns, key='plumbing_tfidf_transformer_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
+						index=1, key='plumbing_tfidf_transformer_norm' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='plumbing_tfidf_transformer_use_idf' )
+					
+					smooth_idf = st.checkbox( 'Smooth IDF', value=True,
+						key='plumbing_tfidf_transformer_smooth_idf' )
+					
+					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
+						key='plumbing_tfidf_transformer_sublinear' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_tfidf_transformer_apply',
+								use_container_width=True ):
+							
+							if text_count_cols:
+								df_apply = get_working_frame( )
+								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
+									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ))
+								
+								result = transformer.train_transform(
+									df_apply[ text_count_cols ].apply(
+										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, text_count_cols, result,
+									'tfidf_transformer' )
+								
+								commit_frame( df_apply )
+								st.success( 'TFIDF Transformer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_tfidf_transformer_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Column Transformer', expanded=False ):
+					numeric_cols = st.multiselect( 'Numeric Columns', options=active_numeric_columns,
+						key='plumbing_column_transformer_numeric_cols' )
+					
+					categorical_cols = st.multiselect( 'Categorical Columns',
+						options=active_categorical_columns,
+						key='plumbing_column_transformer_categorical_cols' )
+					
+					numeric_transform = st.selectbox( 'Numeric Transformer',
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
+						          'MaxAbsScaler', 'Binarizer', 'None' ],
+						key='plumbing_column_transformer_numeric_transform' )
+					
+					categorical_transform = st.selectbox( 'Categorical Transformer',
+						options=[ 'OneHotEncoder', 'OrdinalEncoder', 'None' ],
+						key='plumbing_column_transformer_categorical_transform' )
+					
+					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
+						key='plumbing_column_transformer_remainder' )
+					
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
+						value=0.3, key='plumbing_column_transformer_sparse_threshold' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Column Transformer', key='plumbing_column_transformer_apply',
+								use_container_width=True ):
 							df_apply = get_working_frame( )
-							selector = PCA(
-								num=int( n_components ),
-								solver=solver
-							)
-							result = selector.train_transform(
-								df_apply[ select_cols ].to_numpy( )
-							)
-							df_apply = replace_columns(
-								df_apply,
-								select_cols,
-								result,
-								'pca'
-							)
-							commit_frame( df_apply )
-							st.success( 'PCA applied.' )
+							transformers = [ ]
+							
+							if numeric_cols and numeric_transform != 'None':
+								if numeric_transform == 'StandardScaler':
+									numeric_model = StandardScaler( ).model
+								elif numeric_transform == 'MinMaxScaler':
+									numeric_model = MinMaxScaler( ).model
+								elif numeric_transform == 'RobustScaler':
+									numeric_model = RobustScaler( ).model
+								elif numeric_transform == 'MaxAbsScaler':
+									numeric_model = MaxAbsScaler( ).model
+								else:
+									numeric_model = Binarizer( ).model
+									
+								transformers.append( ('numeric', numeric_model, numeric_cols) )
+							
+							if categorical_cols and categorical_transform != 'None':
+								if categorical_transform == 'OneHotEncoder':
+									categorical_model = OneHotEncoder(
+										sparse=False, unknown='ignore' ).model
+								else:
+									categorical_model = OrdinalEncoder( ).model
+								
+								transformers.append( 'categorical', categorical_model,
+									categorical_cols )
+							
+							if transformers:
+								transformer = ColumnTransformer( transformers=transformers,
+									remainder=remainder, sparse_threshold=float( sparse_threshold ),
+									n_jobs=None, transformer_weights=None, verbose=False )
+								
+								result = transformer.train_transform( df_apply )
+								df_apply = normalize_result_frame( result=result, index=df_apply.index,
+									prefix='column_transformer', columns=None )
+								
+								commit_frame( df_apply )
+								st.success( 'ColumnTransformer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_column_transformer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				with a2:
-					if st.button( 'Reset', key='plumbing_pca_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
+				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+						key='plumbing_tfidf_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='plumbing_tfidf_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='plumbing_tfidf_vectorizer_max_features' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='plumbing_tfidf_vectorizer_use_idf' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_tfidf_vectorizer_apply',
+								use_container_width=True ):
+							
+							if text_cols:
+								df_apply = get_working_frame( )
+								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									use_idf=bool( use_idf ) )
+								
+								df_apply = apply_text_vectorizer( df_apply, text_cols, transformer,
+									'tfidf_vectorizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'TFIDF Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_tfidf_vectorizer_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Count Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+						key='plumbing_count_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='plumbing_count_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0,
+						step=1, key='plumbing_count_vectorizer_max_features' )
+					
+					binary = st.checkbox( 'Binary Counts', value=False,
+						key='plumbing_count_vectorizer_binary' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_count_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_apply = get_working_frame( )
+								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									binary=bool( binary ) )
+								df_apply = apply_text_vectorizer( df_apply, text_cols, transformer,
+									'count_vectorizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'Count Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_count_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Hash Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+						key='plumbing_hash_vectorizer_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='plumbing_hash_vectorizer_n_features' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
+						value=1, key='plumbing_hash_vectorizer_ngram_max' )
+					
+					binary = st.checkbox( 'Binary', value=False,
+						key='plumbing_hash_vectorizer_binary' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='plumbing_hash_vectorizer_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_hash_vectorizer_apply',
+								use_container_width=True ):
+							
+							if text_cols:
+								df_apply = get_working_frame( )
+								transformer = HashVectorizer( num=int( n_features ),
+									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
+									alternate_sign=bool( alternate_sign ) )
+								df_apply = apply_text_vectorizer( df_apply, text_cols,
+									transformer, 'hash_vectorizer' )
+								commit_frame( df_apply )
+								st.success( 'HashVectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_hash_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Dictionary Vectorizer', expanded=False ):
+					dict_cols = st.multiselect( 'Columns', options=df_working.columns.tolist( ),
+						key='plumbing_dict_vectorizer_cols' )
+					
+					separator = st.text_input( 'Separator', value='=',
+						key='plumbing_dict_vectorizer_separator' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=True,
+						key='plumbing_dict_vectorizer_sparse' )
+					
+					sort = st.checkbox( 'Sort Feature Names', value=True,
+						key='plumbing_dict_vectorizer_sort' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_dict_vectorizer_apply',
+								use_container_width=True ):
+							
+							if dict_cols:
+								df_apply = get_working_frame( )
+								transformer = DictVectorizer( dtype=np.float64, separator=separator,
+									sparse=bool( sparse ), sort=bool( sort )  )
+								
+								df_apply = apply_dict_transform( df_apply, dict_cols,
+									transformer, 'dict_vectorizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'DictVectorizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_dict_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Feature Hasher', expanded=False ):
+					hash_cols = st.multiselect( 'Columns', options=df_working.columns.tolist( ),
+						key='plumbing_feature_hasher_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='plumbing_feature_hasher_n_features' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='plumbing_feature_hasher_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_feature_hasher_apply',
+								use_container_width=True ):
+							if hash_cols:
+								df_apply = get_working_frame( )
+								transformer = FeatureHasher( n_features=int( n_features ),
+									input_type='dict', dtype=np.float64,
+									alternate_sign=bool( alternate_sign ) )
+								
+								df_apply = apply_dict_transform( df_apply, hash_cols,
+									transformer, 'feature_hasher' )
+								commit_frame( df_apply )
+								st.success( 'FeatureHasher applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_feature_hasher_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 			
-			with st.expander( 'SelectBest', expanded=False ):
-				X_cols = st.multiselect(
-					'Feature Columns',
-					options=active_numeric_columns,
-					key='plumbing_selectbest_x_cols'
-				)
+			with st.expander( label='Feature Selection', key='selectors' ):
 				
-				target_col = st.selectbox(
-					'Target Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_selectbest_target_col'
-				)
+				with st.expander( 'Variance Threshold', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_variance_threshold_cols' )
+					
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
+						step=0.01, key='plumbing_variance_threshold_value' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_variance_threshold_apply',
+								use_container_width=True ):
+							if select_cols:
+								df_apply = get_working_frame( )
+								selector = VarianceThreshold( thresh=float( threshold ) )
+								result = selector.train_transform(
+									df_apply[ select_cols ].to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, select_cols, result,
+									'variance_threshold' )
+								
+								commit_frame( df_apply )
+								st.success( 'VarianceThreshold applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_variance_threshold_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				score_name = st.selectbox(
-					'Score Function',
-					options=[
-							'chi2',
-							'f_classif',
-							'f_regression',
-							'mutual_info_classif',
-							'mutual_info_regression'
-					],
-					key='plumbing_selectbest_score_name'
-				)
+				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
+					X_cols = st.multiselect( 'Predictor Columns', options=active_numeric_columns,
+						key='plumbing_cca_x_cols' )
+					
+					y_cols = st.multiselect( 'Target Columns', options=active_numeric_columns,
+						key='plumbing_cca_y_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='plumbing_cca_components' )
+					
+					scale = st.checkbox( 'Scale', value=True, key='plumbing_cca_scale' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
+						step=1, key='plumbing_cca_max_iter' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_cca_apply', use_container_width=True ):
+							if X_cols and y_cols:
+								df_apply = get_working_frame( )
+								selector = CCA( num=int( n_components ), scale=bool( scale ),
+									size=int( max_iter ) )
+								
+								result = selector.train_transform( df_apply[ X_cols ].to_numpy( ),
+									df_apply[ y_cols ].to_numpy( ) )
+								
+								df_result = normalize_result_frame( result=result,
+									index=df_apply.index, prefix='cca', columns=None )
+								
+								df_apply = pd.concat(
+									[ df_apply.drop( columns=X_cols + y_cols, errors='ignore' ),
+											df_result ], axis=1 )
+								commit_frame( df_apply )
+								st.success( 'CCA Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_cca_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				k_best = st.number_input(
-					'K',
-					min_value=1,
-					value=5,
-					step=1,
-					key='plumbing_selectbest_k'
-				)
+				with st.expander( 'Principle Component Analysis', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_pca_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='plumbing_pca_components' )
+					
+					solver = st.selectbox( 'SVD Solver',
+						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
+						key='plumbing_pca_solver' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_pca_apply', use_container_width=True ):
+							if select_cols:
+								df_apply = get_working_frame( )
+								selector = PCA( num=int( n_components ),
+									solver=solver )
+								
+								result = selector.train_transform(
+									df_apply[ select_cols ].to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, select_cols, result, 'pca' )
+								commit_frame( df_apply )
+								st.success( 'PCA applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_pca_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				a1, a2 = st.columns( 2 )
+				with st.expander( 'Select-Best', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns',
+						options=active_numeric_columns, key='plumbing_selectbest_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_selectbest_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+								'mutual_info_regression' ], key='plumbing_selectbest_score_name' )
+					
+					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
+						key='plumbing_selectbest_k' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_selectbest_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = SelectBest(
+									score_func=score_function_from_name( score_name ),
+									num=int( k_best ) )
+								
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_apply = replace_columns( df_apply, X_cols, result, 'select_best' )
+								commit_frame( df_apply )
+								st.success( 'Select Best Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_selectbest_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				with a1:
-					if st.button( 'Apply SelectBest', key='plumbing_selectbest_apply', use_container_width=True ):
-						if X_cols and target_col:
-							df_apply = get_working_frame( )
-							selector = SelectBest(
-								score_func=score_function_from_name( score_name ),
-								num=int( k_best )
-							)
-							X_input = df_apply[
-								X_cols ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-							y_input = df_apply[ target_col ].to_numpy( )
-							result = selector.train_transform( X_input, y_input )
-							df_apply = replace_columns(
-								df_apply,
-								X_cols,
-								result,
-								'select_best'
-							)
-							commit_frame( df_apply )
-							st.success( 'SelectBest applied.' )
+				with st.expander( 'Select-Percent', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns',
+						options=active_numeric_columns, key='plumbing_selectpercent_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_working.columns.tolist( ),
+						key='plumbing_selectpercent_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression',
+						          'mutual_info_classif', 'mutual_info_regression' ],
+						key='plumbing_selectpercent_score_name' )
+					
+					percentile = st.slider( 'Percentile', min_value=1, max_value=100,
+						value=10, key='plumbing_selectpercent_percentile' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply SelectPercent', key='plumbing_selectpercent_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = SelectPercent(
+									score_func=score_function_from_name( score_name ),
+									pct=int( percentile ) )
+								
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_apply = replace_columns( df_apply, X_cols, result, 'select_percent' )
+								commit_frame( df_apply )
+								st.success( 'SelectPercent applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_selectpercent_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				with a2:
-					if st.button( 'Reset', key='plumbing_selectbest_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'SelectPercent', expanded=False ):
-				X_cols = st.multiselect(
-					'Feature Columns',
-					options=active_numeric_columns,
-					key='plumbing_selectpercent_x_cols'
-				)
+				with st.expander( 'Sequential Back Selection', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=active_numeric_columns,
+						key='plumbing_sbs_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_sbs_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='plumbing_sbs_k_features' )
+					
+					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
+						value=0.25, step=0.05, key='plumbing_sbs_test_size' )
+					
+					random_state = st.number_input( 'Random State', min_value=0, value=1,
+						step=1, key='plumbing_sbs_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_sbs_apply', use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = SBS( classifier=None, k_features=int( k_features ),
+									test_size=float( test_size ), random_state=int( random_state ) )
+								
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_apply = replace_columns( df_apply, X_cols, result,
+									'sbs' )
+								
+								commit_frame( df_apply )
+								st.success( 'SBS applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_sbs_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 				
-				target_col = st.selectbox(
-					'Target Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_selectpercent_target_col'
-				)
-				
-				score_name = st.selectbox(
-					'Score Function',
-					options=[
-							'chi2',
-							'f_classif',
-							'f_regression',
-							'mutual_info_classif',
-							'mutual_info_regression'
-					],
-					key='plumbing_selectpercent_score_name'
-				)
-				
-				percentile = st.slider(
-					'Percentile',
-					min_value=1,
-					max_value=100,
-					value=10,
-					key='plumbing_selectpercent_percentile'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply SelectPercent', key='plumbing_selectpercent_apply', use_container_width=True ):
-						if X_cols and target_col:
-							df_apply = get_working_frame( )
-							selector = SelectPercent(
-								score_func=score_function_from_name( score_name ),
-								pct=int( percentile )
-							)
-							X_input = df_apply[
-								X_cols ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-							y_input = df_apply[ target_col ].to_numpy( )
-							result = selector.train_transform( X_input, y_input )
-							df_apply = replace_columns(
-								df_apply,
-								X_cols,
-								result,
-								'select_percent'
-							)
-							commit_frame( df_apply )
-							st.success( 'SelectPercent applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_selectpercent_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'SBS', expanded=False ):
-				X_cols = st.multiselect(
-					'Feature Columns',
-					options=active_numeric_columns,
-					key='plumbing_sbs_x_cols'
-				)
-				
-				target_col = st.selectbox(
-					'Target Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_sbs_target_col'
-				)
-				
-				k_features = st.number_input(
-					'Features To Retain',
-					min_value=1,
-					value=1,
-					step=1,
-					key='plumbing_sbs_k_features'
-				)
-				
-				test_size = st.slider(
-					'Validation Split',
-					min_value=0.10,
-					max_value=0.50,
-					value=0.25,
-					step=0.05,
-					key='plumbing_sbs_test_size'
-				)
-				
-				random_state = st.number_input(
-					'Random State',
-					min_value=0,
-					value=1,
-					step=1,
-					key='plumbing_sbs_random_state'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply SBS', key='plumbing_sbs_apply', use_container_width=True ):
-						if X_cols and target_col:
-							df_apply = get_working_frame( )
-							selector = SBS(
-								classifier=None,
-								k_features=int( k_features ),
-								test_size=float( test_size ),
-								random_state=int( random_state )
-							)
-							X_input = df_apply[
-								X_cols ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-							y_input = df_apply[ target_col ].to_numpy( )
-							selector.train( X_input, y_input )
-							result = selector.transform( X_input )
-							df_apply = replace_columns(
-								df_apply,
-								X_cols,
-								result,
-								'sbs'
-							)
-							commit_frame( df_apply )
-							st.success( 'SBS applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_sbs_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-			
-			with st.expander( 'RFE', expanded=False ):
-				X_cols = st.multiselect(
-					'Feature Columns',
-					options=active_numeric_columns,
-					key='plumbing_rfe_x_cols'
-				)
-				
-				target_col = st.selectbox(
-					'Target Column',
-					options=df_working.columns.tolist( ),
-					key='plumbing_rfe_target_col'
-				)
-				
-				k_features = st.number_input(
-					'Features To Retain',
-					min_value=1,
-					value=1,
-					step=1,
-					key='plumbing_rfe_k_features'
-				)
-				
-				verbose = st.number_input(
-					'Verbose',
-					min_value=0,
-					value=0,
-					step=1,
-					key='plumbing_rfe_verbose'
-				)
-				
-				a1, a2 = st.columns( 2 )
-				
-				with a1:
-					if st.button( 'Apply RFE', key='plumbing_rfe_apply', use_container_width=True ):
-						if X_cols and target_col:
-							df_apply = get_working_frame( )
-							selector = RFE(
-								k_features=int( k_features ),
-								verbose=int( verbose )
-							)
-							X_input = df_apply[
-								X_cols ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-							y_input = df_apply[ target_col ].to_numpy( )
-							selector.train( X_input, y_input )
-							result = selector.transform( X_input )
-							df_apply = replace_columns(
-								df_apply,
-								X_cols,
-								result,
-								'rfe'
-							)
-							commit_frame( df_apply )
-							st.success( 'RFE applied.' )
-				
-				with a2:
-					if st.button( 'Reset', key='plumbing_rfe_reset', use_container_width=True ):
-						reset_to_original( )
-						st.success( 'Reset to df_original.' )
-	
-	# ======================================================================================
-	# Data Transformation
-	# ======================================================================================
-	st.divider( )
-	st.subheader( 'Transformation' )
-	st.data_editor(
-		get_working_frame( ),
-		key='engineering_table',
-		use_container_width=True,
-		height=420
-	)
-	
-	st.divider( )
-	st.subheader( 'Download or Export' )
-	
-	df_export = get_working_frame( )
-	st.download_button(
-		label='Download Feature-Engineered Dataset (CSV)',
-		data=df_export.to_csv( index=False ),
-		file_name='feature_engineered_data.csv',
-		mime='text/csv'
-	)
+				with st.expander( 'Recursive Feature Elimination', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=active_numeric_columns,
+						key='plumbing_rfe_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_rfe_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain',
+						min_value=1, value=1, step=1, key='plumbing_rfe_k_features' )
+					
+					verbose = st.number_input( 'Verbose', min_value=0, value=0,
+						step=1, key='plumbing_rfe_verbose' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_rfe_apply', use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_apply = replace_columns( df_apply, X_cols, result, 'rfe' )
+								commit_frame( df_apply )
+								st.success( 'RFE applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_rfe_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+		
+		# ======================================================================================
+		# Data Transformation
+		# ======================================================================================
+		st.divider( )
+		st.subheader( 'Transformation' )
+		st.data_editor( get_working_frame( ), key='engineering_table',
+			use_container_width=True, height=420 )
+		
+		st.divider( )
+		st.subheader( 'Download or Export' )
+		df_export = get_working_frame( )
+		st.download_button( label='Download Feature-Engineered Dataset (CSV)',
+			data=df_export.to_csv( index=False ), file_name='feature_engineered_data.csv',
+			mime='text/csv' )
 
 # ============================================
 # FEATURE ENGINEERING MODE
 # ============================================
 elif mode == 'Feature Engineering':
-	st.header( cfg.MODE[ 'Feature Engineering' ] )
-	st.divider( )
-	
-	st.caption( 'Apply Feature Transformations' )
-	if 'df_dataset' not in locals( ) or df_dataset is None or df_dataset.empty:
-		st.warning( 'No dataset loaded.' )
-		st.stop( )
-	
-	df_original = df_dataset.copy( )
-	
-	if 'df_original' not in st.session_state:
-		st.session_state[ 'df_original' ] = None
-	
-	# ------------------------------------------------------------------
-	# Column classification (reuse existing logic)
-	# ------------------------------------------------------------------
-	numeric_columns = [ c for c in df_original.columns if
-	                    df_original[ c ].dtype.kind in { 'i', 'f' } ]
-	
-	categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
-	
-	# ------------------------------------------------------------------
-	# Column selection
-	# ------------------------------------------------------------------
-	st.subheader( 'Column Selection' )
-	selected_columns = st.multiselect( 'Select columns for feature engineering',
-		options=df_original.columns.tolist( ) )
-	
-	if not selected_columns:
-		st.info( 'Select one or more columns to begin.' )
-		st.stop( )
-	
-	df_features = df_original[ selected_columns ].copy( )
-	
-	# ======================================================================================
-	# Missing Value Handling
-	# ======================================================================================
-	st.subheader( 'Missing Value Handling' )
-	
-	from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
-	
-	impute_columns = st.multiselect( 'Columns to Impute', options=df_features.columns.tolist( ) )
-	imputer_type = st.selectbox( 'Imputation Strategy',
-		[ 'None', 'Mean', 'Median', 'Most Frequent', 'Nearest Neighbors', 'Iterative' ] )
-	
-	if imputer_type != 'None' and impute_columns:
-		X_impute = df_features[ impute_columns ].to_numpy( )
-		if imputer_type == 'Mean':
-			imputer = MeanImputer( )
-		elif imputer_type == 'Median':
-			imputer = SimpleImputer( strategy='median' )
-		elif imputer_type == 'Most Frequent':
-			imputer = SimpleImputer( strategy='most_frequent' )
-		elif imputer_type == 'Nearest Neighbors':
-			imputer = NearestImputer( )
-		elif imputer_type == 'Iterative':
-			imputer = IterativeImputer( )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Feature Engineering' ] )
+		st.divider( )
+		st.caption( 'Apply Feature Transformations' )
+		if 'df_dataset' not in locals( ) or df_dataset is None or df_dataset.empty:
+			st.warning( 'No dataset loaded.' )
+			st.stop( )
 		
-		X_imputed = imputer.train_transform( X_impute )
-		df_features[ impute_columns ] = X_imputed
-		st.caption( 'Imputation Preview (First 5 Rows)' )
-		st.data_editor( df_features.head( ) )
-	
-	# ======================================================================================
-	# Encoding
-	# ======================================================================================
-	st.subheader( 'Encoding' )
-	
-	from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
-	
-	encode_columns = st.multiselect( 'Categorical Columns to Encode',
-		options=[ c for c in df_features.columns if c in categorical_columns ] )
-	
-	encoding_type = st.selectbox( 'Encoding Method', [ 'None', 'One-Hot', 'Ordinal', 'Target' ] )
-	
-	if encoding_type != 'None' and encode_columns:
-		X_encode = df_features[ encode_columns ].astype( str ).to_numpy( )
+		df_original = df_dataset.copy( )
+		if 'df_original' not in st.session_state:
+			st.session_state[ 'df_original' ] = None
 		
-		if encoding_type == 'One-Hot':
-			encoder = OneHotEncoder( sparse=False )
-			X_encoded = encoder.train_transform( X_encode )
-			df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
-			df_features = df_features.drop( columns=encode_columns )
-			df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
-		elif encoding_type == 'Ordinal':
-			encoder = OrdinalEncoder( )
-			X_encoded = encoder.train_transform( X_encode )
-			df_features[ encode_columns ] = X_encoded
-		elif encoding_type == 'Target':
-			target_col = st.selectbox( 'Select target column', options=df_original.columns.tolist( ) )
-			y = df_original[ target_col ].to_numpy( )
-			encoder = TargetEncoder( )
-			X_encoded = encoder.train_transform( X_encode, y )
-			df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
-			df_features = df_features.drop( columns=encode_columns )
-			df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
-		st.caption( 'Encoding Preview (First 5 Rows)' )
-		st.data_editor( df_features.head( ) )
-	
-	# ======================================================================================
-	# Scaling / Normalization
-	# ======================================================================================
-	st.subheader( 'Scaling & Normalization' )
-	from scalers import (StandardScaler, MinMaxScaler, RobustScaler, NormalScaler)
-	
-	scale_columns = st.multiselect( 'Numeric Columns to Scale',
-		options=[ c for c in df_features.columns if c in numeric_columns ] )
-	
-	scaler_type = st.selectbox( 'Scaler', [ 'None', 'Standard', 'Min-Max', 'Robust', 'Normalize' ] )
-	
-	if scaler_type != 'None' and scale_columns:
-		X_scale = df_features[ scale_columns ].to_numpy( )
-		if scaler_type == 'Standard':
-			scaler = StandardScaler( )
-		elif scaler_type == 'Min-Max':
-			scaler = MinMaxScaler( )
-		elif scaler_type == 'Robust':
-			scaler = RobustScaler( )
-		elif scaler_type == 'Normalize':
-			scaler = NormalScaler( )
-			X_scaled = scaler.train_transform( X_scale )
-			df_features[ scale_columns ] = X_scaled
+		# ------------------------------------------------------------------
+		# Column classification (reuse existing logic)
+		# ------------------------------------------------------------------
+		numeric_columns = [ c for c in df_original.columns if
+		                    df_original[ c ].dtype.kind in { 'i', 'f' } ]
+		
+		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
+		
+		# ------------------------------------------------------------------
+		# Column selection
+		# ------------------------------------------------------------------
+		st.subheader( 'Column Selection' )
+		selected_columns = st.multiselect( 'Select columns for feature engineering',
+			options=df_original.columns.tolist( ) )
+		
+		if not selected_columns:
+			st.info( 'Select one or more columns to begin.' )
+			st.stop( )
+		
+		df_features = df_original[ selected_columns ].copy( )
+		
+		# ======================================================================================
+		# Missing Value Handling
+		# ======================================================================================
+		st.divider( )
+		st.subheader( 'Missing Value Handling' )
+		
+		from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
+		
+		impute_columns = st.multiselect( 'Columns to Impute', options=df_features.columns.tolist( ) )
+		imputer_type = st.selectbox( 'Imputation Strategy',
+			[ 'None', 'Mean', 'Median', 'Most Frequent', 'Nearest Neighbors', 'Iterative' ] )
+		
+		if imputer_type != 'None' and impute_columns:
+			X_impute = df_features[ impute_columns ].to_numpy( )
+			if imputer_type == 'Mean':
+				imputer = MeanImputer( )
+			elif imputer_type == 'Median':
+				imputer = SimpleImputer( strategy='median' )
+			elif imputer_type == 'Most Frequent':
+				imputer = SimpleImputer( strategy='most_frequent' )
+			elif imputer_type == 'Nearest Neighbors':
+				imputer = NearestImputer( )
+			elif imputer_type == 'Iterative':
+				imputer = IterativeImputer( )
+			
+			X_imputed = imputer.train_transform( X_impute )
+			df_features[ impute_columns ] = X_imputed
+			st.caption( 'Imputation Preview (First 5 Rows)' )
+			st.data_editor( df_features.head( ) )
+		
+		# ======================================================================================
+		# Encoding
+		# ======================================================================================
+		st.divider( )
+		st.subheader( 'Encoding' )
+		encode_columns = st.multiselect( 'Categorical Columns to Encode',
+			options=[ c for c in df_features.columns if c in categorical_columns ] )
+		
+		encoding_type = st.selectbox( 'Encoding Method', [ 'None', 'One-Hot', 'Ordinal', 'Target' ] )
+		if encoding_type != 'None' and encode_columns:
+			X_encode = df_features[ encode_columns ].astype( str ).to_numpy( )
+			
+			if encoding_type == 'One-Hot':
+				encoder = OneHotEncoder( sparse=False )
+				X_encoded = encoder.train_transform( X_encode )
+				df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
+				df_features = df_features.drop( columns=encode_columns )
+				df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
+			elif encoding_type == 'Ordinal':
+				encoder = OrdinalEncoder( )
+				X_encoded = encoder.train_transform( X_encode )
+				df_features[ encode_columns ] = X_encoded
+			elif encoding_type == 'Target':
+				target_col = st.selectbox( 'Select target column', options=df_original.columns.tolist( ) )
+				y = df_original[ target_col ].to_numpy( )
+				encoder = TargetEncoder( )
+				X_encoded = encoder.train_transform( X_encode, y )
+				df_encoded = pd.DataFrame( X_encoded, index=df_features.index )
+				df_features = df_features.drop( columns=encode_columns )
+				df_features = pd.concat( [ df_features, df_encoded ], axis=1 )
+				
+			st.caption( 'Encoding Preview (First 5 Rows)' )
+			st.data_editor( df_features.head( ) )
+		
+		# ======================================================================================
+		# Scaling / Normalization
+		# ======================================================================================
+		st.subheader( 'Scaling & Normalization' )
+		scale_columns = st.multiselect( 'Numeric Columns to Scale',
+			options=[ c for c in df_features.columns if c in numeric_columns ] )
+		
+		scaler_type = st.selectbox( 'Scaler', [ 'None', 'Standard', 'Min-Max', 'Robust', 'Normalize' ] )
+		if scaler_type != 'None' and scale_columns:
+			X_scale = df_features[ scale_columns ].to_numpy( )
+			if scaler_type == 'Standard':
+				scaler = StandardScaler( )
+			elif scaler_type == 'Min-Max':
+				scaler = MinMaxScaler( )
+			elif scaler_type == 'Robust':
+				scaler = RobustScaler( )
+			elif scaler_type == 'Normalize':
+				scaler = NormalScaler( )
+				X_scaled = scaler.train_transform( X_scale )
+				df_features[ scale_columns ] = X_scaled
+				
 			st.caption( 'Scaling preview (First 5 rows)' )
 			st.data_editor( df_features.head( ) )
-	
-	# ======================================================================================
-	# Feature Generation
-	# ======================================================================================
-	st.subheader( 'Feature Generation' )
-	from encoders import PolynomialFeatures
-	
-	poly_columns = st.multiselect( 'Columns for Polynomial Features',
-		options=[ c for c in df_features.columns if c in numeric_columns ] )
-	
-	poly_degree = st.slider( 'Polynomial Degree', min_value=2, max_value=4, value=2 )
-	
-	if poly_columns:
-		X_poly = df_features[ poly_columns ].to_numpy( )
-		poly = PolynomialFeatures( degree=poly_degree )
-		X_poly_out = poly.train_transform( X_poly )
-		df_polynomial = pd.DataFrame( X_poly_out, index=df_features.index )
-		df_features = df_features.drop( columns=poly_columns )
-		df_features = pd.concat( [ df_features, df_polynomial ], axis=1 )
 		
-		st.caption( 'Polynomial Feature preview (First 5 Rows)' )
-		st.data_editor( df_features.head( ) )
-	
-	# ======================================================================================
-	# Apply / Export
-	# ======================================================================================
-	st.subheader( 'Apply or Export' )
-	
-	if st.button( 'Apply Feature Engineering' ):
-		st.session_state[ 'df_features' ] = df_features.copy( )
-		st.success( 'Feature-Engineered Dataset Stored in Session State.' )
-	
-	st.download_button( label='Download Feature-Engineered Dataset (CSV)',
-		data=df_features.to_csv( index=False ), file_name='feature_engineered_data.csv',
-		mime='text/csv' )
-	
+		# ======================================================================================
+		# Feature Generation
+		# ======================================================================================
+		st.subheader( 'Feature Generation' )
+		from encoders import PolynomialFeatures
+		poly_columns = st.multiselect( 'Columns for Polynomial Features',
+			options=[ c for c in df_features.columns if c in numeric_columns ] )
+		
+		poly_degree = st.slider( 'Polynomial Degree', min_value=2, max_value=4, value=2 )
+		if poly_columns:
+			X_poly = df_features[ poly_columns ].to_numpy( )
+			poly = PolynomialFeatures( degree=poly_degree )
+			X_poly_out = poly.train_transform( X_poly )
+			df_polynomial = pd.DataFrame( X_poly_out, index=df_features.index )
+			df_features = df_features.drop( columns=poly_columns )
+			df_features = pd.concat( [ df_features, df_polynomial ], axis=1 )
+			
+			st.caption( 'Polynomial Feature preview (First 5 Rows)' )
+			st.data_editor( df_features.head( ) )
+		
+		# ======================================================================================
+		# Apply / Export
+		# ======================================================================================
+		st.subheader( 'Apply or Export' )
+		
+		if st.button( 'Apply Feature Engineering' ):
+			st.session_state[ 'df_features' ] = df_features.copy( )
+			st.success( 'Feature-Engineered Dataset Stored in Session State.' )
+		
+		st.download_button( label='Download Feature-Engineered Dataset (CSV)',
+			data=df_features.to_csv( index=False ), file_name='feature_engineered_data.csv',
+			mime='text/csv' )
+
 # ============================================
 # CLASSIFICATION MODE
 # ============================================
@@ -4170,7 +3700,8 @@ elif mode == 'Classifications':
 	# ------------------------------------------------------------------
 	# TARGET & FEATURES
 	# ------------------------------------------------------------------
-	st.subheader( 'Target & Features' )
+	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+	st.markdown( '##### Target & Features' )
 	target = st.selectbox( 'Target (Categorical)', categorical_cols )
 	features = st.multiselect(
 		'Feature Columns (Numeric)',
@@ -4188,6 +3719,18 @@ elif mode == 'Classifications':
 	# ------------------------------------------------------------------
 	# MODEL SELECTION
 	# ------------------------------------------------------------------
+	from classifications import (
+		Perceptron,
+		LeastSquares,
+		LogisticRegression,
+		DecisionTree,
+		SupportVector,
+		RandomForest,
+		NearestNeighbor,
+		BaggingModel,
+		AdaptiveBoost,
+		GradientBoost
+	)
 	
 	model_map = \
 		{
@@ -4203,14 +3746,16 @@ elif mode == 'Classifications':
 				'Gradient Boosting': GradientBoost
 		}
 	
-	st.subheader( 'Model Selection' )
+	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+	st.markdown( '##### Model Selection' )
 	model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
 	model = model_map[ model_name ]( )
 	
 	# ------------------------------------------------------------------
 	# TRAIN / TEST SPLIT
 	# ------------------------------------------------------------------
-	st.subheader( 'Training Configuration' )
+	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+	st.markdown( '##### Training Configuration' )
 	test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
 	random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
 	
@@ -4229,6 +3774,7 @@ elif mode == 'Classifications':
 			# ------------------------------------------------------------------
 			# METRICS & ANALYSIS
 			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.subheader( 'Model Performance' )
 			df_classifier = model.analyze( X_test, y_test )
 			st.data_editor( df_classifier, use_container_width=True )
@@ -4236,6 +3782,7 @@ elif mode == 'Classifications':
 			# ------------------------------------------------------------------
 			# CONFUSION MATRIX
 			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.subheader( 'Confusion Matrix' )
 			plt.close( 'all' )
 			model.confusion_matrix( X_test, y_test )
@@ -4245,6 +3792,7 @@ elif mode == 'Classifications':
 			# ------------------------------------------------------------------
 			# ACTUAL VS PREDICTED CLASS COUNTS
 			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.subheader( 'Actual vs Predicted Counts' )
 			actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
 			pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
@@ -4268,6 +3816,7 @@ elif mode == 'Classifications':
 			# ------------------------------------------------------------------
 			# PER-CLASS ACCURACY
 			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.subheader( 'Per-Class Accuracy' )
 			df_eval = pd.DataFrame(
 				{
@@ -4315,6 +3864,7 @@ elif mode == 'Classifications':
 			# ------------------------------------------------------------------
 			# OBSERVED VS PREDICTED
 			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.subheader( 'Observed vs Predicted' )
 			if target_count <= 2 and hasattr( model, 'scatter_plot' ):
 				try:
@@ -4331,6 +3881,7 @@ elif mode == 'Classifications':
 			# ------------------------------------------------------------------
 			# ROC CURVE
 			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.subheader( 'ROC Curve' )
 			if target_count == 2 and hasattr( model, 'roc_curve' ):
 				try:
@@ -4351,328 +3902,609 @@ elif mode == 'Classifications':
 # REGRESSION MODE
 # ============================================
 elif mode == 'Regressions':
-	st.header( cfg.MODE[ 'Regressions' ] )
-	st.divider( )
-	df_dataset = st.session_state.get( 'df_dataset', None )
-	numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
-	
-	if df_dataset is None or df_dataset.empty:
-		st.warning( '⚠️ No Dataset Loaded.' )
-		st.stop( )
-	
-	if not numeric_cols:
-		st.warning( '⚠️ No numeric columns available for regression.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# TARGET & FEATURES
-	# ------------------------------------------------------------------
-	st.subheader( 'Target & Features' )
-	
-	target = st.selectbox( 'Target (Numeric)', numeric_cols )
-	feature_candidates = [ c for c in numeric_cols if c != target ]
-	feature_defaults = feature_candidates[ : min( 3, len( feature_candidates ) ) ]
-	
-	features = st.multiselect(
-		'Feature Columns (Numeric)',
-		feature_candidates,
-		default=feature_defaults
-	)
-	
-	if not features:
-		st.info( 'Please select at least one feature.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# DATASET PREPARATION
-	# ------------------------------------------------------------------
-	df_regression = df_dataset[ features + [ target ] ].copy( )
-	df_regression = df_regression.replace( [ np.inf, -np.inf ], np.nan )
-	df_regression = df_regression.apply( pd.to_numeric, errors='coerce' )
-	
-	rows_before = len( df_regression )
-	df_regression = df_regression.dropna( axis=0, how='any' )
-	rows_after = len( df_regression )
-	
-	if rows_after == 0:
-		st.warning( '⚠️ No complete numeric rows remain after removing missing or invalid values.' )
-		st.stop( )
-	
-	if rows_after < 5:
-		st.warning( '⚠️ Regression requires at least 5 complete rows after cleaning.' )
-		st.stop( )
-	
-	if rows_after != rows_before:
-		st.info( f'Using {rows_after:,} complete rows after removing {rows_before - rows_after:,} row(s) with missing or invalid values.' )
-	
-	if df_regression[ target ].nunique( dropna=True ) < 2:
-		st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
-		st.stop( )
-	
-	X = df_regression[ features ].to_numpy( dtype=float )
-	y = df_regression[ target ].to_numpy( dtype=float )
-	
-	# ------------------------------------------------------------------
-	# MODEL SELECTION
-	# ------------------------------------------------------------------
-	
-	model_map = \
-		{
-				'Ordinary Least Squares': LeastSquares,
-				'Ridge Regression': Ridge,
-				'Lasso Regression': Lasso,
-				'Elastic Net': ElasticNet,
-				'Bayesian Ridge': BayesianRidge,
-				'Support Vector': SupportVector,
-				'Stochastic Gradient Descent': GradientDescent,
-				'k-Nearest Neighbors': NearestNeighbor,
-				'Bagging Regressor': BaggingModel,
-				'Extra Trees Regressor': ExtraTreesModel,
-				'AdaBoost Regressor': AdaptiveBoost,
-				'Gradient Boosting': GradientBoost,
-				'Random Forest': RandomForest,
-				'Voting Regressor': VotingModel,
-				'Stacking Regressor': StackingModel
-		}
-	
-	st.subheader( 'Model Selection' )
-	model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
-	model = model_map[ model_name ]( )
-	
-	# ------------------------------------------------------------------
-	# TRAIN / TEST SPLIT
-	# ------------------------------------------------------------------
-	st.subheader( 'Training Configuration' )
-	test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
-	random_state = int( st.number_input( 'Random state', value=42, step=1, key='regressions-2' ) )
-	
-	min_test_rows = max( 2, int( np.ceil( len( df_regression ) * test_size ) ) )
-	min_train_rows = len( df_regression ) - min_test_rows
-	
-	if min_train_rows < 2:
-		st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
-		st.stop( )
-	
-	if st.button( '🚀 Train Model' ):
-		try:
-			X_train, X_test, y_train, y_test = model.split_data(
-				X,
-				y,
-				size=test_size,
-				random=random_state
-			)
-			model.train( X_train, y_train )
-			
-			# ------------------------------------------------------------------
-			# METRICS
-			# ------------------------------------------------------------------
-			st.subheader( 'Model Performance' )
-			df_regressor = model.analyze( X_test, y_test )
-			st.data_editor( df_regressor, use_container_width=True )
-			
-			# ------------------------------------------------------------------
-			# PREDICTIONS
-			# ------------------------------------------------------------------
-			st.subheader( 'Predictions' )
-			y_pred = model.project( X_test )
-			df_predictions = pd.DataFrame(
-				{
-						'Observed': y_test,
-						'Predicted': y_pred,
-						'Residual': y_test - y_pred
-				}
-			)
-			st.data_editor( df_predictions, use_container_width=True )
-			
-			# ------------------------------------------------------------------
-			# MODEL DETAILS
-			# ------------------------------------------------------------------
-			st.subheader( 'Model Details' )
-			detail_rows = [ ]
-			
-			if hasattr( model, 'features' ):
-				try:
-					detail_rows.append( { 'Property': 'Features', 'Value': model.features } )
-				except Exception:
-					pass
-			
-			if hasattr( model, 'training_score' ):
-				try:
-					detail_rows.append( { 'Property': 'Training Score',
-					                      'Value': model.training_score } )
-				except Exception:
-					pass
-			
-			if hasattr( model, 'testing_score' ):
-				try:
-					detail_rows.append( { 'Property': 'Testing Score',
-					                      'Value': model.testing_score } )
-				except Exception:
-					pass
-			
-			if hasattr( model, 'weights' ):
-				try:
-					weights = model.weights
-					if weights is not None:
-						df_weights = pd.DataFrame(
-							{
-									'Feature': features,
-									'Weight': np.asarray( weights ).reshape( -1 )
-							}
-						)
-						st.caption( 'Coefficients' )
-						st.data_editor( df_weights, use_container_width=True )
-				except Exception:
-					pass
-			
-			if hasattr( model, 'intercept' ):
-				try:
-					intercept = model.intercept
-					if intercept is not None:
-						detail_rows.append( { 'Property': 'Intercept', 'Value': intercept } )
-				except Exception:
-					pass
-			
-			if detail_rows:
-				df_details = pd.DataFrame( detail_rows )
-				st.data_editor( df_details, use_container_width=True )
-			else:
-				st.info( 'No additional model details are exposed for this regressor.' )
-			
-			# ------------------------------------------------------------------
-			# SCATTER PLOT
-			# ------------------------------------------------------------------
-			st.subheader( 'Observed vs Predicted' )
-			plt.close( 'all' )
-			model.scatter_plot( X_test, y_test )
-			st.pyplot( plt.gcf( ) )
-			plt.close( 'all' )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Regressions' ] )
+		st.divider( )
+		df_dataset = st.session_state.get( 'df_dataset', None )
+		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
 		
-		except Exception as e:
-			st.error( f'Regression failed: {e}' )
+		if df_dataset is None or df_dataset.empty:
+			st.warning( '⚠️ No Dataset Loaded.' )
+			st.stop( )
+		
+		if not numeric_cols:
+			st.warning( '⚠️ No numeric columns available for regression.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# TARGET & FEATURES
+		# ------------------------------------------------------------------
+		st.subheader( 'Target & Features' )
+		target = st.selectbox( 'Target (Numeric)', numeric_cols )
+		feature_candidates = [ c for c in numeric_cols if c != target ]
+		feature_defaults = feature_candidates[ : min( 3, len( feature_candidates ) ) ]
+		
+		features = st.multiselect( 'Feature Columns (Numeric)', feature_candidates,
+			default=feature_defaults )
+		
+		if not features:
+			st.info( 'Please select at least one feature.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# DATASET PREPARATION
+		# ------------------------------------------------------------------
+		df_regression = df_dataset[ features + [ target ] ].copy( )
+		df_regression = df_regression.replace( [ np.inf, -np.inf ], np.nan )
+		df_regression = df_regression.apply( pd.to_numeric, errors='coerce' )
+		rows_before = len( df_regression )
+		df_regression = df_regression.dropna( axis=0, how='any' )
+		rows_after = len( df_regression )
+		
+		if rows_after == 0:
+			st.warning( '⚠️ No complete numeric rows remain after removing missing or invalid values.' )
+			st.stop( )
+		
+		if rows_after < 5:
+			st.warning( '⚠️ Regression requires at least 5 complete rows after cleaning.' )
+			st.stop( )
+		
+		if rows_after != rows_before:
+			st.info(
+				f'Using {rows_after:,} complete rows after removing {rows_before - rows_after:,} '
+				f'row(s) with missing or invalid values.' )
+		
+		if df_regression[ target ].nunique( dropna=True ) < 2:
+			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
+			st.stop( )
+		
+		X = df_regression[ features ].to_numpy( dtype=float )
+		y = df_regression[ target ].to_numpy( dtype=float )
+		
+		# ------------------------------------------------------------------
+		# MODEL SELECTION
+		# ------------------------------------------------------------------
+		model_map = \
+		{
+			'Ordinary Least Squares': LeastSquares,
+			'Ridge Regression': Ridge,
+			'Lasso Regression': Lasso,
+			'Elastic Net': ElasticNet,
+			'Bayesian Ridge': BayesianRidge,
+			'Support Vector': SupportVector,
+			'Stochastic Gradient Descent': GradientDescent,
+			'k-Nearest Neighbors': NearestNeighbor,
+			'Bagging Regressor': BaggingModel,
+			'Extra Trees Regressor': ExtraTreesModel,
+			'AdaBoost Regressor': AdaptiveBoost,
+			'Gradient Boosting': GradientBoost,
+			'Random Forest': RandomForest,
+			'Voting Regressor': VotingModel,
+			'Stacking Regressor': StackingModel
+		}
+		
+		st.subheader( 'Model Selection' )
+		model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
+		model = model_map[ model_name ]( )
+		
+		# ------------------------------------------------------------------
+		# TRAIN / TEST SPLIT
+		# ------------------------------------------------------------------
+		st.subheader( 'Training Configuration' )
+		test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
+		random_state = int( st.number_input( 'Random state', value=42, step=1, key='regressions-2' ) )
+		
+		min_test_rows = max( 2, int( np.ceil( len( df_regression ) * test_size ) ) )
+		min_train_rows = len( df_regression ) - min_test_rows
+		
+		if min_train_rows < 2:
+			st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
+			st.stop( )
+		
+		if st.button( '🚀 Train Model' ):
+			try:
+				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_size,
+					random=random_state )
+				
+				model.train( X_train, y_train )
+				
+				# ------------------------------------------------------------------
+				# METRICS
+				# ------------------------------------------------------------------
+				st.subheader( 'Model Performance' )
+				df_regressor = model.analyze( X_test, y_test )
+				st.data_editor( df_regressor, use_container_width=True )
+				
+				# ------------------------------------------------------------------
+				# PREDICTIONS
+				# ------------------------------------------------------------------
+				st.subheader( 'Predictions' )
+				y_pred = model.project( X_test )
+				df_predictions = pd.DataFrame(
+				{
+					'Observed': y_test,
+					'Predicted': y_pred,
+					'Residual': y_test - y_pred
+				} )
+				
+				st.data_editor( df_predictions, use_container_width=True )
+				
+				# ------------------------------------------------------------------
+				# MODEL DETAILS
+				# ------------------------------------------------------------------
+				st.subheader( 'Model Details' )
+				detail_rows = [ ]
+				
+				if hasattr( model, 'features' ):
+					try:
+						detail_rows.append( { 'Property': 'Features', 'Value': model.features } )
+					except Exception:
+						pass
+				
+				if hasattr( model, 'training_score' ):
+					try:
+						detail_rows.append( { 'Property': 'Training Score', 'Value': model.training_score } )
+					except Exception:
+						pass
+				
+				if hasattr( model, 'testing_score' ):
+					try:
+						detail_rows.append({'Property': 'Testing Score', 'Value': model.testing_score})
+					except Exception:
+						pass
+				
+				if hasattr( model, 'weights' ):
+					try:
+						weights = model.weights
+						if weights is not None:
+							df_weights = pd.DataFrame(
+							{
+								'Feature': features,
+								'Weight': np.asarray( weights ).reshape( -1 )
+							} )
+							st.caption( 'Coefficients' )
+							st.data_editor( df_weights, use_container_width=True )
+					except Exception:
+						pass
+				
+				if hasattr( model, 'intercept' ):
+					try:
+						intercept = model.intercept
+						if intercept is not None:
+							detail_rows.append( { 'Property': 'Intercept', 'Value': intercept } )
+					except Exception:
+						pass
+				
+				if detail_rows:
+					df_details = pd.DataFrame( detail_rows )
+					st.data_editor( df_details, use_container_width=True )
+				else:
+					st.info( 'No additional model details are exposed for this regressor.' )
+				
+				# ------------------------------------------------------------------
+				# SCATTER PLOT
+				# ------------------------------------------------------------------
+				st.subheader( 'Observed vs Predicted' )
+				plt.close( 'all' )
+				model.scatter_plot( X_test, y_test )
+				st.pyplot( plt.gcf( ) )
+				plt.close( 'all' )
+			
+			except Exception as e:
+				st.error( f'Regression failed: {e}' )
 
 # ============================================
 # CLUSTERING MODELS MODE
 # ============================================
 elif mode == 'Clustering':
-	st.header( cfg.MODE[ 'Clustering' ] )
-	st.divider( )
-	st.caption( 'Explore Clustering Models' )
-	
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	with center:
+		st.header( cfg.MODE[ 'Clustering' ] )
+		st.divider( )
+		st.caption( 'Unsupervised Learning Models' )
+		
+		# ------------------------------------------------------------------
+		# SESSION STATE
+		# ------------------------------------------------------------------
+		
+		
+		# ------------------------------------------------------------------
+		# DATA SOURCE RESOLUTION
+		# ------------------------------------------------------------------
+		if 'df_features' in st.session_state and \
+				st.session_state[ 'df_features' ] is not None and \
+				not st.session_state[ 'df_features' ].empty:
+			df_cluster = st.session_state[ 'df_features' ].copy( )
+			data_source = 'features'
+			st.info( 'Using Feature-Engineered Dataset.' )
+		else:
+			df_cluster = df_dataset.copy( )
+			data_source = 'dataset'
+			st.info( 'Using Original Dataset.' )
+		
+		if df_cluster is None or df_cluster.empty:
+			st.warning( 'No Dataset Available for Clustering.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# COLUMN CLASSIFICATION (NUMERIC ONLY)
+		# ------------------------------------------------------------------
+		numeric_columns = [
+				c for c in df_cluster.columns
+				if df_cluster[ c ].dtype.kind in { 'i', 'f' }
+		]
+		
+		if len( numeric_columns ) < 2:
+			st.warning( 'At least two numeric columns are required for clustering.' )
+			st.stop( )
+		
+		# ------------------------------------------------------------------
+		# FEATURE SELECTION
+		# ------------------------------------------------------------------
+		st.subheader( 'Feature Selection' )
+		feature_columns = st.multiselect(
+			'Select Features for Clustering',
+			options=numeric_columns
+		)
+		
+		if len( feature_columns ) < 2:
+			st.info( 'Select at least two features to continue.' )
+			st.stop( )
+		
+		df_cluster_input = df_cluster[ feature_columns ].copy( )
+		df_cluster_input = df_cluster_input.replace( [ np.inf, -np.inf ], np.nan )
+		rows_before = len( df_cluster_input )
+		df_cluster_input = df_cluster_input.dropna( axis=0, how='any' )
+		rows_after = len( df_cluster_input )
+		
+		if rows_after == 0:
+			st.warning( 'No complete numeric rows remain after removing missing or invalid values.' )
+			st.stop( )
+		
+		if rows_after != rows_before:
+			st.info(
+				f'Using {rows_after:,} complete rows after removing '
+				f'{rows_before - rows_after:,} row(s) with missing or invalid values.'
+			)
+		
+		X = df_cluster_input.to_numpy( )
+		
+		# ------------------------------------------------------------------
+		# MODEL SELECTION
+		# ------------------------------------------------------------------
+		st.subheader( 'Clustering Model' )
+		st.divider( )
+		model_name = st.selectbox( 'Clustering Algorithm',
+			[ 'K-Means', 'DBSCAN', 'Agglomerative', 'Spectral', 'OPTICS', 'MeanShift',
+			  'AffinityPropagation', 'Birch' ] )
+		
+		# ------------------------------------------------------------------
+		# MODEL PARAMETERS
+		# ------------------------------------------------------------------
+		st.subheader( 'Model Parameters' )
+		
+		model = None
+		model_parameters = { }
+		
+		if model_name == 'K-Means':
+			n_clusters = st.number_input( 'Number of Clusters (K)',
+				min_value=2, value=3 )
+			n_init = st.number_input( 'Number of Initializations', min_value=1, value=10 )
+			max_iter = st.number_input( 'Maximum Iterations', min_value=1,
+				value=300 )
+			
+			model = KMeans( clusters=int( n_clusters ), n_init=int( n_init ),
+				max_iter=int( max_iter ) )
+			model_parameters = {
+					'Model': model_name,
+					'Clusters': int( n_clusters ),
+					'N-Init': int( n_init ),
+					'Max-Iter': int( max_iter )
+			}
+		
+		elif model_name == 'DBSCAN':
+			eps = st.number_input( 'Epsilon (eps)', min_value=0.01, value=0.5 )
+			min_samples = st.number_input( 'Min Samples', min_value=1, value=5 )
+			metric = st.selectbox( 'Metric',
+				[ 'euclidean', 'manhattan', 'minkowski', 'cosine' ] )
+			model = DBSCAN( eps=float( eps ), samples=int( min_samples ), metric=metric )
+			model_parameters = {
+					'Model': model_name,
+					'Eps': float( eps ),
+					'Min-Samples': int( min_samples ),
+					'Metric': metric
+			}
+		
+		elif model_name == 'Agglomerative':
+			n_clusters = st.number_input( 'Number of Clusters', min_value=2, value=3 )
+			linkage = st.selectbox( 'Linkage',
+				[ 'ward', 'complete', 'average', 'single' ] )
+			if linkage == 'ward':
+				metric = 'euclidean'
+				st.caption( 'Ward linkage requires euclidean metric.' )
+			else:
+				metric = st.selectbox( 'Metric',
+					[ 'euclidean', 'manhattan', 'cosine', 'l1', 'l2' ] )
+				
+			model = Agglomerative( n_clusters=int( n_clusters ), linkage=linkage, metric=metric )
+			model_parameters = {
+					'Model': model_name,
+					'Clusters': int( n_clusters ),
+					'Linkage': linkage,
+					'Metric': metric
+			}
+		
+		elif model_name == 'Spectral':
+			n_clusters = st.number_input( 'Number of Clusters', min_value=2, value=3 )
+			affinity = st.selectbox( 'Affinity', [ 'rbf', 'nearest_neighbors' ] )
+			n_neighbors = st.number_input( 'Neighbors', min_value=1, value=10 )
+			gamma = st.number_input( 'Gamma', min_value=0.0001, value=1.0 )
+			assign_labels = st.selectbox( 'Assign Labels', [ 'kmeans', 'discretize', 'cluster_qr' ])
+			model = Spectral( n_clusters=int( n_clusters ), affinity=affinity,
+				n_neighbors=int( n_neighbors ), gamma=float( gamma ),
+				assign_labels=assign_labels )
+			
+			model_parameters = {
+					'Model': model_name,
+					'Clusters': int( n_clusters ),
+					'Affinity': affinity,
+					'N-Neighbors': int( n_neighbors ),
+					'Gamma': float( gamma ),
+					'Assign-Labels': assign_labels
+			}
+		
+		elif model_name == 'OPTICS':
+			min_samples = st.number_input( 'Min Samples', min_value=2, value=5 )
+			max_eps = st.number_input( 'Max Epsilon', min_value=0.01, value=10.0 )
+			cluster_method = st.selectbox( 'Cluster Method', [ 'xi', 'dbscan' ] )
+			xi = st.number_input( 'Xi', min_value=0.0001, max_value=0.9999,
+				value=0.05 )
+			eps_value = None
+			if cluster_method == 'dbscan':
+				eps_value = st.number_input( 'Extraction Epsilon', min_value=0.01,
+					value=0.5 )
+				
+			model = OPTICS( min_samples=int( min_samples ), max_eps=float( max_eps ),
+				cluster_method=cluster_method, xi=float( xi ),
+				eps=float( eps_value ) if eps_value is not None else None )
+			
+			model_parameters = {
+					'Model': model_name,
+					'Min-Samples': int( min_samples ),
+					'Max-Eps': float( max_eps ),
+					'Cluster-Method': cluster_method,
+					'Xi': float( xi ),
+					'Eps': float( eps_value ) if eps_value is not None else None
+			}
+		
+		elif model_name == 'MeanShift':
+			use_bandwidth = st.checkbox( 'Specify Bandwidth', value=False )
+			bandwidth = None
+			if use_bandwidth:
+				bandwidth = st.number_input( 'Bandwidth', min_value=0.0001, value=1.0 )
+			bin_seeding = st.checkbox( 'Use Bin Seeding', value=False )
+			min_bin_freq = st.number_input( 'Min Bin Frequency', min_value=1, value=1 )
+			cluster_all = st.checkbox( 'Cluster All Samples', value=True )
+			max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=300 )
+			model = MeanShift( bandwidth=float( bandwidth ) if bandwidth is not None else None,
+				bin_seeding=bin_seeding, min_bin_freq=int( min_bin_freq ),
+				cluster_all=cluster_all, max_iter=int( max_iter ) )
+			model_parameters = {
+					'Model': model_name,
+					'Bandwidth': float( bandwidth ) if bandwidth is not None else None,
+					'Bin-Seeding': bin_seeding,
+					'Min-Bin-Freq': int( min_bin_freq ),
+					'Cluster-All': cluster_all,
+					'Max-Iter': int( max_iter )
+			}
+		
+		elif model_name == 'AffinityPropagation':
+			damping = st.number_input( 'Damping', min_value=0.5, max_value=0.9999, value=0.5 )
+			max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=200 )
+			convergence_iter = st.number_input( 'Convergence Iterations', min_value=1, value=15 )
+			use_preference = st.checkbox( 'Specify Preference', value=False )
+			preference = None
+			if use_preference:
+				preference = st.number_input( 'Preference', value=0.0 )
+			affinity = st.selectbox( 'Affinity', [ 'euclidean', 'precomputed' ] )
+			model = AffinityPropagation( damping=float( damping ),
+				max_iter=int( max_iter ), convergence_iter=int( convergence_iter ),
+				preference=float( preference ) if preference is not None else None,
+				affinity=affinity )
+			model_parameters = {
+					'Model': model_name,
+					'Damping': float( damping ),
+					'Max-Iter': int( max_iter ),
+					'Convergence-Iter': int( convergence_iter ),
+					'Preference': float( preference ) if preference is not None else None,
+					'Affinity': affinity
+			}
+		
+		elif model_name == 'Birch':
+			threshold = st.number_input( 'Threshold', min_value=0.0001, value=0.5 )
+			branching_factor = st.number_input( 'Branching Factor', min_value=2, value=50 )
+			use_global_clusters = st.checkbox( 'Use Global Clusters', value=True )
+			if use_global_clusters:
+				n_clusters = st.number_input( 'Number of Global Clusters', min_value=2, value=3 )
+				n_cluster_value = int( n_clusters )
+			else:
+				n_cluster_value = None
+				
+			compute_labels = st.checkbox( 'Compute Labels', value=True )
+			model = Birch( threshold=float( threshold ), branching_factor=int( branching_factor ),
+				n_clusters=n_cluster_value, compute_labels=compute_labels )
+			model_parameters = {
+					'Model': model_name,
+					'Threshold': float( threshold ),
+					'Branching-Factor': int( branching_factor ),
+					'N-Clusters': n_cluster_value,
+					'Compute-Labels': compute_labels }
+		
+		cluster_signature = ( data_source, tuple( feature_columns ),
+				model_name, tuple( (k, str( v )) for k, v in model_parameters.items( ) ) )
+		
 	# ------------------------------------------------------------------
-	# Data source resolution
+	# FIT CLUSTERING MODEL
 	# ------------------------------------------------------------------
-	if 'df_features' in st.session_state and \
-			st.session_state[ 'df_features' ] is not None:
-		df_cluster = st.session_state[ 'df_features' ].copy( )
-		st.info( 'Using Feature-Engineered Dataset.' )
-	else:
-		df_cluster = df_dataset.copy( )
-		st.info( 'Using Original Dataset.' )
-	
-	if df_cluster is None or df_cluster.empty:
-		st.warning( 'No Dataset Available for Clustering.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# Column classification (numeric only)
-	# ------------------------------------------------------------------
-	numeric_columns = [ c for c in df_cluster.columns
-                    if df_cluster[ c ].dtype.kind in { 'i', 'f' } ]
-
-	if len( numeric_columns ) < 2:
-		st.warning( 'At least two numeric columns are required for clustering.' )
-		st.stop( )
-	
-	# ------------------------------------------------------------------
-	# Feature selection
-	# ------------------------------------------------------------------
-	st.subheader( 'Feature Selection' )
-	feature_columns = st.multiselect( 'Select Features for Clustering', options=numeric_columns )
-	
-	if len( feature_columns ) < 2:
-		st.info( 'Select at least two features to continue.' )
-		st.stop( )
-	
-	X = df_cluster[ feature_columns ].to_numpy( )
-
-    # ------------------------------------------------------------------
-    # Model selection
-    # ------------------------------------------------------------------
-	st.subheader( 'Clustering Model' )
-
-	from clusters import (KMeans, DBSCAN, Agglomerative)
-	
-	model_name = st.selectbox( 'Clustering Algorithm',
-		[ 'K-Means', 'DBSCAN', 'Agglomerative' ] )
-	
-	# ------------------------------------------------------------------
-	# Model parameters
-	# ------------------------------------------------------------------
-	st.subheader( 'Model Parameters' )
-	
-	model = None
-
-	if model_name == 'K-Means':
-		n_clusters = st.number_input( 'Number of Clusters (K)', min_value=2, value=3 )
-		model = KMeans( clusters=n_clusters )
-	elif model_name == 'DBSCAN':
-		eps = st.number_input( 'Epsilon (eps)', min_value=0.01, value=0.5 )
-		min_samples = st.number_input( 'Min Samples', min_value=1, value=5 )
-		model = DBSCAN( samples=min_samples )
-	elif model_name == 'Agglomerative':
-		n_clusters = st.number_input( 'Number of clusters', min_value=2, value=3 )
-		linkage = st.selectbox( 'Linkage', [ 'ward', 'complete', 'average', 'single' ] )
-		model = Agglomerative( n_clusters=n_clusters, linkage=linkage )
-        
-    # ------------------------------------------------------------------
-    # Fit clustering model
-    # ------------------------------------------------------------------
 	st.subheader( 'Run Clustering' )
 	
 	if st.button( 'Run Clustering' ):
-		labels = model.project( X )
-		df_results = df_cluster.copy( )
-		df_results[ 'Cluster' ] = labels		
-		st.success( 'Clustering complete.' )
-	
-	# ------------------------------------------------------------------
-	# Cluster summary
-	# ------------------------------------------------------------------
-		st.subheader( 'Cluster Summary' )
-	
-		cluster_counts = (df_results[ 'Cluster' ]
-		.value_counts( )
-		.rename( 'Count' )
-		.reset_index( )
-		.rename( columns={ 'index': 'Cluster' } ))
+		try:
+			labels = model.project( X )
+			
+			df_results = df_cluster_input.copy( )
+			df_results[ 'Cluster' ] = labels
+			
+			df_counts = (
+					df_results[ 'Cluster' ]
+					.value_counts( dropna=False )
+					.rename_axis( 'Cluster' )
+					.reset_index( name='Count' )
+					.sort_values( by='Cluster' )
+					.reset_index( drop=True )
+			)
+			
+			try:
+				df_metrics = model.score( X )
+				if df_metrics is None:
+					df_metrics = pd.DataFrame( )
+			except Exception:
+				df_metrics = pd.DataFrame( )
+			
+			detail_rows = [ ]
+			for prop in [
+					'features',
+					'inertia',
+					'iterations',
+					'epsilon',
+					'eps',
+					'min_samples',
+					'metric',
+					'linkage',
+					'cluster_method',
+					'bandwidth',
+					'threshold',
+					'branching_factor',
+					'damping',
+					'convergence_iter',
+					'affinity'
+			]:
+				if hasattr( model, prop ):
+					try:
+						value = getattr( model, prop )
+						if value is not None and not isinstance( value, (np.ndarray,
+						                                                 pd.DataFrame) ):
+							detail_rows.append( { 'Property': prop, 'Value': value } )
+					except Exception:
+						pass
+			
+			df_details = pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( )
+			
+			df_centroids = pd.DataFrame( )
+			if hasattr( model, 'centroids_' ):
+				try:
+					centroids = model.centroids_
+					if centroids is not None:
+						df_centroids = pd.DataFrame( centroids, columns=feature_columns )
+						df_centroids.insert( 0, 'Cluster', range( len( df_centroids ) ) )
+				except Exception:
+					df_centroids = pd.DataFrame( )
+			
+			st.session_state[ 'df_cluster_results' ] = df_results
+			st.session_state[ 'df_cluster_counts' ] = df_counts
+			st.session_state[ 'df_cluster_metrics' ] = df_metrics
+			st.session_state[ 'df_cluster_centroids' ] = df_centroids
+			st.session_state[ 'df_cluster_details' ] = df_details
+			st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
+			st.session_state[ 'cluster_signature' ] = cluster_signature
+			
+			st.success( 'Clustering complete.' )
 		
-		st.data_editor( cluster_counts, use_container_width=True )
+		except Exception as e:
+			st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+			st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+			st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+			st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+			st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+			st.session_state[ 'cluster_plot_features' ] = [ ]
+			st.session_state[ 'cluster_signature' ] = None
+			st.error( f'Clustering failed: {e}' )
+	
+	df_results = pd.DataFrame( )
+	df_counts = pd.DataFrame( )
+	df_metrics = pd.DataFrame( )
+	df_centroids = pd.DataFrame( )
+	df_details = pd.DataFrame( )
+	
+	if st.session_state.get( 'cluster_signature', None ) == cluster_signature:
+		df_results = st.session_state.get( 'df_cluster_results', pd.DataFrame( ) )
+		df_counts = st.session_state.get( 'df_cluster_counts', pd.DataFrame( ) )
+		df_metrics = st.session_state.get( 'df_cluster_metrics', pd.DataFrame( ) )
+		df_centroids = st.session_state.get( 'df_cluster_centroids', pd.DataFrame( ) )
+		df_details = st.session_state.get( 'df_cluster_details', pd.DataFrame( ) )
 	
 	# ------------------------------------------------------------------
-	# Visualization
+	# CLUSTER SUMMARY
+	# ------------------------------------------------------------------
+	st.subheader( 'Cluster Summary' )
+	
+	if df_counts is not None and not df_counts.empty:
+		st.data_editor( df_counts, use_container_width=True )
+		
+		if df_metrics is not None and not df_metrics.empty:
+			st.caption( 'Metrics' )
+			st.data_editor( df_metrics, use_container_width=True )
+		
+		if df_details is not None and not df_details.empty:
+			st.caption( 'Model Details' )
+			st.data_editor( df_details, use_container_width=True )
+	else:
+		st.info( 'Run clustering to view cluster counts and metrics.' )
+	
+	# ------------------------------------------------------------------
+	# VISUALIZATION
 	# ------------------------------------------------------------------
 	st.subheader( 'Cluster Visualization' )
 	
-	if len( feature_columns ) == 2:
-		fig, ax = plt.subplots( )
-		scatter = ax.scatter( df_results[ feature_columns[ 0 ] ],
-			df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-		ax.set_xlabel( feature_columns[ 0 ] )
-		ax.set_ylabel( feature_columns[ 1 ] )
-		ax.set_title( 'Cluster Assignments' )
-		st.pyplot( fig )
+	if df_results is not None and not df_results.empty:
+		if len( feature_columns ) == 2:
+			plt.close( 'all' )
+			fig, ax = plt.subplots( )
+			ax.scatter(
+				df_results[ feature_columns[ 0 ] ],
+				df_results[ feature_columns[ 1 ] ],
+				c=df_results[ 'Cluster' ],
+				alpha=0.7
+			)
+			ax.set_xlabel( feature_columns[ 0 ] )
+			ax.set_ylabel( feature_columns[ 1 ] )
+			ax.set_title( 'Cluster Assignments' )
+			
+			if df_centroids is not None and not df_centroids.empty:
+				try:
+					ax.scatter(
+						df_centroids[ feature_columns[ 0 ] ],
+						df_centroids[ feature_columns[ 1 ] ],
+						marker='x',
+						s=100
+					)
+				except Exception:
+					pass
+			
+			st.pyplot( fig )
+			plt.close( fig )
+		else:
+			st.info( 'Visualization limited to two features.' )
 	else:
-		st.info( 'Visualization limited to two features.' )
+		st.info( 'Run clustering to view the scatter plot.' )
 	
 	# ------------------------------------------------------------------
-	# Centroids (if available)
+	# CENTROIDS (IF AVAILABLE)
 	# ------------------------------------------------------------------
-	if hasattr( model, 'centroids_' ):
+	if df_centroids is not None and not df_centroids.empty:
 		st.subheader( 'Cluster Centroids' )
-		df_centroid = pd.DataFrame( model.centroids_, columns=feature_columns )
-		df_centroid.insert( 0, 'Cluster', range( len( df_centroid ) ) )
-		st.data_editor( df_centroid, use_container_width=True )
+		st.data_editor( df_centroids, use_container_width=True )
 
 # ============================================
 # TIME SERIES MODE
