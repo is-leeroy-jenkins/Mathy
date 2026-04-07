@@ -1958,7 +1958,7 @@ elif mode == 'Inferential Statistics':
 					st.pyplot( fig )
 					plt.close( fig )
 				
-				cm1, cm2, cm3, cm4 = st.columns( 4 )
+				cm1, cm2, cm3, cm4 = st.columns( 4, border=True )
 				cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
 				cm2.metric( 'p-value', f'{p_chi:,.4g}' )
 				cm3.metric( 'DoF', f'{dof:,}' )
@@ -1970,7 +1970,7 @@ elif mode == 'Inferential Statistics':
 elif mode == 'Anomaly Detection':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Anomaly Detection' ] )
+		st.subheader( cfg.MODE[ 'Anomaly Detection' ] )
 		st.divider( )
 		if st.session_state.df_dataset is None:
 			st.info( 'No data loaded.' )
@@ -2024,8 +2024,8 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Method Selection
 		# -------------------------------------------------------------------------
-		st.divider( )
-		st.subheader( 'Detection Methods' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Detection Methods' )
 		
 		c_m1, c_m2 = st.columns( 2, border=True )
 		with c_m1:
@@ -2041,8 +2041,8 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Threshold Controls
 		# -------------------------------------------------------------------------
-		st.divider( )
-		st.subheader( 'Thresholds' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Thresholds' )
 		
 		c_t1, c_t2 = st.columns( 2, border=True )
 		with c_t1:
