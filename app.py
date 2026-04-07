@@ -1562,7 +1562,6 @@ elif mode == 'Inferential Statistics':
 		# -------------------------------------------------------------------------------------
 		# INFERENTIAL SUMMARY
 		# -------------------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Inferential Summary' )
 		
 		sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=False )
@@ -1768,7 +1767,7 @@ elif mode == 'Inferential Statistics':
 		else:
 			st.info( 'Unable to compute inferential summary for the current selections.' )
 		
-		st.divider( )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
 		# -------------------------------------------------------------------------------------
 		# NORMALITY + GROUP COMPARISON
@@ -1777,7 +1776,6 @@ elif mode == 'Inferential Statistics':
 		col_group = None
 		
 		with nml_c1:
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( '##### Normality Test', help=cfg.NORMALITY_TESTING )
 			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
 			y = pd.to_numeric( df_dataset[ col_y ], errors='coerce' ).dropna( )
@@ -1812,7 +1810,6 @@ elif mode == 'Inferential Statistics':
 				st.info( 'Not enough observations for normality testing.' )
 		
 		with nml_c2:
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( '##### Group Comparison' )
 			if categorical_cols:
 				col_group = st.selectbox( 'Select Grouping Variable (optional)',
@@ -1860,7 +1857,6 @@ elif mode == 'Inferential Statistics':
 			# -------------------------------------------------------------------------------------
 			# CORRELATION ANALYSIS
 			# -------------------------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( '##### Correlation Analysis' )
 			cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 			with cor_c1:
@@ -1917,7 +1913,6 @@ elif mode == 'Inferential Statistics':
 			# -------------------------------------------------------------------------------------
 			# CATEGORICAL ASSOCIATION
 			# -------------------------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( '##### Categorical Association' )
 			if not categorical_cols or len( categorical_cols ) < 2:
 				st.info( 'At least two categorical variables are required for categorical association.' )
@@ -2014,8 +2009,7 @@ elif mode == 'Anomaly Detection':
 		df_analysis = df_numeric[ vars_sel ].astype( float ).copy( )
 
 		if analysis_scale and len( vars_sel ) > 1:
-			df_analysis = pd.DataFrame(
-				SKStandardScaler( ).fit_transform( df_analysis.values ),
+			df_analysis = pd.DataFrame( SKStandardScaler( ).fit_transform( df_analysis.values ),
 				columns=df_analysis.columns,
 				index=df_analysis.index
 			)
