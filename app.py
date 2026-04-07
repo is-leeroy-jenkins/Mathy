@@ -4253,10 +4253,17 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'MeanShift':
-			use_bandwidth = st.checkbox( 'Specify Bandwidth', value=False )
-			bandwidth = None
-			if use_bandwidth:
-				bandwidth = st.number_input( 'Bandwidth', min_value=0.0001, value=1.0 )
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5 = st.columns( [ 0.2, 0.2, 0.2, 0.2, 0.2 ],
+				border=True )
+			
+			with prm_c1:
+				use_bandwidth = st.checkbox( 'Specify Bandwidth', value=False )
+			
+			with prm_c2:
+				bandwidth = None
+				if use_bandwidth:
+					bandwidth = st.number_input( 'Bandwidth', min_value=0.0001, value=1.0 )
+			
 			bin_seeding = st.checkbox( 'Use Bin Seeding', value=False )
 			min_bin_freq = st.number_input( 'Min Bin Frequency', min_value=1, value=1 )
 			cluster_all = st.checkbox( 'Cluster All Samples', value=True )
@@ -4275,14 +4282,28 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'AffinityPropagation':
-			damping = st.number_input( 'Damping', min_value=0.5, max_value=0.9999, value=0.5 )
-			max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=200 )
-			convergence_iter = st.number_input( 'Convergence Iterations', min_value=1, value=15 )
-			use_preference = st.checkbox( 'Specify Preference', value=False )
-			preference = None
-			if use_preference:
-				preference = st.number_input( 'Preference', value=0.0 )
-			affinity = st.selectbox( 'Affinity', [ 'euclidean', 'precomputed' ] )
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5 = st.columns(
+				[ 0.16, 0.16, 0.16, 0.16, 0.16, 0.16], border=True )
+			
+			with prm_c1:
+				damping = st.number_input( 'Damping', min_value=0.5, max_value=0.9999, value=0.5 )
+			
+			with prm_c2:
+				max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=200 )
+			
+			with prm_c3:
+				convergence_iter = st.number_input( 'Convergence Iterations', min_value=1, value=15 )
+			
+			with prm_c4:
+				use_preference = st.checkbox( 'Specify Preference', value=False )
+				
+			with prm_c5:
+				preference = None
+				if use_preference:
+					preference = st.number_input( 'Preference', value=0.0 )
+			
+			with prm_c6:
+				affinity = st.selectbox( 'Affinity', [ 'euclidean', 'precomputed' ] )
 			
 			model = AffinityPropagation( damping=float( damping ),
 				max_iter=int( max_iter ), convergence_iter=int( convergence_iter ),
