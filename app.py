@@ -54,8 +54,6 @@ from typing import List, Dict, Optional
 
 # Mathy
 import config as cfg
-from imputers import SimpleImputer
-from scalers import StandardScaler, MinMaxScaler, RobustScaler, NormalScaler
 
 # sklearn / statsmodels
 import matplotlib.pyplot as plt
@@ -94,75 +92,24 @@ from sklearn.cluster import DBSCAN, KMeans
 import seaborn as sns
 import sklearn.feature_selection as sf
 
-from scalers import (
-	StandardScaler,
-	MinMaxScaler,
-	RobustScaler,
-	NormalScaler,
-	MaxAbsScaler
-)
+from scalers import ( StandardScaler, MinMaxScaler, RobustScaler, NormalScaler, MaxAbsScaler )
 
-from imputers import (
-	MeanImputer,
-	NearestImputer,
-	IterativeImputer,
-	SimpleImputer
-)
+from imputers import ( MeanImputer, NearestImputer, IterativeImputer, SimpleImputer )
 
-from encoders import (
-	OneHotEncoder,
-	OrdinalEncoder,
-	LabelEncoder,
-	TargetEncoder,
-	PolynomialFeatures
-)
+from encoders import ( OneHotEncoder, OrdinalEncoder, LabelEncoder, TargetEncoder,
+                       PolynomialFeatures )
 
-from transformers import (
-	Binarizer,
-	LabelBinarizer,
-	MultiLabelBinarizer,
-	TfidfTransformer,
-	ColumnTransformer,
-	TfidfVectorizer,
-	CountVectorizer,
-	HashVectorizer,
-	DictVectorizer,
-	FeatureHasher
-)
+from transformers import ( Binarizer, LabelBinarizer, MultiLabelBinarizer, TfidfTransformer,
+	ColumnTransformer, TfidfVectorizer, CountVectorizer, HashVectorizer, DictVectorizer,
+	FeatureHasher )
 
-from clusters import (
-	KMeans,
-	DBSCAN,
-	Agglomerative,
-	Spectral,
-	OPTICS,
-	MeanShift,
-	AffinityPropagation,
-	Birch
-)
+from clusters import ( KMeans, DBSCAN, Agglomerative, Spectral, OPTICS, MeanShift,
+	AffinityPropagation, Birch )
 
-from features import (
-	VarianceThreshold,
-	CCA,
-	PCA,
-	SelectBest,
-	SelectPercent,
-	SBS,
-	RFE
-)
+from features import ( VarianceThreshold, CCA, PCA, SelectBest, SelectPercent, SBS, RFE )
 
-from classifications import (
-	Perceptron,
-	LeastSquares,
-	LogisticRegression,
-	DecisionTree,
-	SupportVector,
-	RandomForest,
-	NearestNeighbor,
-	BaggingModel,
-	AdaptiveBoost,
-	GradientBoost
-)
+from classifications import ( Perceptron, LeastSquares, LogisticRegression, DecisionTree,
+	SupportVector, RandomForest, NearestNeighbor, BaggingModel, AdaptiveBoost, GradientBoost )
 
 from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
 
@@ -4253,8 +4200,8 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'MeanShift':
-			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5 = st.columns( [ 0.2, 0.2, 0.2, 0.2, 0.2 ],
-				border=True )
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5, prm_c6 = st.columns(
+				[ 0.16, 0.16, 0.16, 0.16, 0.16, 0.16 ], border=True )
 			
 			with prm_c1:
 				use_bandwidth = st.checkbox( 'Specify Bandwidth', value=False )
@@ -4263,11 +4210,17 @@ elif mode == 'Clustering':
 				bandwidth = None
 				if use_bandwidth:
 					bandwidth = st.number_input( 'Bandwidth', min_value=0.0001, value=1.0 )
+			with prm_c3:
+				bin_seeding = st.checkbox( 'Use Bin Seeding', value=False )
 			
-			bin_seeding = st.checkbox( 'Use Bin Seeding', value=False )
-			min_bin_freq = st.number_input( 'Min Bin Frequency', min_value=1, value=1 )
-			cluster_all = st.checkbox( 'Cluster All Samples', value=True )
-			max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=300 )
+			with prm_c4:
+				min_bin_freq = st.number_input( 'Min Bin Frequency', min_value=1, value=1 )
+			
+			with prm_c5:
+				cluster_all = st.checkbox( 'Cluster All Samples', value=True )
+			
+			with prm_c6:
+				max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=300 )
 			
 			model = MeanShift( bandwidth=float( bandwidth ) if bandwidth is not None else None,
 				bin_seeding=bin_seeding, min_bin_freq=int( min_bin_freq ),
@@ -4282,8 +4235,8 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'AffinityPropagation':
-			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5 = st.columns(
-				[ 0.16, 0.16, 0.16, 0.16, 0.16, 0.16], border=True )
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5, prm_c6 = st.columns(
+				[ 0.16, 0.16, 0.16, 0.16, 0.16, 0.16 ], border=True )
 			
 			with prm_c1:
 				damping = st.number_input( 'Damping', min_value=0.5, max_value=0.9999, value=0.5 )
@@ -4319,16 +4272,27 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'Birch':
-			threshold = st.number_input( 'Threshold', min_value=0.0001, value=0.5 )
-			branching_factor = st.number_input( 'Branching Factor', min_value=2, value=50 )
-			use_global_clusters = st.checkbox( 'Use Global Clusters', value=True )
-			if use_global_clusters:
-				n_clusters = st.number_input( 'Number of Global Clusters', min_value=2, value=3 )
-				n_cluster_value = int( n_clusters )
-			else:
-				n_cluster_value = None
-				
-			compute_labels = st.checkbox( 'Compute Labels', value=True )
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5, prm_c6 = st.columns(
+				[ 0.2, 0.2, 0.2, 0.2, 0.2 ], border=True )
+			
+			with prm_c1:
+				threshold = st.number_input( 'Threshold', min_value=0.0001, value=0.5 )
+			
+			with prm_c2:
+				branching_factor = st.number_input( 'Branching Factor', min_value=2, value=50 )
+			
+			with prm_c3:
+				use_global_clusters = st.checkbox( 'Use Global Clusters', value=True )
+			
+			with prm_c4:
+				if use_global_clusters:
+					n_clusters = st.number_input( 'Number of Global Clusters', min_value=2, value=3 )
+					n_cluster_value = int( n_clusters )
+				else:
+					n_cluster_value = None
+			
+			with prm_c5:
+				compute_labels = st.checkbox( 'Compute Labels', value=True )
 			
 			model = Birch( threshold=float( threshold ), branching_factor=int( branching_factor ),
 				n_clusters=n_cluster_value, compute_labels=compute_labels )
@@ -4360,8 +4324,7 @@ elif mode == 'Clustering':
 					.rename_axis( 'Cluster' )
 					.reset_index( name='Count' )
 					.sort_values( by='Cluster' )
-					.reset_index( drop=True )
-			)
+					.reset_index( drop=True ) )
 			
 			try:
 				df_metrics = model.score( X )
@@ -4371,23 +4334,9 @@ elif mode == 'Clustering':
 				df_metrics = pd.DataFrame( )
 			
 			detail_rows = [ ]
-			for prop in [
-					'features',
-					'inertia',
-					'iterations',
-					'epsilon',
-					'eps',
-					'min_samples',
-					'metric',
-					'linkage',
-					'cluster_method',
-					'bandwidth',
-					'threshold',
-					'branching_factor',
-					'damping',
-					'convergence_iter',
-					'affinity'
-			]:
+			for prop in [ 'features', 'inertia', 'iterations', 'epsilon', 'eps',
+					'min_samples', 'metric', 'linkage', 'cluster_method', 'bandwidth',
+					'threshold', 'branching_factor', 'damping', 'convergence_iter', 'affinity' ]:
 				if hasattr( model, prop ):
 					try:
 						value = getattr( model, prop )
@@ -4445,6 +4394,7 @@ elif mode == 'Clustering':
 	# ------------------------------------------------------------------
 	# CLUSTER SUMMARY
 	# ------------------------------------------------------------------
+	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 	st.markdown( '##### Cluster Summary' )
 	
 	if df_counts is not None and not df_counts.empty:
@@ -4463,6 +4413,7 @@ elif mode == 'Clustering':
 	# ------------------------------------------------------------------
 	# VISUALIZATION
 	# ------------------------------------------------------------------
+	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 	st.subheader( 'Cluster Visualization' )
 	
 	if df_results is not None and not df_results.empty:
@@ -4501,7 +4452,8 @@ elif mode == 'Clustering':
 	# CENTROIDS (IF AVAILABLE)
 	# ------------------------------------------------------------------
 	if df_centroids is not None and not df_centroids.empty:
-		st.subheader( 'Cluster Centroids' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Cluster Centroids' )
 		st.data_editor( df_centroids, use_container_width=True )
 
 # ============================================
