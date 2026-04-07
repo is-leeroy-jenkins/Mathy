@@ -166,25 +166,13 @@ from classifications import (
 
 from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
 
-from regressions import (
-	LeastSquares,
-	Ridge,
-	Lasso,
-	ElasticNet,
-	BayesianRidge,
-	SupportVector,
-	GradientDescent,
-	NearestNeighbor,
-	BaggingModel,
-	ExtraTreesModel,
-	AdaptiveBoost,
-	GradientBoost,
-	RandomForest,
-	VotingModel,
-	StackingModel
-)
+from regressions import ( LeastSquares, Ridge, Lasso, ElasticNet, BayesianRidge, SupportVector,
+	GradientDescent, NearestNeighbor, BaggingModel, ExtraTreesModel, AdaptiveBoost,
+	GradientBoost, RandomForest, VotingModel, StackingModel )
 
 from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
+from forecasting import ( LaggingSeries, LagBoostingSeries, ARIMA, SARIMA, TimeSeriesSpliter )
+
 
 # ============================================
 # Session State
@@ -3837,7 +3825,7 @@ elif mode == 'Classifications':
 elif mode == 'Regressions':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Regressions' ] )
+		st.subheader( cfg.MODE[ 'Regressions' ] )
 		st.divider( )
 		df_dataset = st.session_state.get( 'df_dataset', None )
 		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
@@ -3853,18 +3841,21 @@ elif mode == 'Regressions':
 		# ------------------------------------------------------------------
 		# TARGET & FEATURES
 		# ------------------------------------------------------------------
-		st.subheader( 'Target & Features' )
-		target = st.selectbox( 'Target (Numeric)', numeric_cols )
-		feature_candidates = [ c for c in numeric_cols if c != target ]
-		feature_defaults = feature_candidates[ : min( 3, len( feature_candidates ) ) ]
+		st.markdown( '##### Target & Features' )
+		tgt_c2, tgt_c3 = st.columns( [ 0.5, 0.5 ], border=True )
+		with tgt_c2:
+			target = st.selectbox( 'Target (Numeric)', numeric_cols )
+			feature_candidates = [ c for c in numeric_cols if c != target ]
+			feature_defaults = feature_candidates[ : min( 3, len( feature_candidates ) ) ]
 		
-		features = st.multiselect( 'Feature Columns (Numeric)', feature_candidates,
-			default=feature_defaults )
-		
-		if not features:
-			st.info( 'Please select at least one feature.' )
-			st.stop( )
-		
+		with tgt_c3:
+			features = st.multiselect( 'Feature Columns (Numeric)', feature_candidates,
+				default=feature_defaults )
+			
+			if not features:
+				st.info( 'Please select at least one feature.' )
+				st.stop( )
+			
 		# ------------------------------------------------------------------
 		# DATASET PREPARATION
 		# ------------------------------------------------------------------
@@ -3917,23 +3908,33 @@ elif mode == 'Regressions':
 			'Stacking Regressor': StackingModel
 		}
 		
-		st.subheader( 'Model Selection' )
-		model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
-		model = model_map[ model_name ]( )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		
+		sel_c4, sel_c5, sel_c6 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
+		with sel_c4:
+			st.markdown( '##### Model Selection' )
+			model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
+			model = model_map[ model_name ]( )
 		
 		# ------------------------------------------------------------------
 		# TRAIN / TEST SPLIT
 		# ------------------------------------------------------------------
-		st.subheader( 'Training Configuration' )
-		test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
-		random_state = int( st.number_input( 'Random state', value=42, step=1, key='regressions-2' ) )
-		
-		min_test_rows = max( 2, int( np.ceil( len( df_regression ) * test_size ) ) )
-		min_train_rows = len( df_regression ) - min_test_rows
-		
-		if min_train_rows < 2:
-			st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
-			st.stop( )
+		with sel_c5:
+			st.markdown( '##### Training Configuration' )
+			test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
+			
+		with sel_c6:
+			st.markdown( '##### Random State' )
+			random_state = int( st.number_input( 'Seed', value=42, step=1, key='regressions-2' ) )
+			
+			min_test_rows = max( 2, int( np.ceil( len( df_regression ) * test_size ) ) )
+			min_train_rows = len( df_regression ) - min_test_rows
+			
+			if min_train_rows < 2:
+				st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
+				st.stop( )
+	
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
 		if st.button( '🚀 Train Model' ):
 			try:
@@ -3945,14 +3946,15 @@ elif mode == 'Regressions':
 				# ------------------------------------------------------------------
 				# METRICS
 				# ------------------------------------------------------------------
-				st.subheader( 'Model Performance' )
+				st.markdown( '##### Model Performance' )
 				df_regressor = model.analyze( X_test, y_test )
 				st.data_editor( df_regressor, use_container_width=True )
 				
 				# ------------------------------------------------------------------
 				# PREDICTIONS
 				# ------------------------------------------------------------------
-				st.subheader( 'Predictions' )
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.markdown( '##### Predictions' )
 				y_pred = model.project( X_test )
 				df_predictions = pd.DataFrame(
 				{
@@ -3966,7 +3968,8 @@ elif mode == 'Regressions':
 				# ------------------------------------------------------------------
 				# MODEL DETAILS
 				# ------------------------------------------------------------------
-				st.subheader( 'Model Details' )
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.markdown( '##### Model Details' )
 				detail_rows = [ ]
 				
 				if hasattr( model, 'features' ):
@@ -4018,7 +4021,8 @@ elif mode == 'Regressions':
 				# ------------------------------------------------------------------
 				# SCATTER PLOT
 				# ------------------------------------------------------------------
-				st.subheader( 'Observed vs Predicted' )
+				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				st.markdown( '##### Observed vs Predicted' )
 				plt.close( 'all' )
 				model.scatter_plot( X_test, y_test )
 				st.pyplot( plt.gcf( ) )
@@ -4033,14 +4037,9 @@ elif mode == 'Regressions':
 elif mode == 'Clustering':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Clustering' ] )
+		st.subheader( cfg.MODE[ 'Clustering' ] )
 		st.divider( )
 		st.caption( 'Unsupervised Learning Models' )
-		
-		# ------------------------------------------------------------------
-		# SESSION STATE
-		# ------------------------------------------------------------------
-		
 		
 		# ------------------------------------------------------------------
 		# DATA SOURCE RESOLUTION
@@ -4063,10 +4062,8 @@ elif mode == 'Clustering':
 		# ------------------------------------------------------------------
 		# COLUMN CLASSIFICATION (NUMERIC ONLY)
 		# ------------------------------------------------------------------
-		numeric_columns = [
-				c for c in df_cluster.columns
-				if df_cluster[ c ].dtype.kind in { 'i', 'f' }
-		]
+		numeric_columns = [ c for c in df_cluster.columns
+				if df_cluster[ c ].dtype.kind in { 'i', 'f' } ]
 		
 		if len( numeric_columns ) < 2:
 			st.warning( 'At least two numeric columns are required for clustering.' )
@@ -4075,58 +4072,64 @@ elif mode == 'Clustering':
 		# ------------------------------------------------------------------
 		# FEATURE SELECTION
 		# ------------------------------------------------------------------
-		st.subheader( 'Feature Selection' )
-		feature_columns = st.multiselect(
-			'Select Features for Clustering',
-			options=numeric_columns
-		)
-		
-		if len( feature_columns ) < 2:
-			st.info( 'Select at least two features to continue.' )
-			st.stop( )
-		
-		df_cluster_input = df_cluster[ feature_columns ].copy( )
-		df_cluster_input = df_cluster_input.replace( [ np.inf, -np.inf ], np.nan )
-		rows_before = len( df_cluster_input )
-		df_cluster_input = df_cluster_input.dropna( axis=0, how='any' )
-		rows_after = len( df_cluster_input )
-		
-		if rows_after == 0:
-			st.warning( 'No complete numeric rows remain after removing missing or invalid values.' )
-			st.stop( )
-		
-		if rows_after != rows_before:
-			st.info(
-				f'Using {rows_after:,} complete rows after removing '
-				f'{rows_before - rows_after:,} row(s) with missing or invalid values.'
-			)
-		
-		X = df_cluster_input.to_numpy( )
+		csr_c1, csr_c2 = st.columns( [ 0.5, 0.5 ],  border=True )
+		with csr_c1:
+			st.markdown( '##### Feature Selection' )
+			feature_columns = st.multiselect( 'Select Features for Clustering',
+				options=numeric_columns )
+			
+			if len( feature_columns ) < 2:
+				st.info( 'Select at least two features to continue.' )
+				st.stop( )
+			
+			df_cluster_input = df_cluster[ feature_columns ].copy( )
+			df_cluster_input = df_cluster_input.replace( [ np.inf, -np.inf ], np.nan )
+			rows_before = len( df_cluster_input )
+			df_cluster_input = df_cluster_input.dropna( axis=0, how='any' )
+			rows_after = len( df_cluster_input )
+			
+			if rows_after == 0:
+				st.warning( 'No complete numeric rows remain after removing missing or invalid values.' )
+				st.stop( )
+			
+			if rows_after != rows_before:
+				st.info(
+					f'Using {rows_after:,} complete rows after removing '
+					f'{rows_before - rows_after:,} row(s) with missing or invalid values.'
+				)
+			
+			X = df_cluster_input.to_numpy( )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
-		st.subheader( 'Clustering Model' )
-		st.divider( )
-		model_name = st.selectbox( 'Clustering Algorithm',
-			[ 'K-Means', 'DBSCAN', 'Agglomerative', 'Spectral', 'OPTICS', 'MeanShift',
-			  'AffinityPropagation', 'Birch' ] )
+		with csr_c2:
+			st.markdown( '##### Clustering Model' )
+			model_name = st.selectbox( 'Clustering Algorithm',
+				[ 'K-Means', 'DBSCAN', 'Agglomerative', 'Spectral', 'OPTICS', 'MeanShift',
+				  'AffinityPropagation', 'Birch' ] )
 		
 		# ------------------------------------------------------------------
 		# MODEL PARAMETERS
 		# ------------------------------------------------------------------
-		st.subheader( 'Model Parameters' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Model Parameters' )
 		
 		model = None
 		model_parameters = { }
-		
-		if model_name == 'K-Means':
-			n_clusters = st.number_input( 'Number of Clusters (K)',
-				min_value=2, value=3 )
-			n_init = st.number_input( 'Number of Initializations', min_value=1, value=10 )
-			max_iter = st.number_input( 'Maximum Iterations', min_value=1,
-				value=300 )
 			
+		if model_name == 'K-Means':
+			prm_c1, prm_c2, prm_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
+			with prm_c1:
+				n_clusters = st.number_input( 'Number of Clusters (K)',
+					min_value=2, value=3 )
+			with prm_c2:
+				n_init = st.number_input( 'Number of Initializations', min_value=1, value=10 )
+			
+			with prm_c3:
+				max_iter = st.number_input( 'Maximum Iterations', min_value=1,
+					value=300 )
+	
 			model = KMeans( clusters=int( n_clusters ), n_init=int( n_init ),
 				max_iter=int( max_iter ) )
 			model_parameters = {
@@ -4137,10 +4140,17 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'DBSCAN':
-			eps = st.number_input( 'Epsilon (eps)', min_value=0.01, value=0.5 )
-			min_samples = st.number_input( 'Min Samples', min_value=1, value=5 )
-			metric = st.selectbox( 'Metric',
-				[ 'euclidean', 'manhattan', 'minkowski', 'cosine' ] )
+			prm_c1, prm_c2, prm_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
+			with prm_c1:
+				eps = st.number_input( 'Epsilon (eps)', min_value=0.01, value=0.5 )
+			
+			with prm_c2:
+				min_samples = st.number_input( 'Min Samples', min_value=1, value=5 )
+			
+			with prm_c3:
+				metric = st.selectbox( 'Metric',
+					[ 'euclidean', 'manhattan', 'minkowski', 'cosine' ] )
+				
 			model = DBSCAN( eps=float( eps ), samples=int( min_samples ), metric=metric )
 			model_parameters = {
 					'Model': model_name,
@@ -4150,15 +4160,21 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'Agglomerative':
-			n_clusters = st.number_input( 'Number of Clusters', min_value=2, value=3 )
-			linkage = st.selectbox( 'Linkage',
-				[ 'ward', 'complete', 'average', 'single' ] )
-			if linkage == 'ward':
-				metric = 'euclidean'
-				st.caption( 'Ward linkage requires euclidean metric.' )
-			else:
-				metric = st.selectbox( 'Metric',
-					[ 'euclidean', 'manhattan', 'cosine', 'l1', 'l2' ] )
+			prm_c1, prm_c2, prm_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
+			with prm_c1:
+				n_clusters = st.number_input( 'Number of Clusters', min_value=2, value=3 )
+			
+			with prm_c2:
+				linkage = st.selectbox( 'Linkage',
+					[ 'ward', 'complete', 'average', 'single' ] )
+				
+			with prm_c3:
+				if linkage == 'ward':
+					metric = 'euclidean'
+					st.caption( 'Ward linkage requires euclidean metric.' )
+				else:
+					metric = st.selectbox( 'Metric',
+						[ 'euclidean', 'manhattan', 'cosine', 'l1', 'l2' ] )
 				
 			model = Agglomerative( n_clusters=int( n_clusters ), linkage=linkage, metric=metric )
 			model_parameters = {
@@ -4169,11 +4185,24 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'Spectral':
-			n_clusters = st.number_input( 'Number of Clusters', min_value=2, value=3 )
-			affinity = st.selectbox( 'Affinity', [ 'rbf', 'nearest_neighbors' ] )
-			n_neighbors = st.number_input( 'Neighbors', min_value=1, value=10 )
-			gamma = st.number_input( 'Gamma', min_value=0.0001, value=1.0 )
-			assign_labels = st.selectbox( 'Assign Labels', [ 'kmeans', 'discretize', 'cluster_qr' ])
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5 = st.columns( [ 0.2, 0.2, 0.2, 0.2, 0.2 ],
+				border=True )
+			
+			with prm_c1:
+				n_clusters = st.number_input( 'Number of Clusters', min_value=2, value=3 )
+			
+			with prm_c2:
+				affinity = st.selectbox( 'Affinity', [ 'rbf', 'nearest_neighbors' ] )
+				
+			with prm_c3:
+				n_neighbors = st.number_input( 'Neighbors', min_value=1, value=10 )
+			
+			with prm_c4:
+				gamma = st.number_input( 'Gamma', min_value=0.0001, value=1.0 )
+			
+			with prm_c5:
+				assign_labels = st.selectbox( 'Assign Labels', [ 'kmeans', 'discretize', 'cluster_qr' ])
+			
 			model = Spectral( n_clusters=int( n_clusters ), affinity=affinity,
 				n_neighbors=int( n_neighbors ), gamma=float( gamma ),
 				assign_labels=assign_labels )
@@ -4188,15 +4217,27 @@ elif mode == 'Clustering':
 			}
 		
 		elif model_name == 'OPTICS':
-			min_samples = st.number_input( 'Min Samples', min_value=2, value=5 )
-			max_eps = st.number_input( 'Max Epsilon', min_value=0.01, value=10.0 )
-			cluster_method = st.selectbox( 'Cluster Method', [ 'xi', 'dbscan' ] )
-			xi = st.number_input( 'Xi', min_value=0.0001, max_value=0.9999,
-				value=0.05 )
-			eps_value = None
-			if cluster_method == 'dbscan':
-				eps_value = st.number_input( 'Extraction Epsilon', min_value=0.01,
-					value=0.5 )
+			prm_c1, prm_c2, prm_c3, prm_c4, prm_c5 = st.columns( [ 0.2, 0.2, 0.2, 0.2, 0.2 ],
+				border=True )
+			
+			with prm_c1:
+				min_samples = st.number_input( 'Min Samples', min_value=2, value=5 )
+			
+			with prm_c2:
+				max_eps = st.number_input( 'Max Epsilon', min_value=0.01, value=10.0 )
+			
+			with prm_c3:
+				cluster_method = st.selectbox( 'Cluster Method', [ 'xi', 'dbscan' ] )
+			
+			with prm_c4:
+				xi = st.number_input( 'Xi', min_value=0.0001, max_value=0.9999,
+					value=0.05 )
+			
+			with prm_c5:
+				eps_value = None
+				if cluster_method == 'dbscan':
+					eps_value = st.number_input( 'Extraction Epsilon', min_value=0.01,
+						value=0.5 )
 				
 			model = OPTICS( min_samples=int( min_samples ), max_eps=float( max_eps ),
 				cluster_method=cluster_method, xi=float( xi ),
@@ -4220,6 +4261,7 @@ elif mode == 'Clustering':
 			min_bin_freq = st.number_input( 'Min Bin Frequency', min_value=1, value=1 )
 			cluster_all = st.checkbox( 'Cluster All Samples', value=True )
 			max_iter = st.number_input( 'Maximum Iterations', min_value=1, value=300 )
+			
 			model = MeanShift( bandwidth=float( bandwidth ) if bandwidth is not None else None,
 				bin_seeding=bin_seeding, min_bin_freq=int( min_bin_freq ),
 				cluster_all=cluster_all, max_iter=int( max_iter ) )
@@ -4241,6 +4283,7 @@ elif mode == 'Clustering':
 			if use_preference:
 				preference = st.number_input( 'Preference', value=0.0 )
 			affinity = st.selectbox( 'Affinity', [ 'euclidean', 'precomputed' ] )
+			
 			model = AffinityPropagation( damping=float( damping ),
 				max_iter=int( max_iter ), convergence_iter=int( convergence_iter ),
 				preference=float( preference ) if preference is not None else None,
@@ -4265,6 +4308,7 @@ elif mode == 'Clustering':
 				n_cluster_value = None
 				
 			compute_labels = st.checkbox( 'Compute Labels', value=True )
+			
 			model = Birch( threshold=float( threshold ), branching_factor=int( branching_factor ),
 				n_clusters=n_cluster_value, compute_labels=compute_labels )
 			model_parameters = {
@@ -4280,7 +4324,7 @@ elif mode == 'Clustering':
 	# ------------------------------------------------------------------
 	# FIT CLUSTERING MODEL
 	# ------------------------------------------------------------------
-	st.subheader( 'Run Clustering' )
+	st.markdown( '##### Run Clustering' )
 	
 	if st.button( 'Run Clustering' ):
 		try:
@@ -4380,7 +4424,7 @@ elif mode == 'Clustering':
 	# ------------------------------------------------------------------
 	# CLUSTER SUMMARY
 	# ------------------------------------------------------------------
-	st.subheader( 'Cluster Summary' )
+	st.markdown( '##### Cluster Summary' )
 	
 	if df_counts is not None and not df_counts.empty:
 		st.data_editor( df_counts, use_container_width=True )
@@ -4474,11 +4518,10 @@ elif mode == 'Time-Series':
 	# ------------------------------------------------------------------
 	# MODEL SELECTION
 	# ------------------------------------------------------------------
-	from forecasting import (LaggingSeries, ARIMA, SARIMA, TimeSeriesSpliter)
-	
 	model_map = \
 		{
 				'Lagged Linear Regression': 'lag',
+				'Lagged Boosting Regression': 'boost',
 				'ARIMA': 'arima',
 				'SARIMA': 'sarima'
 		}
@@ -4490,12 +4533,97 @@ elif mode == 'Time-Series':
 	# MODEL PARAMETERS
 	# ------------------------------------------------------------------
 	st.subheader( 'Model Parameters' )
-	
 	model = None
 	
 	if model_name == 'Lagged Linear Regression':
 		lag = st.number_input( 'Lag order', min_value=1, value=5 )
-		model = LaggingSeries( lag=lag )
+		model = LaggingSeries( lag=int( lag ) )
+	
+	elif model_name == 'Lagged Boosting Regression':
+		lag = st.number_input( 'Lag order', min_value=1, value=12 )
+		loss = st.selectbox(
+			'Loss',
+			[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ],
+			index=0
+		)
+		
+		quantile = None
+		if loss == 'quantile':
+			quantile = st.number_input(
+				'Quantile',
+				min_value=0.01,
+				max_value=0.99,
+				value=0.50,
+				step=0.01
+			)
+		
+		rate = st.number_input(
+			'Learning Rate',
+			min_value=0.001,
+			max_value=1.0,
+			value=0.1,
+			step=0.001,
+			format='%.3f'
+		)
+		iters = st.number_input( 'Max Iterations', min_value=10, value=100 )
+		leaf_nodes = st.number_input( 'Max Leaf Nodes (0 = None)', min_value=0, value=31 )
+		depth = st.number_input( 'Max Depth (0 = None)', min_value=0, value=0 )
+		leaf = st.number_input( 'Min Samples Leaf', min_value=1, value=20 )
+		regularization = st.number_input(
+			'L2 Regularization',
+			min_value=0.0,
+			value=0.0,
+			step=0.001,
+			format='%.3f'
+		)
+		features = st.number_input(
+			'Max Features',
+			min_value=0.1,
+			max_value=1.0,
+			value=1.0,
+			step=0.1,
+			format='%.1f'
+		)
+		bins = st.number_input( 'Max Bins', min_value=2, max_value=255, value=255 )
+		stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ], index=0 )
+		validation = st.number_input(
+			'Validation Fraction',
+			min_value=0.01,
+			max_value=0.50,
+			value=0.10,
+			step=0.01,
+			format='%.2f'
+		)
+		no_change = st.number_input( 'Iterations No Change', min_value=1, value=10 )
+		tol = st.number_input(
+			'Tolerance',
+			min_value=0.0,
+			value=1e-7,
+			step=1e-7,
+			format='%.7f'
+		)
+		verbose = st.number_input( 'Verbose', min_value=0, value=0 )
+		rando = st.number_input( 'Random State (-1 = None)', min_value=-1, value=-1 )
+		
+		model = LagBoostingSeries(
+			lag=int( lag ),
+			loss=loss,
+			quantile=float( quantile ) if quantile is not None else None,
+			rate=float( rate ),
+			iters=int( iters ),
+			leaf_nodes=int( leaf_nodes ) if int( leaf_nodes ) > 0 else None,
+			depth=int( depth ) if int( depth ) > 0 else None,
+			leaf=int( leaf ),
+			regularization=float( regularization ),
+			features=float( features ),
+			bins=int( bins ),
+			stopping=stopping,
+			validation=float( validation ),
+			no_change=int( no_change ),
+			tol=float( tol ),
+			verbose=int( verbose ),
+			rando=None if int( rando ) < 0 else int( rando )
+		)
 	
 	elif model_name == 'ARIMA':
 		p = st.number_input( 'p (AR)', min_value=0, value=1 )
@@ -4554,7 +4682,7 @@ elif mode == 'Time-Series':
 			st.error( f'Time-Series Modeling failed: {e}' )
 	
 	# ------------------------------------------------------------------
-	# TIME-SERIES SPLITS (OPTIONAL DIAGNOSTIC)
+	# TIME-SERIES CROSS-VALIDATION
 	# ------------------------------------------------------------------
 	st.subheader( 'Time-Series Cross-Validation' )
 	
@@ -4562,7 +4690,7 @@ elif mode == 'Time-Series':
 		splits = st.number_input( 'Number of splits', min_value=2, value=5 )
 		test_size = st.number_input( 'Test window size', min_value=1, value=10 )
 		gap = st.number_input( 'Gap size', min_value=0, value=0 )
-		max_train_size = st.number_input( 'Max train size (0 = unlimited )', min_value=0, value=0 )
+		max_train_size = st.number_input( 'Max train size (0 = unlimited)', min_value=0, value=0 )
 		
 		splitter = TimeSeriesSpliter(
 			splits=int( splits ),

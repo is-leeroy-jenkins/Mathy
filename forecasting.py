@@ -48,10 +48,11 @@ import statsmodels.tsa.statespace.sarimax as st
 import statsmodels.tsa.arima.model as am
 import statsmodels.api as sm
 from matplotlib import pyplot as plt
-from sklearn.metrics import (mean_squared_error, mean_absolute_error,
+from sklearn.metrics import (mean_squared_error, mean_absolute_error, max_error,
                              median_absolute_error, explained_variance_score, r2_score)
 from statsmodels.regression.linear_model import RegressionResultsWrapper
 import sklearn.ensemble as ske
+import sklearn.linear_model as skl
 
 
 def throw_if( name: str, value: object ):
@@ -762,8 +763,648 @@ class LaggingSeries( TimeSeries ):
 		    exception.cause = 'LaggingSeries'
 		    exception.method = 'analyze'
 		    raise exception
-            
 
+
+class LagBoostingSeries( TimeSeries ):
+	"""
+	
+		Purpose:
+		--------
+		Univariate time-series forecasting by transforming the series into lagged
+		supervised-learning features.
+	
+	"""
+	model: Optional[ ske.HistGradientBoostingRegressor ]
+	lag: int
+	loss: str
+	quantile: Optional[ float ]
+	learning_rate: float
+	max_iter: int
+	max_leaf_nodes: Optional[ int ]
+	max_depth: Optional[ int ]
+	min_samples_leaf: int
+	l2_regularization: float
+	max_features: float
+	max_bins: int
+	monotonic_cst: Optional[ object ]
+	interaction_cst: Optional[ object ]
+	warm_start: bool
+	early_stopping: str | bool
+	scoring: str
+	validation_fraction: float
+	n_iter_no_change: int
+	tol: float
+	verbose: int
+	random_state: Optional[ int ]
+	training_values: Optional[ np.ndarray ]
+	fitted_values: Optional[ np.ndarray ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	max_error: Optional[ float ]
+	
+	def __init__( self, lag: int = 12, loss: str = 'squared_error',
+			quantile: Optional[ float ] = None, rate: float = 0.1,
+			iters: int = 100, leaf_nodes: Optional[ int ] = 31,
+			depth: Optional[ int ] = None, leaf: int = 20,
+			regularization: float = 0.0, features: float = 1.0,
+			bins: int = 255, monotonic: Optional[ object ] = None,
+			interaction: Optional[ object ] = None, warm: bool = False,
+			stopping: str | bool = 'auto', scoring: str = 'loss',
+			validation: float = 0.1, no_change: int = 10,
+			tol: float = 1e-7, verbose: int = 0,
+			rando: Optional[ int ] = None ) -> None:
+		"""
+		
+			Purpose:
+			--------
+			Initialize the lagged boosting time-series forecaster.
+		
+			Parameters:
+			-----------
+			lag (int): Number of lag observations used as predictors.
+			loss (str): Boosting loss function.
+			quantile (Optional[float]): Quantile level used when loss is quantile.
+			rate (float): Learning rate applied to each boosting stage.
+			iters (int): Maximum number of boosting iterations.
+			leaf_nodes (Optional[int]): Maximum number of leaf nodes per tree.
+			depth (Optional[int]): Maximum depth of each tree.
+			leaf (int): Minimum samples per leaf.
+			regularization (float): L2 regularization strength.
+			features (float): Proportion of features sampled per split.
+			bins (int): Maximum number of bins used for histogram binning.
+			monotonic (Optional[object]): Monotonic constraints for features.
+			interaction (Optional[object]): Interaction constraints for features.
+			warm (bool): Reuse the solution of the previous call to fit.
+			stopping (str | bool): Early-stopping strategy.
+			scoring (str): Scoring method for early stopping.
+			validation (float): Validation fraction used for early stopping.
+			no_change (int): Early-stopping patience.
+			tol (float): Numerical tolerance for early stopping.
+			verbose (int): Verbosity level.
+			rando (Optional[int]): Random seed.
+		
+			Returns:
+			--------
+			None
+		
+		"""
+		super( ).__init__( )
+		self.lag = lag
+		self.loss = loss
+		self.quantile = quantile
+		self.learning_rate = rate
+		self.max_iter = iters
+		self.max_leaf_nodes = leaf_nodes
+		self.max_depth = depth
+		self.min_samples_leaf = leaf
+		self.l2_regularization = regularization
+		self.max_features = features
+		self.max_bins = bins
+		self.monotonic_cst = monotonic
+		self.interaction_cst = interaction
+		self.warm_start = warm
+		self.early_stopping = stopping
+		self.scoring = scoring
+		self.validation_fraction = validation
+		self.n_iter_no_change = no_change
+		self.tol = tol
+		self.verbose = verbose
+		self.random_state = rando
+		self.model = ske.HistGradientBoostingRegressor( loss=self.loss, quantile=self.quantile,
+			learning_rate=self.learning_rate, max_iter=self.max_iter,
+			max_leaf_nodes=self.max_leaf_nodes, max_depth=self.max_depth,
+			min_samples_leaf=self.min_samples_leaf, l2_regularization=self.l2_regularization,
+			max_features=self.max_features, max_bins=self.max_bins,
+			monotonic_cst=self.monotonic_cst, interaction_cst=self.interaction_cst,
+			warm_start=self.warm_start, early_stopping=self.early_stopping, scoring=self.scoring,
+			validation_fraction=self.validation_fraction, n_iter_no_change=self.n_iter_no_change,
+			tol=self.tol, verbose=self.verbose, random_state=self.random_state )
+		self.training_data = None
+		self.training_values = None
+		self.prediction = None
+		self.fitted_values = None
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+	
+	def lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
+		"""
+		
+			Purpose:
+			--------
+			Construct lagged predictors and aligned target values from a
+			one-dimensional time-series.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series values.
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray]:
+				Lagged predictor matrix and target vector.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			
+			if self.lag < 1:
+				raise ValueError( 'Argument "lag" must be greater than zero.' )
+			
+			values = np.asarray( series, dtype=float ).reshape( -1 )
+			if len( values ) <= self.lag:
+				raise ValueError(
+					f'Argument "series" must contain more than {self.lag} observations.'
+				)
+			
+			self.training_data = np.array(
+				[ values[ i - self.lag:i ] for i in range( self.lag, len( values ) ) ],
+				dtype=float )
+			
+			self.training_values = values[ self.lag: ]
+			return self.training_data, self.training_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagBoostingSeries'
+			exception.method = 'lag_transform'
+			raise exception
+	
+	def train( self, series: np.ndarray ) -> LagBoostingSeries | None:
+		"""
+		
+			Purpose:
+			--------
+			Transform the series into lagged features and fit the boosting model.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series values.
+		
+			Returns:
+			--------
+			LagBoostingSeries | None:
+				The trained wrapper instance.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			
+			if self.loss == 'quantile' and self.quantile is None:
+				raise ValueError(
+					'Argument "quantile" is required when loss is "quantile".'
+				)
+			
+			x_data, y_data = self.lag_transform( series )
+			self.model.fit( x_data, y_data )
+			self.fitted_values = self.model.predict( x_data )
+			self.prediction = None
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagBoostingSeries'
+			exception.method = 'train'
+			raise exception
+	
+	def project( self, n_steps: int = 1 ) -> np.ndarray | None:
+		"""
+		
+			Purpose:
+			--------
+			Forecast future values using recursive lag-based prediction.
+		
+			Parameters:
+			-----------
+			n_steps (int): Number of future observations to forecast.
+		
+			Returns:
+			--------
+			np.ndarray | None:
+				Forecasted values.
+		
+		"""
+		try:
+			throw_if( 'n_steps', n_steps )
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'model', self.model )
+			
+			if n_steps < 1:
+				raise ValueError( 'Argument "n_steps" must be greater than zero.' )
+			
+			last_window = self.training_data[ -1 ].astype( float ).copy( )
+			preds = [ ]
+			
+			for _ in range( n_steps ):
+				next_value = float( self.model.predict( last_window.reshape( 1, -1 ) )[ 0 ] )
+				preds.append( next_value )
+				last_window = np.roll( last_window, -1 )
+				last_window[ -1 ] = next_value
+			
+			self.prediction = np.array( preds, dtype=float )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagBoostingSeries'
+			exception.method = 'project'
+			raise exception
+	
+	def score( self ) -> float | None:
+		"""
+		
+			Purpose:
+			--------
+			Return the in-sample coefficient of determination for the fitted model.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			float | None:
+				In-sample R-squared score.
+		
+		"""
+		try:
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'training_values', self.training_values )
+			return float( self.model.score( self.training_data, self.training_values ) )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagBoostingSeries'
+			exception.method = 'score'
+			raise exception
+	
+	def analyze( self ) -> Dict[ str, float ] | None:
+		"""
+		
+			Purpose:
+			--------
+			Compute standard regression diagnostics on the fitted in-sample values.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			Dict[str, float] | None:
+				Dictionary of metric names and values.
+		
+		"""
+		try:
+			throw_if( 'training_values', self.training_values )
+			
+			if self.fitted_values is None:
+				throw_if( 'training_data', self.training_data )
+				self.fitted_values = self.model.predict( self.training_data )
+			
+			self.mean_absolute_error = mean_absolute_error( self.training_values,
+				self.fitted_values )
+			
+			self.mean_squared_error = mean_squared_error( self.training_values,
+				self.fitted_values )
+			
+			self.root_mean_squared_error = float( np.sqrt( self.mean_squared_error ) )
+			self.r2_score = r2_score( self.training_values, self.fitted_values )
+			self.explained_variance_score = explained_variance_score( self.training_values,
+				self.fitted_values )
+			
+			self.median_absolute_error = median_absolute_error(
+				self.training_values,
+				self.fitted_values
+			)
+			self.max_error = max_error(
+				self.training_values,
+				self.fitted_values
+			)
+			
+			return {
+					'MAE': float( self.mean_absolute_error ),
+					'MSE': float( self.mean_squared_error ),
+					'RMSE': float( self.root_mean_squared_error ),
+					'R2': float( self.r2_score ),
+					'EVS': float( self.explained_variance_score ),
+					'MedianAE': float( self.median_absolute_error ),
+					'MAX': float( self.max_error )
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagBoostingSeries'
+			exception.method = 'analyze'
+			raise exception
+
+
+class LagQuantileSeries( TimeSeries ):
+	"""
+	
+		Purpose:
+		--------
+		Univariate time-series forecasting by transforming the series into lagged supervised-learning
+		features and fitting a conditional quantile model.
+	
+	"""
+	model: Optional[ skl.QuantileRegressor ]
+	lag: int
+	quantile: float
+	alpha: float
+	fit_intercept: bool
+	solver: str
+	solver_options: Optional[ Dict[ str, object ] ]
+	training_values: Optional[ np.ndarray ]
+	fitted_values: Optional[ np.ndarray ]
+	mean_absolute_error: Optional[ float ]
+	mean_squared_error: Optional[ float ]
+	root_mean_squared_error: Optional[ float ]
+	r2_score: Optional[ float ]
+	explained_variance_score: Optional[ float ]
+	median_absolute_error: Optional[ float ]
+	max_error: Optional[ float ]
+	
+	def __init__( self, lag: int = 12, quantile: float = 0.5, alpha: float = 1.0,
+			fit: bool = True, solver: str = 'highs',
+			solver_options: Optional[ Dict[ str, object ] ] = None ) -> None:
+		"""
+		
+			Purpose:
+			--------
+			Initialize the lagged quantile-regression forecaster.
+		
+			Parameters:
+			-----------
+			lag (int): Number of lag observations used as predictors.
+			quantile (float): Target conditional quantile in the open interval (0, 1).
+			alpha (float): L1 regularization strength.
+			fit (bool): Specifies whether to fit an intercept.
+			solver (str): Linear-programming solver used by QuantileRegressor.
+			solver_options (Optional[Dict[str, object]]): Additional solver options.
+		
+			Returns:
+			--------
+			None
+		
+		"""
+		super( ).__init__( )
+		self.lag = lag
+		self.quantile = quantile
+		self.alpha = alpha
+		self.fit_intercept = fit
+		self.solver = solver
+		self.solver_options = solver_options
+		self.model = skl.QuantileRegressor(
+			quantile=self.quantile,
+			alpha=self.alpha,
+			fit_intercept=self.fit_intercept,
+			solver=self.solver,
+			solver_options=self.solver_options
+		)
+		self.training_data = None
+		self.training_values = None
+		self.prediction = None
+		self.fitted_values = None
+		self.mean_absolute_error = 0.0
+		self.mean_squared_error = 0.0
+		self.root_mean_squared_error = 0.0
+		self.r2_score = 0.0
+		self.explained_variance_score = 0.0
+		self.median_absolute_error = 0.0
+		self.max_error = 0.0
+	
+	def lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
+		"""
+		
+			Purpose:
+			--------
+			Construct lagged predictors and aligned target values from a
+			one-dimensional time-series.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series values.
+		
+			Returns:
+			--------
+			Tuple[np.ndarray, np.ndarray]:
+				Lagged predictor matrix and target vector.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			
+			if self.lag < 1:
+				raise ValueError( 'Argument "lag" must be greater than zero.' )
+			
+			values = np.asarray( series, dtype=float ).reshape( -1 )
+			if len( values ) <= self.lag:
+				raise ValueError(
+					f'Argument "series" must contain more than {self.lag} observations.'
+				)
+			
+			self.training_data = np.array(
+				[ values[ i - self.lag:i ] for i in range( self.lag, len( values ) ) ],
+				dtype=float
+			)
+			self.training_values = values[ self.lag: ]
+			return self.training_data, self.training_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagQuantileSeries'
+			exception.method = 'lag_transform'
+			raise exception
+	
+	def train( self, series: np.ndarray ) -> LagQuantileSeries | None:
+		"""
+		
+			Purpose:
+			--------
+			Transform the series into lagged features and fit the quantile model.
+		
+			Parameters:
+			-----------
+			series (np.ndarray): One-dimensional time-series values.
+		
+			Returns:
+			--------
+			LagQuantileSeries | None:
+				The trained wrapper instance.
+		
+		"""
+		try:
+			throw_if( 'series', series )
+			
+			if self.quantile <= 0.0 or self.quantile >= 1.0:
+				raise ValueError(
+					'Argument "quantile" must be strictly between 0 and 1.'
+				)
+			
+			if self.alpha < 0.0:
+				raise ValueError( 'Argument "alpha" cannot be negative.' )
+			
+			x_data, y_data = self.lag_transform( series )
+			self.model.fit( x_data, y_data )
+			self.fitted_values = self.model.predict( x_data )
+			self.prediction = None
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagQuantileSeries'
+			exception.method = 'train'
+			raise exception
+	
+	def project( self, n_steps: int = 1 ) -> np.ndarray | None:
+		"""
+		
+			Purpose:
+			--------
+			Forecast future values using recursive lag-based quantile prediction.
+		
+			Parameters:
+			-----------
+			n_steps (int): Number of future observations to forecast.
+		
+			Returns:
+			--------
+			np.ndarray | None:
+				Forecasted quantile values.
+		
+		"""
+		try:
+			throw_if( 'n_steps', n_steps )
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'model', self.model )
+			
+			if n_steps < 1:
+				raise ValueError( 'Argument "n_steps" must be greater than zero.' )
+			
+			last_window = self.training_data[ -1 ].astype( float ).copy( )
+			preds = [ ]
+			
+			for _ in range( n_steps ):
+				next_value = float( self.model.predict( last_window.reshape( 1, -1 ) )[ 0 ] )
+				preds.append( next_value )
+				last_window = np.roll( last_window, -1 )
+				last_window[ -1 ] = next_value
+			
+			self.prediction = np.array( preds, dtype=float )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagQuantileSeries'
+			exception.method = 'project'
+			raise exception
+	
+	def score( self ) -> float | None:
+		"""
+		
+			Purpose:
+			--------
+			Return the in-sample coefficient of determination for the fitted model.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			float | None:
+				In-sample R-squared score.
+		
+		"""
+		try:
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'training_values', self.training_values )
+			return float( self.model.score( self.training_data, self.training_values ) )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagQuantileSeries'
+			exception.method = 'score'
+			raise exception
+	
+	def analyze( self ) -> Dict[ str, float ] | None:
+		"""
+		
+			Purpose:
+			--------
+			Compute standard regression diagnostics on the fitted in-sample values.
+		
+			Parameters:
+			-----------
+			None
+		
+			Returns:
+			--------
+			Dict[str, float] | None:
+				Dictionary of metric names and values.
+		
+		"""
+		try:
+			throw_if( 'training_values', self.training_values )
+			
+			if self.fitted_values is None:
+				throw_if( 'training_data', self.training_data )
+				self.fitted_values = self.model.predict( self.training_data )
+			
+			self.mean_absolute_error = mean_absolute_error(
+				self.training_values,
+				self.fitted_values
+			)
+			self.mean_squared_error = mean_squared_error(
+				self.training_values,
+				self.fitted_values
+			)
+			self.root_mean_squared_error = float(
+				np.sqrt( self.mean_squared_error )
+			)
+			self.r2_score = r2_score(
+				self.training_values,
+				self.fitted_values
+			)
+			self.explained_variance_score = explained_variance_score(
+				self.training_values,
+				self.fitted_values
+			)
+			self.median_absolute_error = median_absolute_error(
+				self.training_values,
+				self.fitted_values
+			)
+			self.max_error = max_error(
+				self.training_values,
+				self.fitted_values
+			)
+			
+			return {
+					'MAE': float( self.mean_absolute_error ),
+					'MSE': float( self.mean_squared_error ),
+					'RMSE': float( self.root_mean_squared_error ),
+					'R2': float( self.r2_score ),
+					'EVS': float( self.explained_variance_score ),
+					'MedianAE': float( self.median_absolute_error ),
+					'MAX': float( self.max_error )
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LagQuantileSeries'
+			exception.method = 'analyze'
+			raise exception
+		
+		
 class ARIMA( TimeSeries ):
 	"""
 
