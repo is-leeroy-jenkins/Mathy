@@ -65,9 +65,11 @@ from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error, 
                              explained_variance_score, median_absolute_error, max_error,
                              accuracy_score, )
 
+
 def throw_if( name: str, value: object ):
 	if value is None:
 		raise Exception( f'Argument "{name}" cannot be empty!' )
+
 
 class Regression( ):
 	"""

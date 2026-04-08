@@ -67,7 +67,7 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Regressions': '📉 Regression Models',
        'Clustering': '🕸️ Clustering Models',
        'Time-Series': '⏱️ Time-Series Models',
-       'Database': '💻 Database'  }
+       'Data Management': '💻 SQLite Database'  }
 
 # ------------- DEFINITIONS ---------------------
 

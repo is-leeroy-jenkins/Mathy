@@ -43,6 +43,7 @@
 
 from __future__ import annotations
 
+import base64
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -50,7 +51,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 
 from scipy import stats
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 # Mathy
 import config as cfg
@@ -60,6 +61,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
+import re
 import sqlite3
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -81,8 +83,7 @@ try:
 except Exception:
 	has_xgb = False
 
-
-import base64
+import time
 from pathlib import Path
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import StandardScaler as SKStandardScaler
@@ -158,6 +159,33 @@ if 'plumbing_target_columns' not in st.session_state:
 if 'df_cluster_results' not in st.session_state:
 	st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
 	
+# ------------ Training Members
+
+if 'df_dataset' not in st.session_state or st.session_state[ 'df_dataset' ] is None:
+	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
+
+if 'df_working' not in st.session_state or st.session_state[ 'df_working' ] is None:
+	st.session_state[ 'df_working' ] = pd.DataFrame( )
+
+if 'df_regression' not in st.session_state or st.session_state[ 'df_regression' ] is None:
+	st.session_state[ 'df_regression' ] = pd.DataFrame( )
+	
+if 'df_classification' not in st.session_state or st.session_state[ 'df_classification' ] is None:
+	st.session_state[ 'df_classification' ] = pd.DataFrame( )
+
+if 'numeric_columns' not in st.session_state:
+	st.session_state[ 'numeric_columns' ] = [ ]
+
+if 'categorical_columns' not in st.session_state:
+	st.session_state[ 'categorical_columns' ] = [ ]
+	
+if 'features' not in st.session_state:
+	st.session_state[ 'features' ] = [ ]
+
+if 'targets' not in st.session_state:
+	st.session_state[ 'targets' ] = [ ]
+
+
 # ----------- Clustering Members
 
 if 'df_cluster_counts' not in st.session_state:
@@ -445,7 +473,7 @@ def style_subheaders( ) -> None:
 		div[data-testid="stMarkdownContainer"] h4,
 		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h3,
 		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h4 {
-			color: rgb(0, 120, 252) !important;
+			color: rgb(2, 98, 201) !important;
 		}
 		</style>
 		""",
@@ -776,71 +804,100 @@ def score_function_from_name( name: str ) -> object:
 	}
 	return mapper[ name ]
 
-# ----------------- Database Utilities
+# ----------  Database Utilities ----------
 
 def initialize_database( ) -> None:
-	Path( "stores/sqlite" ).mkdir( parents=True, exist_ok=True )
+	"""
+		Purpose:
+		--------
+		Ensure required SQLite tables exist and that the Prompts table contains the
+		columns required by the prompt utilities and Prompt Engineering mode.
+
+		Parameters:
+		-----------
+		None
+
+		Returns:
+		--------
+		None
+	"""
+	Path( 'stores/sqlite' ).mkdir( parents=True, exist_ok=True )
 	with sqlite3.connect( cfg.DB_PATH ) as conn:
-		conn.execute( """
-                      CREATE TABLE IF NOT EXISTS chat_history
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY
-                          AUTOINCREMENT,
-                          role
-                          TEXT,
-                          content
-                          TEXT
-                      )
-		              """ )
-		conn.execute( """
-                      CREATE TABLE IF NOT EXISTS embeddings
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY
-                          AUTOINCREMENT,
-                          chunk
-                          TEXT,
-                          vector
-                          BLOB
-                      )
-		              """ )
-		conn.execute( """
-                      CREATE TABLE IF NOT EXISTS Prompts
-                      (
-                          PromptsId
-                          INTEGER
-                          NOT
-                          NULL
-                          UNIQUE,
-                          Name
-                          TEXT
-                      (
-                          80
-                      ),
-                          Text TEXT,
-                          Version TEXT
-                      (
-                          80
-                      ),
-                          ID TEXT
-                      (
-                          80
-                      ),
-                          PRIMARY KEY
-                      (
-                          PromptsId
-                          AUTOINCREMENT
-                      )
-                          )
-		              """ )
+		conn.execute(
+			"""
+            CREATE TABLE IF NOT EXISTS chat_history
+            (
+                id
+                INTEGER
+                PRIMARY
+                KEY
+                AUTOINCREMENT,
+                role
+                TEXT,
+                content
+                TEXT
+            )
+			"""
+		)
+		
+		conn.execute(
+			"""
+            CREATE TABLE IF NOT EXISTS embeddings
+            (
+                id
+                INTEGER
+                PRIMARY
+                KEY
+                AUTOINCREMENT,
+                chunk
+                TEXT,
+                vector
+                BLOB
+            )
+			"""
+		)
+		
+		conn.execute(
+			"""
+            CREATE TABLE IF NOT EXISTS Prompts
+            (
+                PromptsId
+                INTEGER
+                NOT
+                NULL
+                PRIMARY
+                KEY
+                AUTOINCREMENT,
+                Caption
+                TEXT,
+                Name
+                TEXT
+            (
+                80
+            ),
+                Text TEXT,
+                Version TEXT
+            (
+                80
+            ),
+                ID TEXT
+            (
+                80
+            )
+                )
+			"""
+		)
+		
+		prompt_columns = [ row[ 1 ] for row in
+		                   conn.execute( 'PRAGMA table_info("Prompts");' ).fetchall( ) ]
+		
+		if 'Caption' not in prompt_columns:
+			conn.execute( 'ALTER TABLE "Prompts" ADD COLUMN "Caption" TEXT;' )
+		
+		conn.commit( )
 
 def create_connection( ) -> sqlite3.Connection:
-	return sqlite3.connect( DM_DB_PATH )
+	return sqlite3.connect( cfg.DB_PATH )
 
 def list_tables( ) -> List[ str ]:
 	with create_connection( ) as conn:
@@ -853,11 +910,132 @@ def create_schema( table: str ) -> List[ Tuple ]:
 		return conn.execute( f'PRAGMA table_info("{table}");' ).fetchall( )
 
 def read_table( table: str, limit: int = None, offset: int = 0 ) -> pd.DataFrame:
-	query = f'SELECT rowid, * FROM "{table}"'
+	"""
+	
+		Purpose:
+		--------
+		Read a SQLite table into a pandas DataFrame using a normalized scalar-only path.
+	
+		Parameters:
+		-----------
+		table : str
+			Table name.
+		limit : int = None
+			Optional row limit.
+		offset : int = 0
+			Optional row offset.
+	
+		Returns:
+		--------
+		pd.DataFrame
+			DataFrame of plain Python scalar values.
+	
+	"""
+	if not table:
+		return pd.DataFrame( )
+	
+	query = f'SELECT * FROM "{table}"'
 	if limit:
-		query += f" LIMIT {limit} OFFSET {offset}"
+		query += f' LIMIT {int( limit )} OFFSET {int( offset )}'
+	
 	with create_connection( ) as conn:
-		return pd.read_sql_query( query, conn )
+		cur = conn.cursor( )
+		cur.execute( query )
+		
+		raw_columns = [ d[ 0 ] for d in (cur.description or [ ]) ]
+		rows = cur.fetchall( )
+	
+	seen: Dict[ str, int ] = { }
+	columns: List[ str ] = [ ]
+	
+	for col in raw_columns:
+		name = str( col )
+		if name not in seen:
+			seen[ name ] = 0
+			columns.append( name )
+		else:
+			seen[ name ] += 1
+			columns.append( f'{name}_{seen[ name ]}' )
+	
+	def _scalarize( value: Any ) -> Any:
+		if value is None or isinstance( value, (str, int, float, bool) ):
+			return value
+		
+		if isinstance( value, bytes ):
+			try:
+				return value.decode( 'utf-8' )
+			except Exception:
+				return value.hex( )
+		
+		if isinstance( value, (list, tuple, set, dict) ):
+			try:
+				return str( normalize( value ) )
+			except Exception:
+				return str( value )
+		
+		if hasattr( value, 'model_dump' ):
+			try:
+				return str( value.model_dump( ) )
+			except Exception:
+				return str( value )
+		
+		return str( value )
+	
+	normalized_rows: List[ Dict[ str, Any ] ] = [ ]
+	for row in rows:
+		record: Dict[ str, Any ] = { }
+		for idx, col in enumerate( columns ):
+			record[ col ] = _scalarize( row[ idx ] )
+		normalized_rows.append( record )
+	
+	return pd.DataFrame( normalized_rows, columns=columns )
+
+def render_table( df: pd.DataFrame ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Render a DataFrame safely in Streamlit. Use the normal interactive dataframe
+		first, and fall back to HTML rendering if Streamlit/PyArrow serialization fails.
+	
+		Parameters:
+		-----------
+		df : pd.DataFrame
+			The DataFrame to render.
+	
+		Returns:
+		--------
+		None
+	
+	"""
+	if df is None:
+		st.info( 'No data available.' )
+		return
+	
+	try:
+		st.data_editor( df, use_container_width=True )
+		return
+	except Exception:
+		pass
+	
+	fallback_df = df.copy( )
+	fallback_df = fallback_df.where( pd.notnull( fallback_df ), '' )
+	
+	for col in fallback_df.columns:
+		fallback_df[ col ] = fallback_df[ col ].map(
+			lambda x: x if isinstance( x, (str, int, float, bool) ) or x == '' else str( x ) )
+	
+	st.markdown( fallback_df.to_html( index=False, escape=True ), unsafe_allow_html=True )
+
+def make_display_safe( df: pd.DataFrame ) -> pd.DataFrame:
+	display_df = df.copy( )
+	
+	for col in display_df.columns:
+		display_df[ col ] = display_df[ col ].map(
+			lambda x: '' if x is None else str( x )
+		)
+	
+	return display_df
 
 def drop_table( table: str ) -> None:
 	"""
@@ -905,7 +1083,7 @@ def create_index( table: str, column: str ) -> None:
 	# ------------------------------------------------------------------
 	tables = list_tables( )
 	if table not in tables:
-		raise ValueError( "Invalid table name." )
+		raise ValueError( 'Invalid table name.' )
 	
 	# ------------------------------------------------------------------
 	# Validate column exists
@@ -914,7 +1092,7 @@ def create_index( table: str, column: str ) -> None:
 	valid_columns = [ col[ 1 ] for col in schema ]
 	
 	if column not in valid_columns:
-		raise ValueError( "Invalid column name." )
+		raise ValueError( 'Invalid column name.' )
 	
 	# ------------------------------------------------------------------
 	# Sanitize index name (identifier only)
@@ -982,54 +1160,154 @@ def create_aggregation( df: pd.DataFrame ):
 	
 	st.metric( 'Result', result )
 
-def create_visualization( df: pd.DataFrame ):
+def create_visualization( df: pd.DataFrame ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Render data visualizations without passing pandas objects directly into
+		Plotly/Narwhals.
+		
+		Parameters:
+		-----------
+		df : pd.DataFrame
+			The input DataFrame.
+		
+		Returns:
+		--------
+		None
+		
+	"""
 	st.subheader( 'Visualization Engine' )
 	
-	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-	categorical_cols = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
+	if df is None or df.empty:
+		st.info( 'No data available.' )
+		return
 	
-	chart = st.selectbox( 'Chart Type', [ 'Histogram', 'Bar', 'Line',
-	                                      'Scatter', 'Box', 'Pie', 'Correlation' ] )
+	df_plot = df.copy( )
 	
-	if chart == 'Histogram' and numeric_cols:
+	for col in df_plot.columns:
+		if df_plot[ col ].dtype == object:
+			df_plot[ col ] = df_plot[ col ].map(
+				lambda x: '' if x is None else str( x )
+			)
+	
+	numeric_cols: List[ str ] = [ ]
+	for col in df_plot.columns:
+		series_num = pd.to_numeric( df_plot[ col ], errors='coerce' )
+		if series_num.notna( ).any( ):
+			numeric_cols.append( col )
+	
+	categorical_cols: List[ str ] = [ col for col in df_plot.columns if col not in numeric_cols ]
+	
+	chart = st.selectbox(
+		'Chart Type',
+		[ 'Histogram', 'Bar', 'Line', 'Scatter', 'Box', 'Pie', 'Correlation' ] )
+	
+	if chart == 'Histogram':
+		if not numeric_cols:
+			st.info( 'No numeric columns available.' )
+			return
+		
 		col = st.selectbox( 'Column', numeric_cols )
-		fig = px.histogram( df, x=col )
+		values = pd.to_numeric( df_plot[ col ], errors='coerce' ).dropna( ).tolist( )
+		
+		fig = go.Figure( data=[ go.Histogram( x=values ) ] )
+		fig.update_layout( xaxis_title=col, yaxis_title='Count' )
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Bar':
-		x = st.selectbox( 'X', df.columns )
+		if not numeric_cols:
+			st.info( 'No numeric columns available.' )
+			return
+		
+		x = st.selectbox( 'X', df_plot.columns )
 		y = st.selectbox( 'Y', numeric_cols )
-		fig = px.bar( df, x=x, y=y )
+		
+		x_values = df_plot[ x ].astype( str ).tolist( )
+		y_values = pd.to_numeric( df_plot[ y ], errors='coerce' ).fillna( 0 ).tolist( )
+		
+		fig = go.Figure( data=[ go.Bar( x=x_values, y=y_values ) ] )
+		fig.update_layout( xaxis_title=x, yaxis_title=y )
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Line':
-		x = st.selectbox( 'X', df.columns )
+		if not numeric_cols:
+			st.info( 'No numeric columns available.' )
+			return
+		
+		x = st.selectbox( 'X', df_plot.columns )
 		y = st.selectbox( 'Y', numeric_cols )
-		fig = px.line( df, x=x, y=y )
+		
+		x_values = df_plot[ x ].astype( str ).tolist( )
+		y_values = pd.to_numeric( df_plot[ y ], errors='coerce' ).fillna( 0 ).tolist( )
+		
+		fig = go.Figure( data=[ go.Scatter( x=x_values, y=y_values, mode='lines' ) ] )
+		fig.update_layout( xaxis_title=x, yaxis_title=y )
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Scatter':
-		x = st.selectbox( 'X', numeric_cols )
-		y = st.selectbox( 'Y', numeric_cols )
-		fig = px.scatter( df, x=x, y=y )
+		if len( numeric_cols ) < 2:
+			st.info( 'At least two numeric columns are required.' )
+			return
+		
+		x = st.selectbox( 'X', numeric_cols, key='viz_scatter_x' )
+		y = st.selectbox( 'Y', numeric_cols, key='viz_scatter_y' )
+		
+		x_series = pd.to_numeric( df_plot[ x ], errors='coerce' )
+		y_series = pd.to_numeric( df_plot[ y ], errors='coerce' )
+		mask = x_series.notna( ) & y_series.notna( )
+		
+		x_values = x_series[ mask ].tolist( )
+		y_values = y_series[ mask ].tolist( )
+		
+		fig = go.Figure( data=[ go.Scatter( x=x_values, y=y_values, mode='markers' ) ] )
+		fig.update_layout( xaxis_title=x, yaxis_title=y )
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Box':
-		col = st.selectbox( 'Column', numeric_cols )
-		fig = px.box( df, y=col )
+		if not numeric_cols:
+			st.info( 'No numeric columns available.' )
+			return
+		
+		col = st.selectbox( 'Column', numeric_cols, key='viz_box_col' )
+		values = pd.to_numeric( df_plot[ col ], errors='coerce' ).dropna( ).tolist( )
+		
+		fig = go.Figure( data=[ go.Box( y=values, name=col ) ] )
+		fig.update_layout( yaxis_title=col )
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Pie':
+		if not categorical_cols:
+			st.info( 'No categorical columns available.' )
+			return
+		
 		col = st.selectbox( 'Category Column', categorical_cols )
-		fig = px.pie( df, names=col )
+		counts = df_plot[ col ].astype( str ).value_counts( )
+		
+		fig = go.Figure(
+			data=[ go.Pie( labels=counts.index.tolist( ), values=counts.values.tolist( ) ) ] )
 		st.plotly_chart( fig, use_container_width=True )
 	
-	elif chart == 'Correlation' and len( numeric_cols ) > 1:
-		corr = df[ numeric_cols ].corr( )
-		fig = px.imshow( corr, text_auto=True )
+	elif chart == 'Correlation':
+		if len( numeric_cols ) < 2:
+			st.info( 'At least two numeric columns are required.' )
+			return
+		
+		corr_df = pd.DataFrame( )
+		for col in numeric_cols:
+			corr_df[ col ] = pd.to_numeric( df_plot[ col ], errors='coerce' )
+		
+		corr = corr_df.corr( )
+		
+		fig = go.Figure(
+			data=[ go.Heatmap(
+				z=corr.values.tolist( ),
+				x=corr.columns.tolist( ),
+				y=corr.index.tolist( ) ) ] )
 		st.plotly_chart( fig, use_container_width=True )
 
-def dm_create_table_from_df( table_name: str, df: pd.DataFrame ):
+def convert_dataframe( table_name: str, df: pd.DataFrame ):
 	columns = [ ]
 	for col in df.columns:
 		sql_type = get_sqlite_type( df[ col ].dtype )
@@ -1074,37 +1352,37 @@ def get_sqlite_type( dtype ) -> str:
 	# ------------------------------------------------------------------
 	# Integer Types (including nullable Int64)
 	# ------------------------------------------------------------------
-	if "int" in dtype_str:
-		return "INTEGER"
+	if 'int' in dtype_str:
+		return 'INTEGER'
 	
 	# ------------------------------------------------------------------
 	# Float Types
 	# ------------------------------------------------------------------
-	if "float" in dtype_str:
-		return "REAL"
+	if 'float' in dtype_str:
+		return 'REAL'
 	
 	# ------------------------------------------------------------------
 	# Boolean
 	# ------------------------------------------------------------------
-	if "bool" in dtype_str:
-		return "INTEGER"
+	if 'bool' in dtype_str:
+		return 'INTEGER'
 	
 	# ------------------------------------------------------------------
 	# Datetime
 	# ------------------------------------------------------------------
-	if "datetime" in dtype_str:
-		return "TEXT"
+	if 'datetime' in dtype_str:
+		return 'TEXT'
 	
 	# ------------------------------------------------------------------
 	# Categorical
 	# ------------------------------------------------------------------
-	if "category" in dtype_str:
-		return "TEXT"
+	if 'category' in dtype_str:
+		return 'TEXT'
 	
 	# ------------------------------------------------------------------
 	# Default fallback
 	# ------------------------------------------------------------------
-	return "TEXT"
+	return 'TEXT'
 
 def create_custom_table( table_name: str, columns: list ) -> None:
 	"""
@@ -1129,27 +1407,27 @@ def create_custom_table( table_name: str, columns: list ) -> None:
 			]
 	"""
 	if not table_name:
-		raise ValueError( "Table name required." )
+		raise ValueError( 'Table name required.' )
 	
 	# Validate identifier
 	if not re.match( r"^[A-Za-z_][A-Za-z0-9_]*$", table_name ):
-		raise ValueError( "Invalid table name." )
+		raise ValueError( 'Invalid table name.' )
 	
 	col_defs = [ ]
 	
 	for col in columns:
-		col_name = col[ "name" ]
-		col_type = col[ "type" ].upper( )
+		col_name = col[ 'name' ]
+		col_type = col[ 'type' ].upper( )
 		
 		if not re.match( r"^[A-Za-z_][A-Za-z0-9_]*$", col_name ):
 			raise ValueError( f"Invalid column name: {col_name}" )
 		
 		definition = f'"{col_name}" {col_type}'
 		
-		if col[ "primary_key" ]:
-			definition += " PRIMARY KEY"
-			if col[ "auto_increment" ] and col_type == "INTEGER":
-				definition += " AUTOINCREMENT"
+		if col[ 'primary_key' ]:
+			definition += ' PRIMARY KEY'
+			if col[ 'auto_increment' ] and col_type == 'INTEGER':
+				definition += ' AUTOINCREMENT'
 		
 		if col[ "not_null" ]:
 			definition += " NOT NULL"
@@ -1255,6 +1533,123 @@ def add_column( table: str, column: str, col_type: str ):
 			f'ALTER TABLE "{table}" ADD COLUMN "{column}" {col_type};' )
 		conn.commit( )
 
+def rename_column( table_name: str, old_name: str, new_name: str ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Rename a column within an existing SQLite table. Attempts native ALTER TABLE rename
+		first; if it fails, falls back to a schema-safe rebuild preserving column order, data,
+		and indexes.
+
+		Parameters:
+		-----------
+		table_name : str
+			Table containing the column.
+
+		old_name : str
+			Existing column name.
+
+		new_name : str
+			New column name.
+
+		Returns:
+		--------
+		None
+		
+	"""
+	if not table_name or not old_name or not new_name:
+		return
+	
+	with create_connection( ) as conn:
+		try:
+			conn.execute(
+				f'ALTER TABLE "{table_name}" RENAME COLUMN "{old_name}" TO "{new_name}";'
+			)
+			conn.commit( )
+			return
+		except Exception:
+			pass
+		
+		row = conn.execute(
+			"""
+            SELECT sql
+            FROM sqlite_master
+            WHERE type ='table' AND name =?
+			""",
+			(table_name,)
+		).fetchone( )
+		
+		if not row or not row[ 0 ]:
+			raise ValueError( "Table definition not found." )
+		
+		create_sql = row[ 0 ]
+		
+		indexes = conn.execute(
+			"""
+            SELECT sql
+            FROM sqlite_master
+            WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
+			""",
+			(table_name,)
+		).fetchall( )
+		
+		schema = conn.execute( f'PRAGMA table_info("{table_name}");' ).fetchall( )
+		cols = [ r[ 1 ] for r in schema ]
+		if old_name not in cols:
+			raise ValueError( "Column not found." )
+		
+		mapped_cols = [ (new_name if c == old_name else c) for c in cols ]
+		
+		temp_table = f"{table_name}__rebuild_temp"
+		
+		col_defs: List[ str ] = [ ]
+		pk_cols = [ r for r in schema if int( r[ 5 ] or 0 ) > 0 ]
+		single_pk = len( pk_cols ) == 1
+		
+		for row in schema:
+			col_name = row[ 1 ]
+			col_type = row[ 2 ] or ''
+			not_null = int( row[ 3 ] or 0 )
+			default_value = row[ 4 ]
+			pk = int( row[ 5 ] or 0 )
+			
+			out_name = new_name if col_name == old_name else col_name
+			col_def = f'"{out_name}" {col_type}'.strip( )
+			
+			if not_null:
+				col_def += ' NOT NULL'
+			
+			if default_value is not None:
+				col_def += f' DEFAULT {default_value}'
+			
+			if single_pk and pk == 1:
+				col_def += ' PRIMARY KEY'
+			
+			col_defs.append( col_def )
+		
+		new_create_sql = f'CREATE TABLE "{temp_table}" ({", ".join( col_defs )});'
+		
+		old_select = ", ".join( [ f'"{c}"' for c in cols ] )
+		new_insert = ", ".join( [ f'"{c}"' for c in mapped_cols ] )
+		
+		conn.execute( "BEGIN" )
+		conn.execute( new_create_sql )
+		conn.execute(
+			f'INSERT INTO "{temp_table}" ({new_insert}) SELECT {old_select} FROM "{table_name}";'
+		)
+		
+		conn.execute( f'DROP TABLE "{table_name}";' )
+		conn.execute( f'ALTER TABLE "{temp_table}" RENAME TO "{table_name}";' )
+		
+		for idx in indexes:
+			idx_sql = idx[ 0 ]
+			if idx_sql:
+				idx_sql = idx_sql.replace( f'"{old_name}"', f'"{new_name}"' )
+				conn.execute( idx_sql )
+		
+		conn.commit( )
+
 def create_profile_table( table: str ):
 	df = read_table( table )
 	profile_rows = [ ]
@@ -1267,18 +1662,17 @@ def create_profile_table( table: str ):
 			{
 					'column': col, 'dtype': str( series.dtype ),
 					'null_%': round( (null_count / total_rows) * 100, 2 ) if total_rows else 0,
-					'distinct_%': round( (
-								                     distinct_count / total_rows) * 100, 2 ) if total_rows else 0,
+					'distinct_%': round( ( distinct_count / total_rows) * 100, 2 ) if total_rows else 0,
 			}
 		
 		if pd.api.types.is_numeric_dtype( series ):
-			row[ "min" ] = series.min( )
-			row[ "max" ] = series.max( )
-			row[ "mean" ] = series.mean( )
+			row[ 'min' ] = series.min( )
+			row[ 'max' ] = series.max( )
+			row[ 'mean' ] = series.mean( )
 		else:
-			row[ "min" ] = None
-			row[ "max" ] = None
-			row[ "mean" ] = None
+			row[ 'min' ] = None
+			row[ 'max' ] = None
+			row[ 'mean' ] = None
 		
 		profile_rows.append( row )
 	
@@ -1286,7 +1680,7 @@ def create_profile_table( table: str ):
 
 def drop_column( table: str, column: str ):
 	if not table or not column:
-		raise ValueError( "Table and column required." )
+		raise ValueError( 'Table and column required.' )
 	
 	with create_connection( ) as conn:
 		# ------------------------------------------------------------
@@ -1302,7 +1696,7 @@ def drop_column( table: str, column: str ):
 		).fetchone( )
 		
 		if not row or not row[ 0 ]:
-			raise ValueError( "Table definition not found." )
+			raise ValueError( 'Table definition not found.' )
 		
 		create_sql = row[ 0 ]
 		
@@ -1378,6 +1772,89 @@ def drop_column( table: str, column: str ):
 		for idx in indexes:
 			idx_sql = idx[ 0 ]
 			if column not in idx_sql:
+				conn.execute( idx_sql )
+		
+		conn.commit( )
+
+def rename_table( old_name: str, new_name: str ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Rename an existing SQLite table. Attempts native ALTER TABLE rename first; if it fails,
+		falls back to a schema-safe rebuild using the original CREATE TABLE statement and
+		preserves indexes.
+
+		Parameters:
+		-----------
+		old_name : str
+			Existing table name.
+
+		new_name : str
+			New table name.
+
+		Returns:
+		--------
+		None
+		
+	"""
+	if not old_name or not new_name:
+		return
+	
+	with create_connection( ) as conn:
+		try:
+			conn.execute( f'ALTER TABLE "{old_name}" RENAME TO "{new_name}";' )
+			conn.commit( )
+			return
+		except Exception:
+			pass
+		
+		row = conn.execute(
+			"""
+            SELECT sql
+            FROM sqlite_master
+            WHERE type ='table' AND name =?
+			""",
+			(old_name,)
+		).fetchone( )
+		
+		if not row or not row[ 0 ]:
+			raise ValueError( "Table definition not found." )
+		
+		create_sql = row[ 0 ]
+		
+		indexes = conn.execute(
+			"""
+            SELECT sql
+            FROM sqlite_master
+            WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
+			""",
+			(old_name,)
+		).fetchall( )
+		
+		open_paren = create_sql.find( "(" )
+		if open_paren == -1:
+			raise ValueError( "Malformed CREATE TABLE statement." )
+		
+		temp_name = f"{new_name}__rebuild_temp"
+		
+		conn.execute( "BEGIN" )
+		conn.execute( f'CREATE TABLE "{temp_name}" {create_sql[ open_paren: ]}' )
+		
+		cols = [ r[ 1 ] for r in conn.execute( f'PRAGMA table_info("{old_name}");' ).fetchall( ) ]
+		col_list = ", ".join( [ f'"{c}"' for c in cols ] )
+		
+		conn.execute(
+			f'INSERT INTO "{temp_name}" ({col_list}) SELECT {col_list} FROM "{old_name}";'
+		)
+		
+		conn.execute( f'DROP TABLE "{old_name}";' )
+		conn.execute( f'ALTER TABLE "{temp_name}" RENAME TO "{new_name}";' )
+		
+		for idx in indexes:
+			idx_sql = idx[ 0 ]
+			if idx_sql:
+				idx_sql = idx_sql.replace( f'ON "{old_name}"', f'ON "{new_name}"' )
 				conn.execute( idx_sql )
 		
 		conn.commit( )
@@ -2846,7 +3323,6 @@ elif mode == 'Data Plumbing':
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
-		
 		numeric_columns = [ c for c in df_original.columns
 		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
 		
@@ -2855,7 +3331,7 @@ elif mode == 'Data Plumbing':
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
-		st.markdown( '##### Selection' )
+		st.markdown( '##### Feature Selection' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			selected_columns = st.multiselect( 'Select Features',
@@ -2911,14 +3387,14 @@ elif mode == 'Data Plumbing':
 		
 		df_working = get_working_frame( )
 		active_numeric_columns = get_numeric_columns( df_working )
-		active_categorical_columns = get_categorical_columns( df_working )
+		categorical_columns = get_categorical_columns( df_working )
 		st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_working.columns ):,}')
 		
 		# ======================================================================================
 		# Data Processing
 		# ======================================================================================
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Preprocessing' )
+		st.markdown( '##### Data Transformations' )
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
 			with st.expander( label='Data Scaling', key='scalers' ):
@@ -3186,7 +3662,7 @@ elif mode == 'Data Plumbing':
 			with st.expander( label='Data Encoding', key='encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					encode_cols = st.multiselect( 'Columns', options=active_categorical_columns,
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='plumbing_onehot_cols' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=False,
@@ -3217,7 +3693,7 @@ elif mode == 'Data Plumbing':
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
-					encode_cols = st.multiselect( 'Columns', options=active_categorical_columns,
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='plumbing_ordinal_cols' )
 					
 					a1, a2 = st.columns( 2 )
@@ -3265,7 +3741,7 @@ elif mode == 'Data Plumbing':
 				
 				with st.expander( 'Target Encoder', expanded=False ):
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
-						options=active_categorical_columns, key='plumbing_target_encoder_cols' )
+						options=categorical_columns, key='plumbing_target_encoder_cols' )
 					
 					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
 						key='plumbing_target_encoder_target_col' )
@@ -3474,7 +3950,7 @@ elif mode == 'Data Plumbing':
 						key='plumbing_column_transformer_numeric_cols' )
 					
 					categorical_cols = st.multiselect( 'Categorical Columns',
-						options=active_categorical_columns,
+						options=categorical_columns,
 						key='plumbing_column_transformer_categorical_cols' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
@@ -3949,7 +4425,7 @@ elif mode == 'Data Plumbing':
 					X_cols = st.multiselect( 'Feature Columns', options=active_numeric_columns,
 						key='plumbing_rfe_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+					target_col = st.selectbox( 'Target Column', options=df_classification.columns.tolist( ),
 						key='plumbing_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
@@ -3984,7 +4460,7 @@ elif mode == 'Data Plumbing':
 		# Data Transformation
 		# ======================================================================================
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Transformation' )
+		st.markdown( '##### Feature-Engineered Dataset' )
 		st.data_editor( get_working_frame( ), key='engineering_table',
 			use_container_width=True, height=420 )
 		
@@ -3999,6 +4475,7 @@ elif mode == 'Data Plumbing':
 # FEATURE ENGINEERING MODE
 # ============================================
 elif mode == 'Feature Engineering':
+	df_dataset = st.session_state.df_dataset
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Feature Engineering' ] )
@@ -4179,40 +4656,1288 @@ elif mode == 'Feature Engineering':
 # CLASSIFICATION MODE
 # ============================================
 elif mode == 'Classifications':
+	df_original = st.session_state.get( 'df_dataset', None )
+	df_dataset = st.session_state.get( 'df_dataset', None )
+	df_working = st.session_state.get( 'df_working', None )
+	df_processed = st.session_state.get( 'df_processed', None )
+	df_classification = st.session_state.get( 'df_classification', None )
+	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
+	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
+	features = st.session_state.get( 'features', [ ] )
+	targets = st.session_state.get( 'targets', [ ] )
+	
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classifications' ] )
 		st.divider( )
-		df_dataset = st.session_state.get( 'df_dataset', None )
-		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
-		categorical_cols = st.session_state.get( 'categorical_cols', [ ] )
 		
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		if not numeric_cols or not categorical_cols:
+		df_original = df_dataset.copy( )
+		st.session_state[ 'df_original' ] = df_original.copy( )
+		
+		numeric_columns = [ c for c in df_original.columns
+		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
+		
+		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
+		
+		if not numeric_columns or not categorical_columns:
 			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
 			st.stop( )
 		
-		# ------------------------------------------------------------------
-		# TARGET & FEATURES
-		# ------------------------------------------------------------------
-		st.markdown( '##### Target & Features' )
-		tgt_c1, tgt_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-		with tgt_c1:
-			target = st.selectbox( 'Target (Categorical)', categorical_cols )
-			
-		with tgt_c2:
-			features = st.multiselect( 'Feature Columns (Numeric)', numeric_cols,
-				default=numeric_cols[ :3 ] )
+		df_classification = st.session_state.get( 'df_classification', df_original.copy( ) ).copy( )
 		
-		if not features:
-			st.info( 'Please select at least one feature.' )
+		# ======================================================================================
+		# Data Selection
+		# ======================================================================================
+		st.markdown( '##### Data Selection' )
+		st.caption( f'Rows: {len( df_original ):,}  |  '
+			            f'Columns: {len( df_original.columns ):,}' )
+		
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with col_c1:
+			features = st.multiselect( 'Select Features', options=categorical_columns,
+				default=[ c for c in st.session_state.get( 'features', [ ] )
+						if c in numeric_columns ], key='classification_select_features' )
+		
+		with col_c2:
+			target_options = [ c for c in numeric_columns if c not in features ]
+			targets = st.multiselect( 'Select Targets', options=target_options,
+				default=[ c for c in st.session_state.get( 'targets', [ ] )
+						if c in target_options ], key='classification_targets' )
+		
+		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		with sel_b1:
+			if st.button( 'Create Working Dataset', key='classification_create_dataset',
+					use_container_width=True ):
+				selected_all = features + [ c for c in targets if c not in features ]
+				
+				if selected_all:
+					df_working = df_original[ selected_all ].copy( )
+					st.session_state[ 'df_working' ] = df_working
+				else:
+					df_working = df_original.copy( )
+					st.session_state[ 'df_working' ] = df_working
+				
+				st.session_state[ 'df_classification' ] = df_working.copy( )
+				st.session_state[ 'features' ] = features.copy( )
+				st.session_state[ 'targets' ] = targets.copy( )
+				st.session_state[ 'df_processed' ] = df_working.copy( )
+				
+				commit_frame( df_working )
+				st.success( 'Working dataframe created.' )
+		
+		with sel_b2:
+			if st.button( 'Reset Working Dataset', key='classification_reset_working_dataset',
+					use_container_width=True ):
+				df_working = df_dataset.copy( )
+				df_classification = df_working.copy( )
+				st.session_state[ 'df_classification' ] = df_classification.copy( )
+				commit_frame( df_working )
+				st.success( 'Working dataframe reset.' )
+		
+		with sel_b3:
+			if st.button( 'Reset To Original', key='classification_reset_to_original',
+					use_container_width=True ):
+				df_original = df_dataset.copy( )
+				st.session_state[ 'features' ] = [ ]
+				st.session_state[ 'targets' ] = [ ]
+				st.session_state[ 'df_classification' ] = df_original.copy( )
+				st.session_state[ 'df_original' ] = df_dataset.copy( )
+				st.session_state[ 'df_processed' ] = pd.DataFrame( )
+				commit_frame( df_original )
+				st.success( 'Reset back to df_original.' )
+		
+		df_classification = st.session_state.get( 'df_classification', df_original.copy( ) ).copy( )
+		numeric_columns = get_numeric_columns( df_classification )
+		categorical_columns = get_categorical_columns( df_classification )
+		
+		df_classification = get_working_frame( ).copy( )
+		st.session_state[ 'df_classification' ] = df_classification.copy( )
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Classification Data')
+		st.caption( f'Rows: {len( df_working ):,}  |  '
+			            f'Columns: {len( df_working.columns ):,}' )
+			
+		st.data_editor( df_working, key='classficiation_data' )
+		
+		# ------------------------------------------------------------------
+		# Training Target & Features
+		# ------------------------------------------------------------------
+		if df_working.empty:
+			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
+			st.stop( )
+		y_series = df_working[ targets ]
+		X = df_working[ features ].to_numpy( )
+		y = y_series.to_numpy( )
+		
+		if len( np.unique( y ) ) < 2:
+			st.warning( '⚠️ Classification requires at least two classes in the selected target.' )
 			st.stop( )
 		
-		X = df_dataset[ features ].to_numpy( )
-		y = df_dataset[ target ].to_numpy( )
+		# -----------------------------------------------------------------
+		# Data Processing
+		# -----------------------------------------------------------------
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Data Transformations' )
+		
+		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
+		with feature_c1:
+			
+			with st.expander( label='Data Scaling', key='classification_scalers' ):
+				
+				with st.expander( 'Standard Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=targets,
+						key='classification_standard_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_standard_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_processed = df_working.copy( )
+								scaler = StandardScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Standard Scaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_standard_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Min-Max Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_minmax_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_minmax_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_processed = df_working.copy( )
+								scaler = MinMaxScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Min-Max Scaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_minmax_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Robust Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_robust_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_robust_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_processed = df_working.copy( )
+								scaler = RobustScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'RobustScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_robust_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Normal Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_normal_scaler_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
+						index=1, key='classification_normal_scaler_norm' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_normal_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_processed = df_working.copy( )
+								scaler = NormalScaler( norm=norm )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'NormalScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_normal_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_maxabs_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_maxabs_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_processed = df_working.copy( )
+								scaler = MaxAbsScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'MaxAbsScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_maxabs_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Data Imputation', key='classification_imputers' ):
+				
+				with st.expander( 'Mean Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_mean_imputer_cols' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='classification_mean_imputer_indicator' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_mean_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_processed = df_working.copy( )
+								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+								result = imputer.train_transform(
+									df_processed[ impute_cols ].to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'mean_imputer' )
+								commit_frame( df_processed )
+								st.success( 'MeanImputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_mean_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_nearest_imputer_cols' )
+					
+					neighbors = st.number_input( 'Neighbors', min_value=1,
+						value=5, step=1, key='classification_nearest_imputer_neighbors' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_nearest_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_processed = df_working.copy( )
+								imputer = NearestImputer( neighbors=int( neighbors ) )
+								result = imputer.train_transform(
+									df_processed[ impute_cols ].to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'nearest_imputer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Nearest Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_nearest_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed' ] = get_working_frame( ).copy( )
+							st.success( 'Reset Data' )
+				
+				with st.expander( 'Iterative Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_iterative_imputer_cols' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1,
+						value=10, step=1, key='classification_iterative_imputer_max_iter' )
+					
+					random_state = st.number_input( 'Random State', min_value=0,
+						value=0, step=1, key='classification_iterative_imputer_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Iterative Imputer',
+								key='classification_iterative_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_processed = df_working.copy( )
+								imputer = IterativeImputer( max_iter=int( max_iter ),
+									random_state=int( random_state ) )
+								result = imputer.train_transform(
+									df_processed[ impute_cols ].to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'iterative_imputer' )
+								commit_frame( df_processed )
+								st.success( 'Iterative Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_iterative_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed' ] = get_working_frame( ).copy( )
+							st.success( 'Reset Data' )
+				
+				with st.expander( 'Simple Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns',
+						options=df_classification.columns.tolist( ),
+						key='classification_simple_imputer_cols' )
+					
+					strategy = st.selectbox( 'Strategy',
+						options=[ 'mean', 'median', 'most_frequent', 'constant' ],
+						key='classification_simple_imputer_strategy' )
+					
+					fill_value = st.text_input( 'Fill Value', value='0.0',
+						key='classification_simple_imputer_fill_value' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='classification_simple_imputer_indicator' )
+					
+					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
+						key='classification_simple_imputer_keep_empty' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply SimpleImputer',
+								key='classification_simple_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_processed = df_working.copy( )
+								if strategy in [ 'mean', 'median' ]:
+									df_input = df_processed[ impute_cols ].apply(
+										pd.to_numeric, errors='coerce' )
+									fill_object: object = 0.0
+								elif strategy == 'constant':
+									df_input = df_processed[ impute_cols ].copy( )
+									fill_object = fill_value
+								else:
+									df_input = df_processed[ impute_cols ].copy( )
+									fill_object = fill_value
+								
+								imputer = SimpleImputer(
+									strategy=strategy,
+									fill_value=fill_object,
+									add_indicator=add_indicator,
+									keep_empty_features=keep_empty_features
+								)
+								
+								result = imputer.train_transform( df_input.to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'simple_imputer' )
+								commit_frame( df_processed )
+								st.success( 'Simple Imputer Applied' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_simple_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Data Encoding', key='classification_encoders' ):
+				
+				with st.expander( 'One-Hot Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=features,
+						key='classification_onehot_cols' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=False,
+						key='classification_onehot_sparse' )
+					
+					unknown = st.selectbox( 'Unknown Category Handling',
+						options=[ 'ignore', 'error' ], index=0,
+						key='classification_onehot_unknown' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_onehot_apply',
+								use_container_width=True ):
+							if encode_cols:
+								df_processed = get_working_frame( )
+								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
+								result = encoder.train_transform(
+									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, encode_cols,
+									result, 'onehot' )
+								commit_frame( df_processed )
+								st.success( 'OneHotEncoder applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_onehot_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Ordinal Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+						key='classification_ordinal_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_ordinal_apply',
+								use_container_width=True ):
+							if encode_cols:
+								df_processed = df_working.copy( )
+								encoder = OrdinalEncoder( )
+								result = encoder.train_transform(
+									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
+								df_processed[ encode_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Ordinal Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_ordinal_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Label Encoder', expanded=False ):
+					target_col = st.selectbox( 'Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_label_encoder_col' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_label_encoder_apply',
+								use_container_width=True ):
+							
+							if target_col:
+								df_processed = df_working.copy( )
+								encoder = LabelEncoder( )
+								
+								result = encoder.train_transform(
+									df_processed[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_processed[ target_col ] = result
+								commit_frame( df_processed )
+								st.success( 'Label Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_label_encoder_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Target Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Categorical Feature Columns',
+						options=categorical_columns, key='classification_target_encoder_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_target_encoder_target_col' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_target_encoder_apply',
+								use_container_width=True ):
+							
+							if encode_cols and target_col:
+								df_processed = df_working.copy( )
+								encoder = TargetEncoder( )
+								X_enc = df_processed[ encode_cols ].astype( str ).to_numpy( )
+								y_enc = df_processed[ target_col ].to_numpy( )
+								result = encoder.train_transform( X_enc, y_enc )
+								
+								df_processed = replace_columns( df_processed, encode_cols, result,
+									'target_encoder' )
+								
+								commit_frame( df_processed )
+								st.success( 'Target Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_target_encoder_reset',
+								use_container_width=True ):
+							
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Polynomial Features', expanded=False ):
+					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_polynomial_cols' )
+					
+					degree = st.slider( 'Degree', min_value=2, max_value=4,
+						value=2, key='classification_polynomial_degree' )
+					
+					interaction = st.checkbox( 'Interaction Only', value=True,
+						key='classification_polynomial_interaction' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_polynomial_apply',
+								use_container_width=True ):
+							
+							if poly_cols:
+								df_processed = df_working.copy( )
+								
+								encoder = PolynomialFeatures( degree=int( degree ),
+									interaction=bool( interaction ) )
+								
+								result = encoder.train_transform(
+									df_processed[ poly_cols ].to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, poly_cols, result,
+									'polynomial' )
+								
+								commit_frame( df_processed )
+								st.success( 'PolynomialFeatures applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_polynomial_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+		
+		with feature_c2:
+			with st.expander( label='Data Transformation', key='classification_transformers' ):
+				
+				with st.expander( 'Binarizer', expanded=False ):
+					transform_cols = st.multiselect( 'Columns',
+						options=numeric_columns, key='classification_binarizer_cols' )
+					
+					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
+						key='classification_binarizer_threshold' )
+					
+					copy = st.checkbox( 'Copy', value=True, key='classification_binarizer_copy' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Binarizer',
+								key='classification_binarizer_apply',
+								use_container_width=True ):
+							if transform_cols:
+								df_processed = df_working.copy( )
+								transformer = Binarizer(
+									threshold=float( threshold ),
+									copy=bool( copy ) )
+								result = transformer.train_transform(
+									df_processed[ transform_cols ].to_numpy( ) )
+								
+								df_processed[ transform_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Binarizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_label_binarizer_col' )
+					
+					pos_label = st.number_input( 'Positive Label', value=1, step=1,
+						key='classification_label_binarizer_pos' )
+					
+					neg_label = st.number_input( 'Negative Label', value=0, step=1,
+						key='classification_label_binarizer_neg' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='classification_label_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply LabelBinarizer',
+								key='classification_label_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_processed = df_working.copy( )
+								transformer = LabelBinarizer( pos_label=int( pos_label ),
+									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+								
+								result = transformer.train_transform(
+									df_processed[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, [ target_col ], result,
+									'label_binarizer' )
+								commit_frame( df_processed )
+								st.success( 'Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_label_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Multi-Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_multilabel_binarizer_col' )
+					
+					delimiter = st.text_input( 'Delimiter', value=',',
+						key='classification_multilabel_binarizer_delimiter' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='classification_multilabel_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_multilabel_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_processed = df_working.copy( )
+								y_multi = parse_multilabel_series( df_processed[ target_col ],
+									delimiter=delimiter )
+								
+								transformer = MultiLabelBinarizer( classes=None,
+									sparse_output=bool( sparse_output ) )
+								
+								result = transformer.train_transform( y_multi )
+								df_processed = replace_columns( df_processed, [ target_col ],
+									result, 'multilabel_binarizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Multi-Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_multilabel_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'TFIDF Transformer', expanded=False ):
+					text_count_cols = st.multiselect( 'Count Matrix Columns',
+						options=numeric_columns,
+						key='classification_tfidf_transformer_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
+						index=1, key='classification_tfidf_transformer_norm' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='classification_tfidf_transformer_use_idf' )
+					
+					smooth_idf = st.checkbox( 'Smooth IDF', value=True,
+						key='classification_tfidf_transformer_smooth_idf' )
+					
+					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
+						key='classification_tfidf_transformer_sublinear' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_tfidf_transformer_apply',
+								use_container_width=True ):
+							if text_count_cols:
+								df_processed = df_working.copy( )
+								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
+									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
+								
+								result = transformer.train_transform(
+									df_processed[ text_count_cols ].apply(
+										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, text_count_cols,
+									result, 'tfidf_transformer' )
+								
+								commit_frame( df_processed )
+								st.success( 'TFIDF Transformer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_tfidf_transformer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Column Transformer', expanded=False ):
+					numeric_cols = st.multiselect( 'Numeric Columns', options=numeric_columns,
+						key='classification_column_transformer_numeric_cols' )
+					
+					categorical_cols = st.multiselect( 'Categorical Columns',
+						options=categorical_columns,
+						key='classification_column_transformer_categorical_cols' )
+					
+					numeric_transform = st.selectbox( 'Numeric Transformer',
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
+								'MaxAbsScaler', 'Binarizer', 'None' ],
+						key='classification_column_transformer_numeric_transform' )
+					
+					categorical_transform = st.selectbox( 'Categorical Transformer',
+						options=[ 'OneHotEncoder', 'OrdinalEncoder', 'None' ],
+						key='classification_column_transformer_categorical_transform' )
+					
+					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
+						key='classification_column_transformer_remainder' )
+					
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0,
+						max_value=1.0, value=0.3,
+						key='classification_column_transformer_sparse_threshold' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Column Transformer',
+								key='classification_column_transformer_apply',
+								use_container_width=True ):
+							df_processed = df_working.copy( )
+							transformers = [ ]
+							
+							if numeric_cols and numeric_transform != 'None':
+								if numeric_transform == 'StandardScaler':
+									numeric_model = StandardScaler( ).model
+								elif numeric_transform == 'MinMaxScaler':
+									numeric_model = MinMaxScaler( ).model
+								elif numeric_transform == 'RobustScaler':
+									numeric_model = RobustScaler( ).model
+								elif numeric_transform == 'MaxAbsScaler':
+									numeric_model = MaxAbsScaler( ).model
+								else:
+									numeric_model = Binarizer( ).model
+								
+								transformers.append( ('numeric', numeric_model, numeric_cols) )
+							
+							if categorical_cols and categorical_transform != 'None':
+								if categorical_transform == 'OneHotEncoder':
+									categorical_model = OneHotEncoder( sparse=False,
+										unknown='ignore' ).model
+								else:
+									categorical_model = OrdinalEncoder( ).model
+								
+								transformers.append( ('categorical', categorical_model,
+								                      categorical_cols) )
+							
+							if transformers:
+								transformer = ColumnTransformer( transformers=transformers,
+									remainder=remainder, sparse_threshold=float( sparse_threshold ),
+									n_jobs=None, transformer_weights=None, verbose=False )
+								
+								result = transformer.train_transform( df_processed )
+								df_processed = normalize_result_frame( result=result,
+									index=df_processed.index, prefix='column_transformer',
+									columns=None )
+								
+								commit_frame( df_processed )
+								st.success( 'ColumnTransformer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_column_transformer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns',
+						options=df_classification.columns.tolist( ),
+						key='classification_tfidf_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='classification_tfidf_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='classification_tfidf_vectorizer_max_features' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='classification_tfidf_vectorizer_use_idf' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_tfidf_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_processed = df_working.copy( )
+								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									use_idf=bool( use_idf ) )
+								
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'tfidf_vectorizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'TFIDF Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_tfidf_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Count Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns',
+						options=df_classification.columns.tolist( ),
+						key='classification_count_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='classification_count_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0,
+						step=1, key='classification_count_vectorizer_max_features' )
+					
+					binary = st.checkbox( 'Binary Counts', value=False,
+						key='classification_count_vectorizer_binary' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_count_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_processed = df_working.copy( )
+								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									binary=bool( binary ) )
+								
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'count_vectorizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Count Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_count_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Hash Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns',
+						options=df_classification.columns.tolist( ),
+						key='classification_hash_vectorizer_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='classification_hash_vectorizer_n_features' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
+						value=1, key='classification_hash_vectorizer_ngram_max' )
+					
+					binary = st.checkbox( 'Binary', value=False,
+						key='classification_hash_vectorizer_binary' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='classification_hash_vectorizer_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_hash_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_processed = df_working.copy( )
+								transformer = HashVectorizer( num=int( n_features ),
+									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
+									alternate_sign=bool( alternate_sign ) )
+								df_processed = apply_text_vectorizer( df_processed,
+									text_cols, transformer, 'hash_vectorizer' )
+								commit_frame( df_processed )
+								st.success( 'HashVectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_hash_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Dictionary Vectorizer', expanded=False ):
+					dict_cols = st.multiselect( 'Columns',
+						options=df_classification.columns.tolist( ),
+						key='classification_dict_vectorizer_cols' )
+					
+					separator = st.text_input( 'Separator', value='=',
+						key='classification_dict_vectorizer_separator' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=True,
+						key='classification_dict_vectorizer_sparse' )
+					
+					sort = st.checkbox( 'Sort Feature Names', value=True,
+						key='classification_dict_vectorizer_sort' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply',
+								key='classification_dict_vectorizer_apply',
+								use_container_width=True ):
+							if dict_cols:
+								df_processed = df_working.copy( )
+								transformer = DictVectorizer( dtype=np.float64, separator=separator,
+									sparse=bool( sparse ), sort=bool( sort ) )
+								
+								df_processed = apply_dict_transform( df_processed, dict_cols,
+									transformer, 'dict_vectorizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'DictVectorizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_dict_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Feature Hasher', expanded=False ):
+					hash_cols = st.multiselect( 'Columns',
+						options=df_classification.columns.tolist( ),
+						key='classification_feature_hasher_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='classification_feature_hasher_n_features' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='classification_feature_hasher_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_feature_hasher_apply',
+								use_container_width=True ):
+							if hash_cols:
+								df_processed = df_working.copy( )
+								transformer = FeatureHasher( n_features=int( n_features ),
+									input_type='dict', dtype=np.float64,
+									alternate_sign=bool( alternate_sign ) )
+								
+								df_processed = apply_dict_transform( df_processed, hash_cols,
+									transformer, 'feature_hasher' )
+								commit_frame( df_processed )
+								st.success( 'FeatureHasher applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_feature_hasher_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Feature Selection', key='classification_selectors' ):
+				
+				with st.expander( 'Variance Threshold', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_variance_threshold_cols' )
+					
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
+						step=0.01, key='classification_variance_threshold_value' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='classification_variance_threshold_apply',
+								use_container_width=True ):
+							if select_cols:
+								df_processed = df_working.copy( )
+								selector = VarianceThreshold( thresh=float( threshold ) )
+								result = selector.train_transform(
+									df_processed[ select_cols ].to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, select_cols, result,
+									'variance_threshold' )
+								
+								commit_frame( df_processed )
+								st.success( 'VarianceThreshold applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_variance_threshold_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
+					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
+						key='classification_cca_x_cols' )
+					
+					y_cols = st.multiselect( 'Target Columns', options=numeric_columns,
+						key='classification_cca_y_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='classification_cca_components' )
+					
+					scale = st.checkbox( 'Scale', value=True,
+						key='classification_cca_scale' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
+						step=1, key='classification_cca_max_iter' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='classification_cca_apply',
+								use_container_width=True ):
+							if X_cols and y_cols:
+								df_processed = df_working.copy( )
+								selector = CCA( num=int( n_components ), scale=bool( scale ),
+									size=int( max_iter ) )
+								
+								result = selector.train_transform( df_processed[ X_cols ].to_numpy( ),
+									df_processed[ y_cols ].to_numpy( ) )
+								
+								df_result = normalize_result_frame( result=result,
+									index=df_processed.index, prefix='cca', columns=None )
+								
+								df_processed = pd.concat(
+									[
+											df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
+											df_result
+									],
+									axis=1
+								)
+								commit_frame( df_processed )
+								st.success( 'CCA Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='classification_cca_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Principle Component Analysis', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='classification_pca_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='classification_pca_components' )
+					
+					solver = st.selectbox( 'SVD Solver',
+						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
+						key='classification_pca_solver' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply',
+								key='classification_pca_apply',
+								use_container_width=True ):
+							if select_cols:
+								df_processed = df_working.copy( )
+								selector = PCA( num=int( n_components ), solver=solver )
+								
+								result = selector.train_transform(
+									df_processed[ select_cols ].to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
+								commit_frame( df_processed )
+								st.success( 'PCA applied.' )
+					
+					with a2:
+						if st.button( 'Reset',
+								key='classification_pca_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Select-Best', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns',
+						options=numeric_columns,
+						key='classification_selectbest_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_selectbest_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[
+								'chi2',
+								'f_classif',
+								'f_regression',
+								'mutual_info_classif',
+								'mutual_info_regression'
+						],
+						key='classification_selectbest_score_name' )
+					
+					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
+						key='classification_selectbest_k' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='classification_selectbest_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = SelectBest(
+									score_func=score_function_from_name( score_name ),
+									num=int( k_best ) )
+								
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
+								commit_frame( df_processed )
+								st.success( 'Select Best Applied.' )
+					
+					with a2:
+						if st.button( 'Reset',
+								key='classification_selectbest_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Select-Percent', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='classification_selectpercent_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_selectpercent_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+								'mutual_info_regression' ],
+						key='classification_selectpercent_score_name' )
+					
+					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
+						key='classification_selectpercent_percentile' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply SelectPercent',
+								key='classification_selectpercent_apply', use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = SelectPercent(
+									score_func=score_function_from_name( score_name ),
+									pct=int( percentile ) )
+								
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
+								commit_frame( df_processed )
+								st.success( 'SelectPercent applied.' )
+					
+					with a2:
+						if st.button( 'Reset',
+								key='classification_selectpercent_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Sequential Back Selection', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='classification_sbs_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_sbs_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='classification_sbs_k_features' )
+					
+					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
+						value=0.25, step=0.05, key='classification_sbs_test_size' )
+					
+					random_state = st.number_input( 'Random State', min_value=0, value=1,
+						step=1, key='classification_sbs_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply',
+								key='classification_sbs_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = SBS(
+									classifier=None,
+									k_features=int( k_features ),
+									test_size=float( test_size ),
+									random_state=int( random_state ) )
+								
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
+								
+								commit_frame( df_processed )
+								st.success( 'SBS applied.' )
+					
+					with a2:
+						if st.button( 'Reset',
+								key='classification_sbs_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Recursive Feature Elimination', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='classification_rfe_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_classification.columns.tolist( ),
+						key='classification_rfe_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain',
+						min_value=1, value=1, step=1, key='classification_rfe_k_features' )
+					
+					verbose = st.number_input( 'Verbose', min_value=0, value=0,
+						step=1, key='classification_rfe_verbose' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply',
+								key='classification_rfe_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'rfe' )
+								commit_frame( df_processed )
+								st.success( 'RFE applied.' )
+					
+					with a2:
+						if st.button( 'Reset',
+								key='classification_rfe_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.session_state[ 'df_processed ' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Processed Data' )
+		
+		st.data_editor( df_processed, key='processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
@@ -4239,15 +5964,17 @@ elif mode == 'Classifications':
 			model = model_map[ model_name ]( )
 		
 		with mdl_c2:
-			test_sz = st.slider( 'Test set size (%)', 10, 20, 30, key='classifications-1' ) / 100.0
+			test_sz = st.slider( 'Test set size (%)', 10, 30, 20, key='classifications-1' ) / 100.0
 		
 		with mdl_c3:
-			random_state = st.number_input( 'Random state', value=42, step=1, key='classifications-2' )
+			random_state = st.number_input( 'Random state', value=42, step=1,
+				key='classifications-2' )
 		
 		if st.button( '🚀 Train Classifier' ):
 			try:
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
 					random=random_state )
+				
 				model.train( X_train, y_train )
 				y_pred = model.project( X_test )
 				target_count = len( np.unique( y_test ) )
@@ -4256,7 +5983,7 @@ elif mode == 'Classifications':
 				# METRICS & ANALYSIS
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-				st.subheader( 'Model Performance' )
+				st.markdown( '##### Model Performance' )
 				df_classifier = model.analyze( X_test, y_test )
 				st.data_editor( df_classifier, use_container_width=True )
 				
@@ -4264,7 +5991,7 @@ elif mode == 'Classifications':
 				# CONFUSION MATRIX
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-				st.subheader( 'Confusion Matrix' )
+				st.markdown( '##### Confusion Matrix' )
 				plt.close( 'all' )
 				model.confusion_matrix( X_test, y_test )
 				st.pyplot( plt.gcf( ) )
@@ -4274,7 +6001,7 @@ elif mode == 'Classifications':
 				# ACTUAL VS PREDICTED CLASS COUNTS
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-				st.subheader( 'Actual vs Predicted Counts' )
+				st.markdown( '##### Actual vs Predicted Counts' )
 				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
 				pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
 				df_counts = pd.DataFrame(
@@ -4298,7 +6025,7 @@ elif mode == 'Classifications':
 				# PER-CLASS ACCURACY
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-				st.subheader( 'Per-Class Accuracy' )
+				st.markdown( '##### Per-Class Accuracy' )
 				df_eval = pd.DataFrame(
 					{
 							'Actual': y_test,
@@ -4326,7 +6053,8 @@ elif mode == 'Classifications':
 				if hasattr( model, 'predict_probability' ):
 					try:
 						proba = model.predict_probability( X_test )
-						if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1:
+						if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[
+							1 ] > 1:
 							st.subheader( 'Prediction Confidence' )
 							max_conf = np.max( proba, axis=1 )
 							
@@ -4346,7 +6074,7 @@ elif mode == 'Classifications':
 				# OBSERVED VS PREDICTED
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-				st.subheader( 'Observed vs Predicted' )
+				st.markdown( '##### Observed vs Predicted' )
 				if target_count <= 2 and hasattr( model, 'scatter_plot' ):
 					try:
 						plt.close( 'all' )
@@ -4383,6 +6111,14 @@ elif mode == 'Classifications':
 # REGRESSION MODE
 # ============================================
 elif mode == 'Regressions':
+	df_dataset = st.session_state.get( 'df_dataset', None )
+	numeric_columns = st.session_state.get( 'numeric_columnss', [ ] )
+	categorical_columnss = st.session_state.get( 'categorical_columns', [ ] )
+	df_original = df_dataset.copy( )
+	numeric_columns = [ c for c in df_original.columns
+	                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
+	
+	categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Regressions' ] )
@@ -4398,28 +6134,71 @@ elif mode == 'Regressions':
 			st.warning( '⚠️ No numeric columns available for regression.' )
 			st.stop( )
 		
-		# ------------------------------------------------------------------
-		# TARGET & FEATURES
-		# ------------------------------------------------------------------
-		st.markdown( '##### Target & Features' )
-		tgt_c2, tgt_c3 = st.columns( [ 0.5, 0.5 ], border=True )
-		with tgt_c2:
-			target = st.selectbox( 'Target (Numeric)', numeric_cols )
-			feature_candidates = [ c for c in numeric_cols if c != target ]
-			feature_defaults = feature_candidates[ : min( 3, len( feature_candidates ) ) ]
+		# ======================================================================================
+		# Data Selection
+		# ======================================================================================
+		st.markdown( '##### Feature Selection' )
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		selected_features = st.session_state.get( 'selected_features', [ ] )
+		selected_targets = st.session_state.get( 'selected_targets', [ ] )
+		with col_c1:
+			selected_features = st.multiselect( 'Select Features',
+				options=df_original.columns.tolist( ),
+				default=st.session_state.get( 'plumbing_feature_columns', [ ] ),
+				key='plumbing_select_features' )
 		
-		with tgt_c3:
-			features = st.multiselect( 'Feature Columns (Numeric)', feature_candidates,
-				default=feature_defaults )
+		with col_c2:
+			selected_target_options = [ c for c in df_original.columns
+			                            if c not in selected_features ]
 			
-			if not features:
-				st.info( 'Please select at least one feature.' )
-				st.stop( )
-			
+			selected_targets = st.multiselect( 'Select Targets', options=selected_target_options,
+				default=st.session_state.get( 'plumbing_target_columns', [ ] ),
+				key='plumbing_select_targets' )
+		
+		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		with sel_b1:
+			if st.button( 'Create Working Dataset', key='plumbing_create_dataset',
+					use_container_width=True ):
+				selected_all = selected_features + [ c for c in selected_targets
+				                                     if c not in selected_features ]
+				
+				if selected_all:
+					df_base = df_original[ selected_all ].copy( )
+				else:
+					df_base = df_original.copy( )
+				
+				st.session_state[ 'plumbing_feature_columns' ] = selected_features.copy( )
+				st.session_state[ 'plumbing_target_columns' ] = selected_targets.copy( )
+				st.session_state[ 'df_plumbing_base' ] = df_base.copy( )
+				commit_frame( df_base )
+				st.success( 'Working dataframe created.' )
+		
+		with sel_b2:
+			if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset',
+					use_container_width=True ):
+				df_base = st.session_state.get( 'df_plumbing_base' )
+				if df_base is None or df_base.empty:
+					df_base = st.session_state[ 'df_original' ].copy( )
+				commit_frame( df_base.copy( ) )
+				st.success( 'Working dataframe reset.' )
+		
+		with sel_b3:
+			if st.button( 'Reset To Original', key='plumbing_reset_to_original',
+					use_container_width=True ):
+				st.session_state[ 'plumbing_feature_columns' ] = [ ]
+				st.session_state[ 'plumbing_target_columns' ] = [ ]
+				reset_to_original( )
+				st.success( 'Reset back to df_original.' )
+		
+		df_working = get_working_frame( )
+		active_numeric_columns = get_numeric_columns( df_working )
+		categorical_columns = get_categorical_columns( df_working )
+		st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_classification.columns ):,}' )
+		
 		# ------------------------------------------------------------------
 		# DATASET PREPARATION
 		# ------------------------------------------------------------------
-		df_regression = df_dataset[ features + [ target ] ].copy( )
+		df_regression = df_dataset[ selected_features + [ selected_targets ] ].copy( )
 		df_regression = df_regression.replace( [ np.inf, -np.inf ], np.nan )
 		df_regression = df_regression.apply( pd.to_numeric, errors='coerce' )
 		rows_before = len( df_regression )
@@ -4443,30 +6222,1083 @@ elif mode == 'Regressions':
 			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
 			st.stop( )
 		
-		X = df_regression[ features ].to_numpy( dtype=float )
-		y = df_regression[ target ].to_numpy( dtype=float )
+		X = df_regression[ selected_features ].to_numpy( dtype=float )
+		y = df_regression[ selected_targets ].to_numpy( dtype=float )
+		
+		# -----------------------------------------------------------------
+		# Data Processing
+		# -----------------------------------------------------------------
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Data Transformations' )
+		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
+		with feature_c1:
+			with st.expander( label='Data Scaling', key='scalers' ):
+				with st.expander( 'Standard Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_standard_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_standard_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = StandardScaler( )
+								result = scaler.train_transform(
+									df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'StandardScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_standard_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Min-Max Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_minmax_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_minmax_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = MinMaxScaler( )
+								result = scaler.train_transform(
+									df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'MinMaxScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_minmax_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Robust Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_robust_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_robust_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = RobustScaler( )
+								result = scaler.train_transform(
+									df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'RobustScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_robust_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Normal Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_normal_scaler_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
+						index=1, key='plumbing_normal_scaler_norm' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_normal_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = NormalScaler( norm=norm )
+								result = scaler.train_transform(
+									df_apply[ scale_cols ].to_numpy( ) )
+								
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'NormalScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_normal_scaler_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_maxabs_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_maxabs_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								df_apply = get_working_frame( )
+								scaler = MaxAbsScaler( )
+								result = scaler.train_transform(
+									df_apply[ scale_cols ].to_numpy( ) )
+								df_apply[ scale_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'MaxAbsScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_maxabs_scaler_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Data Imputation', key='imputers' ):
+				with st.expander( 'Mean Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_mean_imputer_cols' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='plumbing_mean_imputer_indicator' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_mean_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+								result = imputer.train_transform(
+									df_apply[ impute_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'mean_imputer' )
+								commit_frame( df_apply )
+								st.success( 'MeanImputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_mean_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_nearest_imputer_cols' )
+					
+					neighbors = st.number_input( 'Neighbors', min_value=1,
+						value=5, step=1, key='plumbing_nearest_imputer_neighbors' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_nearest_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								imputer = NearestImputer( neighbors=int( neighbors ) )
+								result = imputer.train_transform(
+									df_apply[ impute_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'nearest_imputer' )
+								
+								commit_frame( df_apply )
+								st.success( 'Nearest Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_nearest_imputer_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset Data' )
+				
+				with st.expander( 'Iterative Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_iterative_imputer_cols' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1,
+						value=10, step=1, key='plumbing_iterative_imputer_max_iter' )
+					
+					random_state = st.number_input( 'Random State', min_value=0,
+						value=0, step=1, key='plumbing_iterative_imputer_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Iterative Imputer', key='plumbing_iterative_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								imputer = IterativeImputer( max_iter=int( max_iter ),
+									random_state=int( random_state ) )
+								result = imputer.train_transform(
+									df_apply[ impute_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'iterative_imputer' )
+								commit_frame( df_apply )
+								st.success( 'Iterative Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_iterative_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset Data' )
+				
+				with st.expander( 'Simple Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=df_classification.columns.tolist( ),
+						key='plumbing_simple_imputer_cols' )
+					
+					strategy = st.selectbox( 'Strategy',
+						options=[ 'mean', 'median', 'most_frequent', 'constant' ],
+						key='plumbing_simple_imputer_strategy' )
+					
+					fill_value = st.text_input( 'Fill Value', value='0.0',
+						key='plumbing_simple_imputer_fill_value' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='plumbing_simple_imputer_indicator' )
+					
+					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
+						key='plumbing_simple_imputer_keep_empty' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply SimpleImputer', key='plumbing_simple_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								df_apply = get_working_frame( )
+								if strategy in [ 'mean', 'median' ]:
+									df_input = df_apply[ impute_cols ].apply(
+										pd.to_numeric, errors='coerce' )
+									fill_object: object = 0.0
+								elif strategy == 'constant':
+									df_input = df_apply[ impute_cols ].copy( )
+									fill_object = fill_value
+								else:
+									df_input = df_apply[ impute_cols ].copy( )
+									fill_object = fill_value
+								
+								imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
+									add_indicator=add_indicator, keep_empty_features=keep_empty_features )
+								
+								result = imputer.train_transform( df_input.to_numpy( ) )
+								df_apply = replace_columns( df_apply, impute_cols,
+									result, 'simple_imputer' )
+								commit_frame( df_apply )
+								st.success( 'Simple Imputer Applied' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_simple_imputer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Data Encoding', key='encoders' ):
+				with st.expander( 'One-Hot Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+						key='plumbing_onehot_cols' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=False,
+						key='plumbing_onehot_sparse' )
+					
+					unknown = st.selectbox( 'Unknown Category Handling',
+						options=[ 'ignore', 'error' ], index=0,
+						key='plumbing_onehot_unknown' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_onehot_apply', use_container_width=True ):
+							if encode_cols:
+								df_apply = get_working_frame( )
+								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
+								result = encoder.train_transform(
+									df_apply[ encode_cols ].astype( str ).to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, encode_cols,
+									result, 'onehot' )
+								commit_frame( df_apply )
+								st.success( 'OneHotEncoder applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_onehot_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Ordinal Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+						key='plumbing_ordinal_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_ordinal_apply', use_container_width=True ):
+							if encode_cols:
+								df_apply = get_working_frame( )
+								encoder = OrdinalEncoder( )
+								result = encoder.train_transform(
+									df_apply[ encode_cols ].astype( str ).to_numpy( ) )
+								df_apply[ encode_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'Ordinal Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_ordinal_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Label Encoder', expanded=False ):
+					target_col = st.selectbox( 'Column', options=df_classification.columns.tolist( ),
+						key='plumbing_label_encoder_col' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_label_encoder_apply',
+								use_container_width=True ):
+							if target_col:
+								df_apply = get_working_frame( )
+								encoder = LabelEncoder( )
+								result = encoder.train_transform(
+									df_apply[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_apply[ target_col ] = result
+								commit_frame( df_apply )
+								st.success( 'Label Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_label_encoder_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Target Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Categorical Feature Columns',
+						options=categorical_columns, key='plumbing_target_encoder_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_target_encoder_target_col' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_target_encoder_apply',
+								use_container_width=True ):
+							if encode_cols and target_col:
+								df_apply = get_working_frame( )
+								encoder = TargetEncoder( )
+								X = df_apply[ encode_cols ].astype( str ).to_numpy( )
+								y = df_apply[ target_col ].to_numpy( )
+								result = encoder.train_transform( X, y )
+								df_apply = replace_columns( df_apply, encode_cols, result,
+									'target_encoder' )
+								commit_frame( df_apply )
+								st.success( 'Target Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_target_encoder_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Polynomial Features', expanded=False ):
+					poly_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_polynomial_cols' )
+					
+					degree = st.slider( 'Degree', min_value=2, max_value=4,
+						value=2, key='plumbing_polynomial_degree' )
+					
+					interaction = st.checkbox( 'Interaction Only', value=True,
+						key='plumbing_polynomial_interaction' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_polynomial_apply',
+								use_container_width=True ):
+							if poly_cols:
+								df_apply = get_working_frame( )
+								encoder = PolynomialFeatures(
+									degree=int( degree ),
+									interaction=bool( interaction ) )
+								
+								result = encoder.train_transform(
+									df_apply[ poly_cols ].to_numpy( ) )
+								df_apply = replace_columns( df_apply, poly_cols, result,
+									'polynomial' )
+								commit_frame( df_apply )
+								st.success( 'PolynomialFeatures applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_polynomial_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+		
+		with feature_c2:
+			with st.expander( label='Data Transformation', key='transformers' ):
+				with st.expander( 'Binarizer', expanded=False ):
+					transform_cols = st.multiselect( 'Columns',
+						options=active_numeric_columns, key='plumbing_binarizer_cols' )
+					
+					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
+						key='plumbing_binarizer_threshold' )
+					
+					copy = st.checkbox( 'Copy', value=True, key='plumbing_binarizer_copy' )
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Binarizer', key='plumbing_binarizer_apply',
+								use_container_width=True ):
+							if transform_cols:
+								df_apply = get_working_frame( )
+								transformer = Binarizer( threshold=float( threshold ),
+									copy=bool( copy ) )
+								result = transformer.train_transform(
+									df_apply[ transform_cols ].to_numpy( ) )
+								
+								df_apply[ transform_cols ] = result
+								commit_frame( df_apply )
+								st.success( 'Binarizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_binarizer_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+						key='plumbing_label_binarizer_col' )
+					
+					pos_label = st.number_input( 'Positive Label', value=1, step=1,
+						key='plumbing_label_binarizer_pos' )
+					
+					neg_label = st.number_input( 'Negative Label', value=0, step=1,
+						key='plumbing_label_binarizer_neg' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='plumbing_label_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply LabelBinarizer', key='plumbing_label_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_apply = get_working_frame( )
+								transformer = LabelBinarizer( pos_label=int( pos_label ),
+									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+								result = transformer.train_transform(
+									df_apply[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, [ target_col ], result,
+									'label_binarizer' )
+								commit_frame( df_apply )
+								st.success( 'Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_label_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Multi-Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+						key='plumbing_multilabel_binarizer_col' )
+					
+					delimiter = st.text_input( 'Delimiter', value=',',
+						key='plumbing_multilabel_binarizer_delimiter' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='plumbing_multilabel_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_multilabel_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_apply = get_working_frame( )
+								y_multi = parse_multilabel_series( df_apply[ target_col ],
+									delimiter=delimiter )
+								
+								transformer = MultiLabelBinarizer( classes=None,
+									sparse_output=bool( sparse_output ) )
+								
+								result = transformer.train_transform( y_multi )
+								df_apply = replace_columns( df_apply, [ target_col ],
+									result, 'multilabel_binarizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'Multi-Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_multilabel_binarizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'TFIDF Transformer', expanded=False ):
+					text_count_cols = st.multiselect( 'Count Matrix Columns',
+						options=active_numeric_columns, key='plumbing_tfidf_transformer_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
+						index=1, key='plumbing_tfidf_transformer_norm' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='plumbing_tfidf_transformer_use_idf' )
+					
+					smooth_idf = st.checkbox( 'Smooth IDF', value=True,
+						key='plumbing_tfidf_transformer_smooth_idf' )
+					
+					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
+						key='plumbing_tfidf_transformer_sublinear' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_tfidf_transformer_apply',
+								use_container_width=True ):
+							if text_count_cols:
+								df_apply = get_working_frame( )
+								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
+									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
+								
+								result = transformer.train_transform(
+									df_apply[ text_count_cols ].apply(
+										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, text_count_cols, result,
+									'tfidf_transformer' )
+								
+								commit_frame( df_apply )
+								st.success( 'TFIDF Transformer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_tfidf_transformer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Column Transformer', expanded=False ):
+					numeric_cols = st.multiselect( 'Numeric Columns', options=active_numeric_columns,
+						key='plumbing_column_transformer_numeric_cols' )
+					
+					categorical_cols = st.multiselect( 'Categorical Columns',
+						options=categorical_columns,
+						key='plumbing_column_transformer_categorical_cols' )
+					
+					numeric_transform = st.selectbox( 'Numeric Transformer',
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
+						          'MaxAbsScaler', 'Binarizer', 'None' ],
+						key='plumbing_column_transformer_numeric_transform' )
+					
+					categorical_transform = st.selectbox( 'Categorical Transformer',
+						options=[ 'OneHotEncoder', 'OrdinalEncoder', 'None' ],
+						key='plumbing_column_transformer_categorical_transform' )
+					
+					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
+						key='plumbing_column_transformer_remainder' )
+					
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
+						value=0.3, key='plumbing_column_transformer_sparse_threshold' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Column Transformer', key='plumbing_column_transformer_apply',
+								use_container_width=True ):
+							df_apply = get_working_frame( )
+							transformers = [ ]
+							
+							if numeric_cols and numeric_transform != 'None':
+								if numeric_transform == 'StandardScaler':
+									numeric_model = StandardScaler( ).model
+								elif numeric_transform == 'MinMaxScaler':
+									numeric_model = MinMaxScaler( ).model
+								elif numeric_transform == 'RobustScaler':
+									numeric_model = RobustScaler( ).model
+								elif numeric_transform == 'MaxAbsScaler':
+									numeric_model = MaxAbsScaler( ).model
+								else:
+									numeric_model = Binarizer( ).model
+								
+								transformers.append( ('numeric', numeric_model, numeric_cols) )
+							
+							if categorical_cols and categorical_transform != 'None':
+								if categorical_transform == 'OneHotEncoder':
+									categorical_model = OneHotEncoder(
+										sparse=False, unknown='ignore' ).model
+								else:
+									categorical_model = OrdinalEncoder( ).model
+								
+								transformers.append( 'categorical', categorical_model,
+									categorical_cols )
+							
+							if transformers:
+								transformer = ColumnTransformer( transformers=transformers,
+									remainder=remainder, sparse_threshold=float( sparse_threshold ),
+									n_jobs=None, transformer_weights=None, verbose=False )
+								
+								result = transformer.train_transform( df_apply )
+								df_apply = normalize_result_frame( result=result, index=df_apply.index,
+									prefix='column_transformer', columns=None )
+								
+								commit_frame( df_apply )
+								st.success( 'ColumnTransformer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_column_transformer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+						key='plumbing_tfidf_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='plumbing_tfidf_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='plumbing_tfidf_vectorizer_max_features' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='plumbing_tfidf_vectorizer_use_idf' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_tfidf_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_apply = get_working_frame( )
+								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									use_idf=bool( use_idf ) )
+								
+								df_apply = apply_text_vectorizer( df_apply, text_cols, transformer,
+									'tfidf_vectorizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'TFIDF Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_tfidf_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Count Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+						key='plumbing_count_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='plumbing_count_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0,
+						step=1, key='plumbing_count_vectorizer_max_features' )
+					
+					binary = st.checkbox( 'Binary Counts', value=False,
+						key='plumbing_count_vectorizer_binary' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_count_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_apply = get_working_frame( )
+								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									binary=bool( binary ) )
+								df_apply = apply_text_vectorizer( df_apply, text_cols, transformer,
+									'count_vectorizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'Count Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_count_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Hash Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+						key='plumbing_hash_vectorizer_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='plumbing_hash_vectorizer_n_features' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
+						value=1, key='plumbing_hash_vectorizer_ngram_max' )
+					
+					binary = st.checkbox( 'Binary', value=False,
+						key='plumbing_hash_vectorizer_binary' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='plumbing_hash_vectorizer_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_hash_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_apply = get_working_frame( )
+								transformer = HashVectorizer( num=int( n_features ),
+									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
+									alternate_sign=bool( alternate_sign ) )
+								df_apply = apply_text_vectorizer( df_apply, text_cols,
+									transformer, 'hash_vectorizer' )
+								commit_frame( df_apply )
+								st.success( 'HashVectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_hash_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Dictionary Vectorizer', expanded=False ):
+					dict_cols = st.multiselect( 'Columns', options=df_working.columns.tolist( ),
+						key='plumbing_dict_vectorizer_cols' )
+					
+					separator = st.text_input( 'Separator', value='=',
+						key='plumbing_dict_vectorizer_separator' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=True,
+						key='plumbing_dict_vectorizer_sparse' )
+					
+					sort = st.checkbox( 'Sort Feature Names', value=True,
+						key='plumbing_dict_vectorizer_sort' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_dict_vectorizer_apply',
+								use_container_width=True ):
+							if dict_cols:
+								df_apply = get_working_frame( )
+								transformer = DictVectorizer( dtype=np.float64, separator=separator,
+									sparse=bool( sparse ), sort=bool( sort ) )
+								
+								df_apply = apply_dict_transform( df_apply, dict_cols,
+									transformer, 'dict_vectorizer' )
+								
+								commit_frame( df_apply )
+								st.success( 'DictVectorizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_dict_vectorizer_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Feature Hasher', expanded=False ):
+					hash_cols = st.multiselect( 'Columns', options=df_working.columns.tolist( ),
+						key='plumbing_feature_hasher_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='plumbing_feature_hasher_n_features' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='plumbing_feature_hasher_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_feature_hasher_apply',
+								use_container_width=True ):
+							if hash_cols:
+								df_apply = get_working_frame( )
+								transformer = FeatureHasher( n_features=int( n_features ),
+									input_type='dict', dtype=np.float64,
+									alternate_sign=bool( alternate_sign ) )
+								
+								df_apply = apply_dict_transform( df_apply, hash_cols,
+									transformer, 'feature_hasher' )
+								commit_frame( df_apply )
+								st.success( 'FeatureHasher applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_feature_hasher_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Feature Selection', key='selectors' ):
+				with st.expander( 'Variance Threshold', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_variance_threshold_cols' )
+					
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
+						step=0.01, key='plumbing_variance_threshold_value' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_variance_threshold_apply',
+								use_container_width=True ):
+							if select_cols:
+								df_apply = get_working_frame( )
+								selector = VarianceThreshold( thresh=float( threshold ) )
+								result = selector.train_transform(
+									df_apply[ select_cols ].to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, select_cols, result,
+									'variance_threshold' )
+								
+								commit_frame( df_apply )
+								st.success( 'VarianceThreshold applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_variance_threshold_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
+					X_cols = st.multiselect( 'Predictor Columns', options=active_numeric_columns,
+						key='plumbing_cca_x_cols' )
+					
+					y_cols = st.multiselect( 'Target Columns', options=active_numeric_columns,
+						key='plumbing_cca_y_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='plumbing_cca_components' )
+					
+					scale = st.checkbox( 'Scale', value=True, key='plumbing_cca_scale' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
+						step=1, key='plumbing_cca_max_iter' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_cca_apply', use_container_width=True ):
+							if X_cols and y_cols:
+								df_apply = get_working_frame( )
+								selector = CCA( num=int( n_components ), scale=bool( scale ),
+									size=int( max_iter ) )
+								
+								result = selector.train_transform( df_apply[ X_cols ].to_numpy( ),
+									df_apply[ y_cols ].to_numpy( ) )
+								
+								df_result = normalize_result_frame( result=result,
+									index=df_apply.index, prefix='cca', columns=None )
+								
+								df_apply = pd.concat(
+									[ df_apply.drop( columns=X_cols + y_cols, errors='ignore' ),
+									  df_result ], axis=1 )
+								commit_frame( df_apply )
+								st.success( 'CCA Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_cca_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Principle Component Analysis', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=active_numeric_columns,
+						key='plumbing_pca_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='plumbing_pca_components' )
+					
+					solver = st.selectbox( 'SVD Solver',
+						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
+						key='plumbing_pca_solver' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='plumbing_pca_apply', use_container_width=True ):
+							if select_cols:
+								df_apply = get_working_frame( )
+								selector = PCA( num=int( n_components ),
+									solver=solver )
+								
+								result = selector.train_transform(
+									df_apply[ select_cols ].to_numpy( ) )
+								
+								df_apply = replace_columns( df_apply, select_cols, result, 'pca' )
+								commit_frame( df_apply )
+								st.success( 'PCA applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_pca_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Select-Best', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns',
+						options=active_numeric_columns, key='plumbing_selectbest_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_selectbest_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+						          'mutual_info_regression' ], key='plumbing_selectbest_score_name' )
+					
+					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
+						key='plumbing_selectbest_k' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_selectbest_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = SelectBest(
+									score_func=score_function_from_name( score_name ),
+									num=int( k_best ) )
+								
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_apply = replace_columns( df_apply, X_cols, result, 'select_best' )
+								commit_frame( df_apply )
+								st.success( 'Select Best Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_selectbest_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Select-Percent', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns',
+						options=active_numeric_columns, key='plumbing_selectpercent_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=df_working.columns.tolist( ),
+						key='plumbing_selectpercent_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression',
+						          'mutual_info_classif', 'mutual_info_regression' ],
+						key='plumbing_selectpercent_score_name' )
+					
+					percentile = st.slider( 'Percentile', min_value=1, max_value=100,
+						value=10, key='plumbing_selectpercent_percentile' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply SelectPercent', key='plumbing_selectpercent_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = SelectPercent(
+									score_func=score_function_from_name( score_name ),
+									pct=int( percentile ) )
+								
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_apply = replace_columns( df_apply, X_cols, result, 'select_percent' )
+								commit_frame( df_apply )
+								st.success( 'SelectPercent applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_selectpercent_reset',
+								use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Sequential Back Selection', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=active_numeric_columns,
+						key='plumbing_sbs_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_sbs_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='plumbing_sbs_k_features' )
+					
+					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
+						value=0.25, step=0.05, key='plumbing_sbs_test_size' )
+					
+					random_state = st.number_input( 'Random State', min_value=0, value=1,
+						step=1, key='plumbing_sbs_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_sbs_apply', use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = SBS( classifier=None, k_features=int( k_features ),
+									test_size=float( test_size ), random_state=int( random_state ) )
+								
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_apply = replace_columns( df_apply, X_cols, result,
+									'sbs' )
+								
+								commit_frame( df_apply )
+								st.success( 'SBS applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_sbs_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Recursive Feature Elimination', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=active_numeric_columns,
+						key='plumbing_rfe_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+						key='plumbing_rfe_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain',
+						min_value=1, value=1, step=1, key='plumbing_rfe_k_features' )
+					
+					verbose = st.number_input( 'Verbose', min_value=0, value=0,
+						step=1, key='plumbing_rfe_verbose' )
+					
+					a1, a2 = st.columns( 2 )
+					
+					with a1:
+						if st.button( 'Apply', key='plumbing_rfe_apply', use_container_width=True ):
+							if X_cols and target_col:
+								df_apply = get_working_frame( )
+								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
+								X_input = df_apply[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_apply[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_apply = replace_columns( df_apply, X_cols, result, 'rfe' )
+								commit_frame( df_apply )
+								st.success( 'RFE applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='plumbing_rfe_reset', use_container_width=True ):
+							reset_to_original( )
+							st.success( 'Reset to Original.' )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
 		model_map = \
-		{
-			'Ordinary Least Squares': LeastSquares,
-			'Ridge Regression': Ridge,
-			'Lasso Regression': Lasso,
-			'Elastic Net': ElasticNet,
-			'Bayesian Ridge': BayesianRidge,
-			'Support Vector': SupportVector,
-			'Stochastic Gradient Descent': GradientDescent,
-			'k-Nearest Neighbors': NearestNeighbor,
-			'Bagging Regressor': BaggingModel,
-			'Extra Trees Regressor': ExtraTreesModel,
-			'AdaBoost Regressor': AdaptiveBoost,
-			'Gradient Boosting': GradientBoost,
-			'Random Forest': RandomForest,
-			'Voting Regressor': VotingModel,
-			'Stacking Regressor': StackingModel
-		}
+			{
+					'Ordinary Least Squares': LeastSquares,
+					'Ridge Regression': Ridge,
+					'Lasso Regression': Lasso,
+					'Elastic Net': ElasticNet,
+					'Bayesian Ridge': BayesianRidge,
+					'Support Vector': SupportVector,
+					'Stochastic Gradient Descent': GradientDescent,
+					'k-Nearest Neighbors': NearestNeighbor,
+					'Bagging Regressor': BaggingModel,
+					'Extra Trees Regressor': ExtraTreesModel,
+					'AdaBoost Regressor': AdaptiveBoost,
+					'Gradient Boosting': GradientBoost,
+					'Random Forest': RandomForest,
+					'Voting Regressor': VotingModel,
+					'Stacking Regressor': StackingModel
+			}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
@@ -4482,7 +7314,7 @@ elif mode == 'Regressions':
 		with sel_c5:
 			st.markdown( '##### Training Configuration' )
 			test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
-			
+		
 		with sel_c6:
 			st.markdown( '##### Random State' )
 			random_state = int( st.number_input( 'Seed', value=42, step=1, key='regressions-2' ) )
@@ -4493,7 +7325,7 @@ elif mode == 'Regressions':
 			if min_train_rows < 2:
 				st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
 				st.stop( )
-	
+		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
 		if st.button( '🚀 Train Model' ):
@@ -4517,11 +7349,11 @@ elif mode == 'Regressions':
 				st.markdown( '##### Predictions' )
 				y_pred = model.project( X_test )
 				df_predictions = pd.DataFrame(
-				{
-					'Observed': y_test,
-					'Predicted': y_pred,
-					'Residual': y_test - y_pred
-				} )
+					{
+							'Observed': y_test,
+							'Predicted': y_pred,
+							'Residual': y_test - y_pred
+					} )
 				
 				st.data_editor( df_predictions, use_container_width=True )
 				
@@ -4540,13 +7372,15 @@ elif mode == 'Regressions':
 				
 				if hasattr( model, 'training_score' ):
 					try:
-						detail_rows.append( { 'Property': 'Training Score', 'Value': model.training_score } )
+						detail_rows.append( { 'Property': 'Training Score',
+						                      'Value': model.training_score } )
 					except Exception:
 						pass
 				
 				if hasattr( model, 'testing_score' ):
 					try:
-						detail_rows.append({'Property': 'Testing Score', 'Value': model.testing_score})
+						detail_rows.append( { 'Property': 'Testing Score',
+						                      'Value': model.testing_score } )
 					except Exception:
 						pass
 				
@@ -4555,10 +7389,10 @@ elif mode == 'Regressions':
 						weights = model.weights
 						if weights is not None:
 							df_weights = pd.DataFrame(
-							{
-								'Feature': features,
-								'Weight': np.asarray( weights ).reshape( -1 )
-							} )
+								{
+										'Feature': features,
+										'Weight': np.asarray( weights ).reshape( -1 )
+								} )
 							st.caption( 'Coefficients' )
 							st.data_editor( df_weights, use_container_width=True )
 					except Exception:
@@ -5069,13 +7903,14 @@ elif mode == 'Clustering':
 			st.markdown( '##### Cluster Centroids' )
 			st.data_editor( df_centroids, use_container_width=True )
 
+
 # ============================================
 # TIME SERIES MODE
 # ============================================
 elif mode == 'Time-Series':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.header( cfg.MODE[ 'Time-Series' ] )
+		st.subheader( cfg.MODE[ 'Time-Series' ] )
 		st.divider( )
 		
 		# ------------------------------------------------------------------
@@ -5095,8 +7930,9 @@ elif mode == 'Time-Series':
 		# ------------------------------------------------------------------
 		# SERIES SELECTION
 		# ------------------------------------------------------------------
-		st.subheader( 'Time-Series Selection' )
-		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_cols )
+		st.markdown( '##### Time-Series Selection' )
+		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_cols,
+			key='timeseries_col_box' )
 		series = df_dataset[ series_col ].dropna( ).to_numpy( )
 		
 		if series.ndim != 1 or len( series ) < 10:
@@ -5114,8 +7950,9 @@ elif mode == 'Time-Series':
 					'SARIMA': 'sarima'
 			}
 		
-		st.subheader( 'Model Selection' )
-		model_name = st.selectbox( 'Select time-series model', list( model_map.keys( ) ) )
+		st.markdown( '##### Model Selection' )
+		model_name = st.selectbox( 'Select time-series model', list( model_map.keys( ) ),
+			key='model_name_box' )
 		
 		# ------------------------------------------------------------------
 		# MODEL PARAMETERS
@@ -5124,16 +7961,14 @@ elif mode == 'Time-Series':
 		model = None
 		
 		if model_name == 'Lagged Linear Regression':
-			lag = st.number_input( 'Lag order', min_value=1, value=5 )
+			lag = st.number_input( 'Lag order', min_value=1, value=5, key='lag_input' )
 			model = LaggingSeries( lag=int( lag ) )
 		
 		elif model_name == 'Lagged Boosting Regression':
 			lag = st.number_input( 'Lag order', min_value=1, value=12 )
-			loss = st.selectbox(
-				'Loss',
+			loss = st.selectbox( 'Loss',
 				[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ],
-				index=0
-			)
+				index=0, key='loss_box' )
 			
 			quantile = None
 			if loss == 'quantile':
@@ -5173,15 +8008,10 @@ elif mode == 'Time-Series':
 				format='%.1f'
 			)
 			bins = st.number_input( 'Max Bins', min_value=2, max_value=255, value=255 )
-			stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ], index=0 )
-			validation = st.number_input(
-				'Validation Fraction',
-				min_value=0.01,
-				max_value=0.50,
-				value=0.10,
-				step=0.01,
-				format='%.2f'
-			)
+			stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ],
+				index=0, key='stop_box' )
+			validation = st.number_input( 'Validation Fraction', min_value=0.01, max_value=0.50,
+				value=0.10, step=0.01, format='%.2f', key='validation_input' )
 			no_change = st.number_input( 'Iterations No Change', min_value=1, value=10 )
 			tol = st.number_input(
 				'Tolerance',
@@ -5299,74 +8129,71 @@ elif mode == 'Time-Series':
 # ==============================================================================
 # DATA MANAGEMENT MODE
 # ==============================================================================
-elif mode == 'Database':
-	st.subheader( "🏛️ Data Management" )
-	st.divider( )
+elif mode == 'Data Management':
+	st.subheader( cfg.MODE[ 'Database' ] )
 	left, center, right = st.columns( [ 0.05, 0.90, 0.05 ] )
 	with center:
-		tabs = st.tabs( [ "📥 Import", "🗂 Browse", "💉 CRUD", "📊 Explore", "🔎 Filter",
-		                  "🧮 Aggregate", "📈 Visualize", "⚙ Admin", "🧠 SQL" ] )
+		tabs = st.tabs( [ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter',
+		                  'Aggregate', 'Visualize', 'Admin', 'SQL' ] )
 		
 		tables = list_tables( )
 		if not tables:
-			st.info( "No tables available." )
+			st.info( 'No tables available.' )
 		else:
-			table = st.selectbox( "Table", tables )
+			table = st.selectbox( 'Table', tables, key='table_selectbox' )
 			df_full = read_table( table )
 		
 		# ------------------------------------------------------------------------------
 		# UPLOAD TAB
 		# ------------------------------------------------------------------------------
 		with tabs[ 0 ]:
-			uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
-			overwrite = st.checkbox( 'Overwrite existing tables', value=True )
-			if uploaded_file:
-				try:
-					sheets = pd.read_excel( uploaded_file, sheet_name=None )
-					with create_connection( ) as conn:
-						conn.execute( 'BEGIN' )
-						for sheet_name, df in sheets.items( ):
-							table_name = create_identifier( sheet_name )
-							if overwrite:
-								conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
-							
-							# --- Create Table ---
-							columns = [ ]
-							df.columns = [ create_identifier( c ) for c in df.columns ]
-							for col in df.columns:
-								sql_type = get_sqlite_type( df[ col ].dtype )
-								columns.append( f'"{col}" {sql_type}' )
-							
-							create_stmt = (
-									f'CREATE TABLE "{table_name}" '
-									f'({", ".join( columns )});'
-							)
-							
-							conn.execute( create_stmt )
-							
-							# --- Insert Data ---
-							placeholders = ", ".join( [ "?" ] * len( df.columns ) )
-							insert_stmt = (
-									f'INSERT INTO "{table_name}" '
-									f'VALUES ({placeholders});'
-							)
-							
-							conn.executemany(
-								insert_stmt,
-								df.where( pd.notnull( df ), None ).values.tolist( )
-							)
-						
-						conn.commit( )
-					
-					st.success( 'Import completed successfully (transaction committed).' )
-					st.rerun( )
+			upl_c1, upl_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+			with upl_c1:
+				uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
 				
-				except Exception as e:
+			with upl_c2:
+				overwrite = st.checkbox( 'Overwrite existing tables', value=True )
+				if uploaded_file:
 					try:
-						conn.rollback( )
-					except:
-						pass
-					st.error( f'Import failed — transaction rolled back.\n\n{e}' )
+						sheets = pd.read_excel( uploaded_file, sheet_name=None )
+						with create_connection( ) as conn:
+							conn.execute( 'BEGIN' )
+							for sheet_name, df in sheets.items( ):
+								table_name = create_identifier( sheet_name )
+								if overwrite:
+									conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
+								
+								# --- Create Table ---
+								columns = [ ]
+								df.columns = [ create_identifier( c ) for c in df.columns ]
+								for col in df.columns:
+									sql_type = get_sqlite_type( df[ col ].dtype )
+									columns.append( f'"{col}" {sql_type}' )
+								
+								create_stmt = ( f'CREATE TABLE "{table_name}" '
+										f'({", ".join( columns )});' )
+								
+								conn.execute( create_stmt )
+								
+								# --- Insert Data ---
+								placeholders = ", ".join( [ "?" ] * len( df.columns ) )
+								insert_stmt = ( f'INSERT INTO "{table_name}" '
+										f'VALUES ({placeholders});' )
+								
+								conn.executemany( insert_stmt,
+									df.where( pd.notnull( df ), None ).values.tolist( ) )
+							
+							conn.commit( )
+						
+						st.success( 'Import completed successfully (transaction committed).' )
+						st.rerun( )
+					
+					except Exception as e:
+						try:
+							conn.rollback( )
+						except:
+							pass
+						st.error( f'Import failed — transaction rolled back.\n\n{e}' )
 		
 		# ------------------------------------------------------------------------------
 		# BROWSE TAB
@@ -5398,20 +8225,20 @@ elif mode == 'Database':
 				# ------------------------------------------------------------------
 				# INSERT
 				# ------------------------------------------------------------------
-				st.subheader( 'Insert Row' )
+				st.markdown( '##### Insert Row' )
 				insert_data = { }
 				for column, col_type in type_map.items( ):
 					if 'INT' in col_type:
-						insert_data[
-							column ] = st.number_input( column, step=1, key=f'ins_{column}' )
+						insert_data[ column ] = st.number_input( column, step=1,
+							key=f'ins_{column}' )
 					
 					elif 'REAL' in col_type:
-						insert_data[
-							column ] = st.number_input( column, format='%.6f', key=f'ins_{column}' )
+						insert_data[ column ] = st.number_input( column, format='%.6f',
+							key=f'ins_{column}' )
 					
 					elif 'BOOL' in col_type:
-						insert_data[
-							column ] = 1 if st.checkbox( column, key=f'ins_{column}' ) else 0
+						insert_data[ column ] = 1 if st.checkbox( column,
+							key=f'ins_{column}' ) else 0
 					
 					else:
 						insert_data[ column ] = st.text_input( column, key=f'ins_{column}' )
@@ -5431,7 +8258,7 @@ elif mode == 'Database':
 				# ------------------------------------------------------------------
 				# UPDATE
 				# ------------------------------------------------------------------
-				st.subheader( 'Update Row' )
+				st.markdown( '##### Update Row' )
 				rowid = st.number_input( 'Row ID', min_value=1, step=1 )
 				update_data = { }
 				for column, col_type in type_map.items( ):
@@ -5465,7 +8292,7 @@ elif mode == 'Database':
 				# ------------------------------------------------------------------
 				# DELETE
 				# ------------------------------------------------------------------
-				st.subheader( 'Delete Row' )
+				st.markdown( '##### Delete Row' )
 				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
 				if st.button( 'Delete Row' ):
 					with create_connection( ) as conn:
@@ -5496,7 +8323,7 @@ elif mode == 'Database':
 			if tables:
 				table = st.selectbox( 'Table', tables, key='filter_table' )
 				df = read_table( table )
-				column = st.selectbox( 'Column', df.columns )
+				column = st.selectbox( 'Column', df.columns, key='filter_column_box' )
 				value = st.text_input( 'Contains' )
 				if value:
 					df = df[ df[ column ].astype( str ).str.contains( value ) ]
@@ -5512,8 +8339,8 @@ elif mode == 'Database':
 				df = read_table( table )
 				numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 				if numeric_cols:
-					col = st.selectbox( 'Column', numeric_cols )
-					agg = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ] )
+					col = st.selectbox( 'Column', numeric_cols, key='col_box' )
+					agg = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box' )
 					if agg == 'SUM':
 						st.metric( 'Result', df[ col ].sum( ) )
 					elif agg == 'AVG':
@@ -5531,7 +8358,7 @@ elif mode == 'Database':
 				df = read_table( table )
 				numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 				if numeric_cols:
-					col = st.selectbox( 'Column', numeric_cols )
+					col = st.selectbox( 'Column', numeric_cols, key='numeric_col_box' )
 					fig = px.histogram( df, x=col )
 					st.plotly_chart( fig, use_container_width=True )
 		
@@ -5544,8 +8371,7 @@ elif mode == 'Database':
 				table = st.selectbox( 'Table', tables, key='admin_table' )
 			
 			st.divider( )
-			
-			st.subheader( 'Data Profiling' )
+			st.markdown( '##### Data Profiling' )
 			tables = list_tables( )
 			if tables:
 				table = st.selectbox( 'Select Table', tables, key='profile_table' )
@@ -5553,8 +8379,7 @@ elif mode == 'Database':
 					profile_df = create_profile_table( table )
 					st.dataframe( profile_df, use_container_width=True )
 			
-			st.subheader( 'Drop Table' )
-			
+			st.markdown( '##### Drop Table' )
 			tables = list_tables( )
 			if tables:
 				table = st.selectbox( 'Select Table to Drop', tables, key='admin_drop_table' )
@@ -5589,7 +8414,7 @@ elif mode == 'Database':
 						st.rerun( )
 				
 				df = read_table( table )
-				col = st.selectbox( 'Create Index On', df.columns )
+				col = st.selectbox( 'Create Index On', df.columns, key='index_box' )
 				
 				if st.button( 'Create Index' ):
 					create_index( table, col )
@@ -5597,7 +8422,7 @@ elif mode == 'Database':
 			
 			st.divider( )
 			
-			st.subheader( 'Create Custom Table' )
+			st.markdown( '##### Create Custom Table' )
 			new_table_name = st.text_input( 'Table Name' )
 			column_count = st.number_input( 'Number of Columns', min_value=1, max_value=20, value=1 )
 			columns = [ ]
@@ -5628,19 +8453,17 @@ elif mode == 'Database':
 					st.error( f'Error: {e}' )
 			
 			st.divider( )
-			st.subheader( 'Schema Viewer' )
+			st.markdown( '##### Schema Viewer' )
 			
 			tables = list_tables( )
 			if tables:
 				table = st.selectbox( 'Select Table', tables, key='schema_view_table' )
-				
-				# Column schema
 				schema = create_schema( table )
 				schema_df = pd.DataFrame(
 					schema,
 					columns=[ 'cid', 'name', 'type', 'notnull', 'default', 'pk' ] )
 				
-				st.markdown( "### Columns" )
+				st.markdown( "##### Columns" )
 				st.dataframe( schema_df, use_container_width=True )
 				
 				# Row count
@@ -5654,11 +8477,10 @@ elif mode == 'Database':
 				# Indexes
 				indexes = get_indexes( table )
 				if indexes:
-					idx_df = pd.DataFrame(
-						indexes,
-						columns=[ 'seq', 'name', 'unique', 'origin', 'partial' ]
-					)
-					st.markdown( "### Indexes" )
+					idx_df = pd.DataFrame( indexes,
+						columns=[ 'seq', 'name', 'unique', 'origin', 'partial' ] )
+					
+					st.markdown( "##### Indexes" )
 					st.dataframe( idx_df, use_container_width=True )
 				else:
 					st.info( "No indexes defined." )
@@ -5670,11 +8492,13 @@ elif mode == 'Database':
 			if tables:
 				table = st.selectbox( 'Select Table', tables, key='alter_table_select' )
 				operation = st.selectbox( 'Operation',
-					[ 'Add Column', 'Rename Column', 'Rename Table', 'Drop Column' ] )
+					[ 'Add Column', 'Rename Column', 'Rename Table', 'Drop Column' ],
+					key='operation_box' )
 				
 				if operation == 'Add Column':
 					new_col = st.text_input( 'Column Name' )
-					col_type = st.selectbox( 'Column Type', [ 'INTEGER', 'REAL', 'TEXT' ] )
+					col_type = st.selectbox( 'Column Type', [ 'INTEGER', 'REAL', 'TEXT' ],
+						key='type_box' )
 					
 					if st.button( 'Add Column' ):
 						add_column( table, new_col, col_type )
@@ -5685,11 +8509,11 @@ elif mode == 'Database':
 					schema = create_schema( table )
 					col_names = [ col[ 1 ] for col in schema ]
 					
-					old_col = st.selectbox( 'Column to Rename', col_names )
+					old_col = st.selectbox( 'Column to Rename', col_names, key='column_selectbox' )
 					new_col = st.text_input( 'New Column Name' )
 					
 					if st.button( 'Rename Column' ):
-						dm_rename_column( table, old_col, new_col )
+						rename_column( table, old_col, new_col )
 						st.success( 'Column renamed.' )
 						st.rerun( )
 				
@@ -5697,7 +8521,7 @@ elif mode == 'Database':
 					new_name = st.text_input( 'New Table Name' )
 					
 					if st.button( 'Rename Table' ):
-						dm_rename_table( table, new_name )
+						rename_table( table, new_name )
 						st.success( 'Table renamed.' )
 						st.rerun( )
 				
@@ -5705,7 +8529,7 @@ elif mode == 'Database':
 					schema = create_schema( table )
 					col_names = [ col[ 1 ] for col in schema ]
 					
-					drop_col = st.selectbox( 'Column to Drop', col_names )
+					drop_col = st.selectbox( 'Column to Drop', col_names, key='drop_box' )
 					
 					if st.button( 'Drop Column' ):
 						drop_column( table, drop_col )
@@ -5716,7 +8540,7 @@ elif mode == 'Database':
 		# SQL
 		# ------------------------------------------------------------------------------
 		with tabs[ 8 ]:
-			st.subheader( 'SQL Console' )
+			st.markdown( '##### SQL Console' )
 			query = st.text_area( 'Enter SQL Query' )
 			if st.button( 'Run Query' ):
 				if not is_safe_query( query ):
