@@ -4728,7 +4728,7 @@ elif mode == 'Classifications':
 				
 				st.session_state[ 'df_working' ] = df_working.copy( )
 				commit_frame( df_working )
-				st.success( 'Working dataframe reset.' )
+				st.success( 'Working Dataset Reset.' )
 		
 		with sel_b3:
 			if st.button( 'Reset To Original', key='classification_reset_to_original',
@@ -5894,7 +5894,7 @@ elif mode == 'Classifications':
 							st.success( 'Reset to Original.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Processed Data' )
+		st.markdown( '##### Feature-Engineered Data' )
 		render_table( df_processed )
 		
 		# ------------------------------------------------------------------
@@ -5915,11 +5915,12 @@ elif mode == 'Classifications':
 		}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Model Selection & Configuration' )
+		st.markdown( '##### Model Training' )
 		
 		
 		mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with mdl_c1:
+			st.markdown( '###### Model Selection' )
 			model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
 			model = model_map[ model_name ]( )
 		
