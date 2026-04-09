@@ -1881,7 +1881,6 @@ pd.options.display.float_format = '{:,.4f}'.format
 # ============================================
 # SIDEBAR
 # ============================================
-
 with st.sidebar:
 	st.sidebar.divider( )
 	st.subheader( 'Source' )
@@ -2707,14 +2706,14 @@ elif mode == 'Inferential Statistics':
 						y_summary[ pair_mask ] )
 					infer_rows.append(
 					{
-							'Analysis': 'Association',
-							'Test': 'Pearson Correlation',
-							'Statistic': pearson_r,
-							'P-Value': pearson_p,
-							'DoF': float( pair_mask.sum( ) - 2 ),
-							'Effect Size': abs( pearson_r ),
-							'N': float( pair_mask.sum( ) ),
-							'Notes': f'{summary_y} vs {summary_x}'
+						'Analysis': 'Association',
+						'Test': 'Pearson Correlation',
+						'Statistic': pearson_r,
+						'P-Value': pearson_p,
+						'DoF': float( pair_mask.sum( ) - 2 ),
+						'Effect Size': abs( pearson_r ),
+						'N': float( pair_mask.sum( ) ),
+						'Notes': f'{summary_y} vs {summary_x}'
 					} )
 				except Exception:
 					pass
@@ -4663,8 +4662,7 @@ elif mode == 'Classifications':
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
-	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.25, 0.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classifications' ] )
 		st.divider( )
@@ -4690,9 +4688,7 @@ elif mode == 'Classifications':
 		# Data Selection
 		# ======================================================================================
 		st.markdown( '##### Data Selection' )
-		st.caption( f'Rows: {len( df_original ):,}  |  '
-			            f'Columns: {len( df_original.columns ):,}' )
-		
+		st.caption( f'Records: {len( df_original ):,}  | Fields: {len( df_original.columns ):,}' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=categorical_columns,
@@ -4724,7 +4720,7 @@ elif mode == 'Classifications':
 				df_processed = pd.DataFrame( )
 				
 				commit_frame( df_working )
-				st.success( 'Working dataframe created.' )
+				st.success( 'Working Dataframe Created.' )
 		
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', key='classification_reset_working_dataset',
@@ -5899,7 +5895,7 @@ elif mode == 'Classifications':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		st.data_editor( df_processed )
+		st.render_table( df_processed )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
@@ -6463,7 +6459,7 @@ elif mode == 'Regressions':
 								df_processed = replace_columns( df_processed, encode_cols,
 									result, 'onehot' )
 								commit_frame( df_processed )
-								st.success( 'OneHotEncoder applied.' )
+								st.success( 'One-Hot Encoder Applied.' )
 					
 					with a2:
 						if st.button( 'Reset', key='regression_onehot_reset',
@@ -6686,7 +6682,7 @@ elif mode == 'Regressions':
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
-				with st.expander( 'TFIDF Transformer', expanded=False ):
+				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
 						options=df_working.columns.to_list( ), key='regression_tfidf_transformer_cols' )
 					
@@ -6801,7 +6797,7 @@ elif mode == 'Regressions':
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='regression_extractors' ):
 				
-				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
 						key='regression_tfidf_vectorizer_cols' )
 					
@@ -7240,21 +7236,21 @@ elif mode == 'Regressions':
 		# ------------------------------------------------------------------
 		model_map = \
 		{
-				'Ordinary Least Squares': LeastSquares,
-				'Ridge Regression': Ridge,
-				'Lasso Regression': Lasso,
-				'Elastic Net': ElasticNet,
-				'Bayesian Ridge': BayesianRidge,
-				'Support Vector': SupportVector,
-				'Stochastic Gradient Descent': GradientDescent,
-				'k-Nearest Neighbors': NearestNeighbor,
-				'Bagging Regressor': BaggingModel,
-				'Extra Trees Regressor': ExtraTreesModel,
-				'AdaBoost Regressor': AdaptiveBoost,
-				'Gradient Boosting': GradientBoost,
-				'Random Forest': RandomForest,
-				'Voting Regressor': VotingModel,
-				'Stacking Regressor': StackingModel
+			'Ordinary Least Squares': LeastSquares,
+			'Ridge Regression': Ridge,
+			'Lasso Regression': Lasso,
+			'Elastic Net': ElasticNet,
+			'Bayesian Ridge': BayesianRidge,
+			'Support Vector': SupportVector,
+			'Stochastic Gradient Descent': GradientDescent,
+			'k-Nearest Neighbors': NearestNeighbor,
+			'Bagging Regressor': BaggingModel,
+			'Extra Trees Regressor': ExtraTreesModel,
+			'AdaBoost Regressor': AdaptiveBoost,
+			'Gradient Boosting': GradientBoost,
+			'Random Forest': RandomForest,
+			'Voting Regressor': VotingModel,
+			'Stacking Regressor': StackingModel
 		}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
@@ -7863,7 +7859,6 @@ elif mode == 'Clustering':
 			st.markdown( '##### Cluster Centroids' )
 			st.data_editor( df_centroids, use_container_width=True )
 
-
 # ============================================
 # TIME SERIES MODE
 # ============================================
@@ -8086,9 +8081,9 @@ elif mode == 'Time-Series':
 				except Exception as e:
 					st.error( f'Time-Series split visualization failed: {e}' )
 
-# ==============================================================================
+# ============================================
 # DATA MANAGEMENT MODE
-# ==============================================================================
+# ============================================
 elif mode == 'Data Management':
 	st.subheader( cfg.MODE[ 'Database' ] )
 	left, center, right = st.columns( [ 0.05, 0.90, 0.05 ] )
