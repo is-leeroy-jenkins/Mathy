@@ -7254,11 +7254,11 @@ elif mode == 'Regressions':
 		}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		
+		st.markdown( '##### Model Training')
 		
 		sel_c4, sel_c5, sel_c6 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with sel_c4:
-			st.markdown( '##### Model Selection' )
+			st.markdown( '###### Model Selection' )
 			model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
 			model = model_map[ model_name ]( )
 		
@@ -7266,11 +7266,11 @@ elif mode == 'Regressions':
 		# TRAIN / TEST SPLIT
 		# ------------------------------------------------------------------
 		with sel_c5:
-			st.markdown( '##### Training Configuration' )
+			st.markdown( '###### Training Configuration' )
 			test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
 		
 		with sel_c6:
-			st.markdown( '##### Random State' )
+			st.markdown( '###### Random State' )
 			random_state = int( st.number_input( 'Seed', value=42, step=1, key='regressions-2' ) )
 			
 			min_test_rows = max( 2, int( np.ceil( len( df_regression ) * test_size ) ) )
@@ -7385,70 +7385,1214 @@ elif mode == 'Regressions':
 # CLUSTERING MODELS MODE
 # ============================================
 elif mode == 'Clustering':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	df_original = st.session_state.get( 'df_dataset', None )
+	df_dataset = st.session_state.get( 'df_dataset', None )
+	df_working = st.session_state.get( 'df_working', None )
+	df_processed = st.session_state.get( 'df_processed', None )
+	df_cluster = st.session_state.get( 'df_cluster', None )
+	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
+	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
+	features = st.session_state.get( 'features', [ ] )
+	targets = st.session_state.get( 'targets', [ ] )
+	left, center, right = st.columns( [ 0.25, 0.5, 0.25 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Clustering' ] )
+		st.subheader( cfg.MODE[ 'Classifications' ] )
 		st.divider( )
-		st.caption( 'Unsupervised Learning Models' )
 		
-		# ------------------------------------------------------------------
-		# DATA SOURCE RESOLUTION
-		# ------------------------------------------------------------------
-		if 'df_features' in st.session_state and \
-				st.session_state[ 'df_features' ] is not None and \
-				not st.session_state[ 'df_features' ].empty:
-			df_cluster = st.session_state[ 'df_features' ].copy( )
-			data_source = 'features'
-			st.info( 'Using Feature-Engineered Dataset.' )
-		else:
-			df_cluster = df_dataset.copy( )
-			data_source = 'dataset'
-			st.info( 'Using Original Dataset.' )
-		
-		if df_cluster is None or df_cluster.empty:
-			st.warning( 'No Dataset Available for Clustering.' )
+		if df_dataset is None or df_dataset.empty:
+			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		# ------------------------------------------------------------------
-		# COLUMN CLASSIFICATION (NUMERIC ONLY)
-		# ------------------------------------------------------------------
-		numeric_columns = [ c for c in df_cluster.columns
-				if df_cluster[ c ].dtype.kind in { 'i', 'f' } ]
+		df_original = df_dataset.copy( )
+		st.session_state[ 'df_original' ] = df_original.copy( )
+		numeric_columns = [ c for c in df_original.columns
+		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
 		
-		if len( numeric_columns ) < 2:
-			st.warning( 'At least two numeric columns are required for clustering.' )
+		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
+		
+		if not numeric_columns or not categorical_columns:
+			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
 			st.stop( )
 		
+		df_cluster = st.session_state.get( 'df_cluster', df_original.copy( ) ).copy( )
+		
+		# ======================================================================================
+		# Data Selection
+		# ======================================================================================
+		st.markdown( '##### Data Selection' )
+		st.caption( f'Records: {len( df_original ):,}  | Fields: {len( df_original.columns ):,}' )
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with col_c1:
+			features = st.multiselect( 'Select Features', options=categorical_columns,
+				default=[ c for c in st.session_state.get( 'features', [ ] )
+				          if c in numeric_columns ], key='cluster_features' )
+		
+		with col_c2:
+			target_options = [ c for c in numeric_columns if c not in features ]
+			targets = st.multiselect( 'Select Targets', options=target_options,
+				default=[ c for c in st.session_state.get( 'targets', [ ] )
+				          if c in target_options ], key='cluster_targets' )
+		
+		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		with sel_b1:
+			if st.button( 'Create Working Dataset', key='cluster_create_dataset',
+					use_container_width=True ):
+				selected_all = features + [ c for c in targets if c not in features ]
+				if selected_all:
+					df_working = df_original[ selected_all ].copy( )
+					st.session_state[ 'df_working' ] = df_working
+				else:
+					df_working = df_original.copy( )
+					st.session_state[ 'df_working' ] = df_working
+				
+				st.session_state[ 'features' ] = features.copy( )
+				st.session_state[ 'targets' ] = targets.copy( )
+				st.session_state[ 'df_processed' ] = df_working.copy( )
+				df_processed = pd.DataFrame( )
+				
+				commit_frame( df_working )
+				st.success( 'Working Dataframe Created.' )
+		
+		with sel_b2:
+			if st.button( 'Reset Working Dataset', key='cluster_reset_working_dataset',
+					use_container_width=True ):
+				st.session_state[ 'df_working' ] = df_working.copy( )
+				commit_frame( df_working )
+				st.success( 'Working dataframe reset.' )
+		
+		with sel_b3:
+			if st.button( 'Reset To Original', key='cluster_reset_to_original',
+					use_container_width=True ):
+				df_original = df_dataset.copy( )
+				df_working = df_original.copy( )
+				df_processed = pd.DataFrame( )
+				st.session_state[ 'features' ] = [ ]
+				st.session_state[ 'targets' ] = [ ]
+				st.session_state[ 'df_working' ] = df_working.copy( )
+				st.session_state[ 'df_processed' ] = df_processed.copy( )
+				commit_frame( df_working )
+				st.success( 'Reset to Original' )
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Working Data' )
+		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
+		
+		render_table( df_working )
+		
 		# ------------------------------------------------------------------
-		# FEATURE SELECTION
+		# Training Target & Features
 		# ------------------------------------------------------------------
-		csr_c1, csr_c2 = st.columns( [ 0.5, 0.5 ],  border=True )
-		with csr_c1:
-			st.markdown( '##### Feature Selection' )
-			feature_columns = st.multiselect( 'Select Features for Clustering',
-				options=numeric_columns )
+		if df_working.empty:
+			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
+			st.stop( )
+		
+		y = df_working[ targets ]
+		
+		if len( np.unique( y ) ) < 2:
+			st.warning( '⚠️ Classification requires at least two classes in the selected target.' )
+			st.stop( )
+		
+		# -----------------------------------------------------------------
+		# Data Processing
+		# -----------------------------------------------------------------
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Data Transformations' )
+		
+		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
+		with feature_c1:
+			with st.expander( label='Data Scaling', icon='⚖️', key='cluster_scalers' ):
+				
+				with st.expander( 'Standard Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=targets,
+						key='cluster_standard_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_standard_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								scaler = StandardScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								st.success( 'Standard Scaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_standard_scaler_reset',
+								use_container_width=True ):
+							df_processed = pd.DataFrame( )
+							st.success( 'Reset to Working Dataset.' )
+				
+				with st.expander( 'Min-Max Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_minmax_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_minmax_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								scaler = MinMaxScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Min-Max Scaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_minmax_scaler_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Working' )
+				
+				with st.expander( 'Robust Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_robust_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_robust_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								scaler = RobustScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'RobustScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_robust_scaler_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Working' )
+				
+				with st.expander( 'Normal Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_normal_scaler_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
+						index=1, key='cluster_normal_scaler_norm' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_normal_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								scaler = NormalScaler( norm=norm )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'NormalScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_normal_scaler_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_maxabs_scaler_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_maxabs_scaler_apply',
+								use_container_width=True ):
+							if scale_cols:
+								scaler = MaxAbsScaler( )
+								result = scaler.train_transform(
+									df_processed[ scale_cols ].to_numpy( ) )
+								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'MaxAbsScaler applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_maxabs_scaler_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
 			
-			if len( feature_columns ) < 2:
-				st.info( 'Select at least two features to continue.' )
-				st.stop( )
+			with st.expander( label='Data Imputation', icon='➕', key='cluster_imputers' ):
+				
+				with st.expander( 'Mean Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_mean_imputer_cols' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='cluster_mean_imputer_indicator' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_mean_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+								result = imputer.train_transform(
+									df_processed[ impute_cols ].to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'mean_imputer' )
+								
+								commit_frame( df_processed )
+								st.success( 'MeanImputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_mean_imputer_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_nearest_imputer_cols' )
+					
+					neighbors = st.number_input( 'Neighbors', min_value=1,
+						value=5, step=1, key='cluster_nearest_imputer_neighbors' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_nearest_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								imputer = NearestImputer( neighbors=int( neighbors ) )
+								result = imputer.train_transform(
+									df_processed[ impute_cols ].to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'nearest_imputer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Nearest Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_nearest_imputer_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset Data' )
+				
+				with st.expander( 'Iterative Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_iterative_imputer_cols' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1,
+						value=10, step=1, key='cluster_iterative_imputer_max_iter' )
+					
+					random_state = st.number_input( 'Random State', min_value=0,
+						value=0, step=1, key='cluster_iterative_imputer_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Iterative Imputer',
+								key='cluster_iterative_imputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								imputer = IterativeImputer( max_iter=int( max_iter ),
+									random_state=int( random_state ) )
+								result = imputer.train_transform(
+									df_processed[ impute_cols ].to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'iterative_imputer' )
+								commit_frame( df_processed )
+								st.success( 'Iterative Imputer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_iterative_imputer_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset Data' )
+				
+				with st.expander( 'Simple Imputer', expanded=False ):
+					impute_cols = st.multiselect( 'Columns',
+						options=numeric_columns,
+						key='cluster_simple_imputer_cols' )
+					
+					strategy = st.selectbox( 'Strategy',
+						options=[ 'mean', 'median', 'most_frequent', 'constant' ],
+						key='cluster_simple_imputer_strategy' )
+					
+					fill_value = st.text_input( 'Fill Value', value='0.0',
+						key='cluster_simple_imputer_fill_value' )
+					
+					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
+						key='cluster_simple_imputer_indicator' )
+					
+					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
+						key='cluster_simple_imputer_keep_empty' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply SimpleImputer', key='cluster_simpleimputer_apply',
+								use_container_width=True ):
+							if impute_cols:
+								if strategy in [ 'mean', 'median' ]:
+									df_input = df_processed[ impute_cols ].apply(
+										pd.to_numeric, errors='coerce' )
+									fill_object: object = 0.0
+								elif strategy == 'constant':
+									df_input = df_processed[ impute_cols ].copy( )
+									fill_object = fill_value
+								else:
+									df_input = df_processed[ impute_cols ].copy( )
+									fill_object = fill_value
+								
+								imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
+									add_indicator=add_indicator,
+									keep_empty_features=keep_empty_features )
+								
+								result = imputer.train_transform( df_input.to_numpy( ) )
+								df_processed = replace_columns( df_processed, impute_cols,
+									result, 'simple_imputer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Simple Imputer Applied' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_simple_imputer_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
 			
-			df_cluster_input = df_cluster[ feature_columns ].copy( )
-			df_cluster_input = df_cluster_input.replace( [ np.inf, -np.inf ], np.nan )
-			rows_before = len( df_cluster_input )
-			df_cluster_input = df_cluster_input.dropna( axis=0, how='any' )
-			rows_after = len( df_cluster_input )
+			with st.expander( label='Data Encoding', icon='🔣', key='cluster_encoders' ):
+				
+				with st.expander( 'One-Hot Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=features,
+						key='cluster_onehot_cols' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=False,
+						key='cluster_onehot_sparse' )
+					
+					unknown = st.selectbox( 'Unknown Category Handling',
+						options=[ 'ignore', 'error' ], index=0,
+						key='cluster_onehot_unknown' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_onehot_apply',
+								use_container_width=True ):
+							if encode_cols:
+								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
+								result = encoder.train_transform(
+									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, encode_cols,
+									result, 'onehot' )
+								commit_frame( df_processed )
+								st.success( 'OneHotEncoder applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_onehot_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Ordinal Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+						key='cluster_ordinal_cols' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_ordinal_apply',
+								use_container_width=True ):
+							if encode_cols:
+								encoder = OrdinalEncoder( )
+								result = encoder.train_transform(
+									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
+								df_processed[ encode_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Ordinal Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_ordinal_reset',
+								use_container_width=True ):
+							df_processed = pd.DataFrame( )
+							st.success( 'Reset to Working' )
+				
+				with st.expander( 'Label Encoder', expanded=False ):
+					target_col = st.selectbox( 'Column',
+						options=categorical_columns,
+						key='cluster_label_encoder_col' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_label_encoder_apply',
+								use_container_width=True ):
+							if target_col:
+								encoder = LabelEncoder( )
+								result = encoder.train_transform(
+									df_processed[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_processed[ target_col ] = result
+								commit_frame( df_processed )
+								st.success( 'Label Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_label_encoder_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Target Encoder', expanded=False ):
+					encode_cols = st.multiselect( 'Categorical Feature Columns',
+						options=categorical_columns, key='cluster_target_encoder_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+						key='cluster_target_encoder_target_col' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_target_encoder_apply',
+								use_container_width=True ):
+							if encode_cols and target_col:
+								df_processed = df_working.copy( )
+								encoder = TargetEncoder( )
+								X_enc = df_processed[ encode_cols ].astype( str ).to_numpy( )
+								y_enc = df_processed[ target_col ].to_numpy( )
+								result = encoder.train_transform( X_enc, y_enc )
+								
+								df_processed = replace_columns( df_processed, encode_cols, result,
+									'target_encoder' )
+								
+								commit_frame( df_processed )
+								st.success( 'Target Encoder Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_target_encoder_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Polynomial Features', expanded=False ):
+					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_polynomial_cols' )
+					
+					degree = st.slider( 'Degree', min_value=2, max_value=4,
+						value=2, key='cluster_polynomial_degree' )
+					
+					interaction = st.checkbox( 'Interaction Only', value=True,
+						key='cluster_polynomial_interaction' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_polynomial_apply',
+								use_container_width=True ):
+							if poly_cols:
+								df_processed = df_working.copy( )
+								
+								encoder = PolynomialFeatures( degree=int( degree ),
+									interaction=bool( interaction ) )
+								
+								result = encoder.train_transform(
+									df_processed[ poly_cols ].to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, poly_cols, result,
+									'polynomial' )
+								
+								commit_frame( df_processed )
+								st.success( 'PolynomialFeatures applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_polynomial_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+		
+		with feature_c2:
+			with st.expander( label='Data Transformation', icon='⚡', key='cluster_transformers' ):
+				
+				with st.expander( 'Binarizer', expanded=False ):
+					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_binarizer_cols' )
+					
+					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
+						key='cluster_binarizer_threshold' )
+					
+					copy = st.checkbox( 'Copy', value=True, key='cluster_binarizer_copy' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Binarizer',
+								key='cluster_binarizer_apply',
+								use_container_width=True ):
+							if transform_cols:
+								df_processed = df_working.copy( )
+								transformer = Binarizer(
+									threshold=float( threshold ),
+									copy=bool( copy ) )
+								result = transformer.train_transform(
+									df_processed[ transform_cols ].to_numpy( ) )
+								
+								df_processed[ transform_cols ] = result
+								commit_frame( df_processed )
+								st.success( 'Binarizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_binarizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column',
+						options=categorical_columns,
+						key='cluster_label_binarizer_col' )
+					
+					pos_label = st.number_input( 'Positive Label', value=1, step=1,
+						key='cluster_label_binarizer_pos' )
+					
+					neg_label = st.number_input( 'Negative Label', value=0, step=1,
+						key='cluster_label_binarizer_neg' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='cluster_label_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply LabelBinarizer',
+								key='cluster_label_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_processed = df_working.copy( )
+								transformer = LabelBinarizer( pos_label=int( pos_label ),
+									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+								
+								result = transformer.train_transform(
+									df_processed[ target_col ].astype( str ).to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, [
+										target_col ], result,
+									'label_binarizer' )
+								commit_frame( df_processed )
+								st.success( 'Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_label_binarizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Multi-Label Binarizer', expanded=False ):
+					target_col = st.selectbox( 'Column',
+						options=categorical_columns,
+						key='cluster_multilabel_binarizer_col' )
+					
+					delimiter = st.text_input( 'Delimiter', value=',',
+						key='cluster_multilabel_binarizer_delimiter' )
+					
+					sparse_output = st.checkbox( 'Sparse Output', value=False,
+						key='cluster_multilabel_binarizer_sparse' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_multilabel_binarizer_apply',
+								use_container_width=True ):
+							if target_col:
+								df_processed = df_working.copy( )
+								y_multi = parse_multilabel_series( df_processed[ target_col ],
+									delimiter=delimiter )
+								
+								transformer = MultiLabelBinarizer( classes=None,
+									sparse_output=bool( sparse_output ) )
+								
+								result = transformer.train_transform( y_multi )
+								df_processed = replace_columns( df_processed, [ target_col ],
+									result, 'multilabel_binarizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Multi-Label Binarizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_multilabel_binarizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'TFIDF Transformer', expanded=False ):
+					text_count_cols = st.multiselect( 'Count Matrix Columns',
+						options=numeric_columns,
+						key='cluster_tfidf_transformer_cols' )
+					
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
+						index=1, key='cluster_tfidf_transformer_norm' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='cluster_tfidf_transformer_use_idf' )
+					
+					smooth_idf = st.checkbox( 'Smooth IDF', value=True,
+						key='cluster_tfidf_transformer_smooth_idf' )
+					
+					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
+						key='cluster_tfidf_transformer_sublinear' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_tfidf_transformer_apply',
+								use_container_width=True ):
+							if text_count_cols:
+								df_processed = df_working.copy( )
+								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
+									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
+								
+								result = transformer.train_transform(
+									df_processed[ text_count_cols ].apply(
+										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, text_count_cols,
+									result, 'tfidf_transformer' )
+								
+								commit_frame( df_processed )
+								st.success( 'TFIDF Transformer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_tfidf_transformer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Column Transformer', expanded=False ):
+					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
+						key='cluster_column_transformer_numeric_columns' )
+					
+					categorical_columns = st.multiselect( 'Categorical Columns',
+						options=categorical_columns,
+						key='cluster_column_transformer_categorical_columns' )
+					
+					numeric_transform = st.selectbox( 'Numeric Transformer',
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
+						          'MaxAbsScaler', 'Binarizer', 'None' ],
+						key='cluster_column_transformer_numeric_transform' )
+					
+					categorical_transform = st.selectbox( 'Categorical Transformer',
+						options=[ 'OneHotEncoder', 'OrdinalEncoder', 'None' ],
+						key='cluster_column_transformer_categorical_transform' )
+					
+					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
+						key='cluster_column_transformer_remainder' )
+					
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0,
+						max_value=1.0, value=0.3,
+						key='cluster_column_transformer_sparse_threshold' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply Column Transformer',
+								key='cluster_column_transformer_apply',
+								use_container_width=True ):
+							df_processed = df_working.copy( )
+							transformers = [ ]
+							
+							if numeric_columns and numeric_transform != 'None':
+								if numeric_transform == 'StandardScaler':
+									numeric_model = StandardScaler( ).model
+								elif numeric_transform == 'MinMaxScaler':
+									numeric_model = MinMaxScaler( ).model
+								elif numeric_transform == 'RobustScaler':
+									numeric_model = RobustScaler( ).model
+								elif numeric_transform == 'MaxAbsScaler':
+									numeric_model = MaxAbsScaler( ).model
+								else:
+									numeric_model = Binarizer( ).model
+								
+								transformers.append( ('numeric', numeric_model, numeric_columns) )
+							
+							if categorical_columns and categorical_transform != 'None':
+								if categorical_transform == 'OneHotEncoder':
+									categorical_model = OneHotEncoder( sparse=False,
+										unknown='ignore' ).model
+								else:
+									categorical_model = OrdinalEncoder( ).model
+								
+								transformers.append( ('categorical', categorical_model,
+								                      categorical_columns) )
+							
+							if transformers:
+								transformer = ColumnTransformer( transformers=transformers,
+									remainder=remainder, sparse_threshold=float( sparse_threshold ),
+									n_jobs=None, transformer_weights=None, verbose=False )
+								
+								result = transformer.train_transform( df_processed )
+								df_processed = normalize_result_frame( result=result,
+									index=df_processed.index, prefix='column_transformer',
+									columns=None )
+								
+								commit_frame( df_processed )
+								st.success( 'ColumnTransformer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_column_transformer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
 			
-			if rows_after == 0:
-				st.warning( 'No complete numeric rows remain after removing missing or invalid values.' )
-				st.stop( )
+			with st.expander( label='Feature Extration', icon='⛏️', key='cluster_extractors' ):
+				
+				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns',
+						options=categorical_columns,
+						key='cluster_tfidf_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='cluster_tfidf_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='cluster_tfidf_vectorizer_max_features' )
+					
+					use_idf = st.checkbox( 'Use IDF', value=True,
+						key='cluster_tfidf_vectorizer_use_idf' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_tfidf_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_processed = df_working.copy( )
+								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									use_idf=bool( use_idf ) )
+								
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'tfidf_vectorizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'TFIDF Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_tfidf_vectorizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Count Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns',
+						options=categorical_columns,
+						key='cluster_count_vectorizer_cols' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='cluster_count_vectorizer_ngram_max' )
+					
+					max_features = st.number_input( 'Max Features', min_value=0, value=0,
+						step=1, key='cluster_count_vectorizer_max_features' )
+					
+					binary = st.checkbox( 'Binary Counts', value=False,
+						key='cluster_count_vectorizer_binary' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_count_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_processed = df_working.copy( )
+								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int( max_features ),
+									binary=bool( binary ) )
+								
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'count_vectorizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'Count Vectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_count_vectorizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Hash Vectorizer', expanded=False ):
+					text_cols = st.multiselect( 'Text Columns',
+						options=categorical_columns,
+						key='cluster_hash_vectorizer_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='cluster_hash_vectorizer_n_features' )
+					
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
+						value=1, key='cluster_hash_vectorizer_ngram_max' )
+					
+					binary = st.checkbox( 'Binary', value=False,
+						key='cluster_hash_vectorizer_binary' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='cluster_hash_vectorizer_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_hash_vectorizer_apply',
+								use_container_width=True ):
+							if text_cols:
+								df_processed = df_working.copy( )
+								transformer = HashVectorizer( num=int( n_features ),
+									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
+									alternate_sign=bool( alternate_sign ) )
+								df_processed = apply_text_vectorizer( df_processed,
+									text_cols, transformer, 'hash_vectorizer' )
+								commit_frame( df_processed )
+								st.success( 'HashVectorizer Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_hash_vectorizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Dictionary Vectorizer', expanded=False ):
+					dict_cols = st.multiselect( 'Columns',
+						options=categorical_columns,
+						key='cluster_dict_vectorizer_cols' )
+					
+					separator = st.text_input( 'Separator', value='=',
+						key='cluster_dict_vectorizer_separator' )
+					
+					sparse = st.checkbox( 'Sparse Output', value=True,
+						key='cluster_dict_vectorizer_sparse' )
+					
+					sort = st.checkbox( 'Sort Feature Names', value=True,
+						key='cluster_dict_vectorizer_sort' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_dict_vectorizer_apply',
+								use_container_width=True ):
+							if dict_cols:
+								df_processed = df_working.copy( )
+								transformer = DictVectorizer( dtype=np.float64, separator=separator,
+									sparse=bool( sparse ), sort=bool( sort ) )
+								
+								df_processed = apply_dict_transform( df_processed, dict_cols,
+									transformer, 'dict_vectorizer' )
+								
+								commit_frame( df_processed )
+								st.success( 'DictVectorizer applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_dict_vectorizer_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Feature Hasher', expanded=False ):
+					hash_cols = st.multiselect( 'Columns',
+						options=categorical_columns,
+						key='cluster_feature_hasher_cols' )
+					
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='cluster_feature_hasher_n_features' )
+					
+					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
+						key='cluster_feature_hasher_alternate_sign' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_feature_hasher_apply',
+								use_container_width=True ):
+							if hash_cols:
+								df_processed = df_working.copy( )
+								transformer = FeatureHasher( n_features=int( n_features ),
+									input_type='dict', dtype=np.float64,
+									alternate_sign=bool( alternate_sign ) )
+								
+								df_processed = apply_dict_transform( df_processed, hash_cols,
+									transformer, 'feature_hasher' )
+								commit_frame( df_processed )
+								st.success( 'FeatureHasher applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_feature_hasher_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
 			
-			if rows_after != rows_before:
-				st.info(
-					f'Using {rows_after:,} complete rows after removing '
-					f'{rows_before - rows_after:,} row(s) with missing or invalid values.'
-				)
-			
-			X = df_cluster_input.to_numpy( )
+			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='cluster_selectors' ):
+				
+				with st.expander( 'Variance Threshold', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_variance_threshold_cols' )
+					
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
+						step=0.01, key='cluster_variance_threshold_value' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_variance_threshold_apply',
+								use_container_width=True ):
+							if select_cols:
+								df_processed = df_working.copy( )
+								selector = VarianceThreshold( thresh=float( threshold ) )
+								result = selector.train_transform(
+									df_processed[ select_cols ].to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, select_cols, result,
+									'variance_threshold' )
+								
+								commit_frame( df_processed )
+								st.success( 'VarianceThreshold applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_variance_threshold_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
+					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
+						key='cluster_cca_x_cols' )
+					
+					y_cols = st.multiselect( 'Target Columns', options=numeric_columns,
+						key='cluster_cca_y_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='cluster_cca_components' )
+					
+					scale = st.checkbox( 'Scale', value=True,
+						key='cluster_cca_scale' )
+					
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
+						step=1, key='cluster_cca_max_iter' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_cca_apply',
+								use_container_width=True ):
+							if X_cols and y_cols:
+								df_processed = df_working.copy( )
+								selector = CCA( num=int( n_components ), scale=bool( scale ),
+									size=int( max_iter ) )
+								
+								result = selector.train_transform(
+									df_processed[ X_cols ].to_numpy( ),
+									df_processed[ y_cols ].to_numpy( ) )
+								
+								df_result = normalize_result_frame( result=result,
+									index=df_processed.index, prefix='cca', columns=None )
+								
+								df_processed = pd.concat(
+									[ df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
+									  df_result ], axis=1 )
+								
+								commit_frame( df_processed )
+								st.success( 'CCA Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_cca_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Principle Component Analysis', expanded=False ):
+					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='cluster_pca_cols' )
+					
+					n_components = st.number_input( 'Components', min_value=1, value=2,
+						step=1, key='cluster_pca_components' )
+					
+					solver = st.selectbox( 'SVD Solver',
+						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
+						key='cluster_pca_solver' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_pca_apply',
+								use_container_width=True ):
+							if select_cols:
+								df_processed = df_working.copy( )
+								selector = PCA( num=int( n_components ), solver=solver )
+								
+								result = selector.train_transform(
+									df_processed[ select_cols ].to_numpy( ) )
+								
+								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
+								commit_frame( df_processed )
+								st.success( 'PCA applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_pca_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Select-Best', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='cluster_selectbest_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+						key='cluster_selectbest_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+						          'mutual_info_regression' ],
+						key='cluster_selectbest_score_name' )
+					
+					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
+						key='cluster_selectbest_k' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_selectbest_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = SelectBest(
+									score_func=score_function_from_name( score_name ),
+									num=int( k_best ) )
+								
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
+								commit_frame( df_processed )
+								st.success( 'Select Best Applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_selectbest_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Select-Percent', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='cluster_selectpercent_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=categorical_columns,
+						key='cluster_selectpercent_target_col' )
+					
+					score_name = st.selectbox( 'Score Function',
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+						          'mutual_info_regression' ],
+						key='cluster_selectpercent_score_name' )
+					
+					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
+						key='cluster_selectpercent_percentile' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply SelectPercent',
+								key='cluster_selectpercent_apply', use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = SelectPercent(
+									score_func=score_function_from_name( score_name ),
+									pct=int( percentile ) )
+								
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								result = selector.train_transform( X_input, y_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
+								commit_frame( df_processed )
+								st.success( 'SelectPercent applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_selectpercent_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Sequential Back Selection', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='cluster_sbs_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column',
+						options=categorical_columns,
+						key='cluster_sbs_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='cluster_sbs_k_features' )
+					
+					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
+						value=0.25, step=0.05, key='cluster_sbs_test_size' )
+					
+					random_state = st.number_input( 'Random State', min_value=0, value=1,
+						step=1, key='cluster_sbs_random_state' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_sbs_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = SBS( classifier=None, k_features=int( k_features ),
+									test_size=float( test_size ), random_state=int( random_state ) )
+								
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
+								
+								commit_frame( df_processed )
+								st.success( 'SBS applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_sbs_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Original.' )
+				
+				with st.expander( 'Recursive Feature Elimination', expanded=False ):
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='cluster_rfe_x_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+						key='cluster_rfe_target_col' )
+					
+					k_features = st.number_input( 'Features To Retain',
+						min_value=1, value=1, step=1, key='cluster_rfe_k_features' )
+					
+					verbose = st.number_input( 'Verbose', min_value=0, value=0,
+						step=1, key='cluster_rfe_verbose' )
+					
+					a1, a2 = st.columns( 2 )
+					with a1:
+						if st.button( 'Apply', key='cluster_rfe_apply',
+								use_container_width=True ):
+							if X_cols and target_col:
+								df_processed = df_working.copy( )
+								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
+								X_input = df_processed[ X_cols ].apply(
+									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								
+								y_input = df_processed[ target_col ].to_numpy( )
+								selector.train( X_input, y_input )
+								result = selector.transform( X_input )
+								df_processed = replace_columns( df_processed, X_cols, result, 'rfe' )
+								commit_frame( df_processed )
+								st.success( 'RFE applied.' )
+					
+					with a2:
+						if st.button( 'Reset', key='cluster_rfe_reset',
+								use_container_width=True ):
+							working_to_original( )
+							st.session_state[ 'df_processed ' ] = get_working_frame( ).copy( )
+							st.success( 'Reset to Original.' )
+		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Processed Data' )
+		
+		st.render_table( df_processed )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
