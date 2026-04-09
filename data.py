@@ -375,6 +375,7 @@ def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray 
 		exception.cause = 'data'
 		exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple')
 		raise exception
+	
 		
 def misclassification_error( p: float ) -> float | None:
     '''

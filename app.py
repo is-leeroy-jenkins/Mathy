@@ -93,7 +93,7 @@ from sklearn.svm import OneClassSVM
 from sklearn.cluster import DBSCAN, KMeans
 import seaborn as sns
 import sklearn.feature_selection as sf
-
+from sklearn.model_selection import train_test_split as split
 from scalers import ( StandardScaler, MinMaxScaler, RobustScaler, NormalScaler, MaxAbsScaler )
 
 from imputers import ( MeanImputer, NearestImputer, IterativeImputer, SimpleImputer )
@@ -146,20 +146,9 @@ if 'df_targets' not in st.session_state:
 if 'df_processed' not in st.session_state or st.session_state[ 'df_processed' ] is None:
 	st.session_state[ 'df_processed' ] = pd.DataFrame( )
 
-if 'df_plumbing_base' not in st.session_state or st.session_state[ 'df_plumbing_base' ] is None:
-	st.session_state[ 'df_plumbing_base' ] = pd.DataFrame( )
-
-if 'plumbing_feature_columns' not in st.session_state:
-	st.session_state[ 'plumbing_feature_columns' ] = [ ]
-
-if 'plumbing_target_columns' not in st.session_state:
-	st.session_state[ 'plumbing_target_columns' ] = [ ]
-	
 if 'df_cluster_results' not in st.session_state:
 	st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
 	
-# ------------ Training Members
-
 if 'df_dataset' not in st.session_state or st.session_state[ 'df_dataset' ] is None:
 	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
 
@@ -211,11 +200,14 @@ if 'cluster_signature' not in st.session_state:
 
 def init_state( ) -> None:
 	defaults = {
-			"raw_df": None,
-			"df": None,
-			"numeric_cols": [ ],
-			"categorical_cols": [ ],
-			"pipeline_log": [ ]
+			'df_dataset': None,
+			'df_original': None,
+			'df_processed': None,
+			'numeric_columns': [ ],
+			'categorical_columns': [ ],
+			'features': [ ],
+			'targets': [ ],
+			'pipeline_log': [ ]
 	}
 	for k, v in defaults.items( ):
 		if k not in st.session_state:
@@ -230,21 +222,20 @@ def inferential_plot( title: str, subtitle: str | None = None,
     figsize: tuple[int, int] = (6, 4), grid: bool = True,
     ref_line: float | None = None, legend: bool = True ):
     """
-    Purpose:
-        Create a standardized matplotlib figure for inferential plots.
-
-    Parameters:
-        title: Main plot title.
-        subtitle: Optional subtitle (e.g., test context).
-        figsize: Figure size.
-        grid: Whether to show background grid.
-        ref_line: Optional horizontal reference line.
-        legend: Whether to show legend.
-
-    Returns:
-        (fig, ax): Matplotlib figure and axis.
+	    Purpose:
+	        Create a standardized matplotlib figure for inferential plots.
+	
+	    Parameters:
+	        title: Main plot title.
+	        subtitle: Optional subtitle (e.g., test context).
+	        figsize: Figure size.
+	        grid: Whether to show background grid.
+	        ref_line: Optional horizontal reference line.
+	        legend: Whether to show legend.
+	
+	    Returns:
+	        (fig, ax): Matplotlib figure and axis.
     """
-
     fig, ax = plt.subplots(figsize=figsize)
 
     # Grid (subtle)
@@ -297,8 +288,8 @@ def render_table( df: pd.DataFrame, height: int=360 ) -> None:
 	st.data_editor( disp, use_container_width=True, height='auto' )
 
 def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]:
-	numeric_hints = ("py", "cy", "by", "amount", "total", "value", "balance", "outlay")
-	categorical_hints = ("fy", "code", "id", "name", "type", "symbol")
+	numeric_hints = ('py', 'cy', 'by', 'amount', 'total', 'value', 'balance', 'outlay')
+	categorical_hints = ('fy', 'code', 'id', 'name', 'type', 'symbol')
 	
 	numeric, categorical = [ ], [ ]
 	
@@ -374,10 +365,10 @@ def auto_float_format( series: pd.Series, max_decimals: int = 4 ) -> str:
 			A Python format string such as '{:,.2f}' appropriate for the series.
 			
 	"""
-	s = pd.to_numeric( series, errors="coerce" )
+	s = pd.to_numeric( series, errors='coerce' )
 	s = s.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
 	if s.empty:
-		return "{:,.2f}"
+		return '{:,.2f}'
 	
 	mag = float( np.nanpercentile( np.abs( s.values ), 95 ) )
 	
@@ -416,8 +407,8 @@ def create_visualization( df: pd.DataFrame ):
 	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 	categorical_cols = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
 	
-	chart = st.selectbox( 'Chart Type', [ 'Histogram', 'Bar', 'Line',
-	                                      'Scatter', 'Box', 'Pie', 'Correlation' ] )
+	chart = st.selectbox( 'Chart Type', [ 'Histogram', 'Bar', 'Line', 'Scatter',
+	                                      'Box', 'Pie', 'Correlation' ] )
 	
 	if chart == 'Histogram' and numeric_cols:
 		col = st.selectbox( 'Column', numeric_cols )
@@ -552,7 +543,7 @@ def get_feature_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 		list[ str ]:
 			Active feature columns.
 	"""
-	return [ c for c in st.session_state.get( 'plumbing_feature_columns', [ ] )
+	return [ c for c in st.session_state.get( 'features', [ ] )
 	         if c in df_frame.columns ]
 
 def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
@@ -570,7 +561,7 @@ def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 		list[ str ]:
 			Active target columns.
 	"""
-	return [ c for c in st.session_state.get( 'plumbing_target_columns', [ ] )
+	return [ c for c in st.session_state.get( 'targets', [ ] )
 	         if c in df_frame.columns ]
 
 def commit_frame( df_frame: pd.DataFrame ) -> None:
@@ -602,7 +593,7 @@ def commit_frame( df_frame: pd.DataFrame ) -> None:
 	else:
 		st.session_state[ 'df_targets' ] = pd.DataFrame( index=df_frame.index )
 
-def reset_to_original( ) -> None:
+def working_to_original( ) -> None:
 	"""
 		Purpose:
 		--------
@@ -617,9 +608,27 @@ def reset_to_original( ) -> None:
 		None
 	"""
 	df_reset = st.session_state[ 'df_original' ].copy( )
-	st.session_state[ 'df_plumbing_base' ] = df_reset.copy( )
+	st.session_state[ 'df_working' ] = df_reset.copy( )
 	commit_frame( df_reset )
 
+def processed_to_working( ) -> None:
+	"""
+		Purpose:
+		--------
+		Reset Data Plumbing session state back to df_original.
+
+		Parameters:
+		-----------
+		None
+
+		Returns:
+		--------
+		None
+	"""
+	df_reset = st.session_state[ 'df_working' ].copy( )
+	st.session_state[ 'df_processed' ] = df_reset.copy( )
+	commit_frame( df_reset )
+	
 def normalize_result_frame( result: object, index: pd.Index,
 		prefix: str, columns: list[ str ] ) -> pd.DataFrame:
 	"""
@@ -1880,14 +1889,16 @@ with st.sidebar:
 	if uploaded or use_fallback:
 		if uploaded:
 			df_dataset = pd.read_excel( uploaded ) if uploaded.name.endswith( 'xls' ) else pd.read_csv( uploaded )
+			df_original = df_dataset.copy( )
 			log_step( f'Loaded uploaded file: {uploaded.name}' )
 		else:
 			df_dataset = pd.read_excel( cfg.DEFAULT_DATA )
+			df_original = df_dataset.copy( )
 			log_step( 'Loaded Default Dataset' )
 		
 		st.session_state.raw_df = df_dataset.copy( )
-		st.session_state.df_dataset = df_dataset.copy( )
-		st.session_state.numeric_cols, st.session_state.categorical_cols = detect_column_types( df_dataset )
+		st.session_state[ 'df_original' ] = df_original.copy( )
+		st.session_state[ 'df_dataset' ] = df_dataset.copy( )
 		
 	st.sidebar.divider( )
 	st.subheader( 'Mode' )
@@ -1907,7 +1918,8 @@ if mode == 'Data Profile':
 			st.info( 'No data loaded.' )
 			st.stop( )
 		
-		df_dataset = st.session_state.df_dataset
+		df_dataset = st.session_state[ 'df_dataset' ]
+		df_original = df_dataset.copy( )
 		
 		# -------------------------------------------------------------------------------------
 		# SCHEMA INFERENCE
@@ -1957,8 +1969,10 @@ if mode == 'Data Profile':
 		
 		schema = infer_schema( df_dataset )
 		st.session_state.column_schema = schema
-		st.session_state.numeric_cols = [ c for c, t in schema.items( ) if t == 'numeric' ]
-		st.session_state.categorical_cols = [ c for c, t in schema.items( ) if t == 'categorical' ]
+		numeric_columns = [ c for c, t in schema.items( ) if t == 'numeric' ]
+		categorical_columns = [ c for c, t in schema.items( ) if t == 'categorical' ]
+		st.session_state[ 'numeric_columns' ] = numeric_columns
+		st.session_state[ 'categorical_columns' ] = categorical_columns
 		
 		# -------------------------------------------------------------------------------------
 		# DATASET DISPLAY
@@ -1981,6 +1995,7 @@ if mode == 'Data Profile':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Records' )
+		
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
 			with top_c1:
@@ -2064,13 +2079,8 @@ if mode == 'Data Profile':
 			missing_pct = missing_pct[ missing_pct > 0 ].head( 10 )
 			if not missing_pct.empty:
 				fig, ax = plt.subplots( figsize=(6, 4.5) )
-				missing_pct.sort_values( ascending=True ).plot(
-					kind='barh',
-					ax=ax,
-					width=0.75,
-					edgecolor='#0f172a',
-					linewidth=0.9
-				)
+				missing_pct.sort_values( ascending=True ).plot( kind='barh', ax=ax,
+					width=0.75, edgecolor='#0f172a', linewidth=0.9 )
 				ax.set_title( 'Top Columns by Missing %', fontsize=12, fontweight='bold' )
 				ax.set_xlabel( 'Percent Missing' )
 				ax.set_ylabel( '' )
@@ -2089,17 +2099,14 @@ if mode == 'Data Profile':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Cardinality' )
+		
 		v3, v4 = st.columns( 2, border=True )
 		with v3:
 			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
 			fig, ax = plt.subplots( figsize=(6, 4.5) )
-			cardinality.sort_values( ascending=True ).plot(
-				kind='barh',
-				ax=ax,
-				width=0.75,
-				edgecolor='#0f172a',
-				linewidth=0.9
-			)
+			cardinality.sort_values( ascending=True ).plot( kind='barh', ax=ax, width=0.75,
+				edgecolor='#0f172a', linewidth=0.9 )
+			
 			ax.set_title( 'Top Columns by Cardinality', fontsize=12, fontweight='bold' )
 			ax.set_xlabel( 'Unique Values' )
 			ax.set_ylabel( '' )
@@ -2108,6 +2115,7 @@ if mode == 'Data Profile':
 			ax.spines[ 'right' ].set_visible( False )
 			for container in ax.containers:
 				ax.bar_label( container, padding=3, fontsize=9 )
+			
 			fig.tight_layout( )
 			st.pyplot( fig )
 			plt.close( fig )
@@ -2120,6 +2128,7 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Labels' )
+		
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
@@ -2202,8 +2211,7 @@ if mode == 'Data Profile':
 				}
 				</style>
 				""",
-				unsafe_allow_html=True
-			)
+				unsafe_allow_html=True )
 			
 			stat_mode = 'density' if dist_mode == 'Density' else 'count'
 			grid_cols = st.columns( 2, border=True )
@@ -2218,15 +2226,9 @@ if mode == 'Data Profile':
 						continue
 					
 					fig, ax = plt.subplots( figsize=(7, 4.5) )
-					sns.histplot(
-						s,
-						bins=dist_bins,
-						kde=show_kde,
-						stat=stat_mode,
-						ax=ax,
-						edgecolor='#0f172a',
-						line_kws={ 'linewidth': 2.0 } if show_kde else None
-					)
+					sns.histplot( s, bins=dist_bins, kde=show_kde, stat=stat_mode,
+						ax=ax, edgecolor='#0f172a',
+						line_kws={ 'linewidth': 2.0 } if show_kde else None )
 					
 					mean_val = float( s.mean( ) )
 					median_val = float( s.median( ) )
@@ -3335,16 +3337,16 @@ elif mode == 'Data Plumbing':
 		with col_c1:
 			selected_columns = st.multiselect( 'Select Features',
 				options=df_original.columns.tolist( ),
-				default=st.session_state.get( 'plumbing_feature_columns', [ ] ),
-				key='plumbing_select_features' )
+				default=st.session_state.get( 'features', [ ] ),
+				key='plumbing_features' )
 		
 		with col_c2:
 			selected_target_options = [ c for c in df_original.columns
 					if c not in selected_columns ]
 			
 			selected_targets = st.multiselect( 'Select Targets', options=selected_target_options,
-				default=st.session_state.get( 'plumbing_target_columns', [ ] ),
-				key='plumbing_select_targets' )
+				default=st.session_state.get( 'targets', [ ] ),
+				key='plumbing_stargets' )
 		
 		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
 		with sel_b1:
@@ -3359,9 +3361,9 @@ elif mode == 'Data Plumbing':
 				else:
 					df_working = df_original.copy( )
 				
-				st.session_state[ 'plumbing_feature_columns' ] = selected_columns.copy( )
-				st.session_state[ 'plumbing_target_columns' ] = selected_targets.copy( )
-				st.session_state[ 'df_plumbing_base' ] = df_working.copy( )
+				st.session_state[ 'features' ] = selected_columns.copy( )
+				st.session_state[ 'targets' ] = selected_targets.copy( )
+				st.session_state[ 'df_working' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Working dataframe created.' )
 		
@@ -3369,7 +3371,7 @@ elif mode == 'Data Plumbing':
 			if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset',
 					use_container_width=True ):
 				
-				df_working = st.session_state.get( 'df_plumbing_base' )
+				df_working = st.session_state.get( 'df_working' )
 				if df_working is None or df_working.empty:
 					df_working = st.session_state[ 'df_original' ].copy( )
 				commit_frame( df_working.copy( ) )
@@ -3379,14 +3381,15 @@ elif mode == 'Data Plumbing':
 			if st.button( 'Reset To Original', key='plumbing_reset_to_original',
 					use_container_width=True ):
 				
-				st.session_state[ 'plumbing_feature_columns' ] = [ ]
-				st.session_state[ 'plumbing_target_columns' ] = [ ]
-				reset_to_original( )
+				st.session_state[ 'features' ] = [ ]
+				st.session_state[ 'targets' ] = [ ]
+				working_to_original( )
 				st.success( 'Reset back to df_original.' )
 		
 		df_working = get_working_frame( )
 		active_numeric_columns = get_numeric_columns( df_working )
 		categorical_columns = get_categorical_columns( df_working )
+		
 		st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_working.columns ):,}')
 		
 		# ======================================================================================
@@ -3420,7 +3423,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_standard_scaler_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
@@ -3444,7 +3447,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_minmax_scaler_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
@@ -3467,7 +3470,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_robust_scaler_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
@@ -3497,7 +3500,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_normal_scaler_reset', 
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
@@ -3518,7 +3521,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_maxabs_scaler_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Data Imputation', icon='🛡️', key='imputers' ):
@@ -3546,7 +3549,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_mean_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
@@ -3573,7 +3576,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_nearest_imputer_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
@@ -3603,7 +3606,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_iterative_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
@@ -3625,7 +3628,7 @@ elif mode == 'Data Plumbing':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply SimpleImputer', key='plumbing_simple_imputer_apply',
+						if st.button( 'Apply SimpleImputer', key='classification_simple_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								df_processed = get_working_frame( )
@@ -3653,7 +3656,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_simple_imputer_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Data Encoding', icon='🔠', key='encoders' ):
@@ -3685,7 +3688,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_onehot_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
@@ -3706,7 +3709,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_ordinal_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
@@ -3730,7 +3733,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_label_encoder_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
@@ -3757,7 +3760,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_target_encoder_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
@@ -3789,10 +3792,11 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_polynomial_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
 		with feature_c2:
+			
 			with st.expander( label='Data Transformation', icon='↔️', key='transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
@@ -3821,7 +3825,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_binarizer_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
@@ -3857,7 +3861,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_label_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
@@ -3892,7 +3896,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_multilabel_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'TFIDF Transformer', expanded=False ):
@@ -3935,7 +3939,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_tfidf_transformer_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
@@ -4007,7 +4011,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_column_transformer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'TFIDF Vectorizer', expanded=False ):
@@ -4044,7 +4048,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_tfidf_vectorizer_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
@@ -4079,7 +4083,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_count_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
@@ -4116,7 +4120,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_hash_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
@@ -4151,7 +4155,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_dict_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
@@ -4183,7 +4187,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_feature_hasher_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Feature Selection', icon='🔍', key='selectors' ):
@@ -4215,7 +4219,7 @@ elif mode == 'Data Plumbing':
 						if st.button( 'Reset', key='plumbing_variance_threshold_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
@@ -4256,7 +4260,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_cca_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
@@ -4287,7 +4291,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_pca_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
@@ -4327,7 +4331,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_selectbest_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
@@ -4369,7 +4373,7 @@ elif mode == 'Data Plumbing':
 					with a2:
 						if st.button( 'Reset', key='plumbing_selectpercent_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
@@ -4411,14 +4415,14 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_sbs_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
 						key='plumbing_rfe_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_classification.columns.tolist( ),
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
 						key='plumbing_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
@@ -4446,7 +4450,7 @@ elif mode == 'Data Plumbing':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_rfe_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
 		# ======================================================================================
@@ -4670,7 +4674,6 @@ elif mode == 'Classifications':
 		
 		df_original = df_dataset.copy( )
 		st.session_state[ 'df_original' ] = df_original.copy( )
-		
 		numeric_columns = [ c for c in df_original.columns
 		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
 		
@@ -4693,7 +4696,7 @@ elif mode == 'Classifications':
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=categorical_columns,
 				default=[ c for c in st.session_state.get( 'features', [ ] )
-						if c in numeric_columns ], key='classification_select_features' )
+						if c in numeric_columns ], key='classification_features' )
 		
 		with col_c2:
 			target_options = [ c for c in numeric_columns if c not in features ]
@@ -4714,10 +4717,10 @@ elif mode == 'Classifications':
 					df_working = df_original.copy( )
 					st.session_state[ 'df_working' ] = df_working
 				
-				st.session_state[ 'df_classification' ] = df_working.copy( )
 				st.session_state[ 'features' ] = features.copy( )
 				st.session_state[ 'targets' ] = targets.copy( )
 				st.session_state[ 'df_processed' ] = df_working.copy( )
+				df_processed = pd.DataFrame( )
 				
 				commit_frame( df_working )
 				st.success( 'Working dataframe created.' )
@@ -4725,7 +4728,7 @@ elif mode == 'Classifications':
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', key='classification_reset_working_dataset',
 					use_container_width=True ):
-				df_working = df_dataset.copy( )
+				
 				st.session_state[ 'df_working' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Working dataframe reset.' )
@@ -4733,28 +4736,22 @@ elif mode == 'Classifications':
 		with sel_b3:
 			if st.button( 'Reset To Original', key='classification_reset_to_original',
 					use_container_width=True ):
+				
 				df_original = df_dataset.copy( )
+				df_working = df_original.copy( )
+				df_processed = pd.DataFrame( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
-				st.session_state[ 'df_working' ] = df_dataset.copy( )
-				st.session_state[ 'df_original' ] = df_dataset.copy( )
-				st.session_state[ 'df_processed' ] = pd.DataFrame( )
-				commit_frame( df_original )
-				st.success( 'Reset back to df_original.' )
-		
-		df_classification = st.session_state.get( 'df_classification', df_original.copy( ) ).copy( )
-		numeric_columns = get_numeric_columns( df_classification )
-		categorical_columns = get_categorical_columns( df_classification )
-		
-		df_classification = get_working_frame( ).copy( )
-		st.session_state[ 'df_classification' ] = df_classification.copy( )
+				st.session_state[ 'df_working' ] = df_working.copy( )
+				st.session_state[ 'df_processed' ] = df_processed.copy( )
+				commit_frame( df_working )
+				st.success( 'Reset to Original' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data')
-		st.caption( f'Rows: {len( df_working ):,}  |  '
-			            f'Columns: {len( df_working.columns ):,}' )
+		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
 			
-		st.data_editor( df_working, key='working_data' )
+		render_table( df_working )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -4763,9 +4760,7 @@ elif mode == 'Classifications':
 			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
 			st.stop( )
 		
-		y_series = df_working[ targets ]
-		X = df_working[ features ].to_numpy( )
-		y = y_series.to_numpy( )
+		y = df_working[ targets ]
 		
 		if len( np.unique( y ) ) < 2:
 			st.warning( '⚠️ Classification requires at least two classes in the selected target.' )
@@ -4791,20 +4786,18 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_standard_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = df_working.copy( )
 								scaler = StandardScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
-								commit_frame( df_processed )
 								st.success( 'Standard Scaler applied.' )
 					
 					with a2:
 						if st.button( 'Reset', key='classification_standard_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
-							st.session_state[ 'df_working' ] = get_working_frame( ).copy( )
-							st.success( 'Reset to Original.' )
+							
+							df_processed = pd.DataFrame( )
+							st.success( 'Reset to Working Dataset.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -4815,7 +4808,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_minmax_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = df_working.copy( )
 								scaler = MinMaxScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -4827,9 +4819,8 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_minmax_scaler_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -4840,7 +4831,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_robust_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = df_working.copy( )
 								scaler = RobustScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -4852,9 +4842,8 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_robust_scaler_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -4868,7 +4857,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_normal_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = df_working.copy( )
 								scaler = NormalScaler( norm=norm )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -4880,7 +4868,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_normal_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -4893,7 +4881,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_maxabs_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = df_working.copy( )
 								scaler = MaxAbsScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -4904,7 +4891,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_maxabs_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
@@ -4922,19 +4909,19 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = df_working.copy( )
 								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'mean_imputer' )
+								
 								commit_frame( df_processed )
 								st.success( 'MeanImputer applied.' )
 					
 					with a2:
 						if st.button( 'Reset', key='classification_mean_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -4950,7 +4937,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = df_working.copy( )
 								imputer = NearestImputer( neighbors=int( neighbors ) )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
@@ -4963,7 +4949,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_nearest_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset Data' )
 				
@@ -4983,7 +4969,6 @@ elif mode == 'Classifications':
 								key='classification_iterative_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = df_working.copy( )
 								imputer = IterativeImputer( max_iter=int( max_iter ),
 									random_state=int( random_state ) )
 								result = imputer.train_transform(
@@ -4996,13 +4981,13 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_iterative_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns',
-						options=df_classification.columns.tolist( ),
+						options=numeric_columns,
 						key='classification_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -5020,12 +5005,10 @@ elif mode == 'Classifications':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply SimpleImputer',
-								key='classification_simple_imputer_apply',
+						if st.button( 'Apply SimpleImputer', key='classification_simpleimputer_apply',
 								use_container_width=True ):
 							
 							if impute_cols:
-								df_processed = df_working.copy( )
 								if strategy in [ 'mean', 'median' ]:
 									df_input = df_processed[ impute_cols ].apply(
 										pd.to_numeric, errors='coerce' )
@@ -5052,7 +5035,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_simple_imputer_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
@@ -5074,7 +5057,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_onehot_apply',
 								use_container_width=True ):
 							if encode_cols:
-								df_processed = get_working_frame( )
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
@@ -5088,7 +5070,6 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_onehot_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5101,7 +5082,6 @@ elif mode == 'Classifications':
 						if st.button( 'Apply', key='classification_ordinal_apply',
 								use_container_width=True ):
 							if encode_cols:
-								df_processed = df_working.copy( )
 								encoder = OrdinalEncoder( )
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
@@ -5112,9 +5092,9 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_ordinal_reset',
 								use_container_width=True ):
-							reset_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							
+							df_processed = pd.DataFrame( )
+							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
 					target_col = st.selectbox( 'Column',
@@ -5127,9 +5107,7 @@ elif mode == 'Classifications':
 								use_container_width=True ):
 							
 							if target_col:
-								df_processed = df_working.copy( )
 								encoder = LabelEncoder( )
-								
 								result = encoder.train_transform(
 									df_processed[ target_col ].astype( str ).to_numpy( ) )
 								
@@ -5141,7 +5119,6 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_label_encoder_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5174,7 +5151,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_target_encoder_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5211,11 +5188,12 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_polynomial_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
-		
+				
 		with feature_c2:
+			
 			with st.expander( label='Data Transformation', icon='↔️', key='classification_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
@@ -5247,7 +5225,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5286,7 +5264,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_label_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5323,7 +5301,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_multilabel_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5366,7 +5344,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_tfidf_transformer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5442,7 +5420,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_column_transformer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5479,7 +5457,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5516,7 +5494,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_count_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5554,7 +5532,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_hash_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5591,7 +5569,7 @@ elif mode == 'Classifications':
 					with a2:
 						if st.button( 'Reset', key='classification_dict_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5626,7 +5604,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_feature_hasher_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
@@ -5660,7 +5638,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_variance_threshold_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5706,7 +5684,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_cca_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5741,7 +5719,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_pca_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5784,7 +5762,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_selectbest_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5827,7 +5805,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_selectpercent_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5873,7 +5851,7 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_sbs_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
@@ -5912,31 +5890,31 @@ elif mode == 'Classifications':
 						if st.button( 'Reset', key='classification_rfe_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.session_state[ 'df_processed ' ] = get_working_frame( ).copy( )
 							st.success( 'Reset to Original.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
 		
-		st.data_editor( df_processed, key='processed_data' )
+		st.data_editor( df_processed )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
 		model_map = \
-			{
-					'Perceptron': Perceptron,
-					'Least Squares Classifier': LeastSquares,
-					'Logistic Regression': LogisticRegression,
-					'Decision Tree': DecisionTree,
-					'Support Vector Machine': SupportVector,
-					'Random Forest': RandomForest,
-					'k-Nearest Neighbors': NearestNeighbor,
-					'Bagging': BaggingModel,
-					'AdaBoost': AdaptiveBoost,
-					'Gradient Boosting': GradientBoost
-			}
+		{
+				'Perceptron': Perceptron,
+				'Least Squares Classifier': LeastSquares,
+				'Logistic Regression': LogisticRegression,
+				'Decision Tree': DecisionTree,
+				'Support Vector Machine': SupportVector,
+				'Random Forest': RandomForest,
+				'k-Nearest Neighbors': NearestNeighbor,
+				'Bagging': BaggingModel,
+				'AdaBoost': AdaptiveBoost,
+				'Gradient Boosting': GradientBoost
+		}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Selection & Configuration' )
@@ -6128,7 +6106,7 @@ elif mode == 'Regressions':
 		with col_c1:
 			selected_features = st.multiselect( 'Select Features',
 				options=df_original.columns.tolist( ),
-				default=st.session_state.get( 'plumbing_feature_columns', [ ] ),
+				default=st.session_state.get( 'features', [ ] ),
 				key='plumbing_select_features' )
 		
 		with col_c2:
@@ -6136,7 +6114,7 @@ elif mode == 'Regressions':
 			                            if c not in selected_features ]
 			
 			selected_targets = st.multiselect( 'Select Targets', options=selected_target_options,
-				default=st.session_state.get( 'plumbing_target_columns', [ ] ),
+				default=st.session_state.get( 'targets', [ ] ),
 				key='plumbing_select_targets' )
 		
 		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
@@ -6172,7 +6150,7 @@ elif mode == 'Regressions':
 					use_container_width=True ):
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
-				reset_to_original( )
+				working_to_original( )
 				st.success( 'Reset back to Original.' )
 		
 		df_working = get_working_frame( )
@@ -6240,7 +6218,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_standard_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
@@ -6263,7 +6241,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_minmax_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
@@ -6287,7 +6265,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_robust_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
@@ -6315,7 +6293,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_normal_scaler_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
@@ -6337,7 +6315,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_maxabs_scaler_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Data Imputation', key='imputers' ):
@@ -6366,7 +6344,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_mean_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
@@ -6394,7 +6372,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_nearest_imputer_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
@@ -6425,7 +6403,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_iterative_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
@@ -6475,7 +6453,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_simple_imputer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Data Encoding', key='encoders' ):
@@ -6507,7 +6485,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_onehot_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
@@ -6529,7 +6507,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_ordinal_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
@@ -6554,7 +6532,7 @@ elif mode == 'Regressions':
 						if st.button( 'Reset', key='plumbing_label_encoder_reset',
 								use_container_width=True ):
 							
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
@@ -6582,7 +6560,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_target_encoder_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
@@ -6615,7 +6593,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_polynomial_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
 		with feature_c2:
@@ -6646,7 +6624,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_binarizer_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
@@ -6682,7 +6660,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_label_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
@@ -6717,7 +6695,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_multilabel_binarizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'TFIDF Transformer', expanded=False ):
@@ -6758,7 +6736,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_tfidf_transformer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
@@ -6830,7 +6808,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_column_transformer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'TFIDF Vectorizer', expanded=False ):
@@ -6865,7 +6843,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
@@ -6900,7 +6878,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_count_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
@@ -6937,7 +6915,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_hash_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
@@ -6971,7 +6949,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_dict_vectorizer_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
@@ -7003,7 +6981,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_feature_hasher_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Feature Selection', key='selectors' ):
@@ -7034,7 +7012,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_variance_threshold_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
@@ -7075,7 +7053,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_cca_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
@@ -7106,7 +7084,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_pca_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
@@ -7146,7 +7124,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_selectbest_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
@@ -7188,7 +7166,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_selectpercent_reset',
 								use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
@@ -7230,7 +7208,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_sbs_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
@@ -7264,7 +7242,7 @@ elif mode == 'Regressions':
 					
 					with a2:
 						if st.button( 'Reset', key='plumbing_rfe_reset', use_container_width=True ):
-							reset_to_original( )
+							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
 		# ------------------------------------------------------------------
