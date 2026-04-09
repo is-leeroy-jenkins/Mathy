@@ -355,3 +355,56 @@ MINMAX_SCALER = r'''Transform features by scaling each feature to a given range.
 		and one. This transformation is often used as an alternative to zero
 		mean, unit variance scaling.
 '''
+
+ROBUST_SCALER = r'''Remove the median and scale features according to the quantile range.
+
+		By default, the quantile range is the interquartile range ( IQR ), which
+		is the range between the 1st quartile ( 25th quantile ) and the 3rd
+		quartile ( 75th quantile ).
+
+		Centering and scaling happen independently on each feature by computing
+		the relevant statistics on the samples in the training set. The median
+		and interquartile range are then stored for use on later data during
+		transformation.
+
+		Robust scaling is useful when outliers would otherwise negatively affect
+		mean- and variance-based scaling methods.
+'''
+
+NORMAL_SCALER = r''' Normalizes samples individually to unit norm. Each sample ( that is,
+		each row of the feature matrix ) with at least one non-zero component
+		is rescaled independently of the other samples so that its norm
+		( l1, l2, or max ) equals one.
+
+		This transformer can work with dense NumPy arrays and sparse matrices.
+		Scaling inputs to unit norms is a common preprocessing step for text
+		classification and clustering. For example, the dot product of two
+		l2-normalized TF-IDF vectors is the cosine similarity between them.
+'''
+
+MAXABS_SCALER = r'''Scale each feature by its maximum absolute value.
+
+		This estimator scales and transforms each feature individually such
+		that the maximal absolute value of each feature in the training set
+		will be 1.0. It does not shift or center the data, and therefore
+		does not destroy sparsity.
+
+		This scaler can also be applied to sparse CSR or CSC matrices.
+		MaxAbsScaler does not reduce the effect of outliers; it only linearly
+		scales them down.
+'''
+
+MINMAX_SCALER = r'''Transform features by scaling each feature to a given range.
+		This estimator scales and translates each feature individually such
+		that it is in the given range on the training set, e.g. between zero
+		and one. This transformation is often used as an alternative to zero
+		mean, unit variance scaling.
+
+		Min-Max Scaler does not reduce the effect of outliers, but it linearly
+		scales them down into a fixed range, where the largest occurring data
+		point corresponds to the maximum value and the smallest one
+		corresponds to the minimum value.
+'''
+
+
+

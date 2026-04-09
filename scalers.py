@@ -389,7 +389,6 @@ class StandardScaler( Scaler ):
 			raise exception
 
 
-
 class MinMaxScaler( Scaler ):
 	"""
 
