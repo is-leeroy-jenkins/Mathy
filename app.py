@@ -4662,7 +4662,7 @@ elif mode == 'Classifications':
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
-	left, center, right = st.columns( [ 0.25, 0.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classifications' ] )
 		st.divider( )
@@ -5895,7 +5895,7 @@ elif mode == 'Classifications':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		st.render_table( df_processed )
+		render_table( df_processed )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
@@ -7231,6 +7231,8 @@ elif mode == 'Regressions':
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
+		render_table( df_processed )
+		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
@@ -7265,6 +7267,7 @@ elif mode == 'Regressions':
 		# ------------------------------------------------------------------
 		# TRAIN / TEST SPLIT
 		# ------------------------------------------------------------------
+		df_regression = df_processed.copy( )
 		with sel_c5:
 			st.markdown( '###### Training Configuration' )
 			test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
@@ -7305,11 +7308,11 @@ elif mode == 'Regressions':
 				st.markdown( '##### Predictions' )
 				y_pred = model.project( X_test )
 				df_predictions = pd.DataFrame(
-					{
-							'Observed': y_test,
-							'Predicted': y_pred,
-							'Residual': y_test - y_pred
-					} )
+				{
+					'Observed': y_test,
+					'Predicted': y_pred,
+					'Residual': y_test - y_pred
+				} )
 				
 				st.data_editor( df_predictions, use_container_width=True )
 				
@@ -7319,7 +7322,6 @@ elif mode == 'Regressions':
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Model Details' )
 				detail_rows = [ ]
-				
 				if hasattr( model, 'features' ):
 					try:
 						detail_rows.append( { 'Property': 'Features', 'Value': model.features } )
