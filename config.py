@@ -219,7 +219,7 @@ with large numeric ranges. The underlying dataset is not changed.
 
 # ---------- Classifiers
 
-LEAST_SQUARES = r'''Least Squares Regression fits a linear model with coefficients w = (w1, …, wp)
+LEAST_SQUARES_CLASSIFIER = r'''Least Squares Regression fits a linear model with coefficients w = (w1, …, wp)
 		to minimize the residual sum of squares between the observed targets
 		in the dataset, and the targets predicted by the linear approximation.
 '''
@@ -243,7 +243,7 @@ LASSO_CLASSIFIER = r''''(Least Absolute Shrinkage and Selection Operator) is a r
 		less important feature coefficients to exactly zero, effectively removing them.
 '''
 
-GRADIENT_DESCENT = r''''Linear classifiers (SVM, logistic regression, etc.) with
+GRADIENT_DESCENT_CLASSIFIER = r''''Linear classifiers (SVM, logistic regression, etc.) with
 		Stochastic Gradient Descent (SGD) training.  This estimator implements regularized
 		linear models with stochastic gradient descent learning:
 		
@@ -314,7 +314,7 @@ VOTING_CLASSFIER = r''''The Voting Model is to combine conceptually different ma
 		well performing model in order to balance out their individual weaknesses.
 '''
 
-STACKING_MODEL = r''''Stack of estimators with a final classifier. Stacked generalization consists in stacking
+STACKING_CLASSIFIER = r''''Stack of estimators with a final classifier. Stacked generalization consists in stacking
 		the output of individual estimator and use a classifier to compute the final prediction.
 		Stacking allows to use the strength of each individual estimator by using their output
 		as input of a final estimator. Note that estimators_ are fitted on the full X while
@@ -339,6 +339,204 @@ MULTILAYER_PERCEPTRON_CLASSIFIER = r'''Model optimizes the squared error using L
 		- ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
 		- ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
 '''
+
+# --------- Regressions
+
+LEAST_SQUARES_REGRESSION = r''''Least-angle regression (LARS) is a regression algorithm for high-dimensional stores.
+	    LARS is similar to forward stepwise regression. At each step, it finds the feature most
+	    correlated with the target. When there are multiple features having equal correlation,
+	    instead of continuing along the same feature, it proceeds in a direction equiangular
+	    between the features.
+'''
+
+RIDGE_REGRESSION = r'''Solves a regression model where the loss function is the linear least squares function and
+	    alpha is given by the l2-norm. Also known as Ridge Regression
+	    or Tikhonov alpha. This estimator has built-in support for
+	    multi-variate regression (i.e., when y is a 2d-array of shape (n_samples, n_targets))
+	
+	    The complexity parameter  controls the amount of shrinkage: the larger the value of alpha,
+	    the greater the amount of shrinkage and thus the coefficients become
+	    more robust to collinearity.
+	
+	    The algorithm used to fit the model is coordinate descent. To avoid unnecessary memory
+	    duplication the X argument of the fit method should be directly passed as a
+	    Fortran-contiguous numpy array. Regularization improves the conditioning of the problem
+	    and reduces the variance of the estimates. Larger values specify stronger alpha.
+	    Alpha corresponds to 1 / (2C) in other linear models such as LogisticRegression or LinearSVC.
+	    If an array is passed, penalties are assumed to be specific to the targets.
+'''
+
+LASSO_REGRESSION = r'''Least-angle regression (LARS) is a regression algorithm for high-dimensional stores.
+	    LARS is similar to forward stepwise regression. At each step, it finds the feature most
+	    correlated with the target. When there are multiple features having equal correlation,
+	    instead of continuing along the same feature, it proceeds in a direction equiangular
+	    between the features.
+'''
+
+ELASTICNET_REGRESSION = r'''ElasticNet is a linear regression model trained with both L1 and
+		L2-norm regularization of the coefficients. This combination allows for learning a sparse
+		model where few of the weights are non-zero like Lasso, while still maintaining the
+		regularization properties of Ridge. We control the convex combination of and using the
+		l1_ratio parameter.
+	
+	    Elastic-net is useful when there are multiple feature_names that are correlated with one another.
+	    Lasso is likely to pick one of these at random, while elastic-net is likely to pick both.
+'''
+
+LEAST_ANGLE_REGRESSION = r'''Least-angle regression (LARS) is a regression algorithm for high-dimensional stores.
+	    LARS is similar to forward stepwise regression. At each step, it finds the feature most
+	    correlated with the target. When there are multiple features having equal correlation,
+	    instead of continuing along the same feature, it proceeds in a direction equiangular
+	    between the features.
+'''
+
+BAYESIAN_RIDGE_REGRESSION = r'''Bayesian regression techniques can be used to include alpha parameters in the
+	    estimation procedure: the alpha parameter is not set in a hard sense
+	    but tuned to the df at hand. This can be done by introducing uninformative priors over
+	    the hyperparameters of the model. The alpha used in Ridge regression and
+	    classification is equivalent to finding a maximum a posteriori estimation under a
+	    Gaussian prior over the coefficients with precision. Instead of setting lambda manually,
+	    it is possible to treat it as a random variable to be estimated
+'''
+
+GRADIENT_DESCENT_REGRESSION = r'''Stochastic Gradient Descent (SGD) is a simple yet very
+		efficient approach to discriminative rate of linear classifiers under convex loss functions such as
+	    (linear) Support VectorStore Machines and Logistic Regression. Even though SGD has been around
+	    in the machine rate community for a long time, it has received a considerable amount
+	    of attention just recently in the context of large-scale rate.
+	
+	    SGD has been successfully applied to large-scale and sparse machine rate problems
+	    often encountered in text classification and natural language processing.
+	    Given that the df is sparse, the classifiers in this module easily scale to problems
+	    with more than 10^5 training examples and more than 10^5 feature_names.
+	
+	    The regularizer is a penalty added to the loss function that shrinks model parameters
+	    towards the zero vector using either the squared euclidean norm L2 or the absolute norm L1
+	    or a combination of both (Elastic Net). If the parameter update crosses the 0.0 value
+	    because of the regularizer, the update is truncated to 0.0 to allow for learning sparse
+	    models and achieve online feature selection.
+'''
+
+NEAREST_NEIGHBOR_REGRESSION = r'''The principle behind k-nearest neighbor methods is to find a predefined number of
+	    training samples closest in distance to the new point, and predict the label from these.
+	    The number of samples can be a user-defined constant (k-nearest neighbor rate),
+	    or vary based on the local density of points (radius-based neighbor rate).
+	    The distance can, in general, be any metric measure: standard Euclidean distance is the
+	    most common choice. Neighbors-based methods are known as non-generalizing
+	    machine rate methods, since they simply “remember” all of its training df
+	    (possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
+'''
+
+DESICION_TREE_REGRESSION = r'''Decision Trees (DTs) are a non-parametric supervised learning method used for
+	    regression. The goal is to create a model that predicts the value of a
+	    target variable by learning simple decision rules inferred from the stores feature_names.
+	
+	    A tree can be seen as a piecewise constant approximation. Decision trees learn from stores
+	    to approximate a sine curve with a set of if-then-else decision rules.
+	    The deeper the tree, the more complex the decision rules and the fitter the model.
+'''
+
+EXTRA_TREES_REGRESSION = r'''An ensemble learning method that fits multiple randomized decision trees
+		on sub-samples of a dataset. It enhances predictive accuracy and controls over-fitting by
+		using random split thresholds for features, rather than searching for the best possible split,
+		resulting in faster computation times and lower variance compared to standard Random Forests.
+'''
+
+RANDOM_FOREST_REGRESSION = r'''In random forests, each tree in the ensemble is built from a sample
+		drawn with replacement (i.e., a bootstrap sample) from the training set.
+	
+	    Furthermore, when splitting each node during the construction of a tree,
+	    the best split is found either from all input feature_names or a random subset of
+	    size max_features.
+	
+	    The purpose of these two sources of randomness is to decrease the variance
+	    of the forest estimator. Individual decision trees typically exhibit high variance
+	    and tend to overfit. The injected randomness in forests yield decision trees with
+	    decoupled prediction errors. By taking an average of those predictions,
+	    some errors can cancel out. Random forests achieve a reduced variance
+	    by combining diverse trees, sometimes at the cost of a slight increase in bias.
+	    The variance reduction is often significant hence yielding an overall better model.
+'''
+
+GRADIENT_BOOST_REGRESSION = r'''Gradient Boosting builds an additive model in a forward stage-wise fashion;
+    it allows for the optimization  of arbitrary differentiable loss functions.
+    In each stage n_classes_ regression trees are  fit on the negative gradient of the binomial
+    or multinomial deviance loss function. Binary classification is a special case where
+    only a single regression tree is induced.
+'''
+
+ADAPTIVE_BOOST_REGRESSION = r'''An AdaBoost [1] regressor is a meta-estimator
+		that begins by fitting a regressor on the original dataset and then fits additional
+		copies of the regressor on the same dataset but where the weights of instances are
+		adjusted according to the error of the current prediction.
+	
+	    The core principle of Boost Regression is to fit a sequence of weak learners
+	    (i.e., models that are only slightly better than random guessing,
+	    such as small decision trees) on repeatedly modified versions of the df.
+	    The predictions from all of them are then combined through a weighted
+	    majority vote (or sum) to produce the final prediction.
+'''
+
+BAGGING_MODEL_REGRESSION = r'''Bagging methods form a class of algorithms which build several instances of a black-box
+	     estimator on random subsets of the original training set and then aggregate their
+	     individual predictions to form a final prediction. These methods are used as a way
+	     to reduce the variance of a base estimator (e.g., a decision tree), by introducing
+	     randomization into its construction procedure and then making an ensemble out of it.
+	
+	     Bagging methods constitute a very simple way to improve with respect
+	     to a single model, without making it necessary to adapt the underlying base algorithm.
+	     As they provide a way to reduce overfitting, bagging methods work best with strong and
+	     complex models (e.g., fully developed decision trees), in contrast with boosting methods
+	     which usually work best with weak models (e.g., shallow decision trees).
+'''
+
+VOTING_MODEL_REGRESSION = r'''Prediction voting regressor for unfitted estimators.
+		A voting regressor is an ensemble  meta-estimator that fits several base regressors,
+		each on the whole dataset. Then it averages the individual predictions to form a final prediction.
+'''
+
+STACKING_MODEL_REGRESSION = r'''Stack of estimators with a final regressor. Stacked generalization
+		consists in stacking the output of individual estimator and use a regressor to compute the final prediction.
+	    Stacking allows to use the strength of each individual estimator by using
+	    their output as input of a final estimator. Note that estimators_ are fitted on the
+	    full X while final_estimator_ is trained using cross-validated predictions of
+	    the base estimators using cross_val_predict.
+'''
+
+SUPPORT_VECTOR_REGRESSION = r'''Support Vector Regression (SVR) is a powerful supervised learning
+		algorithm that predicts continuous values by finding a hyperplane (line or surface) that
+		best fits data within a defined error tolerance ( -insensitive tube). Unlike traditional
+		regression, SVR focuses on minimizing errors within a threshold, using only key data points,
+		known as support vectors.
+'''
+
+GAUSSIAN_PROCESS_REGRESSION = r''' Allows prediction without prior fitting (based on the GP prior)
+		provides an additional method sample_y(X), which evaluates samples
+		drawn from the GPR (prior or posterior) at given inputs
+		exposes a method log_marginal_likelihood(theta), which can be used externally
+		for other ways of selecting hyperparameters, e.g., via Markov chain Monte Carlo.
+'''
+
+MULTILAYER_PERCEPTRON_REGRESSION = r'''A Multilayer Perceptron (MLP) is a foundational feedforward
+			artificial neural network consisting of at least three layers—input, hidden, and
+			output—of fully connected nodes. It uses nonlinear activation functions to model complex,
+			non-linear relationships, making it capable of solving non-linear classification
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # -------- Scalers
 

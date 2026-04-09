@@ -2492,14 +2492,9 @@ class BayesianRidge( Regression ):
 	    but tuned to the df at hand. This can be done by introducing uninformative priors over
 	    the hyperparameters of the model. The alpha used in Ridge regression and
 	    classification is equivalent to finding a maximum a posteriori estimation under a
-	    Gaussian prior over the coefficients with precision . Instead of setting lambda manually,
+	    Gaussian prior over the coefficients with precision. Instead of setting lambda manually,
 	    it is possible to treat it as a random variable to be estimated from the df.
 	
-	    This implementation is based on the algorithm described in Appendix A of (Tipping, 2001)
-	    where updates of the alpha parameters are done as suggested in (MacKay, 1992).
-	    Note that according to A New View of Automatic Relevance Determination
-	    (Wipf and Nagarajan, 2008) these update rules do not guarantee that the marginal likelihood
-	    is increasing between two consecutive iterations of the optimization.
 
     """
 	model: skl.BayesianRidge
