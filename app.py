@@ -6102,6 +6102,7 @@ elif mode == 'Regressions':
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
+	
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Regressions' ] )
@@ -6159,6 +6160,7 @@ elif mode == 'Regressions':
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset',
 					use_container_width=True ):
+				
 				df_working = st.session_state.get( 'df_plumbing_base' )
 				if df_working is None or df_working.empty:
 					df_working = st.session_state[ 'df_original' ].copy( )
@@ -6168,15 +6170,15 @@ elif mode == 'Regressions':
 		with sel_b3:
 			if st.button( 'Reset To Original', key='plumbing_reset_to_original',
 					use_container_width=True ):
-				st.session_state[ 'plumbing_feature_columns' ] = [ ]
-				st.session_state[ 'plumbing_target_columns' ] = [ ]
+				st.session_state[ 'features' ] = [ ]
+				st.session_state[ 'targets' ] = [ ]
 				reset_to_original( )
-				st.success( 'Reset back to df_original.' )
+				st.success( 'Reset back to Original.' )
 		
 		df_working = get_working_frame( )
 		numeric_columns = get_numeric_columns( df_working )
 		categorical_columns = get_categorical_columns( df_working )
-		st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_working.columns ):,}' )
+		st.caption( f'Rows: {len( df_working ):,} | Columns: {len( df_working.columns ):,}' )
 		
 		# ------------------------------------------------------------------
 		# DATASET PREPARATION
@@ -6205,8 +6207,8 @@ elif mode == 'Regressions':
 			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
 			st.stop( )
 		
-		X = df_regression[ selected_features ].to_numpy( dtype=float )
-		y = df_regression[ selected_targets ].to_numpy( dtype=float )
+		X = df_regression[ features ].to_numpy( )
+		y = df_regression[ targets ].to_numpy( dtype=float )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -6535,7 +6537,6 @@ elif mode == 'Regressions':
 						key='plumbing_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_label_encoder_apply',
 								use_container_width=True ):
@@ -6552,6 +6553,7 @@ elif mode == 'Regressions':
 					with a2:
 						if st.button( 'Reset', key='plumbing_label_encoder_reset',
 								use_container_width=True ):
+							
 							reset_to_original( )
 							st.success( 'Reset to Original.' )
 				
@@ -6928,6 +6930,7 @@ elif mode == 'Regressions':
 									alternate_sign=bool( alternate_sign ) )
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'hash_vectorizer' )
+								
 								commit_frame( df_processed )
 								st.success( 'HashVectorizer Applied.' )
 					
