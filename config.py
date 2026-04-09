@@ -58,12 +58,12 @@ MODES = [ 'Data Processing', 'Descriptive Statistics',  'Inferential Statistics'
           'Feature Engineering', 'Classifications', 'Regressions', 'Clustering', 'Time-Series', 'Database' ]
 
 MODE = { 'Data Profile': '🏗️ Data Profiling',
-       'Descriptive Statistics': '📊 Descriptive Statistics',
+       'Descriptive Statistics': '🔍 Descriptive Statistics',
        'Inferential Statistics': '🧠 Inferential Statistics',
        'Anomaly Detection': '🛸 Anomaly Detection',
        'Data Plumbing': '🔧 Data Plumbing',
-       'Feature Engineering': '🔩 Feature Engineering',
-       'Classifications': '🔠 Classification Models',
+       'Feature Engineering': '🛠️ Feature Engineering',
+       'Classifications': '📊 Classification Models',
        'Regressions': '📉 Regression Models',
        'Clustering': '🕸️ Clustering Models',
        'Time-Series': '⏱️ Time-Series Models',
@@ -215,4 +215,143 @@ methods before it is included in the final anomaly table.
 ANALYSIS_SCALE = r'''When enabled, the selected variables are standardized for analysis only.
 This puts variables on a comparable scale so that multivariate methods are less dominated by columns
 with large numeric ranges. The underlying dataset is not changed.
+'''
+
+# ---------- Classifiers
+
+LEAST_SQUARES = r'''Least Squares Regression fits a linear model with coefficients w = (w1, …, wp)
+		to minimize the residual sum of squares between the observed targets
+		in the dataset, and the targets predicted by the linear approximation.
+'''
+
+LOGISTIC_REGRESSION = r''''A machine learning algorithm used for binary classification
+		(predicting one of two outcomes, e.g., yes/no) by modeling probabilities using a
+		sigmoid function. It calculates the likelihood of an event occurring, making it ideal
+		for spam detection, credit scoring, and medical diagnosis.
+'''
+
+RIDGE_CLASSIFIER = r''''A classifier that first converts binary targets to {-1, 1} and then treats the problem as a
+		regression task, optimizing the same objective as above. The predicted class corresponds
+		to the sign of the regressor’s prediction. For multiclass classification, the problem is
+		treated as multi-output regression, and the predicted class corresponds to the output
+		with the highest value.
+'''
+
+LASSO_CLASSIFIER = r''''(Least Absolute Shrinkage and Selection Operator) is a regression analysis
+		method that performs both variable selection and regularization to enhance model prediction
+		accuracy and interpretability. By applying an  penalty to the regression model, it shrinks
+		less important feature coefficients to exactly zero, effectively removing them.
+'''
+
+GRADIENT_DESCENT = r''''Linear classifiers (SVM, logistic regression, etc.) with
+		Stochastic Gradient Descent (SGD) training.  This estimator implements regularized
+		linear models with stochastic gradient descent learning:
+		
+		The gradient of the loss is estimated each sample at a time and the model is updated along
+		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
+		(online/out-of-core) learning via the partial_fit method. For best results using the
+		default learning rate schedule, the stores should have zero mean and unit variance.
+'''
+
+NEAREST_NEIGHBOR_CLASSFIER = r''''The principle behind the k-nearest neighbor methods is to find
+		a predefined number of training samples closest in distance to the new point,
+		and predict the label from these. The number of samples can be a user-defined constant
+		(k-nearest neighbor rate), or vary based on the local density of points
+		(radius-based neighbor rate).
+		
+		The distance can, in general, be any metric measure: standard Euclidean distance is the
+		most common choice. Neighbors-based methods are known as non-generalizing
+		machine rate methods, since they simply “remember” all of its training df
+		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
+'''
+
+DESICION_TREE_CLASSIFIER = r''''Decision Trees (DTs) are a non-parametric supervised learning method used for
+		classification. The goal is to create a model that predicts the value of a
+		target variable by learning simple decision rules inferred from the stores feature_names.
+
+		A tree can be seen as a piecewise constant approximation. Decision trees learn from stores
+		to approximate a sine curve with a set of if-then-else decision rules.
+		The deeper the tree, the more complex the decision rules and the fitter the model.
+'''
+
+RANDOM_FOREST_CLASSIFIER = r''''In random forests, each tree in the ensemble is built from a sample
+		drawn with replacement (i.e., a bootstrap sample) from the training set. Splitting each node
+		during the construction of a tree, the best split is found either from all input
+		feature_names or a random subset of size max_features. The injected randomness in forests
+		yield decision trees with decoupled prediction errors. By taking an average of those predictions,
+		errors can cancel out. Random forests achieve a reduced variance
+		by combining diverse trees, sometimes at the cost of a slight increase in bias.
+		The variance reduction is often significant hence yielding an overall better model.
+'''
+
+GRADIENT_BOOST_CLASSIFIER = r''''A Boost classifier is a meta-estimator that begins by fitting a classifier
+		on the original dataset and then fits additional copies of the classifier on the
+		same dataset but where the weights of incorrectly classified instances are
+		adjusted such that subsequent classifiers focus more on difficult cases.
+'''
+
+ADAPTIVE_BOOST_CLASSIFIER = r''''A Boost classifier is a meta-estimator that begins by fitting a classifier
+		on the original dataset and then fits additional copies of the classifier on the
+		same dataset but where the weights of incorrectly classified instances are
+		adjusted such that subsequent classifiers focus more on difficult cases.
+'''
+
+BAGGING_CLASSIFIER = r''''Bagging methods form a class of algorithms which build several instances of a black-box
+		 estimator on random subsets of the original training set and then aggregate their
+		 individual predictions to form a final prediction. These methods are used as a way
+		 to reduce the variance of a base estimator (e.g., a decision tree), by introducing
+		 randomization into its construction procedure and then making an ensemble out of it.
+		 In many cases, bagging methods constitute a very simple way to improve with respect
+		 to a single model, without making it necessary to adapt the underlying base algorithm.
+		 As they provide a way to reduce overfitting, bagging methods work best with strong and
+		 complex models (e.g., fully developed decision trees), in contrast with boosting methods
+		 which usually work best with weak models (e.g., shallow decision trees).
+'''
+
+VOTING_CLASSFIER = r''''The Voting Model is to combine conceptually different machine rate
+		classifiers and use a majority vote or the average predicted probabilities (soft vote)
+		to predict the class target_names. Such a classifier can be useful for a set of equally
+		well performing model in order to balance out their individual weaknesses.
+'''
+
+STACKING_MODEL = r''''Stack of estimators with a final classifier. Stacked generalization consists in stacking
+		the output of individual estimator and use a classifier to compute the final prediction.
+		Stacking allows to use the strength of each individual estimator by using their output
+		as input of a final estimator. Note that estimators_ are fitted on the full X while
+		final_estimator_ is trained using cross-validated predictions of the base
+		estimators using cross_val_predict.
+'''
+
+SUPPORT_VECTOR_CLASSIFIER = r'''' Support Vector Classifier (SVC) is asupervised machine
+		learning algorithm used primarily for classification, though it also handles regression.
+		It works by finding an optimal "hyperplane"—a decision boundary—that maximizes the margin
+		(distance) between different data classes, which improves prediction accuracy and
+		generalization to new datais based on libsvm. The fit time scales at least quadratically
+		with the number of samples  and may be impractical beyond tens of thousands of samples.
+'''
+
+MULTILAYER_PERCEPTRON_CLASSIFIER = r'''Model optimizes the squared error using LBFGS or
+		stochastic gradient descent.
+
+		Activation function for the hidden layers:
+		- ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
+		- ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
+		- ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
+		- ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
+'''
+
+# -------- Scalers
+
+STANDARD_SCALER = r'''Standardize features by removing the mean and scaling to unit variance.
+		The standard score of a sample x is calculated as: z = ( x - u ) / s,
+		where u is the mean of the training samples or zero if with_mean=False,
+		and s is the standard deviation of the training samples or one if
+		with_std=False.
+'''
+
+MINMAX_SCALER = r'''Transform features by scaling each feature to a given range.
+		This estimator scales and translates each feature individually such
+		that it is in the given range on the training set, e.g. between zero
+		and one. This transformation is often used as an alternative to zero
+		mean, unit variance scaling.
 '''

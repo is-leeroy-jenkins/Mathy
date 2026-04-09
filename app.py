@@ -405,7 +405,7 @@ def create_visualization( df: pd.DataFrame ):
 	st.subheader( 'Visualization Engine' )
 	
 	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-	categorical_cols = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
+	categorical_columns = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
 	
 	chart = st.selectbox( 'Chart Type', [ 'Histogram', 'Bar', 'Line', 'Scatter',
 	                                      'Box', 'Pie', 'Correlation' ] )
@@ -439,7 +439,7 @@ def create_visualization( df: pd.DataFrame ):
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Pie':
-		col = st.selectbox( 'Category Column', categorical_cols )
+		col = st.selectbox( 'Category Column', categorical_columns )
 		fig = px.pie( df, names=col )
 		st.plotly_chart( fig, use_container_width=True )
 	
@@ -1206,7 +1206,7 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		if series_num.notna( ).any( ):
 			numeric_cols.append( col )
 	
-	categorical_cols: List[ str ] = [ col for col in df_plot.columns if col not in numeric_cols ]
+	categorical_columns: List[ str ] = [ col for col in df_plot.columns if col not in numeric_cols ]
 	
 	chart = st.selectbox(
 		'Chart Type',
@@ -1286,11 +1286,11 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		st.plotly_chart( fig, use_container_width=True )
 	
 	elif chart == 'Pie':
-		if not categorical_cols:
+		if not categorical_columns:
 			st.info( 'No categorical columns available.' )
 			return
 		
-		col = st.selectbox( 'Category Column', categorical_cols )
+		col = st.selectbox( 'Category Column', categorical_columns )
 		counts = df_plot[ col ].astype( str ).value_counts( )
 		
 		fig = go.Figure(
@@ -2557,10 +2557,10 @@ elif mode == 'Inferential Statistics':
 			st.info( 'No data available.' )
 			st.stop( )
 		
-		numeric_cols = st.session_state.numeric_cols
-		categorical_cols = st.session_state.categorical_cols
+		numeric_columns = st.session_state.numeric_columns
+		categorical_columns = st.session_state.categorical_columns
 		
-		if not numeric_cols:
+		if not numeric_columns:
 			st.info( 'No numeric variables available for inferential analysis.' )
 			st.stop( )
 		
@@ -2589,18 +2589,18 @@ elif mode == 'Inferential Statistics':
 		
 		sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=True )
 		with sum_r1c1:
-			summary_y = st.selectbox( 'Summary Outcome Variable', numeric_cols, key='infer_summary_y' )
+			summary_y = st.selectbox( 'Summary Outcome Variable', numeric_columns, key='infer_summary_y' )
 		
 		with sum_r1c2:
 			summary_x = st.selectbox( 'Summary Second Numeric Variable',
-				[ '<None>' ] + [ c for c in numeric_cols if c != summary_y ], key='infer_summary_x' )
+				[ '<None>' ] + [ c for c in numeric_columns if c != summary_y ], key='infer_summary_x' )
 			if summary_x == '<None>':
 				summary_x = None
 		
 		with sum_r1c3:
-			if categorical_cols:
+			if categorical_columns:
 				summary_group = st.selectbox( 'Summary Grouping Variable',
-					[ '<None>' ] + categorical_cols, key='infer_summary_group' )
+					[ '<None>' ] + categorical_columns, key='infer_summary_group' )
 				if summary_group == '<None>':
 					summary_group = None
 			else:
@@ -2609,17 +2609,17 @@ elif mode == 'Inferential Statistics':
 		
 		sum_r2c1, sum_r2c2 = st.columns( 2, border=True )
 		with sum_r2c1:
-			if len( categorical_cols ) >= 2:
+			if len( categorical_columns ) >= 2:
 				summary_cat1 = st.selectbox( 'Summary First Categorical Variable',
-					categorical_cols, key='infer_summary_cat1' )
+					categorical_columns, key='infer_summary_cat1' )
 			else:
 				summary_cat1 = None
 				st.caption( 'At least two categorical variables are required.' )
 		
 		with sum_r2c2:
-			if summary_cat1 and len( categorical_cols ) >= 2:
+			if summary_cat1 and len( categorical_columns ) >= 2:
 				summary_cat2 = st.selectbox( 'Summary Second Categorical Variable',
-					[ c for c in categorical_cols if c != summary_cat1 ],
+					[ c for c in categorical_columns if c != summary_cat1 ],
 					key='infer_summary_cat2' )
 			else:
 				summary_cat2 = None
@@ -2800,7 +2800,7 @@ elif mode == 'Inferential Statistics':
 		
 		with nml_c1:
 			st.markdown( '##### Normality Test', help=cfg.NORMALITY_TESTING )
-			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_cols )
+			col_y = st.selectbox( 'Select Numeric Outcome Variable', numeric_columns )
 			y = pd.to_numeric( df_dataset[ col_y ], errors='coerce' ).dropna( )
 			if len( y ) >= 3:
 				stat, p_value = stats.shapiro( y )
@@ -2834,9 +2834,9 @@ elif mode == 'Inferential Statistics':
 		
 		with nml_c2:
 			st.markdown( '##### Group Comparison' )
-			if categorical_cols:
+			if categorical_columns:
 				col_group = st.selectbox( 'Select Grouping Variable (optional)',
-					[ '<None>' ] + categorical_cols )
+					[ '<None>' ] + categorical_columns )
 				if col_group == '<None>':
 					col_group = None
 			
@@ -2885,7 +2885,7 @@ elif mode == 'Inferential Statistics':
 		st.markdown( '##### Correlation Analysis' )
 		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with cor_c1:
-			candidate_x = [ c for c in numeric_cols if c != col_y ]
+			candidate_x = [ c for c in numeric_columns if c != col_y ]
 			if not candidate_x:
 				st.info( 'A second numeric variable is required for correlation analysis.' )
 				col_x2 = None
@@ -2941,16 +2941,16 @@ elif mode == 'Inferential Statistics':
 		# CATEGORICAL ASSOCIATION
 		# -------------------------------------------------------------------------------------
 		st.markdown( '##### Categorical Association' )
-		if not categorical_cols or len( categorical_cols ) < 2:
+		if not categorical_columns or len( categorical_columns ) < 2:
 			st.info( 'At least two categorical variables are required for categorical association.' )
 		else:
 			cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 			with cat_c1:
-				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_cols )
+				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_columns )
 				
 			with cat_c2:
 				col_cat2 = st.selectbox( 'Select Second Categorical Variable',
-					[ c for c in categorical_cols if c != col_cat1 ] )
+					[ c for c in categorical_columns if c != col_cat1 ] )
 			
 			contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
 			
@@ -3943,12 +3943,12 @@ elif mode == 'Data Plumbing':
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_cols = st.multiselect( 'Numeric Columns', options=numeric_columns,
-						key='plumbing_column_transformer_numeric_cols' )
+					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
+						key='plumbing_column_transformer_numeric_columns' )
 					
-					categorical_cols = st.multiselect( 'Categorical Columns',
+					categorical_columns = st.multiselect( 'Categorical Columns',
 						options=categorical_columns,
-						key='plumbing_column_transformer_categorical_cols' )
+						key='plumbing_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
 						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
@@ -3972,7 +3972,7 @@ elif mode == 'Data Plumbing':
 							df_processed = get_working_frame( )
 							transformers = [ ]
 							
-							if numeric_cols and numeric_transform != 'None':
+							if numeric_columns and numeric_transform != 'None':
 								if numeric_transform == 'StandardScaler':
 									numeric_model = StandardScaler( ).model
 								elif numeric_transform == 'MinMaxScaler':
@@ -3984,9 +3984,9 @@ elif mode == 'Data Plumbing':
 								else:
 									numeric_model = Binarizer( ).model
 									
-								transformers.append( ('numeric', numeric_model, numeric_cols) )
+								transformers.append( ('numeric', numeric_model, numeric_columns) )
 							
-							if categorical_cols and categorical_transform != 'None':
+							if categorical_columns and categorical_transform != 'None':
 								if categorical_transform == 'OneHotEncoder':
 									categorical_model = OneHotEncoder(
 										sparse=False, unknown='ignore' ).model
@@ -3994,7 +3994,7 @@ elif mode == 'Data Plumbing':
 									categorical_model = OrdinalEncoder( ).model
 								
 								transformers.append( 'categorical', categorical_model,
-									categorical_cols )
+									categorical_columns )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
@@ -4750,7 +4750,7 @@ elif mode == 'Classifications':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data')
 		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
-			
+		
 		render_table( df_working )
 		
 		# ------------------------------------------------------------------
@@ -4895,7 +4895,7 @@ elif mode == 'Classifications':
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Data Imputation', icon='🛡️', key='classification_imputers' ):
+			with st.expander( label='Data Imputation', icon='➕', key='classification_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -5039,7 +5039,7 @@ elif mode == 'Classifications':
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Data Encoding', icon='🔠', key='classification_encoders' ):
+			with st.expander( label='Data Encoding', icon='🔣', key='classification_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					encode_cols = st.multiselect( 'Columns', options=features,
@@ -5194,10 +5194,10 @@ elif mode == 'Classifications':
 				
 		with feature_c2:
 			
-			with st.expander( label='Data Transformation', icon='↔️', key='classification_transformers' ):
+			with st.expander( label='Data Transformation', icon='⚡', key='classification_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
-					transform_cols = st.multiselect( 'Columns', options=numeric_columns, 
+					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
@@ -5349,12 +5349,12 @@ elif mode == 'Classifications':
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_cols = st.multiselect( 'Numeric Columns', options=numeric_columns,
-						key='classification_column_transformer_numeric_cols' )
+					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
+						key='classification_column_transformer_numeric_columns' )
 					
-					categorical_cols = st.multiselect( 'Categorical Columns',
+					categorical_columns = st.multiselect( 'Categorical Columns',
 						options=categorical_columns,
-						key='classification_column_transformer_categorical_cols' )
+						key='classification_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
 						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
@@ -5380,7 +5380,7 @@ elif mode == 'Classifications':
 							df_processed = df_working.copy( )
 							transformers = [ ]
 							
-							if numeric_cols and numeric_transform != 'None':
+							if numeric_columns and numeric_transform != 'None':
 								if numeric_transform == 'StandardScaler':
 									numeric_model = StandardScaler( ).model
 								elif numeric_transform == 'MinMaxScaler':
@@ -5392,9 +5392,9 @@ elif mode == 'Classifications':
 								else:
 									numeric_model = Binarizer( ).model
 								
-								transformers.append( ('numeric', numeric_model, numeric_cols) )
+								transformers.append( ('numeric', numeric_model, numeric_columns) )
 							
-							if categorical_cols and categorical_transform != 'None':
+							if categorical_columns and categorical_transform != 'None':
 								if categorical_transform == 'OneHotEncoder':
 									categorical_model = OneHotEncoder( sparse=False,
 										unknown='ignore' ).model
@@ -5402,7 +5402,7 @@ elif mode == 'Classifications':
 									categorical_model = OrdinalEncoder( ).model
 								
 								transformers.append( ('categorical', categorical_model,
-								                      categorical_cols) )
+								                      categorical_columns) )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
@@ -5423,6 +5423,8 @@ elif mode == 'Classifications':
 							working_to_original( )
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
 				
 				with st.expander( 'TFIDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
@@ -5608,7 +5610,7 @@ elif mode == 'Classifications':
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Feature Selection', icon='🔍', key='classification_selectors' ):
+			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='classification_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -5896,7 +5898,6 @@ elif mode == 'Classifications':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		
 		st.data_editor( df_processed )
 		
 		# ------------------------------------------------------------------
@@ -5918,20 +5919,25 @@ elif mode == 'Classifications':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Selection & Configuration' )
+		
+		
 		mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with mdl_c1:
 			model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
 			model = model_map[ model_name ]( )
 		
 		with mdl_c2:
-			test_sz = st.slider( 'Test set size (%)', 10, 30, 20, key='classifications-1' ) / 100.0
+			test_sz = st.slider( 'Test Set Size (%)', 10, 30, 20, key='classifications-1' ) / 100.0
 		
 		with mdl_c3:
-			random_state = st.number_input( 'Random state', value=42, step=1,
+			random_state = st.number_input( 'Random State', value=42, step=1,
 				key='classifications-2' )
+		
 		
 		if st.button( '🚀 Train Classifier' ):
 			try:
+				X = df_processed[ features ].to_numpy( )
+				y = df_processed[ targets ].to_numpy( dtype=float )
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
 					random=random_state )
 				
@@ -5965,13 +5971,9 @@ elif mode == 'Classifications':
 				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
 				pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
 				df_counts = pd.DataFrame(
-					{
-							'Actual': actual_counts,
-							'Predicted': pred_counts
-					}
-				).fillna( 0 )
+					{ 'Actual': actual_counts, 'Predicted': pred_counts } ).fillna( 0 )
 				
-				fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
+				fig_counts, ax_counts = plt.subplots( figsize=( 8, 5 ) )
 				df_counts.plot( kind='bar', ax=ax_counts )
 				ax_counts.set_xlabel( 'Class' )
 				ax_counts.set_ylabel( 'Count' )
@@ -5986,15 +5988,10 @@ elif mode == 'Classifications':
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Per-Class Accuracy' )
-				df_eval = pd.DataFrame(
-					{
-							'Actual': y_test,
-							'Predicted': y_pred
-					}
-				)
+				df_eval = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_pred } )
 				df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
-				df_class_acc = df_eval.groupby( 'Actual', dropna=False )[
-					'Correct' ].mean( ).sort_index( )
+				df_class_acc = df_eval.groupby(
+					'Actual', dropna=False )[ 'Correct' ].mean( ).sort_index( )
 				
 				fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
 				ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
@@ -6017,7 +6014,6 @@ elif mode == 'Classifications':
 							1 ] > 1:
 							st.subheader( 'Prediction Confidence' )
 							max_conf = np.max( proba, axis=1 )
-							
 							fig_conf, ax_conf = plt.subplots( figsize=(8, 5) )
 							ax_conf.hist( max_conf, bins=20 )
 							ax_conf.set_xlabel( 'Maximum Predicted Probability' )
@@ -6045,7 +6041,7 @@ elif mode == 'Classifications':
 						st.info( f'Observed vs Predicted plot skipped: {e}' )
 						plt.close( 'all' )
 				else:
-					st.info( 'Observed vs Predicted is shown only when the target has two or fewer classes.' )
+					st.info( 'Observed vs Predicted is shown only when the target has < 2 classes.' )
 				
 				# ------------------------------------------------------------------
 				# ROC CURVE
@@ -6059,13 +6055,13 @@ elif mode == 'Classifications':
 						st.pyplot( plt.gcf( ) )
 						plt.close( 'all' )
 					except Exception as e:
-						st.info( f'ROC curve skipped: {e}' )
+						st.info( f'ROC Curve Skipped: {e}' )
 						plt.close( 'all' )
 				else:
 					st.info( 'ROC curve is available only for binary classification targets.' )
 			
 			except Exception as e:
-				st.error( f'Classification failed: {e}' )
+				st.error( f'Classification Failed: {e}' )
 
 # ============================================
 # REGRESSION MODE
@@ -6075,7 +6071,7 @@ elif mode == 'Regressions':
 	df_dataset = st.session_state.get( 'df_dataset', None )
 	df_working = st.session_state.get( 'df_working', None )
 	df_processed = st.session_state.get( 'df_processed', None )
-	df_regression = st.session_state.get( 'df_regression', None )
+	df_classification = st.session_state.get( 'df_classification', None )
 	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
@@ -6085,176 +6081,163 @@ elif mode == 'Regressions':
 	with center:
 		st.subheader( cfg.MODE[ 'Regressions' ] )
 		st.divider( )
-		df_dataset = st.session_state.get( 'df_dataset', None )
-		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
 		
 		if df_dataset is None or df_dataset.empty:
-			st.warning( '⚠️ No Dataset Loaded.' )
+			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		if not numeric_cols:
-			st.warning( '⚠️ No numeric columns available for regression.' )
+		df_original = df_dataset.copy( )
+		st.session_state[ 'df_original' ] = df_original.copy( )
+		numeric_columns = [ c for c in df_original.columns
+		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
+		
+		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
+		
+		if not numeric_columns or not categorical_columns:
+			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
 			st.stop( )
+		
+		df_regression = st.session_state.get( 'df_regression', df_original.copy( ) ).copy( )
 		
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
-		st.markdown( '##### Feature Selection' )
+		st.markdown( '##### Data Selection' )
+		st.caption( f'Records: {len( df_original ):,}  |  Features: {len( df_original.columns ):,}' )
+		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-		features = st.session_state.get( 'features', [ ] )
-		targets = st.session_state.get( 'targets', [ ] )
 		with col_c1:
-			selected_features = st.multiselect( 'Select Features',
-				options=df_original.columns.tolist( ),
-				default=st.session_state.get( 'features', [ ] ),
-				key='plumbing_select_features' )
+			features = st.multiselect( 'Select Features', options=categorical_columns,
+				default=[ c for c in st.session_state.get( 'features', [ ] )
+				          if c in numeric_columns ], key='regression_features' )
 		
 		with col_c2:
-			selected_target_options = [ c for c in df_original.columns
-			                            if c not in selected_features ]
-			
-			selected_targets = st.multiselect( 'Select Targets', options=selected_target_options,
-				default=st.session_state.get( 'targets', [ ] ),
-				key='plumbing_select_targets' )
+			target_options = [ c for c in numeric_columns if c not in features ]
+			targets = st.multiselect( 'Select Targets', options=target_options,
+				default=[ c for c in st.session_state.get( 'targets', [ ] )
+				          if c in target_options ], key='regression_targets' )
 		
 		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
 		with sel_b1:
-			if st.button( 'Create Working Dataset', key='plumbing_create_dataset',
+			if st.button( 'Create Working Dataset', key='regression_create_dataset',
 					use_container_width=True ):
-				
-				selected_all = selected_features + [ c for c in targets if c not in features ]
-				
+				selected_all = features + [ c for c in targets if c not in features ]
 				if selected_all:
 					df_working = df_original[ selected_all ].copy( )
+					st.session_state[ 'df_working' ] = df_working
 				else:
 					df_working = df_original.copy( )
+					st.session_state[ 'df_working' ] = df_working
 				
-				st.session_state[ 'features' ] = selected_features.copy( )
-				st.session_state[ 'targets' ] = selected_targets.copy( )
-				st.session_state[ 'df_working' ] = df_working.copy( )
+				st.session_state[ 'features' ] = features.copy( )
+				st.session_state[ 'targets' ] = targets.copy( )
+				st.session_state[ 'df_processed' ] = df_working.copy( )
+				df_processed = pd.DataFrame( )
+				
 				commit_frame( df_working )
 				st.success( 'Working dataframe created.' )
 		
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', key='regression_reset_working_dataset',
 					use_container_width=True ):
-				
-				df_working = st.session_state.get( 'df_working' )
-				if df_working is None or df_working.empty:
-					df_working = st.session_state[ 'df_original' ].copy( )
-				commit_frame( df_working.copy( ) )
+				st.session_state[ 'df_working' ] = df_working.copy( )
+				commit_frame( df_working )
 				st.success( 'Working dataframe reset.' )
 		
 		with sel_b3:
-			if st.button( 'Reset To Original', key='plumbing_reset_to_original',
+			if st.button( 'Reset To Original', key='regression_reset_to_original',
 					use_container_width=True ):
+				df_original = df_dataset.copy( )
+				df_working = df_original.copy( )
+				df_processed = pd.DataFrame( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
-				working_to_original( )
-				st.success( 'Reset back to Original.' )
+				st.session_state[ 'df_working' ] = df_working.copy( )
+				st.session_state[ 'df_processed' ] = df_processed.copy( )
+				commit_frame( df_working )
+				st.success( 'Reset to Original' )
 		
-		df_working = get_working_frame( )
-		numeric_columns = get_numeric_columns( df_working )
-		categorical_columns = get_categorical_columns( df_working )
-		st.caption( f'Rows: {len( df_working ):,} | Columns: {len( df_working.columns ):,}' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Working Data' )
+		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
+		
+		render_table( df_working )
 		
 		# ------------------------------------------------------------------
-		# DATASET PREPARATION
+		# Training Target & Features
 		# ------------------------------------------------------------------
-		df_regression = df_dataset[ selected_features + [ selected_targets ] ].copy( )
-		df_regression = df_regression.replace( [ np.inf, -np.inf ], np.nan )
-		df_regression = df_regression.apply( pd.to_numeric, errors='coerce' )
-		rows_before = len( df_regression )
-		df_regression = df_regression.dropna( axis=0, how='any' )
-		rows_after = len( df_regression )
-		
-		if rows_after == 0:
-			st.warning( '⚠️ No complete numeric rows remain after removing missing or invalid values.' )
+		if df_working.empty:
+			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
 			st.stop( )
 		
-		if rows_after < 5:
-			st.warning( '⚠️ Regression requires at least 5 complete rows after cleaning.' )
-			st.stop( )
+		y = df_working[ targets ]
 		
-		if rows_after != rows_before:
-			st.info(
-				f'Using {rows_after:,} complete rows after removing {rows_before - rows_after:,} '
-				f'row(s) with missing or invalid values.' )
-		
-		if df_regression[ targets ].nunique( dropna=True ) < 2:
+		if len( np.unique( y ) ) < 2:
 			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
 			st.stop( )
-		
-		X = df_regression[ features ].to_numpy( )
-		y = df_regression[ targets ].to_numpy( dtype=float )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
 		# -----------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Data Transformations' )
+		st.markdown( '##### Feature Engineering' )
+		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
-			with st.expander( label='Data Scaling', key='scalers' ):
+			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
-					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_standard_scaler_cols' )
+					scale_cols = st.multiselect( 'Columns', options=targets,
+						key='regression_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_standard_scaler_apply',
+						if st.button( 'Apply', key='regression_standard_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = get_working_frame( )
 								scaler = StandardScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
-								commit_frame( df_processed )
-								st.success( 'StandardScaler applied.' )
+								st.success( 'Standard Scaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_standard_scaler_reset',
+						if st.button( 'Reset', key='regression_standard_scaler_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							df_processed = pd.DataFrame( )
+							st.success( 'Reset to Working Dataset.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_minmax_scaler_cols' )
+						key='regression_minmax_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_minmax_scaler_apply',
+						if st.button( 'Apply', key='regression_minmax_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = get_working_frame( )
 								scaler = MinMaxScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
 								commit_frame( df_processed )
-								st.success( 'MinMaxScaler applied.' )
+								st.success( 'Min-Max Scaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_minmax_scaler_reset',
+						if st.button( 'Reset', key='regression_minmax_scaler_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_robust_scaler_cols' )
+						key='regression_robust_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_robust_scaler_apply',
+						if st.button( 'Apply', key='regression_robust_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = get_working_frame( )
 								scaler = RobustScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -6263,25 +6246,23 @@ elif mode == 'Regressions':
 								st.success( 'RobustScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_robust_scaler_reset',
+						if st.button( 'Reset', key='regression_robust_scaler_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_normal_scaler_cols' )
+						key='regression_normal_scaler_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
-						index=1, key='plumbing_normal_scaler_norm' )
+						index=1, key='regression_normal_scaler_norm' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_normal_scaler_apply',
+						if st.button( 'Apply', key='regression_normal_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = get_working_frame( )
 								scaler = NormalScaler( norm=norm )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -6291,21 +6272,20 @@ elif mode == 'Regressions':
 								st.success( 'NormalScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_normal_scaler_reset',
+						if st.button( 'Reset', key='regression_normal_scaler_reset',
 								use_container_width=True ):
-							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_maxabs_scaler_cols' )
+						key='regression_maxabs_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_maxabs_scaler_apply',
+						if st.button( 'Apply', key='regression_maxabs_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
-								df_processed = get_working_frame( )
 								scaler = MaxAbsScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
@@ -6314,53 +6294,52 @@ elif mode == 'Regressions':
 								st.success( 'MaxAbsScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_maxabs_scaler_reset', use_container_width=True ):
-							working_to_original( )
+						if st.button( 'Reset', key='regression_maxabs_scaler_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Data Imputation', key='imputers' ):
+			with st.expander( label='Data Imputation', icon='➕', key='regression_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_mean_imputer_cols' )
+						key='regression_mean_imputer_cols' )
 					
 					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
-						key='plumbing_mean_imputer_indicator' )
+						key='regression_mean_imputer_indicator' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_mean_imputer_apply',
+						if st.button( 'Apply', key='regression_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = get_working_frame( )
 								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'mean_imputer' )
+								
 								commit_frame( df_processed )
 								st.success( 'MeanImputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_mean_imputer_reset',
+						if st.button( 'Reset', key='regression_mean_imputer_reset',
 								use_container_width=True ):
-							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_nearest_imputer_cols' )
+						key='regression_nearest_imputer_cols' )
 					
 					neighbors = st.number_input( 'Neighbors', min_value=1,
-						value=5, step=1, key='plumbing_nearest_imputer_neighbors' )
+						value=5, step=1, key='regression_nearest_imputer_neighbors' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_nearest_imputer_apply',
+						if st.button( 'Apply', key='regression_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = get_working_frame( )
 								imputer = NearestImputer( neighbors=int( neighbors ) )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
@@ -6371,26 +6350,27 @@ elif mode == 'Regressions':
 								st.success( 'Nearest Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_nearest_imputer_reset', use_container_width=True ):
-							working_to_original( )
+						if st.button( 'Reset', key='regression_nearest_imputer_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_iterative_imputer_cols' )
+						key='regression_iterative_imputer_cols' )
 					
 					max_iter = st.number_input( 'Max Iterations', min_value=1,
-						value=10, step=1, key='plumbing_iterative_imputer_max_iter' )
+						value=10, step=1, key='regression_iterative_imputer_max_iter' )
 					
 					random_state = st.number_input( 'Random State', min_value=0,
-						value=0, step=1, key='plumbing_iterative_imputer_random_state' )
+						value=0, step=1, key='regression_iterative_imputer_random_state' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Iterative Imputer', key='plumbing_iterative_imputer_apply',
+						if st.button( 'Apply Iterative Imputer',
+								key='regression_iterative_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = get_working_frame( )
 								imputer = IterativeImputer( max_iter=int( max_iter ),
 									random_state=int( random_state ) )
 								result = imputer.train_transform(
@@ -6401,35 +6381,34 @@ elif mode == 'Regressions':
 								st.success( 'Iterative Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_iterative_imputer_reset',
+						if st.button( 'Reset', key='regression_iterative_imputer_reset',
 								use_container_width=True ):
-							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					impute_cols = st.multiselect( 'Columns', options=df_working.columns.tolist( ),
-						key='plumbing_simple_imputer_cols' )
+					impute_cols = st.multiselect( 'Columns',
+						options=numeric_columns,
+						key='regression_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
 						options=[ 'mean', 'median', 'most_frequent', 'constant' ],
-						key='plumbing_simple_imputer_strategy' )
+						key='regression_simple_imputer_strategy' )
 					
 					fill_value = st.text_input( 'Fill Value', value='0.0',
-						key='plumbing_simple_imputer_fill_value' )
+						key='regression_simple_imputer_fill_value' )
 					
 					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
-						key='plumbing_simple_imputer_indicator' )
+						key='regression_simple_imputer_indicator' )
 					
 					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
-						key='plumbing_simple_imputer_keep_empty' )
+						key='regression_simple_imputer_keep_empty' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply SimpleImputer', key='plumbing_simple_imputer_apply',
+						if st.button( 'Apply SimpleImputer', key='regression_simpleimputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								df_processed = get_working_frame( )
 								if strategy in [ 'mean', 'median' ]:
 									df_input = df_processed[ impute_cols ].apply(
 										pd.to_numeric, errors='coerce' )
@@ -6442,38 +6421,40 @@ elif mode == 'Regressions':
 									fill_object = fill_value
 								
 								imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
-									add_indicator=add_indicator, keep_empty_features=keep_empty_features )
+									add_indicator=add_indicator,
+									keep_empty_features=keep_empty_features )
 								
 								result = imputer.train_transform( df_input.to_numpy( ) )
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'simple_imputer' )
+								
 								commit_frame( df_processed )
 								st.success( 'Simple Imputer Applied' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_simple_imputer_reset',
+						if st.button( 'Reset', key='regression_simple_imputer_reset',
 								use_container_width=True ):
-							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Data Encoding', key='encoders' ):
+			with st.expander( label='Data Encoding', icon='🔢', key='regression_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
-						key='plumbing_onehot_cols' )
+					encode_cols = st.multiselect( 'Columns', options=features,
+						key='regression_onehot_cols' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=False,
-						key='plumbing_onehot_sparse' )
+						key='regression_onehot_sparse' )
 					
 					unknown = st.selectbox( 'Unknown Category Handling',
 						options=[ 'ignore', 'error' ], index=0,
-						key='plumbing_onehot_unknown' )
+						key='regression_onehot_unknown' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_onehot_apply', use_container_width=True ):
+						if st.button( 'Apply', key='regression_onehot_apply',
+								use_container_width=True ):
 							if encode_cols:
-								df_processed = get_working_frame( )
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
@@ -6484,20 +6465,20 @@ elif mode == 'Regressions':
 								st.success( 'OneHotEncoder applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_onehot_reset', use_container_width=True ):
-							working_to_original( )
+						if st.button( 'Reset', key='regression_onehot_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
-						key='plumbing_ordinal_cols' )
+						key='regression_ordinal_cols' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_ordinal_apply', use_container_width=True ):
+						if st.button( 'Apply', key='regression_ordinal_apply',
+								use_container_width=True ):
 							if encode_cols:
-								df_processed = get_working_frame( )
 								encoder = OrdinalEncoder( )
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
@@ -6506,20 +6487,21 @@ elif mode == 'Regressions':
 								st.success( 'Ordinal Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_ordinal_reset', use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+						if st.button( 'Reset', key='regression_ordinal_reset',
+								use_container_width=True ):
+							df_processed = pd.DataFrame( )
+							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
-						key='plumbing_label_encoder_col' )
+					target_col = st.selectbox( 'Column',
+						options=categorical_columns,
+						key='regression_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_label_encoder_apply',
+						if st.button( 'Apply', key='regression_label_encoder_apply',
 								use_container_width=True ):
 							if target_col:
-								df_processed = get_working_frame( )
 								encoder = LabelEncoder( )
 								result = encoder.train_transform(
 									df_processed[ target_col ].astype( str ).to_numpy( ) )
@@ -6529,87 +6511,93 @@ elif mode == 'Regressions':
 								st.success( 'Label Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_label_encoder_reset',
+						if st.button( 'Reset', key='regression_label_encoder_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
-						options=categorical_columns, key='plumbing_target_encoder_cols' )
+						options=categorical_columns, key='regression_target_encoder_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=targets,
-						key='plumbing_target_encoder_target_col' )
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+						key='regression_target_encoder_target_col' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_target_encoder_apply',
+						if st.button( 'Apply', key='regression_target_encoder_apply',
 								use_container_width=True ):
 							if encode_cols and target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								encoder = TargetEncoder( )
-								X = df_processed[ encode_cols ].astype( str ).to_numpy( )
-								y = df_processed[ target_col ].to_numpy( )
-								result = encoder.train_transform( X, y )
+								X_enc = df_processed[ encode_cols ].astype( str ).to_numpy( )
+								y_enc = df_processed[ target_col ].to_numpy( )
+								result = encoder.train_transform( X_enc, y_enc )
+								
 								df_processed = replace_columns( df_processed, encode_cols, result,
 									'target_encoder' )
+								
 								commit_frame( df_processed )
 								st.success( 'Target Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_target_encoder_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_target_encoder_reset',
+								use_container_width=True ):
 							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_polynomial_cols' )
+						key='regression_polynomial_cols' )
 					
 					degree = st.slider( 'Degree', min_value=2, max_value=4,
-						value=2, key='plumbing_polynomial_degree' )
+						value=2, key='regression_polynomial_degree' )
 					
 					interaction = st.checkbox( 'Interaction Only', value=True,
-						key='plumbing_polynomial_interaction' )
+						key='regression_polynomial_interaction' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_polynomial_apply',
+						if st.button( 'Apply', key='regression_polynomial_apply',
 								use_container_width=True ):
 							if poly_cols:
-								df_processed = get_working_frame( )
-								encoder = PolynomialFeatures(
-									degree=int( degree ),
+								df_processed = df_working.copy( )
+								
+								encoder = PolynomialFeatures( degree=int( degree ),
 									interaction=bool( interaction ) )
 								
 								result = encoder.train_transform(
 									df_processed[ poly_cols ].to_numpy( ) )
+								
 								df_processed = replace_columns( df_processed, poly_cols, result,
 									'polynomial' )
+								
 								commit_frame( df_processed )
 								st.success( 'PolynomialFeatures applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_polynomial_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_polynomial_reset',
+								use_container_width=True ):
 							working_to_original( )
+							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 		
 		with feature_c2:
-			with st.expander( label='Data Transformation', key='transformers' ):
+			
+			with st.expander( label='Data Transformation', icon='⚡', key='transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
 					transform_cols = st.multiselect( 'Columns',
-						options=numeric_columns, key='plumbing_binarizer_cols' )
+						options=numeric_columns, key='regression_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
-						key='plumbing_binarizer_threshold' )
+						key='regression_binarizer_threshold' )
 					
-					copy = st.checkbox( 'Copy', value=True, key='plumbing_binarizer_copy' )
+					copy = st.checkbox( 'Copy', value=True, key='regression_binarizer_copy' )
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Binarizer', key='plumbing_binarizer_apply',
+						if st.button( 'Apply Binarizer', key='regression_binarizer_apply',
 								use_container_width=True ):
 							if transform_cols:
 								df_processed = get_working_frame( )
@@ -6623,27 +6611,26 @@ elif mode == 'Regressions':
 								st.success( 'Binarizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_binarizer_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_binarizer_reset', use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
-						key='plumbing_label_binarizer_col' )
+						key='regression_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
-						key='plumbing_label_binarizer_pos' )
+						key='regression_label_binarizer_pos' )
 					
 					neg_label = st.number_input( 'Negative Label', value=0, step=1,
-						key='plumbing_label_binarizer_neg' )
+						key='regression_label_binarizer_neg' )
 					
 					sparse_output = st.checkbox( 'Sparse Output', value=False,
-						key='plumbing_label_binarizer_sparse' )
+						key='regression_label_binarizer_sparse' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply LabelBinarizer', key='plumbing_label_binarizer_apply',
+						if st.button( 'Apply LabelBinarizer', key='regression_label_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = get_working_frame( )
@@ -6658,24 +6645,24 @@ elif mode == 'Regressions':
 								st.success( 'Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_label_binarizer_reset',
+						if st.button( 'Reset', key='regression_label_binarizer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
-						key='plumbing_multilabel_binarizer_col' )
+						key='regression_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
-						key='plumbing_multilabel_binarizer_delimiter' )
+						key='regression_multilabel_binarizer_delimiter' )
 					
 					sparse_output = st.checkbox( 'Sparse Output', value=False,
-						key='plumbing_multilabel_binarizer_sparse' )
+						key='regression_multilabel_binarizer_sparse' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_multilabel_binarizer_apply',
+						if st.button( 'Apply', key='regression_multilabel_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = get_working_frame( )
@@ -6693,30 +6680,30 @@ elif mode == 'Regressions':
 								st.success( 'Multi-Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_multilabel_binarizer_reset',
+						if st.button( 'Reset', key='regression_multilabel_binarizer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'TFIDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=df_working.column.to_list( ), key='plumbing_tfidf_transformer_cols' )
+						options=df_working.columns.to_list( ), key='regression_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
-						index=1, key='plumbing_tfidf_transformer_norm' )
+						index=1, key='regression_tfidf_transformer_norm' )
 					
 					use_idf = st.checkbox( 'Use IDF', value=True,
-						key='plumbing_tfidf_transformer_use_idf' )
+						key='regression_tfidf_transformer_use_idf' )
 					
 					smooth_idf = st.checkbox( 'Smooth IDF', value=True,
-						key='plumbing_tfidf_transformer_smooth_idf' )
+						key='regression_tfidf_transformer_smooth_idf' )
 					
 					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
-						key='plumbing_tfidf_transformer_sublinear' )
+						key='regression_tfidf_transformer_sublinear' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_tfidf_transformer_apply',
+						if st.button( 'Apply', key='regression_tfidf_transformer_apply',
 								use_container_width=True ):
 							if text_count_cols:
 								df_processed = get_working_frame( )
@@ -6734,42 +6721,42 @@ elif mode == 'Regressions':
 								st.success( 'TFIDF Transformer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_tfidf_transformer_reset',
+						if st.button( 'Reset', key='regression_tfidf_transformer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_cols = st.multiselect( 'Numeric Columns', options=df_working.column.to_list(),
-						key='plumbing_column_transformer_numeric_cols' )
+					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns.to_list(),
+						key='regression_column_transformer_numeric_columns' )
 					
-					categorical_cols = st.multiselect( 'Categorical Columns',
+					categorical_columns = st.multiselect( 'Categorical Columns',
 						options=categorical_columns,
-						key='plumbing_column_transformer_categorical_cols' )
+						key='regression_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
 						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
 						          'MaxAbsScaler', 'Binarizer', 'None' ],
-						key='plumbing_column_transformer_numeric_transform' )
+						key='regression_column_transformer_numeric_transform' )
 					
 					categorical_transform = st.selectbox( 'Categorical Transformer',
 						options=[ 'OneHotEncoder', 'OrdinalEncoder', 'None' ],
-						key='plumbing_column_transformer_categorical_transform' )
+						key='regression_column_transformer_categorical_transform' )
 					
 					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
-						key='plumbing_column_transformer_remainder' )
+						key='regression_column_transformer_remainder' )
 					
 					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
-						value=0.3, key='plumbing_column_transformer_sparse_threshold' )
+						value=0.3, key='regression_column_transformer_sparse_threshold' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Column Transformer', key='plumbing_column_transformer_apply',
+						if st.button( 'Apply Column Transformer', key='regression_column_transformer_apply',
 								use_container_width=True ):
 							df_processed = get_working_frame( )
 							transformers = [ ]
 							
-							if numeric_cols and numeric_transform != 'None':
+							if numeric_columns and numeric_transform != 'None':
 								if numeric_transform == 'StandardScaler':
 									numeric_model = StandardScaler( ).model
 								elif numeric_transform == 'MinMaxScaler':
@@ -6781,9 +6768,9 @@ elif mode == 'Regressions':
 								else:
 									numeric_model = Binarizer( ).model
 								
-								transformers.append( ('numeric', numeric_model, numeric_cols) )
+								transformers.append( ('numeric', numeric_model, numeric_columns) )
 							
-							if categorical_cols and categorical_transform != 'None':
+							if categorical_columns and categorical_transform != 'None':
 								if categorical_transform == 'OneHotEncoder':
 									categorical_model = OneHotEncoder(
 										sparse=False, unknown='ignore' ).model
@@ -6791,7 +6778,7 @@ elif mode == 'Regressions':
 									categorical_model = OrdinalEncoder( ).model
 								
 								transformers.append( 'categorical', categorical_model,
-									categorical_cols )
+									categorical_columns )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
@@ -6806,27 +6793,29 @@ elif mode == 'Regressions':
 								st.success( 'ColumnTransformer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_column_transformer_reset',
+						if st.button( 'Reset', key='regression_column_transformer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Feature Extration', icon='⛏️', key='regression_extractors' ):
 				
 				with st.expander( 'TFIDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
-						key='plumbing_tfidf_vectorizer_cols' )
+						key='regression_tfidf_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
-						key='plumbing_tfidf_vectorizer_ngram_max' )
+						key='regression_tfidf_vectorizer_ngram_max' )
 					
 					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
-						key='plumbing_tfidf_vectorizer_max_features' )
+						key='regression_tfidf_vectorizer_max_features' )
 					
 					use_idf = st.checkbox( 'Use IDF', value=True,
-						key='plumbing_tfidf_vectorizer_use_idf' )
+						key='regression_tfidf_vectorizer_use_idf' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_tfidf_vectorizer_apply',
+						if st.button( 'Apply', key='regression_tfidf_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = get_working_frame( )
@@ -6841,28 +6830,27 @@ elif mode == 'Regressions':
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_tfidf_vectorizer_reset',
+						if st.button( 'Reset', key='regression_tfidf_vectorizer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
-						key='plumbing_count_vectorizer_cols' )
+						key='regression_count_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
-						key='plumbing_count_vectorizer_ngram_max' )
+						key='regression_count_vectorizer_ngram_max' )
 					
 					max_features = st.number_input( 'Max Features', min_value=0, value=0,
-						step=1, key='plumbing_count_vectorizer_max_features' )
+						step=1, key='regression_count_vectorizer_max_features' )
 					
 					binary = st.checkbox( 'Binary Counts', value=False,
-						key='plumbing_count_vectorizer_binary' )
+						key='regression_count_vectorizer_binary' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_count_vectorizer_apply',
+						if st.button( 'Apply', key='regression_count_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = get_working_frame( )
@@ -6876,30 +6864,30 @@ elif mode == 'Regressions':
 								st.success( 'Count Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_count_vectorizer_reset',
+						if st.button( 'Reset', key='regression_count_vectorizer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
-						key='plumbing_hash_vectorizer_cols' )
+						key='regression_hash_vectorizer_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
-						step=8, key='plumbing_hash_vectorizer_n_features' )
+						step=8, key='regression_hash_vectorizer_n_features' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
-						value=1, key='plumbing_hash_vectorizer_ngram_max' )
+						value=1, key='regression_hash_vectorizer_ngram_max' )
 					
 					binary = st.checkbox( 'Binary', value=False,
-						key='plumbing_hash_vectorizer_binary' )
+						key='regression_hash_vectorizer_binary' )
 					
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
-						key='plumbing_hash_vectorizer_alternate_sign' )
+						key='regression_hash_vectorizer_alternate_sign' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_hash_vectorizer_apply',
+						if st.button( 'Apply', key='regression_hash_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = get_working_frame( )
@@ -6913,27 +6901,27 @@ elif mode == 'Regressions':
 								st.success( 'HashVectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_hash_vectorizer_reset',
+						if st.button( 'Reset', key='regression_hash_vectorizer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
 					dict_cols = st.multiselect( 'Columns', options=categorical_columns,
-						key='plumbing_dict_vectorizer_cols' )
+						key='regression_dict_vectorizer_cols' )
 					
 					separator = st.text_input( 'Separator', value='=',
-						key='plumbing_dict_vectorizer_separator' )
+						key='regression_dict_vectorizer_separator' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=True,
-						key='plumbing_dict_vectorizer_sparse' )
+						key='regression_dict_vectorizer_sparse' )
 					
 					sort = st.checkbox( 'Sort Feature Names', value=True,
-						key='plumbing_dict_vectorizer_sort' )
+						key='regression_dict_vectorizer_sort' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_dict_vectorizer_apply',
+						if st.button( 'Apply', key='regression_dict_vectorizer_apply',
 								use_container_width=True ):
 							if dict_cols:
 								df_processed = get_working_frame( )
@@ -6947,25 +6935,25 @@ elif mode == 'Regressions':
 								st.success( 'DictVectorizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_dict_vectorizer_reset',
+						if st.button( 'Reset', key='regression_dict_vectorizer_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
 					hash_cols = st.multiselect( 'Columns', options=categorical_columns,
-						key='plumbing_feature_hasher_cols' )
+						key='regression_feature_hasher_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
-						step=8, key='plumbing_feature_hasher_n_features' )
+						step=8, key='regression_feature_hasher_n_features' )
 					
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
-						key='plumbing_feature_hasher_alternate_sign' )
+						key='regression_feature_hasher_alternate_sign' )
 					
 					a1, a2 = st.columns( 2 )
 					
 					with a1:
-						if st.button( 'Apply', key='plumbing_feature_hasher_apply',
+						if st.button( 'Apply', key='regression_feature_hasher_apply',
 								use_container_width=True ):
 							if hash_cols:
 								df_processed = get_working_frame( )
@@ -6979,23 +6967,23 @@ elif mode == 'Regressions':
 								st.success( 'FeatureHasher applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_feature_hasher_reset',
+						if st.button( 'Reset', key='regression_feature_hasher_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Feature Selection', key='selectors' ):
+			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=df_working.columns.to_list( ),
-						key='plumbing_variance_threshold_cols' )
+						key='regression_variance_threshold_cols' )
 					
 					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
-						step=0.01, key='plumbing_variance_threshold_value' )
+						step=0.01, key='regression_variance_threshold_value' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_variance_threshold_apply',
+						if st.button( 'Apply', key='regression_variance_threshold_apply',
 								use_container_width=True ):
 							if select_cols:
 								df_processed = get_working_frame( )
@@ -7010,30 +6998,30 @@ elif mode == 'Regressions':
 								st.success( 'VarianceThreshold applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_variance_threshold_reset',
+						if st.button( 'Reset', key='regression_variance_threshold_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
 					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
-						key='plumbing_cca_x_cols' )
+						key='regression_cca_x_cols' )
 					
 					y_cols = st.multiselect( 'Target Columns', options=numeric_columns,
-						key='plumbing_cca_y_cols' )
+						key='regression_cca_y_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='plumbing_cca_components' )
+						step=1, key='regression_cca_components' )
 					
-					scale = st.checkbox( 'Scale', value=True, key='plumbing_cca_scale' )
+					scale = st.checkbox( 'Scale', value=True, key='regression_cca_scale' )
 					
 					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
-						step=1, key='plumbing_cca_max_iter' )
+						step=1, key='regression_cca_max_iter' )
 					
 					a1, a2 = st.columns( 2 )
 					
 					with a1:
-						if st.button( 'Apply', key='plumbing_cca_apply', use_container_width=True ):
+						if st.button( 'Apply', key='regression_cca_apply', use_container_width=True ):
 							if X_cols and y_cols:
 								df_processed = get_working_frame( )
 								selector = CCA( num=int( n_components ), scale=bool( scale ),
@@ -7052,24 +7040,24 @@ elif mode == 'Regressions':
 								st.success( 'CCA Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_cca_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_cca_reset', use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
-						key='plumbing_pca_cols' )
+						key='regression_pca_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='plumbing_pca_components' )
+						step=1, key='regression_pca_components' )
 					
 					solver = st.selectbox( 'SVD Solver',
 						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
-						key='plumbing_pca_solver' )
+						key='regression_pca_solver' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='plumbing_pca_apply', use_container_width=True ):
+						if st.button( 'Apply', key='regression_pca_apply', use_container_width=True ):
 							if select_cols:
 								df_processed = get_working_frame( )
 								selector = PCA( num=int( n_components ),
@@ -7078,33 +7066,34 @@ elif mode == 'Regressions':
 								result = selector.train_transform(
 									df_processed[ select_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
+								df_processed = replace_columns( df_processed, select_cols,
+									result, 'pca' )
+								
 								commit_frame( df_processed )
 								st.success( 'PCA applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_pca_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_pca_reset', use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns',
-						options=numeric_columns, key='plumbing_selectbest_x_cols' )
+						options=numeric_columns, key='regression_selectbest_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column', options=numeric_columns,
-						key='plumbing_selectbest_target_col' )
+						key='regression_selectbest_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-						          'mutual_info_regression' ], key='plumbing_selectbest_score_name' )
+						          'mutual_info_regression' ], key='regression_selectbest_score_name' )
 					
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
-						key='plumbing_selectbest_k' )
+						key='regression_selectbest_k' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_selectbest_apply',
+						if st.button( 'Apply', key='regression_selectbest_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = get_working_frame( )
@@ -7117,36 +7106,37 @@ elif mode == 'Regressions':
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'select_best' )
+								
 								commit_frame( df_processed )
 								st.success( 'Select Best Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_selectbest_reset',
+						if st.button( 'Reset', key='regression_selectbest_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns',
-						options=numeric_columns, key='plumbing_selectpercent_x_cols' )
+						options=numeric_columns, key='regression_selectpercent_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column',
 						options=df_working.columns.tolist( ),
-						key='plumbing_selectpercent_target_col' )
+						key='regression_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression',
 						          'mutual_info_classif', 'mutual_info_regression' ],
-						key='plumbing_selectpercent_score_name' )
+						key='regression_selectpercent_score_name' )
 					
 					percentile = st.slider( 'Percentile', min_value=1, max_value=100,
-						value=10, key='plumbing_selectpercent_percentile' )
+						value=10, key='regression_selectpercent_percentile' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply SelectPercent', key='plumbing_selectpercent_apply',
+						if st.button( 'Apply SelectPercent', key='regression_selectpercent_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = get_working_frame( )
@@ -7159,36 +7149,37 @@ elif mode == 'Regressions':
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'select_percent' )
+								
 								commit_frame( df_processed )
 								st.success( 'SelectPercent applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_selectpercent_reset',
+						if st.button( 'Reset', key='regression_selectpercent_reset',
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
-						key='plumbing_sbs_x_cols' )
+						key='regression_sbs_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
-						key='plumbing_sbs_target_col' )
+						key='regression_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
-						step=1, key='plumbing_sbs_k_features' )
+						step=1, key='regression_sbs_k_features' )
 					
 					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
-						value=0.25, step=0.05, key='plumbing_sbs_test_size' )
+						value=0.25, step=0.05, key='regression_sbs_test_size' )
 					
 					random_state = st.number_input( 'Random State', min_value=0, value=1,
-						step=1, key='plumbing_sbs_random_state' )
+						step=1, key='regression_sbs_random_state' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='plumbing_sbs_apply', use_container_width=True ):
+						if st.button( 'Apply', key='regression_sbs_apply', use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = get_working_frame( )
 								selector = SBS( classifier=None, k_features=int( k_features ),
@@ -7200,33 +7191,31 @@ elif mode == 'Regressions':
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result,
-									'sbs' )
-								
+								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
 								commit_frame( df_processed )
-								st.success( 'SBS applied.' )
+								st.success( 'SBS Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_sbs_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_sbs_reset', use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
-						key='plumbing_rfe_x_cols' )
+						key='regression_rfe_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
-						key='plumbing_rfe_target_col' )
+						key='regression_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
-						min_value=1, value=1, step=1, key='plumbing_rfe_k_features' )
+						min_value=1, value=1, step=1, key='regression_rfe_k_features' )
 					
 					verbose = st.number_input( 'Verbose', min_value=0, value=0,
-						step=1, key='plumbing_rfe_verbose' )
+						step=1, key='regression_rfe_verbose' )
 					
 					a1, a2 = st.columns( 2 )					
 					with a1:
-						if st.button( 'Apply', key='plumbing_rfe_apply', use_container_width=True ):
+						if st.button( 'Apply', key='regression_rfe_apply', use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = get_working_frame( )
 								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
@@ -7241,7 +7230,7 @@ elif mode == 'Regressions':
 								st.success( 'RFE applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='plumbing_rfe_reset', use_container_width=True ):
+						if st.button( 'Reset', key='regression_rfe_reset', use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
@@ -7249,25 +7238,27 @@ elif mode == 'Regressions':
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
 		model_map = \
-			{
-					'Ordinary Least Squares': LeastSquares,
-					'Ridge Regression': Ridge,
-					'Lasso Regression': Lasso,
-					'Elastic Net': ElasticNet,
-					'Bayesian Ridge': BayesianRidge,
-					'Support Vector': SupportVector,
-					'Stochastic Gradient Descent': GradientDescent,
-					'k-Nearest Neighbors': NearestNeighbor,
-					'Bagging Regressor': BaggingModel,
-					'Extra Trees Regressor': ExtraTreesModel,
-					'AdaBoost Regressor': AdaptiveBoost,
-					'Gradient Boosting': GradientBoost,
-					'Random Forest': RandomForest,
-					'Voting Regressor': VotingModel,
-					'Stacking Regressor': StackingModel
-			}
+		{
+				'Ordinary Least Squares': LeastSquares,
+				'Ridge Regression': Ridge,
+				'Lasso Regression': Lasso,
+				'Elastic Net': ElasticNet,
+				'Bayesian Ridge': BayesianRidge,
+				'Support Vector': SupportVector,
+				'Stochastic Gradient Descent': GradientDescent,
+				'k-Nearest Neighbors': NearestNeighbor,
+				'Bagging Regressor': BaggingModel,
+				'Extra Trees Regressor': ExtraTreesModel,
+				'AdaBoost Regressor': AdaptiveBoost,
+				'Gradient Boosting': GradientBoost,
+				'Random Forest': RandomForest,
+				'Voting Regressor': VotingModel,
+				'Stacking Regressor': StackingModel
+		}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		
+		
 		sel_c4, sel_c5, sel_c6 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with sel_c4:
 			st.markdown( '##### Model Selection' )
@@ -7294,6 +7285,8 @@ elif mode == 'Regressions':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
+		X = df_processed[ features ].to_numpy( )
+		y = df_processed[ targets ].to_numpy( dtype=float )
 		if st.button( '🚀 Train Model' ):
 			try:
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_size,
@@ -7883,13 +7876,13 @@ elif mode == 'Time-Series':
 		# DATA VALIDATION
 		# ------------------------------------------------------------------
 		df_dataset = st.session_state.get( 'df_infer', None )
-		numeric_cols = st.session_state.get( 'numeric_cols', [ ] )
+		numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 		
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		if not numeric_cols:
+		if not numeric_columns:
 			st.warning( '⚠️ No numeric columns available for time-series analysis.' )
 			st.stop( )
 		
@@ -7897,7 +7890,7 @@ elif mode == 'Time-Series':
 		# SERIES SELECTION
 		# ------------------------------------------------------------------
 		st.markdown( '##### Time-Series Selection' )
-		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_cols,
+		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_columns,
 			key='timeseries_col_box' )
 		series = df_dataset[ series_col ].dropna( ).to_numpy( )
 		
@@ -8303,9 +8296,9 @@ elif mode == 'Data Management':
 			if tables:
 				table = st.selectbox( 'Table', tables, key='agg_table' )
 				df = read_table( table )
-				numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-				if numeric_cols:
-					col = st.selectbox( 'Column', numeric_cols, key='col_box' )
+				numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+				if numeric_columns:
+					col = st.selectbox( 'Column', numeric_columns, key='col_box' )
 					agg = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box' )
 					if agg == 'SUM':
 						st.metric( 'Result', df[ col ].sum( ) )
@@ -8322,9 +8315,9 @@ elif mode == 'Data Management':
 			if tables:
 				table = st.selectbox( 'Table', tables, key='viz_table' )
 				df = read_table( table )
-				numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-				if numeric_cols:
-					col = st.selectbox( 'Column', numeric_cols, key='numeric_col_box' )
+				numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+				if numeric_columns:
+					col = st.selectbox( 'Column', numeric_columns, key='numeric_col_box' )
 					fig = px.histogram( df, x=col )
 					st.plotly_chart( fig, use_container_width=True )
 		

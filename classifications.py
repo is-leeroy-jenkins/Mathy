@@ -1904,7 +1904,7 @@ class Ridge( Classifier ):
 
 		Purpose:
 		--------
-		This classifier first converts binary targets to {-1, 1} and then treats the problem as a
+		A classifier that first converts binary targets to {-1, 1} and then treats the problem as a
 		regression task, optimizing the same objective as above. The predicted class corresponds
 		to the sign of the regressor’s prediction. For multiclass classification, the problem is
 		treated as multi-output regression, and the predicted class corresponds to the output
@@ -2297,7 +2297,7 @@ class Lasso( Classifier ):
 		
 		Attributes:
 		-----------
-		model (SklearnLasso):
+		model (Lasso):
 		Underlying scikit-learn Lasso model.
 		threshold (float):
 		Threshold for classification decision boundary.
@@ -2657,7 +2657,7 @@ class GradientDescent( Classifier ):
 		training.  This estimator implements regularized linear models with stochastic
 		gradient descent learning:
 		
-		the gradient of the loss is estimated each sample at a time and the model is updated along
+		The gradient of the loss is estimated each sample at a time and the model is updated along
 		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
 		(online/out-of-core) learning via the partial_fit method. For best results using the
 		default learning rate schedule, the stores should have zero mean and unit variance.
@@ -4233,9 +4233,9 @@ class RandomForest( Classifier ):
 		In random forests, each tree in the ensemble is built from a sample drawn with replacement
 		(i.e., a bootstrap sample) from the training set.
 
-		Furthermore, when splitting each node during the construction of a tree,
+		Furthermore, when plitting each node during the construction of a tree,
 		the best split is found either from all input feature_names or a random subset of
-		size max_features.
+		size max_features.s
 
 		The purpose of these two sources of randomness is to decrease the variance
 		of the forest estimator. Individual decision trees typically exhibit high variance
@@ -6461,7 +6461,7 @@ class VotingModel( Classifier ):
 
 		Purpose:
 		--------
-		The idea behind the VotingModel is to combine conceptually different machine rate
+		The Voting Model is to combine conceptually different machine rate
 		classifiers and use a majority vote or the average predicted probabilities (soft vote)
 		to predict the class target_names. Such a classifier can be useful for a set of equally
 		well performing model in order to balance out their individual weaknesses.
@@ -6834,7 +6834,6 @@ class StackingModel( Classifier ):
 		-------
 		Stack of estimators with a final classifier. Stacked generalization consists in stacking
 		the output of individual estimator and use a classifier to compute the final prediction.
-		
 		Stacking allows to use the strength of each individual estimator by using their output
 		as input of a final estimator. Note that estimators_ are fitted on the full X while
 		final_estimator_ is trained using cross-validated predictions of the base
@@ -7223,9 +7222,12 @@ class StackingModel( Classifier ):
 class SupportVector( Classifier ):
 	"""
 
-		Support Vector Classifier (SVC).The implementation is based on libsvm. The fit time scales
-		at least quadratically with the number of samples and may be impractical beyond tens of
-		thousands of samples.
+		Support Vector Classifier (SVC) is asupervised machine learning algorithm used primarily
+		for classification, though it also handles regression. It works by finding an optimal
+		"hyperplane"—a decision boundary—that maximizes the margin (distance) between different
+		data classes, which improves prediction accuracy and generalization to new datais
+		based on libsvm. The fit time scales at least quadratically with the number of samples
+		and may be impractical beyond tens of thousands of samples.
 
 	"""
 	model: skv.SVC

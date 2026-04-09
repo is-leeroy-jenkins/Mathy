@@ -395,7 +395,6 @@ class MinMaxScaler( Scaler ):
 		Purpose:
 		---------
 		Transform features by scaling each feature to a given range.
-
 		This estimator scales and translates each feature individually such
 		that it is in the given range on the training set, e.g. between zero
 		and one. This transformation is often used as an alternative to zero
