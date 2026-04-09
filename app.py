@@ -6123,8 +6123,8 @@ elif mode == 'Regressions':
 		# ======================================================================================
 		st.markdown( '##### Feature Selection' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-		selected_features = st.session_state.get( 'selected_features', [ ] )
-		selected_targets = st.session_state.get( 'selected_targets', [ ] )
+		features = st.session_state.get( 'features', [ ] )
+		targets = st.session_state.get( 'targets', [ ] )
 		with col_c1:
 			selected_features = st.multiselect( 'Select Features',
 				options=df_original.columns.tolist( ),
@@ -6143,25 +6143,25 @@ elif mode == 'Regressions':
 		with sel_b1:
 			if st.button( 'Create Working Dataset', key='plumbing_create_dataset',
 					use_container_width=True ):
-				selected_all = selected_features + [ c for c in selected_targets
-				                                     if c not in selected_features ]
+				
+				selected_all = selected_features + [ c for c in targets if c not in features ]
 				
 				if selected_all:
 					df_working = df_original[ selected_all ].copy( )
 				else:
 					df_working = df_original.copy( )
 				
-				st.session_state[ 'plumbing_feature_columns' ] = selected_features.copy( )
-				st.session_state[ 'plumbing_target_columns' ] = selected_targets.copy( )
-				st.session_state[ 'df_plumbing_base' ] = df_working.copy( )
+				st.session_state[ 'features' ] = selected_features.copy( )
+				st.session_state[ 'targets' ] = selected_targets.copy( )
+				st.session_state[ 'df_working' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Working dataframe created.' )
 		
 		with sel_b2:
-			if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset',
+			if st.button( 'Reset Working Dataset', key='regression_reset_working_dataset',
 					use_container_width=True ):
 				
-				df_working = st.session_state.get( 'df_plumbing_base' )
+				df_working = st.session_state.get( 'df_working' )
 				if df_working is None or df_working.empty:
 					df_working = st.session_state[ 'df_original' ].copy( )
 				commit_frame( df_working.copy( ) )
@@ -7007,6 +7007,7 @@ elif mode == 'Regressions':
 							st.success( 'Reset to Original.' )
 			
 			with st.expander( label='Feature Selection', key='selectors' ):
+				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=df_working.columns.to_list( ),
 						key='plumbing_variance_threshold_cols' )
