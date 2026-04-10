@@ -462,6 +462,7 @@ def style_subheaders( ) -> None:
 		<style>
 		div[data-testid="stMarkdownContainer"] h3,
 		div[data-testid="stMarkdownContainer"] h4,
+		div[data-testid="stMarkdownContainer"] h6,
 		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h3,
 		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h4 {
 			color: rgb(2, 98, 201) !important;
@@ -1999,7 +2000,7 @@ if mode == 'Data Profile':
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
 			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
 			with top_c1:
-				row_idx = st.number_input( 'Select Row Index', min_value=0,
+				row_idx = st.number_input( 'Select Index', min_value=0,
 					max_value=len( df_dataset ) - 1, step=1, key='row_editor_index' )
 			
 			row = df_dataset.iloc[ row_idx ]
@@ -2107,7 +2108,7 @@ if mode == 'Data Profile':
 			cardinality.sort_values( ascending=True ).plot( kind='barh', ax=ax, width=0.75,
 				edgecolor='#0f172a', linewidth=0.9 )
 			
-			ax.set_title( 'Top Columns by Cardinality', fontsize=12, fontweight='bold' )
+			ax.set_title( 'Top Columns by Cardinality', fontsize=10, fontweight='bold' )
 			ax.set_xlabel( 'Unique Values' )
 			ax.set_ylabel( '' )
 			ax.grid( axis='x', alpha=0.25, linestyle='--' )
@@ -2198,7 +2199,7 @@ if mode == 'Data Profile':
 				"""
 				<style>
 				[data-testid="stMetricLabel"] p {
-					font-size: 0.72rem;
+					font-size: 0.80rem;
 				}
 				
 				[data-testid="stMetricValue"] {
@@ -2234,12 +2235,12 @@ if mode == 'Data Profile':
 					median_val = float( s.median( ) )
 					
 					ax.axvline( mean_val, linestyle='--', linewidth=1.5,
-						label=f'Mean: {mean_val:,.3f}' )
+						label=f'Mean: {mean_val:,.2f}' )
 					
 					ax.axvline( median_val, linestyle=':', linewidth=1.5,
-						label=f'Median: {median_val:,.3f}' )
+						label=f'Median: {median_val:,.2f}' )
 					
-					ax.set_title( f'Distribution — {col}', fontsize=12, fontweight='bold' )
+					ax.set_title( f'Distribution — {col}', fontsize=10, fontweight='bold' )
 					ax.set_xlabel( col )
 					ax.set_ylabel( 'Density' if stat_mode == 'density' else 'Frequency' )
 					ax.grid( True, alpha=0.25, linestyle='--' )
@@ -2251,11 +2252,11 @@ if mode == 'Data Profile':
 					st.pyplot( fig )
 					plt.close( fig )
 					
-					m1, m2, m3, m4 = st.columns( 4 )
+					m1, m2, m3, m4 = st.columns( 4, border=True )
 					m1.metric( 'Count', f'{len( s ):,}' )
-					m2.metric( 'Mean', f'{mean_val:,.3f}' )
-					m3.metric( 'Median', f'{median_val:,.3f}' )
-					m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.3f}' if len( s ) > 1 else '0.000' )
+					m2.metric( 'Mean', f'{mean_val:,.2f}' )
+					m3.metric( 'Median', f'{median_val:,.2f}' )
+					m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.00' )
 		
 		
 		# -------------------------------------------------------------------------------------
@@ -2288,7 +2289,7 @@ elif mode == 'Descriptive Statistics':
 			"""
 			<style>
 			[data-testid="stMetricLabel"] p {
-				font-size: 0.72rem;
+				font-size: 0.80rem;
 			}
 			
 			[data-testid="stMetricValue"] {
@@ -2400,12 +2401,12 @@ elif mode == 'Descriptive Statistics':
 				mean_val = float( s.mean( ) )
 				median_val = float( s.median( ) )
 				ax.axvline( mean_val, linestyle='--',
-					linewidth=1.5, label=f'Mean: {mean_val:,.3f}' )
+					linewidth=1.5, label=f'Mean: {mean_val:,.2f}' )
 				
 				ax.axvline( median_val, linestyle=':', linewidth=1.5,
-					label=f'Median: {median_val:,.3f}' )
+					label=f'Median: {median_val:,.2f}' )
 				
-				ax.set_title( f'Histogram — {col}', fontsize=12, fontweight='bold' )
+				ax.set_title( f'Histogram — {col}', fontsize=10, fontweight='bold' )
 				ax.set_xlabel( col )
 				ax.set_ylabel( 'Frequency' )
 				ax.grid( True, alpha=0.25, linestyle='--' )
@@ -2418,14 +2419,14 @@ elif mode == 'Descriptive Statistics':
 				
 				m1, m2, m3, m4 = st.columns( 4 )
 				m1.metric( 'Count', f'{len( s ):,}' )
-				m2.metric( 'Mean', f'{mean_val:,.3f}' )
-				m3.metric( 'Median', f'{median_val:,.3f}' )
-				m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.3f}' if len( s ) > 1 else '0.000' )
+				m2.metric( 'Mean', f'{mean_val:,.2f}' )
+				m3.metric( 'Median', f'{median_val:,.2f}' )
+				m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.000' )
 			
 			with c2:
 				fig, ax = plt.subplots( figsize=(7, 4.75) )
 				stats.probplot( s, plot=ax )
-				ax.set_title( f'Q–Q Plot — {col}', fontsize=12, fontweight='bold' )
+				ax.set_title( f'Q–Q Plot — {col}', fontsize=10, fontweight='bold' )
 				ax.grid( True, alpha=0.20, linestyle='--' )
 				ax.spines[ 'top' ].set_visible( False )
 				ax.spines[ 'right' ].set_visible( False )
@@ -2445,7 +2446,7 @@ elif mode == 'Descriptive Statistics':
 						q1, q2, q3 = st.columns( 3 )
 						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
 						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
-						q3.metric( 'Shapiro p', f'{shapiro_p:,.4f}' )
+						q3.metric( 'Shapiro p', f'{shapiro_p:,.3f}' )
 					else:
 						q1, q2, q3 = st.columns( 3 )
 						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
@@ -4665,6 +4666,7 @@ elif mode == 'Classifications':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classifications' ] )
+		st.caption( 'Predictive Modeling for Discrete-Values' )
 		st.divider( )
 		
 		if df_dataset is None or df_dataset.empty:
@@ -4688,7 +4690,7 @@ elif mode == 'Classifications':
 		# Data Selection
 		# ======================================================================================
 		st.markdown( '##### Data Selection' )
-		st.caption( f'Records: {len( df_original ):,}  | Fields: {len( df_original.columns ):,}' )
+		st.caption( f'Records: {len( df_original ):,} | Fields: {len( df_original.columns ):,}' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=categorical_columns,
@@ -4701,9 +4703,9 @@ elif mode == 'Classifications':
 				default=[ c for c in st.session_state.get( 'targets', [ ] )
 						if c in target_options ], key='classification_targets' )
 		
-		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
-			if st.button( 'Create Working Dataset', key='classification_create_dataset',
+			if st.button( 'Create Working Dataset', icon='➕', key='classification_create_dataset',
 					use_container_width=True ):
 				
 				selected_all = features + [ c for c in targets if c not in features ]
@@ -4720,18 +4722,10 @@ elif mode == 'Classifications':
 				df_processed = pd.DataFrame( )
 				
 				commit_frame( df_working )
-				st.success( 'Working Dataframe Created.' )
+				st.success( 'Working Dataset Created!' )
 		
 		with sel_b2:
-			if st.button( 'Reset Working Dataset', key='classification_reset_working_dataset',
-					use_container_width=True ):
-				
-				st.session_state[ 'df_working' ] = df_working.copy( )
-				commit_frame( df_working )
-				st.success( 'Working Dataset Reset.' )
-		
-		with sel_b3:
-			if st.button( 'Reset To Original', key='classification_reset_to_original',
+			if st.button( 'Reset Working Dataset', icon='🔁', key='classification_reset_to_original',
 					use_container_width=True ):
 				
 				df_original = df_dataset.copy( )
@@ -4746,9 +4740,9 @@ elif mode == 'Classifications':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data')
-		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
+		st.caption( f'Records: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
-		render_table( df_working )
+		st.data_editor( df_working )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -4767,7 +4761,7 @@ elif mode == 'Classifications':
 		# Data Processing
 		# -----------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Data Transformations' )
+		st.markdown( '##### Feature-Engineering' )
 		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
@@ -4892,7 +4886,7 @@ elif mode == 'Classifications':
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Data Imputation', icon='➕', key='classification_imputers' ):
+			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -5302,7 +5296,7 @@ elif mode == 'Classifications':
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
-				with st.expander( 'TFIDF Transformer', expanded=False ):
+				with st.expander( 'TF=IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
 						options=numeric_columns,
 						key='classification_tfidf_transformer_cols' )
@@ -5423,7 +5417,7 @@ elif mode == 'Classifications':
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
 				
-				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+				with st.expander( 'TF=IDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
 						options=categorical_columns,
 						key='classification_tfidf_vectorizer_cols' )
@@ -5895,40 +5889,42 @@ elif mode == 'Classifications':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Feature-Engineered Data' )
-		render_table( df_processed )
+		st.caption( f'Records: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.data_editor( df_processed )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
 		model_map = \
 		{
-				'Perceptron': Perceptron,
-				'Least Squares Classifier': LeastSquares,
-				'Logistic Regression': LogisticRegression,
-				'Decision Tree': DecisionTree,
-				'Support Vector Machine': SupportVector,
-				'Random Forest': RandomForest,
-				'k-Nearest Neighbors': NearestNeighbor,
-				'Bagging': BaggingModel,
-				'AdaBoost': AdaptiveBoost,
-				'Gradient Boosting': GradientBoost
+			'Perceptron': Perceptron,
+			'Least Squares Classifier': LeastSquares,
+			'Logistic Regression': LogisticRegression,
+			'Decision Tree': DecisionTree,
+			'Support Vector Machine': SupportVector,
+			'Random Forest': RandomForest,
+			'k-Nearest Neighbors': NearestNeighbor,
+			'Bagging': BaggingModel,
+			'AdaBoost': AdaptiveBoost,
+			'Gradient Boosting': GradientBoost
 		}
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Training' )
 		
-		
 		mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with mdl_c1:
-			st.markdown( '###### Model Selection' )
-			model_name = st.selectbox( 'Select Classification Model', list( model_map.keys( ) ) )
+			st.markdown( '###### Classification Models' )
+			model_name = st.selectbox( 'Select', list( model_map.keys( ) ) )
 			model = model_map[ model_name ]( )
 		
 		with mdl_c2:
+			st.markdown( '###### Training Configuration' )
 			test_sz = st.slider( 'Test Set Size (%)', 10, 30, 20, key='classifications-1' ) / 100.0
 		
 		with mdl_c3:
-			random_state = st.number_input( 'Random State', value=42, step=1,
+			st.markdown( '###### Random State' )
+			random_state = st.number_input( 'Seed', value=42, step=1,
 				key='classifications-2' )
 		
 		
@@ -5969,7 +5965,7 @@ elif mode == 'Classifications':
 				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
 				pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
 				df_counts = pd.DataFrame(
-					{ 'Actual': actual_counts, 'Predicted': pred_counts } ).fillna( 0 )
+					{'Actual': actual_counts, 'Predicted': pred_counts} ).fillna( 0 )
 				
 				fig_counts, ax_counts = plt.subplots( figsize=( 8, 5 ) )
 				df_counts.plot( kind='bar', ax=ax_counts )
@@ -6075,9 +6071,10 @@ elif mode == 'Regressions':
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
 	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )		
 	with center:
 		st.subheader( cfg.MODE[ 'Regressions' ] )
+		st.caption( 'Predictive Modeling for Continuous-Values' )
 		st.divider( )
 		
 		if df_dataset is None or df_dataset.empty:
@@ -6115,9 +6112,9 @@ elif mode == 'Regressions':
 				default=[ c for c in st.session_state.get( 'targets', [ ] )
 				          if c in target_options ], key='regression_targets' )
 		
-		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
-			if st.button( 'Create Working Dataset', key='regression_create_dataset',
+			if st.button( 'Create Working Dataset', icon='➕', key='regression_create_dataset',
 					use_container_width=True ):
 				selected_all = features + [ c for c in targets if c not in features ]
 				if selected_all:
@@ -6133,17 +6130,10 @@ elif mode == 'Regressions':
 				df_processed = pd.DataFrame( )
 				
 				commit_frame( df_working )
-				st.success( 'Working dataframe created.' )
+				st.success( 'Working Dataset Created.' )
 		
 		with sel_b2:
-			if st.button( 'Reset Working Dataset', key='regression_reset_working_dataset',
-					use_container_width=True ):
-				st.session_state[ 'df_working' ] = df_working.copy( )
-				commit_frame( df_working )
-				st.success( 'Working dataframe reset.' )
-		
-		with sel_b3:
-			if st.button( 'Reset To Original', key='regression_reset_to_original',
+			if st.button( 'Reset Working Dataset', icon='🔁', key='regression_reset_to_original',
 					use_container_width=True ):
 				df_original = df_dataset.copy( )
 				df_working = df_original.copy( )
@@ -6157,9 +6147,9 @@ elif mode == 'Regressions':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
+		st.caption( f'Records: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
-		render_table( df_working )
+		st.data_editor( df_working )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -6178,7 +6168,7 @@ elif mode == 'Regressions':
 		# Data Processing
 		# -----------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Feature Engineering' )
+		st.markdown( '##### Feature-Engineering' )
 		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
@@ -6297,7 +6287,7 @@ elif mode == 'Regressions':
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 			
-			with st.expander( label='Data Imputation', icon='➕', key='regression_imputers' ):
+			with st.expander( label='Data Imputation', icon='🧹', key='regression_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -7232,7 +7222,10 @@ elif mode == 'Regressions':
 							working_to_original( )
 							st.success( 'Reset to Original.' )
 		
-		render_table( df_processed )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Feature-Engineered Data' )
+		st.caption( f'Records: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}')
+		st.data_editor( df_processed )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
@@ -7261,8 +7254,8 @@ elif mode == 'Regressions':
 		
 		sel_c4, sel_c5, sel_c6 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with sel_c4:
-			st.markdown( '###### Model Selection' )
-			model_name = st.selectbox( 'Select Regression Model', list( model_map.keys( ) ) )
+			st.markdown( '###### Regression Models' )
+			model_name = st.selectbox( 'Select', list( model_map.keys( ) ) )
 			model = model_map[ model_name ]( )
 		
 		# ------------------------------------------------------------------
@@ -7397,7 +7390,7 @@ elif mode == 'Clustering':
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
-	left, center, right = st.columns( [ 0.25, 0.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classifications' ] )
 		st.divider( )
@@ -7436,9 +7429,9 @@ elif mode == 'Clustering':
 				default=[ c for c in st.session_state.get( 'targets', [ ] )
 				          if c in target_options ], key='cluster_targets' )
 		
-		sel_b1, sel_b2, sel_b3 = st.columns( [ 0.34, 0.33, 0.33 ] )
+		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
-			if st.button( 'Create Working Dataset', key='cluster_create_dataset',
+			if st.button( 'Create Working Dataset', icon='➕', key='cluster_create_dataset',
 					use_container_width=True ):
 				selected_all = features + [ c for c in targets if c not in features ]
 				if selected_all:
@@ -7457,14 +7450,7 @@ elif mode == 'Clustering':
 				st.success( 'Working Dataframe Created.' )
 		
 		with sel_b2:
-			if st.button( 'Reset Working Dataset', key='cluster_reset_working_dataset',
-					use_container_width=True ):
-				st.session_state[ 'df_working' ] = df_working.copy( )
-				commit_frame( df_working )
-				st.success( 'Working dataframe reset.' )
-		
-		with sel_b3:
-			if st.button( 'Reset To Original', key='cluster_reset_to_original',
+			if st.button( 'Reset To Original', icon='🔁', key='cluster_reset_to_original',
 					use_container_width=True ):
 				df_original = df_dataset.copy( )
 				df_working = df_original.copy( )
@@ -7480,7 +7466,7 @@ elif mode == 'Clustering':
 		st.markdown( '##### Working Data' )
 		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
 		
-		render_table( df_working )
+		st.data_editor( df_working )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -8595,7 +8581,7 @@ elif mode == 'Clustering':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
 		
-		st.render_table( df_processed )
+		st.data_editor( df_processed, key='classifications_processed' )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
@@ -8853,7 +8839,7 @@ elif mode == 'Clustering':
 					'N-Clusters': n_cluster_value,
 					'Compute-Labels': compute_labels }
 		
-		cluster_signature = ( data_source, tuple( feature_columns ),
+		cluster_signature = ( df_processed, tuple( features ),
 				model_name, tuple( (k, str( v )) for k, v in model_parameters.items( ) ) )
 		
 		# ------------------------------------------------------------------
