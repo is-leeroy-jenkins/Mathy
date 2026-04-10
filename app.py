@@ -3008,7 +3008,7 @@ elif mode == 'Anomaly Detection':
 			"""
 			<style>
 			[data-testid="stMetricLabel"] p {
-				font-size: 0.72rem;
+				font-size: 0.80rem;
 			}
 			
 			[data-testid="stMetricValue"] {
@@ -3022,6 +3022,8 @@ elif mode == 'Anomaly Detection':
 			</style>
 			""", unsafe_allow_html=True )
 		
+		msg = 'Select fields/columns containing numerical data to analyze outliers'
+		st.markdown( '##### Feature Selection', help=msg )
 		aml_c1, aml_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with aml_c1:
 			all_num_cols = df_numeric.columns.tolist( )
