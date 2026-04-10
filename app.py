@@ -3022,24 +3022,27 @@ elif mode == 'Anomaly Detection':
 			</style>
 			""", unsafe_allow_html=True )
 		
-		all_num_cols = df_numeric.columns.tolist( )
-		preferred = [ c for c in all_num_cols if c.lower( ) in ('py', 'cy', 'by') ]
-		default_vars = preferred if preferred else default_pick( all_num_cols, 2 )
-		vars_sel = st.multiselect( 'Variables to Analyze', all_num_cols, default=default_vars )
-		
-		if not vars_sel:
-			st.info( 'Select at least one numeric variable to run anomaly detection.' )
-			st.stop( )
-		
-		analysis_scale = st.checkbox( 'Use analysis-only standardization', value=False )
-		df_analysis = df_numeric[ vars_sel ].astype( float ).copy( )
-
-		if analysis_scale and len( vars_sel ) > 1:
-			df_analysis = pd.DataFrame( SKStandardScaler( ).fit_transform( df_analysis.values ),
-				columns=df_analysis.columns, index=df_analysis.index )
+		aml_c1, aml_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with aml_c1:
+			all_num_cols = df_numeric.columns.tolist( )
+			preferred = [ c for c in all_num_cols if c.lower( ) in ('py', 'cy', 'by') ]
+			default_vars = preferred if preferred else default_pick( all_num_cols, 2 )
+			vars_sel = st.multiselect( 'Variables to Analyze', all_num_cols, default=default_vars )
 			
-		if analysis_scale and len( vars_sel ) > 1:
-			df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
+			if not vars_sel:
+				st.info( 'Select at least one numeric variable to run anomaly detection.' )
+				st.stop( )
+		
+		with aml_c2:
+			analysis_scale = st.checkbox( 'Use Analysis-Only Standardization', value=False )
+			df_analysis = df_numeric[ vars_sel ].astype( float ).copy( )
+	
+			if analysis_scale and len( vars_sel ) > 1:
+				df_analysis = pd.DataFrame( SKStandardScaler( ).fit_transform( df_analysis.values ),
+					columns=df_analysis.columns, index=df_analysis.index )
+				
+			if analysis_scale and len( vars_sel ) > 1:
+				df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
 		
 		# -------------------------------------------------------------------------
 		# Method Selection
@@ -3181,7 +3184,7 @@ elif mode == 'Anomaly Detection':
 		# Visualization — Distribution with Anomalies
 		# -------------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Anomalous Distributions' )
+		st.markdown( '##### Empirical Cumulative Distribution Function (ECDF)', help=cfg.ECDF )
 		
 		for col in vars_sel:
 			if col not in df_analysis.columns:
@@ -3217,12 +3220,12 @@ elif mode == 'Anomaly Detection':
 				median_val = float( s_clean.median( ) )
 				
 				ax.axvline( mean_val, linestyle='--', linewidth=1.4,
-					label=f'Mean: {mean_val:,.3f}' )
+					label=f'Mean: {mean_val:,.2f}' )
 				
 				ax.axvline( median_val, linestyle=':', linewidth=1.4,
-					label=f'Median: {median_val:,.3f}' )
+					label=f'Median: {median_val:,.2f}' )
 				
-				ax.set_title( f'{col} — ECDF with Anomalies', fontsize=12, fontweight='bold' )
+				ax.set_title( f'{col} — ECDF with Anomalies', fontsize=10, fontweight='bold' )
 				ax.set_xlabel( col )
 				ax.set_ylabel( 'Cumulative Probability' )
 				ax.set_ylim( 0.0, 1.02 )
@@ -3252,8 +3255,7 @@ elif mode == 'Anomaly Detection':
 				
 				ax.axvline( float( s_clean.mean( ) ), linestyle='--', linewidth=1.4 )
 				ax.axvline( float( s_clean.median( ) ), linestyle=':', linewidth=1.4 )
-				
-				ax.set_title( f'{col} — Violin / Box Summary', fontsize=12, fontweight='bold' )
+				ax.set_title( f'{col} — Violin / Box Summary', fontsize=10, fontweight='bold' )
 				ax.set_xlabel( col )
 				ax.set_yticks( [ ] )
 				ax.grid( axis='x', alpha=0.25, linestyle='--' )
@@ -3267,6 +3269,7 @@ elif mode == 'Anomaly Detection':
 				plt.close( fig )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		
 		# -------------------------------------------------------------------------
 		# Bivariate View
 		# -------------------------------------------------------------------------
