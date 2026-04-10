@@ -3072,7 +3072,7 @@ elif mode == 'Anomaly Detection':
 		c_t1, c_t2 = st.columns( 2, border=True )
 		with c_t1:
 			z_thresh = st.slider( 'Z / Modified Z threshold', 2.0, 5.0, 3.0, 0.1, help=cfg.MODIFIED_Z )
-			iqr_mult = st.slider( 'IQR multiplier', 1.0, 3.0, 1.5, 0.1, help=cfg.IQR_MULTIPLIER )
+			iqr_mult = st.slider( 'IQR Multiplier', 1.0, 3.0, 1.5, 0.1, help=cfg.IQR_MULTIPLIER )
 		
 		with c_t2:
 			lof_k = st.slider( 'LOF Neighbors (k)', 5, 50, 20, 1, help=cfg.LOF_K )
@@ -3173,7 +3173,7 @@ elif mode == 'Anomaly Detection':
 					edgecolor='black', linewidth=0.9 )
 				ax.set_xlabel( 'Number of Methods Flagging' )
 				ax.set_ylabel( 'Observation Count' )
-				ax.set_title( 'Consensus Strength', fontsize=12, fontweight='bold' )
+				ax.set_title( 'Consensus Strength', fontsize=10, fontweight='bold' )
 				ax.grid( axis='y', alpha=0.25, linestyle='--' )
 				ax.spines[ 'top' ].set_visible( False )
 				ax.spines[ 'right' ].set_visible( False )
@@ -3367,7 +3367,7 @@ elif mode == 'Data Plumbing':
 				st.session_state[ 'targets' ] = selected_targets.copy( )
 				st.session_state[ 'df_working' ] = df_working.copy( )
 				commit_frame( df_working )
-				st.success( 'Working dataframe created.' )
+				st.success( 'Working Dataset Created.' )
 		
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', key='plumbing_reset_working_dataset',
@@ -3377,7 +3377,7 @@ elif mode == 'Data Plumbing':
 				if df_working is None or df_working.empty:
 					df_working = st.session_state[ 'df_original' ].copy( )
 				commit_frame( df_working.copy( ) )
-				st.success( 'Working dataframe reset.' )
+				st.success( 'Working Dataset Reset.' )
 		
 		with sel_b3:
 			if st.button( 'Reset To Original', key='plumbing_reset_to_original',
@@ -3392,7 +3392,7 @@ elif mode == 'Data Plumbing':
 		active_numeric_columns = get_numeric_columns( df_working )
 		categorical_columns = get_categorical_columns( df_working )
 		
-		st.caption( f'Input: {len( df_working ):,}| Features: {len( df_working.columns ):,}')
+		st.caption( f'Input: {len( df_working ):,} | Features: {len( df_working.columns ):,}')
 		
 		# ======================================================================================
 		# Data Processing
@@ -4011,6 +4011,8 @@ elif mode == 'Data Plumbing':
 								use_container_width=True ):
 							working_to_original( )
 							st.success( 'Reset to Original.' )
+			
+			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
 				
 				with st.expander( 'TFIDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
@@ -4671,7 +4673,7 @@ elif mode == 'Classifications':
 		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
 		
 		if not numeric_columns or not categorical_columns:
-			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
+			st.warning( '⚠️ Classifications requires numeric features and a categorical target.' )
 			st.stop( )
 		
 		df_classification = st.session_state.get( 'df_classification', df_original.copy( ) ).copy( )
