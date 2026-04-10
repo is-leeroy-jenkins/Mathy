@@ -1061,24 +1061,21 @@ class Agglomerative( Cluster ):
 
 		Purpose:
 		---------
-		The AgglomerativeCluster object performs a hierarchical clustering using a
+		The Agglomerative Cluster object performs a hierarchical clustering using a
 		bottom up approach: each observation starts in its own cluster, and clusters are
 		successively merged together. The linkage criteria determines the metric used for the merge
 		strategy:
 
-		Minimizes the sum of squared differences within all clusters. It is a
+		'Minimizes' the sum of squared differences within all clusters. It is a
 		variance-minimizing approach and in this sense is similar to the k-means objective
 		function but tackled with an agglomerative hierarchical approach.
 
-		Maximum or complete linkage minimizes the maximum distance between observations of
+		'Maximum' or complete linkage minimizes the maximum distance between observations of
+		pairs of clusters. Average linkage minimizes the average of the distances between all observations of
 		pairs of clusters.
 
-		Average linkage minimizes the average of the distances between all observations of
-		pairs of clusters.
-
-		Single linkage minimizes the distance between the closest observations of pairs of
-		clusters.
-		AgglomerativeCluster can also scale to large number of samples when it is used jointly
+		'Single' linkage minimizes the distance between the closest observations of pairs of
+		clusters. Agglomerative Cluster can also scale to large number of samples when it is used jointly
 		with a connectivity matrix, but is computationally expensive when no connectivity
 		constraints are added between samples: it considers at each step all the possible merges.
 
@@ -1563,7 +1560,7 @@ class Spectral( Cluster ):
 
 		Purpose:
 		---------
-		SpectralCluster does a low-dimension embedding of the affinity matrix between samples,
+		Spectral Cluster does a low-dimension embedding of the affinity matrix between samples,
 		followed by a KMeans in the low dimensional space. It is especially efficient if the
 		affinity matrix is sparse and the pyamg module is installed. SpectralCluster requires
 		the number of clusters to be specified. It works well for a small number of clusters but
@@ -1962,7 +1959,7 @@ class MeanShift( Cluster ):
 
 		Purpose:
 		---------
-		MeanShift clustering aims to discover blobs in a smooth density of samples.
+		Mean Shift clustering aims to discover blobs in a smooth density of samples.
 		It is a centroid based algorithm, which works by updating candidates for centroids to be
 		the mean of the points within a given region. These candidates are then filtered in a
 		post-processing stage to eliminate near-duplicates to form the final set of centroids.
@@ -2409,7 +2406,7 @@ class AffinityPropagation( Cluster ):
 
 		Purpose:
 		---------
-		AffinityPropagation creates clusters by sending messages between pairs of samples until
+		Affinity Propagation creates clusters by sending messages between pairs of samples until
 		convergence. A dataset is then described using a small number of exemplars, which are
 		identified as those most representative of other samples. The messages sent between pairs
 		represent the suitability for one sample to be the exemplar of the other, which is updated
@@ -2895,10 +2892,8 @@ class Birch( Cluster ):
 		the distance between the entering sample and the existing subclusters.
 
 		This algorithm can be viewed as an instance or stores reduction method, since it reduces
-		the
-		input stores to a set of subclusters which are obtained directly from the leaves of the
-		CFT.
-		This reduced stores can be further processed by feeding it into a global clusterer.
+		the input stores to a set of subclusters which are obtained directly from the leaves of the
+		CFT. This reduced stores can be further processed by feeding it into a global clusterer.
 		This global clusterer can be set by n_clusters. If n_clusters is set to None,
 		the subclusters from the leaves are directly read off, otherwise a global clustering step
 		target_names these subclusters into global clusters (target_names) and the samples are

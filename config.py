@@ -71,20 +71,11 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
 
 # ------------- DEFINITIONS ---------------------
 
-PCA = r'''PCA (Principal Component Analysis) is a dimensionality reduction technique and helps
-to reduce the number of features in a dataset while keeping the most important information. It changes
-complex datasets by transforming correlated features into a smaller set of uncorrelated components.
-It removes redundancy, improves computational efficiency and makes data easier to visualize and analyze.
-
-PCA uses linear algebra to transform data into new features called principal components. It finds
-these by calculating eigenvectors (directions) and eigenvalues (importance) from the covariance matrix.
-PCA selects the top components with the highest eigenvalues and projects the data onto them simplify the dataset.
-'''
-
-CCA = r'''Canonical Correlation Analysis (CCA) is a multivariate statistical method used to
-identify and quantify the relationships between two sets of variables, and measured on the same
-subjects. It finds linear combinations of variables—canonical variates—that are maximally correlated.
-
+DATA_CARDINALITY = r'''Data cardinality refers to the uniqueness of data values contained in a
+			particular column (field) of a database, or the numerical relationship between two
+			linked tables. It is categorized as high (many unique values, e.g., UserID) or low
+			(many repeated values, e.g., Gender), and it directly impacts query performance,
+			indexing strategies, and database design
 '''
 
 QQ_PLOT = r'''A Q-Q (Quantile-Quantile) plot is a graphical tool used to assess if a data set
@@ -185,7 +176,6 @@ observation is from the center of the data while accounting for covariance betwe
 It is  useful when unusual combinations of values matter more than extreme values in a single column.
 '''
 
-
 ISOLATION_FOREST = r'''Isolation Forest is an ensemble method that isolates unusual observations
 through random partitioning. Points that are easier to isolate are treated as anomalies. It works
 well for  nonlinear and high-dimensional patterns and does not require the data to be normally distributed.
@@ -215,6 +205,45 @@ methods before it is included in the final anomaly table.
 ANALYSIS_SCALE = r'''When enabled, the selected variables are standardized for analysis only.
 This puts variables on a comparable scale so that multivariate methods are less dominated by columns
 with large numeric ranges. The underlying dataset is not changed.
+'''
+
+CORRELATION_HEATMAP = r'''A Correlation Heatmap is a 2D graphical representation of a correlation matrix
+			that uses colors to visualize the strength and direction of relationships between multiple
+			numerical variables. It helps identify patterns, multicollinearity, and key features, with values
+			ranging from -1 (perfect negative) to 1 (perfect positive).
+			
+			Pearson - linear relationship between two continuous variables, ranging from -1 to +1.
+			A value of +1 indicates a perfect positive linear relationship, -1 a perfect negative
+			relationship, and 0 no linear correlation.
+			
+			Spearman - Spearman's rank correlation coefficient 'rho' or 's' is a non-parametric
+			measure that assesses the strength and direction of the monotonic relationship between
+			two ranked or continuous variables. Ranging from -1 to +1, it evaluates how well the
+			relationship can be described by a monotonic function, without requiring
+			normally distributed data.
+'''
+
+# -----------Outliers
+
+ISOLATION_FOREST = r'''The Isolation Forest ‘isolates’ observations by randomly selecting a feature and then
+		randomly selecting a split value between the maximum and minimum values of
+		the selected feature. Since recursive partitioning can be represented by a tree structure,
+		the number of splittings required to isolate a sample is equivalent to the path
+		length from the root node to the terminating node. This path length, averaged over a
+		forest of such random trees, is a measure of normality and our decision function.
+'''
+
+ONE_CLASS = r'''Encapsulates One- Class Support Vector Machine for novelty detection on high-dimensional data.
+		The estimator learns a boundary around normal samples and flags observations
+		outside that boundary as anomalies.
+'''
+
+OUTLIER_FACTOR = r'''Local Outlier Factor for unsupervised or novelty-based outlier detection.
+		Provides decision function, prediction, and scoring interfaces.
+'''
+
+ELLIIPTIC_SQUARE = r'''Encapsulates  Elliptic Envelope for multivariate Gaussian-based outlier detection.
+		This method is based on Mahalanobis distances under an elliptical (normal) distribution.
 '''
 
 # ---------- Classifiers
@@ -523,20 +552,124 @@ MULTILAYER_PERCEPTRON_REGRESSION = r'''A Multilayer Perceptron (MLP) is a founda
 			non-linear relationships, making it capable of solving non-linear classification
 '''
 
+# --------- Cluster
 
+KMEANS = r'''The KMeans algorithm clusters stores by trying to separate samples in n groups of equal
+		variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares.
+		This algorithm requires the number of clusters to be specified.
+		It scales well to large number of samples and has been used across a
+		large range of application areas in many different fields.
 
+		The algorithm has three steps. The first step chooses the initial centroids,
+		with the most basic method being to choose samples from the dataset. After initialization,
+		K-means consists of looping between the two other steps. The first step assigns each sample
+		to its nearest centroid. The second step creates new centroids by taking the mean value of
+		all of the samples assigned to each previous centroid. The difference between the old and
+		the new centroids are computed and the algorithm repeats these last two steps until this
+		value is less than a threshold. In other words, it repeats until the centroids do not move
+		significantly.
+'''
 
+DBSCAN = r'''The DBSCAN algorithm views clusters as areas of high density separated by areas of low
+		density. Due to this rather generic view, clusters found by DBSCAN can be any shape,
+		as opposed to k-means which assumes that clusters are convex shaped. The central component
+		to the DBSCAN is the concept of core samples, which are samples that are in areas of high
+		density.
 
+		A cluster is therefore a set of core samples, each close to each other (measured
+		by some distance measure) and a set of non-core samples that are close to a core sample
+		(but are not themselves core samples). There are two parameters to the algorithm,
+		min_samples and eps, which define formally what we mean when we say dense. Higher
+		min_samples or lower eps indicate higher density necessary to form a cluster.
+'''
 
+AGGLOMERATIVE = r'''The Agglomerative Cluster object performs a hierarchical clustering using a
+		bottom up approach: each observation starts in its own cluster, and clusters are
+		successively merged together. The linkage criteria determines the metric used for the merge
+		strategy:
 
+		'Minimize' the sum of squared differences within all clusters. It is a
+		variance-minimizing approach and in this sense is similar to the k-means objective
+		function but tackled with an agglomerative hierarchical approach.
 
+		'Maximum' or complete linkage minimizes the maximum distance between observations of
+		pairs of clusters. Average linkage minimizes the average of the distances between all observations of
+		pairs of clusters.
 
+		'Single' linkage minimizes the distance between the closest observations of pairs of
+		clusters. Agglomerative Cluster can also scale to large number of samples when it is used jointly
+		with a connectivity matrix, but is computationally expensive when no connectivity
+		constraints are added between samples: it considers at each step all the possible merges.
+'''
 
+SPECTRAL = r'''Spectral Cluster does a low-dimension embedding of the affinity matrix between samples,
+		followed by a KMeans in the low dimensional space. It is especially efficient if the
+		affinity matrix is sparse and the pyamg module is installed. SpectralCluster requires
+		the number of clusters to be specified. It works well for a small number of clusters but
+		is not advised when using many clusters.
 
+		For two clusters, it solves a convex relaxation of the normalised cuts problem on the
+		similarity graph: cutting the graph in two so that the weight of the edges cut is small
+		compared to the weights of the edges inside each cluster. This criteria is especially
+		interesting when working on images: graph vertices are pixels, and edges of the similarity
+		graph are a function of the gradient of the image.
+'''
 
+MEAN_SHIFT = r'''Mean Shift clustering aims to discover blobs in a smooth density of samples.
+		It is a centroid based algorithm, which works by updating candidates for centroids to be
+		the mean of the points within a given region. These candidates are then filtered in a
+		post-processing stage to eliminate near-duplicates to form the final set of centroids.
 
+		The algorithm automatically sets the number of clusters, instead of relying on a parameter
+		bandwidth, which dictates the size of the region to search through. This parameter can be
+		set manually, but can be estimated using the provided estimate_bandwidth function, which
+		is called if the bandwidth is not set.
 
+		The algorithm is not highly scalable, as it requires multiple nearest neighbor searches
+		during the execution of the algorithm. The algorithm is guaranteed to converge,
+		however the algorithm will stop iterating when the change in centroids is small.
+'''
 
+AFFINITY_PROPAGATION = r'''Affinity Propagation creates clusters by sending messages between pairs of samples until
+		convergence. A dataset is then described using a small number of exemplars, which are
+		identified as those most representative of other samples. The messages sent between pairs
+		represent the suitability for one sample to be the exemplar of the other, which is updated
+		in response to the values from other pairs. This updating happens iteratively until
+		convergence, at which point the final exemplars are chosen,
+		and hence the final clustering is given.
+'''
+
+BIRCH = r'''The Birch builds a tree called the Clustering Feature Tree (CFT) for the given stores.
+		The stores is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
+		The CF Nodes have a number of subclusters called Clustering Feature subclusters
+		(CF Subclusters) and these CF Subclusters located in the non-terminal
+		CF Nodes can have CF Nodes as children.
+
+		The BIRCH algorithm has two parameters, the threshold and the branching factor.
+		The branching factor limits the number of subclusters in a node and the threshold limits
+		the distance between the entering sample and the existing subclusters.
+
+		This algorithm can be viewed as an instance or stores reduction method, since it reduces
+		the input stores to a set of subclusters which are obtained directly from the leaves of the
+		CFT. This reduced stores can be further processed by feeding it into a global clusterer.
+		This global clusterer can be set by n_clusters. If n_clusters is set to None,
+		the subclusters from the leaves are directly read off, otherwise a global clustering step
+		target_names these subclusters into global clusters (target_names) and the samples are
+		mapped to the global label of the nearest subcluster.
+'''
+
+OPTICS = r'''The OPTICS is a generalization of DBSCAN that relaxes the eps requirement from a single
+		value to a value range. The key difference between DBSCAN and OPTICS is that the OPTICS
+		algorithm builds a reachability graph, which assigns each sample both a reachability_
+		distance, and a spot within the cluster ordering_ attribute; these two attributes are
+		assigned when the model is fitted, and are used to determine cluster membership.
+
+		If OPTICS is run with the default value of inf set for max_eps, then DBSCAN style
+		cluster extraction can be performed repeatedly in linear time for any given eps value
+		using the cluster_optics_dbscan method. Setting max_eps to a lower value will result
+		in shorter run times, and can be thought of as the maximum neighborhood radius from
+		each point to find other potential reachable points.
+'''
 
 # -------- Scalers
 
@@ -603,6 +736,250 @@ MINMAX_SCALER = r'''Transform features by scaling each feature to a given range.
 		point corresponds to the maximum value and the smallest one
 		corresponds to the minimum value.
 '''
+
+# --------- Transformers
+
+FEATURE_HASHER = r''''Convert symbolic feature names to a matrix using feature hashing. This estimator
+		is stateless and is intended for large-scale or memory-constrained workflows.
+'''
+
+DICT_VECTORIZER = r''''Transform lists of feature-value mappings to vectors. String-valued features are
+		expanded using one-of-K style encoding, while numeric values are passed through
+		as numeric feature values.
+'''
+
+HASH_VECTORIZER = r'''Convert a collection of text to a matrix of token occurrences. It turns a
+		collection of text into a scipy.sparse matrix holding token occurrence counts
+		(or binary occurrence information), possibly normalized as token frequencies
+		if norm=’l1’ or projected on the Euclidean unit sphere if norm=’l2’.
+
+		This text vectorizer implementation uses the hashing trick to find the token
+		string name to feature integer index mapping. This strategy has several advantages it is
+		very low memory scalable to large datasets as there is no need to store a vocabulary
+		dictionary in memory.
+
+		It is fast to pickle and un-pickle as it holds no state besides the constructor parameters.
+		it can be used in a streaming (partial fit) or parallel pipeline as there is no state
+		computed during fit.
+
+		There are also a couple of cons (vs using a CountVectorizer with an in-memory vocabulary):
+		there is no way to compute the inverse transform (from feature indices to string feature
+		names) which can be a problem when trying to introspect which features are most
+		important to a model.
+
+		There can be collisions: distinct tokens can be mapped to the same feature index.
+		However, in practice this is rarely an issue if n_features is large enough (e.g. 2 ** 18
+		for text classification problems).
+'''
+
+COUNT_VECTORIZER = r'''Convert a collection of text to a matrix of token counts. This implementation
+		produces a sparse representation of the counts using scipy.sparse.csr_matrix. If you do not
+		provide an a-priori dictionary and you do not use an analyzer that does some kind of
+		feature selection then the number of feature_names will be equal to the vocabulary
+		size found by analyzing the stores.
+'''
+
+TDIDF_VECTORIZER = r'''Tf means term-frequency while tf-idf means term-frequency times inverse document-frequency.
+		This is a common term-weighting scheme in information retrieval, that has also found good
+		use in document classification. The goal of using tf-idf instead of the raw frequencies of
+		occurrence of a token in a given document is to scale down the impact of tokens that occur
+		very frequently in a given corpus and that are hence empirically less informative than
+		feature_names that occur in a small fraction of the training corpus.
+
+		The formula that is used to compute the tf-idf for a term t of a document d in a
+		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
+		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
+		number of text in the document set and df(t) is the document frequency of t;
+		the document frequency is the number of text in the document set that contain
+		the term t. The effect of adding “1” to the idf in the equation above is that
+		terms with zero idf, i.e., terms that occur in all text in a training set,
+		will not be entirely ignored. (Note that the idf formula above differs from the
+		standard textbook notation that defines the idf as idf(t) = log [ n / (df(t) + 1) ]).
+'''
+
+COLUMN_TRANSFORMER = r''''Applies transformers to columns of an array or pandas DataFrame.
+		This estimator allows different columns or column subsets of the input to be transformed
+		separately and the features generated by each transformer will be concatenated to form
+		a single feature space. This is useful for heterogeneous or columnar data,
+		to combine several feature extraction mechanisms or transformations
+		into a single transformer.
+'''
+
+TDIDF_TRANSFORMER = r'''Tf means term-frequency while tf-idf means term-frequency times inverse document-frequency.
+		This is a common term-weighting scheme in information retrieval, that has also found good
+		use in document classification. The goal of using tf-idf instead of the raw frequencies of
+		occurrence of a token in a given document is to scale down the impact of tokens that occur
+		very frequently in a given corpus and that are hence empirically less informative than
+		feature_names that occur in a small fraction of the training corpus.
+		
+		Transform a count matrix to a normalized tf or tf-idf representation.
+'''
+
+MULTILABEL_BINARIZER = r'''Transform between an iterable of iterables and the multilabel binary matrix format.
+		Each row in the transformed output indicates the presence or absence of each class
+		label for a given sample.
+'''
+
+LABEL_BINARIZER = r'''Binarize labels in a one-vs-all fashion. This wrapper fits on target labels and
+		transforms them to a binary matrix representation. It also supports converting the
+		binary representation back to the original labels.
+'''
+
+BINARIZER = r''''Binarize data (set feature values to 0 or 1) according to a threshold.
+		Values greater than the threshold map to 1, while values less than or equal to the
+		threshold map to 0. With the default threshold of 0, only positive values map to 1.
+		
+		Binarization is a common operation on text count data where the analyst can decide to only
+		consider the presence or absence of a feature rather than a quantified number of
+		occurrences for instance.
+
+		It can also be used as a pre-processing step for estimators that consider boolean random
+		variables (e.g. modelled using the Bernoulli distribution in a Bayesian setting).
+'''
+
+# ----------- Encoders
+
+ONEHOT_ENCODER = r'''Encode categorical features as a one-hot numeric array. The input to this
+		transformer should be an array-like of integers or strings denoting the values
+		taken on by categorical features. The features are encoded using a one-hot
+		(aka one-of-K or dummy) encoding scheme.
+
+		This creates a binary column for each category and returns a sparse matrix or
+		dense array depending on the sparse_output parameter.
+
+		By default, the encoder derives categories from the unique values in each
+		feature. Alternatively, categories may be specified manually. This encoding is
+		commonly used for feeding categorical data to scikit-learn estimators,
+		especially linear models and support vector machines.
+'''
+
+ORDINAL_ENCODER = r'''Transform each categorical feature into a single integer-valued feature
+		ranging from 0 to n_categories - 1.
+
+		Although this representation is useful for some workflows, the encoded
+		values may imply an ordering that does not exist in the original categories.
+		As a result, ordinal encoding should be used with care when the source
+		features are nominal rather than ordinal.
+'''
+
+LABEL_ENCODER = r'''Encode target labels with values between 0 and n_classes - 1.
+		This transformer is intended for encoding a one-dimensional target vector,
+		not a feature matrix.
+'''
+
+TARGET_ENCODER = r'''Encode categorical features using the target values associated with each category.
+		Each category is encoded using a shrunk estimate of the target mean conditioned on
+		the category value and the global target mean.
+
+		For multiclass targets, encodings are based on one-vs-all conditional target
+		probabilities, which produces n_features * n_classes encoded output features.
+
+		Missing values are treated as their own category. Categories not seen during
+		training are encoded with the learned global target mean.
+'''
+
+POLYNOMIAL_FEATURES = r'''Generate polynomial and interaction features from the input feature matrix.
+		This transformer creates a new feature matrix consisting of all polynomial
+		combinations of the input features with degree less than or equal to the
+		specified degree. For example, if an input sample is two-dimensional and of
+		the form [a, b], the degree-2 polynomial features are
+		[1, a, b, a^2, ab, b^2].
+'''
+
+# ---------- Imputers
+
+MEAN_IMPUTER = r'''Impute missing values by replacing them with the arithmetic mean of each
+		feature column.
+'''
+
+NEAREST_IMPUTER = r'''The NearestNeighborImputer class provides imputation for filling in missing values using
+		the k-Nearest Neighbors approach. By default, a euclidean distance metric that supports
+		missing values, nan_euclidean_distances, is used to find the nearest neighbors.
+		Each missing feature is imputed using values from n_neighbors nearest neighbors that have
+		a value for the feature. The feature of the neighbors are averaged uniformly or weighted
+		by distance to each neighbor.
+
+		If a sample has more than one feature missing, then the neighbors for that sample can be
+		different depending on the particular feature being imputed. When the number of available
+		neighbors is less than n_neighbors and there are no defined distances to the training set,
+		the training set average for that feature is used during imputation. If there is at least
+		one neighbor with a defined distance, the weighted or unweighted average of the
+		remaining neighbors will be used during imputation. If a feature is always missing in
+		training, it is removed during transform.
+'''
+
+ITERATIVE_IMPUTER = r'''The Iterative Imputer models each feature with missing values as a function of
+		other features, and uses that estimate for imputation. It does so in an iterated
+		round-robin fashion: at each step, a feature column is designated as output y and the
+		other feature columns are treated as inputs X. A regressor is fit on (X, y) for known y.
+
+		Then, the regressor is used to predict the missing values of y. This is done for each
+		feature in an iterative fashion, and then is repeated for max_iter imputation rounds.
+		The results of the final imputation round are returned.
+'''
+
+SIMPLE_IMPUTER = r'''Impute missing values using sklearn's Simple Imputer  for common strategy-based
+		replacement operations.
+'''
+
+# ---------- Features
+
+PCA = r'''PCA (Principal Component Analysis) is a dimensionality reduction technique and helps
+to reduce the number of features in a dataset while keeping the most important information. It changes
+complex datasets by transforming correlated features into a smaller set of uncorrelated components.
+It removes redundancy, improves computational efficiency and makes data easier to visualize and analyze.
+
+PCA uses linear algebra to transform data into new features called principal components. It finds
+these by calculating eigenvectors (directions) and eigenvalues (importance) from the covariance matrix.
+PCA selects the top components with the highest eigenvalues and projects the data onto them simplify the dataset.
+'''
+
+CCA = r'''Canonical Correlation Analysis (CCA) is a multivariate statistical method used to
+identify and quantify the relationships between two sets of variables, and measured on the same
+subjects. It finds linear combinations of variables—canonical variates—that are maximally correlated.
+
+'''
+
+VARIANCE_THRESHOLD = r'''Variance Threshold is a simple baseline approach to feature selection. It removes all
+		feature_names whose variance doesn’t meet some threshold. By default, it removes all
+		zero-variance feature_names, i.e. feature_names that have the same value in all samples.
+'''
+
+SELECT_BEST = r'''A univariate feature selection works by selecting the best features based on univariate
+		statistical tests. Removes all but the 'k' highest scoring features
+'''
+
+SELECT_PERCENT = r'''A univariate feature selection works by selecting the best features based on univariate
+		statistical tests. It can be seen as a preprocessing step to an estimator.
+		Removes all but a user-specified highest scoring percentage (default - 10%) of features
+'''
+
+SBS = r'''Implements Sequential Backward Selection (SBS) using a supplied
+			classification estimator and scoring function. The algorithm begins with
+			the full feature set and greedily removes one feature at a time until the
+			desired number of features remains.
+'''
+
+RFE = r'''Recursive Feature Elimination (RFE) Given an external estimator that assigns weights
+		to features (e.g., the coefficients of a linear model), recursive feature elimination (RFE)
+		is to select features by recursively considering smaller and smaller sets of features.
+		
+		First, the estimator is trained on the initial set of features and the importance of each
+		feature is obtained either through a coef_ attribute or
+		through a feature_importances_ attribute. Then, the least important features are pruned
+		from current set of features. That procedure is recursively repeated on the pruned set
+		until the desired number of features to select is eventually reached.
+'''
+
+
+
+
+
+
+
+
+
+
 
 
 

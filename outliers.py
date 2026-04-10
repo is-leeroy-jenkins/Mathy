@@ -164,7 +164,7 @@ class IsolationForest( Outlier ):
 	
 		Purpose:
 		--------
-		The IsolationForest ‘isolates’ observations by randomly selecting a feature and then
+		The Isolation Forest ‘isolates’ observations by randomly selecting a feature and then
 		randomly selecting a split value between the maximum and minimum values of
 		the selected feature. Since recursive partitioning can be represented by a tree structure,
 		the number of splittings required to isolate a sample is equivalent to the path
@@ -354,7 +354,7 @@ class OneClass( Outlier ):
 	
 		Purpose:
 		--------
-		Encapsulates scikit-learn's OneClassSVM for novelty detection on high-dimensional data.
+		Encapsulates One- Class Support Vector Machine for novelty detection on high-dimensional data.
 		The estimator learns a boundary around normal samples and flags observations
 		outside that boundary as anomalies.
 
@@ -546,7 +546,7 @@ class OutlierFactor( Outlier ):
 	
 		Purpose:
 		--------
-		LocalOutlierFactor for unsupervised or novelty-based outlier detection.
+		Local Outlier Factor for unsupervised or novelty-based outlier detection.
 		Provides decision function, prediction, and scoring interfaces.
 
 	"""
@@ -759,7 +759,7 @@ class EllipticSquare( Outlier ):
 
 		Purpose:
 		--------
-		Encapsulates  EllipticEnvelope for multivariate Gaussian-based outlier detection.
+		Encapsulates  Elliptic Envelope for multivariate Gaussian-based outlier detection.
 		This method is based on Mahalanobis distances under an elliptical (normal) distribution.
 
 	"""

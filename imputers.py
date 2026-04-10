@@ -533,7 +533,7 @@ class IterativeImputer( Imputer ):
 	"""
 		Purpose:
 		--------
-		The IterativeImputer class, which models each feature with missing values as a function of
+		The Iterative Imputer models each feature with missing values as a function of
 		other features, and uses that estimate for imputation. It does so in an iterated
 		round-robin fashion: at each step, a feature column is designated as output y and the
 		other feature columns are treated as inputs X. A regressor is fit on (X, y) for known y.
@@ -701,8 +701,8 @@ class SimpleImputer( Imputer ):
 
 		Purpose:
 		---------
-		Impute missing values using sklearn's SimpleImputer wrapper with support
-		for common strategy-based replacement operations.
+		Impute missing values using sklearn's Simple Imputer  for common strategy-based
+		replacement operations.
 
 	"""
 	imputer: im.SimpleImputer

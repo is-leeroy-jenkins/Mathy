@@ -261,7 +261,7 @@ class VarianceThreshold( Selector ):
 
 		Purpose:
 		---------
-		VarianceThreshold is a simple baseline approach to feature selection. It removes all
+		Variance Threshold is a simple baseline approach to feature selection. It removes all
 		feature_names whose variance doesn’t meet some threshold. By default, it removes all
 		zero-variance feature_names, i.e. feature_names that have the same value in all samples.
 
@@ -1784,7 +1784,7 @@ class SBS( Selector ):
 	
 			Purpose:
 			--------
-			Implement Sequential Backward Selection (SBS) using a supplied
+			Implements Sequential Backward Selection (SBS) using a supplied
 			classification estimator and scoring function. The algorithm begins with
 			the full feature set and greedily removes one feature at a time until the
 			desired number of features remains.

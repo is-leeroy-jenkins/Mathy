@@ -2099,7 +2099,7 @@ if mode == 'Data Profile':
 				st.info( 'No Missing Values Detected.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Cardinality' )
+		st.markdown( '##### Cardinality', help=cfg.DATA_CARDINALITY )
 		
 		v3, v4 = st.columns( 2, border=True )
 		with v3:
@@ -2417,11 +2417,11 @@ elif mode == 'Descriptive Statistics':
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
 				
-				m1, m2, m3, m4 = st.columns( 4 )
+				m1, m2, m3, m4 = st.columns( 4, border=True )
 				m1.metric( 'Count', f'{len( s ):,}' )
 				m2.metric( 'Mean', f'{mean_val:,.2f}' )
 				m3.metric( 'Median', f'{median_val:,.2f}' )
-				m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.000' )
+				m4.metric( 'Deviation', f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.000' )
 			
 			with c2:
 				fig, ax = plt.subplots( figsize=(7, 4.75) )
@@ -2443,20 +2443,20 @@ elif mode == 'Descriptive Statistics':
 				try:
 					if 3 <= len( s ) <= 5000:
 						shapiro_stat, shapiro_p = stats.shapiro( s )
-						q1, q2, q3 = st.columns( 3 )
+						q1, q2, q3 = st.columns( 3, border=True )
 						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
 						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
-						q3.metric( 'Shapiro p', f'{shapiro_p:,.3f}' )
+						q3.metric( 'Shapiro P', f'{shapiro_p:,.3f}' )
 					else:
-						q1, q2, q3 = st.columns( 3 )
+						q1, q2, q3 = st.columns( 3, border=True )
 						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
 						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
-						q3.metric( 'Shapiro p', 'n/a' )
+						q3.metric( 'Shapiro P', 'n/a' )
 				except Exception:
-					q1, q2, q3 = st.columns( 3 )
+					q1, q2, q3 = st.columns( 3, border=True )
 					q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
 					q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
-					q3.metric( 'Shapiro p', 'n/a' )
+					q3.metric( 'Shapiro P', 'n/a' )
 
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
@@ -2467,8 +2467,8 @@ elif mode == 'Descriptive Statistics':
 				default=default_pick( all_num_cols, 4 ) )
 		
 		with cor_c2:
-			corr_method = st.radio( 'Method', options=[ 'Pearson', 'Spearman' ],
-				horizontal=True, key='desc_corr_method' )
+			corr_method = st.radio( 'Correlation Method', options=[ 'Pearson', 'Spearman' ],
+				horizontal=True, key='desc_corr_method', help=cfg.CORRELATION_HEATMAP )
 		
 		c3, c4 = st.columns( 2, border=True )
 		if len( corr_vars ) >= 2:
@@ -2569,7 +2569,7 @@ elif mode == 'Inferential Statistics':
 			"""
 			<style>
 			[data-testid="stMetricLabel"] p {
-				font-size: 0.72rem;
+				font-size: 0.80rem;
 			}
 			
 			[data-testid="stMetricValue"] {
@@ -2643,7 +2643,7 @@ elif mode == 'Inferential Statistics':
 					'DoF': np.nan,
 					'Effect Size': np.nan,
 					'N': float( len( summary_series ) ),
-					'Notes': 'Normality assessment'
+					'Notes': 'Normality Assessment'
 				})
 			except Exception:
 				pass
@@ -2653,8 +2653,7 @@ elif mode == 'Inferential Statistics':
 		# -----------------------------------------------------------------
 		if summary_group:
 			df_group_summary = df_dataset[ [ summary_group, summary_y ] ].copy( )
-			df_group_summary[ summary_y ] = pd.to_numeric(
-				df_group_summary[ summary_y ], errors='coerce' )
+			df_group_summary[ summary_y ] = pd.to_numeric( df_group_summary[ summary_y ], errors='coerce' )
 			df_group_summary = df_group_summary.dropna( subset=[ summary_group, summary_y ] )
 			
 			group_arrays = [ grp[ summary_y ].values for _, grp in
@@ -2723,17 +2722,16 @@ elif mode == 'Inferential Statistics':
 					spearman_rho, spearman_p = stats.spearmanr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
 					infer_rows.append(
-						{
-								'Analysis': 'Association',
-								'Test': 'Spearman Correlation',
-								'Statistic': spearman_rho,
-								'P-Value': spearman_p,
-								'DoF': np.nan,
-								'Effect Size': abs( spearman_rho ),
-								'N': float( pair_mask.sum( ) ),
-								'Notes': f'{summary_y} vs {summary_x}'
-						}
-					)
+					{
+						'Analysis': 'Association',
+						'Test': 'Spearman Correlation',
+						'Statistic': spearman_rho,
+						'P-Value': spearman_p,
+						'DoF': np.nan,
+						'Effect Size': abs( spearman_rho ),
+						'N': float( pair_mask.sum( ) ),
+						'Notes': f'{summary_y} vs {summary_x}'
+					})
 				except Exception:
 					pass
 		
@@ -2759,7 +2757,7 @@ elif mode == 'Inferential Statistics':
 						'Analysis': 'Categorical Association',
 						'Test': 'Chi-Square',
 						'Statistic': chi2_stat,
-						'P-Value': chi2_p,
+						'P Value': chi2_p,
 						'DoF': float( chi2_dof ),
 						'Effect Size': cramers_v,
 						'N': float( n_total ),
@@ -2779,7 +2777,7 @@ elif mode == 'Inferential Statistics':
 					'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
 					'Test': st.column_config.TextColumn( 'Test', width='medium' ),
 					'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.4f' ),
-					'P-Value': st.column_config.NumberColumn( 'P-Value', format='%.4g' ),
+					'P-Value': st.column_config.NumberColumn( 'P Value', format='%.4g' ),
 					'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
 					'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.4f' ),
 					'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
@@ -2812,7 +2810,6 @@ elif mode == 'Inferential Statistics':
 				ax.spines[ 'top' ].set_visible( False )
 				ax.spines[ 'right' ].set_visible( False )
 				ax.ticklabel_format( style='plain', axis='both' )
-				
 				if len( ax.get_lines( ) ) >= 1:
 					ax.get_lines( )[ 0 ].set_marker( 'o' )
 					ax.get_lines( )[ 0 ].set_alpha( 0.72 )
@@ -2869,8 +2866,8 @@ elif mode == 'Inferential Statistics':
 					g1, g2, g3, g4 = st.columns( 4 )
 					g1.metric( 'Groups', f'{len( valid_groups ):,}' )
 					g2.metric( 'ANOVA F', f'{f_stat:,.4f}' )
-					g3.metric( 'ANOVA p', f'{p_anova:,.4g}' )
-					g4.metric( 'Kruskal p', f'{p_kw:,.4g}' )
+					g3.metric( 'ANOVA P', f'{p_anova:,.4g}' )
+					g4.metric( 'Kruskal P', f'{p_kw:,.4g}' )
 					st.caption( f'Kruskal–Wallis H = {h_stat:.4f}. '
 						f'Use the nonparametric result when normality or homoscedasticity is doubtful.' )
 				else:
@@ -2888,7 +2885,7 @@ elif mode == 'Inferential Statistics':
 		with cor_c1:
 			candidate_x = [ c for c in numeric_columns if c != col_y ]
 			if not candidate_x:
-				st.info( 'A second numeric variable is required for correlation analysis.' )
+				st.info( 'A second numeric variable is required for Correlation Analysis.' )
 				col_x2 = None
 			else:
 				col_x2 = st.selectbox( 'Select Second Numeric Variable', candidate_x )
@@ -2903,10 +2900,10 @@ elif mode == 'Inferential Statistics':
 					r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
 					r1, r2, r3, r4 = st.columns( 4 )
 					r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
-					r2.metric( 'Pearson r', f'{r_p:,.3f}' )
-					r3.metric( 'Pearson p', f'{p_p:,.4g}' )
-					r4.metric( 'Spearman ρ', f'{r_s:,.3f}' )
-					st.caption( f'Spearman p = {p_s:.4g}' )
+					r2.metric( 'Pearson R', f'{r_p:,.3f}' )
+					r3.metric( 'Pearson P', f'{p_p:,.4g}' )
+					r4.metric( 'Spearman R', f'{r_s:,.3f}' )
+					st.caption( f'Spearman P = {p_s:.4g}' )
 				else:
 					st.info( 'Not enough paired observations for correlation.' )
 		
@@ -2945,7 +2942,7 @@ elif mode == 'Inferential Statistics':
 		if not categorical_columns or len( categorical_columns ) < 2:
 			st.info( 'At least two categorical variables are required for categorical association.' )
 		else:
-			cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+			cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ] )
 			with cat_c1:
 				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_columns )
 				
@@ -2966,7 +2963,8 @@ elif mode == 'Inferential Statistics':
 				
 				ca1, ca2 = st.columns( 2, border=True )
 				with ca1:
-					render_table( contingency.reset_index( ) )
+					st.data_editor( contingency, key='inference_data',
+						height='stretch', num_rows='dynamic')
 				
 				with ca2:
 					fig, ax = plt.subplots( figsize=( 7, 5.5 ) )
@@ -2981,10 +2979,10 @@ elif mode == 'Inferential Statistics':
 					fig.tight_layout( )
 					st.pyplot( fig )
 					plt.close( fig )
-				
+			
 				cm1, cm2, cm3, cm4 = st.columns( 4, border=True )
-				cm1.metric( 'Chi-square', f'{chi2:,.4f}' )
-				cm2.metric( 'p-value', f'{p_chi:,.4g}' )
+				cm1.metric( 'Chi-Square', f'{chi2:,.4f}' )
+				cm2.metric( 'P Value', f'{p_chi:,.4g}' )
 				cm3.metric( 'DoF', f'{dof:,}' )
 				cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
 
@@ -3149,10 +3147,8 @@ elif mode == 'Anomaly Detection':
 		m1, m2, m3, m4 = st.columns( 4, border=True )
 		m1.metric( 'Rows Analyzed', f'{len( df_analysis ):,}' )
 		m2.metric( 'Flagged Rows', f'{len( anomalies ):,}' )
-		m3.metric(
-			'Flag Rate %',
-			f'{(100.0 * len( anomalies ) / max( 1, len( df_analysis ) )):,.2f}'
-		)
+		m3.metric( 'Flag Rate %',
+			f'{(100.0 * len( anomalies ) / max( 1, len( df_analysis ) )):,.2f}' )
 		m4.metric( 'Min Methods', f'{min_methods:,}' )
 		
 		c_o1, c_o2 = st.columns( 2, border=True )
@@ -3391,7 +3387,7 @@ elif mode == 'Data Plumbing':
 		active_numeric_columns = get_numeric_columns( df_working )
 		categorical_columns = get_categorical_columns( df_working )
 		
-		st.caption( f'Working rows: {len( df_working ):,}| Working columns: {len( df_working.columns ):,}')
+		st.caption( f'Input: {len( df_working ):,}| Features: {len( df_working.columns ):,}')
 		
 		# ======================================================================================
 		# Data Processing
@@ -3482,7 +3478,6 @@ elif mode == 'Data Plumbing':
 						index=1, key='plumbing_normal_scaler_norm' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_normal_scaler_apply',
 								use_container_width=True ):
@@ -3561,7 +3556,6 @@ elif mode == 'Data Plumbing':
 						value=5, step=1, key='plumbing_nearest_imputer_neighbors' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_nearest_imputer_apply',
 								use_container_width=True ):
@@ -3775,7 +3769,6 @@ elif mode == 'Data Plumbing':
 						key='plumbing_polynomial_interaction' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_polynomial_apply',
 								use_container_width=True ):
@@ -3843,7 +3836,6 @@ elif mode == 'Data Plumbing':
 						key='plumbing_label_binarizer_sparse' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply LabelBinarizer', key='plumbing_label_binarizer_apply',
 								use_container_width=True ):
@@ -4066,7 +4058,6 @@ elif mode == 'Data Plumbing':
 						key='plumbing_count_vectorizer_binary' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_count_vectorizer_apply',
 								use_container_width=True ):
@@ -4170,7 +4161,6 @@ elif mode == 'Data Plumbing':
 						key='plumbing_feature_hasher_alternate_sign' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_feature_hasher_apply',
 								use_container_width=True ):
@@ -4239,7 +4229,6 @@ elif mode == 'Data Plumbing':
 						step=1, key='plumbing_cca_max_iter' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_cca_apply', use_container_width=True ):
 							if X_cols and y_cols:
@@ -4310,7 +4299,6 @@ elif mode == 'Data Plumbing':
 						key='plumbing_selectbest_k' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_selectbest_apply',
 								use_container_width=True ):
@@ -4336,11 +4324,10 @@ elif mode == 'Data Plumbing':
 							st.success( 'Reset to Original.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns',
-						options=numeric_columns, key='plumbing_selectpercent_x_cols' )
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='plumbing_selectpercent_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column',
-						options=df_working.columns.tolist( ),
+					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
 						key='plumbing_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
@@ -4352,7 +4339,6 @@ elif mode == 'Data Plumbing':
 						value=10, key='plumbing_selectpercent_percentile' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply SelectPercent', key='plumbing_selectpercent_apply',
 								use_container_width=True ):
@@ -4394,7 +4380,6 @@ elif mode == 'Data Plumbing':
 						step=1, key='plumbing_sbs_random_state' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
 						if st.button( 'Apply', key='plumbing_sbs_apply', use_container_width=True ):
 							if X_cols and target_col:
@@ -4658,7 +4643,7 @@ elif mode == 'Classifications':
 	df_dataset = st.session_state.get( 'df_dataset', None )
 	df_working = st.session_state.get( 'df_working', None )
 	df_processed = st.session_state.get( 'df_processed', None )
-	df_classification = st.session_state.get( 'df_classification', None )
+	df_cluster = st.session_state.get( 'df_cluster', None )
 	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
@@ -6149,7 +6134,7 @@ elif mode == 'Regressions':
 		st.markdown( '##### Working Data' )
 		st.caption( f'Records: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
-		st.data_editor( df_working )
+		st.data_editor( df_working, key='regressions_workding_data' )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -6375,8 +6360,7 @@ elif mode == 'Regressions':
 							st.success( 'Reset Data' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					impute_cols = st.multiselect( 'Columns',
-						options=numeric_columns,
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -7274,7 +7258,7 @@ elif mode == 'Regressions':
 			min_train_rows = len( df_regression ) - min_test_rows
 			
 			if min_train_rows < 2:
-				st.warning( '⚠️ The selected test size leaves too few training rows. Reduce the test size or load more data.' )
+				st.warning( '⚠️ Reduce the test size or load more data.' )
 				st.stop( )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
@@ -7392,7 +7376,7 @@ elif mode == 'Clustering':
 	targets = st.session_state.get( 'targets', [ ] )
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Classifications' ] )
+		st.subheader( cfg.MODE[ 'Clustering' ] )
 		st.divider( )
 		
 		if df_dataset is None or df_dataset.empty:
@@ -7407,7 +7391,7 @@ elif mode == 'Clustering':
 		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
 		
 		if not numeric_columns or not categorical_columns:
-			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
+			st.warning( '⚠️ Clustering requires numeric features' )
 			st.stop( )
 		
 		df_cluster = st.session_state.get( 'df_cluster', df_original.copy( ) ).copy( )
@@ -7416,7 +7400,7 @@ elif mode == 'Clustering':
 		# Data Selection
 		# ======================================================================================
 		st.markdown( '##### Data Selection' )
-		st.caption( f'Records: {len( df_original ):,}  | Fields: {len( df_original.columns ):,}' )
+		st.caption( f'Inputs: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=categorical_columns,
@@ -7447,7 +7431,7 @@ elif mode == 'Clustering':
 				df_processed = pd.DataFrame( )
 				
 				commit_frame( df_working )
-				st.success( 'Working Dataframe Created.' )
+				st.success( 'Working Dataset Created!' )
 		
 		with sel_b2:
 			if st.button( 'Reset To Original', icon='🔁', key='cluster_reset_to_original',
@@ -7466,7 +7450,7 @@ elif mode == 'Clustering':
 		st.markdown( '##### Working Data' )
 		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
 		
-		st.data_editor( df_working )
+		st.data_editor( df_working, key='clusters_working_data' )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -7489,6 +7473,7 @@ elif mode == 'Clustering':
 		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
+			
 			with st.expander( label='Data Scaling', icon='⚖️', key='cluster_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
@@ -7798,8 +7783,7 @@ elif mode == 'Clustering':
 							st.success( 'Reset to Working' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='cluster_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
@@ -7889,6 +7873,7 @@ elif mode == 'Clustering':
 							st.success( 'Reset to Original.' )
 		
 		with feature_c2:
+			
 			with st.expander( label='Data Transformation', icon='⚡', key='cluster_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
