@@ -920,6 +920,11 @@ SIMPLE_IMPUTER = r'''Impute missing values using sklearn's Simple Imputer  for c
 		replacement operations.
 '''
 
+NEAREST_NEIGHBOR_IMPUTER = r'''Nearest neighbor imputation (kNN) fills missing data by locating the
+		 most similar, complete records (donors) to a record with missing values (recipient) based on
+		 distance metrics like Euclidean distance.
+'''
+
 # ---------- Features
 
 PCA = r'''PCA (Principal Component Analysis) is a dimensionality reduction technique and helps

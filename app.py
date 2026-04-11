@@ -3414,7 +3414,8 @@ elif mode == 'Classification Models':
 			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
 			st.stop( )
 		
-		y = df_working[ targets ]
+		X = df_working.values
+		y = df_working[ targets ].to_numpy( )
 		
 		if len( np.unique( y ) ) < 2:
 			st.warning( '⚠️ Classification requires at least two classes in the selected target.' )
@@ -3432,34 +3433,38 @@ elif mode == 'Classification Models':
 			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=targets,
 						key='classification_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_standard_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_standard_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = StandardScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
 								st.success( 'Standard Scaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_standard_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_standard_scaler_reset',
 								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 							
-							df_processed = pd.DataFrame( )
-							st.success( 'Reset to Working Dataset.' )
-				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_minmax_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_minmax_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_minmax_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MinMaxScaler( )
@@ -3472,17 +3477,19 @@ elif mode == 'Classification Models':
 					with a2:
 						if st.button( 'Reset', key='classification_minmax_scaler_reset',
 								use_container_width=True ):
-							
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Working' )
-				
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
+										
 				with st.expander( 'Robust Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_robust_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_robust_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_robust_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = RobustScaler( )
@@ -3493,13 +3500,15 @@ elif mode == 'Classification Models':
 								st.success( 'RobustScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_robust_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_robust_scaler_reset',
 								use_container_width=True ):
-							
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Working' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_normal_scaler_cols' )
 					
@@ -3508,7 +3517,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_normal_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_normal_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = NormalScaler( norm=norm )
@@ -3520,19 +3529,21 @@ elif mode == 'Classification Models':
 								st.success( 'NormalScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_normal_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_normal_scaler_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_maxabs_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_maxabs_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_maxabs_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MaxAbsScaler( )
@@ -3543,15 +3554,17 @@ elif mode == 'Classification Models':
 								st.success( 'MaxAbsScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_maxabs_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_maxabs_scaler_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_mean_imputer_cols' )
 					
@@ -3560,7 +3573,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_mean_imputer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
@@ -3573,13 +3586,16 @@ elif mode == 'Classification Models':
 								st.success( 'MeanImputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_mean_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_mean_imputer_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right',
+						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_nearest_imputer_cols' )
 					
@@ -3588,7 +3604,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_nearest_imputer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = NearestImputer( neighbors=int( neighbors ) )
@@ -3601,13 +3617,15 @@ elif mode == 'Classification Models':
 								st.success( 'Nearest Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_nearest_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_nearest_imputer_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset Data' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_iterative_imputer_cols' )
 					
@@ -3633,13 +3651,15 @@ elif mode == 'Classification Models':
 								st.success( 'Iterative Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_iterative_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_iterative_imputer_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset Data' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns',
 						options=numeric_columns,
 						key='classification_simple_imputer_cols' )
@@ -3686,16 +3706,17 @@ elif mode == 'Classification Models':
 								st.success( 'Simple Imputer Applied' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_simple_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_simple_imputer_reset',
 								use_container_width=True ):
-							
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='classification_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=features,
 						key='classification_onehot_cols' )
 					
@@ -3708,7 +3729,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_onehot_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_onehot_apply',
 								use_container_width=True ):
 							if encode_cols:
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
@@ -3721,19 +3742,21 @@ elif mode == 'Classification Models':
 								st.success( 'OneHotEncoder applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_onehot_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_onehot_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='classification_ordinal_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_ordinal_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_ordinal_apply',
 								use_container_width=True ):
 							if encode_cols:
 								encoder = OrdinalEncoder( )
@@ -3744,20 +3767,21 @@ elif mode == 'Classification Models':
 								st.success( 'Ordinal Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_ordinal_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_ordinal_reset',
 								use_container_width=True ):
-							
-							df_processed = pd.DataFrame( )
-							st.success( 'Reset to Working' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
+					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='classification_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_label_encoder_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_label_encoder_apply',
 								use_container_width=True ):
 							
 							if target_col:
@@ -3770,13 +3794,15 @@ elif mode == 'Classification Models':
 								st.success( 'Label Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_label_encoder_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_label_encoder_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=categorical_columns, key='classification_target_encoder_cols' )
 					
@@ -3785,7 +3811,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_target_encoder_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_target_encoder_apply',
 								use_container_width=True ):
 							
 							if encode_cols and target_col:
@@ -3802,14 +3828,15 @@ elif mode == 'Classification Models':
 								st.success( 'Target Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_target_encoder_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_target_encoder_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_polynomial_cols' )
 					
@@ -3821,7 +3848,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_polynomial_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_polynomial_apply',
 								use_container_width=True ):
 							
 							if poly_cols:
@@ -3840,11 +3867,12 @@ elif mode == 'Classification Models':
 								st.success( 'PolynomialFeatures applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_polynomial_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_polynomial_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 		with feature_c2:
 			
@@ -3877,11 +3905,12 @@ elif mode == 'Classification Models':
 								st.success( 'Binarizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
@@ -3916,11 +3945,12 @@ elif mode == 'Classification Models':
 								st.success( 'Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_label_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_label_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
@@ -3935,7 +3965,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_multilabel_binarizer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_multilabel_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
@@ -3953,11 +3983,12 @@ elif mode == 'Classification Models':
 								st.success( 'Multi-Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_multilabel_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_multilabel_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'TF=IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
@@ -3978,7 +4009,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_tfidf_transformer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_tfidf_transformer_apply',
 								use_container_width=True ):
 							if text_count_cols:
 								df_processed = df_working.copy( )
@@ -3996,11 +4027,12 @@ elif mode == 'Classification Models':
 								st.success( 'TFIDF Transformer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_tfidf_transformer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_tfidf_transformer_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
 					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
@@ -4072,11 +4104,12 @@ elif mode == 'Classification Models':
 								st.success( 'ColumnTransformer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_column_transformer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_column_transformer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
 				
@@ -4096,7 +4129,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_tfidf_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_tfidf_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -4111,11 +4144,12 @@ elif mode == 'Classification Models':
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_tfidf_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
@@ -4133,7 +4167,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_count_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_count_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -4148,11 +4182,12 @@ elif mode == 'Classification Models':
 								st.success( 'Count Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_count_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_count_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
@@ -4173,7 +4208,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_hash_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_hash_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -4186,11 +4221,12 @@ elif mode == 'Classification Models':
 								st.success( 'HashVectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_hash_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_hash_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
 					dict_cols = st.multiselect( 'Columns',
@@ -4208,7 +4244,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_dict_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_dict_vectorizer_apply',
 								use_container_width=True ):
 							
 							if dict_cols:
@@ -4223,11 +4259,12 @@ elif mode == 'Classification Models':
 								st.success( 'DictVectorizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_dict_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_dict_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
 					hash_cols = st.multiselect( 'Columns',
@@ -4242,7 +4279,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_feature_hasher_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_feature_hasher_apply',
 								use_container_width=True ):
 							
 							if hash_cols:
@@ -4257,12 +4294,12 @@ elif mode == 'Classification Models':
 								st.success( 'FeatureHasher applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_feature_hasher_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_feature_hasher_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='classification_selectors' ):
 				
@@ -4275,7 +4312,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_variance_threshold_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_variance_threshold_apply',
 								use_container_width=True ):
 							
 							if select_cols:
@@ -4291,12 +4328,12 @@ elif mode == 'Classification Models':
 								st.success( 'VarianceThreshold applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_variance_threshold_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_variance_threshold_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
 					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
@@ -4316,7 +4353,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_cca_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_cca_apply',
 								use_container_width=True ):
 							if X_cols and y_cols:
 								df_processed = df_working.copy( )
@@ -4337,12 +4374,12 @@ elif mode == 'Classification Models':
 								st.success( 'CCA Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_cca_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_cca_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -4357,7 +4394,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_pca_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_pca_apply',
 								use_container_width=True ):
 							
 							if select_cols:
@@ -4372,12 +4409,12 @@ elif mode == 'Classification Models':
 								st.success( 'PCA applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_pca_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_pca_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -4396,7 +4433,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_selectbest_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_selectbest_apply',
 								use_container_width=True ):
 							
 							if X_cols and target_col:
@@ -4415,12 +4452,12 @@ elif mode == 'Classification Models':
 								st.success( 'Select Best Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_selectbest_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_selectbest_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -4458,12 +4495,12 @@ elif mode == 'Classification Models':
 								st.success( 'SelectPercent applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_selectpercent_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_selectpercent_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -4484,7 +4521,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_sbs_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_sbs_apply',
 								use_container_width=True ):
 							
 							if X_cols and target_col:
@@ -4504,12 +4541,12 @@ elif mode == 'Classification Models':
 								st.success( 'SBS applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_sbs_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_sbs_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -4526,7 +4563,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='classification_rfe_apply',
+						if st.button( label='Apply', icon='✔️', key='classification_rfe_apply',
 								use_container_width=True ):
 							
 							if X_cols and target_col:
@@ -4543,17 +4580,17 @@ elif mode == 'Classification Models':
 								st.success( 'RFE applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='classification_rfe_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_rfe_reset',
 								use_container_width=True ):
-							
-							working_to_original( )
-							st.session_state[ 'df_processed ' ] = get_working_frame( ).copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Feature-Engineered Data' )
-		st.caption( f'Records: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
-		st.data_editor( df_processed )
+		st.markdown( '##### Processed Data' )
+		st.caption( f'Input: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.data_editor( df_processed, key='classification_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
