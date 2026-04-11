@@ -5963,12 +5963,8 @@ class BaggingModel( Classifier ):
 		self.max_features = max
 		self.random_state = rando
 		self.validate_configuration( )
-		self.model = ske.BaggingClassifier(
-			estimator=self.base_estimator,
-			n_estimators=self.n_estimators,
-			max_features=self.max_features,
-			random_state=self.random_state
-		)
+		self.model = ske.BaggingClassifier( estimator=self.base_estimator, n_estimators=self.n_estimators,
+			max_features=self.max_features, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -6104,8 +6100,7 @@ class BaggingModel( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -7967,8 +7962,7 @@ class MultiLayerPerceptron( Classifier ):
 		return self.model.n_outputs_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -7990,7 +7984,7 @@ class MultiLayerPerceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return split( X, y, test_size=size, random_state=random, stratify=y )
+			return split( X, y, test_size=size, random_state=random )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
