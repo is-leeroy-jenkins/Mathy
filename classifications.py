@@ -2482,7 +2482,7 @@ class Lasso( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -2882,9 +2882,7 @@ class GradientDescent( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X, y, test_size=size, random_state=random, stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -3167,13 +3165,8 @@ class NearestNeighbor( Classifier ):
 		self.metric = metric
 		self.leaf_size = leafs
 		self.validate_configuration( )
-		self.model = skn.KNeighborsClassifier(
-			n_neighbors=self.n_neighbors,
-			algorithm=self.algorithm,
-			p=self.power,
-			metric=self.metric,
-			leaf_size=self.leaf_size
-		)
+		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors, algorithm=self.algorithm,
+			p=self.power, metric=self.metric, leaf_size=self.leaf_size )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -3347,13 +3340,7 @@ class NearestNeighbor( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random,
-				stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random, )
 			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
@@ -3709,14 +3696,9 @@ class DecisionTree( Classifier ):
 		self.min_samples_leaf = min_leaf
 		self.random_state = random
 		self.validate_configuration( )
-		self.model = skd.DecisionTreeClassifier(
-			criterion=self.criterion,
-			splitter=self.splitter,
-			max_depth=self.max_depth,
-			min_samples_split=self.min_samples_split,
-			min_samples_leaf=self.min_samples_leaf,
-			random_state=self.random_state
-		)
+		self.model = skd.DecisionTreeClassifier( criterion=self.criterion, splitter=self.splitter,
+			max_depth=self.max_depth,  min_samples_split=self.min_samples_split,
+			min_samples_leaf=self.min_samples_leaf, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -3934,7 +3916,7 @@ class DecisionTree( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return split( X, y, test_size=size, random_state=random, stratify=y )
+			return split( X, y, test_size=size, random_state=random )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4483,13 +4465,7 @@ class RandomForest( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random,
-				stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
@@ -5041,8 +5017,7 @@ class GradientBoost( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -5064,13 +5039,7 @@ class GradientBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random,
-				stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
@@ -5422,12 +5391,9 @@ class AdaptiveBoost( Classifier ):
 		self.algorithm = algorithm
 		self.random_state = random
 		self.validate_configuration( )
-		self.model = ske.AdaBoostClassifier(
-			estimator=self.base_estimator,
-			n_estimators=self.n_estimators,
-			learning_rate=self.learning_rate,
-			random_state=self.random_state
-		)
+		self.model = ske.AdaBoostClassifier( estimator=self.base_estimator,
+			n_estimators=self.n_estimators, learning_rate=self.learning_rate,
+			random_state=self.random_state 	)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -5634,8 +5600,7 @@ class AdaptiveBoost( Classifier ):
 		return self.model.estimator_errors_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -5657,7 +5622,7 @@ class AdaptiveBoost( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return split( X, y, test_size=size, random_state=random, stratify=y )
+			return split( X, y, test_size=size, random_state=random )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5919,21 +5884,11 @@ class AdaptiveBoost( Classifier ):
 				x=y,
 				y=y_pred,
 				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -5982,8 +5937,7 @@ class BaggingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, num: int = 10, max: int | float = 1.0,
-			rando: int = 42 ) -> None:
+	def __init__( self, base: object = None, num: int = 10, max: int | float = 1.0, rando: int = 42 ) -> None:
 		"""
 
 			Purpose:
@@ -6173,13 +6127,7 @@ class BaggingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random,
-				stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
@@ -6608,8 +6556,7 @@ class VotingModel( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -6631,9 +6578,7 @@ class VotingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -7004,8 +6949,7 @@ class StackingModel( Classifier ):
 		return self.model.final_estimator_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -7027,8 +6971,7 @@ class StackingModel( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random, stratify=y )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -7275,13 +7218,8 @@ class SupportVector( Classifier ):
 		self.degree = degree
 		self.random_state = random
 		self.validate_configuration( )
-		self.model = skv.SVC(
-			C=self.regulation,
-			kernel=self.kernel,
-			degree=self.degree,
-			probability=True,
-			random_state=self.random_state
-		)
+		self.model = skv.SVC( C=self.regulation, kernel=self.kernel, degree=self.degree,
+			probability=True, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -7490,8 +7428,7 @@ class SupportVector( Classifier ):
 		return self.model.n_support_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -7513,13 +7450,7 @@ class SupportVector( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random,
-				stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )

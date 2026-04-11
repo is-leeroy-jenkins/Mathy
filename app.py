@@ -133,7 +133,7 @@ if 'mode' not in st.session_state or st.session_state[ 'mode' ] is None:
 if 'df_dataset' not in st.session_state or st.session_state[ 'df_dataset' ] is None:
 	st.session_state[ 'df_dataset'] = pd.DataFrame( )
 	
-# ------ Data Plumbing Members
+# ------ Data Processing Members
 
 if 'df_original' not in st.session_state or st.session_state[ 'df_original' ] is None:
 	st.session_state[ 'df_original' ] = pd.DataFrame( )
@@ -156,12 +156,6 @@ if 'df_dataset' not in st.session_state or st.session_state[ 'df_dataset' ] is N
 if 'df_working' not in st.session_state or st.session_state[ 'df_working' ] is None:
 	st.session_state[ 'df_working' ] = pd.DataFrame( )
 
-if 'df_regression' not in st.session_state or st.session_state[ 'df_regression' ] is None:
-	st.session_state[ 'df_regression' ] = pd.DataFrame( )
-	
-if 'df_classification' not in st.session_state or st.session_state[ 'df_classification' ] is None:
-	st.session_state[ 'df_classification' ] = pd.DataFrame( )
-
 if 'numeric_columns' not in st.session_state:
 	st.session_state[ 'numeric_columns' ] = [ ]
 
@@ -174,6 +168,22 @@ if 'features' not in st.session_state:
 if 'targets' not in st.session_state:
 	st.session_state[ 'targets' ] = [ ]
 
+# ----------- Model Training Members
+
+if 'df_regression' not in st.session_state or st.session_state[ 'df_regression' ] is None:
+	st.session_state[ 'df_regression' ] = pd.DataFrame( )
+
+if 'df_classification' not in st.session_state or st.session_state[ 'df_classification' ] is None:
+	st.session_state[ 'df_classification' ] = pd.DataFrame( )
+
+if 'df_cluster' not in st.session_state or st.session_state[ 'df_cluster' ] is None:
+	st.session_state[ 'df_cluster' ] = pd.DataFrame( )
+
+if 'active_features' not in st.session_state:
+	st.session_state[ 'active_features' ] = [ ]
+
+if 'active_targets' not in st.session_state:
+	st.session_state[ 'active_targets' ] = [ ]
 
 # ----------- Clustering Members
 
@@ -3347,8 +3357,6 @@ elif mode == 'Classification Models':
 			st.warning( '⚠️ Classifications requires numeric features and a categorical target.' )
 			st.stop( )
 		
-		df_classification = st.session_state.get( 'df_classification', df_original.copy( ) ).copy( )
-		
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
@@ -3406,20 +3414,6 @@ elif mode == 'Classification Models':
 		st.caption( f'Records: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
 		st.data_editor( df_working )
-		
-		# ------------------------------------------------------------------
-		# Training Target & Features
-		# ------------------------------------------------------------------
-		if df_working.empty:
-			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
-			st.stop( )
-		
-		X = df_working.values
-		y = df_working[ targets ].to_numpy( )
-		
-		if len( np.unique( y ) ) < 2:
-			st.warning( '⚠️ Classification requires at least two classes in the selected target.' )
-			st.stop( )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -3990,7 +3984,7 @@ elif mode == 'Classification Models':
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
-				with st.expander( 'TF=IDF Transformer', expanded=False ):
+				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
 						options=numeric_columns,
 						key='classification_tfidf_transformer_cols' )
@@ -4113,7 +4107,7 @@ elif mode == 'Classification Models':
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
 				
-				with st.expander( 'TF=IDF Vectorizer', expanded=False ):
+				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
 						options=categorical_columns,
 						key='classification_tfidf_vectorizer_cols' )
@@ -4612,6 +4606,8 @@ elif mode == 'Classification Models':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Training' )
 		
+		df_classification = st.session_state.get( 'df_classification', df_processed.copy( ) ).copy( )
+		
 		mdl_c1, mdl_c2, mdl_c3 = st.columns( [ 0.33, 0.33, 0.33 ], border=True )
 		with mdl_c1:
 			st.markdown( '###### Classification Models' )
@@ -4625,13 +4621,34 @@ elif mode == 'Classification Models':
 		with mdl_c3:
 			st.markdown( '###### Random State' )
 			random_state = st.number_input( 'Seed', value=42, step=1,
-				key='classifications-2' )
+				key='classifications_random_state' )
 		
+		# ------------------------------------------------------------------
+		# Training Target & Features
+		# ------------------------------------------------------------------
+		active_features = [ c for c in st.session_state.get( 'features', [ ] )
+		                    if c in df_processed.columns ]
+		
+		active_targets = [ c for c in st.session_state.get( 'targets', [ ] )
+		                   if c in df_processed.columns ]
+		
+		if not active_features:
+			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
+			st.stop( )
+		
+		if not active_targets:
+			st.warning( '⚠️ No valid target columns remain after preprocessing.' )
+			st.stop( )
+			
+		X = df_processed[ active_features ].to_numpy( )
+		y = df_processed[ active_targets ].to_numpy( dtype=float )
+		
+		if len( np.unique( y ) ) < 2:
+			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
+			st.stop( )
 		
 		if st.button( '🚀 Train Classifier' ):
 			try:
-				X = df_processed[ features ].to_numpy( )
-				y = df_processed[ targets ].to_numpy( dtype=float )
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
 					random=random_state )
 				
@@ -4791,9 +4808,7 @@ elif mode == 'Regression Models':
 		if not numeric_columns or not categorical_columns:
 			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
 			st.stop( )
-		
-		df_regression = st.session_state.get( 'df_regression', df_original.copy( ) ).copy( )
-		
+			
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
@@ -4851,19 +4866,6 @@ elif mode == 'Regression Models':
 		
 		st.data_editor( df_working, key='regressions_workding_data' )
 		
-		# ------------------------------------------------------------------
-		# Training Target & Features
-		# ------------------------------------------------------------------
-		if df_working.empty:
-			st.warning( '⚠️ No complete rows remain after preprocessing and target/feature selection.' )
-			st.stop( )
-		
-		y = df_working[ targets ]
-		
-		if len( np.unique( y ) ) < 2:
-			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
-			st.stop( )
-		
 		# -----------------------------------------------------------------
 		# Data Processing
 		# -----------------------------------------------------------------
@@ -4872,36 +4874,42 @@ elif mode == 'Regression Models':
 		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
-			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
+			
+			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=targets,
 						key='regression_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_standard_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_standard_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = StandardScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
 								st.success( 'Standard Scaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_standard_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_standard_scaler_reset',
 								use_container_width=True ):
-							df_processed = pd.DataFrame( )
-							st.success( 'Reset to Working Dataset.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_minmax_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_minmax_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_minmax_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MinMaxScaler( )
@@ -4915,15 +4923,18 @@ elif mode == 'Regression Models':
 						if st.button( 'Reset', key='regression_minmax_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Working' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_robust_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_robust_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_robust_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = RobustScaler( )
@@ -4934,12 +4945,15 @@ elif mode == 'Regression Models':
 								st.success( 'RobustScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_robust_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_robust_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Working' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_normal_scaler_cols' )
 					
@@ -4948,7 +4962,7 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_normal_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_normal_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = NormalScaler( norm=norm )
@@ -4960,18 +4974,21 @@ elif mode == 'Regression Models':
 								st.success( 'NormalScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_normal_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_normal_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_maxabs_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_maxabs_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_maxabs_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MaxAbsScaler( )
@@ -4982,14 +4999,17 @@ elif mode == 'Regression Models':
 								st.success( 'MaxAbsScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_maxabs_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_maxabs_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='regression_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_mean_imputer_cols' )
 					
@@ -4998,7 +5018,7 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_mean_imputer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
@@ -5011,12 +5031,16 @@ elif mode == 'Regression Models':
 								st.success( 'MeanImputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_mean_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_mean_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right',
+						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_nearest_imputer_cols' )
 					
@@ -5025,7 +5049,7 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_nearest_imputer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = NearestImputer( neighbors=int( neighbors ) )
@@ -5038,12 +5062,15 @@ elif mode == 'Regression Models':
 								st.success( 'Nearest Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_nearest_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_nearest_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset Data' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_iterative_imputer_cols' )
 					
@@ -5069,13 +5096,17 @@ elif mode == 'Regression Models':
 								st.success( 'Iterative Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_iterative_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_iterative_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset Data' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
+					impute_cols = st.multiselect( 'Columns',
+						options=numeric_columns,
 						key='regression_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -5119,14 +5150,17 @@ elif mode == 'Regression Models':
 								st.success( 'Simple Imputer Applied' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_simple_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_simple_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
-			with st.expander( label='Data Encoding', icon='🔢', key='regression_encoders' ):
+			with st.expander( label='Data Encoding', icon='🔣', key='regression_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=features,
 						key='regression_onehot_cols' )
 					
@@ -5139,7 +5173,7 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_onehot_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_onehot_apply',
 								use_container_width=True ):
 							if encode_cols:
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
@@ -5149,21 +5183,24 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, encode_cols,
 									result, 'onehot' )
 								commit_frame( df_processed )
-								st.success( 'One-Hot Encoder Applied.' )
+								st.success( 'OneHotEncoder applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_onehot_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_onehot_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='regression_ordinal_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_ordinal_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_ordinal_apply',
 								use_container_width=True ):
 							if encode_cols:
 								encoder = OrdinalEncoder( )
@@ -5174,19 +5211,21 @@ elif mode == 'Regression Models':
 								st.success( 'Ordinal Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_ordinal_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_ordinal_reset',
 								use_container_width=True ):
-							df_processed = pd.DataFrame( )
-							st.success( 'Reset to Working' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
+					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='regression_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_label_encoder_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_label_encoder_apply',
 								use_container_width=True ):
 							if target_col:
 								encoder = LabelEncoder( )
@@ -5198,12 +5237,15 @@ elif mode == 'Regression Models':
 								st.success( 'Label Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_label_encoder_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_label_encoder_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=categorical_columns, key='regression_target_encoder_cols' )
 					
@@ -5212,7 +5254,7 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_target_encoder_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_target_encoder_apply',
 								use_container_width=True ):
 							if encode_cols and target_col:
 								df_processed = df_working.copy( )
@@ -5228,13 +5270,15 @@ elif mode == 'Regression Models':
 								st.success( 'Target Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_target_encoder_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_target_encoder_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_polynomial_cols' )
 					
@@ -5246,7 +5290,7 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_polynomial_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_polynomial_apply',
 								use_container_width=True ):
 							if poly_cols:
 								df_processed = df_working.copy( )
@@ -5264,31 +5308,35 @@ elif mode == 'Regression Models':
 								st.success( 'PolynomialFeatures applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_polynomial_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_polynomial_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 		
 		with feature_c2:
 			
-			with st.expander( label='Data Transformation', icon='⚡', key='transformers' ):
+			with st.expander( label='Data Transformation', icon='⚡', key='regression_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
-					transform_cols = st.multiselect( 'Columns',
-						options=numeric_columns, key='regression_binarizer_cols' )
+					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
+						key='regression_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
 						key='regression_binarizer_threshold' )
 					
 					copy = st.checkbox( 'Copy', value=True, key='regression_binarizer_copy' )
+					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Binarizer', key='regression_binarizer_apply',
+						if st.button( 'Apply Binarizer',
+								key='regression_binarizer_apply',
 								use_container_width=True ):
 							if transform_cols:
-								df_processed = get_working_frame( )
-								transformer = Binarizer( threshold=float( threshold ),
+								df_processed = df_working.copy( )
+								transformer = Binarizer(
+									threshold=float( threshold ),
 									copy=bool( copy ) )
 								result = transformer.train_transform(
 									df_processed[ transform_cols ].to_numpy( ) )
@@ -5298,12 +5346,16 @@ elif mode == 'Regression Models':
 								st.success( 'Binarizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_binarizer_reset', use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+						if st.button( label='Reset', icon='🔁', key='regression_binarizer_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+					target_col = st.selectbox( 'Column',
+						options=categorical_columns,
 						key='regression_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -5317,28 +5369,34 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply LabelBinarizer', key='regression_label_binarizer_apply',
+						if st.button( 'Apply LabelBinarizer',
+								key='regression_label_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = LabelBinarizer( pos_label=int( pos_label ),
 									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+								
 								result = transformer.train_transform(
 									df_processed[ target_col ].astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, [ target_col ], result,
+								df_processed = replace_columns( df_processed, [
+										target_col ], result,
 									'label_binarizer' )
 								commit_frame( df_processed )
 								st.success( 'Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_label_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_label_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column', options=df_working.columns.tolist( ),
+					target_col = st.selectbox( 'Column',
+						options=categorical_columns,
 						key='regression_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -5349,10 +5407,10 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_multilabel_binarizer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_multilabel_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								y_multi = parse_multilabel_series( df_processed[ target_col ],
 									delimiter=delimiter )
 								
@@ -5367,14 +5425,17 @@ elif mode == 'Regression Models':
 								st.success( 'Multi-Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_multilabel_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_multilabel_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=df_working.columns.to_list( ), key='regression_tfidf_transformer_cols' )
+						options=numeric_columns,
+						key='regression_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
 						index=1, key='regression_tfidf_transformer_norm' )
@@ -5390,10 +5451,10 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_tfidf_transformer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_tfidf_transformer_apply',
 								use_container_width=True ):
 							if text_count_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
 									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
 								
@@ -5401,20 +5462,22 @@ elif mode == 'Regression Models':
 									df_processed[ text_count_cols ].apply(
 										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, text_count_cols, result,
-									'tfidf_transformer' )
+								df_processed = replace_columns( df_processed, text_count_cols,
+									result, 'tfidf_transformer' )
 								
 								commit_frame( df_processed )
 								st.success( 'TFIDF Transformer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_tfidf_transformer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_tfidf_transformer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns.to_list(),
+					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
 						key='regression_column_transformer_numeric_columns' )
 					
 					categorical_columns = st.multiselect( 'Categorical Columns',
@@ -5433,14 +5496,16 @@ elif mode == 'Regression Models':
 					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
 						key='regression_column_transformer_remainder' )
 					
-					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
-						value=0.3, key='regression_column_transformer_sparse_threshold' )
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0,
+						max_value=1.0, value=0.3,
+						key='regression_column_transformer_sparse_threshold' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Column Transformer', key='regression_column_transformer_apply',
+						if st.button( 'Apply Column Transformer',
+								key='regression_column_transformer_apply',
 								use_container_width=True ):
-							df_processed = get_working_frame( )
+							df_processed = df_working.copy( )
 							transformers = [ ]
 							
 							if numeric_columns and numeric_transform != 'None':
@@ -5459,13 +5524,13 @@ elif mode == 'Regression Models':
 							
 							if categorical_columns and categorical_transform != 'None':
 								if categorical_transform == 'OneHotEncoder':
-									categorical_model = OneHotEncoder(
-										sparse=False, unknown='ignore' ).model
+									categorical_model = OneHotEncoder( sparse=False,
+										unknown='ignore' ).model
 								else:
 									categorical_model = OrdinalEncoder( ).model
 								
-								transformers.append( 'categorical', categorical_model,
-									categorical_columns )
+								transformers.append( ('categorical', categorical_model,
+								                      categorical_columns) )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
@@ -5473,22 +5538,26 @@ elif mode == 'Regression Models':
 									n_jobs=None, transformer_weights=None, verbose=False )
 								
 								result = transformer.train_transform( df_processed )
-								df_processed = normalize_result_frame( result=result, index=df_processed.index,
-									prefix='column_transformer', columns=None )
+								df_processed = normalize_result_frame( result=result,
+									index=df_processed.index, prefix='column_transformer',
+									columns=None )
 								
 								commit_frame( df_processed )
 								st.success( 'ColumnTransformer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_column_transformer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_column_transformer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='regression_extractors' ):
 				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+					text_cols = st.multiselect( 'Text Columns',
+						options=categorical_columns,
 						key='regression_tfidf_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -5502,28 +5571,31 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_tfidf_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_tfidf_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
 									max_features=None if int( max_features ) == 0 else int( max_features ),
 									use_idf=bool( use_idf ) )
 								
-								df_processed = apply_text_vectorizer( df_processed, text_cols, transformer,
-									'tfidf_vectorizer' )
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'tfidf_vectorizer' )
 								
 								commit_frame( df_processed )
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_tfidf_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+					text_cols = st.multiselect( 'Text Columns',
+						options=categorical_columns,
 						key='regression_count_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -5537,27 +5609,31 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_count_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_count_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
 									max_features=None if int( max_features ) == 0 else int( max_features ),
 									binary=bool( binary ) )
-								df_processed = apply_text_vectorizer( df_processed, text_cols, transformer,
-									'count_vectorizer' )
+								
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'count_vectorizer' )
 								
 								commit_frame( df_processed )
 								st.success( 'Count Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_count_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_count_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns', options=df_working.columns.tolist( ),
+					text_cols = st.multiselect( 'Text Columns',
+						options=categorical_columns,
 						key='regression_hash_vectorizer_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -5574,27 +5650,29 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_hash_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_hash_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = HashVectorizer( num=int( n_features ),
 									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
 									alternate_sign=bool( alternate_sign ) )
-								df_processed = apply_text_vectorizer( df_processed, text_cols,
-									transformer, 'hash_vectorizer' )
-								
+								df_processed = apply_text_vectorizer( df_processed,
+									text_cols, transformer, 'hash_vectorizer' )
 								commit_frame( df_processed )
 								st.success( 'HashVectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_hash_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_hash_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
-					dict_cols = st.multiselect( 'Columns', options=categorical_columns,
+					dict_cols = st.multiselect( 'Columns',
+						options=categorical_columns,
 						key='regression_dict_vectorizer_cols' )
 					
 					separator = st.text_input( 'Separator', value='=',
@@ -5608,10 +5686,10 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_dict_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_dict_vectorizer_apply',
 								use_container_width=True ):
 							if dict_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = DictVectorizer( dtype=np.float64, separator=separator,
 									sparse=bool( sparse ), sort=bool( sort ) )
 								
@@ -5622,13 +5700,16 @@ elif mode == 'Regression Models':
 								st.success( 'DictVectorizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_dict_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_dict_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
-					hash_cols = st.multiselect( 'Columns', options=categorical_columns,
+					hash_cols = st.multiselect( 'Columns',
+						options=categorical_columns,
 						key='regression_feature_hasher_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -5638,12 +5719,11 @@ elif mode == 'Regression Models':
 						key='regression_feature_hasher_alternate_sign' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='regression_feature_hasher_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_feature_hasher_apply',
 								use_container_width=True ):
 							if hash_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								transformer = FeatureHasher( n_features=int( n_features ),
 									input_type='dict', dtype=np.float64,
 									alternate_sign=bool( alternate_sign ) )
@@ -5654,15 +5734,17 @@ elif mode == 'Regression Models':
 								st.success( 'FeatureHasher applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_feature_hasher_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_feature_hasher_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
-			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='selectors' ):
+			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='regression_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
-					select_cols = st.multiselect( 'Columns', options=df_working.columns.to_list( ),
+					select_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_variance_threshold_cols' )
 					
 					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
@@ -5670,10 +5752,10 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_variance_threshold_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_variance_threshold_apply',
 								use_container_width=True ):
 							if select_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								selector = VarianceThreshold( thresh=float( threshold ) )
 								result = selector.train_transform(
 									df_processed[ select_cols ].to_numpy( ) )
@@ -5685,10 +5767,12 @@ elif mode == 'Regression Models':
 								st.success( 'VarianceThreshold applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_variance_threshold_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_variance_threshold_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
 					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
@@ -5700,21 +5784,23 @@ elif mode == 'Regression Models':
 					n_components = st.number_input( 'Components', min_value=1, value=2,
 						step=1, key='regression_cca_components' )
 					
-					scale = st.checkbox( 'Scale', value=True, key='regression_cca_scale' )
+					scale = st.checkbox( 'Scale', value=True,
+						key='regression_cca_scale' )
 					
 					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
 						step=1, key='regression_cca_max_iter' )
 					
 					a1, a2 = st.columns( 2 )
-					
 					with a1:
-						if st.button( 'Apply', key='regression_cca_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='regression_cca_apply',
+								use_container_width=True ):
 							if X_cols and y_cols:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								selector = CCA( num=int( n_components ), scale=bool( scale ),
 									size=int( max_iter ) )
 								
-								result = selector.train_transform( df_processed[ X_cols ].to_numpy( ),
+								result = selector.train_transform(
+									df_processed[ X_cols ].to_numpy( ),
 									df_processed[ y_cols ].to_numpy( ) )
 								
 								df_result = normalize_result_frame( result=result,
@@ -5723,13 +5809,17 @@ elif mode == 'Regression Models':
 								df_processed = pd.concat(
 									[ df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
 									  df_result ], axis=1 )
+								
 								commit_frame( df_processed )
 								st.success( 'CCA Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_cca_reset', use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+						if st.button( label='Reset', icon='🔁', key='regression_cca_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -5744,46 +5834,48 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_pca_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='regression_pca_apply',
+								use_container_width=True ):
 							if select_cols:
-								df_processed = get_working_frame( )
-								selector = PCA( num=int( n_components ),
-									solver=solver )
+								df_processed = df_working.copy( )
+								selector = PCA( num=int( n_components ), solver=solver )
 								
 								result = selector.train_transform(
 									df_processed[ select_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, select_cols,
-									result, 'pca' )
-								
+								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
 								commit_frame( df_processed )
 								st.success( 'PCA applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_pca_reset', use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+						if st.button( label='Reset', icon='🔁', key='regression_pca_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns',
-						options=numeric_columns, key='regression_selectbest_x_cols' )
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='regression_selectbest_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=numeric_columns,
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
 						key='regression_selectbest_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-						          'mutual_info_regression' ], key='regression_selectbest_score_name' )
+						          'mutual_info_regression' ],
+						key='regression_selectbest_score_name' )
 					
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
 						key='regression_selectbest_k' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_selectbest_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_selectbest_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								selector = SelectBest(
 									score_func=score_function_from_name( score_name ),
 									num=int( k_best ) )
@@ -5793,40 +5885,40 @@ elif mode == 'Regression Models':
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result,
-									'select_best' )
-								
+								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
 								commit_frame( df_processed )
 								st.success( 'Select Best Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_selectbest_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_selectbest_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns',
-						options=numeric_columns, key='regression_selectpercent_x_cols' )
+					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+						key='regression_selectpercent_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column',
-						options=df_working.columns.tolist( ),
+						options=categorical_columns,
 						key='regression_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
-						options=[ 'chi2', 'f_classif', 'f_regression',
-						          'mutual_info_classif', 'mutual_info_regression' ],
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+						          'mutual_info_regression' ],
 						key='regression_selectpercent_score_name' )
 					
-					percentile = st.slider( 'Percentile', min_value=1, max_value=100,
-						value=10, key='regression_selectpercent_percentile' )
+					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
+						key='regression_selectpercent_percentile' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply SelectPercent', key='regression_selectpercent_apply',
-								use_container_width=True ):
+						if st.button( 'Apply SelectPercent',
+								key='regression_selectpercent_apply', use_container_width=True ):
 							if X_cols and target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								selector = SelectPercent(
 									score_func=score_function_from_name( score_name ),
 									pct=int( percentile ) )
@@ -5836,23 +5928,24 @@ elif mode == 'Regression Models':
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result,
-									'select_percent' )
-								
+								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
 								commit_frame( df_processed )
 								st.success( 'SelectPercent applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_selectpercent_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_selectpercent_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
 						key='regression_sbs_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+					target_col = st.selectbox( 'Target Column',
+						options=categorical_columns,
 						key='regression_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
@@ -5866,9 +5959,10 @@ elif mode == 'Regression Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_sbs_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='regression_sbs_apply',
+								use_container_width=True ):
 							if X_cols and target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								selector = SBS( classifier=None, k_features=int( k_features ),
 									test_size=float( test_size ), random_state=int( random_state ) )
 								
@@ -5879,19 +5973,23 @@ elif mode == 'Regression Models':
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
 								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
+								
 								commit_frame( df_processed )
-								st.success( 'SBS Applied.' )
+								st.success( 'SBS applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_sbs_reset', use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+						if st.button( label='Reset', icon='🔁', key='regression_sbs_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
 						key='regression_rfe_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns.tolist( ),
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
 						key='regression_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
@@ -5900,11 +5998,12 @@ elif mode == 'Regression Models':
 					verbose = st.number_input( 'Verbose', min_value=0, value=0,
 						step=1, key='regression_rfe_verbose' )
 					
-					a1, a2 = st.columns( 2 )					
+					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='regression_rfe_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='regression_rfe_apply',
+								use_container_width=True ):
 							if X_cols and target_col:
-								df_processed = get_working_frame( )
+								df_processed = df_working.copy( )
 								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
 								X_input = df_processed[ X_cols ].apply(
 									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
@@ -5917,14 +6016,17 @@ elif mode == 'Regression Models':
 								st.success( 'RFE applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='regression_rfe_reset', use_container_width=True ):
-							working_to_original( )
-							st.success( 'Reset to Original.' )
+						if st.button( label='Reset', icon='🔁', key='regression_rfe_reset',
+								use_container_width=True ):
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Feature-Engineered Data' )
-		st.caption( f'Records: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}')
-		st.data_editor( df_processed )
+		st.markdown( '##### Processed Data' )
+		st.caption( f'Input: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.data_editor( df_processed, key='regression_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
@@ -5958,9 +6060,31 @@ elif mode == 'Regression Models':
 			model = model_map[ model_name ]( )
 		
 		# ------------------------------------------------------------------
-		# TRAIN / TEST SPLIT
+		# Training Target & Features
 		# ------------------------------------------------------------------
+		active_features = [ c for c in st.session_state.get( 'features', [ ] )
+		                    if c in df_processed.columns ]
+		
+		active_targets = [ c for c in st.session_state.get( 'targets', [ ] )
+		                   if c in df_processed.columns ]
+		
+		if not active_features:
+			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
+			st.stop( )
+		
+		if not active_targets:
+			st.warning( '⚠️ No valid target columns remain after preprocessing.' )
+			st.stop( )
+			
+		X = df_processed[ active_features ].to_numpy( )
+		y = df_processed[ active_targets ].to_numpy( dtype=float )
+		
+		if len( np.unique( y ) ) < 2:
+			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
+			st.stop( )
+			
 		df_regression = df_processed.copy( )
+		
 		with sel_c5:
 			st.markdown( '###### Training Configuration' )
 			test_size = st.slider( 'Test Set Size (%)', 10, 40, 20, key='regressions-1' ) / 100.0
@@ -5978,8 +6102,6 @@ elif mode == 'Regression Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
-		X = df_processed[ features ].to_numpy( )
-		y = df_processed[ targets ].to_numpy( dtype=float )
 		if st.button( '🚀 Train Model' ):
 			try:
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_size,
@@ -6000,12 +6122,8 @@ elif mode == 'Regression Models':
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Predictions' )
 				y_pred = model.project( X_test )
-				df_predictions = pd.DataFrame(
-				{
-					'Observed': y_test,
-					'Predicted': y_pred,
-					'Residual': y_test - y_pred
-				} )
+				df_predictions = pd.DataFrame( { 'Observed': y_test, 'Predicted': y_pred,
+				                               'Residual': y_test - y_pred } )
 				
 				st.data_editor( df_predictions, use_container_width=True )
 				
@@ -6040,10 +6158,8 @@ elif mode == 'Regression Models':
 						weights = model.weights
 						if weights is not None:
 							df_weights = pd.DataFrame(
-								{
-										'Feature': features,
-										'Weight': np.asarray( weights ).reshape( -1 )
-								} )
+								{'Feature': features, 'Weight': np.asarray( weights ).reshape( -1 )})
+							
 							st.caption( 'Coefficients' )
 							st.data_editor( df_weights, use_container_width=True )
 					except Exception:
@@ -6184,41 +6300,44 @@ elif mode == 'Clustering Models':
 		# Data Processing
 		# -----------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Data Transformations' )
+		st.markdown( '##### Feature-Engineering' )
 		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
-			
 			with st.expander( label='Data Scaling', icon='⚖️', key='cluster_scalers' ):
-				
 				with st.expander( 'Standard Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=targets,
 						key='cluster_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_standard_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_standard_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = StandardScaler( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
+								commit_frame( df_processed )
 								st.success( 'Standard Scaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_standard_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_standard_scaler_reset',
 								use_container_width=True ):
-							df_processed = pd.DataFrame( )
-							st.success( 'Reset to Working Dataset.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_minmax_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_minmax_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_minmax_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MinMaxScaler( )
@@ -6232,15 +6351,18 @@ elif mode == 'Clustering Models':
 						if st.button( 'Reset', key='cluster_minmax_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Working' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_robust_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_robust_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_robust_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = RobustScaler( )
@@ -6251,12 +6373,15 @@ elif mode == 'Clustering Models':
 								st.success( 'RobustScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_robust_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_robust_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Working' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_normal_scaler_cols' )
 					
@@ -6265,7 +6390,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_normal_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_normal_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = NormalScaler( norm=norm )
@@ -6277,18 +6402,21 @@ elif mode == 'Clustering Models':
 								st.success( 'NormalScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_normal_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_normal_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_maxabs_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_maxabs_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_maxabs_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MaxAbsScaler( )
@@ -6299,14 +6427,16 @@ elif mode == 'Clustering Models':
 								st.success( 'MaxAbsScaler applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_maxabs_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_maxabs_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
-			with st.expander( label='Data Imputation', icon='➕', key='cluster_imputers' ):
-				
+			with st.expander( label='Data Imputation', icon='🧹', key='cluster_imputers' ):
 				with st.expander( 'Mean Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_mean_imputer_cols' )
 					
@@ -6315,7 +6445,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_mean_imputer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
@@ -6328,12 +6458,16 @@ elif mode == 'Clustering Models':
 								st.success( 'MeanImputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_mean_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_mean_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right',
+						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_nearest_imputer_cols' )
 					
@@ -6342,7 +6476,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_nearest_imputer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = NearestImputer( neighbors=int( neighbors ) )
@@ -6355,12 +6489,15 @@ elif mode == 'Clustering Models':
 								st.success( 'Nearest Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_nearest_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_nearest_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset Data' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_iterative_imputer_cols' )
 					
@@ -6386,12 +6523,15 @@ elif mode == 'Clustering Models':
 								st.success( 'Iterative Imputer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_iterative_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_iterative_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset Data' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns',
 						options=numeric_columns,
 						key='cluster_simple_imputer_cols' )
@@ -6437,14 +6577,16 @@ elif mode == 'Clustering Models':
 								st.success( 'Simple Imputer Applied' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_simple_imputer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_simple_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='cluster_encoders' ):
-				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=features,
 						key='cluster_onehot_cols' )
 					
@@ -6457,7 +6599,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_onehot_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_onehot_apply',
 								use_container_width=True ):
 							if encode_cols:
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
@@ -6470,18 +6612,21 @@ elif mode == 'Clustering Models':
 								st.success( 'OneHotEncoder applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_onehot_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_onehot_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='cluster_ordinal_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_ordinal_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_ordinal_apply',
 								use_container_width=True ):
 							if encode_cols:
 								encoder = OrdinalEncoder( )
@@ -6492,18 +6637,21 @@ elif mode == 'Clustering Models':
 								st.success( 'Ordinal Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_ordinal_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_ordinal_reset',
 								use_container_width=True ):
-							df_processed = pd.DataFrame( )
-							st.success( 'Reset to Working' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
 					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='cluster_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_label_encoder_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_label_encoder_apply',
 								use_container_width=True ):
 							if target_col:
 								encoder = LabelEncoder( )
@@ -6515,12 +6663,15 @@ elif mode == 'Clustering Models':
 								st.success( 'Label Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_label_encoder_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_label_encoder_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=categorical_columns, key='cluster_target_encoder_cols' )
 					
@@ -6529,7 +6680,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_target_encoder_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_target_encoder_apply',
 								use_container_width=True ):
 							if encode_cols and target_col:
 								df_processed = df_working.copy( )
@@ -6545,13 +6696,15 @@ elif mode == 'Clustering Models':
 								st.success( 'Target Encoder Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_target_encoder_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_target_encoder_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
+					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_polynomial_cols' )
 					
@@ -6563,7 +6716,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_polynomial_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_polynomial_apply',
 								use_container_width=True ):
 							if poly_cols:
 								df_processed = df_working.copy( )
@@ -6581,16 +6734,15 @@ elif mode == 'Clustering Models':
 								st.success( 'PolynomialFeatures applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_polynomial_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_polynomial_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 		
 		with feature_c2:
-			
 			with st.expander( label='Data Transformation', icon='⚡', key='cluster_transformers' ):
-				
 				with st.expander( 'Binarizer', expanded=False ):
 					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_binarizer_cols' )
@@ -6618,11 +6770,12 @@ elif mode == 'Clustering Models':
 								st.success( 'Binarizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
@@ -6658,11 +6811,12 @@ elif mode == 'Clustering Models':
 								st.success( 'Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_label_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_label_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
@@ -6677,7 +6831,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_multilabel_binarizer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_multilabel_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
@@ -6695,11 +6849,12 @@ elif mode == 'Clustering Models':
 								st.success( 'Multi-Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_multilabel_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_multilabel_binarizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
@@ -6720,7 +6875,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_tfidf_transformer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_tfidf_transformer_apply',
 								use_container_width=True ):
 							if text_count_cols:
 								df_processed = df_working.copy( )
@@ -6738,11 +6893,12 @@ elif mode == 'Clustering Models':
 								st.success( 'TFIDF Transformer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_tfidf_transformer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_tfidf_transformer_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
 					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
@@ -6814,14 +6970,14 @@ elif mode == 'Clustering Models':
 								st.success( 'ColumnTransformer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_column_transformer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_column_transformer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='cluster_extractors' ):
-				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
 						options=categorical_columns,
@@ -6838,7 +6994,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_tfidf_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_tfidf_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -6853,11 +7009,12 @@ elif mode == 'Clustering Models':
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_tfidf_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
@@ -6875,7 +7032,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_count_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_count_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -6890,11 +7047,12 @@ elif mode == 'Clustering Models':
 								st.success( 'Count Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_count_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_count_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
@@ -6915,7 +7073,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_hash_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_hash_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -6928,11 +7086,12 @@ elif mode == 'Clustering Models':
 								st.success( 'HashVectorizer Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_hash_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_hash_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
 					dict_cols = st.multiselect( 'Columns',
@@ -6950,7 +7109,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_dict_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_dict_vectorizer_apply',
 								use_container_width=True ):
 							if dict_cols:
 								df_processed = df_working.copy( )
@@ -6964,11 +7123,12 @@ elif mode == 'Clustering Models':
 								st.success( 'DictVectorizer applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_dict_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_dict_vectorizer_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_working' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
 					hash_cols = st.multiselect( 'Columns',
@@ -6983,7 +7143,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_feature_hasher_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_feature_hasher_apply',
 								use_container_width=True ):
 							if hash_cols:
 								df_processed = df_working.copy( )
@@ -6997,14 +7157,14 @@ elif mode == 'Clustering Models':
 								st.success( 'FeatureHasher applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_feature_hasher_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_feature_hasher_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='cluster_selectors' ):
-				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_variance_threshold_cols' )
@@ -7014,7 +7174,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_variance_threshold_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_variance_threshold_apply',
 								use_container_width=True ):
 							if select_cols:
 								df_processed = df_working.copy( )
@@ -7029,11 +7189,12 @@ elif mode == 'Clustering Models':
 								st.success( 'VarianceThreshold applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_variance_threshold_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_variance_threshold_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
 					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
@@ -7053,7 +7214,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_cca_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_cca_apply',
 								use_container_width=True ):
 							if X_cols and y_cols:
 								df_processed = df_working.copy( )
@@ -7075,11 +7236,12 @@ elif mode == 'Clustering Models':
 								st.success( 'CCA Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_cca_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_cca_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -7094,7 +7256,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_pca_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_pca_apply',
 								use_container_width=True ):
 							if select_cols:
 								df_processed = df_working.copy( )
@@ -7108,11 +7270,12 @@ elif mode == 'Clustering Models':
 								st.success( 'PCA applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_pca_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_pca_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -7131,7 +7294,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_selectbest_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_selectbest_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
@@ -7149,11 +7312,12 @@ elif mode == 'Clustering Models':
 								st.success( 'Select Best Applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_selectbest_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_selectbest_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -7191,11 +7355,12 @@ elif mode == 'Clustering Models':
 								st.success( 'SelectPercent applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_selectpercent_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_selectpercent_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -7216,7 +7381,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_sbs_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_sbs_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
@@ -7235,11 +7400,12 @@ elif mode == 'Clustering Models':
 								st.success( 'SBS applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_sbs_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_sbs_reset',
 								use_container_width=True ):
-							working_to_original( )
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							st.success( 'Reset to Original.' )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
@@ -7256,7 +7422,7 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply', key='cluster_rfe_apply',
+						if st.button( label='Apply', icon='✔️', key='cluster_rfe_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
@@ -7272,16 +7438,17 @@ elif mode == 'Clustering Models':
 								st.success( 'RFE applied.' )
 					
 					with a2:
-						if st.button( 'Reset', key='cluster_rfe_reset',
+						if st.button( label='Reset', icon='🔁', key='cluster_rfe_reset',
 								use_container_width=True ):
-							working_to_original( )
-							st.session_state[ 'df_processed ' ] = get_working_frame( ).copy( )
-							st.success( 'Reset to Original.' )
+							st.session_state[ 'df_processed' ] = df_working.copy( )
+							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							commit_frame( df_processed )
+							st.success( 'Reset to Working.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		
-		st.data_editor( df_processed, key='classifications_processed' )
+		st.caption( f'Input: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.data_editor( df_processed, key='cluster_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
