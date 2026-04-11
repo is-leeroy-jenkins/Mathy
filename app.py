@@ -6126,7 +6126,7 @@ elif mode == 'Clustering Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Rows: {len( df_working ):,}  |  Columns: {len( df_working.columns ):,}' )
+		st.caption( f'Input: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
 		st.data_editor( df_working, key='clusters_working_data' )
 		
@@ -6664,7 +6664,7 @@ elif mode == 'Clustering Models':
 							st.session_state[ 'df_working' ] = df_working.copy( )
 							st.success( 'Reset to Original.' )
 				
-				with st.expander( 'TFIDF Transformer', expanded=False ):
+				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
 						options=numeric_columns,
 						key='cluster_tfidf_transformer_cols' )
@@ -6785,7 +6785,7 @@ elif mode == 'Clustering Models':
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='cluster_extractors' ):
 				
-				with st.expander( 'TFIDF Vectorizer', expanded=False ):
+				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
 						options=categorical_columns,
 						key='cluster_tfidf_vectorizer_cols' )
