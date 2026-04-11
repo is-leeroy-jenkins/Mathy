@@ -7249,11 +7249,10 @@ elif mode == 'Clustering Models':
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
-		with csr_c2:
-			st.markdown( '##### Clustering Model' )
-			model_name = st.selectbox( 'Clustering Algorithm',
-				[ 'K-Means', 'DBSCAN', 'Agglomerative', 'Spectral', 'OPTICS', 'MeanShift',
-				  'AffinityPropagation', 'Birch' ] )
+		st.markdown( '##### Clustering Model' )
+		model_name = st.selectbox( 'Clustering Algorithm',
+			[ 'K-Means', 'DBSCAN', 'Agglomerative', 'Spectral', 'OPTICS', 'MeanShift',
+			  'AffinityPropagation', 'Birch' ] )
 		
 		# ------------------------------------------------------------------
 		# MODEL PARAMETERS
