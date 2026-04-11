@@ -61,12 +61,10 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Descriptive Statistics': '🔍 Descriptive Statistics',
        'Inferential Statistics': '🧠 Inferential Statistics',
        'Anomaly Detection': '🛸 Anomaly Detection',
-       'Data Plumbing': '🔧 Data Plumbing',
-       'Feature Engineering': '🛠️ Feature Engineering',
-       'Classifications': '📊 Classification Analysis',
-       'Regressions': '📉 Regression Analysis',
-       'Clustering': '🕸️ Clustering Models',
-       'Time-Series': '⏱️ Time-Series Models',
+       'Classification Models': '📊 Classification Analysis',
+       'Regression Models': '📉 Regression Analysis',
+       'Clustering Models': '🕸️ Clustering Models',
+       'Time-Series Models': '⏱️ Time-Series Models',
        'Data Management': '💻 SQLite Database'  }
 
 # ------------- DEFINITIONS ---------------------
