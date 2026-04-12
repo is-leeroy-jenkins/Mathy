@@ -4298,7 +4298,7 @@ elif mode == 'Classification Models':
 			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='classification_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
-					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_variance_threshold_cols' )
 					
 					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
@@ -4330,10 +4330,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
-					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
+					X_cols = st.multiselect( 'Predictor Columns', options=df_working.columns,
 						key='classification_cca_x_cols' )
 					
-					y_cols = st.multiselect( 'Target Columns', options=numeric_columns,
+					y_cols = st.multiselect( 'Target Columns', options=df_working.columns,
 						key='classification_cca_y_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
@@ -4376,7 +4376,7 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Principle Component Analysis', expanded=False ):
-					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_pca_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
@@ -4411,10 +4411,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_selectbest_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='classification_selectbest_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
@@ -4454,11 +4454,11 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_selectpercent_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column',
-						options=categorical_columns,
+						options=df_working.columns,
 						key='classification_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
@@ -4497,11 +4497,11 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Sequential Back Selection', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_sbs_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column',
-						options=categorical_columns,
+						options=df_working.columns,
 						key='classification_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
@@ -4543,10 +4543,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Recursive Feature Elimination', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_rfe_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='classification_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
