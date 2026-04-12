@@ -409,9 +409,9 @@ class Perceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 0.001, eta: float = 1.0, iters: int = 1000,
-			shuffle: bool = False, penalty: Optional[ str ] = None,
-			random: int = 42 ) -> None:
+	def __init__( self, alpha: float=0.001, eta: float=1.0, iters: int=1000,
+			shuffle: bool=False, penalty: Optional[ str ] = None,
+			random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -590,7 +590,7 @@ class Perceptron( Classifier ):
 		return self.model.classes_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
+			size: float=0.2, random: int=42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
@@ -613,14 +613,14 @@ class Perceptron( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return split( X, y, test_size=size, random_state=random, stratify=y )
+			return split( X, y, test_size=size, random_state=random )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -887,9 +887,9 @@ class LeastSquares( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 0.0001, eta: float = 0.01, iters: int = 1000,
-			shuffle: bool = False, penalty: Optional[ str ] = 'l2',
-			random: int = 42 ) -> None:
+	def __init__( self, alpha: float=0.0001, eta: float=0.01, iters: int=1000,
+			shuffle: bool=False, penalty: Optional[ str ] = 'l2',
+			random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -919,16 +919,9 @@ class LeastSquares( Classifier ):
 		self.learning_rate = eta
 		self.random_state = random
 		self.validate_configuration( )
-		self.model = skc.SGDClassifier(
-			loss='perceptron',
-			alpha=self.alpha,
-			max_iter=self.max_iter,
-			shuffle=self.shuffle,
-			eta0=self.learning_rate,
-			learning_rate='constant',
-			penalty=self.penalty,
-			random_state=self.random_state
-		)
+		self.model = skc.SGDClassifier( loss='perceptron', alpha=self.alpha, max_iter=self.max_iter,
+			shuffle=self.shuffle, eta0=self.learning_rate, learning_rate='constant',
+			penalty=self.penalty, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1069,7 +1062,7 @@ class LeastSquares( Classifier ):
 		return self.model.classes_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
+			size: float=0.2, random: int=42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
@@ -1092,14 +1085,14 @@ class LeastSquares( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			return split( X, y, test_size=size, random_state=random, stratify=y )
+			return split( X, y, test_size=size, random_state=random )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -1304,25 +1297,11 @@ class LeastSquares( Classifier ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1370,9 +1349,9 @@ class LogisticRegression( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, C: float = 1.0, penalty: str = 'l2', iters: int = 1000,
-			multiclass: str = 'multinomial', solver: str = 'lbfgs',
-			random: int = 42 ) -> None:
+	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
+			multiclass: str='multinomial', solver: str='lbfgs',
+			random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -1551,8 +1530,8 @@ class LogisticRegression( Classifier ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_iter_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -1587,8 +1566,8 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -1908,9 +1887,7 @@ class Ridge( Classifier ):
 		regression task, optimizing the same objective as above. The predicted class corresponds
 		to the sign of the regressor’s prediction. For multiclass classification, the problem is
 		treated as multi-output regression, and the predicted class corresponds to the output
-		with the highest value.
-
-		It might seem questionable to use a (penalized) Least Squares loss to fit a classification
+		with the highest value. It might seem questionable to use a (penalized) Least Squares loss to fit a classification
 		model instead of the more traditional logistic or hinge losses. However, in practice,
 		all those models can lead to similar cross-validation scores in terms of accuracy
 		or precision/recall, while the penalized least squares loss used by the RidgeClassifier
@@ -1935,7 +1912,7 @@ class Ridge( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, solver: str = 'auto', iters: int = 1000, rando: int = 42 ) -> None:
+	def __init__( self, alpha: float=1.0, solver: str='auto', iters: int=1000, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -2067,9 +2044,8 @@ class Ridge( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -2092,8 +2068,7 @@ class Ridge( Classifier ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			X_train, X_test, y_train, y_test = split(
-				X, y, test_size=size, random_state=random, stratify=y
-			)
+				X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -2131,7 +2106,7 @@ class Ridge( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -2322,8 +2297,8 @@ class Lasso( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, iters: int = 500,
-			rando: int = 42, threshold: float = 0.5, selection: str = 'random' ) -> None:
+	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42, threshold: float=0.5, 
+			selection: str='random' ) -> None:
 		"""
 
 			Purpose:
@@ -2350,11 +2325,8 @@ class Lasso( Classifier ):
 		self.threshold = threshold
 		self.selection = selection
 		self.binarizer = Binarizer( threshold=self.threshold )
-		self.model = skc.Lasso( alpha=self.alpha,
-			max_iter=self.max_iter,
-			random_state=self.random_state,
-			selection=self.selection
-		)
+		self.model = skc.Lasso( alpha=self.alpha, max_iter=self.max_iter,
+			random_state=self.random_state, selection=self.selection )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -2457,9 +2429,8 @@ class Lasso( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -2481,8 +2452,7 @@ class Lasso( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -2520,7 +2490,7 @@ class Lasso( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Lasso'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -2694,8 +2664,8 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'hinge', iters: int = 100,
-			reg: str = 'l2', alpha: float = 0.00001, ave: bool = True, rate: str = 'optimal' ) -> None:
+	def __init__( self, loss: str='hinge', iters: int=100, reg: str='l2', alpha: float=0.00001,
+			ave: bool=True, rate: str='optimal' ) -> None:
 		"""
 
 			Purpose:
@@ -2723,14 +2693,9 @@ class GradientDescent( Classifier ):
 		self.regularization = reg
 		self.alpha = alpha
 		self.average = ave
-		self.model = skc.SGDClassifier(
-			loss=self.loss,
-			max_iter=self.max_iter,
-			penalty=self.regularization,
-			alpha=self.alpha,
-			average=self.average,
-			learning_rate=self.learning_rate
-		)
+		self.model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter, 
+			penalty=self.regularization, alpha=self.alpha, average=self.average,
+			learning_rate=self.learning_rate )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -2858,9 +2823,8 @@ class GradientDescent( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,  np.ndarray):
 		"""
 
 			Purpose:
@@ -2920,7 +2884,7 @@ class GradientDescent( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -3137,8 +3101,8 @@ class NearestNeighbor( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 5, algorithm: str = 'auto',
-			power: int = 2, metric: str = 'minkowski', leafs: int = 30 ) -> None:
+	def __init__( self, num: int=5, algorithm: str='auto',
+			power: int=2, metric: str='minkowski', leafs: int=30 ) -> None:
 		"""
 
 			Purpose:
@@ -3229,12 +3193,9 @@ class NearestNeighbor( Classifier ):
 		"""
 		try:
 			_valid_algorithms = { 'auto', 'ball_tree', 'kd_tree', 'brute' }
-			_valid_metrics = {
-					'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'hamming',
+			_valid_metrics = { 'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'hamming',
 					'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
-					'nan_euclidean', 'mahalanobis', 'seuclidean'
-			}
-			
+					'nan_euclidean', 'mahalanobis', 'seuclidean' }
 			if self.algorithm not in _valid_algorithms:
 				raise ValueError( f'Unsupported algorithm: {self.algorithm}' )
 			
@@ -3316,9 +3277,8 @@ class NearestNeighbor( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_samples_fit_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -3347,8 +3307,8 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -3408,7 +3368,7 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
@@ -3665,9 +3625,9 @@ class DecisionTree( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, criterion: str = 'gini', splitter: str = 'best',
-			depth: Optional[ int ] = None, min_split: int = 2,
-			min_leaf: int = 1, random: int = 42 ) -> None:
+	def __init__( self, criterion: str='gini', splitter: str='best',
+			depth: Optional[ int ] = None, min_split: int=2,
+			min_leaf: int=1, random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -3893,7 +3853,7 @@ class DecisionTree( Classifier ):
 		return self.model.n_outputs_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
+			size: float=0.2, random: int=42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
@@ -3922,8 +3882,8 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -4247,8 +4207,8 @@ class RandomForest( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, depth: Optional[ int ] = None,
-			criterion: str = 'gini', jobs: int = -1, random: int = 42 ) -> None:
+	def __init__( self, estimators: int=100, depth: Optional[ int ] = None,
+			criterion: str='gini', jobs: int=-1, random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -4275,13 +4235,9 @@ class RandomForest( Classifier ):
 		self.n_jobs = jobs
 		self.random_state = random
 		self.validate_configuration( )
-		self.model = ske.RandomForestClassifier(
-			n_estimators=self.n_estimators,
-			max_depth=self.max_depth,
-			criterion=self.criterion,
-			n_jobs=self.n_jobs,
-			random_state=self.random_state
-		)
+		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
+			max_depth=self.max_depth, criterion=self.criterion, n_jobs=self.n_jobs,
+			random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -4441,9 +4397,8 @@ class RandomForest( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_outputs_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -4472,8 +4427,8 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -4793,9 +4748,8 @@ class GradientBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, rate: float = 0.1,
-			depth: int = 3, criterion: str = 'friedman_mse',
-			random: int = 42 ) -> None:
+	def __init__( self, estimators: int=100, rate: float=0.1, depth: int=3,
+			criterion: str='friedman_mse', random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -5016,8 +4970,8 @@ class GradientBoost( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -5046,8 +5000,8 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -5298,25 +5252,11 @@ class GradientBoost( Classifier ):
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -5360,9 +5300,9 @@ class AdaptiveBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, estimators: int = 50,
-			rate: float = 1.0, algorithm: str = 'SAMME',
-			random: int = 42 ) -> None:
+	def __init__( self, base: object = None, estimators: int=50,
+			rate: float=1.0, algorithm: str='SAMME',
+			random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -5599,8 +5539,8 @@ class AdaptiveBoost( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimator_errors_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -5628,8 +5568,8 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -5880,11 +5820,7 @@ class AdaptiveBoost( Classifier ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -5937,7 +5873,7 @@ class BaggingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, num: int = 10, max: int | float = 1.0, rando: int = 42 ) -> None:
+	def __init__( self, base: object = None, num: int=10, max: int | float = 1.0, rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -6100,7 +6036,7 @@ class BaggingModel( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+			size: float=0.2, random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -6129,8 +6065,8 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -6426,7 +6362,7 @@ class VotingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: List[ Tuple[ str, object ] ], vote: str = 'hard' ) -> None:
+	def __init__( self, estimators: List[ Tuple[ str, object ] ], vote: str='hard' ) -> None:
 		"""
 
 			Purpose:
@@ -6551,7 +6487,7 @@ class VotingModel( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -6611,7 +6547,7 @@ class VotingModel( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -6944,7 +6880,7 @@ class StackingModel( Classifier ):
 		return self.model.final_estimator_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -7004,7 +6940,7 @@ class StackingModel( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:
@@ -7187,8 +7123,7 @@ class SupportVector( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	degree: int
 	
-	def __init__( self, C: float = 1.0, kernel: str = 'rbf', degree: int = 3,
-			random: int = 42 ) -> None:
+	def __init__( self, C: float=1.0, kernel: str='rbf', degree: int=3, random: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -7422,8 +7357,8 @@ class SupportVector( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_support_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 
 			Purpose:
@@ -7452,8 +7387,8 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2, '
-					'random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
+					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
+					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
 			)
 			raise exception
 	
@@ -7803,7 +7738,7 @@ class MultiLayerPerceptron( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, hidden=(100,), activation='logistic', solver='lbfgs', alpha=0.0001,
-			learning: str = 'constant', rando: int = 42 ) -> None:
+			learning: str='constant', rando: int=42 ) -> None:
 		"""
 
 			Purpose:
@@ -7961,8 +7896,8 @@ class MultiLayerPerceptron( Classifier ):
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.n_outputs_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""
 
 			Purpose:
@@ -8021,7 +7956,7 @@ class MultiLayerPerceptron( Classifier ):
 			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
 		"""
 
 			Purpose:

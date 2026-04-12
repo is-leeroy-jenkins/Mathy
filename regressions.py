@@ -262,8 +262,8 @@ class LeastSquares( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, fit: bool = True, copy: bool = True, tol: float = 1e-6,
-			jobs: Optional[ int ] = None, positive: bool = False ) -> None:
+	def __init__( self, fit: bool=True, copy: bool=True, tol: float=1e-6,
+			jobs: Optional[ int ]=None, positive: bool=False ) -> None:
 		"""
 		
 	        Purpose:
@@ -417,8 +417,8 @@ class LeastSquares( Regression ):
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -441,12 +441,8 @@ class LeastSquares( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -729,9 +725,9 @@ class Ridge( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, fit: bool = True, copy: bool = True,
-			iters: Optional[ int ] = None, tol: float = 1e-4, solver: str = 'auto',
-			positive: bool = False, rando: Optional[ int ] = None ) -> None:
+	def __init__( self, alpha: float=1.0, fit: bool=True, copy: bool = True,
+			iters: Optional[ int ]=None, tol: float=1e-4, solver: str='auto',
+			positive: bool=False, rando: Optional[ int ]=None ) -> None:
 		"""
 		
 	        Purpose:
@@ -898,9 +894,8 @@ class Ridge( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -923,12 +918,8 @@ class Ridge( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -1213,10 +1204,10 @@ class Lasso( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 0.01, fit: bool = True, precompute: bool = False,
-			copy: bool = True, iters: int = 1000, tol: float = 1e-4, warm: bool = False,
-			positive: bool = False, rando: Optional[ int ] = None,
-			select: str = 'cyclic' ) -> None:
+	def __init__( self, alpha: float=0.01, fit: bool=True, precompute: bool=False,
+			copy: bool=True, iters: int=1000, tol: float=1e-4, warm: bool=False,
+			positive: bool=False, rando: Optional[ int ]=None,
+			select: str='cyclic' ) -> None:
 		"""
 		
 	        Purpose:
@@ -1391,9 +1382,8 @@ class Lasso( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -1416,12 +1406,8 @@ class Lasso( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -1698,10 +1684,10 @@ class ElasticNet( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, fit: bool = True,
-			precompute: bool = False, iters: int = 1000, copy: bool = True,
-			tol: float = 1e-4, warm: bool = False, positive: bool = False,
-			rando: Optional[ int ] = None, select: str = 'cyclic' ) -> None:
+	def __init__( self, alpha: float=1.0, ratio: float=0.5, fit: bool = True,
+			precompute: bool=False, iters: int=1000, copy: bool = True,
+			tol: float=1e-4, warm: bool=False, positive: bool=False,
+			rando: Optional[ int ]=None, select: str='cyclic' ) -> None:
 		"""
 		
 	        Purpose:
@@ -1880,9 +1866,8 @@ class ElasticNet( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -1905,12 +1890,8 @@ class ElasticNet( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -2172,7 +2153,7 @@ class LeastAngle( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, coeffs: int = 500, fit: bool=True, precompute: bool=True ) -> None:
+	def __init__( self, coeffs: int=500, fit: bool=True, precompute: bool=True ) -> None:
 		"""
 		
 	        Purpose:
@@ -2526,11 +2507,11 @@ class BayesianRidge( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, max: int = 300, shape_alpha: float = 1e-06, scale_alpha: float = 1e-06,
-			shape_lambda: float = 1e-06, scale_lambda: float = 1e-06, tol: float = 1e-3,
-			alpha_init: Optional[ float ] = None, lambda_init: Optional[ float ] = None,
-			compute_score: bool = False, fit: bool = True, copy: bool = True,
-			verbose: bool = False ) -> None:
+	def __init__( self, max: int=300, shape_alpha: float=1e-06, scale_alpha: float=1e-06,
+			shape_lambda: float=1e-06, scale_lambda: float=1e-06, tol: float=1e-3,
+			alpha_init: Optional[ float ]=None, lambda_init: Optional[ float ]=None,
+			compute_score: bool=False, fit: bool=True, copy: bool = True,
+			verbose: bool=False ) -> None:
 		"""
 		
 	        Purpose:
@@ -2713,9 +2694,8 @@ class BayesianRidge( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -2738,12 +2718,8 @@ class BayesianRidge( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -2885,9 +2861,7 @@ class BayesianRidge( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [
 								'Training Score',
 								'Testing Score',
@@ -2910,8 +2884,7 @@ class BayesianRidge( Regression ):
 								self.median_absolute_error,
 								self.max_error
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -2945,25 +2918,12 @@ class BayesianRidge( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -3039,13 +2999,13 @@ class GradientDescent( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'squared_error', iters: int = 1000, penalty: str = 'l2',
-			alpha: float = 0.0001, rando: Optional[ int ] = 42,
-			learning_rate: str = 'invscaling', l1_ratio: float = 0.15,
-			fit: bool = True, tol: float = 1e-3, shuffle: bool = True, verbose: int = 0,
-			epsilon: float = 0.1, eta0: float = 0.01, power_t: float = 0.25,
-			early_stopping: bool = False, validation_fraction: float = 0.1,
-			n_iter_no_change: int = 5, warm: bool = False, average: bool = False ) -> None:
+	def __init__( self, loss: str='squared_error', iters: int=1000, penalty: str='l2',
+			alpha: float=0.0001, rando: Optional[ int ]=42,
+			learning_rate: str='invscaling', l1_ratio: float=0.15,
+			fit: bool=True, tol: float=1e-3, shuffle: bool=True, verbose: int=0,
+			epsilon: float=0.1, eta0: float=0.01, power_t: float=0.25,
+			early_stopping: bool=False, validation_fraction: float=0.1,
+			n_iter_no_change: int=5, warm: bool=False, average: bool=False ) -> None:
 		"""
 		
 	        Purpose:
@@ -3099,27 +3059,13 @@ class GradientDescent( Regression ):
 		self.n_iter_no_change = n_iter_no_change
 		self.warm_start = warm
 		self.average = average
-		self.model = skl.SGDRegressor(
-			loss=self.loss,
-			penalty=self.penalty,
-			alpha=self.alpha,
-			l1_ratio=self.l1_ratio,
-			fit_intercept=self.fit_intercept,
-			max_iter=self.max_iter,
-			tol=self.tol,
-			shuffle=self.shuffle,
-			verbose=self.verbose,
-			epsilon=self.epsilon,
-			random_state=self.random_state,
-			learning_rate=self.learning_rate,
-			eta0=self.eta0,
-			power_t=self.power_t,
-			early_stopping=self.early_stopping,
-			validation_fraction=self.validation_fraction,
-			n_iter_no_change=self.n_iter_no_change,
-			warm_start=self.warm_start,
-			average=self.average
-		)
+		self.model = skl.SGDRegressor( loss=self.loss, penalty=self.penalty, alpha=self.alpha,
+			l1_ratio=self.l1_ratio, fit_intercept=self.fit_intercept, max_iter=self.max_iter,
+			tol=self.tol, shuffle=self.shuffle, verbose=self.verbose, epsilon=self.epsilon,
+			random_state=self.random_state, learning_rate=self.learning_rate,
+			eta0=self.eta0, power_t=self.power_t, early_stopping=self.early_stopping,
+			validation_fraction=self.validation_fraction, n_iter_no_change=self.n_iter_no_change,
+			warm_start=self.warm_start, average=self.average )
 		self.prediction = None
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
@@ -3277,9 +3223,8 @@ class GradientDescent( Regression ):
 			raise AttributeError( 'The model has not been initialized!' )
 		return self.model.t_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -3302,12 +3247,8 @@ class GradientDescent( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -3402,17 +3343,14 @@ class GradientDescent( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3449,9 +3387,7 @@ class GradientDescent( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [
 								'Training Score',
 								'Testing Score',
@@ -3474,8 +3410,7 @@ class GradientDescent( Regression ):
 								self.median_absolute_error,
 								self.max_error
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3509,25 +3444,12 @@ class GradientDescent( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -3582,10 +3504,10 @@ class NearestNeighbor( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 5, weight: str = 'uniform', algo: str = 'auto',
-			leaf: int = 30, power: float = 2.0, metric: str = 'minkowski',
-			metric_params: Optional[ Dict[ str, object ] ] = None,
-			jobs: Optional[ int ] = None ) -> None:
+	def __init__( self, num: int=5, weight: str='uniform', algo: str='auto',
+			leaf: int=30, power: float=2.0, metric: str='minkowski',
+			metric_params: Optional[ Dict[ str, object ] ]=None,
+			jobs: Optional[ int ]=None ) -> None:
 		"""
 		
 	        Purpose:
@@ -3617,16 +3539,9 @@ class NearestNeighbor( Regression ):
 		self.metric = metric
 		self.metric_params = metric_params
 		self.n_jobs = jobs
-		self.model = skn.KNeighborsRegressor(
-			n_neighbors=self.n_neighbors,
-			weights=self.weights,
-			algorithm=self.algorithm,
-			leaf_size=self.leaf_size,
-			p=self.power,
-			metric=self.metric,
-			metric_params=self.metric_params,
-			n_jobs=self.n_jobs
-		)
+		self.model = skn.KNeighborsRegressor( n_neighbors=self.n_neighbors, weights=self.weights,
+			algorithm=self.algorithm, leaf_size=self.leaf_size, p=self.power, metric=self.metric,
+			metric_params=self.metric_params, n_jobs=self.n_jobs )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -3708,9 +3623,8 @@ class NearestNeighbor( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -3733,12 +3647,8 @@ class NearestNeighbor( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -3769,7 +3679,6 @@ class NearestNeighbor( Regression ):
 			throw_if( 'y', y )
 			self.model.fit( X, y )
 			self.prediction = None
-			
 			if self.X_train is not None and self.y_train is not None:
 				self.training_score = self.model.score( self.X_train, self.y_train )
 			
@@ -3833,17 +3742,14 @@ class NearestNeighbor( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3940,25 +3846,12 @@ class NearestNeighbor( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4003,8 +3896,8 @@ class DecisionTree( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, criterion: str = 'squared_error', splitter: str = 'best',
-			depth: int = 3, rando: int = 42 ) -> None:
+	def __init__( self, criterion: str='squared_error', splitter: str='best', 
+			depth: int=3, rando: int=42 ) -> None:
 		"""
 		
 	        Purpose:
@@ -4104,12 +3997,7 @@ class DecisionTree( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -4199,13 +4087,11 @@ class DecisionTree( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			
 			_metrics = {
 					'Training Score': self.training_score,
 					'Testing Score': self.testing_score,
 					'R-Squared Score': self.r2_score,
 			}
-			
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
 			return df_metrics
@@ -4242,7 +4128,6 @@ class DecisionTree( Regression ):
 			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			
 			_metrics = {
 					'MAE': self.mean_absolute_error,
 					'MSE': self.mean_squared_error,
@@ -4250,7 +4135,6 @@ class DecisionTree( Regression ):
 					'EVS': self.explained_variance_score,
 					'MAX': self.max_error,
 			}
-			
 			_data = pd.Series( _metrics )
 			df_metrics = pd.DataFrame( _data )
 			return df_metrics
@@ -4286,25 +4170,12 @@ class DecisionTree( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4365,14 +4236,14 @@ class ExtraTreesModel( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, criterion: str = 'squared_error',
-			depth: Optional[ int ] = None, split: int | float = 2, leaf: int | float = 1,
-			weight_fraction: float = 0.0, features: int | float | str | None = 1.0,
-			leaf_nodes: Optional[ int ] = None, impurity: float = 0.0,
-			bootstrap: bool = False, oob_score: bool = False, jobs: Optional[ int ] = None,
-			rando: Optional[ int ] = 42, verbose: int = 0, warm: bool = False,
-			ccp_alpha: float = 0.0, samples: Optional[ int | float ] = None,
-			monotonic: Optional[ object ] = None ) -> None:
+	def __init__( self, estimators: int=100, criterion: str='squared_error',
+			depth: Optional[ int ]=None, split: int | float = 2, leaf: int | float=1,
+			weight_fraction: float=0.0, features: int | float | str | None = 1.0,
+			leaf_nodes: Optional[ int ]=None, impurity: float=0.0,
+			bootstrap: bool=False, oob_score: bool=False, jobs: Optional[ int ]=None,
+			rando: Optional[ int ]=42, verbose: int=0, warm: bool=False,
+			ccp_alpha: float=0.0, samples: Optional[ int | float ]=None,
+			monotonic: Optional[ object ]=None ) -> None:
 		"""
 		
 	        Purpose:
@@ -4424,26 +4295,14 @@ class ExtraTreesModel( Regression ):
 		self.ccp_alpha = ccp_alpha
 		self.max_samples = samples
 		self.monotonic_cst = monotonic
-		self.model = ske.ExtraTreesRegressor(
-			n_estimators=self.n_estimators,
-			criterion=self.criterion,
-			max_depth=self.max_depth,
-			min_samples_split=self.min_samples_split,
-			min_samples_leaf=self.min_samples_leaf,
-			min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-			max_features=self.max_features,
-			max_leaf_nodes=self.max_leaf_nodes,
-			min_impurity_decrease=self.min_impurity_decrease,
-			bootstrap=self.bootstrap,
-			oob_score=self.oob_score,
-			n_jobs=self.n_jobs,
-			random_state=self.random_state,
-			verbose=self.verbose,
-			warm_start=self.warm_start,
-			ccp_alpha=self.ccp_alpha,
-			max_samples=self.max_samples,
-			monotonic_cst=self.monotonic_cst
-		)
+		self.model = ske.ExtraTreesRegressor( n_estimators=self.n_estimators, criterion=self.criterion,
+			max_depth=self.max_depth,  min_samples_split=self.min_samples_split,
+			min_samples_leaf=self.min_samples_leaf, min_weight_fraction_leaf=self.min_weight_fraction_leaf,
+			max_features=self.max_features, max_leaf_nodes=self.max_leaf_nodes,
+			min_impurity_decrease=self.min_impurity_decrease, bootstrap=self.bootstrap,
+			oob_score=self.oob_score, n_jobs=self.n_jobs, random_state=self.random_state,
+			verbose=self.verbose, warm_start=self.warm_start, ccp_alpha=self.ccp_alpha,
+			max_samples=self.max_samples, monotonic_cst=self.monotonic_cst )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -4536,9 +4395,8 @@ class ExtraTreesModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -4561,12 +4419,8 @@ class ExtraTreesModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -4661,17 +4515,14 @@ class ExtraTreesModel( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -4708,9 +4559,7 @@ class ExtraTreesModel( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [
 								'Training Score',
 								'Testing Score',
@@ -4733,8 +4582,7 @@ class ExtraTreesModel( Regression ):
 								self.median_absolute_error,
 								self.max_error
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -4768,25 +4616,12 @@ class ExtraTreesModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4857,14 +4692,14 @@ class RandomForest( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, criterion: str = 'squared_error',
-			depth: Optional[ int ] = None, split: int | float = 2, leaf: int | float = 1,
-			weight_fraction: float = 0.0, features: int | float | str | None = 1.0,
-			leaf_nodes: Optional[ int ] = None, impurity: float = 0.0,
-			bootstrap: bool = True, oob_score: bool = False, jobs: Optional[ int ] = None,
-			rando: Optional[ int ] = 42, verbose: int = 0, warm: bool = False,
-			ccp_alpha: float = 0.0, samples: Optional[ int | float ] = None,
-			monotonic: Optional[ object ] = None ) -> None:
+	def __init__( self, estimators: int=100, criterion: str='squared_error',
+			depth: Optional[ int ]=None, split: int | float = 2, leaf: int | float=1,
+			weight_fraction: float=0.0, features: int | float | str | None = 1.0,
+			leaf_nodes: Optional[ int ]=None, impurity: float=0.0,
+			bootstrap: bool=True, oob_score: bool=False, jobs: Optional[ int ]=None,
+			rando: Optional[ int ]=42, verbose: int=0, warm: bool=False,
+			ccp_alpha: float=0.0, samples: Optional[ int | float ]=None,
+			monotonic: Optional[ object ]=None ) -> None:
 		"""
 		
 	        Purpose:
@@ -4916,26 +4751,14 @@ class RandomForest( Regression ):
 		self.ccp_alpha = ccp_alpha
 		self.max_samples = samples
 		self.monotonic_cst = monotonic
-		self.model = ske.RandomForestRegressor(
-			n_estimators=self.n_estimators,
-			criterion=self.criterion,
-			max_depth=self.max_depth,
-			min_samples_split=self.min_samples_split,
-			min_samples_leaf=self.min_samples_leaf,
-			min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-			max_features=self.max_features,
-			max_leaf_nodes=self.max_leaf_nodes,
-			min_impurity_decrease=self.min_impurity_decrease,
-			bootstrap=self.bootstrap,
-			oob_score=self.oob_score,
-			n_jobs=self.n_jobs,
-			random_state=self.random_state,
-			verbose=self.verbose,
-			warm_start=self.warm_start,
-			ccp_alpha=self.ccp_alpha,
-			max_samples=self.max_samples,
-			monotonic_cst=self.monotonic_cst
-		)
+		self.model = ske.RandomForestRegressor( n_estimators=self.n_estimators, 
+			criterion=self.criterion, max_depth=self.max_depth, 
+			min_samples_split=self.min_samples_split, min_samples_leaf=self.min_samples_leaf,
+			min_weight_fraction_leaf=self.min_weight_fraction_leaf, max_features=self.max_features,
+			max_leaf_nodes=self.max_leaf_nodes, min_impurity_decrease=self.min_impurity_decrease,
+			bootstrap=self.bootstrap, oob_score=self.oob_score, n_jobs=self.n_jobs,
+			random_state=self.random_state, verbose=self.verbose, warm_start=self.warm_start,
+			ccp_alpha=self.ccp_alpha, max_samples=self.max_samples, monotonic_cst=self.monotonic_cst )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -5028,9 +4851,8 @@ class RandomForest( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -5053,12 +4875,8 @@ class RandomForest( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -5153,17 +4971,14 @@ class RandomForest( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5200,9 +5015,7 @@ class RandomForest( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [
 								'Training Score',
 								'Testing Score',
@@ -5225,8 +5038,7 @@ class RandomForest( Regression ):
 								self.median_absolute_error,
 								self.max_error
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5260,25 +5072,11 @@ class RandomForest( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', 
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -5295,14 +5093,14 @@ class RandomForest( Regression ):
 
 class GradientBoost( Regression ):
 	"""
-
-    Purpose:
-    --------
-    Gradient Boosting builds an additive model in a forward stage-wise fashion;
-    it allows for the optimization  of arbitrary differentiable loss functions.
-    In each stage n_classes_ regression trees are  fit on the negative gradient of the binomial
-    or multinomial deviance loss function. Binary classification is a special case where
-    only a single regression tree is induced.
+	
+	    Purpose:
+	    --------
+	    Gradient Boosting builds an additive model in a forward stage-wise fashion;
+	    it allows for the optimization  of arbitrary differentiable loss functions.
+	    In each stage n_classes_ regression trees are  fit on the negative gradient of the binomial
+	    or multinomial deviance loss function. Binary classification is a special case where
+	    only a single regression tree is induced.
 
     """
 	model: ske.GradientBoostingRegressor
@@ -5343,17 +5141,14 @@ class GradientBoost( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'squared_error', rate: float = 0.1,
-			estimators: int = 100, subsample: float = 1.0,
-			criterion: str = 'friedman_mse', split: int | float = 2,
-			leaf: int | float = 1, weight_fraction: float = 0.0,
-			depth: Optional[ int ] = 3, impurity: float = 0.0,
-			init: Optional[ object ] = None, rando: Optional[ int ] = 42,
-			features: int | float | str | None = None, alpha: float = 0.9,
-			verbose: int = 0, leaf_nodes: Optional[ int ] = None,
-			warm: bool = False, validation_fraction: float = 0.1,
-			no_change: Optional[ int ] = None, tol: float = 1e-4,
-			ccp_alpha: float = 0.0 ) -> None:
+	def __init__( self, loss: str='squared_error', rate: float=0.1,
+			estimators: int=100, subsample: float=1.0, criterion: str='friedman_mse', 
+			split: int | float=2, leaf: int | float=1, weight_fraction: float=0.0,
+			depth: Optional[ int ]=3, impurity: float=0.0, init: Optional[ object ]=None, 
+			rando: Optional[ int ]=42, features: int | float | str | None = None, 
+			alpha: float=0.9, verbose: int=0, leaf_nodes: Optional[ int ]=None,
+			warm: bool=False, validation_fraction: float=0.1, no_change: Optional[ int ]=None, 
+			tol: float=1e-4, ccp_alpha: float=0.0 ) -> None:
 		"""
 		
 	        Purpose:
@@ -5411,29 +5206,15 @@ class GradientBoost( Regression ):
 		self.n_iter_no_change = no_change
 		self.tol = tol
 		self.ccp_alpha = ccp_alpha
-		self.model = ske.GradientBoostingRegressor(
-			loss=self.loss,
-			learning_rate=self.learning_rate,
-			n_estimators=self.n_estimators,
-			subsample=self.subsample,
-			criterion=self.criterion,
-			min_samples_split=self.min_samples_split,
-			min_samples_leaf=self.min_samples_leaf,
-			min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-			max_depth=self.max_depth,
-			min_impurity_decrease=self.min_impurity_decrease,
-			init=self.init,
-			random_state=self.random_state,
-			max_features=self.max_features,
-			alpha=self.alpha,
-			verbose=self.verbose,
-			max_leaf_nodes=self.max_leaf_nodes,
-			warm_start=self.warm_start,
-			validation_fraction=self.validation_fraction,
-			n_iter_no_change=self.n_iter_no_change,
-			tol=self.tol,
-			ccp_alpha=self.ccp_alpha
-		)
+		self.model = ske.GradientBoostingRegressor( loss=self.loss, learning_rate=self.learning_rate,
+			n_estimators=self.n_estimators, subsample=self.subsample, criterion=self.criterion,
+			min_samples_split=self.min_samples_split, min_samples_leaf=self.min_samples_leaf,
+			min_weight_fraction_leaf=self.min_weight_fraction_leaf, max_depth=self.max_depth,
+			min_impurity_decrease=self.min_impurity_decrease, init=self.init, 
+			random_state=self.random_state, max_features=self.max_features, alpha=self.alpha,
+			verbose=self.verbose, max_leaf_nodes=self.max_leaf_nodes, warm_start=self.warm_start,
+			validation_fraction=self.validation_fraction, n_iter_no_change=self.n_iter_no_change,
+			tol=self.tol, ccp_alpha=self.ccp_alpha )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -5529,9 +5310,8 @@ class GradientBoost( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -5554,12 +5334,8 @@ class GradientBoost( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -5654,17 +5430,14 @@ class GradientBoost( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5701,9 +5474,7 @@ class GradientBoost( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [
 								'Training Score',
 								'Testing Score',
@@ -5726,8 +5497,7 @@ class GradientBoost( Regression ):
 								self.median_absolute_error,
 								self.max_error
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5761,25 +5531,12 @@ class GradientBoost( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -5832,9 +5589,9 @@ class AdaptiveBoost( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimator: Optional[ object ] = None, estimators: int = 50,
-			rate: float = 1.0, loss: str = 'linear',
-			rando: Optional[ int ] = 42 ) -> None:
+	def __init__( self, estimator: Optional[ object ]=None, estimators: int=50,
+			rate: float=1.0, loss: str='linear',
+			rando: Optional[ int ]=42 ) -> None:
 		"""
 		
 	        Purpose:
@@ -5860,13 +5617,8 @@ class AdaptiveBoost( Regression ):
 		self.learning_rate = rate
 		self.loss = loss
 		self.random_state = rando
-		self.model = ske.AdaBoostRegressor(
-			estimator=self.estimator,
-			n_estimators=self.n_estimators,
-			learning_rate=self.learning_rate,
-			loss=self.loss,
-			random_state=self.random_state
-		)
+		self.model = ske.AdaBoostRegressor( estimator=self.estimator, n_estimators=self.n_estimators,
+			learning_rate=self.learning_rate, loss=self.loss, random_state=self.random_state )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -5967,9 +5719,8 @@ class AdaptiveBoost( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -5992,12 +5743,8 @@ class AdaptiveBoost( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -6028,7 +5775,6 @@ class AdaptiveBoost( Regression ):
 			throw_if( 'y', y )
 			self.model.fit( X, y )
 			self.prediction = None
-			
 			if self.X_train is not None and self.y_train is not None:
 				self.training_score = self.model.score( self.X_train, self.y_train )
 			
@@ -6092,17 +5838,14 @@ class AdaptiveBoost( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6139,9 +5882,7 @@ class AdaptiveBoost( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [
 								'Training Score',
 								'Testing Score',
@@ -6164,8 +5905,7 @@ class AdaptiveBoost( Regression ):
 								self.median_absolute_error,
 								self.max_error
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6199,25 +5939,11 @@ class AdaptiveBoost( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -6278,11 +6004,11 @@ class BaggingModel( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimator: Optional[ object ] = None, num: int = 10,
-			samples: Optional[ int | float ] = None, features: int | float = 1.0,
-			bootstrap: bool = True, bootstrap_features: bool = False,
-			oob_score: bool = False, warm: bool = False, jobs: Optional[ int ] = None,
-			rando: Optional[ int ] = None, verbose: int = 0 ) -> None:
+	def __init__( self, estimator: Optional[ object ]=None, num: int=10,
+			samples: Optional[ int | float ]=None, features: int | float=1.0,
+			bootstrap: bool=True, bootstrap_features: bool=False,
+			oob_score: bool=False, warm: bool=False, jobs: Optional[ int ]=None,
+			rando: Optional[ int ]=None, verbose: int=0 ) -> None:
 		"""
 		
 	        Purpose:
@@ -6320,19 +6046,11 @@ class BaggingModel( Regression ):
 		self.n_jobs = jobs
 		self.random_state = rando
 		self.verbose = verbose
-		self.model = ske.BaggingRegressor(
-			estimator=self.estimator,
-			n_estimators=self.n_estimators,
-			max_samples=self.max_samples,
-			max_features=self.max_features,
-			bootstrap=self.bootstrap,
-			bootstrap_features=self.bootstrap_features,
-			oob_score=self.oob_score,
-			warm_start=self.warm_start,
-			n_jobs=self.n_jobs,
-			random_state=self.random_state,
-			verbose=self.verbose
-		)
+		self.model = ske.BaggingRegressor( estimator=self.estimator, n_estimators=self.n_estimators,
+			max_samples=self.max_samples, max_features=self.max_features, bootstrap=self.bootstrap,
+			bootstrap_features=self.bootstrap_features, oob_score=self.oob_score,
+			warm_start=self.warm_start, n_jobs=self.n_jobs, random_state=self.random_state,
+			verbose=self.verbose )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -6440,9 +6158,8 @@ class BaggingModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -6465,12 +6182,8 @@ class BaggingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -6500,8 +6213,7 @@ class BaggingModel( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.model.fit( X, y )
-			self.prediction = None
-			
+			self.prediction = None			
 			if self.X_train is not None and self.y_train is not None:
 				self.training_score = self.model.score( self.X_train, self.y_train )
 			
@@ -6565,17 +6277,14 @@ class BaggingModel( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			
-			df_metrics = pd.DataFrame(
-				{
+			df_metrics = pd.DataFrame( {
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
 						'Value': [
 								self.training_score if self.training_score is not None else np.nan,
 								self.testing_score if self.testing_score is not None else np.nan,
 								self.r2_score
 						]
-				}
-			)
+				} )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6672,25 +6381,11 @@ class BaggingModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -6737,9 +6432,9 @@ class VotingModel( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, est: Optional[ List[ tuple[ str, object ] ] ] = None,
-			weights: Optional[ List[ float ] ] = None, jobs: Optional[ int ] = None,
-			verbose: bool = False ) -> None:
+	def __init__( self, est: Optional[ List[ tuple[ str, object ] ] ]=None,
+			weights: Optional[ List[ float ] ]=None, jobs: Optional[ int ]=None,
+			verbose: bool=False ) -> None:
 		"""
 		
 	        Purpose:
@@ -6760,20 +6455,13 @@ class VotingModel( Regression ):
 		
         """
 		super( ).__init__( )
-		self.estimators = est if est is not None else [
-				('least_squares', skl.LinearRegression( )),
-				('ridge', skl.Ridge( )),
-				('nearest_neighbor', skn.KNeighborsRegressor( ))
-		]
+		self.estimators = est if est is not None else [ ('least_squares', skl.LinearRegression( )),
+				('ridge', skl.Ridge( )), ('nearest_neighbor', skn.KNeighborsRegressor( )) ]
 		self.weights = weights
 		self.n_jobs = jobs
 		self.verbose = verbose
-		self.model = ske.VotingRegressor(
-			estimators=self.estimators,
-			weights=self.weights,
-			n_jobs=self.n_jobs,
-			verbose=self.verbose
-		)
+		self.model = ske.VotingRegressor( estimators=self.estimators, weights=self.weights,
+			n_jobs=self.n_jobs, verbose=self.verbose )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -6874,9 +6562,8 @@ class VotingModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.named_estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -6899,12 +6586,8 @@ class VotingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -7106,25 +6789,12 @@ class VotingModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
+				line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
+				'k--', label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -7174,9 +6844,8 @@ class StackingModel( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, est: Optional[ List[ tuple[ str, object ] ] ] = None,
-			final: object = None, cv: int = None, jobs: int = None,
-			passthrough: bool = False, verbose: int = 0 ) -> None:
+	def __init__( self, est: Optional[ List[ tuple[ str, object ] ] ]=None, final: object=None, 
+			cv: int=None, jobs: int=None, passthrough: bool=False, verbose: int=0 ) -> None:
 		"""
 		
 	        Purpose:
@@ -7198,23 +6867,16 @@ class StackingModel( Regression ):
 		
         """
 		super( ).__init__( )
-		self.estimators = est if est is not None else [
-				('least_squares', skl.LinearRegression( )),
-				('ridge', skl.Ridge( )),
-				('nearest_neighbor', skn.KNeighborsRegressor( ))
-		]
+		self.estimators = est if est is not None else [ ('least_squares', skl.LinearRegression( )),
+				('ridge', skl.Ridge( )), ('nearest_neighbor', skn.KNeighborsRegressor( )) ]
 		self.final_estimator = final
 		self.cv = cv
 		self.n_jobs = jobs
 		self.passthrough = passthrough
 		self.verbose = verbose
-		self.model = ske.StackingRegressor(
-			estimators=self.estimators,
-			final_estimator=self.final_estimator,
-			cv=self.cv,
-			n_jobs=self.n_jobs,
-			passthrough=self.passthrough
-		)
+		self.model = ske.StackingRegressor( estimators=self.estimators, 
+			final_estimator=self.final_estimator, cv=self.cv, n_jobs=self.n_jobs, 
+			passthrough=self.passthrough )
 		self.prediction = None
 		self.mean_absolute_error = 0.0
 		self.mean_squared_error = 0.0
@@ -7338,9 +7000,8 @@ class StackingModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -7363,12 +7024,8 @@ class StackingModel( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return (self.X_train, self.X_test, self.y_train, self.y_test)
 		except Exception as e:
 			exception = Error( e )
@@ -7570,25 +7227,11 @@ class StackingModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -7606,7 +7249,12 @@ class StackingModel( Regression ):
 class SupportVector( Regression ):
 	"""
 	
-      Provides Support Vector Regression (SVR) functionality.
+      Purpose:
+      --------
+      Support Vector Machine (SVM) is a powerful, supervised machine learning algorithm used
+      primarily for classification, though it also handles regression. It works by finding an
+      optimal "hyperplane"—a decision boundary—that maximizes the margin (distance) between
+      different data classes, which improves prediction accuracy and generalization to new data.
       
     """
 	model: skv.SVR
@@ -7637,10 +7285,10 @@ class SupportVector( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, kernel: str = 'rbf', degree: int = 3, gamma: str | float = 'scale',
-			coef0: float = 0.0, tol: float = 1e-3, penalty: float = 1.0,
-			epsilon: float = 0.1, shrinking: bool = True, cache: float = 200.0,
-			verbose: bool = False, iters: int = -1 ) -> None:
+	def __init__( self, kernel: str='rbf', degree: int=3, gamma: str | float = 'scale',
+			coef0: float=0.0, tol: float=1e-3, penalty: float=1.0,
+			epsilon: float=0.1, shrinking: bool=True, cache: float=200.0,
+			verbose: bool=False, iters: int=-1 ) -> None:
 		"""
 		
 	        Purpose:
@@ -7678,19 +7326,10 @@ class SupportVector( Regression ):
 		self.cache_size = cache
 		self.verbose = verbose
 		self.max_iter = iters
-		self.model = skv.SVR(
-			kernel=self.kernel,
-			degree=self.degree,
-			gamma=self.gamma,
-			coef0=self.coef0,
-			tol=self.tol,
-			C=self.penalty,
-			epsilon=self.epsilon,
-			shrinking=self.shrinking,
-			cache_size=self.cache_size,
-			verbose=self.verbose,
-			max_iter=self.max_iter
-		)
+		self.model = skv.SVR( kernel=self.kernel, degree=self.degree, gamma=self.gamma,
+			coef0=self.coef0, tol=self.tol, C=self.penalty, epsilon=self.epsilon,
+			shrinking=self.shrinking, cache_size=self.cache_size, verbose=self.verbose,
+			max_iter=self.max_iter )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -7775,9 +7414,8 @@ class SupportVector( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -7800,12 +7438,8 @@ class SupportVector( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			self.X_train, self.X_test, self.y_train, self.y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			self.X_train, self.X_test, self.y_train, self.y_test = split( X, y, test_size=size,
+				random_state=random )
 			return self.X_train, self.X_test, self.y_train, self.y_test
 		except Exception as e:
 			exception = Error( e )
@@ -7899,8 +7533,7 @@ class SupportVector( Regression ):
 			throw_if( 'X', X )
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
-			self.r2_score = r2_score( y, self.prediction )
-			
+			self.r2_score = r2_score( y, self.prediction )			
 			df_metrics = pd.DataFrame(
 				{
 						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
@@ -8007,25 +7640,11 @@ class SupportVector( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -8071,9 +7690,8 @@ class GaussianProcess( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, kernel: object=None, alpha: float=1e-10,
-			optimizer: str='fmin_l_bfgs_b', restarts: int=0,
-			normalize: bool=False, copy: bool=True, rando: int=None ) -> None:
+	def __init__( self, kernel: object=None, alpha: float=1e-10, optimizer: str='fmin_l_bfgs_b', 
+			restarts: int=0, normalize: bool=False, copy: bool=True, rando: int=None ) -> None:
 		"""
 		
 	        Purpose:
@@ -8315,12 +7933,13 @@ class GaussianProcess( Regression ):
 			self.max_error = max_error( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
+			_metrics = \
+			{
+				'MAE': self.mean_absolute_error,
+				'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error,
+				'EVS': self.explained_variance_score,
+				'MAX': self.max_error,
 			}
 			
 			_data = pd.Series( _metrics )
@@ -8415,8 +8034,8 @@ class MultiLayerPerceptron( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, hidden: tuple = (100,), activ: str = 'relu', solver: str = 'adam',
-			alpha: float = 0.0001, learning: str = 'constant', rando: int = 42 ) -> None:
+	def __init__( self, hidden: tuple=(100,), activ: str='relu', solver: str='adam',
+			alpha: float=0.0001, learning: str='constant', rando: int=42 ) -> None:
 		"""
 		
 	        Purpose:
@@ -8504,9 +8123,8 @@ class MultiLayerPerceptron( Regression ):
 				'testing_score'
 		]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+			random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""
 		
 	        Purpose:
@@ -8529,12 +8147,8 @@ class MultiLayerPerceptron( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )

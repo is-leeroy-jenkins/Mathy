@@ -3362,58 +3362,60 @@ elif mode == 'Classification Models':
 		# ======================================================================================
 		st.markdown( '##### Data Selection' )
 		st.caption( f'Records: {len( df_original ):,} | Fields: {len( df_original.columns ):,}' )
+		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
-			features = st.multiselect( 'Select Features', options=categorical_columns,
+			features = st.multiselect( 'Select Features', options=numeric_columns,
 				default=[ c for c in st.session_state.get( 'features', [ ] )
 						if c in numeric_columns ], key='classification_features' )
 		
 		with col_c2:
-			target_options = [ c for c in numeric_columns if c not in features ]
-			targets = st.multiselect( 'Select Targets', options=target_options,
-				default=[ c for c in st.session_state.get( 'targets', [ ] )
-						if c in target_options ], key='classification_targets' )
+			default_target = st.session_state.get( 'targets', [ ] )
+			default_target = default_target[ 0 ] if (
+					default_target and default_target[ 0 ] in categorical_columns ) else None
+			
+			target_col = st.selectbox( 'Select Target', options=categorical_columns,
+				index=categorical_columns.index( default_target )
+				if default_target in categorical_columns else 0, key='classification_target' )
 		
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='classification_create_dataset',
 					use_container_width=True ):
+				selected_all = features.copy( )
+				if target_col and target_col not in selected_all:
+					selected_all.append( target_col )
 				
-				selected_all = features + [ c for c in targets if c not in features ]
 				if selected_all:
 					df_working = df_original[ selected_all ].copy( )
-					st.session_state[ 'df_working' ] = df_working
 				else:
 					df_working = df_original.copy( )
-					st.session_state[ 'df_working' ] = df_working
 				
 				st.session_state[ 'features' ] = features.copy( )
-				st.session_state[ 'targets' ] = targets.copy( )
+				st.session_state[ 'targets' ] = [ target_col ] if target_col else [ ]
+				st.session_state[ 'df_working' ] = df_working.copy( )
 				st.session_state[ 'df_processed' ] = df_working.copy( )
-				df_processed = pd.DataFrame( )
-				
 				commit_frame( df_working )
 				st.success( 'Working Dataset Created!' )
 		
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', icon='🔁', key='classification_reset_to_original',
 					use_container_width=True ):
-				
-				df_original = df_dataset.copy( )
 				df_working = df_original.copy( )
-				df_processed = pd.DataFrame( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
 				st.session_state[ 'df_working' ] = df_working.copy( )
-				st.session_state[ 'df_processed' ] = df_processed.copy( )
+				st.session_state[ 'df_processed' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Reset to Original' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Working Data')
-		st.caption( f'Records: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
+		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) ).copy( )
+		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) ).copy( )
 		
-		st.data_editor( df_working )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Working Data' )
+		st.caption( f'Input: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
+		st.data_editor( df_working, key='classification_working_data' )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -3428,7 +3430,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=targets,
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
@@ -4616,7 +4618,7 @@ elif mode == 'Classification Models':
 		
 		with mdl_c2:
 			st.markdown( '###### Training Configuration' )
-			test_sz = st.slider( 'Test Set Size (%)', 10, 30, 20, key='classifications-1' ) / 100.0
+			test_sz = st.slider( 'Test Set Size (%)', 10, 30, 20, key='classifications_trainig' ) / 100.0
 		
 		with mdl_c3:
 			st.markdown( '###### Random State' )
@@ -4627,27 +4629,58 @@ elif mode == 'Classification Models':
 		# Training Target & Features
 		# ------------------------------------------------------------------
 		active_features = [ c for c in st.session_state.get( 'features', [ ] )
-		                    if c in df_processed.columns ]
+				if c in df_processed.columns ]
 		
 		active_targets = [ c for c in st.session_state.get( 'targets', [ ] )
-		                   if c in df_processed.columns ]
+				if c in df_processed.columns ]
 		
 		if not active_features:
 			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
 			st.stop( )
 		
 		if not active_targets:
-			st.warning( '⚠️ No valid target columns remain after preprocessing.' )
+			st.warning( '⚠️ No valid target column remains after preprocessing.' )
 			st.stop( )
+		
+		if len( active_targets ) != 1:
+			st.warning( '⚠️ Classification mode requires exactly one target column.' )
+			st.stop( )
+		
+		target_name = active_targets[ 0 ]
+		
+		df_model = df_processed[ active_features + [ target_name ] ].copy( )
+		
+		for col in active_features:
+			df_model[ col ] = pd.to_numeric( df_model[ col ], errors='coerce' )
+		
+		df_model = df_model.dropna( subset=active_features + [ target_name ] ).copy( )
+		
+		if df_model.empty:
+			st.warning( '⚠️ No complete rows remain after preprocessing and selection.' )
+			st.stop( )
+		
+		X = df_model[ active_features ].to_numpy( dtype=float )
+		
+		y_raw = df_model[ target_name ].astype( str )
+		class_counts = y_raw.value_counts( dropna=False )
+		
+		if len( class_counts ) < 2:
+			st.warning( '⚠️ Classification requires at least two classes in the selected target.' )
+			st.stop( )
+		
+		min_class_count = int( class_counts.min( ) )
+		if min_class_count < 2:
+			st.warning( f'⚠️ Each class must have at least 2 records for stratified train/test split. '
+				f'The smallest class currently has {min_class_count}.' )
 			
-		X = df_processed[ active_features ].to_numpy( )
-		y = df_processed[ active_targets ].to_numpy( dtype=float )
-		
-		if len( np.unique( y ) ) < 2:
-			st.warning( '⚠️ The selected numeric target must contain at least two distinct values.' )
 			st.stop( )
 		
-		if st.button( '🚀 Train Classifier' ):
+		class_labels = sorted( y_raw.unique( ).tolist( ) )
+		label_to_code = { label: i for i, label in enumerate( class_labels ) }
+		code_to_label = { i: label for label, i in label_to_code.items( ) }
+		y = y_raw.map( label_to_code ).to_numpy( dtype=int )
+		
+		if st.button( '🚀 Train Classifier', key='classification_training_button' ):
 			try:
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_sz,
 					random=random_state )
@@ -4655,6 +4688,9 @@ elif mode == 'Classification Models':
 				model.train( X_train, y_train )
 				y_pred = model.project( X_test )
 				target_count = len( np.unique( y_test ) )
+				
+				y_test_labels = pd.Series( y_test ).map( code_to_label )
+				y_pred_labels = pd.Series( y_pred ).map( code_to_label )
 				
 				# ------------------------------------------------------------------
 				# METRICS & ANALYSIS
@@ -4679,12 +4715,15 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Actual vs Predicted Counts' )
-				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
-				pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
-				df_counts = pd.DataFrame(
-					{'Actual': actual_counts, 'Predicted': pred_counts} ).fillna( 0 )
 				
-				fig_counts, ax_counts = plt.subplots( figsize=( 8, 5 ) )
+				actual_counts = y_test_labels.value_counts( ).sort_index( )
+				pred_counts = y_pred_labels.value_counts( ).sort_index( )
+				df_counts = pd.DataFrame( {
+							'Actual': actual_counts,
+							'Predicted': pred_counts
+					} ).fillna( 0 )
+				
+				fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
 				df_counts.plot( kind='bar', ax=ax_counts )
 				ax_counts.set_xlabel( 'Class' )
 				ax_counts.set_ylabel( 'Count' )
@@ -4699,8 +4738,14 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Per-Class Accuracy' )
-				df_eval = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_pred } )
-				df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
+				
+				df_eval = pd.DataFrame( {
+							'Actual': y_test_labels,
+							'Predicted': y_pred_labels
+					} )
+				df_eval[ 'Correct' ] = (
+						df_eval[ 'Actual' ] == df_eval[ 'Predicted' ] ).astype( int )
+				
 				df_class_acc = df_eval.groupby(
 					'Actual', dropna=False )[ 'Correct' ].mean( ).sort_index( )
 				
@@ -4721,8 +4766,7 @@ elif mode == 'Classification Models':
 				if hasattr( model, 'predict_probability' ):
 					try:
 						proba = model.predict_probability( X_test )
-						if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[
-							1 ] > 1:
+						if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1:
 							st.subheader( 'Prediction Confidence' )
 							max_conf = np.max( proba, axis=1 )
 							fig_conf, ax_conf = plt.subplots( figsize=(8, 5) )
@@ -4752,7 +4796,7 @@ elif mode == 'Classification Models':
 						st.info( f'Observed vs Predicted plot skipped: {e}' )
 						plt.close( 'all' )
 				else:
-					st.info( 'Observed vs Predicted is shown only when the target has < 2 classes.' )
+					st.info( 'Observed vs Predicted is shown only when the target has 2 classes.' )
 				
 				# ------------------------------------------------------------------
 				# ROC CURVE
@@ -4773,6 +4817,7 @@ elif mode == 'Classification Models':
 			
 			except Exception as e:
 				st.error( f'Classification Failed: {e}' )
+		
 
 # ============================================
 # REGRESSION MODE
@@ -4782,7 +4827,7 @@ elif mode == 'Regression Models':
 	df_dataset = st.session_state.get( 'df_dataset', None )
 	df_working = st.session_state.get( 'df_working', None )
 	df_processed = st.session_state.get( 'df_processed', None )
-	df_classification = st.session_state.get( 'df_classification', None )
+	df_regression = st.session_state.get( 'df_regression', None )
 	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
@@ -4791,7 +4836,7 @@ elif mode == 'Regression Models':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )		
 	with center:
 		st.subheader( cfg.MODE[ 'Regression Models' ] )
-		st.caption( 'Predictive Modeling for Continuous-Values' )
+		st.caption( 'Predictive Models for Continuous-Values' )
 		st.divider( )
 		
 		if df_dataset is None or df_dataset.empty:
@@ -4806,65 +4851,72 @@ elif mode == 'Regression Models':
 		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
 		
 		if not numeric_columns or not categorical_columns:
-			st.warning( '⚠️ Classification requires numeric features and a categorical target.' )
+			st.warning( '⚠️ Regression requires numeric targets and a categorical features.' )
 			st.stop( )
-			
+		
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
 		st.markdown( '##### Data Selection' )
-		st.caption( f'Records: {len( df_original ):,}  |  Features: {len( df_original.columns ):,}' )
+		st.caption( f'Records: {len( df_original ):,} | Fields: {len( df_original.columns ):,}' )
 		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
-			features = st.multiselect( 'Select Features', options=categorical_columns,
+			features = st.multiselect( 'Select Features', options=numeric_columns,
 				default=[ c for c in st.session_state.get( 'features', [ ] )
-				          if c in numeric_columns ], key='regression_features' )
+						if c in numeric_columns ], key='classification_features' )
 		
 		with col_c2:
-			target_options = [ c for c in numeric_columns if c not in features ]
-			targets = st.multiselect( 'Select Targets', options=target_options,
-				default=[ c for c in st.session_state.get( 'targets', [ ] )
-				          if c in target_options ], key='regression_targets' )
+			default_target = st.session_state.get( 'targets', [ ] )
+			default_target = default_target[ 0 ] if default_target and default_target[ 0 ] in \
+			                                        categorical_columns else (
+					categorical_columns[ 0 ] if categorical_columns else None )
+			
+			target_col = st.selectbox( 'Select Target', options=numeric_columns,
+				index=numeric_columns.index( default_target )
+				if default_target in numeric_columns else 0,
+				key='classification_target' )
 		
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='regression_create_dataset',
 					use_container_width=True ):
-				selected_all = features + [ c for c in targets if c not in features ]
+				
+				selected_all = features.copy( )
+				if target_col and target_col not in selected_all:
+					selected_all.append( target_col )
+				
 				if selected_all:
 					df_working = df_original[ selected_all ].copy( )
-					st.session_state[ 'df_working' ] = df_working
 				else:
 					df_working = df_original.copy( )
-					st.session_state[ 'df_working' ] = df_working
 				
 				st.session_state[ 'features' ] = features.copy( )
-				st.session_state[ 'targets' ] = targets.copy( )
+				st.session_state[ 'targets' ] = [ target_col ] if target_col else [ ]
+				st.session_state[ 'df_working' ] = df_working.copy( )
 				st.session_state[ 'df_processed' ] = df_working.copy( )
-				df_processed = pd.DataFrame( )
-				
 				commit_frame( df_working )
-				st.success( 'Working Dataset Created.' )
+				st.success( 'Working Dataset Created!' )
 		
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', icon='🔁', key='regression_reset_to_original',
 					use_container_width=True ):
-				df_original = df_dataset.copy( )
+				
 				df_working = df_original.copy( )
-				df_processed = pd.DataFrame( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
 				st.session_state[ 'df_working' ] = df_working.copy( )
-				st.session_state[ 'df_processed' ] = df_processed.copy( )
+				st.session_state[ 'df_processed' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Reset to Original' )
 		
+		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) ).copy( )
+		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) ).copy( )
+		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Records: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
-		
-		st.data_editor( df_working, key='regressions_workding_data' )
+		st.caption( f'Input: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
+		st.data_editor( df_working, key='regression_working_data' )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -4875,11 +4927,11 @@ elif mode == 'Regression Models':
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
 			
-			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
+			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=targets,
+					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
@@ -5105,8 +5157,7 @@ elif mode == 'Regression Models':
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
-					impute_cols = st.multiselect( 'Columns',
-						options=numeric_columns,
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -5161,7 +5212,7 @@ elif mode == 'Regression Models':
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
-					encode_cols = st.multiselect( 'Columns', options=features,
+					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='regression_onehot_cols' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=False,
@@ -6102,7 +6153,7 @@ elif mode == 'Regression Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		
-		if st.button( '🚀 Train Model' ):
+		if st.button( '🚀 Train Model', key='regression_train_button' ):
 			try:
 				X_train, X_test, y_train, y_test = model.split_data( X, y, size=test_size,
 					random=random_state )
