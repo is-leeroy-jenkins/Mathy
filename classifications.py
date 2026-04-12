@@ -728,7 +728,7 @@ class Perceptron( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1200,7 +1200,7 @@ class LeastSquares( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -1693,7 +1693,7 @@ class LogisticRegression( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2143,7 +2143,7 @@ class Ridge( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2529,7 +2529,7 @@ class Lasso( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -2921,7 +2921,7 @@ class GradientDescent( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3407,7 +3407,7 @@ class NearestNeighbor( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -3982,7 +3982,7 @@ class DecisionTree( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -4527,7 +4527,7 @@ class RandomForest( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5100,7 +5100,7 @@ class GradientBoost( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -5668,7 +5668,7 @@ class AdaptiveBoost( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -6164,7 +6164,7 @@ class BaggingModel( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -6614,7 +6614,7 @@ class VotingModel( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -7004,7 +7004,7 @@ class StackingModel( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -7514,7 +7514,7 @@ class SupportVector( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
@@ -8020,7 +8020,7 @@ class MultiLayerPerceptron( Classifier ):
 
 		"""
 		try:
-			return self._classification_scores( X, y )
+			return self.classification_scores( X, y )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
