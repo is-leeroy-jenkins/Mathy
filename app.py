@@ -3873,7 +3873,7 @@ elif mode == 'Classification Models':
 			with st.expander( label='Data Transformation', icon='⚡', key='classification_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
-					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
+					transform_cols = st.multiselect( 'Columns', options=df.working.columns,
 						key='classification_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
@@ -3908,7 +3908,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+						options=df.working.columns,
 						key='classification_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -3922,8 +3922,7 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply LabelBinarizer',
-								key='classification_label_binarizer_apply',
+						if st.button( 'Apply LabelBinarizer', key='classification_lblbinarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
@@ -3935,11 +3934,12 @@ elif mode == 'Classification Models':
 								
 								df_processed = replace_columns( df_processed, [ target_col ], result,
 									'label_binarizer' )
+								
 								commit_frame( df_processed )
 								st.success( 'Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_label_binarizer_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_lblbinarizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
@@ -3948,7 +3948,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+						options=df.working.columns,
 						key='classification_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -3986,7 +3986,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=numeric_columns,
+						options=df.working.columns,
 						key='classification_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
@@ -4029,11 +4029,11 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
+					numeric_columns = st.multiselect( 'Numeric Columns', options=df.working.columns,
 						key='classification_column_transformer_numeric_columns' )
 					
 					categorical_columns = st.multiselect( 'Categorical Columns',
-						options=categorical_columns,
+						options=df.working.columns,
 						key='classification_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
@@ -4615,32 +4615,21 @@ elif mode == 'Classification Models':
 		
 		with mdl_c2:
 			st.markdown( '###### Training Configuration' )
-			test_sz = st.slider( 'Test Set Size (%)',
-				10,
-				30,
-				20,
-				key='classifications-1'
-			) / 100.0
+			test_sz = st.slider( 'Test Set Size (%)', 10, 30, 20, key='classifications-1' ) / 100.0
 		
 		with mdl_c3:
 			st.markdown( '###### Random State' )
-			random_state = st.number_input( 'Seed', value=42,
-				step=1,
-				key='classifications_random_state'
-			)
+			random_state = st.number_input( 'Seed', value=42, step=1,
+				key='classifications_random_state' )
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
 		# ------------------------------------------------------------------
-		active_features = [
-				c for c in st.session_state.get( 'features', [ ] )
-				if c in df_processed.columns
-		]
+		active_features = [ c for c in st.session_state.get( 'features', [ ] )
+				if c in df_processed.columns ]
 		
-		active_targets = [
-				c for c in st.session_state.get( 'targets', [ ] )
-				if c in df_processed.columns
-		]
+		active_targets = [ c for c in st.session_state.get( 'targets', [ ] )
+				if c in df_processed.columns ]
 		
 		if not active_features:
 			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
@@ -4668,10 +4657,9 @@ elif mode == 'Classification Models':
 			X_df[ col ] = pd.to_numeric( X_df[ col ], errors='coerce' )
 		
 		if X_df.isna( ).any( ).any( ):
-			st.warning(
-				'⚠️ One or more feature columns are still non-numeric after preprocessing. '
-				'Apply the appropriate encoder/transformer before training.'
-			)
+			st.warning( '⚠️ One or more feature columns are still non-numeric after preprocessing. '
+				'Apply the appropriate encoder/transformer before training.' )
+			
 			st.stop( )
 		
 		X = X_df.to_numpy( dtype=float )
@@ -4701,10 +4689,9 @@ elif mode == 'Classification Models':
 			unique_ratio = float( unique_count / max( 1, len( y_num ) ) )
 			
 			if unique_count > 20 and unique_ratio > 0.20:
-				st.warning(
-					'⚠️ The processed target appears continuous. '
-					'Use a label encoder/binarizer for classification targets, not a scaler.'
-				)
+				st.warning( '⚠️ The processed target appears continuous. '
+					'Use a label encoder/binarizer for classification targets, not a scaler.' )
+				
 				st.stop( )
 		
 		class_counts = pd.Series( y ).value_counts( dropna=False )
@@ -4740,7 +4727,17 @@ elif mode == 'Classification Models':
 				st.markdown( '##### Confusion Matrix' )
 				plt.close( 'all' )
 				model.confusion_matrix( X_test, y_test )
-				st.pyplot( plt.gcf( ) )
+				fig_cm = plt.gcf( )
+				fig_cm.set_size_inches( 9, 7 )
+				
+				for ax_cm in fig_cm.axes:
+					ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+					ax_cm.tick_params( axis='y', labelsize=8 )
+					for label in ax_cm.get_xticklabels( ):
+						label.set_ha( 'right' )
+				
+				fig_cm.tight_layout( )
+				st.pyplot( fig_cm )
 				plt.close( 'all' )
 				
 				# ------------------------------------------------------------------
@@ -4748,21 +4745,53 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Actual vs Predicted Counts' )
+				
 				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
 				pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
-				df_counts = pd.DataFrame(
-					{
+				df_counts = pd.DataFrame( {
 							'Actual': actual_counts,
 							'Predicted': pred_counts
-					}
-				).fillna( 0 )
+					} ).fillna( 0 )
 				
-				fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
-				df_counts.plot( kind='bar', ax=ax_counts )
-				ax_counts.set_xlabel( 'Class' )
-				ax_counts.set_ylabel( 'Count' )
-				ax_counts.set_title( 'Actual vs Predicted Class Counts' )
-				ax_counts.grid( axis='y', alpha=0.3 )
+				class_labels = [ str( c ) for c in df_counts.index.tolist( ) ]
+				max_label_len = max( [ len( lbl ) for lbl in class_labels ], default=0 )
+				class_count = len( class_labels )
+				use_horizontal = class_count > 8 or max_label_len > 12
+				
+				if use_horizontal:
+					plot_df = df_counts.copy( ).sort_index( )
+					fig_counts, ax_counts = plt.subplots(
+						figsize=(max( 10, 8 + max_label_len * 0.12 ), max( 4, class_count * 0.55 )))
+					
+					y_pos = np.arange( len( plot_df.index ) )
+					bar_h = 0.38
+					
+					ax_counts.barh( y_pos - bar_h / 2, plot_df[ 'Actual' ].values,
+						height=bar_h, label='Actual' )
+					
+					ax_counts.barh( y_pos + bar_h / 2, plot_df[ 'Predicted' ].values,
+						height=bar_h, label='Predicted' )
+					
+					ax_counts.set_yticks( y_pos )
+					ax_counts.set_yticklabels( [ str( c ) for c in plot_df.index ] )
+					ax_counts.set_xlabel( 'Count' )
+					ax_counts.set_ylabel( 'Class' )
+					ax_counts.set_title( 'Actual vs Predicted Class Counts' )
+					ax_counts.grid( axis='x', alpha=0.3 )
+					ax_counts.legend( frameon=False )
+				else:
+					fig_width = max( 8, min( 16, 1.1 * class_count + 4 ) )
+					fig_counts, ax_counts = plt.subplots( figsize=(fig_width, 5.5) )
+					df_counts.plot( kind='bar', ax=ax_counts, width=0.80 )
+					ax_counts.set_xlabel( 'Class' )
+					ax_counts.set_ylabel( 'Count' )
+					ax_counts.set_title( 'Actual vs Predicted Class Counts' )
+					ax_counts.grid( axis='y', alpha=0.3 )
+					ax_counts.legend( frameon=False )
+					ax_counts.tick_params( axis='x', labelrotation=45, labelsize=8 )
+					for label in ax_counts.get_xticklabels( ):
+						label.set_ha( 'right' )
+				
 				fig_counts.tight_layout( )
 				st.pyplot( fig_counts )
 				plt.close( fig_counts )
@@ -4772,23 +4801,46 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Per-Class Accuracy' )
-				df_eval = pd.DataFrame(
-					{
+				
+				df_eval = pd.DataFrame( {
 							'Actual': y_test,
 							'Predicted': y_pred
-					}
-				)
-				df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
-				df_class_acc = df_eval.groupby( 'Actual', dropna=False )[
-					'Correct' ].mean( ).sort_index( )
+					} )
+				df_eval[ 'Correct' ] = (
+						df_eval[ 'Actual' ] == df_eval[ 'Predicted' ] ).astype( int )
 				
-				fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
-				ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
-				ax_acc.set_xlabel( 'Class' )
-				ax_acc.set_ylabel( 'Accuracy' )
-				ax_acc.set_ylim( 0.0, 1.05 )
-				ax_acc.set_title( 'Per-Class Accuracy' )
-				ax_acc.grid( axis='y', alpha=0.3 )
+				df_class_acc = df_eval.groupby(
+					'Actual', dropna=False )[ 'Correct' ].mean( ).sort_index( )
+				
+				acc_labels = [ str( c ) for c in df_class_acc.index.tolist( ) ]
+				max_acc_label_len = max( [ len( lbl ) for lbl in acc_labels ], default=0 )
+				acc_count = len( acc_labels )
+				use_horizontal_acc = acc_count > 8 or max_acc_label_len > 12
+				
+				if use_horizontal_acc:
+					fig_acc, ax_acc = plt.subplots( figsize=(max( 10, 8 + max_acc_label_len * 0.12 ),
+						         max( 4, acc_count * 0.55 )) )
+					
+					ax_acc.barh( [ str( c ) for c in df_class_acc.index ], df_class_acc.values )
+					
+					ax_acc.set_xlabel( 'Accuracy' )
+					ax_acc.set_ylabel( 'Class' )
+					ax_acc.set_xlim( 0.0, 1.05 )
+					ax_acc.set_title( 'Per-Class Accuracy' )
+					ax_acc.grid( axis='x', alpha=0.3 )
+				else:
+					fig_width = max( 8, min( 16, 1.1 * acc_count + 4 ) )
+					fig_acc, ax_acc = plt.subplots( figsize=(fig_width, 5.5) )
+					ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
+					ax_acc.set_xlabel( 'Class' )
+					ax_acc.set_ylabel( 'Accuracy' )
+					ax_acc.set_ylim( 0.0, 1.05 )
+					ax_acc.set_title( 'Per-Class Accuracy' )
+					ax_acc.grid( axis='y', alpha=0.3 )
+					ax_acc.tick_params( axis='x', labelrotation=45, labelsize=8 )
+					for label in ax_acc.get_xticklabels( ):
+						label.set_ha( 'right' )
+				
 				fig_acc.tight_layout( )
 				st.pyplot( fig_acc )
 				plt.close( fig_acc )
