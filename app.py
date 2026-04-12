@@ -3711,7 +3711,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
-					encode_cols = st.multiselect( 'Columns', options=features,
+					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_onehot_cols' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=False,
@@ -3745,7 +3745,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
-					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_ordinal_cols' )
 					
 					a1, a2 = st.columns( 2 )
@@ -3770,7 +3770,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Label Encoder', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
-					target_col = st.selectbox( 'Column', options=numeric_columns,
+					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='classification_label_encoder_col' )
 					
 					a1, a2 = st.columns( 2 )
@@ -3798,7 +3798,7 @@ elif mode == 'Classification Models':
 				with st.expander( 'Target Encoder', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
-						options=categorical_columns, key='classification_target_encoder_cols' )
+						options=df_working.columns, key='classification_target_encoder_cols' )
 					
 					target_col = st.selectbox( 'Target Column', options=categorical_columns,
 						key='classification_target_encoder_target_col' )
@@ -3831,7 +3831,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
-					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
+					poly_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_polynomial_cols' )
 					
 					degree = st.slider( 'Degree', min_value=2, max_value=4,
@@ -3873,7 +3873,7 @@ elif mode == 'Classification Models':
 			with st.expander( label='Data Transformation', icon='⚡', key='classification_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
-					transform_cols = st.multiselect( 'Columns', options=df.working.columns,
+					transform_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
@@ -3908,7 +3908,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
-						options=df.working.columns,
+						options=df_working.columns,
 						key='classification_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -3948,7 +3948,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
 					target_col = st.selectbox( 'Column',
-						options=df.working.columns,
+						options=df_working.columns,
 						key='classification_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -3986,7 +3986,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=df.working.columns,
+						options=df_working.columns,
 						key='classification_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
@@ -4029,11 +4029,11 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_columns = st.multiselect( 'Numeric Columns', options=df.working.columns,
+					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns,
 						key='classification_column_transformer_numeric_columns' )
 					
 					categorical_columns = st.multiselect( 'Categorical Columns',
-						options=df.working.columns,
+						options=df_working.columns,
 						key='classification_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
@@ -4619,7 +4619,7 @@ elif mode == 'Classification Models':
 		
 		with mdl_c3:
 			st.markdown( '###### Random State' )
-			random_state = st.number_input( 'Seed', value=42, step=1,
+			random_state = st.number_input( 'Seed', value=1, step=1,
 				key='classifications_random_state' )
 		
 		# ------------------------------------------------------------------
