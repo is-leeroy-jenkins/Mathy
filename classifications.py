@@ -1381,12 +1381,8 @@ class LogisticRegression( Classifier ):
 		self.multi_class = multiclass
 		self.solver = solver
 		self.validate_configuration( )
-		self.model = skc.LogisticRegression(
-			C=self.C,
-			max_iter=self.max_iter,
-			solver=self.solver,
-			random_state=self.random_state
-		)
+		self.model = skc.LogisticRegression( C=self.C, max_iter=self.max_iter,
+			solver=self.solver, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
@@ -1553,13 +1549,8 @@ class LogisticRegression( Classifier ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split(
-				X,
-				y,
-				test_size=size,
-				random_state=random,
-				stratify=y
-			)
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
+				random_state=random, )
 			return X_train, X_test, y_train, y_test
 		except Exception as e:
 			exception = Error( e )
