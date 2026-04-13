@@ -5876,7 +5876,6 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				gd_c1, gd_c2, gd_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with gd_c1:
 					st.markdown( '###### Model Parameters' )
 					gradient_loss = st.selectbox(
@@ -6004,18 +6003,12 @@ elif mode == 'Classification Models':
 				gd_btn_1, gd_btn_2 = st.columns( 2 )
 				
 				with gd_btn_1:
-					train_gradient = st.button(
-						'🚀 Train Gradient Descent',
-						key='classification_gradient_train',
-						use_container_width=True
-					)
+					train_gradient = st.button( '🚀 Train Gradient Descent',
+						key='classification_gradient_train', use_container_width=True )
 				
 				with gd_btn_2:
-					reset_gradient = st.button(
-						'↺ Reset Gradient Descent',
-						key='classification_gradient_reset',
-						use_container_width=True
-					)
+					reset_gradient = st.button( '↺ Reset Gradient Descent',
+						key='classification_gradient_reset', use_container_width=True )
 				
 				if reset_gradient:
 					for key, value in gradient_defaults.items( ):
@@ -6108,6 +6101,1317 @@ elif mode == 'Classification Models':
 					except Exception as ex:
 						st.error( f'Gradient Descent training failed: {ex}' )
 					
+			with st.expander( 'Nearest Neighbor', expanded=False ):
+				nearest_defaults = {
+						'classification_nearest_num': 5,
+						'classification_nearest_algorithm': 'auto',
+						'classification_nearest_power': 2,
+						'classification_nearest_metric': 'minkowski',
+						'classification_nearest_leafs': 30,
+						'classification_nearest_test_size': 20,
+						'classification_nearest_random_state': 42
+				}
+				
+				for key, value in nearest_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				nn_c1, nn_c2, nn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with nn_c1:
+					st.markdown( '###### Model Parameters' )
+					nearest_num = st.number_input(
+						'Neighbors',
+						min_value=1,
+						value=int( st.session_state[ 'classification_nearest_num' ] ),
+						step=1,
+						key='classification_nearest_num'
+					)
+					
+					nearest_power = st.number_input(
+						'Power',
+						min_value=1,
+						value=int( st.session_state[ 'classification_nearest_power' ] ),
+						step=1,
+						key='classification_nearest_power'
+					)
+					
+					nearest_leafs = st.number_input(
+						'Leaf Size',
+						min_value=1,
+						value=int( st.session_state[ 'classification_nearest_leafs' ] ),
+						step=1,
+						key='classification_nearest_leafs'
+					)
+				
+				with nn_c2:
+					st.markdown( '###### Distance / Search' )
+					nearest_algorithm = st.selectbox(
+						'Algorithm',
+						options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
+						index=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ].index(
+							st.session_state[ 'classification_nearest_algorithm' ]
+						),
+						key='classification_nearest_algorithm'
+					)
+					
+					nearest_metric = st.selectbox(
+						'Metric',
+						options=[
+								'minkowski',
+								'euclidean',
+								'manhattan',
+								'chebyshev',
+								'hamming',
+								'canberra',
+								'braycurtis',
+								'cityblock',
+								'cosine',
+								'l1',
+								'l2',
+								'nan_euclidean',
+								'mahalanobis',
+								'seuclidean'
+						],
+						index=[
+								'minkowski',
+								'euclidean',
+								'manhattan',
+								'chebyshev',
+								'hamming',
+								'canberra',
+								'braycurtis',
+								'cityblock',
+								'cosine',
+								'l1',
+								'l2',
+								'nan_euclidean',
+								'mahalanobis',
+								'seuclidean'
+						].index( st.session_state[ 'classification_nearest_metric' ] ),
+						key='classification_nearest_metric'
+					)
+					
+					nearest_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_nearest_test_size' ] ),
+						step=1,
+						key='classification_nearest_test_size'
+					) / 100.0
+				
+				with nn_c3:
+					st.markdown( '###### Run Configuration' )
+					nearest_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_nearest_random_state' ] ),
+						step=1,
+						key='classification_nearest_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				nn_btn_1, nn_btn_2 = st.columns( 2, border=True )
+				
+				with nn_btn_1:
+					train_nearest = st.button(
+						'🚀 Train Nearest Neighbor',
+						key='classification_nearest_train',
+						use_container_width=True
+					)
+				
+				with nn_btn_2:
+					reset_nearest = st.button(
+						'↺ Reset Nearest Neighbor',
+						key='classification_nearest_reset',
+						use_container_width=True
+					)
+				
+				if reset_nearest:
+					for key, value in nearest_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_nearest_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_nearest:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.NearestNeighbor(
+							num=int( nearest_num ),
+							algorithm=str( nearest_algorithm ),
+							power=int( nearest_power ),
+							metric=str( nearest_metric ),
+							leafs=int( nearest_leafs )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( nearest_test_size ),
+							random=int( nearest_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_nearest_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3, border=True )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_nearest_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_nearest_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Nearest Neighbor training failed: {ex}' )
+					
+			with st.expander( 'Random Forest', expanded=False ):
+				forest_defaults = {
+						'classification_forest_estimators': 100,
+						'classification_forest_criterion': 'gini',
+						'classification_forest_depth': 0,
+						'classification_forest_min_split': 2,
+						'classification_forest_min_leaf': 1,
+						'classification_forest_test_size': 20,
+						'classification_forest_random_state': 42
+				}
+				
+				for key, value in forest_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				forest_c1, forest_c2, forest_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with forest_c1:
+					st.markdown( '###### Forest Parameters' )
+					forest_estimators = st.number_input(
+						'Estimators',
+						min_value=1,
+						value=int( st.session_state[ 'classification_forest_estimators' ] ),
+						step=1,
+						key='classification_forest_estimators'
+					)
+					
+					forest_criterion = st.selectbox(
+						'Criterion',
+						options=[ 'gini', 'entropy', 'log_loss' ],
+						index=[ 'gini', 'entropy', 'log_loss' ].index(
+							st.session_state[ 'classification_forest_criterion' ]
+						),
+						key='classification_forest_criterion'
+					)
+					
+					forest_depth = st.number_input(
+						'Max Depth (0 = None)',
+						min_value=0,
+						value=int( st.session_state[ 'classification_forest_depth' ] ),
+						step=1,
+						key='classification_forest_depth'
+					)
+				
+				with forest_c2:
+					st.markdown( '###### Node Constraints' )
+					forest_min_split = st.number_input(
+						'Min Samples Split',
+						min_value=2,
+						value=int( st.session_state[ 'classification_forest_min_split' ] ),
+						step=1,
+						key='classification_forest_min_split'
+					)
+					
+					forest_min_leaf = st.number_input(
+						'Min Samples Leaf',
+						min_value=1,
+						value=int( st.session_state[ 'classification_forest_min_leaf' ] ),
+						step=1,
+						key='classification_forest_min_leaf'
+					)
+					
+					forest_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_forest_test_size' ] ),
+						step=1,
+						key='classification_forest_test_size'
+					) / 100.0
+				
+				with forest_c3:
+					st.markdown( '###### Run Configuration' )
+					forest_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_forest_random_state' ] ),
+						step=1,
+						key='classification_forest_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				forest_btn_1, forest_btn_2 = st.columns( 2 )
+				
+				with forest_btn_1:
+					train_forest = st.button(
+						'🚀 Train Random Forest',
+						key='classification_forest_train',
+						use_container_width=True
+					)
+				
+				with forest_btn_2:
+					reset_forest = st.button(
+						'↺ Reset Random Forest',
+						key='classification_forest_reset',
+						use_container_width=True
+					)
+				
+				if reset_forest:
+					for key, value in forest_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_forest_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_forest:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.RandomForest(
+							n_estimators=int( forest_estimators ),
+							criterion=str( forest_criterion ),
+							depth=None if int( forest_depth ) == 0 else int( forest_depth ),
+							min_split=int( forest_min_split ),
+							min_leaf=int( forest_min_leaf ),
+							random=int( forest_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( forest_test_size ),
+							random=int( forest_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_forest_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3, borde=True )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_forest_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_forest_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Random Forest training failed: {ex}' )
+					
+			with st.expander( 'Gradient Boost', expanded=False ):
+				gb_defaults = {
+						'classification_gb_estimators': 100,
+						'classification_gb_rate': 0.100000,
+						'classification_gb_depth': 3,
+						'classification_gb_criterion': 'friedman_mse',
+						'classification_gb_test_size': 20,
+						'classification_gb_random_state': 42
+				}
+				
+				for key, value in gb_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				gb_c1, gb_c2, gb_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with gb_c1:
+					st.markdown( '###### Boosting Parameters' )
+					gb_estimators = st.number_input(
+						'Estimators',
+						min_value=1,
+						value=int( st.session_state[ 'classification_gb_estimators' ] ),
+						step=1,
+						key='classification_gb_estimators'
+					)
+					
+					gb_rate = st.number_input(
+						'Learning Rate',
+						min_value=0.000001,
+						value=float( st.session_state[ 'classification_gb_rate' ] ),
+						step=0.010000,
+						format='%.6f',
+						key='classification_gb_rate'
+					)
+					
+					gb_depth = st.number_input(
+						'Max Depth',
+						min_value=1,
+						value=int( st.session_state[ 'classification_gb_depth' ] ),
+						step=1,
+						key='classification_gb_depth'
+					)
+				
+				with gb_c2:
+					st.markdown( '###### Criterion / Split' )
+					gb_criterion = st.selectbox(
+						'Criterion',
+						options=[ 'friedman_mse', 'squared_error' ],
+						index=[ 'friedman_mse', 'squared_error' ].index(
+							st.session_state[ 'classification_gb_criterion' ]
+						),
+						key='classification_gb_criterion'
+					)
+					
+					gb_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_gb_test_size' ] ),
+						step=1,
+						key='classification_gb_test_size'
+					) / 100.0
+				
+				with gb_c3:
+					st.markdown( '###### Run Configuration' )
+					gb_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_gb_random_state' ] ),
+						step=1,
+						key='classification_gb_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				gb_btn_1, gb_btn_2 = st.columns( 2 )
+				
+				with gb_btn_1:
+					train_gb = st.button(
+						'🚀 Train Gradient Boost',
+						key='classification_gb_train',
+						use_container_width=True
+					)
+				
+				with gb_btn_2:
+					reset_gb = st.button(
+						'↺ Reset Gradient Boost',
+						key='classification_gb_reset',
+						use_container_width=True
+					)
+				
+				if reset_gb:
+					for key, value in gb_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_gb_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_gb:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.GradientBoost(
+							estimators=int( gb_estimators ),
+							rate=float( gb_rate ),
+							depth=int( gb_depth ),
+							criterion=str( gb_criterion ),
+							random=int( gb_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( gb_test_size ),
+							random=int( gb_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_gb_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3 )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_gb_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_gb_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Gradient Boost training failed: {ex}' )
+					
+			with st.expander( 'Adaptive Boost', expanded=False ):
+				ab_defaults = {
+						'classification_ab_estimators': 50,
+						'classification_ab_rate': 1.000000,
+						'classification_ab_algorithm': 'SAMME',
+						'classification_ab_test_size': 20,
+						'classification_ab_random_state': 42
+				}
+				
+				for key, value in ab_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				ab_c1, ab_c2, ab_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with ab_c1:
+					st.markdown( '###### Boosting Parameters' )
+					ab_estimators = st.number_input(
+						'Estimators',
+						min_value=1,
+						value=int( st.session_state[ 'classification_ab_estimators' ] ),
+						step=1,
+						key='classification_ab_estimators'
+					)
+					
+					ab_rate = st.number_input(
+						'Learning Rate',
+						min_value=0.000001,
+						value=float( st.session_state[ 'classification_ab_rate' ] ),
+						step=0.010000,
+						format='%.6f',
+						key='classification_ab_rate'
+					)
+				
+				with ab_c2:
+					st.markdown( '###### Algorithm / Split' )
+					ab_algorithm = st.selectbox(
+						'Algorithm',
+						options=[ 'SAMME', 'deprecated', None ],
+						index=[ 'SAMME', 'deprecated', None ].index(
+							st.session_state[ 'classification_ab_algorithm' ]
+						),
+						format_func=lambda v: 'None' if v is None else str( v ),
+						key='classification_ab_algorithm'
+					)
+					
+					ab_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_ab_test_size' ] ),
+						step=1,
+						key='classification_ab_test_size'
+					) / 100.0
+				
+				with ab_c3:
+					st.markdown( '###### Run Configuration' )
+					ab_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_ab_random_state' ] ),
+						step=1,
+						key='classification_ab_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				ab_btn_1, ab_btn_2 = st.columns( 2 )
+				
+				with ab_btn_1:
+					train_ab = st.button(
+						'🚀 Train Adaptive Boost',
+						key='classification_ab_train',
+						use_container_width=True
+					)
+				
+				with ab_btn_2:
+					reset_ab = st.button(
+						'↺ Reset Adaptive Boost',
+						key='classification_ab_reset',
+						use_container_width=True
+					)
+				
+				if reset_ab:
+					for key, value in ab_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_ab_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_ab:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.AdaptiveBoost(
+							base=None,
+							estimators=int( ab_estimators ),
+							rate=float( ab_rate ),
+							algorithm=ab_algorithm,
+							random=int( ab_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( ab_test_size ),
+							random=int( ab_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_ab_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3 )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_ab_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_ab_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Adaptive Boost training failed: {ex}' )
+					
+			with st.expander( 'Bagging Model', expanded=False ):
+				bag_defaults = {
+						'classification_bag_estimators': 50,
+						'classification_bag_test_size': 20,
+						'classification_bag_random_state': 42
+				}
+				
+				for key, value in bag_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				bag_c1, bag_c2, bag_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with bag_c1:
+					st.markdown( '###### Bagging Parameters' )
+					bag_estimators = st.number_input(
+						'Estimators',
+						min_value=1,
+						value=int( st.session_state[ 'classification_bag_estimators' ] ),
+						step=1,
+						key='classification_bag_estimators'
+					)
+				
+				with bag_c2:
+					st.markdown( '###### Split' )
+					bag_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_bag_test_size' ] ),
+						step=1,
+						key='classification_bag_test_size'
+					) / 100.0
+				
+				with bag_c3:
+					st.markdown( '###### Run Configuration' )
+					bag_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_bag_random_state' ] ),
+						step=1,
+						key='classification_bag_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				bag_btn_1, bag_btn_2 = st.columns( 2 )
+				
+				with bag_btn_1:
+					train_bag = st.button(
+						'🚀 Train Bagging Model',
+						key='classification_bag_train',
+						use_container_width=True
+					)
+				
+				with bag_btn_2:
+					reset_bag = st.button(
+						'↺ Reset Bagging Model',
+						key='classification_bag_reset',
+						use_container_width=True
+					)
+				
+				if reset_bag:
+					for key, value in bag_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_bag_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_bag:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.BaggingModel(
+							estimators=int( bag_estimators ),
+							random=int( bag_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( bag_test_size ),
+							random=int( bag_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_bag_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3 )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_bag_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_bag_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Bagging Model training failed: {ex}' )
+					
+			with st.expander( 'Voting Model', expanded=False ):
+				vote_defaults = {
+						'classification_vote_mode': 'hard',
+						'classification_vote_include_logistic': True,
+						'classification_vote_include_tree': True,
+						'classification_vote_include_knn': True,
+						'classification_vote_include_forest': False,
+						'classification_vote_include_nb': False,
+						'classification_vote_test_size': 20,
+						'classification_vote_random_state': 42
+				}
+				
+				for key, value in vote_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				vote_c1, vote_c2, vote_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with vote_c1:
+					st.markdown( '###### Voting Strategy' )
+					vote_mode = st.selectbox(
+						'Vote',
+						options=[ 'hard', 'soft' ],
+						index=[ 'hard', 'soft' ].index(
+							st.session_state[ 'classification_vote_mode' ]
+						),
+						key='classification_vote_mode'
+					)
+					
+					st.caption( 'Select at least two base estimators.' )
+				
+				with vote_c2:
+					st.markdown( '###### Base Estimators' )
+					vote_include_logistic = st.checkbox(
+						'Logistic Regression',
+						value=bool( st.session_state[ 'classification_vote_include_logistic' ] ),
+						key='classification_vote_include_logistic'
+					)
+					
+					vote_include_tree = st.checkbox(
+						'Decision Tree',
+						value=bool( st.session_state[ 'classification_vote_include_tree' ] ),
+						key='classification_vote_include_tree'
+					)
+					
+					vote_include_knn = st.checkbox(
+						'k-Nearest Neighbors',
+						value=bool( st.session_state[ 'classification_vote_include_knn' ] ),
+						key='classification_vote_include_knn'
+					)
+					
+					vote_include_forest = st.checkbox(
+						'Random Forest',
+						value=bool( st.session_state[ 'classification_vote_include_forest' ] ),
+						key='classification_vote_include_forest'
+					)
+					
+					vote_include_nb = st.checkbox(
+						'Gaussian Naive Bayes',
+						value=bool( st.session_state[ 'classification_vote_include_nb' ] ),
+						key='classification_vote_include_nb'
+					)
+				
+				with vote_c3:
+					st.markdown( '###### Run Configuration' )
+					vote_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_vote_test_size' ] ),
+						step=1,
+						key='classification_vote_test_size'
+					) / 100.0
+					
+					vote_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_vote_random_state' ] ),
+						step=1,
+						key='classification_vote_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				vote_btn_1, vote_btn_2 = st.columns( 2 )
+				
+				with vote_btn_1:
+					train_vote = st.button(
+						'🚀 Train Voting Model',
+						key='classification_vote_train',
+						use_container_width=True
+					)
+				
+				with vote_btn_2:
+					reset_vote = st.button(
+						'↺ Reset Voting Model',
+						key='classification_vote_reset',
+						use_container_width=True
+					)
+				
+				if reset_vote:
+					for key, value in vote_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_vote_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_vote:
+					try:
+						estimators = [ ]
+						
+						if vote_include_logistic:
+							estimators.append(
+								(
+										'logistic',
+										LogisticRegression(
+											max_iter=1000,
+											random_state=int( vote_random_state )
+										)
+								)
+							)
+						
+						if vote_include_tree:
+							estimators.append(
+								(
+										'tree',
+										DecisionTreeClassifier(
+											random_state=int( vote_random_state )
+										)
+								)
+							)
+						
+						if vote_include_knn:
+							estimators.append(
+								(
+										'knn',
+										KNeighborsClassifier( )
+								)
+							)
+						
+						if vote_include_forest:
+							estimators.append(
+								(
+										'forest',
+										RandomForestClassifier(
+											random_state=int( vote_random_state )
+										)
+								)
+							)
+						
+						if vote_include_nb:
+							estimators.append(
+								(
+										'naive_bayes',
+										GaussianNB( )
+								)
+							)
+						
+						if len( estimators ) < 2:
+							st.warning( '⚠️ Voting Model requires at least two base estimators.' )
+							st.stop( )
+						
+						start_time = time.perf_counter( )
+						
+						model = classification_model.VotingModel(
+							estimators=estimators,
+							vote=str( vote_mode )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( vote_test_size ),
+							random=int( vote_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_vote_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.score( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Estimator Count',
+							int( len( estimators ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Vote Mode',
+							str( vote_mode )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3 )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_vote_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_vote_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Voting Model training failed: {ex}' )
+			
 			
 # ============================================
 # REGRESSION MODE
