@@ -5855,7 +5855,9 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Gradient Descent training failed: {ex}' )
-					
+		
+		with st.expander( 'Instance Models', expanded=True ):
+			
 			with st.expander( 'Nearest Neighbor', expanded=False ):
 				nearest_defaults = {
 						'classification_nearest_num': 5,
@@ -6098,7 +6100,424 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Nearest Neighbor training failed: {ex}' )
+			
+			with st.expander( 'Support Vector', expanded=False ):
+				svm_defaults = {
+						'classification_svm_c': 1.000000,
+						'classification_svm_kernel': 'rbf',
+						'classification_svm_degree': 3,
+						'classification_svm_test_size': 20,
+						'classification_svm_random_state': 42
+				}
+				
+				for key, value in svm_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				svm_c1, svm_c2, svm_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with svm_c1:
+					st.markdown( '###### SVM Parameters' )
+					svm_c = st.number_input(
+						'C',
+						min_value=0.000001,
+						value=float( st.session_state[ 'classification_svm_c' ] ),
+						step=0.100000,
+						format='%.6f',
+						key='classification_svm_c'
+					)
 					
+					svm_kernel = st.selectbox(
+						'Kernel',
+						options=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ],
+						index=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ].index(
+							st.session_state[ 'classification_svm_kernel' ]
+						),
+						key='classification_svm_kernel'
+					)
+					
+					svm_degree = st.number_input(
+						'Degree',
+						min_value=1,
+						value=int( st.session_state[ 'classification_svm_degree' ] ),
+						step=1,
+						key='classification_svm_degree'
+					)
+				
+				with svm_c2:
+					st.markdown( '###### Split' )
+					svm_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_svm_test_size' ] ),
+						step=1,
+						key='classification_svm_test_size'
+					) / 100.0
+					
+					if svm_kernel != 'poly':
+						st.caption( 'Degree is only used when kernel = poly.' )
+				
+				with svm_c3:
+					st.markdown( '###### Run Configuration' )
+					svm_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_svm_random_state' ] ),
+						step=1,
+						key='classification_svm_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				svm_btn_1, svm_btn_2 = st.columns( 2 )
+				
+				with svm_btn_1:
+					train_svm = st.button(
+						'🚀 Train Support Vector',
+						key='classification_svm_train',
+						use_container_width=True
+					)
+				
+				with svm_btn_2:
+					reset_svm = st.button(
+						'↺ Reset Support Vector',
+						key='classification_svm_reset',
+						use_container_width=True
+					)
+				
+				if reset_svm:
+					for key, value in svm_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_svm_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_svm:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.SupportVector(
+							C=float( svm_c ),
+							kernel=str( svm_kernel ),
+							degree=int( svm_degree ),
+							random=int( svm_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( svm_test_size ),
+							random=int( svm_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_svm_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3 )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_svm_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_svm_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Support Vector training failed: {ex}' )
+		
+		with st.expander( 'Tree Models', expanded=True ):
+			
+			with st.expander( 'Decision Tree', expanded=False ):
+				tree_defaults = {
+						'classification_tree_criterion': 'gini',
+						'classification_tree_splitter': 'best',
+						'classification_tree_depth': 0,
+						'classification_tree_min_split': 2,
+						'classification_tree_min_leaf': 1,
+						'classification_tree_test_size': 20,
+						'classification_tree_random_state': 42
+				}
+				
+				for key, value in tree_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				tree_c1, tree_c2, tree_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
+				with tree_c1:
+					st.markdown( '###### Tree Parameters' )
+					tree_criterion = st.selectbox(
+						'Criterion',
+						options=[ 'gini', 'entropy', 'log_loss' ],
+						index=[ 'gini', 'entropy', 'log_loss' ].index(
+							st.session_state[ 'classification_tree_criterion' ]
+						),
+						key='classification_tree_criterion'
+					)
+					
+					tree_splitter = st.selectbox(
+						'Splitter',
+						options=[ 'best', 'random' ],
+						index=[ 'best', 'random' ].index(
+							st.session_state[ 'classification_tree_splitter' ]
+						),
+						key='classification_tree_splitter'
+					)
+					
+					tree_depth = st.number_input(
+						'Max Depth (0 = None)',
+						min_value=0,
+						value=int( st.session_state[ 'classification_tree_depth' ] ),
+						step=1,
+						key='classification_tree_depth'
+					)
+				
+				with tree_c2:
+					st.markdown( '###### Node Constraints' )
+					tree_min_split = st.number_input(
+						'Min Samples Split',
+						min_value=2,
+						value=int( st.session_state[ 'classification_tree_min_split' ] ),
+						step=1,
+						key='classification_tree_min_split'
+					)
+					
+					tree_min_leaf = st.number_input(
+						'Min Samples Leaf',
+						min_value=1,
+						value=int( st.session_state[ 'classification_tree_min_leaf' ] ),
+						step=1,
+						key='classification_tree_min_leaf'
+					)
+					
+					tree_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_tree_test_size' ] ),
+						step=1,
+						key='classification_tree_test_size'
+					) / 100.0
+				
+				with tree_c3:
+					st.markdown( '###### Run Configuration' )
+					tree_random_state = st.number_input(
+						'Random State',
+						value=int( st.session_state[ 'classification_tree_random_state' ] ),
+						step=1,
+						key='classification_tree_random_state'
+					)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}'
+					)
+					
+					st.caption( f'Target: {target_name}' )
+				
+				tree_btn_1, tree_btn_2 = st.columns( 2 )
+				
+				with tree_btn_1:
+					train_tree = st.button(
+						'🚀 Train Decision Tree',
+						key='classification_tree_train',
+						use_container_width=True
+					)
+				
+				with tree_btn_2:
+					reset_tree = st.button(
+						'↺ Reset Decision Tree',
+						key='classification_tree_reset',
+						use_container_width=True
+					)
+				
+				if reset_tree:
+					for key, value in tree_defaults.items( ):
+						st.session_state[ key ] = value
+					
+					st.session_state[ 'df_classification' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					st.session_state[ 'classification_tree_elapsed_seconds' ] = None
+					st.rerun( )
+				
+				if train_tree:
+					try:
+						start_time = time.perf_counter( )
+						
+						model = classification_model.DecisionTree(
+							criterion=str( tree_criterion ),
+							splitter=str( tree_splitter ),
+							depth=None if int( tree_depth ) == 0 else int( tree_depth ),
+							min_split=int( tree_min_split ),
+							min_leaf=int( tree_min_leaf ),
+							random=int( tree_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( tree_test_size ),
+							random=int( tree_random_state )
+						)
+						
+						model.train( X_train, y_train )
+						y_pred = model.project( X_test )
+						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						st.session_state[ 'classification_tree_elapsed_seconds' ] = elapsed_seconds
+						
+						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Training Rows',
+							int( len( X_train ) )
+						)
+						df_scores.insert(
+							len( df_scores.columns ),
+							'Testing Rows',
+							int( len( X_test ) )
+						)
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': y_test,
+									'Predicted': y_pred
+							}
+						)
+						
+						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Model Performance' )
+						
+						m1, m2, m3 = st.columns( 3 )
+						with m1:
+							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+						with m2:
+							st.metric(
+								'Mis-Classifications',
+								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
+							)
+						with m3:
+							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+						
+						st.data_editor(
+							df_scores,
+							use_container_width=True,
+							key='classification_tree_scores'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Predictions' )
+						st.data_editor(
+							df_predictions,
+							use_container_width=True,
+							key='classification_tree_predictions'
+						)
+						
+						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+						st.markdown( '##### Confusion Matrix' )
+						plt.close( 'all' )
+						model.confusion_matrix( X_test, y_test )
+						fig_cm = plt.gcf( )
+						fig_cm.set_size_inches( 9, 7 )
+						
+						for ax_cm in fig_cm.axes:
+							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+							ax_cm.tick_params( axis='y', labelsize=8 )
+							for label in ax_cm.get_xticklabels( ):
+								label.set_ha( 'right' )
+						
+						fig_cm.tight_layout( )
+						st.pyplot( fig_cm, use_container_width=True )
+					
+					except Exception as ex:
+						st.error( f'Decision Tree training failed: {ex}' )
+				
 			with st.expander( 'Random Forest', expanded=False ):
 				forest_defaults = {
 						'classification_forest_estimators': 100,
@@ -6313,7 +6732,9 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Random Forest training failed: {ex}' )
-					
+		
+		with st.expander( 'Ensemble Models', expanded=True ):
+			
 			with st.expander( 'Gradient Boost', expanded=False ):
 				gb_defaults = {
 						'classification_gb_estimators': 100,
@@ -7452,205 +7873,8 @@ elif mode == 'Classification Models':
 					except Exception as ex:
 						st.error( f'Stacking Model training failed: {ex}' )
 					
-			with st.expander( 'Support Vector', expanded=False ):
-				svm_defaults = {
-						'classification_svm_c': 1.000000,
-						'classification_svm_kernel': 'rbf',
-						'classification_svm_degree': 3,
-						'classification_svm_test_size': 20,
-						'classification_svm_random_state': 42
-				}
-				
-				for key, value in svm_defaults.items( ):
-					if key not in st.session_state:
-						st.session_state[ key ] = value
-				
-				svm_c1, svm_c2, svm_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
-				with svm_c1:
-					st.markdown( '###### SVM Parameters' )
-					svm_c = st.number_input(
-						'C',
-						min_value=0.000001,
-						value=float( st.session_state[ 'classification_svm_c' ] ),
-						step=0.100000,
-						format='%.6f',
-						key='classification_svm_c'
-					)
-					
-					svm_kernel = st.selectbox(
-						'Kernel',
-						options=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ],
-						index=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ].index(
-							st.session_state[ 'classification_svm_kernel' ]
-						),
-						key='classification_svm_kernel'
-					)
-					
-					svm_degree = st.number_input(
-						'Degree',
-						min_value=1,
-						value=int( st.session_state[ 'classification_svm_degree' ] ),
-						step=1,
-						key='classification_svm_degree'
-					)
-				
-				with svm_c2:
-					st.markdown( '###### Split' )
-					svm_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_svm_test_size' ] ),
-						step=1,
-						key='classification_svm_test_size'
-					) / 100.0
-					
-					if svm_kernel != 'poly':
-						st.caption( 'Degree is only used when kernel = poly.' )
-				
-				with svm_c3:
-					st.markdown( '###### Run Configuration' )
-					svm_random_state = st.number_input(
-						'Random State',
-						value=int( st.session_state[ 'classification_svm_random_state' ] ),
-						step=1,
-						key='classification_svm_random_state'
-					)
-					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
-					
-					st.caption( f'Target: {target_name}' )
-				
-				svm_btn_1, svm_btn_2 = st.columns( 2 )
-				
-				with svm_btn_1:
-					train_svm = st.button(
-						'🚀 Train Support Vector',
-						key='classification_svm_train',
-						use_container_width=True
-					)
-				
-				with svm_btn_2:
-					reset_svm = st.button(
-						'↺ Reset Support Vector',
-						key='classification_svm_reset',
-						use_container_width=True
-					)
-				
-				if reset_svm:
-					for key, value in svm_defaults.items( ):
-						st.session_state[ key ] = value
-					
-					st.session_state[ 'df_classification' ] = df_model.copy( )
-					st.session_state[ 'df_scores' ] = pd.DataFrame( )
-					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_svm_elapsed_seconds' ] = None
-					st.rerun( )
-				
-				if train_svm:
-					try:
-						start_time = time.perf_counter( )
-						
-						model = classification_model.SupportVector(
-							C=float( svm_c ),
-							kernel=str( svm_kernel ),
-							degree=int( svm_degree ),
-							random=int( svm_random_state )
-						)
-						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( svm_test_size ),
-							random=int( svm_random_state )
-						)
-						
-						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
-						
-						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_svm_elapsed_seconds' ] = elapsed_seconds
-						
-						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
-						
-						df_predictions = pd.DataFrame(
-							{
-									'Actual': y_test,
-									'Predicted': y_pred
-							}
-						)
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
-						st.session_state[ 'df_scores' ] = df_scores.copy( )
-						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_svm_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_svm_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
-					except Exception as ex:
-						st.error( f'Support Vector training failed: {ex}' )
-					
+		with st.expander( 'Neural Models', expanded=True ):
+			
 			with st.expander( 'Multi-Layer Perceptron', expanded=False ):
 				mlp_defaults = {
 						'classification_mlp_hidden_1': 100,
