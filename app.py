@@ -9780,16 +9780,11 @@ elif mode == 'Regression Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.Ridge(
-							alpha=float( ridge_alpha ),
-							fit=bool( ridge_fit_intercept ),
-							copy=bool( ridge_copy_x ),
-							iters=effective_max_iter,
-							tol=float( ridge_tol ),
-							solver=str( effective_solver ),
-							positive=bool( ridge_positive ),
-							rando=int( ridge_random_state )
-						)
+						model = regression_model.Ridge( alpha=float( ridge_alpha ),
+							fit=bool( ridge_fit_intercept ), copy=bool( ridge_copy_x ),
+							iters=effective_max_iter, tol=float( ridge_tol ),
+							solver=str( effective_solver ), positive=bool( ridge_positive ),
+							rando=int( ridge_random_state ) )
 						
 						X_train, X_test, y_train, y_test = model.split_data(
 							X,
@@ -9812,13 +9807,8 @@ elif mode == 'Regression Models':
 							
 							df_scores.loc[ 'Training Score', 'Value' ] = float( model.training_score )
 							df_scores.loc[ 'Testing Score', 'Value' ] = float( model.testing_score )
-							df_scores.loc[ 'R-Squared Score', 'Value' ] = float(
-								r2_score( y_test, y_pred )
-							)
-							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round(
-								elapsed_seconds,
-								4
-							)
+							df_scores.loc[ 'R-Squared Score', 'Value' ] = float( r2_score( y_test, y_pred ) )
+							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round( elapsed_seconds, 4 )
 							df_scores.loc[ 'Training Rows', 'Value' ] = int( len( X_train ) )
 							df_scores.loc[ 'Testing Rows', 'Value' ] = int( len( X_test ) )
 							df_scores.loc[ 'Alpha', 'Value' ] = float( ridge_alpha )
