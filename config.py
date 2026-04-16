@@ -806,21 +806,14 @@ BINARIZER = r''''Binarize data (set feature values to 0 or 1) according to a thr
 ONEHOT_ENCODER = r'''Encode categorical features as a one-hot numeric array. The input to this
 		transformer should be an array-like of integers or strings denoting the values
 		taken on by categorical features. The features are encoded using a one-hot
-		(aka one-of-K or dummy) encoding scheme.
-
-		This creates a binary column for each category and returns a sparse matrix or
-		dense array depending on the sparse_output parameter.
-
-		By default, the encoder derives categories from the unique values in each
+		(aka one-of-K or dummy) encoding scheme. By default, the encoder derives categories from the unique values in each
 		feature. Alternatively, categories may be specified manually. This encoding is
 		commonly used for feeding categorical data to scikit-learn estimators,
 		especially linear models and support vector machines.
 '''
 
 ORDINAL_ENCODER = r'''Transform each categorical feature into a single integer-valued feature
-		ranging from 0 to n_categories - 1.
-
-		Although this representation is useful for some workflows, the encoded
+		ranging from 0 to n_categories - 1. Although this representation is useful for some workflows, the encoded
 		values may imply an ordering that does not exist in the original categories.
 		As a result, ordinal encoding should be used with care when the source
 		features are nominal rather than ordinal.
@@ -833,9 +826,7 @@ LABEL_ENCODER = r'''Encode target labels with values between 0 and n_classes - 1
 
 TARGET_ENCODER = r'''Encode categorical features using the target values associated with each category.
 		Each category is encoded using a shrunk estimate of the target mean conditioned on
-		the category value and the global target mean.
-
-		For multiclass targets, encodings are based on one-vs-all conditional target
+		the category value and the global target mean. For multiclass targets, encodings are based on one-vs-all conditional target
 		probabilities, which produces n_features * n_classes encoded output features.
 
 		Missing values are treated as their own category. Categories not seen during
