@@ -3425,18 +3425,18 @@ elif mode == 'Classification Models':
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
-		st.markdown( '##### Data Selection' )
-		st.caption( f'Input: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
+		st.markdown( '##### Feature Selection' )
+		st.caption( f'Samples: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
 		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=df_original.columns,
-				key='classification_features' )
+				default=categorical_columns[ 1 ], key='classification_features' )
 		
 		with col_c2:
 			target_options = [ t for t in df_original.columns if t not in features  ]
 			targets = st.selectbox( 'Select Target', options=target_options,
-				key='classification_target' )
+				index=None, key='classification_target' )
 		
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
@@ -3455,7 +3455,6 @@ elif mode == 'Classification Models':
 				st.session_state[ 'features' ] = features.copy( )
 				st.session_state[ 'targets' ] = [ targets ] if targets else [ ]
 				st.session_state[ 'df_working' ] = df_working.copy( )
-				st.session_state[ 'df_processed' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Working Dataset Created!' )
 		
@@ -3463,24 +3462,18 @@ elif mode == 'Classification Models':
 			if st.button( 'Reset Working Dataset', icon='🔁', key='classification_reset_to_original',
 					use_container_width=True ):
 				
-				df_working = df_original.copy( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
-				st.session_state[ 'X_train' ] = None
-				st.session_state[ 'X_test' ] = None
-				st.session_state[ 'y_train' ] = None
-				st.session_state[ 'y_test' ] = None
-				st.session_state[ 'df_working' ] = df_working.copy( )
-				st.session_state[ 'df_processed' ] = df_working.copy( )
+				st.session_state[ 'df_working' ] = pd.DataFrame( )
+				df_working = pd.DataFrame( )
+				df_processed = pd.DataFrame( )
+				df_classifications = pd.DataFrame( )
 				commit_frame( df_working )
 				st.success( 'Reset to Original' )
 		
-		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) ).copy( )
-		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) ).copy( )
-		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Input: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
+		st.caption( f'Samples: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
 		st.data_editor( df_working, key='classification_working_data' )
 		
 		# -----------------------------------------------------------------
@@ -3495,33 +3488,37 @@ elif mode == 'Classification Models':
 			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
-					columns = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.STANDARD_SCALER )
+					columns = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 
-								label='Apply', icon='✔️', key='classification_standard_scaler_apply',
-								use_container_width=True ):
+						if st.button(  label='Apply', icon='✔️', use_container_width=True,
+								key='classification_standard_scaler_apply'  ):
 							
 							if columns:
 								scaler = StandardScaler( )
-								result = scaler.train_transform( df_processed[ columns ].to_numpy( ) )
+								df_processed = df_working.copy( )
+								result = scaler.train_transform( df_processed[ columns ].to_numpy( ))
 								df_processed[ columns ] = result
+								st.session_state[ 'df_processed' ] = df_processed
 								commit_frame( df_processed )
 								st.success( 'Standard Scaler applied.' )
+							
 					
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_standard_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							
+							st.session_state[ 'df_processed' ] = pd.DataFrame( )
+							df_processed = st.session_state.get( 'df_processed', None )
+							st.session_state[ 'df_processed' ] = df_processed
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
-							
+					
 				with st.expander( 'Min-Max Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MINMAX_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_minmax_scaler_cols' )
 					
@@ -3544,9 +3541,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
-										
+					
+					st.session_state[ 'df_processed' ] = df_processed
+				
 				with st.expander( 'Robust Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ROBUST_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_robust_scaler_cols' )
 					
@@ -3569,9 +3568,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.NORMAL_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_normal_scaler_cols' )
 					
@@ -3598,9 +3599,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MAXABS_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_maxabs_scaler_cols' )
 					
@@ -3623,11 +3626,13 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MEAN_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_mean_imputer_cols' )
 					
@@ -3655,9 +3660,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right',
+					st.caption( 'Description', width='stretch', text_alignment='left',
 						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_nearest_imputer_cols' )
@@ -3686,9 +3693,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ITERATIVE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_iterative_imputer_cols' )
 					
@@ -3721,9 +3730,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.SIMPLE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_simple_imputer_cols' )
 					
@@ -3776,11 +3787,13 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='classification_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_onehot_cols' )
 					
@@ -3812,9 +3825,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_ordinal_cols' )
 					
@@ -3837,9 +3852,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.LABEL_ENCODER )
 					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='classification_label_encoder_col' )
 					
@@ -3864,9 +3881,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Target Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=df_working.columns, key='classification_target_encoder_cols' )
 					
@@ -3898,9 +3917,11 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_polynomial_cols' )
 					
@@ -3937,6 +3958,8 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 		with feature_c2:
 			
@@ -4397,7 +4420,7 @@ elif mode == 'Classification Models':
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
-				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
+				with st.expander( 'Canonical Correlation Analysis (CCA)', expanded=False ):
 					X_cols = st.multiselect( 'Predictor Columns', options=df_working.columns,
 						key='classification_cca_x_cols' )
 					
@@ -4443,7 +4466,7 @@ elif mode == 'Classification Models':
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
-				with st.expander( 'Principle Component Analysis', expanded=False ):
+				with st.expander( 'Principle Component Analysis (PCA)', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_pca_cols' )
 					
@@ -4564,7 +4587,7 @@ elif mode == 'Classification Models':
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
-				with st.expander( 'Sequential Back Selection', expanded=False ):
+				with st.expander( 'Sequential Back Selection (SBS)', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_sbs_x_cols' )
 					
@@ -4610,7 +4633,7 @@ elif mode == 'Classification Models':
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
-				with st.expander( 'Recursive Feature Elimination', expanded=False ):
+				with st.expander( 'Recursive Feature Elimination (RFA)', expanded=False ):
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_rfe_x_cols' )
 					
@@ -4648,10 +4671,12 @@ elif mode == 'Classification Models':
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+							
+					st.session_state[ 'df_processed' ] = df_processed
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		st.caption( f'Input: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='classification_processed_data' )
 		
 		# ------------------------------------------------------------------
@@ -4661,6 +4686,7 @@ elif mode == 'Classification Models':
 		st.markdown( '##### Model Training' )
 		
 		df_classification = st.session_state.get( 'df_classification', df_processed.copy( ) ).copy( )
+		st.session_state[ 'df_classficiation' ] = df_classification
 		
 		# ------------------------------------------------------------------
 		# Training Target & Features
@@ -5291,7 +5317,7 @@ elif mode == 'Classification Models':
 						value=int( st.session_state[ 'classification_ridge_random_state' ] ),
 						step=1, key='classification_ridge_random_state' )
 					
-					st.caption( f'Input: {len( df_model ):,} | Features: {len( active_features ):,} | '
+					st.caption( f'Samples: {len( df_model ):,} | Features: {len( active_features ):,} | '
 						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
@@ -8120,8 +8146,8 @@ elif mode == 'Regression Models':
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
-		st.markdown( '##### Data Selection' )
-		st.caption( f'Input: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
+		st.markdown( '##### Feature Selection' )
+		st.caption( f'Samples: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
 		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
@@ -8170,7 +8196,7 @@ elif mode == 'Regression Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Input: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
+		st.caption( f'Samples: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
 		st.data_editor( df_working, key='regression_working_data' )
 		
 		# -----------------------------------------------------------------
@@ -8185,7 +8211,7 @@ elif mode == 'Regression Models':
 			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.STANDARD_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_standard_scaler_cols' )
 					
@@ -8210,7 +8236,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MINMAX_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_minmax_scaler_cols' )
 					
@@ -8235,7 +8261,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ROBUST_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_robust_scaler_cols' )
 					
@@ -8260,7 +8286,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.NORMAL_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_normal_scaler_cols' )
 					
@@ -8289,7 +8315,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MAXABS_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_maxabs_scaler_cols' )
 					
@@ -8316,7 +8342,7 @@ elif mode == 'Regression Models':
 			with st.expander( label='Data Imputation', icon='🧹', key='regression_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MEAN_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_mean_imputer_cols' )
 					
@@ -8346,7 +8372,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right',
+					st.caption( 'Description', width='stretch', text_alignment='left',
 						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_nearest_imputer_cols' )
@@ -8377,7 +8403,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ITERATIVE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_iterative_imputer_cols' )
 					
@@ -8411,7 +8437,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.SIMPLE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_simple_imputer_cols' )
 					
@@ -8466,7 +8492,7 @@ elif mode == 'Regression Models':
 			with st.expander( label='Data Encoding', icon='🔣', key='regression_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='regression_onehot_cols' )
 					
@@ -8500,7 +8526,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='regression_ordinal_cols' )
 					
@@ -8525,7 +8551,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.LABEL_ENCODER )
 					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='regression_label_encoder_col' )
 					
@@ -8551,7 +8577,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=categorical_columns, key='regression_target_encoder_cols' )
 					
@@ -8584,7 +8610,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='regression_polynomial_cols' )
 					
@@ -9331,7 +9357,7 @@ elif mode == 'Regression Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		st.caption( f'Input: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='regression_processed_data' )
 		
 		# ------------------------------------------------------------------
@@ -14642,7 +14668,7 @@ elif mode == 'Clustering Models':
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
-		st.markdown( '##### Data Selection' )
+		st.markdown( '##### Feature Selection' )
 		st.caption( f'Inputs: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
@@ -14687,7 +14713,7 @@ elif mode == 'Clustering Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Input: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
+		st.caption( f'Samples: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
 		st.data_editor( df_working, key='clusters_working_data' )
 		
@@ -14715,7 +14741,7 @@ elif mode == 'Clustering Models':
 			with st.expander( label='Data Scaling', icon='⚖️', key='cluster_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.STANDARD_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.STANDARD_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=targets,
 						key='cluster_standard_scaler_cols' )
 					
@@ -14740,7 +14766,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MINMAX_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_minmax_scaler_cols' )
 					
@@ -14765,7 +14791,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ROBUST_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_robust_scaler_cols' )
 					
@@ -14790,7 +14816,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.NORMAL_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_normal_scaler_cols' )
 					
@@ -14819,7 +14845,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MAXABS_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_maxabs_scaler_cols' )
 					
@@ -14845,7 +14871,7 @@ elif mode == 'Clustering Models':
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='cluster_imputers' ):
 				with st.expander( 'Mean Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.MEAN_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_mean_imputer_cols' )
 					
@@ -14875,7 +14901,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right',
+					st.caption( 'Description', width='stretch', text_alignment='left',
 						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_nearest_imputer_cols' )
@@ -14906,7 +14932,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ITERATIVE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_iterative_imputer_cols' )
 					
@@ -14940,7 +14966,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.SIMPLE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns',
 						options=numeric_columns,
 						key='cluster_simple_imputer_cols' )
@@ -14995,7 +15021,7 @@ elif mode == 'Clustering Models':
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='cluster_encoders' ):
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ONEHOT_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=features,
 						key='cluster_onehot_cols' )
 					
@@ -15029,7 +15055,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.ORDINAL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='cluster_ordinal_cols' )
 					
@@ -15054,7 +15080,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.LABEL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.LABEL_ENCODER )
 					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='cluster_label_encoder_col' )
 					
@@ -15080,7 +15106,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.TARGET_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=categorical_columns, key='cluster_target_encoder_cols' )
 					
@@ -15113,7 +15139,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
-					st.text( '', width='stretch', text_alignment='right', help=cfg.POLYNOMIAL_FEATURES )
+					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_polynomial_cols' )
 					
@@ -15856,7 +15882,7 @@ elif mode == 'Clustering Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		st.caption( f'Input: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='cluster_processed_data' )
 		
 		# ------------------------------------------------------------------

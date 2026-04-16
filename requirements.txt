@@ -11,3 +11,5 @@ torch
 typing
 xgboost
 plotly-express
+streamlit
+streamlit-extras
