@@ -3632,7 +3632,9 @@ elif mode == 'Classification Models':
 			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.MEAN_IMPUTER )
+					
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_mean_imputer_cols' )
 					
@@ -3966,6 +3968,9 @@ elif mode == 'Classification Models':
 			with st.expander( label='Data Transformation', icon='⚡', key='classification_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.BINARIZER )
+					
 					transform_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_binarizer_cols' )
 					
@@ -4000,8 +4005,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=df_working.columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.LABEL_BINARIZER )
+					
+					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='classification_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -4040,8 +4047,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=df_working.columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.MULTILABEL_BINARIZER )
+					
+					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='classification_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -4078,8 +4087,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
-					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=df_working.columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.TDIDF_TRANSFORMER )
+					
+					text_count_cols = st.multiselect( 'Count Matrix Columns', options=df_working.columns,
 						key='classification_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
@@ -4122,6 +4133,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.COLUMN_TRANSFORMER )
+					
 					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns,
 						key='classification_column_transformer_numeric_columns' )
 					
@@ -4201,6 +4215,9 @@ elif mode == 'Classification Models':
 			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
 				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.TDIDF_VECTORIZER )
+					
 					text_cols = st.multiselect( 'Text Columns', options=categorical_columns,
 						key='classification_tfidf_vectorizer_cols' )
 					
@@ -4238,8 +4255,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=df_working.columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.COUNT_VECTORIZER )
+					
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
 						key='classification_count_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -4276,8 +4295,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=df_working.columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.HASH_VECTORIZER )
+					
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
 						key='classification_hash_vectorizer_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -4315,8 +4336,10 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
-					dict_cols = st.multiselect( 'Columns',
-						options=df_working.columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.DICT_VECTORIZER )
+					
+					dict_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_dict_vectorizer_cols' )
 					
 					separator = st.text_input( 'Separator', value='=',
@@ -4353,6 +4376,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.FEATURE_HASHER )
+					
 					hash_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_feature_hasher_cols' )
 					
@@ -4389,6 +4415,9 @@ elif mode == 'Classification Models':
 			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='classification_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.VARIANCE_THRESHOLD )
+					
 					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_variance_threshold_cols' )
 					
@@ -4421,6 +4450,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Canonical Correlation Analysis (CCA)', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.CCA )
+					
 					X_cols = st.multiselect( 'Predictor Columns', options=df_working.columns,
 						key='classification_cca_x_cols' )
 					
@@ -4467,6 +4499,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Principle Component Analysis (PCA)', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.PCA)
+					
 					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='classification_pca_cols' )
 					
@@ -4502,6 +4537,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Best', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.SELECT_BEST )
+					
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_selectbest_x_cols' )
 					
@@ -4545,6 +4583,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.SELECT_PERCENT )
+					
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_selectpercent_x_cols' )
 					
@@ -4588,6 +4629,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Sequential Back Selection (SBS)', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.SBS )
+					
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_sbs_x_cols' )
 					
@@ -4634,6 +4678,9 @@ elif mode == 'Classification Models':
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Recursive Feature Elimination (RFA)', expanded=False ):
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.RFE )
+					
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='classification_rfe_x_cols' )
 					

@@ -827,10 +827,8 @@ LABEL_ENCODER = r'''Encode target labels with values between 0 and n_classes - 1
 TARGET_ENCODER = r'''Encode categorical features using the target values associated with each category.
 		Each category is encoded using a shrunk estimate of the target mean conditioned on
 		the category value and the global target mean. For multiclass targets, encodings are based on one-vs-all conditional target
-		probabilities, which produces n_features * n_classes encoded output features.
-
-		Missing values are treated as their own category. Categories not seen during
-		training are encoded with the learned global target mean.
+		probabilities, which produces n_features * n_classes encoded output features. Missing values are treated as their own category.
+		Categories not seen during training are encoded with the learned global target mean.
 '''
 
 POLYNOMIAL_FEATURES = r'''Generate polynomial and interaction features from the input feature matrix.
@@ -852,9 +850,7 @@ NEAREST_IMPUTER = r'''The NearestNeighborImputer class provides imputation for f
 		missing values, nan_euclidean_distances, is used to find the nearest neighbors.
 		Each missing feature is imputed using values from n_neighbors nearest neighbors that have
 		a value for the feature. The feature of the neighbors are averaged uniformly or weighted
-		by distance to each neighbor.
-
-		If a sample has more than one feature missing, then the neighbors for that sample can be
+		by distance to each neighbor. If a sample has more than one feature missing, then the neighbors for that sample can be
 		different depending on the particular feature being imputed. When the number of available
 		neighbors is less than n_neighbors and there are no defined distances to the training set,
 		the training set average for that feature is used during imputation. If there is at least
@@ -867,7 +863,6 @@ ITERATIVE_IMPUTER = r'''The Iterative Imputer models each feature with missing v
 		other features, and uses that estimate for imputation. It does so in an iterated
 		round-robin fashion: at each step, a feature column is designated as output y and the
 		other feature columns are treated as inputs X. A regressor is fit on (X, y) for known y.
-
 		Then, the regressor is used to predict the missing values of y. This is done for each
 		feature in an iterative fashion, and then is repeated for max_iter imputation rounds.
 		The results of the final imputation round are returned.
