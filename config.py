@@ -686,39 +686,28 @@ MINMAX_SCALER = r'''Transform features by scaling each feature to a given range.
 '''
 
 ROBUST_SCALER = r'''Remove the median and scale features according to the quantile range.
-
 		By default, the quantile range is the interquartile range ( IQR ), which
 		is the range between the 1st quartile ( 25th quantile ) and the 3rd
-		quartile ( 75th quantile ).
-
-		Centering and scaling happen independently on each feature by computing
+		quartile ( 75th quantile ). Centering and scaling happen independently on each feature by computing
 		the relevant statistics on the samples in the training set. The median
 		and interquartile range are then stored for use on later data during
-		transformation.
-
-		Robust scaling is useful when outliers would otherwise negatively affect
+		transformation. Robust scaling is useful when outliers would otherwise negatively affect
 		mean- and variance-based scaling methods.
 '''
 
 NORMAL_SCALER = r''' Normalizes samples individually to unit norm. Each sample ( that is,
 		each row of the feature matrix ) with at least one non-zero component
 		is rescaled independently of the other samples so that its norm
-		( l1, l2, or max ) equals one.
-
-		This transformer can work with dense NumPy arrays and sparse matrices.
+		( l1, l2, or max ) equals one. This transformer can work with dense NumPy arrays and sparse matrices.
 		Scaling inputs to unit norms is a common preprocessing step for text
 		classification and clustering. For example, the dot product of two
 		l2-normalized TF-IDF vectors is the cosine similarity between them.
 '''
 
-MAXABS_SCALER = r'''Scale each feature by its maximum absolute value.
-
-		This estimator scales and transforms each feature individually such
-		that the maximal absolute value of each feature in the training set
-		will be 1.0. It does not shift or center the data, and therefore
-		does not destroy sparsity.
-
-		This scaler can also be applied to sparse CSR or CSC matrices.
+MAXABS_SCALER = r'''Scale each feature by its maximum absolute value. This estimator scales and
+		transforms each feature individually such that the maximal absolute value of each feature 
+		in the training set will be 1.0. It does not shift or center the data, and therefore
+		does not destroy sparsity. This scaler can also be applied to sparse CSR or CSC matrices.
 		MaxAbsScaler does not reduce the effect of outliers; it only linearly
 		scales them down.
 '''
@@ -727,9 +716,7 @@ MINMAX_SCALER = r'''Transform features by scaling each feature to a given range.
 		This estimator scales and translates each feature individually such
 		that it is in the given range on the training set, e.g. between zero
 		and one. This transformation is often used as an alternative to zero
-		mean, unit variance scaling.
-
-		Min-Max Scaler does not reduce the effect of outliers, but it linearly
+		mean, unit variance scaling. Min-Max Scaler does not reduce the effect of outliers, but it linearly
 		scales them down into a fixed range, where the largest occurring data
 		point corresponds to the maximum value and the smallest one
 		corresponds to the minimum value.
@@ -749,25 +736,10 @@ DICT_VECTORIZER = r''''Transform lists of feature-value mappings to vectors. Str
 HASH_VECTORIZER = r'''Convert a collection of text to a matrix of token occurrences. It turns a
 		collection of text into a scipy.sparse matrix holding token occurrence counts
 		(or binary occurrence information), possibly normalized as token frequencies
-		if norm=’l1’ or projected on the Euclidean unit sphere if norm=’l2’.
-
-		This text vectorizer implementation uses the hashing trick to find the token
-		string name to feature integer index mapping. This strategy has several advantages it is
-		very low memory scalable to large datasets as there is no need to store a vocabulary
-		dictionary in memory.
-
-		It is fast to pickle and un-pickle as it holds no state besides the constructor parameters.
-		it can be used in a streaming (partial fit) or parallel pipeline as there is no state
-		computed during fit.
-
-		There are also a couple of cons (vs using a CountVectorizer with an in-memory vocabulary):
-		there is no way to compute the inverse transform (from feature indices to string feature
-		names) which can be a problem when trying to introspect which features are most
-		important to a model.
-
-		There can be collisions: distinct tokens can be mapped to the same feature index.
-		However, in practice this is rarely an issue if n_features is large enough (e.g. 2 ** 18
-		for text classification problems).
+		if norm=’l1’ or projected on the Euclidean unit sphere if norm=’l2’. This text vectorizer 
+		implementation uses the hashing trick to find the token string name to feature integer index mapping. 
+		This strategy has several advantages it is very low memory scalable to large datasets as 
+		there is no need to store a vocabulary dictionary in memory.
 '''
 
 COUNT_VECTORIZER = r'''Convert a collection of text to a matrix of token counts. This implementation
@@ -782,10 +754,8 @@ TDIDF_VECTORIZER = r'''Tf means term-frequency while tf-idf means term-frequency
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		feature_names that occur in a small fraction of the training corpus.
-
-		The formula that is used to compute the tf-idf for a term t of a document d in a
-		document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
+		feature_names that occur in a small fraction of the training corpus. The formula that is used to 
+		compute the tf-idf for a term t of a document d in a document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
 		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
 		number of text in the document set and df(t) is the document frequency of t;
 		the document frequency is the number of text in the document set that contain
@@ -808,9 +778,8 @@ TDIDF_TRANSFORMER = r'''Tf means term-frequency while tf-idf means term-frequenc
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		feature_names that occur in a small fraction of the training corpus.
-		
-		Transform a count matrix to a normalized tf or tf-idf representation.
+		feature_names that occur in a small fraction of the training corpus. Transform a count matrix 
+		to a normalized tf or tf-idf representation.
 '''
 
 MULTILABEL_BINARIZER = r'''Transform between an iterable of iterables and the multilabel binary matrix format.
@@ -825,14 +794,11 @@ LABEL_BINARIZER = r'''Binarize labels in a one-vs-all fashion. This wrapper fits
 
 BINARIZER = r''''Binarize data (set feature values to 0 or 1) according to a threshold.
 		Values greater than the threshold map to 1, while values less than or equal to the
-		threshold map to 0. With the default threshold of 0, only positive values map to 1.
-		
+		threshold map to 0. With the default threshold of 0, only positive values map to 1. 
 		Binarization is a common operation on text count data where the analyst can decide to only
 		consider the presence or absence of a feature rather than a quantified number of
-		occurrences for instance.
-
-		It can also be used as a pre-processing step for estimators that consider boolean random
-		variables (e.g. modelled using the Bernoulli distribution in a Bayesian setting).
+		occurrences for instance. It can also be used as a pre-processing step for estimators 
+		that consider boolean random variables (e.g. modelled using the Bernoulli distribution in a Bayesian setting).
 '''
 
 # ----------- Encoders
