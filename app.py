@@ -160,6 +160,9 @@ if 'df_scores' not in st.session_state:
 if 'df_model' not in st.session_state or st.session_state[ 'df_model' ] is None:
 	st.session_state[ 'df_model' ] = pd.DataFrame( )
 
+if 'df_evaluationuation' not in st.session_state or st.session_state[ 'df_evaluationuation' ] is None:
+	st.session_state[ 'df_evaluationuation' ] = pd.DataFrame( )
+
 if 'numeric_columns' not in st.session_state:
 	st.session_state[ 'numeric_columns' ] = [ ]
 
@@ -178,6 +181,9 @@ if 'features' not in st.session_state:
 if 'targets' not in st.session_state:
 	st.session_state[ 'targets' ] = [ ]
 
+if 'X_data' not in st.session_state:
+	st.session_state[ 'X_data' ] = None
+	
 if 'X_train' not in st.session_state:
 	st.session_state[ 'X_train' ] = None
 
@@ -192,6 +198,9 @@ if 'y_test' not in st.session_state:
 
 if 'y_prediction' not in st.session_state:
 	st.session_state[ 'y_prediction' ] = None
+	
+if 'y_series' not in st.session_state:
+	st.session_state[ 'y_series' ] = None
 	
 if 'elapsed_seconds' not in st.session_state:
 	st.session_state[ 'elapsed_seconds' ] = 0.0
@@ -2633,11 +2642,13 @@ elif mode == 'Inferential Statistics':
 		
 		sum_r1c1, sum_r1c2, sum_r1c3 = st.columns( 3, border=True )
 		with sum_r1c1:
-			summary_y = st.selectbox( 'Summary Outcome Variable', numeric_columns, key='infer_summary_y' )
+			summary_y = st.selectbox( 'Summary Outcome Variable', numeric_columns,
+				key='infer_summary_y' )
 		
 		with sum_r1c2:
 			summary_x = st.selectbox( 'Summary Second Numeric Variable',
-				[ '<None>' ] + [ c for c in numeric_columns if c != summary_y ], key='infer_summary_x' )
+				[ '<None>' ] + [ c for c in numeric_columns if c != summary_y ],
+				key='infer_summary_x' )
 			if summary_x == '<None>':
 				summary_x = None
 		
@@ -2696,7 +2707,9 @@ elif mode == 'Inferential Statistics':
 		# -----------------------------------------------------------------
 		if summary_group:
 			df_group_summary = df_dataset[ [ summary_group, summary_y ] ].copy( )
-			df_group_summary[ summary_y ] = pd.to_numeric( df_group_summary[ summary_y ], errors='coerce' )
+			df_group_summary[ summary_y ] = pd.to_numeric( df_group_summary[ summary_y ],
+				errors='coerce' )
+			
 			df_group_summary = df_group_summary.dropna( subset=[ summary_group, summary_y ] )
 			
 			group_arrays = [ grp[ summary_y ].values for _, grp in
@@ -2747,6 +2760,7 @@ elif mode == 'Inferential Statistics':
 				try:
 					pearson_r, pearson_p = stats.pearsonr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
+					
 					infer_rows.append(
 					{
 						'Analysis': 'Association',
@@ -2764,6 +2778,7 @@ elif mode == 'Inferential Statistics':
 				try:
 					spearman_rho, spearman_p = stats.spearmanr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
+					
 					infer_rows.append(
 					{
 						'Analysis': 'Association',
@@ -2787,7 +2802,9 @@ elif mode == 'Inferential Statistics':
 			if not contingency_summary.empty and contingency_summary.shape[ 0 ] >= 2 and \
 					contingency_summary.shape[ 1 ] >= 2:
 				try:
-					chi2_stat, chi2_p, chi2_dof, expected = stats.chi2_contingency( contingency_summary )
+					chi2_stat, chi2_p, chi2_dof, expected = stats.chi2_contingency(
+						contingency_summary )
+					
 					n_total = contingency_summary.to_numpy( ).sum( )
 					phi2 = chi2_stat / n_total if n_total > 0 else np.nan
 					r_dim, c_dim = contingency_summary.shape
@@ -2819,10 +2836,10 @@ elif mode == 'Inferential Statistics':
 			infer_column_config = {
 					'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
 					'Test': st.column_config.TextColumn( 'Test', width='medium' ),
-					'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.4f' ),
-					'P-Value': st.column_config.NumberColumn( 'P Value', format='%.4g' ),
+					'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.2f' ),
+					'P-Value': st.column_config.NumberColumn( 'P Value', format='%.2g' ),
 					'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
-					'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.4f' ),
+					'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.2f' ),
 					'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
 					'Notes': st.column_config.TextColumn( 'Notes', width='large' )
 			}
@@ -2863,13 +2880,13 @@ elif mode == 'Inferential Statistics':
 				plt.close( fig )
 				m1, m2, m3 = st.columns( 3 )
 				m1.metric( 'Count', f'{len( y ):,}' )
-				m2.metric( 'Shapiro W', f'{stat:,.4f}' )
-				m3.metric( 'Shapiro p', f'{p_value:,.4g}' )
+				m2.metric( 'Shapiro-W', f'{stat:,.2f}' )
+				m3.metric( 'Shapiro-P', f'{p_value:,.2g}' )
 				
 				if p_value < 0.05:
 					st.caption( 'Distribution departs from normality at α = 0.05.' )
 				else:
-					st.caption( 'Distribution does not significantly depart from normality at α = 0.05.' )
+					st.caption('Distribution does not significantly depart from normality at α=0.05')
 			else:
 				st.info( 'Not enough observations for normality testing.' )
 		
@@ -2908,9 +2925,9 @@ elif mode == 'Inferential Statistics':
 					plt.close( fig )
 					g1, g2, g3, g4 = st.columns( 4 )
 					g1.metric( 'Groups', f'{len( valid_groups ):,}' )
-					g2.metric( 'ANOVA F', f'{f_stat:,.4f}' )
-					g3.metric( 'ANOVA P', f'{p_anova:,.4g}' )
-					g4.metric( 'Kruskal P', f'{p_kw:,.4g}' )
+					g2.metric( 'ANOVA F', f'{f_stat:,.2f}' )
+					g3.metric( 'ANOVA P', f'{p_anova:,.2g}' )
+					g4.metric( 'Kruskal P', f'{p_kw:,.2g}' )
 					st.caption( f'Kruskal–Wallis H = {h_stat:.4f}. '
 						f'Use the nonparametric result when normality or homoscedasticity is doubtful.' )
 				else:
@@ -2943,10 +2960,10 @@ elif mode == 'Inferential Statistics':
 					r_s, p_s = stats.spearmanr( x[ mask ], y2[ mask ] )
 					r1, r2, r3, r4 = st.columns( 4 )
 					r1.metric( 'Pairs', f'{int( mask.sum( ) ):,}' )
-					r2.metric( 'Pearson R', f'{r_p:,.3f}' )
-					r3.metric( 'Pearson P', f'{p_p:,.4g}' )
-					r4.metric( 'Spearman R', f'{r_s:,.3f}' )
-					st.caption( f'Spearman P = {p_s:.4g}' )
+					r2.metric( 'Pearson R', f'{r_p:,.2f}' )
+					r3.metric( 'Pearson P', f'{p_p:,.2g}' )
+					r4.metric( 'Spearman R', f'{r_s:,.2f}' )
+					st.caption( f'Spearman P = {p_s:.2g}' )
 				else:
 					st.info( 'Not enough paired observations for correlation.' )
 		
@@ -2996,7 +3013,7 @@ elif mode == 'Inferential Statistics':
 			contingency = pd.crosstab( df_dataset[ col_cat1 ], df_dataset[ col_cat2 ] )
 			
 			if contingency.empty or contingency.shape[ 0 ] < 2 or contingency.shape[ 1 ] < 2:
-				st.info( 'Not enough categorical variation for chi-square analysis.' )
+				st.info( 'Not enough categorical variation for Chi-Square Analysis.' )
 			else:
 				chi2, p_chi, dof, expected = stats.chi2_contingency( contingency )
 				n = contingency.to_numpy( ).sum( )
@@ -3024,10 +3041,10 @@ elif mode == 'Inferential Statistics':
 					plt.close( fig )
 			
 				cm1, cm2, cm3, cm4 = st.columns( 4, border=True )
-				cm1.metric( 'Chi-Square', f'{chi2:,.4f}' )
-				cm2.metric( 'P Value', f'{p_chi:,.4g}' )
+				cm1.metric( 'Chi-Square', f'{chi2:,.2f}' )
+				cm2.metric( 'P Value', f'{p_chi:,.2g}' )
 				cm3.metric( 'DoF', f'{dof:,}' )
-				cm4.metric( "Cramér's V", f'{cramers_v:,.4f}' if np.isfinite( cramers_v ) else 'n/a' )
+				cm4.metric( "Cramér's V", f'{cramers_v:,.2f}' if np.isfinite( cramers_v ) else 'n/a' )
 
 # ============================================
 # ANOMALY DETECTION MODE
@@ -3365,18 +3382,22 @@ elif mode == 'Classification Models':
 	df_working = st.session_state.get( 'df_working', None )
 	df_processed = st.session_state.get( 'df_processed', None )
 	df_classification = st.session_state.get( 'df_cluassification', None )
+	df_model = st.session_state.get( 'df_model', None )
+	df_scores = st.session_state.get( 'df_scores', None )
+	df_predictions = st.session_state.get( 'df_predictions', None )
 	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
-	df_model = st.session_state.get( 'df_model', None )
-	df_scores = st.session_state.get( 'df_scores', None )
-	df_predictions = st.session_state.get( 'df_predictions', None )
+	active_features = st.session_state.get( 'active_features', [ ] )
+	active_targets = st.session_state.get( 'active_targets', [ ] )
+	X_data = st.session_state.get( 'X_data', None )
 	X_train = st.session_state.get( 'X_train', None )
 	X_test = st.session_state.get( 'X_test', None )
 	y_train = st.session_state.get( 'y_train', None )
 	y_test = st.session_state.get( 'y_test', None )
-	elapsed_seconds = st.session_state.get( 'elapsed_seconds', None )
+	y_series = st.session_state.get( 'y_series', None )
+	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
@@ -3395,6 +3416,8 @@ elif mode == 'Classification Models':
 		
 		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
 		
+		st.session_state[ 'numeric_columns' ] = numeric_columns
+		st.session_state[ 'categorical_columns' ] = categorical_columns
 		if not numeric_columns or not categorical_columns:
 			st.warning( '⚠️ Classifications requires numeric features and a float target.' )
 			st.stop( )
@@ -3419,6 +3442,7 @@ elif mode == 'Classification Models':
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='classification_create_dataset',
 					use_container_width=True ):
+				
 				selected_all = features.copy( )
 				if targets not in selected_all:
 					selected_all.append( targets )
@@ -3438,6 +3462,7 @@ elif mode == 'Classification Models':
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', icon='🔁', key='classification_reset_to_original',
 					use_container_width=True ):
+				
 				df_working = df_original.copy( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
@@ -3455,7 +3480,7 @@ elif mode == 'Classification Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Input: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
+		st.caption( f'Input: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
 		st.data_editor( df_working, key='classification_working_data' )
 		
 		# -----------------------------------------------------------------
@@ -3476,8 +3501,10 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_standard_scaler_apply',
+						if st.button( 
+								label='Apply', icon='✔️', key='classification_standard_scaler_apply',
 								use_container_width=True ):
+							
 							if columns:
 								scaler = StandardScaler( )
 								result = scaler.train_transform( df_processed[ columns ].to_numpy( ) )
@@ -3689,6 +3716,7 @@ elif mode == 'Classification Models':
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_iterative_imputer_reset',
 								use_container_width=True ):
+							
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
@@ -3696,8 +3724,7 @@ elif mode == 'Classification Models':
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
 					st.text( '', width='stretch', text_alignment='right', help=cfg.SIMPLE_IMPUTER )
-					impute_cols = st.multiselect( 'Columns',
-						options=numeric_columns,
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='classification_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -3744,6 +3771,7 @@ elif mode == 'Classification Models':
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_simple_imputer_reset',
 								use_container_width=True ):
+							
 							st.session_state[ 'df_processed' ] = df_working.copy( )
 							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
 							commit_frame( df_processed )
@@ -4637,16 +4665,18 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# Training Target & Features
 		# ------------------------------------------------------------------
-		active_features = [ c for c in st.session_state.get( 'features', [ ] )
-		                    if c in df_processed.columns ]
+		active_features = [ ftr for ftr in st.session_state.get( 'features', [ ] )
+		                    if ftr in df_processed.columns ]
 		
-		active_targets = [ c for c in st.session_state.get( 'targets', [ ] )
-		                   if c in df_processed.columns ]
+		active_targets = [ tgt for tgt in st.session_state.get( 'targets', [ ] )
+		                   if tgt in df_processed.columns ]
 		
+		st.session_state[ 'active_features' ] = active_features
 		if not active_features:
 			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
 			st.stop( )
 		
+		st.session_state[ 'active_targets' ] = active_targets
 		if not active_targets:
 			st.warning( '⚠️ No valid target column remains after preprocessing.' )
 			st.stop( )
@@ -4659,30 +4689,25 @@ elif mode == 'Classification Models':
 		
 		df_model = df_processed[ active_features + [ target_name ] ].copy( )
 		df_model = df_model.dropna( subset=active_features + [ target_name ] ).copy( )
+		X_data = df_model[ active_features ].copy( )
+		st.session_state[ 'X_data' ] = X_data.copy( )
+		for col in X_data.columns:
+			X_data[ col ] = pd.to_numeric( X_data[ col ], errors='coerce' )
 		
-		if df_model.empty:
-			st.warning( '⚠️ No complete rows remain after preprocessing and selection.' )
-			st.stop( )
-		
-		X_df = df_model[ active_features ].copy( )
-		for col in X_df.columns:
-			X_df[ col ] = pd.to_numeric( X_df[ col ], errors='coerce' )
-		
-		if X_df.isna( ).any( ).any( ):
+		if X_data.isna( ).any( ).any( ):
 			st.warning( '⚠️ One or more feature columns are still non-numeric after preprocessing. '
 				'Apply the appropriate encoder/transformer before training.' )
 			st.stop( )
 		
-		X = X_df.to_numpy( dtype=float )
+		X = X_data.to_numpy( dtype=float )
 		
 		y_series = df_model[ target_name ].copy( )
-		
+		st.session_state[ 'y_series' ] = y_series.copy( )
 		if isinstance( y_series, pd.DataFrame ):
 			st.warning( '⚠️ The processed target must resolve to a single column.' )
 			st.stop( )
 		
 		y = y_series.to_numpy( )
-		
 		if y.ndim != 1:
 			y = np.ravel( y )
 		
@@ -4811,7 +4836,7 @@ elif mode == 'Classification Models':
 							size=perceptron_test_size, random=int( perceptron_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_perceptron_elapsed_seconds' ] = elapsed_seconds
@@ -4828,7 +4853,7 @@ elif mode == 'Classification Models':
 						
 						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							} )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
@@ -4911,11 +4936,8 @@ elif mode == 'Classification Models':
 						key='classification_least_squares_train', use_container_width=True )
 				
 				with ls_btn_2:
-					reset_least_squares = st.button(
-						'🔁 Reset Least Squares',
-						key='classification_least_squares_reset',
-						use_container_width=True
-					)
+					reset_least_squares = st.button( '🔁 Reset Least Squares',
+						key='classification_least_squares_reset', use_container_width=True )
 				
 				if reset_least_squares:
 					for key, value in least_squares_defaults.items( ):
@@ -4941,7 +4963,7 @@ elif mode == 'Classification Models':
 							random=int( least_squares_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_least_squares_elapsed_seconds' ] = elapsed_seconds
@@ -4956,10 +4978,7 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ),
 							'Testing Rows', int( len( X_test ) ) )
 						
-						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_pred
-							} )
+						df_predictions = pd.DataFrame( {'Actual': y_test, 'Predicted': y_prediction })
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
@@ -5151,7 +5170,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_logistic_elapsed_seconds' ] = elapsed_seconds
@@ -5176,7 +5195,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -5241,7 +5260,6 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				ridge_c1, ridge_c2, ridge_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with ridge_c1:
 					st.markdown( '###### Model Parameters' )
 					ridge_alpha = st.number_input( 'Alpha', min_value=0.000001,
@@ -5310,7 +5328,7 @@ elif mode == 'Classification Models':
 							size=float( ridge_test_size ), random=int( ridge_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_ridge_elapsed_seconds' ] = elapsed_seconds
@@ -5327,7 +5345,7 @@ elif mode == 'Classification Models':
 						
 						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							} )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
@@ -5388,7 +5406,6 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				lasso_c1, lasso_c2, lasso_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with lasso_c1:
 					st.markdown( '###### Model Parameters' )
 					lasso_alpha = st.number_input( 'Alpha', min_value=0.000001,
@@ -5461,7 +5478,7 @@ elif mode == 'Classification Models':
 							size=float( lasso_test_size ), random=int( lasso_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_lasso_elapsed_seconds' ] = elapsed_seconds
@@ -5478,7 +5495,7 @@ elif mode == 'Classification Models':
 						
 						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							} )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
@@ -5544,11 +5561,9 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				gd_c1, gd_c2, gd_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with gd_c1:
 					st.markdown( '###### Model Parameters' )
-					gradient_loss = st.selectbox(
-						'Loss',
+					gradient_loss = st.selectbox( 'Loss',
 						options=[
 								'hinge',
 								'log_loss',
@@ -5682,7 +5697,7 @@ elif mode == 'Classification Models':
 							size=float( gradient_test_size ), random=int( gradient_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_gradient_elapsed_seconds' ] = elapsed_seconds
@@ -5699,50 +5714,13 @@ elif mode == 'Classification Models':
 						
 						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							} )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3, border=True )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric( 'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
-							
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor( df_scores, use_container_width=True,
-							key='classification_gradient_scores' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor( df_predictions, use_container_width=True,
-							key='classification_gradient_predictions' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Gradient Descent training failed: {ex}' )
 		
@@ -5911,7 +5889,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_nearest_elapsed_seconds' ] = elapsed_seconds
@@ -5936,7 +5914,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -6110,7 +6088,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_svm_elapsed_seconds' ] = elapsed_seconds
@@ -6135,7 +6113,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -6328,7 +6306,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_tree_elapsed_seconds' ] = elapsed_seconds
@@ -6353,7 +6331,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -6542,7 +6520,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_forest_elapsed_seconds' ] = elapsed_seconds
@@ -6567,7 +6545,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -6750,7 +6728,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_gb_elapsed_seconds' ] = elapsed_seconds
@@ -6775,7 +6753,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -6948,7 +6926,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_ab_elapsed_seconds' ] = elapsed_seconds
@@ -6973,7 +6951,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -7122,7 +7100,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_bag_elapsed_seconds' ] = elapsed_seconds
@@ -7147,7 +7125,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -7387,7 +7365,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_vote_elapsed_seconds' ] = elapsed_seconds
@@ -7422,7 +7400,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -7672,7 +7650,7 @@ elif mode == 'Classification Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_stack_elapsed_seconds' ] = elapsed_seconds
@@ -7707,7 +7685,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -7888,7 +7866,7 @@ elif mode == 'Classification Models':
 							size=float( mlp_test_size ), random=int( mlp_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_mlp_elapsed_seconds' ] = elapsed_seconds
@@ -7918,7 +7896,7 @@ elif mode == 'Classification Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -7964,21 +7942,24 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'MultiLayerPerceptron training failed: {ex}' )
-						
+		
+		# ------------------------------------------------------------------
+		# Performance Metrics & Visualizations
+		# ------------------------------------------------------------------				
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Performance' )
 		
 		m1, m2, m3 = st.columns( 3, border=True )
 		with m1:
 			st.metric( 'Accuracy',
-				f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
+				f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.2f}" )
 		
 		with m2:
 			st.metric( 'Mis-Classifications',
 				f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
 		
 		with m3:
-			st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
+			st.metric( 'Processing Time', f'{elapsed_seconds:0.2f} sec' )
 		
 		st.data_editor( df_scores, use_container_width=True,
 			key='classification_perceptron_scores' )
@@ -8010,7 +7991,7 @@ elif mode == 'Classification Models':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Actual vs Predicted Counts' )
 		actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
-		pred_counts = pd.Series( y_pred ).value_counts( ).sort_index( )
+		pred_counts = pd.Series( y_prediction ).value_counts( ).sort_index( )
 		df_counts = pd.DataFrame( { 'Actual': actual_counts, 'Predicted': pred_counts } ).fillna( 0 )
 		
 		fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
@@ -8028,9 +8009,9 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Per-Class Accuracy' )
-		df_eval = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_pred } )
-		df_eval[ 'Correct' ] = (df_eval[ 'Actual' ] == df_eval[ 'Predicted' ]).astype( int )
-		df_class_acc = df_eval.groupby(
+		df_evaluation = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_prediction } )
+		df_evaluation[ 'Correct' ] = (df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
+		df_class_acc = df_evaluation.groupby(
 			'Actual', dropna=False )[ 'Correct' ].mean( ).sort_index( )
 		
 		fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
@@ -9536,7 +9517,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_ols_elapsed_seconds' ] = elapsed_seconds
@@ -9561,7 +9542,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -9802,7 +9783,7 @@ elif mode == 'Regression Models':
 							size=float( ridge_test_size ), random=int( ridge_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_ridge_elapsed_seconds' ] = elapsed_seconds
@@ -9815,7 +9796,7 @@ elif mode == 'Regression Models':
 							
 							df_scores.loc[ 'Training Score', 'Value' ] = float( model.training_score )
 							df_scores.loc[ 'Testing Score', 'Value' ] = float( model.testing_score )
-							df_scores.loc[ 'R-Squared Score', 'Value' ] = float( r2_score( y_test, y_pred ) )
+							df_scores.loc[ 'R-Squared Score', 'Value' ] = float( r2_score( y_test, y_prediction ) )
 							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round( elapsed_seconds, 4 )
 							df_scores.loc[ 'Training Rows', 'Value' ] = int( len( X_train ) )
 							df_scores.loc[ 'Testing Rows', 'Value' ] = int( len( X_test ) )
@@ -9824,7 +9805,7 @@ elif mode == 'Regression Models':
 						
 						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							} )
 						
 						df_coefficients = pd.DataFrame( {
@@ -10102,7 +10083,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_lasso_elapsed_seconds' ] = elapsed_seconds
@@ -10120,7 +10101,7 @@ elif mode == 'Regression Models':
 								model.testing_score
 							)
 							df_scores.loc[ 'R-Squared Score', 'Value' ] = float( r2_score(
-								y_test, y_pred ) )
+								y_test, y_prediction ) )
 							
 							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round(
 								elapsed_seconds,
@@ -10134,7 +10115,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -10438,7 +10419,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_elastic_elapsed_seconds' ] = elapsed_seconds
@@ -10456,7 +10437,7 @@ elif mode == 'Regression Models':
 								model.testing_score
 							)
 							df_scores.loc[ 'R-Squared Score', 'Value' ] = float(
-								r2_score( y_test, y_pred )
+								r2_score( y_test, y_prediction )
 							)
 							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round(
 								elapsed_seconds,
@@ -10471,7 +10452,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -10815,7 +10796,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_bayes_elapsed_seconds' ] = elapsed_seconds
@@ -10854,7 +10835,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -11287,7 +11268,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_sgd_elapsed_seconds' ] = elapsed_seconds
@@ -11330,7 +11311,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -11640,7 +11621,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_knn_elapsed_seconds' ] = elapsed_seconds
@@ -11683,7 +11664,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -11995,7 +11976,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_svr_elapsed_seconds' ] = elapsed_seconds
@@ -12038,7 +12019,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -12321,7 +12302,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_extra_elapsed_seconds' ] = elapsed_seconds
@@ -12379,7 +12360,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -12864,7 +12845,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_rf_elapsed_seconds' ] = elapsed_seconds
@@ -12922,7 +12903,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -13143,7 +13124,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_ada_elapsed_seconds' ] = elapsed_seconds
@@ -13186,7 +13167,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -13723,7 +13704,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_gb_elapsed_seconds' ] = elapsed_seconds
@@ -13767,7 +13748,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -14098,7 +14079,7 @@ elif mode == 'Regression Models':
 						)
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_vote_elapsed_seconds' ] = elapsed_seconds
@@ -14133,7 +14114,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -14445,7 +14426,7 @@ elif mode == 'Regression Models':
 							size=float( stack_test_size ), random=int( stack_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_pred = model.project( X_test )
+						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_stack_elapsed_seconds' ] = elapsed_seconds
@@ -14488,7 +14469,7 @@ elif mode == 'Regression Models':
 						df_predictions = pd.DataFrame(
 							{
 									'Actual': y_test,
-									'Predicted': y_pred
+									'Predicted': y_prediction
 							}
 						)
 						
@@ -14502,7 +14483,7 @@ elif mode == 'Regression Models':
 						stack_m1, stack_m2, stack_m3 = st.columns( 3 )
 						
 						with stack_m1:
-							r2_value = r2_score( y_test, y_pred )
+							r2_value = r2_score( y_test, y_prediction )
 							st.metric( 'R² Score', f'{float( r2_value ):0.4f}' )
 						
 						with stack_m2:
@@ -14548,12 +14529,12 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Predictions' )
-		y_pred = model.project( X_test )
+		y_prediction = model.project( X_test )
 		df_predictions = pd.DataFrame(
 			{
 					'Observed': y_test,
-					'Predicted': y_pred,
-					'Residual': y_test - y_pred
+					'Predicted': y_prediction,
+					'Residual': y_test - y_prediction
 			} )
 		
 		st.data_editor( df_predictions, use_container_width=True )

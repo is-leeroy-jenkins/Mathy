@@ -3617,7 +3617,7 @@ class DecisionTree( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, criterion: str='gini', splitter: str='best',
-			depth: Optional[ int ] = None, min_split: int=2,
+			depth: Optional[ int ]=None, min_split: int=2,
 			min_leaf: int=1, random: int=42 ) -> None:
 		"""
 
@@ -4767,13 +4767,9 @@ class GradientBoost( Classifier ):
 		self.criterion = criterion
 		self.random_state = random
 		self.validate_configuration( )
-		self.model = ske.GradientBoostingClassifier(
-			n_estimators=self.n_estimators,
-			learning_rate=self.learning_rate,
-			max_depth=self.max_depth,
-			criterion=self.criterion,
-			random_state=self.random_state
-		)
+		self.model = ske.GradientBoostingClassifier( n_estimators=self.n_estimators,
+			learning_rate=self.learning_rate, max_depth=self.max_depth,
+			criterion=self.criterion, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""
