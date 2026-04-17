@@ -288,12 +288,9 @@ class Classifier( ):
 			self.f1_score = float(
 				f1_score( y, y_pred, average='weighted', zero_division=0 )
 			)
-			self.classification_report = classification_report(
-				y,
-				y_pred,
-				output_dict=True,
-				zero_division=0
-			)
+			self.classification_report = classification_report( y, y_pred, output_dict=True,
+				zero_division=0 )
+			
 			self.confusion_matrix_values = confusion_matrix( y, y_pred )
 			
 			_metrics = {
@@ -882,6 +879,7 @@ class LeastSquares( Classifier ):
 	max_iter: Optional[ int ]
 	shuffle: Optional[ bool ]
 	penalty: Optional[ str ]
+	probability: Optional[ np.ndarray ]
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	classification_report: Optional[ Dict[ str, Any ] ]

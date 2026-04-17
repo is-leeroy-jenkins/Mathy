@@ -201,6 +201,9 @@ if 'y_prediction' not in st.session_state:
 	
 if 'y_series' not in st.session_state:
 	st.session_state[ 'y_series' ] = None
+
+if 'target_count' not in st.session_state:
+	st.session_state[ 'target_count' ] = 0.0
 	
 if 'elapsed_seconds' not in st.session_state:
 	st.session_state[ 'elapsed_seconds' ] = 0.0
@@ -3415,7 +3418,6 @@ elif mode == 'Classification Models':
 		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
 		
 		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
-		
 		st.session_state[ 'numeric_columns' ] = numeric_columns
 		st.session_state[ 'categorical_columns' ] = categorical_columns
 		if not numeric_columns or not categorical_columns:
@@ -3431,12 +3433,12 @@ elif mode == 'Classification Models':
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=df_original.columns,
-				default=categorical_columns[ 1 ], key='classification_features' )
+				key='classification_features' )
 		
 		with col_c2:
 			target_options = [ t for t in df_original.columns if t not in features  ]
 			targets = st.selectbox( 'Select Target', options=target_options,
-				index=None, key='classification_target' )
+				key='classification_target' )
 		
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
@@ -4730,7 +4732,7 @@ elif mode == 'Classification Models':
 		# MODEL TRAINING
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Model Training' )
+		st.markdown( '##### Model Training', help=cfg.CLASSIFICATION_MODELS )
 		
 		df_classification = st.session_state.get( 'df_classification', df_processed.copy( ) ).copy( )
 		st.session_state[ 'df_classficiation' ] = df_classification
@@ -4745,15 +4747,7 @@ elif mode == 'Classification Models':
 		                   if tgt in df_processed.columns ]
 		
 		st.session_state[ 'active_features' ] = active_features
-		if not active_features:
-			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
-			st.stop( )
-		
 		st.session_state[ 'active_targets' ] = active_targets
-		if not active_targets:
-			st.warning( '⚠️ No valid target column remains after preprocessing.' )
-			st.stop( )
-		
 		if len( active_targets ) != 1:
 			st.warning( '⚠️ Classification mode requires exactly one processed target column.' )
 			st.stop( )
@@ -4763,6 +4757,7 @@ elif mode == 'Classification Models':
 		df_model = df_processed[ active_features + [ target_name ] ].copy( )
 		df_model = df_model.dropna( subset=active_features + [ target_name ] ).copy( )
 		X_data = df_model[ active_features ].copy( )
+		st.session_state[ 'df_model' ] = df_model.copy( )
 		st.session_state[ 'X_data' ] = X_data.copy( )
 		for col in X_data.columns:
 			X_data[ col ] = pd.to_numeric( X_data[ col ], errors='coerce' )
@@ -4772,8 +4767,8 @@ elif mode == 'Classification Models':
 				'Apply the appropriate encoder/transformer before training.' )
 			st.stop( )
 		
+		# Create training matrix and target vector
 		X = X_data.to_numpy( dtype=float )
-		
 		y_series = df_model[ target_name ].copy( )
 		st.session_state[ 'y_series' ] = y_series.copy( )
 		if isinstance( y_series, pd.DataFrame ):
@@ -4808,7 +4803,8 @@ elif mode == 'Classification Models':
 			st.warning( '⚠️ Classification requires at least two classes.' )
 			st.stop( )
 		
-		st.session_state[ 'df_classification' ] = df_model.copy( )
+		df_classifiction = df_model.copy( )
+		st.session_state[ 'df_classification' ] = df_classification.copy( )
 	
 		# ------------------------------------------------------------------
 		# Classification Models
@@ -4816,6 +4812,9 @@ elif mode == 'Classification Models':
 		with st.expander( 'Linear Models', expanded=True ):
 			
 			with st.expander( 'Perceptron', expanded=True ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.PERCEPTRON_CLASSIFIER )
+				
 				perceptron_defaults = {
 						'classification_perceptron_alpha': 0.001000,
 						'classification_perceptron_eta': 1.000000,
@@ -4910,10 +4909,8 @@ elif mode == 'Classification Models':
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_perceptron_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -4928,15 +4925,20 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 					except Exception as ex:
 						st.error( f'Perceptron training failed: {ex}' )
 					
 			with st.expander( 'Ordinary Least Squares', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.LEAST_SQUARES_CLASSIFIER )
+				
 				least_squares_defaults = {
 						'classification_least_squares_alpha': 0.000100,
 						'classification_least_squares_eta': 0.010000,
@@ -4952,50 +4954,44 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				ls_c1, ls_c2, ls_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with ls_c1:
 					st.markdown( '###### Model Parameters' )
 					least_squares_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_least_squares_alpha' ] ),
 						step=0.000100, format='%.6f',
-						key='classification_least_squares_alpha' )
+						key='classification_leastsquares_alpha' )
 					
 					least_squares_eta = st.number_input( 'Eta', min_value=0.000001,
 						value=float( st.session_state[ 'classification_least_squares_eta' ] ),
-						step=0.010000, format='%.6f', key='classification_least_squares_eta' )
+						step=0.010000, format='%.6f', key='classification_leastsquares_eta' )
 					
-					least_squares_iters = st.number_input(
-						'Iterations',
-						min_value=1,
+					least_squares_iters = st.number_input( 'Iterations', min_value=1,
 						value=int( st.session_state[ 'classification_least_squares_iters' ] ),
-						step=1,
-						key='classification_least_squares_iters'
-					)
+						step=1, key='classification_leastsquares_iters' )
 				
 				with ls_c2:
 					st.markdown( '###### Regularization / Split' )
-					least_squares_shuffle = st.checkbox(
-						'Shuffle',
+					least_squares_shuffle = st.checkbox( 'Shuffle',
 						value=bool( st.session_state[ 'classification_least_squares_shuffle' ] ),
-						key='classification_least_squares_shuffle' )
+						key='classification_leastsquares_shuffle' )
 					
 					least_squares_penalty = st.selectbox( 'Penalty',
 						options=[ None, 'l2', 'l1', 'elasticnet' ],
 						index=[ None, 'l2', 'l1', 'elasticnet' ].index(
 							st.session_state[ 'classification_least_squares_penalty' ] ),
 						format_func=lambda v: 'None' if v is None else str( v ),
-						key='classification_least_squares_penalty' )
+						key='classification_leastsquares_penalty' )
 					
 					least_squares_test_size = st.slider( 'Test Set Size (%)', min_value=10,
 						max_value=30, step=1,
 						value=int( st.session_state[ 'classification_least_squares_test_size' ] ),
-						key='classification_least_squares_test_size' ) / 100.0
+						key='classification_leastsquares_test_size' ) / 100.0
 				
 				with ls_c3:
 					st.markdown( '###### Run Configuration' )
 					least_squares_random_state = st.number_input( 'Random State', step=1,
 						value=int( st.session_state[ 'classification_least_squares_random_state' ]),
-						key='classification_least_squares_random_state' )
+						key='classification_leastsquares_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
 						f'Classes: {len( class_counts ):,}' )
@@ -5003,14 +4999,13 @@ elif mode == 'Classification Models':
 					st.caption( f'Target: {target_name}' )
 				
 				ls_btn_1, ls_btn_2 = st.columns( 2 )
-				
 				with ls_btn_1:
 					train_least_squares = st.button( '🏃 Train Least Squares',
-						key='classification_least_squares_train', use_container_width=True )
+						key='classification_leastsquares_train', use_container_width=True )
 				
 				with ls_btn_2:
 					reset_least_squares = st.button( '🔁 Reset Least Squares',
-						key='classification_least_squares_reset', use_container_width=True )
+						key='classification_leastsquares_reset', use_container_width=True )
 				
 				if reset_least_squares:
 					for key, value in least_squares_defaults.items( ):
@@ -5019,13 +5014,12 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_least_squares_elapsed_seconds' ] = None
+					st.session_state[ 'classification_leastsquares_elapsed_seconds' ] = None
 					st.rerun( )
 				
 				if train_least_squares:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.LeastSquares( alpha=float( least_squares_alpha ),
 							eta=float( least_squares_eta ), iters=int( least_squares_iters ),
 							shuffle=bool( least_squares_shuffle ), penalty=least_squares_penalty,
@@ -5040,7 +5034,6 @@ elif mode == 'Classification Models':
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_least_squares_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ),
 							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
@@ -5052,58 +5045,20 @@ elif mode == 'Classification Models':
 							'Testing Rows', int( len( X_test ) ) )
 						
 						df_predictions = pd.DataFrame( {'Actual': y_test, 'Predicted': y_prediction })
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						
-						with m2:
-							st.metric( 'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_least_squares_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_least_squares_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Least Squares training failed: {ex}' )
 					
 			with st.expander( 'Logistic Regression', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.LOGISTIC_REGRESSION )
+				
 				logistic_defaults = {
 						'classification_logistic_c': 1.000000,
 						'classification_logistic_penalty': 'l2',
@@ -5226,21 +5181,13 @@ elif mode == 'Classification Models':
 					try:
 						start_time = time.perf_counter( )
 						
-						model = classification_model.LogisticRegression(
-							C=float( logistic_c ),
-							penalty=logistic_penalty,
-							iters=int( logistic_iters ),
-							multiclass=str( logistic_multiclass ),
-							solver=str( logistic_solver ),
-							random=int( logistic_random_state )
-						)
+						model = classification_model.LogisticRegression( C=float( logistic_c ),
+							penalty=logistic_penalty, iters=int( logistic_iters ),
+							multiclass=str( logistic_multiclass ), solver=str( logistic_solver ),
+							random=int( logistic_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( logistic_test_size ),
-							random=int( logistic_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( logistic_test_size ), random=int( logistic_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
@@ -5272,58 +5219,20 @@ elif mode == 'Classification Models':
 							}
 						)
 						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_logistic_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_logistic_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Logistic Regression training failed: {ex}' )
 					
 			with st.expander( 'Ridge Classification', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.RIDGE_CLASSIFIER )
+				
 				ridge_defaults = { 'classification_ridge_alpha': 1.000000,
 						'classification_ridge_solver': 'auto', 'classification_ridge_iters': 1000,
 						'classification_ridge_test_size': 20, 'classification_ridge_random_state': 42 }
@@ -5370,7 +5279,6 @@ elif mode == 'Classification Models':
 					st.caption( f'Target: {target_name}' )
 				
 				ridge_btn_1, ridge_btn_2 = st.columns( 2 )
-				
 				with ridge_btn_1:
 					train_ridge = st.button( '🏃 Train Ridge', key='classification_ridge_train',
 						use_container_width=True )
@@ -5420,51 +5328,20 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric( 'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor( df_scores, use_container_width=True,
-							key='classification_ridge_scores' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor( df_predictions, use_container_width=True,
-							key='classification_ridge_predictions' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Ridge training failed: {ex}' )
 					
 			with st.expander( 'Lasso Classification', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.LASSO_CLASSIFIER )
+				
 				lasso_defaults = {
 						'classification_lasso_alpha': 1.000000,
 						'classification_lasso_iters': 500,
@@ -5570,51 +5447,20 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-		
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3, border=True )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric( 'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor( df_scores, use_container_width=True,
-							key='classification_lasso_scores' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor( df_predictions, use_container_width=True,
-							key='classification_lasso_predictions' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Lasso training failed: {ex}' )
 					
 			with st.expander( 'Gradient Descent', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.GRADIENT_DESCENT_CLASSIFIER )
+				
 				gradient_defaults = {
 						'classification_gradient_loss': 'hinge',
 						'classification_gradient_penalty': 'l2',
@@ -5657,56 +5503,39 @@ elif mode == 'Classification Models':
 								'epsilon_insensitive',
 								'squared_error'
 						].index( st.session_state[ 'classification_gradient_loss' ] ),
-						key='classification_gradient_loss'
-					)
+						key='classification_gradient_loss' )
 					
-					gradient_penalty = st.selectbox(
-						'Penalty',
+					gradient_penalty = st.selectbox( 'Penalty',
 						options=[ None, 'l2', 'l1', 'elasticnet' ],
 						index=[ None, 'l2', 'l1', 'elasticnet' ].index(
-							st.session_state[ 'classification_gradient_penalty' ]
-						),
+							st.session_state[ 'classification_gradient_penalty' ] ),
 						format_func=lambda v: 'None' if v is None else str( v ),
-						key='classification_gradient_penalty'
-					)
+						key='classification_gradient_penalty' )
 					
-					gradient_alpha = st.number_input(
-						'Alpha',
+					gradient_alpha = st.number_input( 'Alpha',
 						min_value=0.000001,
 						value=float( st.session_state[ 'classification_gradient_alpha' ] ),
-						step=0.000100,
-						format='%.6f',
-						key='classification_gradient_alpha'
-					)
+						step=0.000100, format='%.6f',
+						key='classification_gradient_alpha' )
 					
-					gradient_iters = st.number_input(
-						'Iterations',
-						min_value=1,
+					gradient_iters = st.number_input( 'Iterations', min_value=1,
 						value=int( st.session_state[ 'classification_gradient_iters' ] ),
-						step=1,
-						key='classification_gradient_iters'
-					)
+						step=1, key='classification_gradient_iters' )
 				
 				with gd_c2:
 					st.markdown( '###### Learning Controls' )
-					gradient_shuffle = st.checkbox(
-						'Shuffle',
+					gradient_shuffle = st.checkbox( 'Shuffle',
 						value=bool( st.session_state[ 'classification_gradient_shuffle' ] ),
-						key='classification_gradient_shuffle'
-					)
+						key='classification_gradient_shuffle' )
 					
 					gradient_eta = st.number_input( 'Eta', min_value=0.000001,
 						value=float( st.session_state[ 'classification_gradient_eta' ] ),
-						step=0.010000,
-						format='%.6f',
-						key='classification_gradient_eta'
-					)
+						step=0.010000, format='%.6f', key='classification_gradient_eta' )
 					
 					gradient_learning = st.selectbox( 'Learning Rate Schedule',
 						options=[ 'constant', 'optimal', 'invscaling', 'adaptive' ],
 						index=[ 'constant', 'optimal', 'invscaling', 'adaptive' ].index(
-							st.session_state[ 'classification_gradient_learning' ]
-						),
+							st.session_state[ 'classification_gradient_learning' ] ),
 						key='classification_gradient_learning' )
 					
 					gradient_power = st.number_input( 'Power T', min_value=0.000000,
@@ -5736,7 +5565,6 @@ elif mode == 'Classification Models':
 					st.caption( f'Target: {target_name}' )
 				
 				gd_btn_1, gd_btn_2 = st.columns( 2 )
-				
 				with gd_btn_1:
 					train_gradient = st.button( '🏃 Train Gradient Descent',
 						key='classification_gradient_train', use_container_width=True )
@@ -5758,7 +5586,6 @@ elif mode == 'Classification Models':
 				if train_gradient:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.GradientDescent( loss=str( gradient_loss ),
 							penalty=gradient_penalty, alpha=float( gradient_alpha ),
 							iters=int( gradient_iters ), shuffle=bool( gradient_shuffle ),
@@ -5771,7 +5598,6 @@ elif mode == 'Classification Models':
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_gradient_elapsed_seconds' ] = elapsed_seconds
 						
@@ -5789,17 +5615,22 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 					except Exception as ex:
 						st.error( f'Gradient Descent training failed: {ex}' )
 		
 		with st.expander( 'Instance Models', expanded=True ):
 			
 			with st.expander( 'Nearest Neighbor', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.NEAREST_NEIGHBOR_CLASSFIER )
+				
 				nearest_defaults = {
 						'classification_nearest_num': 5,
 						'classification_nearest_algorithm': 'auto',
@@ -5815,46 +5646,29 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				nn_c1, nn_c2, nn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with nn_c1:
 					st.markdown( '###### Model Parameters' )
-					nearest_num = st.number_input(
-						'Neighbors',
-						min_value=1,
+					nearest_num = st.number_input( 'Neighbors', min_value=1,
 						value=int( st.session_state[ 'classification_nearest_num' ] ),
-						step=1,
-						key='classification_nearest_num'
-					)
+						step=1, key='classification_nearest_num' )
 					
-					nearest_power = st.number_input(
-						'Power',
-						min_value=1,
+					nearest_power = st.number_input( 'Power', min_value=1,
 						value=int( st.session_state[ 'classification_nearest_power' ] ),
-						step=1,
-						key='classification_nearest_power'
-					)
+						step=1, key='classification_nearest_power' )
 					
-					nearest_leafs = st.number_input(
-						'Leaf Size',
-						min_value=1,
+					nearest_leafs = st.number_input( 'Leaf Size', min_value=1,
 						value=int( st.session_state[ 'classification_nearest_leafs' ] ),
-						step=1,
-						key='classification_nearest_leafs'
-					)
+						step=1, key='classification_nearest_leafs' )
 				
 				with nn_c2:
 					st.markdown( '###### Distance / Search' )
-					nearest_algorithm = st.selectbox(
-						'Algorithm',
+					nearest_algorithm = st.selectbox( 'Algorithm',
 						options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
 						index=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ].index(
 							st.session_state[ 'classification_nearest_algorithm' ]
-						),
-						key='classification_nearest_algorithm'
-					)
+						), key='classification_nearest_algorithm' )
 					
-					nearest_metric = st.selectbox(
-						'Metric',
+					nearest_metric = st.selectbox( 'Metric',
 						options=[
 								'minkowski',
 								'euclidean',
@@ -5887,50 +5701,32 @@ elif mode == 'Classification Models':
 								'mahalanobis',
 								'seuclidean'
 						].index( st.session_state[ 'classification_nearest_metric' ] ),
-						key='classification_nearest_metric'
-					)
+						key='classification_nearest_metric' )
 					
-					nearest_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
+					nearest_test_size = st.slider( 'Test Set Size (%)', min_value=10,
 						max_value=30,
 						value=int( st.session_state[ 'classification_nearest_test_size' ] ),
-						step=1,
-						key='classification_nearest_test_size'
-					) / 100.0
+						step=1, key='classification_nearest_test_size' ) / 100.0
 				
 				with nn_c3:
 					st.markdown( '###### Run Configuration' )
-					nearest_random_state = st.number_input(
-						'Random State',
+					nearest_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_nearest_random_state' ] ),
-						step=1,
-						key='classification_nearest_random_state'
-					)
+						step=1, key='classification_nearest_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				nn_btn_1, nn_btn_2 = st.columns( 2, border=True )
-				
 				with nn_btn_1:
-					train_nearest = st.button(
-						'🏃 Train Nearest Neighbor',
-						key='classification_nearest_train',
-						use_container_width=True
-					)
+					train_nearest = st.button( '🏃 Train Nearest Neighbor',
+						key='classification_nearest_train', use_container_width=True )
 				
 				with nn_btn_2:
-					reset_nearest = st.button(
-						'🔁 Reset Nearest Neighbor',
-						key='classification_nearest_reset',
-						use_container_width=True
-					)
+					reset_nearest = st.button( '🔁 Reset Nearest Neighbor',
+						key='classification_nearest_reset', use_container_width=True )
 				
 				if reset_nearest:
 					for key, value in nearest_defaults.items( ):
@@ -5945,104 +5741,45 @@ elif mode == 'Classification Models':
 				if train_nearest:
 					try:
 						start_time = time.perf_counter( )
+						model = classification_model.NearestNeighbor( num=int( nearest_num ),
+							algorithm=str( nearest_algorithm ), power=int( nearest_power ),
+							metric=str( nearest_metric ), leafs=int( nearest_leafs ) )
 						
-						model = classification_model.NearestNeighbor(
-							num=int( nearest_num ),
-							algorithm=str( nearest_algorithm ),
-							power=int( nearest_power ),
-							metric=str( nearest_metric ),
-							leafs=int( nearest_leafs )
-						)
-						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( nearest_test_size ),
-							random=int( nearest_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( nearest_test_size ), random=int( nearest_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_nearest_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+							} )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3, border=True )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_nearest_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_nearest_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Nearest Neighbor training failed: {ex}' )
 			
 			with st.expander( 'Support Vector Machine', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.SUPPORT_VECTOR_CLASSIFIER )
+				
 				svm_defaults = {
 						'classification_svm_c': 1.000000,
 						'classification_svm_kernel': 'rbf',
@@ -6056,81 +5793,51 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				svm_c1, svm_c2, svm_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with svm_c1:
 					st.markdown( '###### SVM Parameters' )
-					svm_c = st.number_input(
-						'C',
-						min_value=0.000001,
+					svm_c = st.number_input( 'C', min_value=0.000001,
 						value=float( st.session_state[ 'classification_svm_c' ] ),
-						step=0.100000,
-						format='%.6f',
-						key='classification_svm_c'
-					)
+						step=0.100000, format='%.6f', key='classification_svm_c' )
 					
-					svm_kernel = st.selectbox(
-						'Kernel',
+					svm_kernel = st.selectbox( 'Kernel',
 						options=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ],
 						index=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ].index(
-							st.session_state[ 'classification_svm_kernel' ]
-						),
-						key='classification_svm_kernel'
-					)
+							st.session_state[ 'classification_svm_kernel' ] ),
+						key='classification_svm_kernel' )
 					
-					svm_degree = st.number_input(
-						'Degree',
-						min_value=1,
+					svm_degree = st.number_input( 'Degree', min_value=1,
 						value=int( st.session_state[ 'classification_svm_degree' ] ),
-						step=1,
-						key='classification_svm_degree'
-					)
+						step=1, key='classification_svm_degree' )
 				
 				with svm_c2:
 					st.markdown( '###### Split' )
-					svm_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
+					svm_test_size = st.slider( 'Test Set Size (%)', min_value=10,
 						max_value=30,
 						value=int( st.session_state[ 'classification_svm_test_size' ] ),
-						step=1,
-						key='classification_svm_test_size'
-					) / 100.0
+						step=1, key='classification_svm_test_size' ) / 100.0
 					
 					if svm_kernel != 'poly':
 						st.caption( 'Degree is only used when kernel = poly.' )
 				
 				with svm_c3:
 					st.markdown( '###### Run Configuration' )
-					svm_random_state = st.number_input(
-						'Random State',
+					svm_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_svm_random_state' ] ),
-						step=1,
-						key='classification_svm_random_state'
-					)
+						step=1, key='classification_svm_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				svm_btn_1, svm_btn_2 = st.columns( 2 )
-				
 				with svm_btn_1:
-					train_svm = st.button(
-						'🏃 Train Support Vector',
-						key='classification_svm_train',
-						use_container_width=True
-					)
+					train_svm = st.button( '🏃 Train Support Vector',
+						key='classification_svm_train', use_container_width=True )
 				
 				with svm_btn_2:
-					reset_svm = st.button(
-						'🔁 Reset Support Vector',
-						key='classification_svm_reset',
-						use_container_width=True
-					)
+					reset_svm = st.button( '🔁 Reset Support Vector',
+						key='classification_svm_reset', use_container_width=True )
 				
 				if reset_svm:
 					for key, value in svm_defaults.items( ):
@@ -6145,105 +5852,47 @@ elif mode == 'Classification Models':
 				if train_svm:
 					try:
 						start_time = time.perf_counter( )
+						model = classification_model.SupportVector( C=float( svm_c ),
+							kernel=str( svm_kernel ), degree=int( svm_degree ),
+							random=int( svm_random_state ) )
 						
-						model = classification_model.SupportVector(
-							C=float( svm_c ),
-							kernel=str( svm_kernel ),
-							degree=int( svm_degree ),
-							random=int( svm_random_state )
-						)
-						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( svm_test_size ),
-							random=int( svm_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( svm_test_size ), random=int( svm_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_svm_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+							} )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_svm_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_svm_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Support Vector training failed: {ex}' )
 		
 		with st.expander( 'Tree Models', expanded=True ):
 			
 			with st.expander( 'Decision Tree', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.DESICION_TREE_CLASSIFIER )
+				
 				tree_defaults = {
 						'classification_tree_criterion': 'gini',
 						'classification_tree_splitter': 'best',
@@ -6266,87 +5915,52 @@ elif mode == 'Classification Models':
 						'Criterion',
 						options=[ 'gini', 'entropy', 'log_loss' ],
 						index=[ 'gini', 'entropy', 'log_loss' ].index(
-							st.session_state[ 'classification_tree_criterion' ]
-						),
-						key='classification_tree_criterion'
-					)
+							st.session_state[ 'classification_tree_criterion' ] ),
+						key='classification_tree_criterion' )
 					
-					tree_splitter = st.selectbox(
-						'Splitter',
-						options=[ 'best', 'random' ],
+					tree_splitter = st.selectbox( 'Splitter', options=[ 'best', 'random' ],
 						index=[ 'best', 'random' ].index(
-							st.session_state[ 'classification_tree_splitter' ]
-						),
-						key='classification_tree_splitter'
-					)
+							st.session_state[ 'classification_tree_splitter' ] ),
+						key='classification_tree_splitter' )
 					
-					tree_depth = st.number_input(
-						'Max Depth (0 = None)',
-						min_value=0,
+					tree_depth = st.number_input( 'Max Depth (0 = None)', min_value=0,
 						value=int( st.session_state[ 'classification_tree_depth' ] ),
-						step=1,
-						key='classification_tree_depth'
-					)
+						step=1, key='classification_tree_depth' )
 				
 				with tree_c2:
 					st.markdown( '###### Node Constraints' )
-					tree_min_split = st.number_input(
-						'Min Samples Split',
-						min_value=2,
+					tree_min_split = st.number_input( 'Min Samples Split', min_value=2,
 						value=int( st.session_state[ 'classification_tree_min_split' ] ),
-						step=1,
-						key='classification_tree_min_split'
-					)
+						step=1, key='classification_tree_min_split' )
 					
-					tree_min_leaf = st.number_input(
-						'Min Samples Leaf',
-						min_value=1,
+					tree_min_leaf = st.number_input( 'Min Samples Leaf', min_value=1,
 						value=int( st.session_state[ 'classification_tree_min_leaf' ] ),
-						step=1,
-						key='classification_tree_min_leaf'
-					)
+						step=1, key='classification_tree_min_leaf' )
 					
-					tree_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
+					tree_test_size = st.slider( 'Test Set Size (%)',
+						min_value=10, max_value=30,
 						value=int( st.session_state[ 'classification_tree_test_size' ] ),
-						step=1,
-						key='classification_tree_test_size'
-					) / 100.0
+						step=1, key='classification_tree_test_size' ) / 100.0
 				
 				with tree_c3:
 					st.markdown( '###### Run Configuration' )
-					tree_random_state = st.number_input(
-						'Random State',
+					tree_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_tree_random_state' ] ),
-						step=1,
-						key='classification_tree_random_state'
-					)
+						step=1, key='classification_tree_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				tree_btn_1, tree_btn_2 = st.columns( 2 )
-				
 				with tree_btn_1:
-					train_tree = st.button(
-						'🏃 Train Decision Tree',
-						key='classification_tree_train',
-						use_container_width=True
-					)
+					train_tree = st.button( '🏃 Train Decision Tree',
+						key='classification_tree_train', use_container_width=True )
 				
 				with tree_btn_2:
-					reset_tree = st.button(
-						'🔁 Reset Decision Tree',
-						key='classification_tree_reset',
-						use_container_width=True
-					)
+					reset_tree = st.button( '🔁 Reset Decision Tree',
+						key='classification_tree_reset', use_container_width=True )
 				
 				if reset_tree:
 					for key, value in tree_defaults.items( ):
@@ -6361,105 +5975,44 @@ elif mode == 'Classification Models':
 				if train_tree:
 					try:
 						start_time = time.perf_counter( )
-						
-						model = classification_model.DecisionTree(
-							criterion=str( tree_criterion ),
+						model = classification_model.DecisionTree( criterion=str( tree_criterion ),
 							splitter=str( tree_splitter ),
 							depth=None if int( tree_depth ) == 0 else int( tree_depth ),
-							min_split=int( tree_min_split ),
-							min_leaf=int( tree_min_leaf ),
-							random=int( tree_random_state )
-						)
+							min_split=int( tree_min_split ), min_leaf=int( tree_min_leaf ),
+							random=int( tree_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( tree_test_size ),
-							random=int( tree_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( tree_test_size ), random=int( tree_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_tree_elapsed_seconds' ] = elapsed_seconds
 						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
-									'Actual': y_test,
-									'Predicted': y_prediction
-							}
-						)
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
 						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
+								'Actual': y_test,
+								'Predicted': y_prediction
+							} )
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_tree_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_tree_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Decision Tree training failed: {ex}' )
 				
 			with st.expander( 'Random Forest', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.RANDOM_FOREST_CLASSIFIER )
+				
 				forest_defaults = {
 						'classification_forest_estimators': 100,
 						'classification_forest_criterion': 'gini',
@@ -6475,92 +6028,56 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				forest_c1, forest_c2, forest_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with forest_c1:
 					st.markdown( '###### Forest Parameters' )
-					forest_estimators = st.number_input( 'Estimators',
-						min_value=1,
+					forest_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_forest_estimators' ] ),
-						step=1,
-						key='classification_forest_estimators'
-					)
+						step=1, key='classification_forest_estimators' )
 					
-					forest_criterion = st.selectbox(
-						'Criterion',
+					forest_criterion = st.selectbox( 'Criterion',
 						options=[ 'gini', 'entropy', 'log_loss' ],
 						index=[ 'gini', 'entropy', 'log_loss' ].index(
-							st.session_state[ 'classification_forest_criterion' ]
-						),
-						key='classification_forest_criterion'
-					)
+							st.session_state[ 'classification_forest_criterion' ] ),
+						key='classification_forest_criterion' )
 					
-					forest_depth = st.number_input(
-						'Max Depth (0 = None)',
-						min_value=0,
+					forest_depth = st.number_input( 'Max Depth (0 = None)', min_value=0,
 						value=int( st.session_state[ 'classification_forest_depth' ] ),
-						step=1,
-						key='classification_forest_depth'
-					)
+						step=1, key='classification_forest_depth' )
 				
 				with forest_c2:
 					st.markdown( '###### Node Constraints' )
-					forest_min_split = st.number_input(
-						'Min Samples Split',
-						min_value=2,
+					forest_min_split = st.number_input( 'Min Samples Split', min_value=2,
 						value=int( st.session_state[ 'classification_forest_min_split' ] ),
-						step=1,
-						key='classification_forest_min_split'
-					)
+						step=1, key='classification_forest_min_split' )
 					
-					forest_min_leaf = st.number_input(
-						'Min Samples Leaf',
-						min_value=1,
+					forest_min_leaf = st.number_input( 'Min Samples Leaf', min_value=1,
 						value=int( st.session_state[ 'classification_forest_min_leaf' ] ),
-						step=1,
-						key='classification_forest_min_leaf'
-					)
+						step=1, key='classification_forest_min_leaf' )
 					
-					forest_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
+					forest_test_size = st.slider( 'Test Set Size (%)', min_value=10,
 						max_value=30,
 						value=int( st.session_state[ 'classification_forest_test_size' ] ),
-						step=1,
-						key='classification_forest_test_size'
-					) / 100.0
+						step=1, key='classification_forest_test_size' ) / 100.0
 				
 				with forest_c3:
 					st.markdown( '###### Run Configuration' )
-					forest_random_state = st.number_input(
-						'Random State',
+					forest_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_forest_random_state' ] ),
-						step=1,
-						key='classification_forest_random_state'
-					)
+						step=1, key='classification_forest_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				forest_btn_1, forest_btn_2 = st.columns( 2 )
-				
 				with forest_btn_1:
-					train_forest = st.button(
-						'🏃 Train Random Forest',
-						key='classification_forest_train',
-						use_container_width=True
-					)
+					train_forest = st.button( '🏃 Train Random Forest',
+						key='classification_forest_train', use_container_width=True )
 				
 				with forest_btn_2:
-					reset_forest = st.button(
-						'🔁 Reset Random Forest',
-						key='classification_forest_reset',
-						use_container_width=True
-					)
+					reset_forest = st.button( '🔁 Reset Random Forest',
+						key='classification_forest_reset', use_container_width=True )
 				
 				if reset_forest:
 					for key, value in forest_defaults.items( ):
@@ -6575,107 +6092,45 @@ elif mode == 'Classification Models':
 				if train_forest:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.RandomForest(
-							n_estimators=int( forest_estimators ),
-							criterion=str( forest_criterion ),
+							n_estimators=int( forest_estimators ), criterion=str( forest_criterion ),
 							depth=None if int( forest_depth ) == 0 else int( forest_depth ),
-							min_split=int( forest_min_split ),
-							min_leaf=int( forest_min_leaf ),
-							random=int( forest_random_state )
-						)
+							min_split=int( forest_min_split ), min_leaf=int( forest_min_leaf ),
+							random=int( forest_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( forest_test_size ),
-							random=int( forest_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( forest_test_size ), random=int( forest_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_forest_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
-									'Actual': y_test,
-									'Predicted': y_prediction
-							}
-						)
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
 						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
+								'Actual': y_test,
+								'Predicted': y_prediction
+							} )
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3, borde=True )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_forest_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_forest_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Random Forest training failed: {ex}' )
 		
 		with st.expander( 'Ensemble Models', expanded=True ):
 			
 			with st.expander( 'Gradient Boost', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.GRADIENT_BOOST_CLASSIFIER )
+				
 				gb_defaults = {
 						'classification_gb_estimators': 100,
 						'classification_gb_rate': 0.100000,
@@ -6690,86 +6145,51 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				gb_c1, gb_c2, gb_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with gb_c1:
 					st.markdown( '###### Boosting Parameters' )
-					gb_estimators = st.number_input(
-						'Estimators',
-						min_value=1,
+					gb_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_gb_estimators' ] ),
-						step=1,
-						key='classification_gb_estimators'
-					)
+						step=1, key='classification_gb_estimators' )
 					
-					gb_rate = st.number_input(
-						'Learning Rate',
-						min_value=0.000001,
+					gb_rate = st.number_input( 'Learning Rate', min_value=0.000001,
 						value=float( st.session_state[ 'classification_gb_rate' ] ),
-						step=0.010000,
-						format='%.6f',
-						key='classification_gb_rate'
-					)
+						step=0.010000, format='%.6f', key='classification_gb_rate' )
 					
-					gb_depth = st.number_input(
-						'Max Depth',
-						min_value=1,
-						value=int( st.session_state[ 'classification_gb_depth' ] ),
-						step=1,
-						key='classification_gb_depth'
-					)
+					gb_depth = st.number_input( 'Max Depth', min_value=1,
+						value=int( st.session_state[ 'classification_gb_depth' ] ), step=1,
+						key='classification_gb_depth' )
 				
 				with gb_c2:
 					st.markdown( '###### Criterion / Split' )
-					gb_criterion = st.selectbox(
-						'Criterion',
+					gb_criterion = st.selectbox( 'Criterion',
 						options=[ 'friedman_mse', 'squared_error' ],
 						index=[ 'friedman_mse', 'squared_error' ].index(
-							st.session_state[ 'classification_gb_criterion' ]
-						),
-						key='classification_gb_criterion'
-					)
+							st.session_state[ 'classification_gb_criterion' ] ),
+						key='classification_gb_criterion' )
 					
-					gb_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_gb_test_size' ] ),
-						step=1,
-						key='classification_gb_test_size'
-					) / 100.0
+					gb_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_gb_test_size' ] ), step=1,
+						key='classification_gb_test_size' ) / 100.0
 				
 				with gb_c3:
 					st.markdown( '###### Run Configuration' )
-					gb_random_state = st.number_input(
-						'Random State',
+					gb_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_gb_random_state' ] ),
-						step=1,
-						key='classification_gb_random_state'
-					)
+						step=1, key='classification_gb_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				gb_btn_1, gb_btn_2 = st.columns( 2 )
-				
 				with gb_btn_1:
-					train_gb = st.button(
-						'🏃 Train Gradient Boost',
-						key='classification_gb_train',
-						use_container_width=True
-					)
+					train_gb = st.button( '🏃 Train Gradient Boost', key='classification_gb_train',
+						use_container_width=True )
 				
 				with gb_btn_2:
-					reset_gb = st.button(
-						'🔁 Reset Gradient Boost',
-						key='classification_gb_reset',
-						use_container_width=True
-					)
+					reset_gb = st.button( '🔁 Reset Gradient Boost', key='classification_gb_reset',
+						use_container_width=True )
 				
 				if reset_gb:
 					for key, value in gb_defaults.items( ):
@@ -6785,20 +6205,12 @@ elif mode == 'Classification Models':
 					try:
 						start_time = time.perf_counter( )
 						
-						model = classification_model.GradientBoost(
-							estimators=int( gb_estimators ),
-							rate=float( gb_rate ),
-							depth=int( gb_depth ),
-							criterion=str( gb_criterion ),
-							random=int( gb_random_state )
-						)
+						model = classification_model.GradientBoost( estimators=int( gb_estimators ),
+							rate=float( gb_rate ), depth=int( gb_depth ),
+							criterion=str( gb_criterion ), random=int( gb_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( gb_test_size ),
-							random=int( gb_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( gb_test_size ), random=int( gb_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
@@ -6807,81 +6219,33 @@ elif mode == 'Classification Models':
 						st.session_state[ 'classification_gb_elapsed_seconds' ] = elapsed_seconds
 						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+							} )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_gb_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_gb_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Gradient Boost training failed: {ex}' )
 					
 			with st.expander( 'Adaptive Boost', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.ADAPTIVE_BOOST_CLASSIFIER )
+				
 				ab_defaults = {
 						'classification_ab_estimators': 50,
 						'classification_ab_rate': 1.000000,
@@ -7031,55 +6395,13 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_ab_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_ab_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Adaptive Boost training failed: {ex}' )
 					
 			with st.expander( 'Bagging Model', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.BAGGING_CLASSIFIER )
+				
 				bag_defaults = {
 						'classification_bag_estimators': 50,
 						'classification_bag_test_size': 20,
@@ -7206,54 +6528,13 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_bag_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_bag_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Bagging Model training failed: {ex}' )
 					
 			with st.expander( 'Voting Model', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.VOTING_CLASSFIER )
+				
 				vote_defaults = {
 						'classification_vote_mode': 'hard',
 						'classification_vote_include_logistic': True,
@@ -7270,51 +6551,36 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				vote_c1, vote_c2, vote_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with vote_c1:
 					st.markdown( '###### Voting Strategy' )
-					vote_mode = st.selectbox(
-						'Vote',
-						options=[ 'hard', 'soft' ],
+					vote_mode = st.selectbox( 'Vote', options=[ 'hard', 'soft' ],
 						index=[ 'hard', 'soft' ].index(
-							st.session_state[ 'classification_vote_mode' ]
-						),
-						key='classification_vote_mode'
-					)
+							st.session_state[ 'classification_vote_mode' ] ),
+						key='classification_vote_mode' )
 					
 					st.caption( 'Select at least two base estimators.' )
 				
 				with vote_c2:
 					st.markdown( '###### Base Estimators' )
-					vote_include_logistic = st.checkbox(
-						'Logistic Regression',
+					vote_include_logistic = st.checkbox( 'Logistic Regression',
 						value=bool( st.session_state[ 'classification_vote_include_logistic' ] ),
-						key='classification_vote_include_logistic'
-					)
+						key='classification_vote_include_logistic' )
 					
-					vote_include_tree = st.checkbox(
-						'Decision Tree',
+					vote_include_tree = st.checkbox( 'Decision Tree',
 						value=bool( st.session_state[ 'classification_vote_include_tree' ] ),
-						key='classification_vote_include_tree'
-					)
+						key='classification_vote_include_tree' )
 					
-					vote_include_knn = st.checkbox(
-						'k-Nearest Neighbors',
+					vote_include_knn = st.checkbox( 'k-Nearest Neighbors',
 						value=bool( st.session_state[ 'classification_vote_include_knn' ] ),
-						key='classification_vote_include_knn'
-					)
+						key='classification_vote_include_knn' )
 					
-					vote_include_forest = st.checkbox(
-						'Random Forest',
+					vote_include_forest = st.checkbox( 'Random Forest',
 						value=bool( st.session_state[ 'classification_vote_include_forest' ] ),
-						key='classification_vote_include_forest'
-					)
+						key='classification_vote_include_forest' )
 					
-					vote_include_nb = st.checkbox(
-						'Gaussian Naive Bayes',
+					vote_include_nb = st.checkbox( 'Gaussian Naive Bayes',
 						value=bool( st.session_state[ 'classification_vote_include_nb' ] ),
-						key='classification_vote_include_nb'
-					)
+						key='classification_vote_include_nb' )
 				
 				with vote_c3:
 					st.markdown( '###### Run Configuration' )
@@ -7481,54 +6747,13 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_vote_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_vote_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'Voting Model training failed: {ex}' )
 					
 			with st.expander( 'Stacking Model', expanded=False ):
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.STACKING_CLASSIFIER )
+				
 				stack_defaults = {
 						'classification_stack_include_logistic': True,
 						'classification_stack_include_tree': True,
@@ -7548,90 +6773,61 @@ elif mode == 'Classification Models':
 				
 				with stack_c1:
 					st.markdown( '###### Final Estimator' )
-					stack_final = st.selectbox(
-						'Final Estimator',
-						options=[ 'logistic', 'tree' ],
+					stack_final = st.selectbox( 'Final Estimator', options=[ 'logistic', 'tree' ],
 						index=[ 'logistic', 'tree' ].index(
-							st.session_state[ 'classification_stack_final' ]
-						),
-						key='classification_stack_final'
-					)
+							st.session_state[ 'classification_stack_final' ] ),
+						key='classification_stack_final' )
 					
 					st.caption( 'Select at least two base estimators.' )
 				
 				with stack_c2:
 					st.markdown( '###### Base Estimators' )
-					stack_include_logistic = st.checkbox(
-						'Logistic Regression',
+					stack_include_logistic = st.checkbox( 'Logistic Regression',
 						value=bool( st.session_state[ 'classification_stack_include_logistic' ] ),
-						key='classification_stack_include_logistic'
-					)
+						key='classification_stack_include_logistic' )
 					
-					stack_include_tree = st.checkbox(
-						'Decision Tree',
+					stack_include_tree = st.checkbox( 'Decision Tree',
 						value=bool( st.session_state[ 'classification_stack_include_tree' ] ),
-						key='classification_stack_include_tree'
-					)
+						key='classification_stack_include_tree' )
 					
-					stack_include_knn = st.checkbox(
-						'k-Nearest Neighbors',
+					stack_include_knn = st.checkbox( 'k-Nearest Neighbors',
 						value=bool( st.session_state[ 'classification_stack_include_knn' ] ),
-						key='classification_stack_include_knn'
-					)
+						key='classification_stack_include_knn' )
 					
-					stack_include_forest = st.checkbox(
-						'Random Forest',
+					stack_include_forest = st.checkbox( 'Random Forest',
 						value=bool( st.session_state[ 'classification_stack_include_forest' ] ),
-						key='classification_stack_include_forest'
-					)
+						key='classification_stack_include_forest' )
 					
-					stack_include_nb = st.checkbox(
-						'Gaussian Naive Bayes',
+					stack_include_nb = st.checkbox( 'Gaussian Naive Bayes',
 						value=bool( st.session_state[ 'classification_stack_include_nb' ] ),
-						key='classification_stack_include_nb'
-					)
+						key='classification_stack_include_nb' )
 				
 				with stack_c3:
 					st.markdown( '###### Run Configuration' )
-					stack_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
+					stack_test_size = st.slider( 'Test Set Size (%)', min_value=10,
 						max_value=30,
-						value=int( st.session_state[ 'classification_stack_test_size' ] ),
-						step=1,
-						key='classification_stack_test_size'
-					) / 100.0
+						value=int( st.session_state[ 'classification_stack_test_size' ] ), step=1,
+						key='classification_stack_test_size' ) / 100.0
 					
-					stack_random_state = st.number_input(
-						'Random State',
+					stack_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_stack_random_state' ] ),
-						step=1,
-						key='classification_stack_random_state'
-					)
+						step=1, key='classification_stack_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
+					st.caption( f'Rows: {len( df_model ):,} | '
 						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				stack_btn_1, stack_btn_2 = st.columns( 2 )
-				
 				with stack_btn_1:
-					train_stack = st.button(
-						'🏃 Train Stacking Model',
-						key='classification_stack_train',
-						use_container_width=True
-					)
+					train_stack = st.button( '🏃 Train Stacking Model',
+						key='classification_stack_train', use_container_width=True )
 				
 				with stack_btn_2:
-					reset_stack = st.button(
-						'🔁 Reset Stacking Model',
+					reset_stack = st.button( '🔁 Reset Stacking Model',
 						key='classification_stack_reset',
-						use_container_width=True
-					)
+						use_container_width=True )
 				
 				if reset_stack:
 					for key, value in stack_defaults.items( ):
@@ -7649,42 +6845,19 @@ elif mode == 'Classification Models':
 						
 						if stack_include_logistic:
 							estimators.append(
-								(
-										'logistic',
-										LogisticRegression(
-											max_iter=1000,
-											random_state=int( stack_random_state )
-										)
-								)
-							)
+								( 'logistic', LogisticRegression( max_iter=1000,
+											random_state=int( stack_random_state ) ) ) )
 						
 						if stack_include_tree:
-							estimators.append(
-								(
-										'tree',
-										DecisionTreeClassifier(
-											random_state=int( stack_random_state )
-										)
-								)
-							)
+							estimators.append( 'tree', DecisionTreeClassifier(
+								random_state=int( stack_random_state ) ) )
 						
 						if stack_include_knn:
-							estimators.append(
-								(
-										'knn',
-										KNeighborsClassifier( )
-								)
-							)
+							estimators.append( ( 'knn', KNeighborsClassifier( ) ) )
 						
 						if stack_include_forest:
-							estimators.append(
-								(
-										'forest',
-										RandomForestClassifier(
-											random_state=int( stack_random_state )
-										)
-								)
-							)
+							estimators.append( ( 'forest', RandomForestClassifier(
+								random_state=int( stack_random_state ) ) ) )
 						
 						if stack_include_nb:
 							estimators.append(
@@ -7699,116 +6872,48 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						if stack_final == 'logistic':
-							final_estimator = LogisticRegression(
-								max_iter=1000,
-								random_state=int( stack_random_state )
-							)
+							final_estimator = LogisticRegression( max_iter=1000,
+								random_state=int( stack_random_state ) )
 						else:
 							final_estimator = DecisionTreeClassifier(
-								random_state=int( stack_random_state )
-							)
+								random_state=int( stack_random_state ) )
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.StackingModel(
-							est=estimators,
-							final=final_estimator
-						)
+						model = classification_model.StackingModel( est=estimators,
+							final=final_estimator )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( stack_test_size ),
-							random=int( stack_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( stack_test_size ), random=int( stack_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_stack_elapsed_seconds' ] = elapsed_seconds
 						
 						df_scores = model.score( X_test, y_test ).copy( )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Estimator Count',
+							int( len( estimators ) ) )
+						
 						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Estimator Count',
-							int( len( estimators ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Final Estimator',
-							str( stack_final )
-						)
+							len( df_scores.columns ), 'Final Estimator', str( stack_final ) )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': y_test,
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': y_test, 'Predicted': y_prediction } )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric(
-								'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}"
-							)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='classification_stack_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='classification_stack_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
 					
 					except Exception as ex:
 						st.error( f'Stacking Model training failed: {ex}' )
@@ -7832,23 +6937,15 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				mlp_c1, mlp_c2, mlp_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with mlp_c1:
 					st.markdown( '###### Network Structure' )
-					mlp_hidden_1 = st.number_input(
-						'Hidden Layer 1',
-						min_value=1,
+					mlp_hidden_1 = st.number_input( 'Hidden Layer 1', min_value=1,
 						value=int( st.session_state[ 'classification_mlp_hidden_1' ] ),
-						step=1,
-						key='classification_mlp_hidden_1'
-					)
+						step=1, key='classification_mlp_hidden_1' )
 					
-					mlp_hidden_2 = st.number_input(
-						'Hidden Layer 2 (0 = none)',
-						min_value=0,
+					mlp_hidden_2 = st.number_input( 'Hidden Layer 2 (0 = none)', min_value=0,
 						value=int( st.session_state[ 'classification_mlp_hidden_2' ] ),
-						step=1,
-						key='classification_mlp_hidden_2' )
+						step=1, key='classification_mlp_hidden_2' )
 					
 					mlp_activation = st.selectbox( 'Activation',
 						options=[ 'identity', 'logistic', 'tanh', 'relu' ],
@@ -7858,32 +6955,21 @@ elif mode == 'Classification Models':
 				
 				with mlp_c2:
 					st.markdown( '###### Optimization' )
-					mlp_solver = st.selectbox(
-						'Solver',
-						options=[ 'lbfgs', 'sgd', 'adam' ],
+					mlp_solver = st.selectbox( 'Solver', options=[ 'lbfgs', 'sgd', 'adam' ],
 						index=[ 'lbfgs', 'sgd', 'adam' ].index(
-							st.session_state[ 'classification_mlp_solver' ]
-						),
-						key='classification_mlp_solver'
-					)
+							st.session_state[ 'classification_mlp_solver' ] ),
+						key='classification_mlp_solver' )
 					
-					mlp_alpha = st.number_input(
-						'Alpha',
-						min_value=0.000001,
+					mlp_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_mlp_alpha' ] ),
-						step=0.000100,
-						format='%.6f',
-						key='classification_mlp_alpha'
-					)
+						step=0.000100, format='%.6f', key='classification_mlp_alpha' )
 					
-					mlp_learning = st.selectbox(
-						'Learning Rate Schedule',
+					mlp_learning = st.selectbox( 'Learning Rate Schedule',
 						options=[ 'constant', 'invscaling', 'adaptive' ],
 						index=[ 'constant', 'invscaling', 'adaptive' ].index(
 							st.session_state[ 'classification_mlp_learning' ]
 						),
-						key='classification_mlp_learning'
-					)
+						key='classification_mlp_learning' )
 					
 					mlp_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
 						value=int( st.session_state[ 'classification_mlp_test_size' ] ),
@@ -7901,9 +6987,8 @@ elif mode == 'Classification Models':
 					st.caption( f'Target: {target_name}' )
 				
 				mlp_btn_1, mlp_btn_2 = st.columns( 2 )
-				
 				with mlp_btn_1:
-					train_mlp = st.button( '🏃 Train MultiLayerPerceptron',
+					train_mlp = st.button( '🏃 Train Multi-Layer Perceptron',
 						key='classification_mlp_train', use_container_width=True )
 				
 				with mlp_btn_2:
@@ -7944,171 +7029,183 @@ elif mode == 'Classification Models':
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'classification_mlp_elapsed_seconds' ] = elapsed_seconds
 						
-						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Hidden Layers',
-							str( hidden_layers )
-						)
+						df_scores = model.score( X_test, y_test ).copy( )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Hidden Layers',
+							str( hidden_layers ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
+							} )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.4f}" )
-						with m2:
-							st.metric( 'Mis-Classifications',
-								f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor( df_scores, use_container_width=True,
-							key='classification_mlp_scores' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor( df_predictions, use_container_width=True,
-							key='classification_mlp_predictions' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Confusion Matrix' )
-						plt.close( 'all' )
-						model.confusion_matrix( X_test, y_test )
-						fig_cm = plt.gcf( )
-						fig_cm.set_size_inches( 9, 7 )
-						
-						for ax_cm in fig_cm.axes:
-							ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-							ax_cm.tick_params( axis='y', labelsize=8 )
-							for label in ax_cm.get_xticklabels( ):
-								label.set_ha( 'right' )
-						
-						fig_cm.tight_layout( )
-						st.pyplot( fig_cm, use_container_width=True )
-					
 					except Exception as ex:
 						st.error( f'MultiLayerPerceptron training failed: {ex}' )
-		
+						
 		# ------------------------------------------------------------------
 		# Performance Metrics & Visualizations
-		# ------------------------------------------------------------------				
+		# ------------------------------------------------------------------
+		target_count = int( st.session_state.get( 'target_count', 0 ) )
+		
+		has_metric_frame = ( isinstance( df_scores, pd.DataFrame )
+				and not df_scores.empty
+				and 'Accuracy Score' in df_scores.columns
+				and 'Mis-Classifications' in df_scores.columns )
+		
+		has_prediction_frame = ( isinstance( df_predictions, pd.DataFrame )
+				and not df_predictions.empty
+				and 'Actual' in df_predictions.columns
+				and 'Predicted' in df_predictions.columns )
+		
+		has_visual_context = ( model is not None
+				and X_test is not None
+				and y_test is not None
+				and y_prediction is not None )
+		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Performance' )
 		
-		m1, m2, m3 = st.columns( 3, border=True )
-		with m1:
-			st.metric( 'Accuracy',
-				f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.2f}" )
-		
-		with m2:
-			st.metric( 'Mis-Classifications',
-				f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
-		
-		with m3:
-			st.metric( 'Processing Time', f'{elapsed_seconds:0.2f} sec' )
-		
-		st.data_editor( df_scores, use_container_width=True,
-			key='classification_perceptron_scores' )
+		if has_metric_frame:
+			m1, m2, m3 = st.columns( 3, border=True )
+			with m1:
+				st.metric( 'Accuracy', f"{float( df_scores.at[ 0, 'Accuracy Score' ] ):0.2f}" )
+			
+			with m2:
+				st.metric( 'Mis-Classifications',
+					f"{int( df_scores.at[ 0, 'Mis-Classifications' ] ):,}" )
+			
+			with m3:
+				st.metric( 'Processing Time', f'{elapsed_seconds:0.2f} sec' )
+			
+			st.data_editor( df_scores, use_container_width=True,
+				key='classification_performance_scores' )
+		else:
+			st.info( 'No classification performance metrics are available yet. '
+				'Train a classification model to populate this section.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Predictions' )
-		st.data_editor( df_predictions, use_container_width=True,
-			key='classification_perceptron_predictions' )
+		
+		if has_prediction_frame:
+			st.data_editor( df_predictions, use_container_width=True,
+				key='classification_performance_predictions' )
+		else:
+			st.info( 'No predictions are available for the current classification result.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Confusion Matrix' )
-		plt.close( 'all' )
-		model.confusion_matrix( X_test, y_test )
-		fig_cm = plt.gcf( )
-		fig_cm.set_size_inches( 9, 7 )
+		st.markdown( '##### Confusion Matrix', help=cfg.CONFUSION_MATRIX )
 		
-		for ax_cm in fig_cm.axes:
-			ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-			ax_cm.tick_params( axis='y', labelsize=8 )
-			for label in ax_cm.get_xticklabels( ):
-				label.set_ha( 'right' )
-		
-		fig_cm.tight_layout( )
-		st.pyplot( fig_cm, use_container_width=True )
+		if has_visual_context:
+			try:
+				plt.close( 'all' )
+				model.confusion_matrix( X_test, y_test )
+				fig_cm = plt.gcf( )
+				fig_cm.set_size_inches( 6, 4 )
+				
+				for ax_cm in fig_cm.axes:
+					ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
+					ax_cm.tick_params( axis='y', labelsize=8 )
+					for label in ax_cm.get_xticklabels( ):
+						label.set_ha( 'right' )
+				
+				fig_cm.tight_layout( )
+				st.pyplot( fig_cm, use_container_width=True )
+				plt.close( fig_cm )
+			except Exception as e:
+				st.info( f'Confusion Matrix skipped: {e}' )
+				plt.close( 'all' )
+		else:
+			st.info( 'Confusion Matrix is unavailable until a classification model is trained.' )
 		
 		# ------------------------------------------------------------------
 		# ACTUAL VS PREDICTED CLASS COUNTS
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Actual vs Predicted Counts' )
-		actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
-		pred_counts = pd.Series( y_prediction ).value_counts( ).sort_index( )
-		df_counts = pd.DataFrame( { 'Actual': actual_counts, 'Predicted': pred_counts } ).fillna( 0 )
 		
-		fig_counts, ax_counts = plt.subplots( figsize=(8, 5) )
-		df_counts.plot( kind='bar', ax=ax_counts )
-		ax_counts.set_xlabel( 'Class' )
-		ax_counts.set_ylabel( 'Count' )
-		ax_counts.set_title( 'Actual vs Predicted Class Counts' )
-		ax_counts.grid( axis='y', alpha=0.3 )
-		fig_counts.tight_layout( )
-		st.pyplot( fig_counts )
-		plt.close( fig_counts )
+		if has_visual_context:
+			try:
+				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
+				pred_counts = pd.Series( y_prediction ).value_counts( ).sort_index( )
+				df_counts = pd.DataFrame( {
+							'Actual': actual_counts,
+							'Predicted': pred_counts
+					} ).fillna( 0 )
+				
+				fig_counts, ax_counts = plt.subplots( figsize=(6, 4) )
+				df_counts.plot( kind='bar', ax=ax_counts )
+				ax_counts.set_xlabel( 'Class' )
+				ax_counts.set_ylabel( 'Count' )
+				ax_counts.set_title( 'Actual vs Predicted Class Counts' )
+				ax_counts.grid( axis='y', alpha=0.3 )
+				fig_counts.tight_layout( )
+				st.pyplot( fig_counts )
+				plt.close( fig_counts )
+			except Exception as e:
+				st.info( f'Actual vs Predicted Counts skipped: {e}' )
+				plt.close( 'all' )
+		else:
+			st.info( 'Actual vs Predicted Counts are unavailable until a model is trained.' )
 		
 		# ------------------------------------------------------------------
 		# PER-CLASS ACCURACY
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.markdown( '##### Per-Class Accuracy' )
-		df_evaluation = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_prediction } )
-		df_evaluation[ 'Correct' ] = (df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
-		df_class_acc = df_evaluation.groupby(
-			'Actual', dropna=False )[ 'Correct' ].mean( ).sort_index( )
+		st.markdown( '##### Per-Class Accuracy', help=cfg.PERCLASS_ACCURACY )
 		
-		fig_acc, ax_acc = plt.subplots( figsize=(8, 5) )
-		ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
-		ax_acc.set_xlabel( 'Class' )
-		ax_acc.set_ylabel( 'Accuracy' )
-		ax_acc.set_ylim( 0.0, 1.05 )
-		ax_acc.set_title( 'Per-Class Accuracy' )
-		ax_acc.grid( axis='y', alpha=0.3 )
-		fig_acc.tight_layout( )
-		st.pyplot( fig_acc )
-		plt.close( fig_acc )
+		if has_visual_context:
+			try:
+				df_evaluation = pd.DataFrame( {
+							'Actual': y_test,
+							'Predicted': y_prediction
+					} )
+				df_evaluation[ 'Correct' ] = (
+						df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ] ).astype( int )
+				
+				df_class_acc = df_evaluation.groupby( 'Actual',
+					dropna=False )[ 'Correct' ].mean( ).sort_index( )
+				
+				fig_acc, ax_acc = plt.subplots( figsize=(6, 4) )
+				ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
+				ax_acc.set_xlabel( 'Class' )
+				ax_acc.set_ylabel( 'Accuracy' )
+				ax_acc.set_ylim( 0.0, 1.05 )
+				ax_acc.set_title( 'Per-Class Accuracy' )
+				ax_acc.grid( axis='y', alpha=0.3 )
+				fig_acc.tight_layout( )
+				st.pyplot( fig_acc )
+				plt.close( fig_acc )
+			except Exception as e:
+				st.info( f'Per-Class Accuracy skipped: {e}' )
+				plt.close( 'all' )
+		else:
+			st.info( 'Per-Class Accuracy is unavailable until a model is trained.' )
 		
 		# ------------------------------------------------------------------
 		# PREDICTION CONFIDENCE
 		# ------------------------------------------------------------------
-		if hasattr( model, 'predict_probability' ):
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		st.markdown( '##### Prediction Confidence', help=cfg.PREDICTION_CONFIDENCE )
+		
+		if has_visual_context and hasattr( model, 'predict_probability' ):
 			try:
 				proba = model.predict_probability( X_test )
-				if isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[
-					1 ] > 1:
-					st.subheader( 'Prediction Confidence' )
+				if ( isinstance( proba, np.ndarray ) and proba.ndim == 2
+						and proba.shape[ 1 ] > 1 ):
 					max_conf = np.max( proba, axis=1 )
-					fig_conf, ax_conf = plt.subplots( figsize=(8, 5) )
+					fig_conf, ax_conf = plt.subplots( figsize=(6, 4) )
 					ax_conf.hist( max_conf, bins=20 )
 					ax_conf.set_xlabel( 'Maximum Predicted Probability' )
 					ax_conf.set_ylabel( 'Frequency' )
@@ -8117,15 +7214,19 @@ elif mode == 'Classification Models':
 					fig_conf.tight_layout( )
 					st.pyplot( fig_conf )
 					plt.close( fig_conf )
-			except Exception:
-				pass
+			except Exception as e:
+				st.info( f'Prediction Confidence skipped: {e}' )
+				plt.close( 'all' )
+		else:
+			st.info( 'Prediction Confidence is unavailable until a model is trained.' )
 		
 		# ------------------------------------------------------------------
 		# OBSERVED VS PREDICTED
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Observed vs Predicted' )
-		if target_count <= 2 and hasattr( model, 'scatter_plot' ):
+		
+		if has_visual_context and target_count == 2 and hasattr( model, 'scatter_plot' ):
 			try:
 				plt.close( 'all' )
 				model.scatter_plot( X_test, y_test )
@@ -8135,14 +7236,15 @@ elif mode == 'Classification Models':
 				st.info( f'Observed vs Predicted plot skipped: {e}' )
 				plt.close( 'all' )
 		else:
-			st.info( 'Observed vs Predicted is shown only when the target has < 2 classes.' )
+			st.info( 'Observed vs Predicted is shown only for binary classification targets.' )
 		
 		# ------------------------------------------------------------------
 		# ROC CURVE
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		st.subheader( 'ROC Curve' )
-		if target_count == 2 and hasattr( model, 'roc_curve' ):
+		st.markdown( '##### ROC Curve', help=cfg.ROC_CURVE )
+		
+		if has_visual_context and target_count == 2 and hasattr( model, 'roc_curve' ):
 			try:
 				plt.close( 'all' )
 				model.roc_curve( X_test, y_test )
@@ -8153,7 +7255,6 @@ elif mode == 'Classification Models':
 				plt.close( 'all' )
 		else:
 			st.info( 'ROC curve is available only for binary classification targets.' )
-
 
 # ============================================
 # REGRESSION MODE
@@ -8174,18 +7275,18 @@ elif mode == 'Regression Models':
 		st.subheader( cfg.MODE[ 'Regression Models' ] )
 		st.caption( 'Predictive Models for Continuous-Values' )
 		st.divider( )
-		
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
-		st.session_state[ 'df_original' ] = df_original.copy( )
+		st.session_state[ 'df_original' ] = df_original
 		numeric_columns = [ c for c in df_original.columns
 		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
 		
 		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
-		
+		st.session_state[ 'categorical_columns' ] = categorical_columns
+		st.session_state[ 'numeric_columns' ] = numeric_columns
 		if not numeric_columns or not categorical_columns:
 			st.warning( '⚠️ Regression requires numeric targets and a categorical features.' )
 			st.stop( )
@@ -9453,7 +8554,6 @@ elif mode == 'Regression Models':
 				st.caption( 'Linear regression for continuous targets.' )
 				
 				ols_c1, ols_c2, ols_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with ols_c1:
 					st.markdown( '###### Data Split' )
 					ols_test_size = st.slider(
@@ -9465,74 +8565,42 @@ elif mode == 'Regression Models':
 						key='regression_ols_test_size_slider'
 					) / 100.0
 					
-					ols_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
+					ols_random_state = int( st.number_input( 'Random State', min_value=0,
 							value=int( st.session_state[ 'regression_ols_random_state' ] ),
-							step=1,
-							key='regression_ols_random_state_input'
-						)
-					)
+							step=1, key='regression_ols_random_state_input' ) )
 				
 				with ols_c2:
 					st.markdown( '###### Model Parameters' )
-					ols_fit_intercept = st.checkbox(
-						'Fit Intercept',
+					ols_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_ols_fit_intercept' ] ),
-						key='regression_ols_fit_intercept_check'
-					)
+						key='regression_ols_fit_intercept_check' )
 					
-					ols_copy_x = st.checkbox(
-						'Copy X',
+					ols_copy_x = st.checkbox( 'Copy X',
 						value=bool( st.session_state[ 'regression_ols_copy_x' ] ),
-						key='regression_ols_copy_x_check'
-					)
+						key='regression_ols_copy_x_check' )
 					
-					ols_positive = st.checkbox(
-						'Positive Coefficients',
+					ols_positive = st.checkbox( 'Positive Coefficients',
 						value=bool( st.session_state[ 'regression_ols_positive' ] ),
-						key='regression_ols_positive_check'
-					)
+						key='regression_ols_positive_check' )
 				
 				with ols_c3:
 					st.markdown( '###### Solver Settings' )
-					ols_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
+					ols_tol = float( st.number_input( 'Tolerance', min_value=0.0,
 							value=float( st.session_state[ 'regression_ols_tol' ] ),
-							step=0.000001,
-							format='%.6f',
-							key='regression_ols_tol_input'
-						)
-					)
+							step=0.000001, format='%.6f', key='regression_ols_tol_input' ) )
 					
-					ols_n_jobs = int(
-						st.number_input(
-							'Parallel Jobs',
-							min_value=1,
+					ols_n_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
 							value=int( st.session_state[ 'regression_ols_n_jobs' ] ),
-							step=1,
-							key='regression_ols_n_jobs_input'
-						)
-					)
+							step=1, key='regression_ols_n_jobs_input' ) )
 				
 				ols_btn_1, ols_btn_2 = st.columns( 2 )
-				
 				with ols_btn_1:
-					train_ols = st.button(
-						'🏃 Train Ordinary Least Squares',
-						key='regression_ols_train',
-						use_container_width=True
-					)
+					train_ols = st.button( '🏃 Train Ordinary Least Squares',
+						key='regression_ols_train', use_container_width=True )
 				
 				with ols_btn_2:
-					reset_ols = st.button(
-						'🔄 Reset Ordinary Least Squares',
-						key='regression_ols_reset',
-						use_container_width=True
-					)
+					reset_ols = st.button( '🔄 Reset Ordinary Least Squares',
+						key='regression_ols_reset', use_container_width=True )
 				
 				if reset_ols:
 					for key, value in ols_defaults.items( ):
@@ -9555,16 +8623,12 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_ols_positive' ] = bool( ols_positive )
 						
 						df_training = df_model.copy( )
-						
 						X = df_training[ active_features ].apply(
-							pd.to_numeric,
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( )
+							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
 						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+							df_training[ target_name ], errors='coerce' ).fillna(
+							0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( np.unique( y ) ) < 2:
 							st.warning(
@@ -9574,94 +8638,34 @@ elif mode == 'Regression Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.LeastSquares(
-							fit=bool( ols_fit_intercept ),
-							copy=bool( ols_copy_x ),
-							tol=float( ols_tol ),
-							jobs=int( ols_n_jobs ),
-							positive=bool( ols_positive )
-						)
+						model = regression_model.LeastSquares( fit=bool( ols_fit_intercept ),
+							copy=bool( ols_copy_x ), tol=float( ols_tol ), jobs=int( ols_n_jobs ),
+							positive=bool( ols_positive ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( ols_test_size ),
-							random=int( ols_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( ols_test_size ), random=int( ols_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_ols_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
+							} )
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							if 'R-Squared Score' in df_scores.columns:
-								st.metric(
-									'R² Score',
-									f"{float( df_scores.at[ 0, 'R-Squared Score' ] ):0.4f}"
-								)
-						with m2:
-							if 'Root Mean Squared Error' in df_scores.columns:
-								st.metric(
-									'RMSE',
-									f"{float( df_scores.at[ 0, 'Root Mean Squared Error' ] ):0.4f}"
-								)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_ols_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_ols_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						model.scatter_plot( X_test, y_test )
-						st.pyplot( plt.gcf( ) )
-						plt.close( )
-					
 					except Exception as e:
 						st.error( f'Error training Ordinary Least Squares: {e}' )
 					
@@ -9688,34 +8692,22 @@ elif mode == 'Regression Models':
 				with ridge_c1:
 					st.markdown( '###### Model Parameters' )
 					
-					ridge_alpha = float(
-						st.number_input(
-							'Alpha',
-							min_value=0.000001,
-							value=float( st.session_state[ 'regression_ridge_alpha' ] ),
-							step=0.100000,
-							format='%.6f',
-							key='regression_ridge_alpha_input'
-						)
-					)
+					ridge_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
+						value=float( st.session_state[ 'regression_ridge_alpha' ] ),
+						step=0.100000, format='%.6f', key='regression_ridge_alpha_input' ) )
 					
-					ridge_fit_intercept = st.checkbox(
-						'Fit Intercept',
+					ridge_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_ridge_fit_intercept' ] ),
-						key='regression_ridge_fit_intercept_check'
-					)
+						key='regression_ridge_fit_intercept_check' )
 					
-					ridge_copy_x = st.checkbox(
-						'Copy X',
+					ridge_copy_x = st.checkbox( 'Copy X',
 						value=bool( st.session_state[ 'regression_ridge_copy_x' ] ),
-						key='regression_ridge_copy_x_check'
-					)
+						key='regression_ridge_copy_x_check' )
 				
 				with ridge_c2:
 					st.markdown( '###### Solver / Iteration' )
 					
-					ridge_solver = st.selectbox(
-						'Solver',
+					ridge_solver = st.selectbox( 'Solver',
 						options=[
 								'auto',
 								'svd',
@@ -9736,35 +8728,19 @@ elif mode == 'Regression Models':
 								'saga',
 								'lbfgs'
 						].index( st.session_state[ 'regression_ridge_solver' ] ),
-						key='regression_ridge_solver_select'
-					)
+						key='regression_ridge_solver_select' )
 					
-					ridge_max_iter_raw = int(
-						st.number_input(
-							'Max Iterations (0 = Auto)',
-							min_value=0,
+					ridge_max_iter_raw = int( st.number_input( 'Max Iterations (0 = Auto)', min_value=0,
 							value=int( st.session_state[ 'regression_ridge_max_iter' ] ),
-							step=1,
-							key='regression_ridge_max_iter_input'
-						)
-					)
+							step=1, key='regression_ridge_max_iter_input' ) )
 					
-					ridge_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
+					ridge_tol = float( st.number_input( 'Tolerance', min_value=0.0,
 							value=float( st.session_state[ 'regression_ridge_tol' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_ridge_tol_input'
-						)
-					)
+							step=0.000100, format='%.6f', key='regression_ridge_tol_input' ) )
 					
-					ridge_positive = st.checkbox(
-						'Positive Coefficients',
+					ridge_positive = st.checkbox( 'Positive Coefficients',
 						value=bool( st.session_state[ 'regression_ridge_positive' ] ),
-						key='regression_ridge_positive_check'
-					)
+						key='regression_ridge_positive_check' )
 					
 					if ridge_positive and ridge_solver != 'lbfgs':
 						st.info( "Positive coefficients require the 'lbfgs' solver." )
@@ -9772,35 +8748,21 @@ elif mode == 'Regression Models':
 				with ridge_c3:
 					st.markdown( '###### Data Split' )
 					
-					ridge_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
+					ridge_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
 						value=int( st.session_state[ 'regression_ridge_test_size' ] * 100 ),
-						step=5,
-						key='regression_ridge_test_size_slider'
-					) / 100.0
+						step=5, key='regression_ridge_test_size_slider' ) / 100.0
 					
-					ridge_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
+					ridge_random_state = int( st.number_input( 'Random State', min_value=0,
 							value=int( st.session_state[ 'regression_ridge_random_state' ] ),
-							step=1,
-							key='regression_ridge_random_state_input'
-						)
-					)
+							step=1, key='regression_ridge_random_state_input' ) )
 				
 				ridge_btn_1, ridge_btn_2 = st.columns( 2 )
 				with ridge_btn_1: train_ridge = st.button( '🏃 Train Ridge Regression',
 					key='regression_ridge_train', use_container_width=True )
 				
 				with ridge_btn_2:
-					reset_ridge = st.button(
-						'🔄 Reset Ridge Regression',
-						key='regression_ridge_reset',
-						use_container_width=True
-					)
+					reset_ridge = st.button( '🔄 Reset Ridge Regression', key='regression_ridge_reset',
+						use_container_width=True )
 				
 				if reset_ridge:
 					for key, value in ridge_defaults.items( ):
@@ -9826,26 +8788,23 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_ridge_random_state' ] = int( ridge_random_state )
 						
 						df_training = df_model.copy( )
-						
 						X = df_training[ active_features ].apply(
 							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
-						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+						y = pd.to_numeric( df_training[ target_name ],
+							errors='coerce' ).fillna( 0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( np.unique( y ) ) < 2:
-							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+							m = ('⚠️ The selected numeric target must contain at '
+							     'least two distinct values.')
+							
+							st.warning( m )
 							st.stop( )
 						
 						effective_solver = 'lbfgs' if ridge_positive else ridge_solver
 						effective_max_iter = None if ridge_max_iter_raw == 0 else int( ridge_max_iter_raw )
 						
 						start_time = time.perf_counter( )
-						
 						model = regression_model.Ridge( alpha=float( ridge_alpha ),
 							fit=bool( ridge_fit_intercept ), copy=bool( ridge_copy_x ),
 							iters=effective_max_iter, tol=float( ridge_tol ),
@@ -9862,7 +8821,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_ridge_elapsed_seconds' ] = elapsed_seconds
 						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						
 						if df_scores is not None and not df_scores.empty:
 							if df_scores.shape[ 1 ] == 1:
 								df_scores.columns = [ 'Value' ]
@@ -9885,60 +8843,10 @@ elif mode == 'Regression Models':
 									'Feature': active_features,
 									'Coefficient': np.asarray( model.weights ).reshape( -1 )
 							} )
-						
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							if 'R-Squared Score' in df_scores.index:
-								st.metric(
-									'R² Score',
-									f"{float( df_scores.loc[ 'R-Squared Score', 'Value' ] ):0.4f}"
-								)
-						with m2:
-							if 'RMSE' in df_scores.index:
-								st.metric( 'RMSE', f"{float( df_scores.loc[ 'RMSE', 'Value' ] ):0.4f}" )
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_ridge_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_ridge_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Coefficients' )
-						st.data_editor(
-							df_coefficients,
-							use_container_width=True,
-							key='regression_ridge_coefficients'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_ridge = plt.gcf( )
-						fig_ridge.set_size_inches( 9, 7 )
-						fig_ridge.tight_layout( )
-						st.pyplot( fig_ridge, use_container_width=True )
-						plt.close( fig_ridge )
-					
 					except Exception as ex:
 						st.error( f'Ridge Regression training failed: {ex}' )
 					
@@ -10203,58 +9111,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							if 'R-Squared Score' in df_scores.index:
-								st.metric(
-									'R² Score',
-									f"{float( df_scores.loc[ 'R-Squared Score', 'Value' ] ):0.4f}"
-								)
-						with m2:
-							if 'RMSE' in df_scores.index:
-								st.metric(
-									'RMSE',
-									f"{float( df_scores.loc[ 'RMSE', 'Value' ] ):0.4f}"
-								)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_lasso_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_lasso_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Coefficients' )
-						st.data_editor(
-							df_coefficients,
-							use_container_width=True,
-							key='regression_lasso_coefficients'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_lasso = plt.gcf( )
-						fig_lasso.set_size_inches( 9, 7 )
-						fig_lasso.tight_layout( )
-						st.pyplot( fig_lasso, use_container_width=True )
-						plt.close( fig_lasso )
-					
 					except Exception as ex:
 						st.error( f'Lasso Regression training failed: {ex}' )
 					
@@ -10540,58 +9396,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						m1, m2, m3 = st.columns( 3 )
-						with m1:
-							if 'R-Squared Score' in df_scores.index:
-								st.metric(
-									'R² Score',
-									f"{float( df_scores.loc[ 'R-Squared Score', 'Value' ] ):0.4f}"
-								)
-						with m2:
-							if 'RMSE' in df_scores.index:
-								st.metric(
-									'RMSE',
-									f"{float( df_scores.loc[ 'RMSE', 'Value' ] ):0.4f}"
-								)
-						with m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_elastic_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_elastic_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Coefficients' )
-						st.data_editor(
-							df_coefficients,
-							use_container_width=True,
-							key='regression_elastic_coefficients'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_elastic = plt.gcf( )
-						fig_elastic.set_size_inches( 9, 7 )
-						fig_elastic.tight_layout( )
-						st.pyplot( fig_elastic, use_container_width=True )
-						plt.close( fig_elastic )
-					
 					except Exception as ex:
 						st.error( f'Elastic Net training failed: {ex}' )
 					
@@ -10923,71 +9727,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						bayes_m1, bayes_m2, bayes_m3 = st.columns( 3 )
-						
-						with bayes_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with bayes_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with bayes_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_bayes_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_bayes_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Coefficients' )
-						st.data_editor(
-							df_coefficients,
-							use_container_width=True,
-							key='regression_bayes_coefficients'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_bayes = plt.gcf( )
-						fig_bayes.set_size_inches( 9, 7 )
-						fig_bayes.tight_layout( )
-						st.pyplot( fig_bayes, use_container_width=True )
-						plt.close( fig_bayes )
-					
 					except Exception as ex:
 						st.error( f'Bayesian Ridge training failed: {ex}' )
 			
@@ -11399,71 +10138,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						sgd_m1, sgd_m2, sgd_m3 = st.columns( 3 )
-						
-						with sgd_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with sgd_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with sgd_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_sgd_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_sgd_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Coefficients' )
-						st.data_editor(
-							df_coefficients,
-							use_container_width=True,
-							key='regression_sgd_coefficients'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_sgd = plt.gcf( )
-						fig_sgd.set_size_inches( 9, 7 )
-						fig_sgd.tight_layout( )
-						st.pyplot( fig_sgd, use_container_width=True )
-						plt.close( fig_sgd )
-					
 					except Exception as ex:
 						st.error( f'Stochastic Gradient Descent training failed: {ex}' )
 		
@@ -11744,63 +10418,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						knn_m1, knn_m2, knn_m3 = st.columns( 3 )
-						
-						with knn_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with knn_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with knn_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_knn_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_knn_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_knn = plt.gcf( )
-						fig_knn.set_size_inches( 9, 7 )
-						fig_knn.tight_layout( )
-						st.pyplot( fig_knn, use_container_width=True )
-						plt.close( fig_knn )
-					
 					except Exception as ex:
 						st.error( f'k-Nearest Neighbors training failed: {ex}' )
 			
@@ -12099,63 +10716,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						svr_m1, svr_m2, svr_m3 = st.columns( 3 )
-						
-						with svr_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with svr_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with svr_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_svr_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_svr_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_svr = plt.gcf( )
-						fig_svr.set_size_inches( 9, 7 )
-						fig_svr.tight_layout( )
-						st.pyplot( fig_svr, use_container_width=True )
-						plt.close( fig_svr )
-					
 					except Exception as ex:
 						st.error( f'Support Vector training failed: {ex}' )
 		
@@ -12440,63 +11000,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						extra_m1, extra_m2, extra_m3 = st.columns( 3 )
-						
-						with extra_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with extra_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with extra_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_extra_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_extra_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_extra = plt.gcf( )
-						fig_extra.set_size_inches( 9, 7 )
-						fig_extra.tight_layout( )
-						st.pyplot( fig_extra, use_container_width=True )
-						plt.close( fig_extra )
-					
 					except Exception as ex:
 						st.error( f'Extra Trees Regressor training failed: {ex}' )
 					
@@ -12983,63 +11486,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						rf_m1, rf_m2, rf_m3 = st.columns( 3 )
-						
-						with rf_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with rf_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with rf_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_rf_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_rf_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_rf = plt.gcf( )
-						fig_rf.set_size_inches( 9, 7 )
-						fig_rf.tight_layout( )
-						st.pyplot( fig_rf, use_container_width=True )
-						plt.close( fig_rf )
-					
 					except Exception as ex:
 						st.error( f'Random Forest training failed: {ex}' )
 		
@@ -13247,63 +11693,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						ada_m1, ada_m2, ada_m3 = st.columns( 3 )
-						
-						with ada_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with ada_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with ada_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_ada_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_ada_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_ada = plt.gcf( )
-						fig_ada.set_size_inches( 9, 7 )
-						fig_ada.tight_layout( )
-						st.pyplot( fig_ada, use_container_width=True )
-						plt.close( fig_ada )
-					
 					except Exception as ex:
 						st.error( f'Adaptive Boosting training failed: {ex}' )
 					
@@ -13828,63 +12217,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						gb_m1, gb_m2, gb_m3 = st.columns( 3 )
-						
-						with gb_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with gb_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with gb_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_gb_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_gb_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_gb = plt.gcf( )
-						fig_gb.set_size_inches( 9, 7 )
-						fig_gb.tight_layout( )
-						st.pyplot( fig_gb, use_container_width=True )
-						plt.close( fig_gb )
-					
 					except Exception as ex:
 						st.error( f'Gradient Boosting training failed: {ex}' )
 					
@@ -14194,63 +12526,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						vote_m1, vote_m2, vote_m3 = st.columns( 3 )
-						
-						with vote_m1:
-							r2_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ).isin(
-									[ 'R-Squared', 'R-Squared Score' ]
-								)
-							]
-							
-							if not r2_row.empty:
-								st.metric(
-									'R² Score',
-									f"{float( r2_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with vote_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with vote_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_vote_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor(
-							df_predictions,
-							use_container_width=True,
-							key='regression_vote_predictions'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_vote = plt.gcf( )
-						fig_vote.set_size_inches( 9, 7 )
-						fig_vote.tight_layout( )
-						st.pyplot( fig_vote, use_container_width=True )
-						plt.close( fig_vote )
-					
 					except Exception as ex:
 						st.error( f'Voting Regressor training failed: {ex}' )
 					
@@ -14549,51 +12824,6 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression' ] = df_training.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Model Performance' )
-						
-						stack_m1, stack_m2, stack_m3 = st.columns( 3 )
-						
-						with stack_m1:
-							r2_value = r2_score( y_test, y_prediction )
-							st.metric( 'R² Score', f'{float( r2_value ):0.4f}' )
-						
-						with stack_m2:
-							rmse_row = df_scores.loc[
-								df_scores[ 'Metric' ].astype( str ) == 'RMSE'
-								]
-							
-							if not rmse_row.empty:
-								st.metric(
-									'RMSE',
-									f"{float( rmse_row.iloc[ 0 ][ 'Value' ] ):0.4f}"
-								)
-						
-						with stack_m3:
-							st.metric( 'Processing Time', f'{elapsed_seconds:0.4f} sec' )
-						
-						st.data_editor(
-							df_scores,
-							use_container_width=True,
-							key='regression_stack_scores'
-						)
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Predictions' )
-						st.data_editor( df_predictions, use_container_width=True,
-							key='regression_stack_predictions' )
-						
-						st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-						st.markdown( '##### Regression Plot' )
-						plt.close( 'all' )
-						model.scatter_plot( X_test, y_test )
-						fig_stack = plt.gcf( )
-						fig_stack.set_size_inches( 9, 7 )
-						fig_stack.tight_layout( )
-						st.pyplot( fig_stack, use_container_width=True )
-						plt.close( fig_stack )
-					
 					except Exception as ex:
 						st.error( f'Stacking Regressor training failed: {ex}' )
 				

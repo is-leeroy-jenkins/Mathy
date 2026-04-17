@@ -69,6 +69,9 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
 
 # ------------- DEFINITIONS ---------------------
 
+CLASSIFICATION_MODELS = r'''A classification algorithm that makes its predictions based on a
+		linear predictor function combining a set of weights with the feature vector.'''
+
 DATA_CARDINALITY = r'''Data cardinality refers to the uniqueness of data values contained in a
 			particular column (field) of a database, or the numerical relationship between two
 			linked tables. It is categorized as high (many unique values, e.g., UserID) or low
@@ -221,6 +224,26 @@ CORRELATION_HEATMAP = r'''A Correlation Heatmap is a 2D graphical representation
 			normally distributed data.
 '''
 
+CONFUSION_MATRIX = r'''A confusion matrix is a performance evaluation table for machine learning
+		classification models, summarizing correct and incorrect predictions against actual data.
+		It displays counts of true positives (TP), true negatives (TN), false positives (FP), and
+		false negatives (FN), mapping the model's accuracy, precision, and recall'''
+
+PERCLASS_ACCURACY = r'''Per-class accuracy is a classification model evaluation metric that
+		measures the proportion of correct predictions for a specific class out of all samples
+		belonging to that class. '''
+
+PREDICTION_CONFIDENCE = '''Prediction confidence intervals quantify the uncertainty of a model's
+		prediction for a new data point, typically providing a range (e.g., 95% confidence) within
+		which an individual future observation is expected to fall. While confidence intervals estimate
+		the mean response, prediction intervals are always wider because they account for both model
+		uncertainty and individual data variability.'''
+
+ROC_CURVE = r'''A Receiver Operating Characteristic (ROC) curve is a graph visualizing the performance
+		of a binary classification model across all classification thresholds. It plots the True Positive Rate (Sensitivity)
+		on the y-axis against the False Positive Rate (FPR) on the x-axis. It helps select optimal thresholds
+		and compares models using the Area Under the Curve (AUC).'''
+
 # -----------Outliers
 
 ISOLATION_FOREST = r'''The Isolation Forest ‘isolates’ observations by randomly selecting a feature and then
@@ -245,6 +268,11 @@ ELLIIPTIC_SQUARE = r'''Encapsulates  Elliptic Envelope for multivariate Gaussian
 '''
 
 # ---------- Classifiers
+PERCEPTRON_CLASSIFIER = r'''The perceptron is an algorithm for supervised learning of binary classifiers.
+		A binary classifier is a function that can decide whether or not an input, represented by a
+		vector of numbers, belongs to some specific class. It is a type of linear classifier, i.e.
+		a classification algorithm that makes its predictions based on a linear predictor function
+		combining a set of weights with the feature vector.'''
 
 LEAST_SQUARES_CLASSIFIER = r'''Least Squares Regression fits a linear model with coefficients w = (w1, …, wp)
 		to minimize the residual sum of squares between the observed targets
