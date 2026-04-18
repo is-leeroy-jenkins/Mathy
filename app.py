@@ -5506,7 +5506,6 @@ elif mode == 'Classification Models':
 				if train_lasso:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.Lasso( alpha=float( lasso_alpha ),
 							iters=int( lasso_iters ), rando=int( lasso_random_state ),
 							threshold=float( lasso_threshold ), selection=str( lasso_selection ) )
