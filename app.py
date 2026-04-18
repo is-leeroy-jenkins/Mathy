@@ -5007,7 +5007,6 @@ elif mode == 'Classification Models':
 				if train_perceptron:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.Perceptron( alpha=float( perceptron_alpha ),
 							eta=float( perceptron_eta ), iters=int( perceptron_iters ),
 							shuffle=bool( perceptron_shuffle ), penalty=perceptron_penalty,
@@ -5019,7 +5018,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -5034,6 +5032,7 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model.copy( )
 						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
 						st.session_state[ 'X_train' ] = X_train.copy( )
@@ -5690,7 +5689,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_gradient_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = None
 					st.rerun( )
 				
 				if train_gradient:
@@ -5709,8 +5708,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_gradient_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.score( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -5725,6 +5722,9 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
 						st.session_state[ 'X_train' ] = X_train.copy( )
 						st.session_state[ 'X_test' ] = X_test.copy( )
 						st.session_state[ 'y_train' ] = y_train.copy( )
@@ -5845,7 +5845,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_nearest_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_nearest:
@@ -5861,7 +5861,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_nearest_elapsed_seconds' ] = elapsed_seconds
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -5876,6 +5875,9 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
 						st.session_state[ 'X_train' ] = X_train.copy( )
 						st.session_state[ 'X_test' ] = X_test.copy( )
 						st.session_state[ 'y_train' ] = y_train.copy( )
@@ -5956,7 +5958,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_svm_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_svm:
@@ -5972,7 +5974,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -5987,6 +5988,9 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
 						st.session_state[ 'X_train' ] = X_train.copy( )
 						st.session_state[ 'X_test' ] = X_test.copy( )
 						st.session_state[ 'y_train' ] = y_train.copy( )
@@ -6018,7 +6022,6 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				tree_c1, tree_c2, tree_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with tree_c1:
 					st.markdown( '###### Tree Parameters' )
 					tree_criterion = st.selectbox(
@@ -6079,7 +6082,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_tree_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_tree:
@@ -6097,8 +6100,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_tree_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -6113,7 +6114,14 @@ elif mode == 'Classification Models':
 								'Actual': y_test,
 								'Predicted': y_prediction
 							} )
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 					except Exception as ex:
@@ -6196,7 +6204,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_forest_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_forest:
@@ -6214,7 +6222,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_forest_elapsed_seconds' ] = elapsed_seconds
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ),
 							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
@@ -6229,7 +6236,14 @@ elif mode == 'Classification Models':
 								'Actual': y_test,
 								'Predicted': y_prediction
 							} )
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 					except Exception as ex:
@@ -6308,13 +6322,12 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_gb_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_gb:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.GradientBoost( estimators=int( gb_estimators ),
 							rate=float( gb_rate ), depth=int( gb_depth ),
 							criterion=str( gb_criterion ), random=int( gb_random_state ) )
@@ -6324,10 +6337,7 @@ elif mode == 'Classification Models':
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_gb_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -6342,6 +6352,9 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
 						st.session_state[ 'X_train' ] = X_train.copy( )
 						st.session_state[ 'X_test' ] = X_test.copy( )
 						st.session_state[ 'y_train' ] = y_train.copy( )
@@ -6369,79 +6382,48 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				ab_c1, ab_c2, ab_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with ab_c1:
 					st.markdown( '###### Boosting Parameters' )
-					ab_estimators = st.number_input(
-						'Estimators',
-						min_value=1,
+					ab_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_ab_estimators' ] ),
-						step=1,
-						key='classification_ab_estimators'
-					)
+						step=1, key='classification_ab_estimators' )
 					
-					ab_rate = st.number_input(
-						'Learning Rate',
-						min_value=0.000001,
+					ab_rate = st.number_input( 'Learning Rate', min_value=0.000001,
 						value=float( st.session_state[ 'classification_ab_rate' ] ),
-						step=0.010000,
-						format='%.6f',
-						key='classification_ab_rate'
-					)
+						step=0.010000, format='%.6f', key='classification_ab_rate' )
 				
 				with ab_c2:
 					st.markdown( '###### Algorithm / Split' )
-					ab_algorithm = st.selectbox(
-						'Algorithm',
-						options=[ 'SAMME', 'deprecated', None ],
+					ab_algorithm = st.selectbox( 'Algorithm', options=[ 'SAMME', 'deprecated', None ],
 						index=[ 'SAMME', 'deprecated', None ].index(
-							st.session_state[ 'classification_ab_algorithm' ]
-						),
+							st.session_state[ 'classification_ab_algorithm' ] ),
 						format_func=lambda v: 'None' if v is None else str( v ),
-						key='classification_ab_algorithm'
-					)
+						key='classification_ab_algorithm' )
 					
-					ab_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
+					ab_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
 						value=int( st.session_state[ 'classification_ab_test_size' ] ),
-						step=1,
-						key='classification_ab_test_size'
-					) / 100.0
+						step=1, key='classification_ab_test_size' ) / 100.0
 				
 				with ab_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					ab_random_state = st.number_input(
-						'Random State',
+					ab_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_ab_random_state' ] ),
-						step=1,
-						key='classification_ab_random_state'
-					)
+						step=1, key='classification_ab_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
+					st.caption( f'Rows: {len( df_model ):,} | '
 						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				ab_btn_1, ab_btn_2 = st.columns( 2 )
-				
 				with ab_btn_1:
-					train_ab = st.button(
-						'🚆 Train Adaptive Boost',
-						key='classification_ab_train',
-						use_container_width=True
-					)
+					train_ab = st.button( '🚆 Train Adaptive Boost', key='classification_ab_train',
+						use_container_width=True )
 				
 				with ab_btn_2:
-					reset_ab = st.button(
-						'🔁 Reset Adaptive Boost',
-						key='classification_ab_reset',
-						use_container_width=True
-					)
+					reset_ab = st.button( '🔁 Reset Adaptive Boost', key='classification_ab_reset',
+						use_container_width=True )
 				
 				if reset_ab:
 					for key, value in ab_defaults.items( ):
@@ -6450,59 +6432,44 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_ab_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_ab:
 					try:
 						start_time = time.perf_counter( )
+						model = classification_model.AdaptiveBoost( base=None,
+							estimators=int( ab_estimators ), rate=float( ab_rate ),
+							algorithm=ab_algorithm, random=int( ab_random_state ) )
 						
-						model = classification_model.AdaptiveBoost(
-							base=None,
-							estimators=int( ab_estimators ),
-							rate=float( ab_rate ),
-							algorithm=ab_algorithm,
-							random=int( ab_random_state )
-						)
-						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( ab_test_size ),
-							random=int( ab_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( ab_test_size ), random=int( ab_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_ab_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 					except Exception as ex:
@@ -6523,60 +6490,38 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				bag_c1, bag_c2, bag_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with bag_c1:
 					st.markdown( '###### Bagging Parameters' )
-					bag_estimators = st.number_input(
-						'Estimators',
-						min_value=1,
+					bag_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_bag_estimators' ] ),
-						step=1,
-						key='classification_bag_estimators'
-					)
+						step=1, key='classification_bag_estimators' )
 				
 				with bag_c2:
 					st.markdown( '###### Split' )
-					bag_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
+					bag_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
 						value=int( st.session_state[ 'classification_bag_test_size' ] ),
-						step=1,
-						key='classification_bag_test_size'
-					) / 100.0
+						step=1, key='classification_bag_test_size' ) / 100.0
 				
 				with bag_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					bag_random_state = st.number_input(
-						'Random State',
+					bag_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_bag_random_state' ] ),
-						step=1,
-						key='classification_bag_random_state'
-					)
+						step=1, key='classification_bag_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
+					st.caption( f'Rows: {len( df_model ):,} | '
 						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
 				bag_btn_1, bag_btn_2 = st.columns( 2 )
-				
 				with bag_btn_1:
-					train_bag = st.button(
-						'🚆 Train Bagging Model',
-						key='classification_bag_train',
-						use_container_width=True
-					)
+					train_bag = st.button( '🚆 Train Bagging Model', key='classification_bag_train',
+						use_container_width=True )
 				
 				with bag_btn_2:
-					reset_bag = st.button(
-						'🔁 Reset Bagging Model',
-						key='classification_bag_reset',
-						use_container_width=True
-					)
+					reset_bag = st.button( '🔁 Reset Bagging Model', key='classification_bag_reset',
+						use_container_width=True )
 				
 				if reset_bag:
 					for key, value in bag_defaults.items( ):
@@ -6585,54 +6530,37 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_bag_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_bag:
 					try:
 						start_time = time.perf_counter( )
 						
-						model = classification_model.BaggingModel(
-							estimators=int( bag_estimators ),
-							random=int( bag_random_state )
-						)
+						model = classification_model.BaggingModel( estimators=int( bag_estimators ),
+							random=int( bag_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( bag_test_size ),
-							random=int( bag_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( bag_test_size ), random=int( bag_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_bag_elapsed_seconds' ] = elapsed_seconds
-						
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
+							} )
 						
 						st.session_state[ 'df_classification' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
@@ -6734,41 +6662,22 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_vote_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_vote:
 					try:
 						estimators = [ ]
-						
 						if vote_include_logistic:
-							estimators.append(
-								(
-										'logistic',
-										LogisticRegression(
-											max_iter=1000,
-											random_state=int( vote_random_state )
-										)
-								)
-							)
+							estimators.append( 'logistic', LogisticRegression( max_iter=1000,
+											random_state=int( vote_random_state ) ) )
 						
 						if vote_include_tree:
-							estimators.append(
-								(
-										'tree',
-										DecisionTreeClassifier(
-											random_state=int( vote_random_state )
-										)
-								)
-							)
+							estimators.append( ( 'tree', DecisionTreeClassifier(
+											random_state=int( vote_random_state ) ) ) )
 						
 						if vote_include_knn:
-							estimators.append(
-								(
-										'knn',
-										KNeighborsClassifier( )
-								)
-							)
+							estimators.append( ( 'knn', KNeighborsClassifier( ) ) )
 						
 						if vote_include_forest:
 							estimators.append(
@@ -6794,62 +6703,45 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.VotingModel(
-							estimators=estimators,
-							vote=str( vote_mode )
-						)
+						model = classification_model.VotingModel( estimators=estimators,
+							vote=str( vote_mode ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( vote_test_size ),
-							random=int( vote_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( vote_test_size ), random=int( vote_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_vote_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.score( X_test, y_test ).copy( )
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Training Rows',
-							int( len( X_train ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Testing Rows',
-							int( len( X_test ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Estimator Count',
-							int( len( estimators ) )
-						)
-						df_scores.insert(
-							len( df_scores.columns ),
-							'Vote Mode',
-							str( vote_mode )
-						)
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Estimator Count',
+							int( len( estimators ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Vote Mode',
+							str( vote_mode ) )
+						
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 					except Exception as ex:
 						st.error( f'Voting Model training failed: {ex}' )
 					
@@ -6873,7 +6765,6 @@ elif mode == 'Classification Models':
 						st.session_state[ key ] = value
 				
 				stack_c1, stack_c2, stack_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with stack_c1:
 					st.markdown( '###### Final Estimator' )
 					stack_final = st.selectbox( 'Final Estimator', options=[ 'logistic', 'tree' ],
@@ -6986,8 +6877,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_stack_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.score( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -7004,14 +6893,18 @@ elif mode == 'Classification Models':
 						df_scores.insert(
 							len( df_scores.columns ), 'Final Estimator', str( stack_final ) )
 						
-						df_predictions = pd.DataFrame(
-							{ 'Actual': y_test, 'Predicted': y_prediction } )
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						df_predictions = pd.DataFrame( {'Actual': y_test,
+							 'Predicted': y_prediction } )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
-					
 					except Exception as ex:
 						st.error( f'Stacking Model training failed: {ex}' )
 					
@@ -7100,7 +6993,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'df_classification' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'classification_mlp_elapsed_seconds' ] = None
+					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.rerun( )
 				
 				if train_mlp:
@@ -7122,10 +7015,7 @@ elif mode == 'Classification Models':
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'classification_mlp_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.score( X_test, y_test ).copy( )
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -7143,11 +7033,16 @@ elif mode == 'Classification Models':
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
-						
-						st.session_state[ 'df_classification' ] = df_model.copy( )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 					except Exception as ex:
 						st.error( f'MultiLayerPerceptron training failed: {ex}' )
 						
