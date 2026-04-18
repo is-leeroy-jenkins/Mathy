@@ -6562,7 +6562,6 @@ elif mode == 'Classification Models':
 				if train_bag:
 					try:
 						start_time = time.perf_counter( )
-						
 						model = classification_model.BaggingModel( estimators=int( bag_estimators ),
 							random=int( bag_random_state ) )
 						
@@ -6866,7 +6865,6 @@ elif mode == 'Classification Models':
 				if train_stack:
 					try:
 						estimators = [ ]
-						
 						if stack_include_logistic:
 							estimators.append(
 								( 'logistic', LogisticRegression( max_iter=1000,
