@@ -4937,7 +4937,7 @@ elif mode == 'Classification Models':
 				
 				per_c1, per_c2, per_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with per_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					perceptron_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_perceptron_alpha' ] ),
 						step=0.000100, format='%.6f', key='classification_perceptron_alpha' )
@@ -5065,7 +5065,7 @@ elif mode == 'Classification Models':
 				
 				ls_c1, ls_c2, ls_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with ls_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					least_squares_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_least_squares_alpha' ] ),
 						step=0.000100, format='%.6f', key='classification_leastsquares_alpha' )
@@ -5192,7 +5192,7 @@ elif mode == 'Classification Models':
 				
 				log_c1, log_c2, log_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with log_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					logistic_c = st.number_input( 'C', min_value=0.000001,
 						value=float( st.session_state[ 'classification_logistic_c' ] ),
 						step=0.100000, format='%.6f', key='classification_logistic_c' )
@@ -5320,7 +5320,7 @@ elif mode == 'Classification Models':
 				
 				ridge_c1, ridge_c2, ridge_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with ridge_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					ridge_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_ridge_alpha' ] ),
 						step=0.100000, format='%.6f',
@@ -5439,7 +5439,7 @@ elif mode == 'Classification Models':
 				
 				lasso_c1, lasso_c2, lasso_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with lasso_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					lasso_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_lasso_alpha' ] ),
 						step=0.100000, format='%.6f',
@@ -5568,7 +5568,7 @@ elif mode == 'Classification Models':
 				
 				gd_c1, gd_c2, gd_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with gd_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					gradient_loss = st.selectbox( 'Loss',
 						options=[
 								'hinge',
@@ -5741,7 +5741,7 @@ elif mode == 'Classification Models':
 				
 				nn_c1, nn_c2, nn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with nn_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					nearest_num = st.number_input( 'Neighbors', min_value=1,
 						value=int( st.session_state[ 'classification_nearest_num' ] ),
 						step=1, key='classification_nearest_num' )
@@ -8613,7 +8613,7 @@ elif mode == 'Regression Models':
 							step=1, key='regression_ols_random_state_input' ) )
 				
 				with ols_c2:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					ols_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_ols_fit_intercept' ] ),
 						key='regression_ols_fit_intercept_check' )
@@ -8740,7 +8740,7 @@ elif mode == 'Regression Models':
 				
 				ridge_c1, ridge_c2, ridge_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with ridge_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					
 					ridge_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'regression_ridge_alpha' ] ),
@@ -8924,7 +8924,7 @@ elif mode == 'Regression Models':
 				
 				lasso_c1, lasso_c2, lasso_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with lasso_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					
 					lasso_alpha = float(
 						st.number_input(
@@ -9194,7 +9194,7 @@ elif mode == 'Regression Models':
 				
 				elastic_c1, elastic_c2, elastic_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with elastic_c1:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					elastic_alpha = float(
 						st.number_input(
 							'Alpha',
@@ -9515,7 +9515,7 @@ elif mode == 'Regression Models':
 					)
 				
 				with bayes_c2:
-					st.markdown( '###### Model Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					
 					bayes_max_iter = int(
 						st.number_input(
@@ -14171,7 +14171,7 @@ elif mode == 'Time-Series Models':
 		# ------------------------------------------------------------------
 		# MODEL PARAMETERS
 		# ------------------------------------------------------------------
-		st.subheader( 'Model Parameters' )
+		st.subheader( '🎚️ Hyper Parameters' )
 		model = None
 		
 		if model_name == 'Lagged Linear Regression':
