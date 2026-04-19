@@ -2216,10 +2216,8 @@ with st.sidebar:
 					)
 					
 					if selected_table:
-						loaded_df = pd.read_sql_query(
-							f'SELECT * FROM "{selected_table}"',
-							connection
-						)
+						loaded_df = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
+							connection )
 						loaded_original = loaded_df.copy( )
 						log_step( f'Loaded Database Table: {selected_table}' )
 				else:
