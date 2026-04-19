@@ -6950,7 +6950,7 @@ elif mode == 'Classification Models':
 				
 				mlp_c1, mlp_c2, mlp_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with mlp_c1:
-					st.markdown( '###### Network Structure' )
+					st.markdown( '###### 🛡️ Network Structure' )
 					mlp_hidden_1 = st.number_input( 'Hidden Layer 1', min_value=1,
 						value=int( st.session_state[ 'classification_mlp_hidden_1' ] ),
 						step=1, key='classification_mlp_hidden_1' )
@@ -6966,7 +6966,7 @@ elif mode == 'Classification Models':
 						key='classification_mlp_activation' )
 				
 				with mlp_c2:
-					st.markdown( '###### Optimization' )
+					st.markdown( '###### 🎚️ Optimization' )
 					mlp_solver = st.selectbox( 'Solver', options=[ 'lbfgs', 'sgd', 'adam' ],
 						index=[ 'lbfgs', 'sgd', 'adam' ].index(
 							st.session_state[ 'classification_mlp_solver' ] ),
