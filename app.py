@@ -7081,10 +7081,8 @@ elif mode == 'Classification Models':
 		
 		target_count = int( st.session_state.get( 'target_count', 0 ) )
 		
-		has_metric_frame = ( isinstance( df_scores, pd.DataFrame )
-				and not df_scores.empty
-				and 'Accuracy Score' in df_scores.columns
-				and 'Mis-Classifications' in df_scores.columns )
+		has_metric_frame = ( isinstance( df_scores, pd.DataFrame ) and not df_scores.empty
+				and 'Accuracy Score' in df_scores.columns and 'Mis-Classifications' in df_scores.columns )
 		
 		has_prediction_frame = ( isinstance( df_predictions, pd.DataFrame )
 				and not df_predictions.empty
