@@ -5895,7 +5895,7 @@ elif mode == 'Classification Models':
 				
 				svm_c1, svm_c2, svm_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with svm_c1:
-					st.markdown( '###### SVM Parameters' )
+					st.markdown( '###### 🎚️ Hyper Parameters' )
 					svm_c = st.number_input( 'C', min_value=0.000001,
 						value=float( st.session_state[ 'classification_svm_c' ] ),
 						step=0.100000, format='%.6f', key='classification_svm_c' )
@@ -5911,7 +5911,7 @@ elif mode == 'Classification Models':
 						step=1, key='classification_svm_degree' )
 				
 				with svm_c2:
-					st.markdown( '###### Split' )
+					st.markdown( '###### ↔️ Split' )
 					svm_test_size = st.slider( 'Test Set Size (%)', min_value=10,
 						max_value=30,
 						value=int( st.session_state[ 'classification_svm_test_size' ] ),
@@ -6018,7 +6018,7 @@ elif mode == 'Classification Models':
 				
 				tree_c1, tree_c2, tree_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with tree_c1:
-					st.markdown( '###### Hyper-Parameters' )
+					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					tree_criterion = st.selectbox(
 						'Criterion',
 						options=[ 'gini', 'entropy', 'log_loss' ],
@@ -6148,7 +6148,7 @@ elif mode == 'Classification Models':
 				
 				forest_c1, forest_c2, forest_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with forest_c1:
-					st.markdown( '###### Hyper-Parameters' )
+					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					forest_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_forest_estimators' ] ),
 						step=1, key='classification_forest_estimators' )
@@ -6277,7 +6277,7 @@ elif mode == 'Classification Models':
 				
 				gb_c1, gb_c2, gb_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with gb_c1:
-					st.markdown( '###### Hyper-Parameters' )
+					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					gb_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_gb_estimators' ] ),
 						step=1, key='classification_gb_estimators' )
@@ -6396,7 +6396,7 @@ elif mode == 'Classification Models':
 				
 				ab_c1, ab_c2, ab_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with ab_c1:
-					st.markdown( '###### Hyper-Parameters' )
+					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					ab_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_ab_estimators' ] ),
 						step=1, key='classification_ab_estimators' )
@@ -6406,7 +6406,7 @@ elif mode == 'Classification Models':
 						step=0.010000, format='%.6f', key='classification_ab_rate' )
 				
 				with ab_c2:
-					st.markdown( '###### Algorithm / Split' )
+					st.markdown( '###### ♟️ Algorithm / Split' )
 					ab_algorithm = st.selectbox( 'Algorithm', options=[ 'SAMME', 'deprecated', None ],
 						index=[ 'SAMME', 'deprecated', None ].index(
 							st.session_state[ 'classification_ab_algorithm' ] ),
@@ -6510,13 +6510,13 @@ elif mode == 'Classification Models':
 				
 				bag_c1, bag_c2, bag_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with bag_c1:
-					st.markdown( '###### Hyper-Parameters' )
+					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					bag_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_bag_estimators' ] ),
 						step=1, key='classification_bag_estimators' )
 				
 				with bag_c2:
-					st.markdown( '###### Split' )
+					st.markdown( '###### ↔️ Split' )
 					bag_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
 						value=int( st.session_state[ 'classification_bag_test_size' ] ),
 						step=1, key='classification_bag_test_size' ) / 100.0
@@ -6618,7 +6618,7 @@ elif mode == 'Classification Models':
 				
 				vote_c1, vote_c2, vote_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with vote_c1:
-					st.markdown( '###### Voting Strategy' )
+					st.markdown( '###### ♟️ Voting Strategy' )
 					vote_mode = st.selectbox( 'Vote', options=[ 'hard', 'soft' ],
 						index=[ 'hard', 'soft' ].index(
 							st.session_state[ 'classification_vote_mode' ] ),
@@ -6627,7 +6627,7 @@ elif mode == 'Classification Models':
 					st.caption( 'Select at least two base estimators.' )
 				
 				with vote_c2:
-					st.markdown( '###### Base Estimators' )
+					st.markdown( '###### 📐 Base Estimators' )
 					vote_include_logistic = st.checkbox( 'Logistic Regression',
 						value=bool( st.session_state[ 'classification_vote_include_logistic' ] ),
 						key='classification_vote_include_logistic' )
@@ -6659,18 +6659,13 @@ elif mode == 'Classification Models':
 						key='classification_vote_test_size'
 					) / 100.0
 					
-					vote_random_state = st.number_input(
-						'Random State',
+					vote_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_vote_random_state' ] ),
-						step=1,
-						key='classification_vote_random_state'
-					)
+						step=1, key='classification_vote_random_state' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
+					st.caption( f'Rows: {len( df_model ):,} | '
 						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}'
-					)
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
@@ -6751,7 +6746,7 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Vote Mode',
 							str( vote_mode ) )
 						
-						df_predictions = pd.DataFrame( {
+						df_predictions = pd.DataFrame(  {
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
@@ -6789,7 +6784,7 @@ elif mode == 'Classification Models':
 				
 				stack_c1, stack_c2, stack_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with stack_c1:
-					st.markdown( '###### Final Estimator' )
+					st.markdown( '###### 🛑 Final Estimator' )
 					stack_final = st.selectbox( 'Final Estimator', options=[ 'logistic', 'tree' ],
 						index=[ 'logistic', 'tree' ].index(
 							st.session_state[ 'classification_stack_final' ] ),
@@ -6798,7 +6793,7 @@ elif mode == 'Classification Models':
 					st.caption( 'Select at least two base estimators.' )
 				
 				with stack_c2:
-					st.markdown( '###### Base Estimators' )
+					st.markdown( '###### 📐 Base Estimators' )
 					stack_include_logistic = st.checkbox( 'Logistic Regression',
 						value=bool( st.session_state[ 'classification_stack_include_logistic' ] ),
 						key='classification_stack_include_logistic' )
