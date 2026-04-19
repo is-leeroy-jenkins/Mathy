@@ -271,6 +271,74 @@ def init_state( ) -> None:
 
 init_state( )
 
+def has_loaded_dataset( df_frame: object ) -> bool:
+	"""
+		Purpose:
+		--------
+		Determine whether an object is a valid loaded dataframe.
+
+		Parameters:
+		-----------
+		df_frame ( object ): Candidate dataframe object.
+
+		Returns:
+		--------
+		bool:
+			True when the object is a non-empty dataframe with at least one column.
+	"""
+	return (
+			isinstance( df_frame, pd.DataFrame )
+			and not df_frame.empty
+			and len( df_frame.columns ) > 0
+	)
+
+def get_loaded_dataset( ) -> pd.DataFrame | None:
+	"""
+		Purpose:
+		--------
+		Return the currently loaded dataset from session state when valid.
+
+		Parameters:
+		-----------
+		None
+
+		Returns:
+		--------
+		pd.DataFrame | None:
+			Copy of the loaded dataset, or None when no valid dataset exists.
+	"""
+	df_frame = st.session_state.get( 'df_dataset', None )
+	if not has_loaded_dataset( df_frame ):
+		return None
+	
+	return df_frame.copy( )
+
+def store_loaded_dataset( df_dataset: pd.DataFrame,
+		df_original: pd.DataFrame | None = None ) -> None:
+	"""
+		Purpose:
+		--------
+		Persist a successfully loaded dataset to session state.
+
+		Parameters:
+		-----------
+		df_dataset ( pd.DataFrame ): Loaded dataset.
+		df_original ( pd.DataFrame | None ): Optional original copy.
+
+		Returns:
+		--------
+		None
+	"""
+	if not has_loaded_dataset( df_dataset ):
+		return
+	
+	df_source = df_dataset.copy( )
+	df_base = df_original.copy( ) if isinstance( df_original, pd.DataFrame ) else df_source.copy( )
+	
+	st.session_state[ 'raw_df' ] = df_source.copy( )
+	st.session_state[ 'df_original' ] = df_base.copy( )
+	st.session_state[ 'df_dataset' ] = df_source.copy( )
+	
 def clear_keys( keys: List[ str ] ) -> None:
 	"""
 	
@@ -2103,42 +2171,27 @@ with st.sidebar:
 	st.sidebar.divider( )
 	st.subheader( 'Data Source' )
 	
-	# ------- Source Selection
-	source = st.selectbox(
-		label='Select Source',
-		options=[ 'Default Data', 'Database Data', 'Custom Data' ],
-		key='source_selectbox'
-	)
+	with st.expander( 'Select Source', expanded=False ):
+		source = st.selectbox(
+			label='Select Source',
+			options=[ 'Default Data', 'Database Data', 'Custom Data' ],
+			key='source_selectbox'
+		)
 	
-	uploaded = st.sidebar.file_uploader(
+	uploaded = st.file_uploader(
 		label='Upload Spreadsheet',
 		type=[ 'xlsx', 'xls', 'csv' ],
 		key='source_uploader'
 	)
 	
-	df_dataset = pd.DataFrame( )
-	df_original = pd.DataFrame( )
+	loaded_df: pd.DataFrame | None = None
+	loaded_original: pd.DataFrame | None = None
 	
-	# ------- Uploaded Spreadsheet
 	if source == 'Default Data':
-		if uploaded is not None:
-			if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
-				df_dataset = pd.read_excel( uploaded )
-			else:
-				df_dataset = pd.read_csv( uploaded )
-			
-			df_original = df_dataset.copy( )
-			log_step( f'Loaded uploaded file: {uploaded.name}' )
-		else:
-			st.info( 'Upload a spreadsheet to load data.' )
-	
-	# ------- Default App Dataset
-	elif source == 'Custom Data':
-		df_dataset = pd.read_excel( cfg.DEFAULT_DATA )
-		df_original = df_dataset.copy( )
+		loaded_df = pd.read_excel( cfg.DEFAULT_DATA )
+		loaded_original = loaded_df.copy( )
 		log_step( 'Loaded Default Dataset' )
 	
-	# ------- Database Dataset
 	elif source == 'Database Data':
 		try:
 			with sqlite3.connect( cfg.DB_PATH ) as connection:
@@ -2156,24 +2209,38 @@ with st.sidebar:
 				table_options = df_tables[ 'name' ].tolist( )[ :3 ]
 				
 				if table_options:
-					selected_table = st.selectbox( label='Select Database Table',
-						options=table_options, key='database_table_selectbox' )
+					selected_table = st.selectbox(
+						label='Select Database Table',
+						options=table_options,
+						key='database_table_selectbox'
+					)
 					
 					if selected_table:
-						df_dataset = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
-							connection )
-						df_original = df_dataset.copy( )
+						loaded_df = pd.read_sql_query(
+							f'SELECT * FROM "{selected_table}"',
+							connection
+						)
+						loaded_original = loaded_df.copy( )
 						log_step( f'Loaded Database Table: {selected_table}' )
 				else:
 					st.warning( 'No tables were found in the database.' )
 		except Exception as ex:
 			st.error( f'Error loading database data: {ex}' )
 	
-	# ------- Persist Loaded Data
-	if not df_dataset.empty:
-		st.session_state.raw_df = df_dataset.copy( )
-		st.session_state[ 'df_original' ] = df_original.copy( )
-		st.session_state[ 'df_dataset' ] = df_dataset.copy( )
+	elif source == 'Custom Data':
+		if uploaded is not None:
+			if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
+				loaded_df = pd.read_excel( uploaded )
+			else:
+				loaded_df = pd.read_csv( uploaded )
+			
+			loaded_original = loaded_df.copy( )
+			log_step( f'Loaded uploaded file: {uploaded.name}' )
+		else:
+			st.info( 'Upload a spreadsheet to load data.' )
+	
+	if has_loaded_dataset( loaded_df ):
+		store_loaded_dataset( loaded_df, loaded_original )
 	
 	# ------- Mode Selection
 	st.sidebar.divider( )
@@ -2204,11 +2271,11 @@ if mode == 'Data Profile':
 		st.subheader( cfg.MODE[ 'Data Profile' ] )
 		st.divider( )
 		
-		if st.session_state.df_dataset is None:
+		df_dataset = get_loaded_dataset( )
+		if df_dataset is None:
 			st.info( 'No data loaded.' )
 			st.stop( )
 		
-		df_dataset = st.session_state[ 'df_dataset' ]
 		df_original = df_dataset.copy( )
 		
 		# -------------------------------------------------------------------------------------
@@ -2287,59 +2354,88 @@ if mode == 'Data Profile':
 		st.markdown( '##### Records' )
 		
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
-			top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
-			with top_c1:
-				row_idx = st.number_input( 'Select Index', min_value=0,
-					max_value=len( df_dataset ) - 1, step=1, key='row_editor_index' )
-			
-			row = df_dataset.iloc[ row_idx ]
-			updated = { }
-			
-			col_left, col_right = st.columns( 2, border=True )
-			
-			with st.form( 'row_edit_form' ):
-				for i, (col, dtype) in enumerate( schema.items( ) ):
-					target = col_left if i % 2 == 0 else col_right
-					val = row[ col ]
-					with target:
-						if dtype == 'numeric':
-							updated[ col ] = st.number_input(
-								col, value=float( val) if pd.notna( val ) else 0.0 )
-						elif dtype == 'ordinal':
-							updated[ col ] = st.number_input(
-								col, value=int( val ) if pd.notna( val ) else 0 )
-						elif dtype == 'datetime':
-							updated[ col ] = st.date_input(
-								col,
-								value=pd.to_datetime( val ).date( )
-								if pd.notna( val )
-								else pd.Timestamp.today( ).date( ) )
-						elif dtype == 'categorical':
-							options = df_dataset[ col ].dropna( ).unique( ).tolist( )
-							updated[ col ] = st.selectbox(
-								col, options,
-								index=options.index( val ) if val in options else 0 )
+			if df_dataset is None or df_dataset.empty:
+				st.info( 'No rows are available to edit.' )
+			else:
+				top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
+				
+				with top_c1:
+					max_row_index = len( df_dataset ) - 1
+					default_row_index = int( st.session_state.get( 'row_editor_index', 0 ) )
+					default_row_index = max( 0, min( default_row_index, max_row_index ) )
+					
+					row_idx = st.number_input( 'Select Index', min_value=0,
+						max_value=max_row_index, value=default_row_index,
+						step=1, key='row_editor_index' )
+				
+				row = df_dataset.iloc[ row_idx ]
+				updated = { }
+				
+				col_left, col_right = st.columns( 2, border=True )
+				
+				with st.form( 'row_edit_form' ):
+					for i, (col, dtype) in enumerate( schema.items( ) ):
+						target = col_left if i % 2 == 0 else col_right
+						val = row[ col ]
+						
+						with target:
+							if dtype == 'numeric':
+								updated[ col ] = st.number_input(
+									col,
+									value=float( val ) if pd.notna( val ) else 0.0
+								)
+							elif dtype == 'ordinal':
+								updated[ col ] = st.number_input(
+									col,
+									value=int( val ) if pd.notna( val ) else 0
+								)
+							elif dtype == 'datetime':
+								updated[ col ] = st.date_input(
+									col,
+									value=pd.to_datetime( val ).date( )
+									if pd.notna( val )
+									else pd.Timestamp.today( ).date( )
+								)
+							elif dtype == 'categorical':
+								options = df_dataset[ col ].dropna( ).unique( ).tolist( )
+								if options:
+									updated[ col ] = st.selectbox(
+										col,
+										options,
+										index=options.index( val ) if val in options else 0
+									)
+								else:
+									updated[ col ] = st.text_input(
+										col,
+										value='' if pd.isna( val ) else str( val )
+									)
+							else:
+								updated[ col ] = st.text_input(
+									col,
+									value=str( val ),
+									disabled=True
+								)
+					
+					submitted = st.form_submit_button( 'Apply Row Update' )
+				
+				if submitted:
+					before = df_dataset.loc[ row_idx ].copy( )
+					
+					for col, value in updated.items( ):
+						if schema[ col ] == 'datetime':
+							st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime( value )
 						else:
-							updated[ col ] = st.text_input(
-								col, value=str( val ), disabled=True )
-				
-				submitted = st.form_submit_button( 'Apply Row Update' )
-			
-			if submitted:
-				before = df_dataset.loc[ row_idx ].copy( )
-				for col, value in updated.items( ):
-					if schema[ col ] == 'datetime':
-						st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime( value )
-					else:
-						st.session_state.df_dataset.at[ row_idx, col ] = value
-				
-				after = st.session_state.df_dataset.loc[ row_idx ]
-				log_step( f'Updated row {row_idx}' )
-				st.success( f'Row {row_idx} updated.' )
-				st.data_editor( pd.DataFrame( { 'Before': before, 'After': after } ),
-					use_container_width=True )
-				
-				st.rerun( )
+							st.session_state.df_dataset.at[ row_idx, col ] = value
+					
+					after = st.session_state.df_dataset.loc[ row_idx ]
+					log_step( f'Updated row {row_idx}' )
+					st.success( f'Row {row_idx} updated.' )
+					st.data_editor(
+						pd.DataFrame( { 'Before': before, 'After': after } ),
+						use_container_width=True
+					)
+					
+					st.rerun( )
 				
 		# =====================================================================================
 		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
