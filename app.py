@@ -4952,7 +4952,7 @@ elif mode == 'Classification Models':
 						step=1, key='classification_perceptron_iters' )
 				
 				with per_c2:
-					st.markdown( '###### Regularization / Split' )
+					st.markdown( '###### 🚦 Regularization / Split' )
 					perceptron_shuffle = st.checkbox( 'Shuffle',
 						value=bool( st.session_state[ 'classification_perceptron_shuffle' ] ),
 						key='classification_perceptron_shuffle' )
@@ -4982,7 +4982,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				per_btn_1, per_btn_2 = st.columns( 2 )
 				with per_btn_1:
-					train_perceptron = st.button( '🚆 Train Perceptron',
+					train_perceptron = st.button( '🚂 Train Perceptron',
 						key='classification_perceptron_train', use_container_width=True )
 				
 				with per_btn_2:
@@ -5079,7 +5079,7 @@ elif mode == 'Classification Models':
 						step=1, key='classification_leastsquares_iters' )
 				
 				with ls_c2:
-					st.markdown( '###### Regularization / Split' )
+					st.markdown( '###### 🚦 Regularization / Split' )
 					least_squares_shuffle = st.checkbox( 'Shuffle',
 						value=bool( st.session_state[ 'classification_least_squares_shuffle' ] ),
 						key='classification_leastsquares_shuffle' )
@@ -5110,7 +5110,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				ls_btn_1, ls_btn_2 = st.columns( 2 )
 				with ls_btn_1:
-					train_least_squares = st.button( '🚆 Train Least Squares',
+					train_least_squares = st.button( '🚂 Train Least Squares',
 						key='classification_leastsquares_train', use_container_width=True )
 				
 				with ls_btn_2:
@@ -5243,7 +5243,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				log_btn_1, log_btn_2 = st.columns( 2 )
 				with log_btn_1:
-					train_logistic = st.button( '🚆 Train Logistic Regression',
+					train_logistic = st.button( '🚂 Train Logistic Regression',
 						key='classification_logistic_train', use_container_width=True )
 				
 				with log_btn_2:
@@ -5358,7 +5358,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				ridge_btn_1, ridge_btn_2 = st.columns( 2 )
 				with ridge_btn_1:
-					train_ridge = st.button( '🚆 Train Ridge', key='classification_ridge_train',
+					train_ridge = st.button( '🚂 Train Ridge', key='classification_ridge_train',
 						use_container_width=True )
 				
 				with ridge_btn_2:
@@ -5456,7 +5456,7 @@ elif mode == 'Classification Models':
 						key='classification_lasso_threshold' )
 				
 				with lasso_c2:
-					st.markdown( '###### Selection / Split' )
+					st.markdown( '###### ↔️ Selection / Split' )
 					lasso_selection = st.selectbox( 'Selection',
 						options=[ 'cyclic', 'random' ],
 						index=[ 'cyclic', 'random' ].index(
@@ -5481,7 +5481,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				lasso_btn_1, lasso_btn_2 = st.columns( 2 )
 				with lasso_btn_1:
-					train_lasso = st.button( '🚆 Train Lasso', key='classification_lasso_train',
+					train_lasso = st.button( '🚂 Train Lasso', key='classification_lasso_train',
 						use_container_width=True )
 				
 				with lasso_btn_2:
@@ -5654,7 +5654,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				gd_btn_1, gd_btn_2 = st.columns( 2 )
 				with gd_btn_1:
-					train_gradient = st.button( '🚆 Train Gradient Descent',
+					train_gradient = st.button( '🚂 Train Gradient Descent',
 						key='classification_gradient_train', use_container_width=True )
 				
 				with gd_btn_2:
@@ -5815,7 +5815,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				nn_btn_1, nn_btn_2 = st.columns( 2, border=True )
 				with nn_btn_1:
-					train_nearest = st.button( '🚆 Train Nearest Neighbor',
+					train_nearest = st.button( '🚂 Train Nearest Neighbor',
 						key='classification_nearest_train', use_container_width=True )
 				
 				with nn_btn_2:
@@ -5934,7 +5934,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				svm_btn_1, svm_btn_2 = st.columns( 2 )
 				with svm_btn_1:
-					train_svm = st.button( '🚆 Train Support Vector',
+					train_svm = st.button( '🚂 Train Support Vector',
 						key='classification_svm_train', use_container_width=True )
 				
 				with svm_btn_2:
@@ -6064,7 +6064,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				tree_btn_1, tree_btn_2 = st.columns( 2 )
 				with tree_btn_1:
-					train_tree = st.button( '🚆 Train Decision Tree',
+					train_tree = st.button( '🚂 Train Decision Tree',
 						key='classification_tree_train', use_container_width=True )
 				
 				with tree_btn_2:
@@ -6192,7 +6192,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				forest_btn_1, forest_btn_2 = st.columns( 2 )
 				with forest_btn_1:
-					train_forest = st.button( '🚆 Train Random Forest',
+					train_forest = st.button( '🚂 Train Random Forest',
 						key='classification_forest_train', use_container_width=True )
 				
 				with forest_btn_2:
@@ -6316,7 +6316,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				gb_btn_1, gb_btn_2 = st.columns( 2 )
 				with gb_btn_1:
-					train_gb = st.button( '🚆 Train Gradient Boost', key='classification_gb_train',
+					train_gb = st.button( '🚂 Train Gradient Boost', key='classification_gb_train',
 						use_container_width=True )
 				
 				with gb_btn_2:
@@ -6432,7 +6432,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				ab_btn_1, ab_btn_2 = st.columns( 2 )
 				with ab_btn_1:
-					train_ab = st.button( '🚆 Train Adaptive Boost', key='classification_ab_train',
+					train_ab = st.button( '🚂 Train Adaptive Boost', key='classification_ab_train',
 						use_container_width=True )
 				
 				with ab_btn_2:
@@ -6536,7 +6536,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				bag_btn_1, bag_btn_2 = st.columns( 2 )
 				with bag_btn_1:
-					train_bag = st.button( '🚆 Train Bagging Model', key='classification_bag_train',
+					train_bag = st.button( '🚂 Train Bagging Model', key='classification_bag_train',
 						use_container_width=True )
 				
 				with bag_btn_2:
@@ -6677,7 +6677,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				vote_btn_1, vote_btn_2 = st.columns( 2 )
 				with vote_btn_1:
-					train_vote = st.button( '🚆 Train Voting Model', key='classification_vote_train',
+					train_vote = st.button( '🚂 Train Voting Model', key='classification_vote_train',
 						use_container_width=True )
 				
 				with vote_btn_2:
@@ -6838,7 +6838,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				stack_btn_1, stack_btn_2 = st.columns( 2 )
 				with stack_btn_1:
-					train_stack = st.button( '🚆 Train Stacking Model',
+					train_stack = st.button( '🚂 Train Stacking Model',
 						key='classification_stack_train', use_container_width=True )
 				
 				with stack_btn_2:
@@ -7006,7 +7006,7 @@ elif mode == 'Classification Models':
 				# Model Training
 				mlp_btn_1, mlp_btn_2 = st.columns( 2 )
 				with mlp_btn_1:
-					train_mlp = st.button( '🚆 Train Multi-Layer Perceptron',
+					train_mlp = st.button( '🚂 Train Multi-Layer Perceptron',
 						key='classification_mlp_train', use_container_width=True )
 				
 				with mlp_btn_2:
@@ -8638,7 +8638,7 @@ elif mode == 'Regression Models':
 				
 				ols_btn_1, ols_btn_2 = st.columns( 2 )
 				with ols_btn_1:
-					train_ols = st.button( '🚆 Train Ordinary Least Squares',
+					train_ols = st.button( '🚂 Train Ordinary Least Squares',
 						key='regression_ols_train', use_container_width=True )
 				
 				with ols_btn_2:
@@ -8807,7 +8807,7 @@ elif mode == 'Regression Models':
 							step=1, key='regression_ridge_random_state_input' ) )
 				
 				ridge_btn_1, ridge_btn_2 = st.columns( 2 )
-				with ridge_btn_1: train_ridge = st.button( '🚆 Train Ridge Regression',
+				with ridge_btn_1: train_ridge = st.button( '🚂 Train Ridge Regression',
 					key='regression_ridge_train', use_container_width=True )
 				
 				with ridge_btn_2:
@@ -9025,7 +9025,7 @@ elif mode == 'Regression Models':
 				lasso_btn_1, lasso_btn_2 = st.columns( 2 )
 				with lasso_btn_1:
 					train_lasso = st.button(
-						'🚆 Train Lasso Regression',
+						'🚂 Train Lasso Regression',
 						key='regression_lasso_train',
 						use_container_width=True
 					)
@@ -9296,7 +9296,7 @@ elif mode == 'Regression Models':
 				elastic_btn_1, elastic_btn_2 = st.columns( 2 )
 				with elastic_btn_1:
 					train_elastic = st.button(
-						'🚆 Train Elastic Net',
+						'🚂 Train Elastic Net',
 						key='regression_elastic_train',
 						use_container_width=True
 					)
@@ -9604,7 +9604,7 @@ elif mode == 'Regression Models':
 				bayes_btn_1, bayes_btn_2 = st.columns( 2 )
 				with bayes_btn_1:
 					train_bayes = st.button(
-						'🚆 Train Bayesian Ridge',
+						'🚂 Train Bayesian Ridge',
 						key='regression_bayes_train',
 						use_container_width=True
 					)
@@ -10020,7 +10020,7 @@ elif mode == 'Regression Models':
 				
 				with sgd_btn_1:
 					train_sgd = st.button(
-						'🚆 Train Stochastic Gradient Descent',
+						'🚂 Train Stochastic Gradient Descent',
 						key='regression_sgd_train',
 						use_container_width=True
 					)
@@ -10294,7 +10294,7 @@ elif mode == 'Regression Models':
 				
 				knn_btn_1, knn_btn_2 = st.columns( 2 )
 				with knn_btn_1:
-					train_knn = st.button( '🚆 Train k-Nearest Neighbors',
+					train_knn = st.button( '🚂 Train k-Nearest Neighbors',
 						key='regression_knn_train', use_container_width=True )
 				
 				with knn_btn_2:
@@ -10503,7 +10503,7 @@ elif mode == 'Regression Models':
 				
 				svr_btn_1, svr_btn_2 = st.columns( 2 )
 				with svr_btn_1:
-					train_svr = st.button( '🚆 Train Support Vector', key='regression_svr_train',
+					train_svr = st.button( '🚂 Train Support Vector', key='regression_svr_train',
 						use_container_width=True )
 				
 				with svr_btn_2:
@@ -10720,7 +10720,7 @@ elif mode == 'Regression Models':
 				extra_btn_1, extra_btn_2 = st.columns( 2 )
 				
 				with extra_btn_1:
-					train_extra = st.button( '🚆 Train Extra Trees Regressor',
+					train_extra = st.button( '🚂 Train Extra Trees Regressor',
 						key='regression_extra_train', use_container_width=True )
 				
 				with extra_btn_2:
@@ -11000,7 +11000,7 @@ elif mode == 'Regression Models':
 				
 				rf_btn_1, rf_btn_2 = st.columns( 2 )
 				with rf_btn_1:
-					train_rf = st.button( '🚆 Train Random Forest', key='regression_rf_train',
+					train_rf = st.button( '🚂 Train Random Forest', key='regression_rf_train',
 						use_container_width=True )
 				
 				with rf_btn_2:
@@ -11223,7 +11223,7 @@ elif mode == 'Regression Models':
 				
 				ada_btn_1, ada_btn_2 = st.columns( 2 )
 				with ada_btn_1:
-					train_ada = st.button( '🚆 Train Adaptive Boosting',
+					train_ada = st.button( '🚂 Train Adaptive Boosting',
 						key='regression_ada_train', use_container_width=True )
 				
 				with ada_btn_2:
@@ -11651,7 +11651,7 @@ elif mode == 'Regression Models':
 				
 				with gb_btn_1:
 					train_gb = st.button(
-						'🚆 Train Gradient Boosting',
+						'🚂 Train Gradient Boosting',
 						key='regression_gb_train',
 						use_container_width=True
 					)
@@ -11998,7 +11998,7 @@ elif mode == 'Regression Models':
 				vote_btn_1, vote_btn_2 = st.columns( 2 )
 				with vote_btn_1:
 					train_vote = st.button(
-						'🚆 Train Voting Regressor',
+						'🚂 Train Voting Regressor',
 						key='regression_vote_train',
 						use_container_width=True
 					)
@@ -12288,7 +12288,7 @@ elif mode == 'Regression Models':
 				
 				with stack_btn_1:
 					train_stack = st.button(
-						'🚆 Train Stacking Regressor',
+						'🚂 Train Stacking Regressor',
 						key='regression_stack_train',
 						use_container_width=True
 					)
