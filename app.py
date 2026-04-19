@@ -3401,7 +3401,7 @@ elif mode == 'Classification Models':
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with center:
+	with (center):
 		st.subheader( cfg.MODE[ 'Classification Models' ] )
 		st.caption( 'Predictive Models for Categorical, Discrete-Values' )
 		st.divider( )
@@ -7369,16 +7369,13 @@ elif mode == 'Regression Models':
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
 				st.session_state[ 'df_working' ] = df_working.copy( )
-				st.session_state[ 'df_processed' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Reset to Original' )
 		
-		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) ).copy( )
-		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) ).copy( )
-		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		if df_working is None:
+			st.stop( )
 		st.markdown( '##### Working Data' )
-		
 		st.caption( f'Samples: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
 		st.data_editor( df_working, key='regression_working_data' )
 		
@@ -8542,6 +8539,8 @@ elif mode == 'Regression Models':
 							st.success( 'Reset to Working.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		if df_processed is None:
+			st.stop( )
 		st.markdown( '##### Processed Data' )
 		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='regression_processed_data' )
@@ -8593,15 +8592,10 @@ elif mode == 'Regression Models':
 				
 				ols_c1, ols_c2, ols_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with ols_c1:
-					st.markdown( '###### Data Split' )
-					ols_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
+					st.markdown( '###### ↔️ Data Split' )
+					ols_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
 						value=int( st.session_state[ 'regression_ols_test_size' ] * 100 ),
-						step=5,
-						key='regression_ols_test_size_slider'
-					) / 100.0
+						step=5, key='regression_ols_test_size_slider' ) / 100.0
 					
 					ols_random_state = int( st.number_input( 'Random State', min_value=0,
 							value=int( st.session_state[ 'regression_ols_random_state' ] ),
@@ -8622,7 +8616,7 @@ elif mode == 'Regression Models':
 						key='regression_ols_positive_check' )
 				
 				with ols_c3:
-					st.markdown( '###### Solver Settings' )
+					st.markdown( '###### ♟️ Solver Settings' )
 					ols_tol = float( st.number_input( 'Tolerance', min_value=0.0,
 							value=float( st.session_state[ 'regression_ols_tol' ] ),
 							step=0.000001, format='%.6f', key='regression_ols_tol_input' ) )
@@ -8669,9 +8663,7 @@ elif mode == 'Regression Models':
 							0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( np.unique( y ) ) < 2:
-							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+							st.warning( '⚠️ The target must contain at least two distinct values.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
@@ -8697,7 +8689,7 @@ elif mode == 'Regression Models':
 						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
 							int( len( X_test ) ) )
 						
-						df_predictions = pd.DataFrame( {
+						df_predictions = pd.DataFrame(  {
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
@@ -8750,10 +8742,9 @@ elif mode == 'Regression Models':
 						key='regression_ridge_copy_x_check' )
 				
 				with ridge_c2:
-					st.markdown( '###### Solver / Iteration' )
+					st.markdown( '###### ♟️ Solver / Iteration' )
 					
-					ridge_solver = st.selectbox( 'Solver',
-						options=[
+					ridge_solver = st.selectbox( 'Solver', options=[
 								'auto',
 								'svd',
 								'cholesky',
@@ -8791,8 +8782,7 @@ elif mode == 'Regression Models':
 						st.info( "Positive coefficients require the 'lbfgs' solver." )
 				
 				with ridge_c3:
-					st.markdown( '###### Data Split' )
-					
+					st.markdown( '###### ↔️ Data Split' )
 					ridge_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
 						value=int( st.session_state[ 'regression_ridge_test_size' ] * 100 ),
 						step=5, key='regression_ridge_test_size_slider' ) / 100.0
@@ -8879,7 +8869,7 @@ elif mode == 'Regression Models':
 							df_scores.loc[ 'Alpha', 'Value' ] = float( ridge_alpha )
 							df_scores.loc[ 'Solver', 'Value' ] = str( effective_solver )
 						
-						df_predictions = pd.DataFrame( {
+						df_predictions = pd.DataFrame(  {
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
@@ -8916,121 +8906,68 @@ elif mode == 'Regression Models':
 						st.session_state[ key ] = value
 				
 				st.caption( 'L1-regularized linear regression for continuous targets.' )
-				
 				lasso_c1, lasso_c2, lasso_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with lasso_c1:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
-					
-					lasso_alpha = float(
-						st.number_input(
-							'Alpha',
-							min_value=0.000001,
+					lasso_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
 							value=float( st.session_state[ 'regression_lasso_alpha' ] ),
-							step=0.100000,
-							format='%.6f',
-							key='regression_lasso_alpha_input'
-						)
-					)
+							step=0.100000, format='%.6f', key='regression_lasso_alpha_input' ) )
 					
-					lasso_fit_intercept = st.checkbox(
-						'Fit Intercept',
+					lasso_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_lasso_fit_intercept' ] ),
-						key='regression_lasso_fit_intercept_check'
-					)
+						key='regression_lasso_fit_intercept_check' )
 					
-					lasso_precompute = st.checkbox(
-						'Precompute',
+					lasso_precompute = st.checkbox( 'Precompute',
 						value=bool( st.session_state[ 'regression_lasso_precompute' ] ),
-						key='regression_lasso_precompute_check'
-					)
+						key='regression_lasso_precompute_check' )
 					
-					lasso_copy_x = st.checkbox(
-						'Copy X',
+					lasso_copy_x = st.checkbox( 'Copy X',
 						value=bool( st.session_state[ 'regression_lasso_copy_x' ] ),
-						key='regression_lasso_copy_x_check'
-					)
+						key='regression_lasso_copy_x_check' )
 				
 				with lasso_c2:
 					st.markdown( '###### Solver / Iteration' )
-					
-					lasso_max_iter = int(
-						st.number_input(
-							'Max Iterations',
+					lasso_max_iter = int( st.number_input( 'Max Iterations',
 							min_value=1,
-							value=int( st.session_state[ 'regression_lasso_max_iter' ] ),
-							step=1,
-							key='regression_lasso_max_iter_input'
-						)
-					)
+							value=int( st.session_state[ 'regression_lasso_max_iter' ] ), step=1,
+							key='regression_lasso_max_iter_input' ) )
 					
-					lasso_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
+					lasso_tol = float( st.number_input( 'Tolerance', min_value=0.0,
 							value=float( st.session_state[ 'regression_lasso_tol' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_lasso_tol_input'
-						)
-					)
+							step=0.000100, format='%.6f', key='regression_lasso_tol_input' ) )
 					
-					lasso_warm_start = st.checkbox(
-						'Warm Start',
+					lasso_warm_start = st.checkbox( 'Warm Start',
 						value=bool( st.session_state[ 'regression_lasso_warm_start' ] ),
-						key='regression_lasso_warm_start_check'
-					)
+						key='regression_lasso_warm_start_check' )
 					
-					lasso_positive = st.checkbox(
-						'Positive Coefficients',
+					lasso_positive = st.checkbox( 'Positive Coefficients',
 						value=bool( st.session_state[ 'regression_lasso_positive' ] ),
-						key='regression_lasso_positive_check'
-					)
+						key='regression_lasso_positive_check' )
 					
-					lasso_selection = st.selectbox(
-						'Selection',
-						options=[ 'cyclic', 'random' ],
+					lasso_selection = st.selectbox( 'Selection', options=[ 'cyclic', 'random' ],
 						index=[ 'cyclic', 'random' ].index(
-							st.session_state[ 'regression_lasso_selection' ]
-						),
-						key='regression_lasso_selection_select'
-					)
+							st.session_state[ 'regression_lasso_selection' ] ),
+						key='regression_lasso_selection_select' )
 				
 				with lasso_c3:
 					st.markdown( '###### Data Split' )
-					
-					lasso_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
+					lasso_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
 						value=int( st.session_state[ 'regression_lasso_test_size' ] * 100 ),
-						step=5,
-						key='regression_lasso_test_size_slider'
-					) / 100.0
+						step=5, key='regression_lasso_test_size_slider' ) / 100.0
 					
 					lasso_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
+						st.number_input( 'Random State', min_value=0,
 							value=int( st.session_state[ 'regression_lasso_random_state' ] ),
-							step=1,
-							key='regression_lasso_random_state_input'
-						)
-					)
+							step=1, key='regression_lasso_random_state_input' ) )
 				
 				lasso_btn_1, lasso_btn_2 = st.columns( 2 )
 				with lasso_btn_1:
-					train_lasso = st.button(
-						'🚂 Train Lasso Regression',
-						key='regression_lasso_train',
-						use_container_width=True
-					)
+					train_lasso = st.button( '🚂 Train Lasso Regression', key='regression_lasso_train',
+						use_container_width=True )
 				
 				with lasso_btn_2:
-					reset_lasso = st.button(
-						'🔄 Reset Lasso Regression',
-						key='regression_lasso_reset',
-						use_container_width=True
-					)
+					reset_lasso = st.button( '🔄 Reset Lasso Regression', key='regression_lasso_reset',
+						use_container_width=True )
 				
 				if reset_lasso:
 					for key, value in lasso_defaults.items( ):
@@ -9046,112 +8983,67 @@ elif mode == 'Regression Models':
 				if train_lasso:
 					try:
 						st.session_state[ 'regression_lasso_alpha' ] = float( lasso_alpha )
-						st.session_state[ 'regression_lasso_fit_intercept' ] = bool(
-							lasso_fit_intercept
-						)
-						st.session_state[ 'regression_lasso_precompute' ] = bool(
-							lasso_precompute
-						)
+						st.session_state[ 'regression_lasso_fit_intercept' ] = bool( lasso_fit_intercept )
+						st.session_state[ 'regression_lasso_precompute' ] = bool( lasso_precompute )
 						st.session_state[ 'regression_lasso_copy_x' ] = bool( lasso_copy_x )
 						st.session_state[ 'regression_lasso_max_iter' ] = int( lasso_max_iter )
 						st.session_state[ 'regression_lasso_tol' ] = float( lasso_tol )
-						st.session_state[ 'regression_lasso_warm_start' ] = bool(
-							lasso_warm_start
-						)
+						st.session_state[ 'regression_lasso_warm_start' ] = bool( lasso_warm_start )
 						st.session_state[ 'regression_lasso_positive' ] = bool( lasso_positive )
-						st.session_state[ 'regression_lasso_random_state' ] = int(
-							lasso_random_state
-						)
-						st.session_state[ 'regression_lasso_selection' ] = str(
-							lasso_selection
-						)
-						st.session_state[ 'regression_lasso_test_size' ] = float(
-							lasso_test_size
-						)
+						st.session_state[ 'regression_lasso_random_state' ] = int( lasso_random_state )
+						st.session_state[ 'regression_lasso_selection' ] = str( lasso_selection )
+						st.session_state[ 'regression_lasso_test_size' ] = float( lasso_test_size )
 						
 						df_training = df_model.copy( )
-						
-						X = df_training[ active_features ].apply(
-							pd.to_numeric,
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( )
+						X = df_training[active_features].apply(
+							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
 						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+							df_training[target_name], errors='coerce').fillna(0.0).to_numpy().reshape(-1)
 						
 						if len( np.unique( y ) ) < 2:
-							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+							st.warning( '⚠️ The target must contain at least two distinct values.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
+						model = regression_model.Lasso( alpha=float( lasso_alpha ),
+							fit=bool( lasso_fit_intercept ), precompute=bool( lasso_precompute ),
+							copy=bool( lasso_copy_x ), iters=int( lasso_max_iter ),
+							tol=float( lasso_tol ), warm=bool( lasso_warm_start ),
+							positive=bool( lasso_positive ), rando=int( lasso_random_state ),
+							selection=str( lasso_selection ) )
 						
-						model = regression_model.Lasso(
-							alpha=float( lasso_alpha ),
-							fit=bool( lasso_fit_intercept ),
-							precompute=bool( lasso_precompute ),
-							copy=bool( lasso_copy_x ),
-							iters=int( lasso_max_iter ),
-							tol=float( lasso_tol ),
-							warm=bool( lasso_warm_start ),
-							positive=bool( lasso_positive ),
-							rando=int( lasso_random_state ),
-							selection=str( lasso_selection )
-						)
-						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( lasso_test_size ),
-							random=int( lasso_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( lasso_test_size ), random=int( lasso_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_lasso_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						
 						if df_scores is not None and not df_scores.empty:
 							if df_scores.shape[ 1 ] == 1:
 								df_scores.columns = [ 'Value' ]
 							
-							df_scores.loc[ 'Training Score', 'Value' ] = float(
-								model.training_score
-							)
-							df_scores.loc[ 'Testing Score', 'Value' ] = float(
-								model.testing_score
-							)
-							df_scores.loc[ 'R-Squared Score', 'Value' ] = float( r2_score(
-								y_test, y_prediction ) )
+							df_scores.loc[ 'Training Score', 'Value' ] = float( model.training_score )
+							df_scores.loc[ 'Testing Score', 'Value' ] = float( model.testing_score )
+							df_scores.loc[ 'R-Squared Score', 'Value' ] = float(
+								r2_score( y_test, y_prediction ) )
 							
-							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round(
-								elapsed_seconds,
-								4
-							)
+							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round( elapsed_seconds, 4 )
 							df_scores.loc[ 'Training Rows', 'Value' ] = int( len( X_train ) )
 							df_scores.loc[ 'Testing Rows', 'Value' ] = int( len( X_test ) )
 							df_scores.loc[ 'Alpha', 'Value' ] = float( lasso_alpha )
 							df_scores.loc[ 'Selection', 'Value' ] = str( lasso_selection )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
+							} )
 						
-						df_coefficients = pd.DataFrame(
-							{
+						df_coefficients = pd.DataFrame( {
 									'Feature': active_features,
 									'Coefficient': np.asarray( model.weights ).reshape( -1 )
-							}
-						)
+							} )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model.copy( )
@@ -9190,90 +9082,51 @@ elif mode == 'Regression Models':
 				elastic_c1, elastic_c2, elastic_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with elastic_c1:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
-					elastic_alpha = float(
-						st.number_input(
-							'Alpha',
-							min_value=0.000001,
+					elastic_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
 							value=float( st.session_state[ 'regression_elastic_alpha' ] ),
-							step=0.100000,
-							format='%.6f',
-							key='regression_elastic_alpha_input'
-						)
-					)
+							step=0.100000, format='%.6f', key='regression_elastic_alpha_input' ) )
 					
-					elastic_ratio = float(
-						st.slider(
-							'L1 Ratio',
-							min_value=0.0,
-							max_value=1.0,
+					elastic_ratio = float( st.slider( 'L1 Ratio', min_value=0.0, max_value=1.0,
 							value=float( st.session_state[ 'regression_elastic_ratio' ] ),
-							step=0.05,
-							key='regression_elastic_ratio_slider'
-						)
-					)
+							step=0.05, key='regression_elastic_ratio_slider' ) )
 					
-					elastic_fit_intercept = st.checkbox(
-						'Fit Intercept',
+					elastic_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_elastic_fit_intercept' ] ),
-						key='regression_elastic_fit_intercept_check'
-					)
+						key='regression_elastic_fit_intercept_check' )
 					
-					elastic_precompute = st.checkbox(
-						'Precompute',
+					elastic_precompute = st.checkbox( 'Precompute',
 						value=bool( st.session_state[ 'regression_elastic_precompute' ] ),
-						key='regression_elastic_precompute_check'
-					)
+						key='regression_elastic_precompute_check' )
 				
 				with elastic_c2:
 					st.markdown( '###### Solver / Iteration' )
-					
-					elastic_copy_x = st.checkbox(
-						'Copy X',
+					elastic_copy_x = st.checkbox( 'Copy X',
 						value=bool( st.session_state[ 'regression_elastic_copy_x' ] ),
-						key='regression_elastic_copy_x_check'
-					)
+						key='regression_elastic_copy_x_check' )
 					
 					elastic_max_iter = int(
-						st.number_input(
-							'Max Iterations',
-							min_value=1,
+						st.number_input( 'Max Iterations', min_value=1,
 							value=int( st.session_state[ 'regression_elastic_max_iter' ] ),
-							step=1,
-							key='regression_elastic_max_iter_input'
-						)
-					)
+							step=1, key='regression_elastic_max_iter_input' ) )
 					
 					elastic_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
+						st.number_input( 'Tolerance', min_value=0.0,
 							value=float( st.session_state[ 'regression_elastic_tol' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_elastic_tol_input'
-						)
-					)
+							step=0.000100, format='%.6f',
+							key='regression_elastic_tol_input' ) )
 					
-					elastic_warm_start = st.checkbox(
-						'Warm Start',
+					elastic_warm_start = st.checkbox( 'Warm Start',
 						value=bool( st.session_state[ 'regression_elastic_warm_start' ] ),
-						key='regression_elastic_warm_start_check'
-					)
+						key='regression_elastic_warm_start_check' )
 					
-					elastic_positive = st.checkbox(
-						'Positive Coefficients',
+					elastic_positive = st.checkbox( 'Positive Coefficients',
 						value=bool( st.session_state[ 'regression_elastic_positive' ] ),
-						key='regression_elastic_positive_check'
-					)
+						key='regression_elastic_positive_check' )
 					
-					elastic_selection = st.selectbox(
-						'Selection',
-						options=[ 'cyclic', 'random' ],
+					elastic_selection = st.selectbox( 'Selection', options=[ 'cyclic', 'random' ],
 						index=[ 'cyclic', 'random' ].index(
-							st.session_state[ 'regression_elastic_selection' ]
-						),
-						key='regression_elastic_selection_select'
-					)
+							st.session_state[ 'regression_elastic_selection' ] ),
+						key='regression_elastic_selection_select' )
 				
 				with elastic_c3:
 					st.markdown( '###### Data Split' )
@@ -9290,18 +9143,12 @@ elif mode == 'Regression Models':
 				
 				elastic_btn_1, elastic_btn_2 = st.columns( 2 )
 				with elastic_btn_1:
-					train_elastic = st.button(
-						'🚂 Train Elastic Net',
-						key='regression_elastic_train',
-						use_container_width=True
-					)
+					train_elastic = st.button('🚂 Train Elastic Net',key='regression_elastic_train',
+						use_container_width=True)
 				
 				with elastic_btn_2:
-					reset_elastic = st.button(
-						'🔄 Reset Elastic Net',
-						key='regression_elastic_reset',
-						use_container_width=True
-					)
+					reset_elastic = st.button('🔄 Reset Elastic Net',
+						key='regression_elastic_reset',use_container_width=True)
 				
 				if reset_elastic:
 					for key, value in elastic_defaults.items( ):
@@ -9318,109 +9165,67 @@ elif mode == 'Regression Models':
 					try:
 						st.session_state[ 'regression_elastic_alpha' ] = float( elastic_alpha )
 						st.session_state[ 'regression_elastic_ratio' ] = float( elastic_ratio )
-						st.session_state[ 'regression_elastic_fit_intercept' ] = bool(
-							elastic_fit_intercept
-						)
-						st.session_state[ 'regression_elastic_precompute' ] = bool(
-							elastic_precompute
-						)
+						st.session_state[ 'regression_elastic_fit_intercept' ] = bool(elastic_fit_intercept)
+						st.session_state[ 'regression_elastic_precompute' ] = bool(elastic_precompute)
 						st.session_state[ 'regression_elastic_copy_x' ] = bool( elastic_copy_x )
 						st.session_state[ 'regression_elastic_max_iter' ] = int( elastic_max_iter )
 						st.session_state[ 'regression_elastic_tol' ] = float( elastic_tol )
-						st.session_state[ 'regression_elastic_warm_start' ] = bool(
-							elastic_warm_start
-						)
-						st.session_state[ 'regression_elastic_positive' ] = bool(
-							elastic_positive
-						)
-						st.session_state[ 'regression_elastic_random_state' ] = int(
-							elastic_random_state
-						)
-						st.session_state[ 'regression_elastic_selection' ] = str(
-							elastic_selection
-						)
-						st.session_state[ 'regression_elastic_test_size' ] = float(
-							elastic_test_size
-						)
+						st.session_state[ 'regression_elastic_warm_start' ] = bool(elastic_warm_start)
+						st.session_state[ 'regression_elastic_positive' ] = bool(elastic_positive)
+						st.session_state[ 'regression_elastic_random_state' ] = int(elastic_random_state)
+						st.session_state[ 'regression_elastic_selection' ] = str(elastic_selection)
+						st.session_state[ 'regression_elastic_test_size' ] = float(elastic_test_size)
 						
 						df_training = df_model.copy( )
-						
 						X = df_training[ active_features ].apply(
-							pd.to_numeric,
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( )
+							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
 						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+							df_training[target_name], errors='coerce').fillna(0.0).to_numpy().reshape(-1)
 						
 						if len( np.unique( y ) ) < 2:
-							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+							st.warning( '⚠️ The target must contain at least two distinct values.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
+						model = regression_model.ElasticNet( alpha=float( elastic_alpha ),
+							ratio=float( elastic_ratio ), fit=bool( elastic_fit_intercept ),
+							precompute=bool( elastic_precompute ), iters=int( elastic_max_iter ),
+							copy=bool( elastic_copy_x ), tol=float( elastic_tol ),
+							warm=bool( elastic_warm_start ), positive=bool( elastic_positive ),
+							rando=int( elastic_random_state ), select=str( elastic_selection ) )
 						
-						model = regression_model.ElasticNet(
-							alpha=float( elastic_alpha ),
-							ratio=float( elastic_ratio ),
-							fit=bool( elastic_fit_intercept ),
-							precompute=bool( elastic_precompute ),
-							iters=int( elastic_max_iter ),
-							copy=bool( elastic_copy_x ),
-							tol=float( elastic_tol ),
-							warm=bool( elastic_warm_start ),
-							positive=bool( elastic_positive ),
-							rando=int( elastic_random_state ),
-							select=str( elastic_selection )
-						)
-						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( elastic_test_size ),
-							random=int( elastic_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( elastic_test_size ), random=int( elastic_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_elastic_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
-						
 						if df_scores is not None and not df_scores.empty:
 							if df_scores.shape[ 1 ] == 1:
 								df_scores.columns = [ 'Value' ]
 							
 							df_scores.loc[ 'Training Score', 'Value' ] = float(
-								model.training_score
-							)
+								model.training_score )
 							df_scores.loc[ 'Testing Score', 'Value' ] = float(
-								model.testing_score
-							)
+								model.testing_score )
 							df_scores.loc[ 'R-Squared Score', 'Value' ] = float(
-								r2_score( y_test, y_prediction )
-							)
+								r2_score( y_test, y_prediction ) )
 							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round(
-								elapsed_seconds,
-								4
-							)
+								elapsed_seconds, 4 )
 							df_scores.loc[ 'Training Rows', 'Value' ] = int( len( X_train ) )
 							df_scores.loc[ 'Testing Rows', 'Value' ] = int( len( X_test ) )
 							df_scores.loc[ 'Alpha', 'Value' ] = float( elastic_alpha )
 							df_scores.loc[ 'L1 Ratio', 'Value' ] = float( elastic_ratio )
 							df_scores.loc[ 'Selection', 'Value' ] = str( elastic_selection )
 						
-						df_predictions = pd.DataFrame( {
+						df_predictions = pd.DataFrame(  {
 									'Actual': y_test,
 									'Predicted': y_prediction
 							} )
 						
-						df_coefficients = pd.DataFrame( {
+						df_coefficients = pd.DataFrame(  {
 									'Feature': active_features,
 									'Coefficient': np.asarray( model.weights ).reshape( -1 )
 							} )
@@ -9465,151 +9270,80 @@ elif mode == 'Regression Models':
 				with bayes_c1:
 					st.markdown( '###### Prior / Precision Parameters' )
 					
-					bayes_shape_alpha = float(
-						st.number_input(
-							'Alpha Shape',
-							min_value=0.0,
+					bayes_shape_alpha = float( st.number_input( 'Alpha Shape', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_shape_alpha' ] ),
-							step=0.000001,
-							format='%.6f',
-							key='regression_bayes_shape_alpha_input'
-						)
-					)
+							step=0.000001, format='%.6f',
+							key='regression_bayes_shape_alpha_input' ) )
 					
-					bayes_scale_alpha = float(
-						st.number_input(
-							'Alpha Scale',
-							min_value=0.0,
+					bayes_scale_alpha = float( st.number_input( 'Alpha Scale', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_scale_alpha' ] ),
-							step=0.000001,
-							format='%.6f',
-							key='regression_bayes_scale_alpha_input'
-						)
-					)
+							step=0.000001, format='%.6f', key='regression_bayes_scale_alpha_input' ) )
 					
-					bayes_shape_lambda = float(
-						st.number_input(
-							'Lambda Shape',
-							min_value=0.0,
+					bayes_shape_lambda = float( st.number_input( 'Lambda Shape', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_shape_lambda' ] ),
-							step=0.000001,
-							format='%.6f',
-							key='regression_bayes_shape_lambda_input'
-						)
-					)
+							step=0.000001, format='%.6f',
+							key='regression_bayes_shape_lambda_input' ) )
 					
-					bayes_scale_lambda = float(
-						st.number_input(
-							'Lambda Scale',
-							min_value=0.0,
+					bayes_scale_lambda = float( st.number_input( 'Lambda Scale', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_scale_lambda' ] ),
-							step=0.000001,
-							format='%.6f',
-							key='regression_bayes_scale_lambda_input'
-						)
-					)
+							step=0.000001, format='%.6f', key='regression_bayes_scale_lambda_input' ) )
 				
 				with bayes_c2:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					
-					bayes_max_iter = int(
-						st.number_input(
-							'Max Iterations',
-							min_value=1,
-							value=int( st.session_state[ 'regression_bayes_max_iter' ] ),
-							step=1,
-							key='regression_bayes_max_iter_input'
-						)
-					)
+					bayes_max_iter = int( st.number_input( 'Max Iterations',
+							min_value=1, value=int( st.session_state[ 'regression_bayes_max_iter' ] ),
+							step=1, key='regression_bayes_max_iter_input' ) )
 					
-					bayes_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
+					bayes_tol = float( st.number_input( 'Tolerance', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_tol' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_bayes_tol_input'
-						)
-					)
+							step=0.000100, format='%.6f', key='regression_bayes_tol_input' ) )
 					
-					bayes_alpha_init_raw = float(
-						st.number_input( 'Alpha Init (0 = None)', min_value=0.0,
+					bayes_alpha_init_raw = float( st.number_input( 'Alpha Init (0 = None)', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_alpha_init' ] ),
-							step=0.000100, format='%.6f',
-							key='regression_bayes_alpha_init_input' ) )
+							step=0.000100, format='%.6f', key='regression_bayes_alpha_init_input' ) )
 					
-					bayes_lambda_init_raw = float(
-						st.number_input(
-							'Lambda Init (0 = None)',
+					bayes_lambda_init_raw = float( st.number_input( 'Lambda Init (0 = None)',
 							min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_lambda_init' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_bayes_lambda_init_input'
-						)
-					)
+							step=0.000100, format='%.6f',
+							key='regression_bayes_lambda_init_input' ) )
 					
-					bayes_compute_score = st.checkbox(
-						'Compute Marginal Log Likelihood',
+					bayes_compute_score = st.checkbox( 'Compute Marginal Log Likelihood',
 						value=bool( st.session_state[ 'regression_bayes_compute_score' ] ),
-						key='regression_bayes_compute_score_check'
-					)
+						key='regression_bayes_compute_score_check' )
 					
-					bayes_fit_intercept = st.checkbox(
-						'Fit Intercept',
+					bayes_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_bayes_fit_intercept' ] ),
-						key='regression_bayes_fit_intercept_check'
-					)
+						key='regression_bayes_fit_intercept_check' )
 					
-					bayes_copy_x = st.checkbox(
-						'Copy X',
+					bayes_copy_x = st.checkbox( 'Copy X',
 						value=bool( st.session_state[ 'regression_bayes_copy_x' ] ),
-						key='regression_bayes_copy_x_check'
-					)
+						key='regression_bayes_copy_x_check')
 					
-					bayes_verbose = st.checkbox(
-						'Verbose',
+					bayes_verbose = st.checkbox( 'Verbose',
 						value=bool( st.session_state[ 'regression_bayes_verbose' ] ),
-						key='regression_bayes_verbose_check'
-					)
+						key='regression_bayes_verbose_check')
 				
 				with bayes_c3:
 					st.markdown( '###### Data Split' )
 					
-					bayes_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
+					bayes_test_size = st.slider('Test Set Size (%)',min_value=10,max_value=40,
 						value=int( st.session_state[ 'regression_bayes_test_size' ] * 100 ),
-						step=5,
-						key='regression_bayes_test_size_slider'
-					) / 100.0
+						step=5,key='regression_bayes_test_size_slider') / 100.0
 					
-					bayes_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
+					bayes_random_state = int(st.number_input('Random State',min_value=0,
 							value=int( st.session_state[ 'regression_bayes_random_state' ] ),
-							step=1,
-							key='regression_bayes_random_state_input'
-						)
-					)
+							step=1,key='regression_bayes_random_state_input'))
 				
 				bayes_btn_1, bayes_btn_2 = st.columns( 2 )
 				with bayes_btn_1:
-					train_bayes = st.button(
-						'🚂 Train Bayesian Ridge',
-						key='regression_bayes_train',
-						use_container_width=True
-					)
+					train_bayes = st.button('🚂 Train Bayesian Ridge',key='regression_bayes_train',
+						use_container_width=True)
 				
 				with bayes_btn_2:
-					reset_bayes = st.button(
-						'🔄 Reset Bayesian Ridge',
-						key='regression_bayes_reset',
-						use_container_width=True
-					)
+					reset_bayes = st.button('🔄 Reset Bayesian Ridge',key='regression_bayes_reset',
+						use_container_width=True)
 				
 				if reset_bayes:
 					for key, value in bayes_defaults.items( ):
@@ -9625,96 +9359,53 @@ elif mode == 'Regression Models':
 				if train_bayes:
 					try:
 						st.session_state[ 'regression_bayes_max_iter' ] = int( bayes_max_iter )
-						st.session_state[ 'regression_bayes_shape_alpha' ] = float(
-							bayes_shape_alpha
-						)
-						st.session_state[ 'regression_bayes_scale_alpha' ] = float(
-							bayes_scale_alpha
-						)
-						st.session_state[ 'regression_bayes_shape_lambda' ] = float(
-							bayes_shape_lambda
-						)
-						st.session_state[ 'regression_bayes_scale_lambda' ] = float(
-							bayes_scale_lambda
-						)
+						st.session_state[ 'regression_bayes_shape_alpha' ] = float(bayes_shape_alpha)
+						st.session_state[ 'regression_bayes_scale_alpha' ] = float(bayes_scale_alpha)
+						st.session_state[ 'regression_bayes_shape_lambda' ] = float(bayes_shape_lambda)
+						st.session_state[ 'regression_bayes_scale_lambda' ] = float(bayes_scale_lambda)
 						st.session_state[ 'regression_bayes_tol' ] = float( bayes_tol )
-						st.session_state[ 'regression_bayes_alpha_init' ] = float(
-							bayes_alpha_init_raw
-						)
-						st.session_state[ 'regression_bayes_lambda_init' ] = float(
-							bayes_lambda_init_raw
-						)
-						st.session_state[ 'regression_bayes_compute_score' ] = bool(
-							bayes_compute_score
-						)
-						st.session_state[ 'regression_bayes_fit_intercept' ] = bool(
-							bayes_fit_intercept
-						)
+						st.session_state[ 'regression_bayes_alpha_init' ] = float(bayes_alpha_init_raw)
+						st.session_state[ 'regression_bayes_lambda_init' ] = float(bayes_lambda_init_raw)
+						st.session_state[ 'regression_bayes_compute_score' ] = bool(bayes_compute_score)
+						st.session_state[ 'regression_bayes_fit_intercept' ] = bool(bayes_fit_intercept)
 						st.session_state[ 'regression_bayes_copy_x' ] = bool( bayes_copy_x )
 						st.session_state[ 'regression_bayes_verbose' ] = bool( bayes_verbose )
-						st.session_state[ 'regression_bayes_test_size' ] = float(
-							bayes_test_size
-						)
-						st.session_state[ 'regression_bayes_random_state' ] = int(
-							bayes_random_state
-						)
-						
+						st.session_state[ 'regression_bayes_test_size' ] = float(bayes_test_size)
+						st.session_state[ 'regression_bayes_random_state' ] = int(bayes_random_state)
 						df_training = df_model.copy( )
-						
 						X = df_training[ active_features ].apply(
-							pd.to_numeric,
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( )
+							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
 						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+							df_training[ target_name ], errors='coerce' ).fillna( 0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( np.unique( y ) ) < 2:
-							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+							st.warning( '⚠️ The target must contain at least two distinct values.' )
 							st.stop( )
 						
 						bayes_alpha_init = None if bayes_alpha_init_raw == 0.0 else float(
-							bayes_alpha_init_raw
-						)
+							bayes_alpha_init_raw )
 						
 						bayes_lambda_init = None if bayes_lambda_init_raw == 0.0 else float(
-							bayes_lambda_init_raw
-						)
+							bayes_lambda_init_raw )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.BayesianRidge(
-							max=int( bayes_max_iter ),
-							shape_alpha=float( bayes_shape_alpha ),
-							scale_alpha=float( bayes_scale_alpha ),
-							shape_lambda=float( bayes_shape_lambda ),
-							scale_lambda=float( bayes_scale_lambda ),
-							tol=float( bayes_tol ),
-							alpha_init=bayes_alpha_init,
-							lambda_init=bayes_lambda_init,
-							compute_score=bool( bayes_compute_score ),
-							fit=bool( bayes_fit_intercept ),
-							copy=bool( bayes_copy_x ),
-							verbose=bool( bayes_verbose )
-						)
+						model = regression_model.BayesianRidge( max=int( bayes_max_iter ),
+							shape_alpha=float( bayes_shape_alpha ), scale_alpha=float( bayes_scale_alpha ),
+							shape_lambda=float( bayes_shape_lambda ), scale_lambda=float( bayes_scale_lambda ),
+							tol=float( bayes_tol ), alpha_init=bayes_alpha_init,
+							lambda_init=bayes_lambda_init, compute_score=bool( bayes_compute_score ),
+							fit=bool( bayes_fit_intercept ), copy=bool( bayes_copy_x ),
+							verbose=bool( bayes_verbose ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( bayes_test_size ),
-							random=int( bayes_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( bayes_test_size ), random=int( bayes_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						st.session_state[ 'regression_bayes_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						
 						if df_scores is not None and not df_scores.empty:
@@ -9724,8 +9415,7 @@ elif mode == 'Regression Models':
 								df_scores = df_scores.reset_index( )
 								df_scores.columns = [ 'Metric', 'Value' ]
 							
-							df_extra = pd.DataFrame(
-								{
+							df_extra = pd.DataFrame( {
 										'Metric': [
 												'Processing Time (Seconds)',
 												'Training Rows',
@@ -9738,27 +9428,19 @@ elif mode == 'Regression Models':
 												int( len( X_test ) ),
 												int( bayes_max_iter )
 										]
-								}
-							)
+								} )
 							
-							df_scores = pd.concat(
-								[ df_scores, df_extra ],
-								ignore_index=True
-							)
+							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
+							} )
 						
-						df_coefficients = pd.DataFrame(
-							{
+						df_coefficients = pd.DataFrame( {
 									'Feature': active_features,
 									'Coefficient': np.asarray( model.model.coef_ ).reshape( -1 )
-							}
-						)
+							} )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model.copy( )
@@ -12461,11 +12143,8 @@ elif mode == 'Regression Models':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Predictions' )
 		y_prediction = model.project( X_test )
-		df_predictions = pd.DataFrame( {
-					'Observed': y_test,
-					'Predicted': y_prediction,
-					'Residual': y_test - y_prediction
-			} )
+		df_predictions = pd.DataFrame( { 'Observed': y_test, 'Predicted': y_prediction,
+					'Residual': y_test - y_prediction } )
 		
 		st.data_editor( df_predictions, use_container_width=True )
 		
