@@ -7089,8 +7089,10 @@ elif mode == 'Classification Models':
 				and 'Actual' in df_predictions.columns
 				and 'Predicted' in df_predictions.columns )
 		
-		has_visual_context = ( model is not None and X_test is not None and y_test is not None
-				and y_prediction is not None )
+		has_visual_context = ( model is not None
+		                       and X_test is not None
+		                       and y_test is not None
+		                       and y_prediction is not None )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Performance' )
