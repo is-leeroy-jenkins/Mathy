@@ -271,6 +271,171 @@ def init_state( ) -> None:
 
 init_state( )
 
+def clear_keys( keys: List[ str ] ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Remove a list of session-state keys if they exist.
+	
+		Parameters:
+		-----------
+		keys: List[str]
+			The session-state keys to remove.
+	
+		Returns:
+		--------
+		None
+	
+	"""
+	for key in keys:
+		if key in st.session_state:
+			del st.session_state[ key ]
+
+def reset_classification_mode_state( ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Clear session-state values owned by Classification mode when the user
+		activates that mode.
+	
+		Parameters:
+		-----------
+		None
+	
+		Returns:
+		--------
+		None
+	
+	"""
+	classification_keys = [
+			'df_working',
+			'df_processed',
+			'df_model',
+			'df_scores',
+			'df_predictions',
+			'df_classification',
+			'df_classification_scores',
+			'df_features',
+			'df_targets',
+			'features',
+			'targets',
+			'selected_all',
+			'active_features',
+			'active_targets',
+			'X_data',
+			'X_train',
+			'X_test',
+			'y_train',
+			'y_test',
+			'y_series',
+			'y_prediction',
+			'y_predictions',
+			'model',
+			'elapsed_seconds',
+			'target_count'
+	]
+	
+	clear_keys( classification_keys )
+	st.session_state[ 'df_working' ] = pd.DataFrame( )
+	st.session_state[ 'df_processed' ] = pd.DataFrame( )
+	st.session_state[ 'df_model' ] = pd.DataFrame( )
+	st.session_state[ 'df_scores' ] = pd.DataFrame( )
+	st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+	st.session_state[ 'df_classification' ] = pd.DataFrame( )
+	st.session_state[ 'df_classification_scores' ] = pd.DataFrame( )
+	st.session_state[ 'df_features' ] = pd.DataFrame( )
+	st.session_state[ 'df_targets' ] = pd.DataFrame( )
+	st.session_state[ 'features' ] = [ ]
+	st.session_state[ 'targets' ] = [ ]
+	st.session_state[ 'selected_all' ] = [ ]
+	st.session_state[ 'active_features' ] = [ ]
+	st.session_state[ 'active_targets' ] = [ ]
+	st.session_state[ 'X_data' ] = None
+	st.session_state[ 'X_train' ] = None
+	st.session_state[ 'X_test' ] = None
+	st.session_state[ 'y_train' ] = None
+	st.session_state[ 'y_test' ] = None
+	st.session_state[ 'y_series' ] = None
+	st.session_state[ 'y_prediction' ] = None
+	st.session_state[ 'y_predictions' ] = None
+	st.session_state[ 'model' ] = None
+	st.session_state[ 'elapsed_seconds' ] = 0.0
+	st.session_state[ 'target_count' ] = 0.0
+
+def reset_regression_mode_state( ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Clear session-state values owned by Regression mode when the user
+		activates that mode.
+	
+		Parameters:
+		-----------
+		None
+	
+		Returns:
+		--------
+		None
+	
+	"""
+	regression_keys = [
+			'df_working',
+			'df_processed',
+			'df_model',
+			'df_scores',
+			'df_predictions',
+			'df_regression',
+			'df_regression_scores',
+			'df_features',
+			'df_targets',
+			'features',
+			'targets',
+			'selected_all',
+			'active_features',
+			'active_targets',
+			'X_data',
+			'X_train',
+			'X_test',
+			'y_train',
+			'y_test',
+			'y_series',
+			'y_prediction',
+			'y_predictions',
+			'model',
+			'elapsed_seconds',
+			'target_count'
+	]
+	
+	clear_keys( regression_keys )
+	st.session_state[ 'df_working' ] = pd.DataFrame( )
+	st.session_state[ 'df_processed' ] = pd.DataFrame( )
+	st.session_state[ 'df_model' ] = pd.DataFrame( )
+	st.session_state[ 'df_scores' ] = pd.DataFrame( )
+	st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+	st.session_state[ 'df_regression' ] = pd.DataFrame( )
+	st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
+	st.session_state[ 'df_features' ] = pd.DataFrame( )
+	st.session_state[ 'df_targets' ] = pd.DataFrame( )
+	st.session_state[ 'features' ] = [ ]
+	st.session_state[ 'targets' ] = [ ]
+	st.session_state[ 'selected_all' ] = [ ]
+	st.session_state[ 'active_features' ] = [ ]
+	st.session_state[ 'active_targets' ] = [ ]
+	st.session_state[ 'X_data' ] = None
+	st.session_state[ 'X_train' ] = None
+	st.session_state[ 'X_test' ] = None
+	st.session_state[ 'y_train' ] = None
+	st.session_state[ 'y_test' ] = None
+	st.session_state[ 'y_series' ] = None
+	st.session_state[ 'y_prediction' ] = None
+	st.session_state[ 'y_predictions' ] = None
+	st.session_state[ 'model' ] = None
+	st.session_state[ 'elapsed_seconds' ] = 0.0
+	st.session_state[ 'target_count' ] = 0.0
+	
 # ============================================
 # Utilities
 # ============================================
@@ -1936,27 +2101,99 @@ pd.options.display.float_format = '{:,.2f}'.format
 # ============================================
 with st.sidebar:
 	st.sidebar.divider( )
-	st.subheader( 'Source' )
-	use_fallback = st.sidebar.checkbox( 'Use Default Data', value=True )
-	uploaded = st.sidebar.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx',  'xls',  'csv' ] )
-	if uploaded or use_fallback:
-		if uploaded:
-			df_dataset = pd.read_excel( uploaded ) if uploaded.name.endswith( 'xls' ) else pd.read_csv( uploaded )
+	st.subheader( 'Data Source' )
+	
+	# ------- Source Selection
+	source = st.selectbox(
+		label='Select Source',
+		options=[ 'Default Data', 'Database Data', 'Custom Data' ],
+		key='source_selectbox'
+	)
+	
+	uploaded = st.sidebar.file_uploader(
+		label='Upload Spreadsheet',
+		type=[ 'xlsx', 'xls', 'csv' ],
+		key='source_uploader'
+	)
+	
+	df_dataset = pd.DataFrame( )
+	df_original = pd.DataFrame( )
+	
+	# ------- Uploaded Spreadsheet
+	if source == 'Default Data':
+		if uploaded is not None:
+			if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
+				df_dataset = pd.read_excel( uploaded )
+			else:
+				df_dataset = pd.read_csv( uploaded )
+			
 			df_original = df_dataset.copy( )
 			log_step( f'Loaded uploaded file: {uploaded.name}' )
 		else:
-			df_dataset = pd.read_excel( cfg.DEFAULT_DATA )
-			df_original = df_dataset.copy( )
-			log_step( 'Loaded Default Dataset' )
-		
+			st.info( 'Upload a spreadsheet to load data.' )
+	
+	# ------- Default App Dataset
+	elif source == 'Custom Data':
+		df_dataset = pd.read_excel( cfg.DEFAULT_DATA )
+		df_original = df_dataset.copy( )
+		log_step( 'Loaded Default Dataset' )
+	
+	# ------- Database Dataset
+	elif source == 'Database Data':
+		try:
+			with sqlite3.connect( cfg.DB_PATH ) as connection:
+				df_tables = pd.read_sql_query(
+					"""
+                    SELECT name
+                    FROM sqlite_master
+                    WHERE type = 'table'
+                      AND name NOT LIKE 'sqlite_%'
+                    ORDER BY name;
+					""",
+					connection
+				)
+				
+				table_options = df_tables[ 'name' ].tolist( )[ :3 ]
+				
+				if table_options:
+					selected_table = st.selectbox( label='Select Database Table',
+						options=table_options, key='database_table_selectbox' )
+					
+					if selected_table:
+						df_dataset = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
+							connection )
+						df_original = df_dataset.copy( )
+						log_step( f'Loaded Database Table: {selected_table}' )
+				else:
+					st.warning( 'No tables were found in the database.' )
+		except Exception as ex:
+			st.error( f'Error loading database data: {ex}' )
+	
+	# ------- Persist Loaded Data
+	if not df_dataset.empty:
 		st.session_state.raw_df = df_dataset.copy( )
 		st.session_state[ 'df_original' ] = df_original.copy( )
 		st.session_state[ 'df_dataset' ] = df_dataset.copy( )
-		
+	
+	# ------- Mode Selection
 	st.sidebar.divider( )
-	st.subheader( 'Mode' )
+	st.subheader( 'Data Mode' )
+	
 	mode = st.sidebar.radio( 'Select', cfg.MODE.keys( ), index=0 )
-	style_subheaders( )
+	previous_mode = st.session_state.get( 'previous_mode', None )
+	
+	if previous_mode != mode:
+		if mode == 'Classification Models':
+			reset_classification_mode_state( )
+		elif mode == 'Regression Models':
+			reset_regression_mode_state( )
+		
+		st.session_state[ 'previous_mode' ] = mode
+		st.rerun( )
+	
+	st.session_state[ 'previous_mode' ] = mode
+
+style_subheaders( )
 
 # ============================================
 # DATA PROFILING MODE
@@ -3389,6 +3626,7 @@ elif mode == 'Classification Models':
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
 	targets = st.session_state.get( 'targets', [ ] )
+	selected_all = st.session_state.get( 'selected_all', [ ] )
 	active_features = st.session_state.get( 'active_features', [ ] )
 	active_targets = st.session_state.get( 'active_targets', [ ] )
 	X_data = st.session_state.get( 'X_data', None )
@@ -3430,7 +3668,7 @@ elif mode == 'Classification Models':
 		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
-			features = st.multiselect( 'Select Features', options=df_original.columns,
+			features = st.multiselect( 'Select Features', options=categorical_columns,
 				key='classification_features' )
 		
 		with col_c2:
@@ -7280,7 +7518,7 @@ elif mode == 'Classification Models':
 # REGRESSION MODE
 # ============================================
 elif mode == 'Regression Models':
-	df_original = st.session_state.get( 'df_dataset', None )
+	df_original = st.session_state.get( 'df_original', None )
 	df_dataset = st.session_state.get( 'df_dataset', None )
 	df_working = st.session_state.get( 'df_working', None )
 	df_processed = st.session_state.get( 'df_processed', None )
@@ -7323,31 +7561,27 @@ elif mode == 'Regression Models':
 			st.stop( )
 		
 		# ======================================================================================
-		# Features Selection
+		# Data Selection
 		# ======================================================================================
 		st.markdown( '##### Feature Selection' )
 		st.caption( f'Samples: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
 		
 		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
-			features = st.multiselect( 'Select Features', options=df_working.columns  )
-			st.session_state[ 'features' ] = features
+			features = st.multiselect( 'Select Features', options=categorical_columns,
+				key='regression_features' )
 		
 		with col_c2:
-			target_options = [ t for t in numeric_columns if t not in features ]
-			targets = st.selectbox( 'Select Target', options=target_options,
+			target_options = [ t for t in df_original.columns if t not in features ]
+			targets = st.multiselect( 'Select Targets', options=target_options,
 				key='regression_target' )
-			
-			st.session_state[ 'targets' ] = targets
 		
+		# Create Button
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='regression_create_dataset',
 					use_container_width=True ):
-				
-				selected_all = features.copy( )
-				target = [ tgt in targets if tgt not in selected_all else [ ] ]
-				selected_all.append( target )
+				selected_all = features + [ t for t in targets if t not in features ]
 				
 				if selected_all:
 					df_working = df_original[ selected_all ].copy( )
@@ -7355,28 +7589,29 @@ elif mode == 'Regression Models':
 					df_working = df_original.copy( )
 				
 				st.session_state[ 'features' ] = features.copy( )
-				st.session_state[ 'targets' ] = [ target ] if target else [ ]
+				st.session_state[ 'targets' ] = targets.copy( )
 				st.session_state[ 'df_working' ] = df_working.copy( )
-				st.session_state[ 'df_processed' ] = df_working.copy( )
 				commit_frame( df_working )
 				st.success( 'Working Dataset Created!' )
 		
+		# Reset Button
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', icon='🔁', key='regression_reset_to_original',
 					use_container_width=True ):
-				
-				df_working = df_original.copy( )
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
-				st.session_state[ 'df_working' ] = df_working.copy( )
-				commit_frame( df_working )
+				st.session_state[ 'df_working' ] = pd.DataFrame( )
+				df_working = None
+				df_processed = None
 				st.success( 'Reset to Original' )
+				st.rerun( )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		if df_working is None:
 			st.stop( )
 		st.markdown( '##### Working Data' )
-		st.caption( f'Samples: {len( df_working ):,} | Fields: {len( df_working.columns ):,}' )
+		
+		st.caption( f'Samples: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
 		st.data_editor( df_working, key='regression_working_data' )
 		
 		# -----------------------------------------------------------------
@@ -7391,203 +7626,255 @@ elif mode == 'Regression Models':
 			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left',
+					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.STANDARD_SCALER )
 					
-					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+					columns = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_standard_scaler_cols' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_standard_scaler_apply',
-								use_container_width=True ):
-							
-							if scale_cols:
+						if st.button( label='Apply', icon='✔️', use_container_width=True,
+								key='regression_standard_scaler_apply' ):
+							if columns:
 								scaler = StandardScaler( )
-								result = scaler.train_transform( df_processed[ scale_cols ].to_numpy( ) )
-								df_processed[ scale_cols ] = result
+								df_processed = df_working.copy( )
+								result = scaler.train_transform(
+									df_processed[ columns ].to_numpy( ) )
+								df_processed[ columns ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Standard Scaler applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_standard_scaler_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_standard_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MINMAX_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
+						help=cfg.MINMAX_SCALER )
+					
+					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_minmax_scaler_cols' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_minmax_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_minmax_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MinMaxScaler( )
+								df_processed = df_working.copy( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								df_processed[ scale_cols ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Min-Max Scaler applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( 'Reset', key='regression_minmax_scaler_reset',
+						if st.button( label='Reset', icon='🔄',
+								key='regression_minmax_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
+							st.session_state[ 'df_processed' ] = None
+							df_processed = None
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ROBUST_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
+						help=cfg.ROBUST_SCALER )
+					
+					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_robust_scaler_cols' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_robust_scaler_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_robust_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = RobustScaler( )
+								df_processed = df_working.copy( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
+								
 								df_processed[ scale_cols ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
-								st.success( 'RobustScaler applied.' )
+								st.success( 'Robust Scaler applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_robust_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_robust_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
+							st.session_state[ 'df_processed' ] = None
+							df_processed = None
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.NORMAL_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
+						help=cfg.NORMAL_SCALER )
+					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_normal_scaler_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
 						index=1, key='regression_normal_scaler_norm' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_normal_scaler_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_normal_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = NormalScaler( norm=norm )
+								df_processed = df_working.copy( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
 								
-								df_processed[ scale_cols ] = result
+								df_processed[ columns ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'NormalScaler applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_normal_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_normal_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MAXABS_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
+						help=cfg.MAXABS_SCALER )
+					
+					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_maxabs_scaler_cols' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_maxabs_scaler_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_maxabs_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = MaxAbsScaler( )
+								df_processed = df_working.copy( )
 								result = scaler.train_transform(
 									df_processed[ scale_cols ].to_numpy( ) )
-								df_processed[ scale_cols ] = result
+								df_processed[ columns ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'MaxAbsScaler applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_maxabs_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_maxabs_scaler_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='regression_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
-					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
+						help=cfg.MEAN_IMPUTER )
+					
+					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_mean_imputer_cols' )
 					
 					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
 						key='regression_mean_imputer_indicator' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_mean_imputer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+								imputer = MeanImputer( strategy='mean',
+									add_indicator=add_indicator )
+								
+								df_processed = df_working.copy( )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
+								
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'mean_imputer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'MeanImputer applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_mean_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_mean_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Nearest Neighbor Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left',
+					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
-					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+					
+					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_nearest_imputer_cols' )
 					
 					neighbors = st.number_input( 'Neighbors', min_value=1,
 						value=5, step=1, key='regression_nearest_imputer_neighbors' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_nearest_imputer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = NearestImputer( neighbors=int( neighbors ) )
+								df_processed = df_working.copy( )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
+								
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'nearest_imputer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Nearest Imputer applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_nearest_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_nearest_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ITERATIVE_IMPUTER )
-					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
+						help=cfg.ITERATIVE_IMPUTER )
+					
+					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_iterative_imputer_cols' )
 					
 					max_iter = st.number_input( 'Max Iterations', min_value=1,
@@ -7596,9 +7883,10 @@ elif mode == 'Regression Models':
 					random_state = st.number_input( 'Random State', min_value=0,
 						value=0, step=1, key='regression_iterative_imputer_random_state' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Iterative Imputer',
+						if st.button( 'Apply Iterative Imputer', icon='✔️',
 								key='regression_iterative_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
@@ -7606,22 +7894,29 @@ elif mode == 'Regression Models':
 									random_state=int( random_state ) )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
+								
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'iterative_imputer' )
+								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Iterative Imputer applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_iterative_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_iterative_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.SIMPLE_IMPUTER )
-					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
+						help=cfg.SIMPLE_IMPUTER )
+					
+					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -7637,9 +7932,11 @@ elif mode == 'Regression Models':
 					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
 						key='regression_simple_imputer_keep_empty' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply SimpleImputer', key='regression_simpleimputer_apply',
+						if st.button( 'Apply SimpleImputer', icon='✔️',
+								key='regression_simpleimputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								if strategy in [ 'mean', 'median' ]:
@@ -7661,22 +7958,27 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, impute_cols,
 									result, 'simple_imputer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Simple Imputer Applied' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_simple_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_simple_imputer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='regression_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ONEHOT_ENCODER )
-					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
+						help=cfg.ONEHOT_ENCODER )
+					
+					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_onehot_cols' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=False,
@@ -7686,6 +7988,7 @@ elif mode == 'Regression Models':
 						options=[ 'ignore', 'error' ], index=0,
 						key='regression_onehot_unknown' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='regression_onehot_apply',
@@ -7697,22 +8000,28 @@ elif mode == 'Regression Models':
 								
 								df_processed = replace_columns( df_processed, encode_cols,
 									result, 'onehot' )
+								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
-								st.success( 'OneHotEncoder applied.' )
+								st.success( 'One-Hot Encoder applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_onehot_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ORDINAL_ENCODER )
-					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
+					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
+						help=cfg.ORDINAL_ENCODER )
+					
+					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_ordinal_cols' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='regression_ordinal_apply',
@@ -7722,25 +8031,32 @@ elif mode == 'Regression Models':
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
 								df_processed[ encode_cols ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Ordinal Encoder Applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_ordinal_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.LABEL_ENCODER )
-					target_col = st.selectbox( 'Column', options=categorical_columns,
+					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
+						help=cfg.LABEL_ENCODER )
+					
+					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='regression_label_encoder_col' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_label_encoder_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_label_encoder_apply',
 								use_container_width=True ):
 							if target_col:
 								encoder = LabelEncoder( )
@@ -7748,28 +8064,38 @@ elif mode == 'Regression Models':
 									df_processed[ target_col ].astype( str ).to_numpy( ) )
 								
 								df_processed[ target_col ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Label Encoder Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_label_encoder_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_label_encoder_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
+					
+					st.session_state[ 'df_processed' ] = df_processed
 				
 				with st.expander( 'Target Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.TARGET_ENCODER )
-					encode_cols = st.multiselect( 'Categorical Feature Columns',
-						options=categorical_columns, key='regression_target_encoder_cols' )
+					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
+						help=cfg.TARGET_ENCODER )
 					
-					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+					encode_cols = st.multiselect( 'Categorical Feature Columns',
+						options=df_working.columns, key='regression_target_encoder_cols' )
+					
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='regression_target_encoder_target_col' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_target_encoder_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_target_encoder_apply',
 								use_container_width=True ):
 							if encode_cols and target_col:
 								df_processed = df_working.copy( )
@@ -7781,20 +8107,25 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, encode_cols, result,
 									'target_encoder' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Target Encoder Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_target_encoder_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_target_encoder_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.POLYNOMIAL_FEATURES )
-					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
+						help=cfg.POLYNOMIAL_FEATURES )
+					
+					poly_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_polynomial_cols' )
 					
 					degree = st.slider( 'Degree', min_value=2, max_value=4,
@@ -7803,13 +8134,14 @@ elif mode == 'Regression Models':
 					interaction = st.checkbox( 'Interaction Only', value=True,
 						key='regression_polynomial_interaction' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_polynomial_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_polynomial_apply',
 								use_container_width=True ):
 							if poly_cols:
 								df_processed = df_working.copy( )
-								
 								encoder = PolynomialFeatures( degree=int( degree ),
 									interaction=bool( interaction ) )
 								
@@ -7819,23 +8151,30 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, poly_cols, result,
 									'polynomial' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'PolynomialFeatures applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_polynomial_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_polynomial_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 		
 		with feature_c2:
 			
-			with st.expander( label='Data Transformation', icon='⚡', key='regression_transformers' ):
+			with st.expander( label='Data Transformation', icon='⚡',
+					key='regression_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
-					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.BINARIZER )
+					
+					transform_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
@@ -7843,34 +8182,38 @@ elif mode == 'Regression Models':
 					
 					copy = st.checkbox( 'Copy', value=True, key='regression_binarizer_copy' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Binarizer',
-								key='regression_binarizer_apply',
+						if st.button( 'Apply Binarizer', key='regression_binarizer_apply',
 								use_container_width=True ):
 							if transform_cols:
 								df_processed = df_working.copy( )
-								transformer = Binarizer(
-									threshold=float( threshold ),
+								transformer = Binarizer( threshold=float( threshold ),
 									copy=bool( copy ) )
+								
 								result = transformer.train_transform(
 									df_processed[ transform_cols ].to_numpy( ) )
 								
 								df_processed[ transform_cols ] = result
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Binarizer applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_binarizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.LABEL_BINARIZER )
+					
+					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='regression_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -7882,36 +8225,44 @@ elif mode == 'Regression Models':
 					sparse_output = st.checkbox( 'Sparse Output', value=False,
 						key='regression_label_binarizer_sparse' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply LabelBinarizer',
-								key='regression_label_binarizer_apply',
+								key='regression_lblbinarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
 								transformer = LabelBinarizer( pos_label=int( pos_label ),
-									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+									neg_label=int( neg_label ),
+									sparse_output=bool( sparse_output ) )
 								
 								result = transformer.train_transform(
 									df_processed[ target_col ].astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, [
-										target_col ], result,
+								df_processed = replace_columns( df_processed, [ target_col ],
+									result,
 									'label_binarizer' )
+								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Label Binarizer Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_label_binarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_lblbinarizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.MULTILABEL_BINARIZER )
+					
+					target_col = st.selectbox( 'Column', options=df_working.columns,
 						key='regression_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -7920,9 +8271,11 @@ elif mode == 'Regression Models':
 					sparse_output = st.checkbox( 'Sparse Output', value=False,
 						key='regression_multilabel_binarizer_sparse' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_multilabel_binarizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_multilabel_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
@@ -7936,20 +8289,26 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, [ target_col ],
 									result, 'multilabel_binarizer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Multi-Label Binarizer Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_multilabel_binarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_multilabel_binarizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.TDIDF_TRANSFORMER )
+					
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=numeric_columns,
+						options=df_working.columns,
 						key='regression_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
@@ -7964,14 +8323,17 @@ elif mode == 'Regression Models':
 					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
 						key='regression_tfidf_transformer_sublinear' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_tfidf_transformer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_tfidf_transformer_apply',
 								use_container_width=True ):
 							if text_count_cols:
 								df_processed = df_working.copy( )
 								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
-									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
+									smooth_idf=bool( smooth_idf ),
+									sublinear_tf=bool( sublinear_tf ) )
 								
 								result = transformer.train_transform(
 									df_processed[ text_count_cols ].apply(
@@ -7980,23 +8342,29 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, text_count_cols,
 									result, 'tfidf_transformer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'TFIDF Transformer Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_tfidf_transformer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_tfidf_transformer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Column Transformer', expanded=False ):
-					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.COLUMN_TRANSFORMER )
+					
+					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns,
 						key='regression_column_transformer_numeric_columns' )
 					
 					categorical_columns = st.multiselect( 'Categorical Columns',
-						options=categorical_columns,
+						options=df_working.columns,
 						key='regression_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
@@ -8015,6 +8383,7 @@ elif mode == 'Regression Models':
 						max_value=1.0, value=0.3,
 						key='regression_column_transformer_sparse_threshold' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Column Transformer',
@@ -8057,22 +8426,27 @@ elif mode == 'Regression Models':
 									index=df_processed.index, prefix='column_transformer',
 									columns=None )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'ColumnTransformer applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_column_transformer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_column_transformer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 			
-			with st.expander( label='Feature Extration', icon='⛏️', key='regression_extractors' ):
-				
+			with st.expander( label='Feature Extration', icon='⛏️',
+					key='regression_extractors' ):
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.TDIDF_VECTORIZER )
+					
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
 						key='regression_tfidf_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -8084,33 +8458,41 @@ elif mode == 'Regression Models':
 					use_idf = st.checkbox( 'Use IDF', value=True,
 						key='regression_tfidf_vectorizer_use_idf' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_tfidf_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_tfidf_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
 								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0 else int( max_features ),
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ),
 									use_idf=bool( use_idf ) )
 								
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'tfidf_vectorizer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_tfidf_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.COUNT_VECTORIZER )
+					
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
 						key='regression_count_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -8122,33 +8504,41 @@ elif mode == 'Regression Models':
 					binary = st.checkbox( 'Binary Counts', value=False,
 						key='regression_count_vectorizer_binary' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_count_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_count_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
 								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0 else int( max_features ),
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ),
 									binary=bool( binary ) )
 								
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'count_vectorizer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Count Vectorizer Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_count_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_count_vectorizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.HASH_VECTORIZER )
+					
+					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
 						key='regression_hash_vectorizer_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -8163,9 +8553,11 @@ elif mode == 'Regression Models':
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
 						key='regression_hash_vectorizer_alternate_sign' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_hash_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_hash_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
@@ -8174,20 +8566,26 @@ elif mode == 'Regression Models':
 									alternate_sign=bool( alternate_sign ) )
 								df_processed = apply_text_vectorizer( df_processed,
 									text_cols, transformer, 'hash_vectorizer' )
+								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'HashVectorizer Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_hash_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_hash_vectorizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
-					dict_cols = st.multiselect( 'Columns',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.DICT_VECTORIZER )
+					
+					dict_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_dict_vectorizer_cols' )
 					
 					separator = st.text_input( 'Separator', value='=',
@@ -8199,9 +8597,11 @@ elif mode == 'Regression Models':
 					sort = st.checkbox( 'Sort Feature Names', value=True,
 						key='regression_dict_vectorizer_sort' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_dict_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_dict_vectorizer_apply',
 								use_container_width=True ):
 							if dict_cols:
 								df_processed = df_working.copy( )
@@ -8211,20 +8611,25 @@ elif mode == 'Regression Models':
 								df_processed = apply_dict_transform( df_processed, dict_cols,
 									transformer, 'dict_vectorizer' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'DictVectorizer applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_dict_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_dict_vectorizer_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
-					hash_cols = st.multiselect( 'Columns',
-						options=categorical_columns,
+					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
+						help=cfg.FEATURE_HASHER )
+					
+					hash_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_feature_hasher_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -8233,9 +8638,11 @@ elif mode == 'Regression Models':
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
 						key='regression_feature_hasher_alternate_sign' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_feature_hasher_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_feature_hasher_apply',
 								use_container_width=True ):
 							if hash_cols:
 								df_processed = df_working.copy( )
@@ -8245,29 +8652,38 @@ elif mode == 'Regression Models':
 								
 								df_processed = apply_dict_transform( df_processed, hash_cols,
 									transformer, 'feature_hasher' )
+								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'FeatureHasher applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_feature_hasher_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_feature_hasher_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 			
-			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='regression_selectors' ):
-				
+			with st.expander( label='Dimensionality Reduction', icon='🎚️',
+					key='regression_selectors' ):
 				with st.expander( 'Variance Threshold', expanded=False ):
-					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.VARIANCE_THRESHOLD )
+					
+					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_variance_threshold_cols' )
 					
 					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
 						step=0.01, key='regression_variance_threshold_value' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_variance_threshold_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_variance_threshold_apply',
 								use_container_width=True ):
 							if select_cols:
 								df_processed = df_working.copy( )
@@ -8278,22 +8694,28 @@ elif mode == 'Regression Models':
 								df_processed = replace_columns( df_processed, select_cols, result,
 									'variance_threshold' )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'VarianceThreshold applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_variance_threshold_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_variance_threshold_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
-				with st.expander( 'Canonical Correlation Analysis', expanded=False ):
-					X_cols = st.multiselect( 'Predictor Columns', options=numeric_columns,
+				with st.expander( 'Canonical Correlation Analysis (CCA)', expanded=False ):
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.CCA )
+					
+					X_cols = st.multiselect( 'Predictor Columns', options=df_working.columns,
 						key='regression_cca_x_cols' )
 					
-					y_cols = st.multiselect( 'Target Columns', options=numeric_columns,
+					y_cols = st.multiselect( 'Target Columns', options=df_working.columns,
 						key='regression_cca_y_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
@@ -8305,6 +8727,7 @@ elif mode == 'Regression Models':
 					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
 						step=1, key='regression_cca_max_iter' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='regression_cca_apply',
@@ -8325,19 +8748,24 @@ elif mode == 'Regression Models':
 									[ df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
 									  df_result ], axis=1 )
 								
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'CCA Applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_cca_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
-				with st.expander( 'Principle Component Analysis', expanded=False ):
-					select_cols = st.multiselect( 'Columns', options=numeric_columns,
+				with st.expander( 'Principle Component Analysis (PCA)', expanded=False ):
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.PCA )
+					
+					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_pca_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
@@ -8347,6 +8775,7 @@ elif mode == 'Regression Models':
 						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
 						key='regression_pca_solver' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='regression_pca_apply',
@@ -8358,23 +8787,29 @@ elif mode == 'Regression Models':
 								result = selector.train_transform(
 									df_processed[ select_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
+								df_processed = replace_columns( df_processed, select_cols, result,
+									'pca' )
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'PCA applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_pca_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Select-Best', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.SELECT_BEST )
+					
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='regression_selectbest_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='regression_selectbest_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
@@ -8385,9 +8820,11 @@ elif mode == 'Regression Models':
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
 						key='regression_selectbest_k' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='regression_selectbest_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='regression_selectbest_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
@@ -8400,24 +8837,30 @@ elif mode == 'Regression Models':
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'select_best' )
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'Select Best Applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_selectbest_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_selectbest_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Select-Percent', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.SELECT_PERCENT )
+					
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='regression_selectpercent_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column',
-						options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='regression_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
@@ -8428,10 +8871,12 @@ elif mode == 'Regression Models':
 					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
 						key='regression_selectpercent_percentile' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply SelectPercent',
-								key='regression_selectpercent_apply', use_container_width=True ):
+								key='regression_selectpercent_apply',
+								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
 								selector = SelectPercent(
@@ -8443,25 +8888,31 @@ elif mode == 'Regression Models':
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'select_percent' )
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'SelectPercent applied.' )
 					
+					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_selectpercent_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_selectpercent_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
-				with st.expander( 'Sequential Back Selection', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+				with st.expander( 'Sequential Back Selection (SBS)', expanded=False ):
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.SBS )
+					
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='regression_sbs_x_cols' )
 					
 					target_col = st.selectbox( 'Target Column',
-						options=categorical_columns,
-						key='regression_sbs_target_col' )
+						options=df_working.columns, key='regression_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
 						step=1, key='regression_sbs_k_features' )
@@ -8472,6 +8923,7 @@ elif mode == 'Regression Models':
 					random_state = st.number_input( 'Random State', min_value=0, value=1,
 						step=1, key='regression_sbs_random_state' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='regression_sbs_apply',
@@ -8487,24 +8939,29 @@ elif mode == 'Regression Models':
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
-								
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'sbs' )
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'SBS applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_sbs_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
-				with st.expander( 'Recursive Feature Elimination', expanded=False ):
-					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
+				with st.expander( 'Recursive Feature Elimination (RFA)', expanded=False ):
+					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
+						help=cfg.RFE )
+					
+					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='regression_rfe_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='regression_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
@@ -8513,35 +8970,41 @@ elif mode == 'Regression Models':
 					verbose = st.number_input( 'Verbose', min_value=0, value=0,
 						step=1, key='regression_rfe_verbose' )
 					
+					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='regression_rfe_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
-								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
+								selector = RFE( k_features=int( k_features ),
+									verbose=int( verbose ) )
 								X_input = df_processed[ X_cols ].apply(
 									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'rfe' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'rfe' )
+								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
 								st.success( 'RFE applied.' )
 					
+					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='regression_rfe_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							df_processed = None
+							st.session_state[ 'df_processed' ] = None
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		if df_processed is None:
 			st.stop( )
 		st.markdown( '##### Processed Data' )
+		
 		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='regression_processed_data' )
 		
@@ -8551,22 +9014,78 @@ elif mode == 'Regression Models':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Training' )
 		
-		active_features = [ c for c in st.session_state.get( 'features', [ ] )
-		                    if c in df_processed.columns ]
-		
-		active_targets = [ c for c in st.session_state.get( 'targets', [ ] )
-		                   if c in df_processed.columns ]
+		active_features = list( st.session_state.get( 'df_features', pd.DataFrame( ) ).columns )
+		active_targets = list( st.session_state.get( 'df_targets', pd.DataFrame( ) ).columns )
+		st.session_state[ 'active_features' ] = active_features.copy( )
+		st.session_state[ 'active_targets' ] = active_targets.copy( )
 		
 		if not active_features:
-			st.warning( '⚠️ No valid feature columns remain after preprocessing.' )
+			st.warning( '⚠️ No processed feature columns are available for training.' )
 			st.stop( )
 		
 		if not active_targets:
-			st.warning( '⚠️ No valid target columns remain after preprocessing.' )
+			st.warning( '⚠️ Regression training requires exactly one processed target column.' )
 			st.stop( )
 		
 		target_name = active_targets[ 0 ]
-		df_model = df_processed.copy( )
+		
+		missing_columns = [ c for c in active_features + [ target_name ] if
+		                    c not in df_processed.columns ]
+		if missing_columns:
+			st.warning(
+				f'⚠️ The processed dataframe is missing required columns: {missing_columns}. '
+				f'Apply preprocessing again or reset the working dataset.' )
+			st.stop( )
+		
+		df_model = df_processed[ active_features + [ target_name ] ].copy( )
+		df_model = df_model.dropna( subset=active_features + [ target_name ] ).copy( )
+		st.session_state[ 'df_model' ] = df_model.copy( )
+		X_data = df_model[ active_features ].copy( )
+		st.session_state[ 'X_data' ] = X_data.copy( )
+		for col in X_data.columns:
+			X_data[ col ] = pd.to_numeric( X_data[ col ], errors='coerce' )
+		
+		if X_data.isna( ).any( ).any( ):
+			st.warning( '⚠️ One or more feature columns are still non-numeric after preprocessing.'
+			            'Apply the appropriate encoder/transformer before training.' )
+			st.stop( )
+		
+		# Create training matrix and target vector
+		X = X_data.to_numpy( dtype=float )
+		y_series = df_model[ target_name ].copy( )
+		st.session_state[ 'y_series' ] = y_series.copy( )
+		if isinstance( y_series, pd.DataFrame ):
+			st.warning( '⚠️ The processed target must resolve to a single column.' )
+			st.stop( )
+		
+		y = y_series.to_numpy( )
+		if y.ndim != 1:
+			y = np.ravel( y )
+		
+		if len( y ) != len( X ):
+			st.warning( '⚠️ Feature and target row counts do not match.' )
+			st.stop( )
+		
+		if pd.api.types.is_numeric_dtype( y_series ):
+			y_num = pd.to_numeric( y_series, errors='coerce' ).dropna( )
+			if len( y_num ) == 0:
+				st.warning( '⚠️ The processed target contains no valid values.' )
+				st.stop( )
+			
+		unique_count = int( y_num.nunique( ) )
+		unique_ratio = float( unique_count / max( 1, len( y_num ) ) )
+		
+		if unique_count > 20 and unique_ratio > 0.20:
+			st.warning( '⚠️ The processed target appears continuous. ' )
+			st.stop( )
+		
+		class_counts = pd.Series( y ).value_counts( dropna=False )
+		if len( class_counts ) < 1:
+			st.warning( '⚠️ Requires at least two classes.' )
+			st.stop( )
+		
+		df_regression = df_model.copy( )
+		st.session_state[ 'df_regression' ] = df_regression.copy( )
 		
 		# ------------------------------------------------------------------
 		# REGRESSION MODELS
@@ -10296,7 +10815,7 @@ elif mode == 'Regression Models':
 					except Exception as ex:
 						st.error( f'Support Vector training failed: {ex}' )
 		
-		with st.expander( 'Tree Models', expander=True ):
+		with st.expander( 'Tree Models', expanded=False):
 			
 			with st.expander( 'Extra Trees Regressor', expanded=False ):
 				extra_defaults = {
@@ -11642,16 +12161,11 @@ elif mode == 'Regression Models':
 						)
 					)
 					
-					vote_verbose = st.checkbox(
-						'Verbose',
+					vote_verbose = st.checkbox( 'Verbose',
 						value=bool( st.session_state[ 'regression_vote_verbose' ] ),
-						key='regression_vote_verbose'
-					)
+						key='regression_vote_verbose' )
 					
-					vote_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
+					vote_test_size = st.slider( 'Test Set Size (%)', min_value=0, max_value=30,
 						value=int( st.session_state[ 'regression_vote_test_size' ] * 100 ),
 						step=1,
 						key='regression_vote_test_size'
@@ -11805,15 +12319,11 @@ elif mode == 'Regression Models':
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_vote_elapsed_seconds' ] = elapsed_seconds
-						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						
 						if df_scores is not None and not df_scores.empty:
-							df_extra = pd.DataFrame(
-								{
+							df_extra = pd.DataFrame( {
 										'Metric': [
 												'Processing Time (Seconds)',
 												'Training Rows',
@@ -11828,22 +12338,22 @@ elif mode == 'Regression Models':
 												int( len( estimators ) ),
 												bool( vote_use_weights )
 										]
-								}
-							)
+								})
 							
-							df_scores = pd.concat(
-								[ df_scores, df_extra ],
-								ignore_index=True
-							)
+							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_regression' ] = df_training.copy( )
+							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 					except Exception as ex:
@@ -12087,7 +12597,6 @@ elif mode == 'Regression Models':
 						y_prediction = model.project( X_test )
 						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_stack_elapsed_seconds' ] = elapsed_seconds
 						
 						df_scores = model.analyze( X_test, y_test ).copy( )
 						
@@ -12119,24 +12628,28 @@ elif mode == 'Regression Models':
 										]
 								} )
 							
-							df_scores = pd.concat(
-								[ df_scores, df_extra ],
-								ignore_index=True
-							)
+							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
 						
-						df_predictions = pd.DataFrame(
-							{
+						df_predictions = pd.DataFrame( {
 									'Actual': y_test,
 									'Predicted': y_prediction
-							}
-						)
-						
-						st.session_state[ 'df_regression' ] = df_training.copy( )
+							} )
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'y_predictions' ] = y_predictions.copy( )
+						st.session_state[ 'X_train' ] = X_train.copy( )
+						st.session_state[ 'X_test' ] = X_test.copy( )
+						st.session_state[ 'y_train' ] = y_train.copy( )
+						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 					except Exception as ex:
 						st.error( f'Stacking Regressor training failed: {ex}' )
-				
+		
+		if not model:
+			st.stop( )
+			
 		# ------------------------------------------------------------------
 		# PREDICTIONS
 		# ------------------------------------------------------------------
