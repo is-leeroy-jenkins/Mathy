@@ -3803,141 +3803,448 @@ elif mode == 'Classification Models':
 		st.caption( f'Samples: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
 		st.data_editor( df_working, key='classification_working_data' )
 		
-		
 		# -----------------------------------------------------------------
 		# Data Processing
 		# -----------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Feature-Engineering' )
 		
+		def has_processing_frame( df_frame: object ) -> bool:
+			"""
+
+				Purpose:
+				--------
+				Determine whether a dataframe is valid for classification preprocessing.
+
+				Parameters:
+				-----------
+				df_frame (object): Candidate dataframe.
+
+				Returns:
+				--------
+				bool: True when the dataframe exists, has rows, and has columns.
+
+			"""
+			return (
+					isinstance( df_frame, pd.DataFrame )
+					and not df_frame.empty
+					and len( df_frame.columns ) > 0
+			)
+		
+		def get_processing_frame( ) -> pd.DataFrame:
+			"""
+
+				Purpose:
+				--------
+				Return the current classification preprocessing input frame.
+
+				Parameters:
+				-----------
+				None
+
+				Returns:
+				--------
+				pd.DataFrame: Existing processed dataframe when present; otherwise df_working.
+
+			"""
+			df_current = st.session_state.get( 'df_processed', None )
+			if has_processing_frame( df_current ):
+				return df_current.copy( )
+			
+			return st.session_state[ 'df_working' ].copy( )
+		
+		def reset_processing_frame( ) -> None:
+			"""
+
+				Purpose:
+				--------
+				Reset classification preprocessing state so the next transformation starts
+				from the working dataframe.
+
+				Parameters:
+				-----------
+				None
+
+				Returns:
+				--------
+				None
+
+			"""
+			st.session_state[ 'df_processed' ] = pd.DataFrame( )
+			st.session_state[ 'df_features' ] = pd.DataFrame( )
+			st.session_state[ 'df_targets' ] = pd.DataFrame( )
+			commit_frame( st.session_state[ 'df_working' ].copy( ) )
+		
+		def prune_multiselect_state( key: str, options: list[ str ] ) -> None:
+			"""
+
+				Purpose:
+				--------
+				Remove stale multiselect values that are no longer present in the current
+				preprocessing frame before the widget is created.
+
+				Parameters:
+				-----------
+				key (str): Streamlit session-state key.
+				options (list[str]): Available column names.
+
+				Returns:
+				--------
+				None
+
+			"""
+			if key in st.session_state and isinstance( st.session_state[ key ], list ):
+				st.session_state[ key ] = [
+						col for col in st.session_state[ key ] if col in options
+				]
+		
+		def prune_selectbox_state( key: str, options: list[ str ] ) -> None:
+			"""
+
+				Purpose:
+				--------
+				Remove a stale selectbox value that no longer exists in the current
+				preprocessing frame before the widget is created.
+
+				Parameters:
+				-----------
+				key (str): Streamlit session-state key.
+				options (list[str]): Available column names.
+
+				Returns:
+				--------
+				None
+
+			"""
+			if key in st.session_state and st.session_state[ key ] not in options:
+				del st.session_state[ key ]
+		
+		def get_column_options( numeric_only: bool = False,
+				categorical_only: bool = False ) -> list[ str ]:
+			"""
+
+				Purpose:
+				--------
+				Return valid preprocessing column options from the current processing frame.
+
+				Parameters:
+				-----------
+				numeric_only (bool): Return only numeric columns when True.
+				categorical_only (bool): Return only non-numeric columns when True.
+
+				Returns:
+				--------
+				list[str]: Available column names.
+
+			"""
+			df_current = get_processing_frame( )
+			if numeric_only:
+				return [
+						col for col in df_current.columns
+						if pd.api.types.is_numeric_dtype( df_current[ col ] )
+				]
+			
+			if categorical_only:
+				return [
+						col for col in df_current.columns
+						if not pd.api.types.is_numeric_dtype( df_current[ col ] )
+				]
+			
+			return df_current.columns.tolist( )
+		
+		def get_valid_columns( column_names: list[ str ], df_frame: pd.DataFrame ) -> list[ str ]:
+			"""
+
+				Purpose:
+				--------
+				Filter selected column names to those available in the supplied dataframe.
+
+				Parameters:
+				-----------
+				column_names (list[str]): Selected column names.
+				df_frame (pd.DataFrame): Current processing dataframe.
+
+				Returns:
+				--------
+				list[str]: Selected columns that still exist.
+
+			"""
+			if not column_names:
+				return [ ]
+			
+			return [ col for col in column_names if col in df_frame.columns ]
+		
+		def update_classification_contract( df_before: pd.DataFrame, df_after: pd.DataFrame,
+				source_columns: list[ str ], preserve_source: bool ) -> None:
+			"""
+
+				Purpose:
+				--------
+				Keep Classification mode's active feature and target contracts synchronized
+				after preprocessing replaces, removes, or expands columns.
+
+				Parameters:
+				-----------
+				df_before (pd.DataFrame): Frame before transformation.
+				df_after (pd.DataFrame): Frame after transformation.
+				source_columns (list[str]): Columns transformed by the operation.
+				preserve_source (bool): True when transformed columns keep the same names.
+
+				Returns:
+				--------
+				None
+
+			"""
+			source_columns = source_columns or [ ]
+			features_current = st.session_state.get( 'features', [ ] )
+			targets_current = st.session_state.get( 'targets', [ ] )
+			
+			if preserve_source or not source_columns:
+				features_next = [ col for col in features_current if col in df_after.columns ]
+				targets_next = [ col for col in targets_current if col in df_after.columns ]
+			else:
+				replacement_columns = [
+						col for col in df_after.columns
+						if col not in df_before.columns or col in source_columns
+				]
+				
+				if not replacement_columns:
+					replacement_columns = [
+							col for col in df_after.columns
+							if
+							col not in [ c for c in df_before.columns if c not in source_columns ]
+					]
+				
+				features_next = [ ]
+				for col in features_current:
+					if col in source_columns:
+						for new_col in replacement_columns:
+							if new_col not in features_next and new_col in df_after.columns:
+								features_next.append( new_col )
+					elif col in df_after.columns and col not in features_next:
+						features_next.append( col )
+				
+				targets_next = [ ]
+				for col in targets_current:
+					if col in source_columns:
+						for new_col in replacement_columns:
+							if new_col not in targets_next and new_col in df_after.columns:
+								targets_next.append( new_col )
+					elif col in df_after.columns and col not in targets_next:
+						targets_next.append( col )
+			
+			st.session_state[ 'features' ] = features_next
+			st.session_state[ 'targets' ] = targets_next
+		
+		def commit_processed_frame( df_before: pd.DataFrame, df_after: pd.DataFrame,
+				source_columns: list[ str ] | None=None, preserve_source: bool=True ) -> None:
+			"""
+
+				Purpose:
+				--------
+				Commit a processed dataframe and refresh Classification mode's dataframe,
+				feature, and target session-state outputs.
+
+				Parameters:
+				-----------
+				df_before (pd.DataFrame): Frame before transformation.
+				df_after (pd.DataFrame): Frame after transformation.
+				source_columns (list[str] | None): Transformed source columns.
+				preserve_source (bool): True when source column names are retained.
+
+				Returns:
+				--------
+				None
+
+			"""
+			update_classification_contract(
+				df_before=df_before,
+				df_after=df_after,
+				source_columns=source_columns or [ ],
+				preserve_source=preserve_source
+			)
+			
+			st.session_state[ 'df_processed' ] = df_after.copy( )
+			commit_frame( df_after )
+		
+		def require_columns( column_names: list[ str ], label: str ) -> bool:
+			"""
+
+				Purpose:
+				--------
+				Display a warning when a preprocessing operation has no selected columns.
+
+				Parameters:
+				-----------
+				column_names (list[str]): Selected column names.
+				label (str): Human-readable operation label.
+
+				Returns:
+				--------
+				bool: True when one or more columns were selected.
+
+			"""
+			if not column_names:
+				st.warning( f'Select at least one available column for {label}.' )
+				return False
+			
+			return True
+		
+		def numeric_subset( df_frame: pd.DataFrame, column_names: list[ str ] ) -> pd.DataFrame:
+			"""
+
+				Purpose:
+				--------
+				Return a numeric dataframe subset for estimators requiring numeric input.
+
+				Parameters:
+				-----------
+				df_frame (pd.DataFrame): Input dataframe.
+				column_names (list[str]): Column names to coerce to numeric.
+
+				Returns:
+				--------
+				pd.DataFrame: Numeric dataframe with missing values filled.
+
+			"""
+			return df_frame[ column_names ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 )
+		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
-			
 			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.STANDARD_SCALER )
 					
-					columns = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_standard_scaler_cols', options )
+					columns = st.multiselect( 'Columns', options=options,
 						key='classification_standard_scaler_cols' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button(  label='Apply', icon='✔️', use_container_width=True,
-								key='classification_standard_scaler_apply'  ):
-							
-							if columns:
+						if st.button( label='Apply', icon='✔️', use_container_width=True,
+								key='classification_standard_scaler_apply' ):
+							df_input = get_processing_frame( )
+							columns = get_valid_columns( columns, df_input )
+							if require_columns( columns, 'Standard Scaler' ):
 								scaler = StandardScaler( )
-								df_processed = df_working.copy( )
-								result = scaler.train_transform( df_processed[ columns ].to_numpy( ))
-								df_processed[ columns ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								df_output = df_input.copy( )
+								result = scaler.train_transform(
+									numeric_subset( df_output, columns ).to_numpy( ) )
+								df_output[ columns ] = result
+								commit_processed_frame( df_input, df_output, columns,
+									preserve_source=True )
 								st.success( 'Standard Scaler applied.' )
-							
-					# Reset Button
+					
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_standard_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
-					
+				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.MINMAX_SCALER )
 					
-					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_minmax_scaler_cols', options )
+					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_minmax_scaler_cols' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_minmax_apply',
 								use_container_width=True ):
-							if scale_cols:
+							df_input = get_processing_frame( )
+							scale_cols = get_valid_columns( scale_cols, df_input )
+							if require_columns( scale_cols, 'Min-Max Scaler' ):
 								scaler = MinMaxScaler( )
-								result = scaler.train_transform( df_processed[ scale_cols ].to_numpy( ) )
-								df_processed[ scale_cols ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								df_output = df_input.copy( )
+								result = scaler.train_transform(
+									numeric_subset( df_output, scale_cols ).to_numpy( ) )
+								df_output[ scale_cols ] = result
+								commit_processed_frame( df_input, df_output, scale_cols,
+									preserve_source=True )
 								st.success( 'Min-Max Scaler applied.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔄',
-								key='classification_minmax_scaler_reset', use_container_width=True ):
-							
-							st.session_state[ 'df_processed' ] = None
-							df_processed = None
-							st.success( 'Reset to Working.' )
+								key='classification_minmax_scaler_reset',
+								use_container_width=True ):
+							reset_processing_frame( )
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.ROBUST_SCALER )
 					
-					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_robust_scaler_cols', options )
+					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_robust_scaler_cols' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_robust_apply',
 								use_container_width=True ):
-							if scale_cols:
+							df_input = get_processing_frame( )
+							scale_cols = get_valid_columns( scale_cols, df_input )
+							if require_columns( scale_cols, 'Robust Scaler' ):
 								scaler = RobustScaler( )
+								df_output = df_input.copy( )
 								result = scaler.train_transform(
-									df_processed[ scale_cols ].to_numpy( ) )
-								
-								df_processed[ scale_cols ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+									numeric_subset( df_output, scale_cols ).to_numpy( ) )
+								df_output[ scale_cols ] = result
+								commit_processed_frame( df_input, df_output, scale_cols,
+									preserve_source=True )
 								st.success( 'Robust Scaler applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_robust_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_robust_scaler_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_processed' ] = None
-							df_processed = None
-							st.success( 'Reset to Working.' )
-							
+							reset_processing_frame( )
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
+				
 				with st.expander( 'Normal Scaler', expanded=False ):
-					st.caption( 'Scaler Description', width='stretch', text_alignment='left', help=cfg.NORMAL_SCALER )
-					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
+					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
+						help=cfg.NORMAL_SCALER )
+					
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_normal_scaler_cols', options )
+					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_normal_scaler_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
 						index=1, key='classification_normal_scaler_norm' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_normal_scaler_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_normal_scaler_apply',
 								use_container_width=True ):
-							
-							if scale_cols:
+							df_input = get_processing_frame( )
+							scale_cols = get_valid_columns( scale_cols, df_input )
+							if require_columns( scale_cols, 'Normal Scaler' ):
 								scaler = NormalScaler( norm=norm )
+								df_output = df_input.copy( )
 								result = scaler.train_transform(
-									df_processed[ scale_cols ].to_numpy( ) )
-								
-								df_processed[ columns ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+									numeric_subset( df_output, scale_cols ).to_numpy( ) )
+								df_output[ scale_cols ] = result
+								commit_processed_frame( df_input, df_output, scale_cols,
+									preserve_source=True )
 								st.success( 'NormalScaler applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_normal_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_normal_scaler_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -3945,69 +4252,76 @@ elif mode == 'Classification Models':
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.MAXABS_SCALER )
 					
-					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_maxabs_scaler_cols', options )
+					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_maxabs_scaler_cols' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_maxabs_scaler_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_maxabs_scaler_apply',
 								use_container_width=True ):
-							if scale_cols:
+							df_input = get_processing_frame( )
+							scale_cols = get_valid_columns( scale_cols, df_input )
+							if require_columns( scale_cols, 'Max-Absolute Scaler' ):
 								scaler = MaxAbsScaler( )
+								df_output = df_input.copy( )
 								result = scaler.train_transform(
-									df_processed[ scale_cols ].to_numpy( ) )
-								df_processed[ columns ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+									numeric_subset( df_output, scale_cols ).to_numpy( ) )
+								df_output[ scale_cols ] = result
+								commit_processed_frame( df_input, df_output, scale_cols,
+									preserve_source=True )
 								st.success( 'MaxAbsScaler applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_maxabs_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_maxabs_scaler_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
-							
+			
 			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.MEAN_IMPUTER )
 					
-					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_mean_imputer_cols', options )
+					impute_cols = st.multiselect( 'Columns', options=options,
 						key='classification_mean_imputer_cols' )
 					
 					add_indicator = st.checkbox( 'Add Indicator Columns', value=False,
 						key='classification_mean_imputer_indicator' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_mean_imputer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_mean_imputer_apply',
 								use_container_width=True ):
-							if impute_cols:
-								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+							df_input = get_processing_frame( )
+							impute_cols = get_valid_columns( impute_cols, df_input )
+							if require_columns( impute_cols, 'Mean Imputer' ):
+								imputer = MeanImputer( strategy='mean',
+									add_indicator=add_indicator )
 								result = imputer.train_transform(
-									df_processed[ impute_cols ].to_numpy( ) )
+									numeric_subset( df_input, impute_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'mean_imputer' )
+								df_output = replace_columns( df_input, impute_cols, result,
+									'mean_imputer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, impute_cols,
+									preserve_source=False )
+								
 								st.success( 'MeanImputer applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_mean_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_mean_imputer_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4015,37 +4329,39 @@ elif mode == 'Classification Models':
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.NEAREST_NEIGHBOR_IMPUTER )
 					
-					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_nearest_imputer_cols', options )
+					impute_cols = st.multiselect( 'Columns', options=options,
 						key='classification_nearest_imputer_cols' )
 					
 					neighbors = st.number_input( 'Neighbors', min_value=1,
 						value=5, step=1, key='classification_nearest_imputer_neighbors' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_nearest_imputer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_nearest_imputer_apply',
 								use_container_width=True ):
-							
-							if impute_cols:
+							df_input = get_processing_frame( )
+							impute_cols = get_valid_columns( impute_cols, df_input )
+							if require_columns( impute_cols, 'Nearest Neighbor Imputer' ):
 								imputer = NearestImputer( neighbors=int( neighbors ) )
 								result = imputer.train_transform(
-									df_processed[ impute_cols ].to_numpy( ) )
+									numeric_subset( df_input, impute_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'nearest_imputer' )
+								df_output = replace_columns( df_input, impute_cols, result,
+									'nearest_imputer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, impute_cols,
+									preserve_source=False )
+								
 								st.success( 'Nearest Imputer applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_nearest_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_nearest_imputer_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4053,7 +4369,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.ITERATIVE_IMPUTER )
 					
-					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_iterative_imputer_cols', options )
+					impute_cols = st.multiselect( 'Columns', options=options,
 						key='classification_iterative_imputer_cols' )
 					
 					max_iter = st.number_input( 'Max Iterations', min_value=1,
@@ -4062,32 +4380,33 @@ elif mode == 'Classification Models':
 					random_state = st.number_input( 'Random State', min_value=0,
 						value=0, step=1, key='classification_iterative_imputer_random_state' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Iterative Imputer', icon='✔️',
 								key='classification_iterative_imputer_apply',
 								use_container_width=True ):
-							if impute_cols:
+							df_input = get_processing_frame( )
+							impute_cols = get_valid_columns( impute_cols, df_input )
+							if require_columns( impute_cols, 'Iterative Imputer' ):
 								imputer = IterativeImputer( max_iter=int( max_iter ),
 									random_state=int( random_state ) )
+								
 								result = imputer.train_transform(
-									df_processed[ impute_cols ].to_numpy( ) )
+									numeric_subset( df_input, impute_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'iterative_imputer' )
+								df_output = replace_columns( df_input, impute_cols, result,
+									'iterative_imputer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, impute_cols,
+									preserve_source=False )
+								
 								st.success( 'Iterative Imputer applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_iterative_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_iterative_imputer_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4095,7 +4414,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.SIMPLE_IMPUTER )
 					
-					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_simple_imputer_cols', options )
+					impute_cols = st.multiselect( 'Columns', options=options,
 						key='classification_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -4111,44 +4432,42 @@ elif mode == 'Classification Models':
 					keep_empty_features = st.checkbox( 'Keep Empty Features', value=False,
 						key='classification_simple_imputer_keep_empty' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply SimpleImputer', icon='✔️',
 								key='classification_simpleimputer_apply',
 								use_container_width=True ):
-							
-							if impute_cols:
+							df_input = get_processing_frame( )
+							impute_cols = get_valid_columns( impute_cols, df_input )
+							if require_columns( impute_cols, 'Simple Imputer' ):
 								if strategy in [ 'mean', 'median' ]:
-									df_input = df_processed[ impute_cols ].apply(
-										pd.to_numeric, errors='coerce' )
+									df_input_values = numeric_subset( df_input, impute_cols )
 									fill_object: object = 0.0
 								elif strategy == 'constant':
-									df_input = df_processed[ impute_cols ].copy( )
+									df_input_values = df_input[ impute_cols ].copy( )
 									fill_object = fill_value
 								else:
-									df_input = df_processed[ impute_cols ].copy( )
+									df_input_values = df_input[ impute_cols ].copy( )
 									fill_object = fill_value
 								
 								imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
 									add_indicator=add_indicator,
 									keep_empty_features=keep_empty_features )
 								
-								result = imputer.train_transform( df_input.to_numpy( ) )
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'simple_imputer' )
+								result = imputer.train_transform( df_input_values.to_numpy( ) )
+								df_output = replace_columns( df_input, impute_cols, result,
+									'simple_imputer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, impute_cols,
+									preserve_source=False )
+								
 								st.success( 'Simple Imputer Applied' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_simple_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_simple_imputer_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 			
@@ -4158,7 +4477,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.ONEHOT_ENCODER )
 					
-					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( categorical_only=True )
+					prune_multiselect_state( 'classification_onehot_cols', options )
+					encode_cols = st.multiselect( 'Columns', options=options,
 						key='classification_onehot_cols' )
 					
 					sparse = st.checkbox( 'Sparse Output', value=False,
@@ -4168,39 +4489,51 @@ elif mode == 'Classification Models':
 						options=[ 'ignore', 'error' ], index=0,
 						key='classification_onehot_unknown' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_onehot_apply',
 								use_container_width=True ):
-							
-							if encode_cols:
+							df_input = get_processing_frame( )
+							encode_cols = get_valid_columns( encode_cols, df_input )
+							if require_columns( encode_cols, 'One-Hot Encoder' ):
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
 								result = encoder.train_transform(
-									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
+									df_input[ encode_cols ].fillna( '' ).astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, encode_cols,
-									result, 'onehot' )
+								df_output = replace_columns( df_input, encode_cols, result,
+									'onehot' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, encode_cols,
+									preserve_source=False )
+								
 								st.success( 'One-Hot Encoder applied.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_onehot_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
-				
+							
 				with st.expander( 'Ordinal Encoder', expanded=False ):
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.ORDINAL_ENCODER )
 					
-					encode_cols = st.multiselect( 'Columns', options=df_working.columns,
+					df_current = ( st.session_state[ 'df_processed' ].copy( )
+							if isinstance( st.session_state.get( 'df_processed' ), pd.DataFrame )
+							   and not st.session_state[ 'df_processed' ].empty
+							else st.session_state[ 'df_working' ].copy( ) )
+					
+					ordinal_options = [
+							col for col in df_current.columns
+							if not pd.api.types.is_numeric_dtype( df_current[ col ] ) ]
+					
+					if 'classification_ordinal_cols' in st.session_state:
+						st.session_state[ 'classification_ordinal_cols' ] = [
+								col for col in st.session_state[ 'classification_ordinal_cols' ]
+								if col in ordinal_options ]
+					
+					encode_cols = st.multiselect( 'Columns', options=ordinal_options,
 						key='classification_ordinal_cols' )
 					
 					# Apply Button
@@ -4208,97 +4541,122 @@ elif mode == 'Classification Models':
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_ordinal_apply',
 								use_container_width=True ):
+							df_input = ( st.session_state[ 'df_processed' ].copy( )
+									if isinstance( st.session_state.get( 'df_processed' ),
+										pd.DataFrame )
+									   and not st.session_state[ 'df_processed' ].empty
+									else st.session_state[ 'df_working' ].copy( ) )
 							
-							if encode_cols:
-								encoder = OrdinalEncoder( )
-								result = encoder.train_transform(
-									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
-								df_processed[ encode_cols ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
-								st.success( 'Ordinal Encoder Applied.' )
+							valid_cols = [ col for col in encode_cols if col in df_input.columns ]
+							
+							if not valid_cols:
+								st.warning( 'Select at least one available categorical column.' )
+								st.stop( )
+							
+							encoder = OrdinalEncoder( )
+							result = encoder.train_transform(
+								df_input[ valid_cols ].fillna( '' ).astype( str ).to_numpy( ) )
+							
+							df_output = df_input.copy( )
+							df_output[ valid_cols ] = result
+							
+							st.session_state[ 'df_processed' ] = df_output.copy( )
+							commit_frame( df_output )
+							st.success( 'Ordinal Encoder Applied.' )
+							st.rerun( )
 					
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_ordinal_reset',
 								use_container_width=True ):
-							
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
+							st.session_state[ 'df_processed' ] = pd.DataFrame( )
+							st.session_state[ 'df_features' ] = pd.DataFrame( )
+							st.session_state[ 'df_targets' ] = pd.DataFrame( )
+							commit_frame( st.session_state[ 'df_working' ].copy( ) )
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.LABEL_ENCODER )
 					
-					target_col = st.selectbox( 'Column', options=df_working.columns,
+					options = get_column_options( )
+					prune_selectbox_state( 'classification_label_encoder_col', options )
+					target_col = st.selectbox( 'Column', options=options,
 						key='classification_label_encoder_col' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_label_encoder_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_label_encoder_apply',
 								use_container_width=True ):
-							
-							if target_col:
+							df_input = get_processing_frame( )
+							if target_col and target_col in df_input.columns:
 								encoder = LabelEncoder( )
+								df_output = df_input.copy( )
 								result = encoder.train_transform(
-									df_processed[ target_col ].astype( str ).to_numpy( ) )
+									df_output[ target_col ].fillna( '' ).astype( str ).to_numpy( ) )
 								
-								df_processed[ target_col ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								df_output[ target_col ] = result
+								commit_processed_frame( df_input, df_output, [ target_col ],
+									preserve_source=True )
+								
 								st.success( 'Label Encoder Applied.' )
+							else:
+								st.warning( 'Select an available column for Label Encoder.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_label_encoder_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_label_encoder_reset',
 								use_container_width=True ):
-							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
-							commit_frame( df_processed )
-							st.success( 'Reset to Working.' )
-					
-					st.session_state[ 'df_processed' ] = df_processed
+							reset_processing_frame( )
+							st.success( 'Reset Processed Data.' )
+							st.rerun( )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.TARGET_ENCODER )
 					
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_target_encoder_cols', options )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
-						options=df_working.columns, key='classification_target_encoder_cols' )
+						options=options, key='classification_target_encoder_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns,
+					prune_selectbox_state( 'classification_target_encoder_target_col', options )
+					target_col = st.selectbox( 'Target Column', options=options,
 						key='classification_target_encoder_target_col' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_target_encoder_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_target_encoder_apply',
 								use_container_width=True ):
-							
-							if encode_cols and target_col:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							encode_cols = get_valid_columns( encode_cols, df_input )
+							if require_columns( encode_cols,
+									'Target Encoder' ) and target_col in df_input.columns:
 								encoder = TargetEncoder( )
-								X_enc = df_processed[ encode_cols ].astype( str ).to_numpy( )
-								y_enc = df_processed[ target_col ].to_numpy( )
+								X_enc = df_input[ encode_cols ].fillna( '' ).astype(
+									str ).to_numpy( )
+								y_enc = df_input[ target_col ].to_numpy( )
 								result = encoder.train_transform( X_enc, y_enc )
 								
-								df_processed = replace_columns( df_processed, encode_cols, result,
+								df_output = replace_columns( df_input, encode_cols, result,
 									'target_encoder' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, encode_cols,
+									preserve_source=False )
+								
 								st.success( 'Target Encoder Applied.' )
+							elif target_col not in df_input.columns:
+								st.warning(
+									'Select an available target column for Target Encoder.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_target_encoder_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_target_encoder_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4306,7 +4664,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.POLYNOMIAL_FEATURES )
 					
-					poly_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_polynomial_cols', options )
+					poly_cols = st.multiselect( 'Columns', options=options,
 						key='classification_polynomial_cols' )
 					
 					degree = st.slider( 'Degree', min_value=2, max_value=4,
@@ -4315,46 +4675,47 @@ elif mode == 'Classification Models':
 					interaction = st.checkbox( 'Interaction Only', value=True,
 						key='classification_polynomial_interaction' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_polynomial_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_polynomial_apply',
 								use_container_width=True ):
-							
-							if poly_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							poly_cols = get_valid_columns( poly_cols, df_input )
+							if require_columns( poly_cols, 'Polynomial Features' ):
 								encoder = PolynomialFeatures( degree=int( degree ),
 									interaction=bool( interaction ) )
 								
 								result = encoder.train_transform(
-									df_processed[ poly_cols ].to_numpy( ) )
+									numeric_subset( df_input, poly_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, poly_cols, result,
+								df_output = replace_columns( df_input, poly_cols, result,
 									'polynomial' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, poly_cols,
+									preserve_source=False )
+								
 								st.success( 'PolynomialFeatures applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_polynomial_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_polynomial_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
-							
+		
 		with feature_c2:
-			
-			with st.expander( label='Data Transformation', icon='⚡', key='classification_transformers' ):
+			with st.expander( label='Data Transformation', icon='⚡',
+					key='classification_transformers' ):
 				
 				with st.expander( 'Binarizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.BINARIZER )
 					
-					transform_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_binarizer_cols', options )
+					transform_cols = st.multiselect( 'Columns', options=options,
 						key='classification_binarizer_cols' )
 					
 					threshold = st.number_input( 'Threshold', value=0.0, step=0.1,
@@ -4362,32 +4723,30 @@ elif mode == 'Classification Models':
 					
 					copy = st.checkbox( 'Copy', value=True, key='classification_binarizer_copy' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Binarizer', key='classification_binarizer_apply',
 								use_container_width=True ):
-							
-							if transform_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							transform_cols = get_valid_columns( transform_cols, df_input )
+							if require_columns( transform_cols, 'Binarizer' ):
 								transformer = Binarizer( threshold=float( threshold ),
 									copy=bool( copy ) )
 								
+								df_output = df_input.copy( )
 								result = transformer.train_transform(
-									df_processed[ transform_cols ].to_numpy( ) )
+									numeric_subset( df_output, transform_cols ).to_numpy( ) )
 								
-								df_processed[ transform_cols ] = result
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								df_output[ transform_cols ] = result
+								commit_processed_frame( df_input, df_output, transform_cols,
+									preserve_source=True )
+								
 								st.success( 'Binarizer applied.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_binarizer_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4395,7 +4754,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.LABEL_BINARIZER )
 					
-					target_col = st.selectbox( 'Column', options=df_working.columns,
+					options = get_column_options( )
+					prune_selectbox_state( 'classification_label_binarizer_col', options )
+					target_col = st.selectbox( 'Column', options=options,
 						key='classification_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -4407,32 +4768,35 @@ elif mode == 'Classification Models':
 					sparse_output = st.checkbox( 'Sparse Output', value=False,
 						key='classification_label_binarizer_sparse' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply LabelBinarizer', key='classification_lblbinarizer_apply',
+						if st.button( 'Apply LabelBinarizer',
+								key='classification_lblbinarizer_apply',
 								use_container_width=True ):
-							if target_col:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							if target_col and target_col in df_input.columns:
 								transformer = LabelBinarizer( pos_label=int( pos_label ),
-									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+									neg_label=int( neg_label ),
+									sparse_output=bool( sparse_output ) )
 								
 								result = transformer.train_transform(
-									df_processed[ target_col ].astype( str ).to_numpy( ) )
+									df_input[ target_col ].fillna( '' ).astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, [ target_col ], result,
+								df_output = replace_columns( df_input, [ target_col ], result,
 									'label_binarizer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, [ target_col ],
+									preserve_source=False )
+								
 								st.success( 'Label Binarizer Applied.' )
+							else:
+								st.warning( 'Select an available column for Label Binarizer.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_lblbinarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_lblbinarizer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4440,7 +4804,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.MULTILABEL_BINARIZER )
 					
-					target_col = st.selectbox( 'Column', options=df_working.columns,
+					options = get_column_options( )
+					prune_selectbox_state( 'classification_multilabel_binarizer_col', options )
+					target_col = st.selectbox( 'Column', options=options,
 						key='classification_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -4449,33 +4815,36 @@ elif mode == 'Classification Models':
 					sparse_output = st.checkbox( 'Sparse Output', value=False,
 						key='classification_multilabel_binarizer_sparse' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_multilabel_binarizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_multilabel_binarizer_apply',
 								use_container_width=True ):
-							if target_col:
-								df_processed = df_working.copy( )
-								y_multi = parse_multilabel_series( df_processed[ target_col ],
+							df_input = get_processing_frame( )
+							if target_col and target_col in df_input.columns:
+								y_multi = parse_multilabel_series( df_input[ target_col ],
 									delimiter=delimiter )
 								
 								transformer = MultiLabelBinarizer( classes=None,
 									sparse_output=bool( sparse_output ) )
 								
 								result = transformer.train_transform( y_multi )
-								df_processed = replace_columns( df_processed, [ target_col ],
-									result, 'multilabel_binarizer' )
+								df_output = replace_columns( df_input, [ target_col ], result,
+									'multilabel_binarizer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, [ target_col ],
+									preserve_source=False )
+								
 								st.success( 'Multi-Label Binarizer Applied.' )
+							else:
+								st.warning(
+									'Select an available column for Multi-Label Binarizer.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_multilabel_binarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_multilabel_binarizer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4483,7 +4852,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.TDIDF_TRANSFORMER )
 					
-					text_count_cols = st.multiselect( 'Count Matrix Columns',  options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_tfidf_transformer_cols', options )
+					text_count_cols = st.multiselect( 'Count Matrix Columns', options=options,
 						key='classification_tfidf_transformer_cols' )
 					
 					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
@@ -4498,33 +4869,34 @@ elif mode == 'Classification Models':
 					sublinear_tf = st.checkbox( 'Sublinear TF', value=False,
 						key='classification_tfidf_transformer_sublinear' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_tfidf_transformer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_tfidf_transformer_apply',
 								use_container_width=True ):
-							if text_count_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							text_count_cols = get_valid_columns( text_count_cols, df_input )
+							if require_columns( text_count_cols, 'TF-IDF Transformer' ):
 								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
-									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
+									smooth_idf=bool( smooth_idf ),
+									sublinear_tf=bool( sublinear_tf ) )
 								
 								result = transformer.train_transform(
-									df_processed[ text_count_cols ].apply(
-										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+									numeric_subset( df_input, text_count_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, text_count_cols,
+								df_output = replace_columns( df_input, text_count_cols,
 									result, 'tfidf_transformer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, text_count_cols,
+									preserve_source=False )
+								
 								st.success( 'TFIDF Transformer Applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_tfidf_transformer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_tfidf_transformer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4532,16 +4904,34 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.COLUMN_TRANSFORMER )
 					
-					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns,
+					options = get_column_options( )
+					numeric_options = [
+							col for col in options
+							if pd.api.types.is_numeric_dtype( get_processing_frame( )[ col ] )
+					]
+					
+					categorical_options = [
+							col for col in options
+							if col not in numeric_options
+					]
+					
+					prune_multiselect_state( 'classification_column_transformer_numeric_columns',
+						numeric_options )
+					
+					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_options,
 						key='classification_column_transformer_numeric_columns' )
 					
+					prune_multiselect_state(
+						'classification_column_transformer_categorical_columns',
+						categorical_options )
+					
 					categorical_columns = st.multiselect( 'Categorical Columns',
-						options=df_working.columns,
+						options=categorical_options,
 						key='classification_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
 						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
-								'MaxAbsScaler', 'Binarizer', 'None' ],
+						          'MaxAbsScaler', 'Binarizer', 'None' ],
 						key='classification_column_transformer_numeric_transform' )
 					
 					categorical_transform = st.selectbox( 'Categorical Transformer',
@@ -4555,13 +4945,14 @@ elif mode == 'Classification Models':
 						max_value=1.0, value=0.3,
 						key='classification_column_transformer_sparse_threshold' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Column Transformer',
 								key='classification_column_transformer_apply',
 								use_container_width=True ):
-							df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							numeric_columns = get_valid_columns( numeric_columns, df_input )
+							categorical_columns = get_valid_columns( categorical_columns, df_input )
 							transformers = [ ]
 							
 							if numeric_columns and numeric_transform != 'None':
@@ -4593,32 +4984,41 @@ elif mode == 'Classification Models':
 									remainder=remainder, sparse_threshold=float( sparse_threshold ),
 									n_jobs=None, transformer_weights=None, verbose=False )
 								
-								result = transformer.train_transform( df_processed )
-								df_processed = normalize_result_frame( result=result,
-									index=df_processed.index, prefix='column_transformer',
+								result = transformer.train_transform( df_input )
+								df_output = normalize_result_frame( result=result,
+									index=df_input.index, prefix='column_transformer',
 									columns=None )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame(
+									df_input,
+									df_output,
+									numeric_columns + categorical_columns,
+									preserve_source=False
+								)
+								
 								st.success( 'ColumnTransformer applied.' )
+							else:
+								st.warning(
+									'Select at least one transformer and one matching column.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_column_transformer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_column_transformer_reset',
 								use_container_width=True ):
-							
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 			
-			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
+			with st.expander( label='Feature Extration', icon='⛏️',
+					key='classification_extractors' ):
 				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.TDIDF_VECTORIZER )
 					
-					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_tfidf_vectorizer_cols', options )
+					text_cols = st.multiselect( 'Text Columns', options=options,
 						key='classification_tfidf_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -4630,30 +5030,32 @@ elif mode == 'Classification Models':
 					use_idf = st.checkbox( 'Use IDF', value=True,
 						key='classification_tfidf_vectorizer_use_idf' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_tfidf_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_tfidf_vectorizer_apply',
 								use_container_width=True ):
-							if text_cols:
-								df_processed = df_working.copy( )
-								transformer = TfidfVectorizer( ngram_range=( 1, int( ngram_max ) ),
-									max_features=None if int( max_features ) == 0 else int( max_features ),
+							df_input = get_processing_frame( )
+							text_cols = get_valid_columns( text_cols, df_input )
+							if require_columns( text_cols, 'TF-IDF Vectorizer' ):
+								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ),
 									use_idf=bool( use_idf ) )
 								
-								df_processed = apply_text_vectorizer( df_processed, text_cols,
+								df_output = apply_text_vectorizer( df_input, text_cols,
 									transformer, 'tfidf_vectorizer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, text_cols,
+									preserve_source=False )
+								
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_tfidf_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_tfidf_vectorizer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4661,7 +5063,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.COUNT_VECTORIZER )
 					
-					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_count_vectorizer_cols', options )
+					text_cols = st.multiselect( 'Text Columns', options=options,
 						key='classification_count_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -4673,30 +5077,32 @@ elif mode == 'Classification Models':
 					binary = st.checkbox( 'Binary Counts', value=False,
 						key='classification_count_vectorizer_binary' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_count_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_count_vectorizer_apply',
 								use_container_width=True ):
-							if text_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							text_cols = get_valid_columns( text_cols, df_input )
+							if require_columns( text_cols, 'Count Vectorizer' ):
 								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0 else int( max_features ),
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ),
 									binary=bool( binary ) )
 								
-								df_processed = apply_text_vectorizer( df_processed, text_cols,
+								df_output = apply_text_vectorizer( df_input, text_cols,
 									transformer, 'count_vectorizer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, text_cols,
+									preserve_source=False )
+								
 								st.success( 'Count Vectorizer Applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_count_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_count_vectorizer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4704,7 +5110,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.HASH_VECTORIZER )
 					
-					text_cols = st.multiselect( 'Text Columns', options=df_working.columns,
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_hash_vectorizer_cols', options )
+					text_cols = st.multiselect( 'Text Columns', options=options,
 						key='classification_hash_vectorizer_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -4719,29 +5127,31 @@ elif mode == 'Classification Models':
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
 						key='classification_hash_vectorizer_alternate_sign' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_hash_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_hash_vectorizer_apply',
 								use_container_width=True ):
-							if text_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							text_cols = get_valid_columns( text_cols, df_input )
+							if require_columns( text_cols, 'Hash Vectorizer' ):
 								transformer = HashVectorizer( num=int( n_features ),
 									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
 									alternate_sign=bool( alternate_sign ) )
-								df_processed = apply_text_vectorizer( df_processed,
+								
+								df_output = apply_text_vectorizer( df_input,
 									text_cols, transformer, 'hash_vectorizer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, text_cols,
+									preserve_source=False )
+								
 								st.success( 'HashVectorizer Applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_hash_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_hash_vectorizer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4749,7 +5159,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.DICT_VECTORIZER )
 					
-					dict_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_dict_vectorizer_cols', options )
+					dict_cols = st.multiselect( 'Columns', options=options,
 						key='classification_dict_vectorizer_cols' )
 					
 					separator = st.text_input( 'Separator', value='=',
@@ -4761,30 +5173,30 @@ elif mode == 'Classification Models':
 					sort = st.checkbox( 'Sort Feature Names', value=True,
 						key='classification_dict_vectorizer_sort' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_dict_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_dict_vectorizer_apply',
 								use_container_width=True ):
-							
-							if dict_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							dict_cols = get_valid_columns( dict_cols, df_input )
+							if require_columns( dict_cols, 'Dictionary Vectorizer' ):
 								transformer = DictVectorizer( dtype=np.float64, separator=separator,
 									sparse=bool( sparse ), sort=bool( sort ) )
 								
-								df_processed = apply_dict_transform( df_processed, dict_cols,
+								df_output = apply_dict_transform( df_input, dict_cols,
 									transformer, 'dict_vectorizer' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, dict_cols,
+									preserve_source=False )
+								
 								st.success( 'DictVectorizer applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_dict_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_dict_vectorizer_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4792,7 +5204,9 @@ elif mode == 'Classification Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.FEATURE_HASHER )
 					
-					hash_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( )
+					prune_multiselect_state( 'classification_feature_hasher_cols', options )
+					hash_cols = st.multiselect( 'Columns', options=options,
 						key='classification_feature_hasher_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -4801,71 +5215,74 @@ elif mode == 'Classification Models':
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
 						key='classification_feature_hasher_alternate_sign' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_feature_hasher_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_feature_hasher_apply',
 								use_container_width=True ):
-							
-							if hash_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							hash_cols = get_valid_columns( hash_cols, df_input )
+							if require_columns( hash_cols, 'Feature Hasher' ):
 								transformer = FeatureHasher( n_features=int( n_features ),
 									input_type='dict', dtype=np.float64,
 									alternate_sign=bool( alternate_sign ) )
 								
-								df_processed = apply_dict_transform( df_processed, hash_cols,
+								df_output = apply_dict_transform( df_input, hash_cols,
 									transformer, 'feature_hasher' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, hash_cols,
+									preserve_source=False )
+								
 								st.success( 'FeatureHasher applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_feature_hasher_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_feature_hasher_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 			
-			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='classification_selectors' ):
+			with st.expander( label='Dimensionality Reduction', icon='🎚️',
+					key='classification_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.VARIANCE_THRESHOLD )
 					
-					select_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_variance_threshold_cols', options )
+					select_cols = st.multiselect( 'Columns', options=options,
 						key='classification_variance_threshold_cols' )
 					
 					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
 						step=0.01, key='classification_variance_threshold_value' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_variance_threshold_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_variance_threshold_apply',
 								use_container_width=True ):
-							
-							if select_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							select_cols = get_valid_columns( select_cols, df_input )
+							if require_columns( select_cols, 'Variance Threshold' ):
 								selector = VarianceThreshold( thresh=float( threshold ) )
 								result = selector.train_transform(
-									df_processed[ select_cols ].to_numpy( ) )
+									numeric_subset( df_input, select_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, select_cols, result,
+								df_output = replace_columns( df_input, select_cols, result,
 									'variance_threshold' )
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, select_cols,
+									preserve_source=False )
+								
 								st.success( 'VarianceThreshold applied.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_variance_threshold_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_variance_threshold_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4873,10 +5290,13 @@ elif mode == 'Classification Models':
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.CCA )
 					
-					X_cols = st.multiselect( 'Predictor Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_cca_x_cols', options )
+					X_cols = st.multiselect( 'Predictor Columns', options=options,
 						key='classification_cca_x_cols' )
 					
-					y_cols = st.multiselect( 'Target Columns', options=df_working.columns,
+					prune_multiselect_state( 'classification_cca_y_cols', options )
+					y_cols = st.multiselect( 'Target Columns', options=options,
 						key='classification_cca_y_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
@@ -4888,44 +5308,51 @@ elif mode == 'Classification Models':
 					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
 						step=1, key='classification_cca_max_iter' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_cca_apply',
 								use_container_width=True ):
-							if X_cols and y_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							X_cols = get_valid_columns( X_cols, df_input )
+							y_cols = get_valid_columns( y_cols, df_input )
+							if require_columns( X_cols, 'CCA predictors' ) and require_columns(
+									y_cols, 'CCA targets' ):
 								selector = CCA( num=int( n_components ), scale=bool( scale ),
 									size=int( max_iter ) )
 								
-								result = selector.train_transform( df_processed[ X_cols ].to_numpy( ),
-									df_processed[ y_cols ].to_numpy( ) )
+								result = selector.train_transform(
+									numeric_subset( df_input, X_cols ).to_numpy( ),
+									numeric_subset( df_input, y_cols ).to_numpy( )
+								)
 								
 								df_result = normalize_result_frame( result=result,
-									index=df_processed.index, prefix='cca', columns=None )
+									index=df_input.index, prefix='cca', columns=None )
 								
-								df_processed = pd.concat(
-									[ df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
-									  df_result ], axis=1 )
+								df_output = pd.concat(
+									[ df_input.drop( columns=X_cols + y_cols, errors='ignore' ),
+									  df_result ],
+									axis=1
+								)
 								
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								commit_processed_frame( df_input, df_output, X_cols + y_cols,
+									preserve_source=False )
+								
 								st.success( 'CCA Applied.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_cca_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
 				with st.expander( 'Principle Component Analysis (PCA)', expanded=False ):
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
-						help=cfg.PCA)
+						help=cfg.PCA )
 					
-					select_cols = st.multiselect( 'Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_pca_cols', options )
+					select_cols = st.multiselect( 'Columns', options=options,
 						key='classification_pca_cols' )
 					
 					n_components = st.number_input( 'Components', min_value=1, value=2,
@@ -4935,30 +5362,27 @@ elif mode == 'Classification Models':
 						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
 						key='classification_pca_solver' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_pca_apply',
 								use_container_width=True ):
-							
-							if select_cols:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							select_cols = get_valid_columns( select_cols, df_input )
+							if require_columns( select_cols, 'PCA' ):
 								selector = PCA( num=int( n_components ), solver=solver )
-								
 								result = selector.train_transform(
-									df_processed[ select_cols ].to_numpy( ) )
+									numeric_subset( df_input, select_cols ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								df_output = replace_columns( df_input, select_cols, result, 'pca' )
+								commit_processed_frame( df_input, df_output, select_cols,
+									preserve_source=False )
+								
 								st.success( 'PCA applied.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_pca_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -4966,48 +5390,55 @@ elif mode == 'Classification Models':
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.SELECT_BEST )
 					
-					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_selectbest_x_cols', options )
+					X_cols = st.multiselect( 'Feature Columns', options=options,
 						key='classification_selectbest_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns,
+					all_options = get_column_options( )
+					prune_selectbox_state( 'classification_selectbest_target_col', all_options )
+					target_col = st.selectbox( 'Target Column', options=all_options,
 						key='classification_selectbest_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-								'mutual_info_regression' ],
+						          'mutual_info_regression' ],
 						key='classification_selectbest_score_name' )
 					
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
 						key='classification_selectbest_k' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='classification_selectbest_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='classification_selectbest_apply',
 								use_container_width=True ):
-							
-							if X_cols and target_col:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							X_cols = get_valid_columns( X_cols, df_input )
+							if require_columns( X_cols,
+									'Select Best' ) and target_col in df_input.columns:
 								selector = SelectBest(
 									score_func=score_function_from_name( score_name ),
-									num=int( k_best ) )
+									num=int( min( k_best, len( X_cols ) ) ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-								
-								y_input = df_processed[ target_col ].to_numpy( )
+								X_input = numeric_subset( df_input, X_cols ).to_numpy( )
+								y_input = df_input[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								
+								df_output = replace_columns( df_input, X_cols, result,
+									'select_best' )
+								commit_processed_frame( df_input, df_output, X_cols,
+									preserve_source=False )
+								
 								st.success( 'Select Best Applied.' )
+							elif target_col not in df_input.columns:
+								st.warning( 'Select an available target column for Select Best.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_selectbest_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_selectbest_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -5015,47 +5446,56 @@ elif mode == 'Classification Models':
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.SELECT_PERCENT )
 					
-					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_selectpercent_x_cols', options )
+					X_cols = st.multiselect( 'Feature Columns', options=options,
 						key='classification_selectpercent_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns,
+					all_options = get_column_options( )
+					prune_selectbox_state( 'classification_selectpercent_target_col', all_options )
+					target_col = st.selectbox( 'Target Column', options=all_options,
 						key='classification_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-								'mutual_info_regression' ],
+						          'mutual_info_regression' ],
 						key='classification_selectpercent_score_name' )
 					
 					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
 						key='classification_selectpercent_percentile' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply SelectPercent',
-								key='classification_selectpercent_apply', use_container_width=True ):
-							if X_cols and target_col:
-								df_processed = df_working.copy( )
+								key='classification_selectpercent_apply',
+								use_container_width=True ):
+							df_input = get_processing_frame( )
+							X_cols = get_valid_columns( X_cols, df_input )
+							if require_columns( X_cols,
+									'Select Percent' ) and target_col in df_input.columns:
 								selector = SelectPercent(
 									score_func=score_function_from_name( score_name ),
 									pct=int( percentile ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-								
-								y_input = df_processed[ target_col ].to_numpy( )
+								X_input = numeric_subset( df_input, X_cols ).to_numpy( )
+								y_input = df_input[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								
+								df_output = replace_columns( df_input, X_cols, result,
+									'select_percent' )
+								commit_processed_frame( df_input, df_output, X_cols,
+									preserve_source=False )
+								
 								st.success( 'SelectPercent applied.' )
+							elif target_col not in df_input.columns:
+								st.warning(
+									'Select an available target column for Select Percent.' )
 					
-					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_selectpercent_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_selectpercent_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -5063,11 +5503,15 @@ elif mode == 'Classification Models':
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.SBS )
 					
-					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_sbs_x_cols', options )
+					X_cols = st.multiselect( 'Feature Columns', options=options,
 						key='classification_sbs_x_cols' )
 					
+					all_options = get_column_options( )
+					prune_selectbox_state( 'classification_sbs_target_col', all_options )
 					target_col = st.selectbox( 'Target Column',
-						options=df_working.columns, key='classification_sbs_target_col' )
+						options=all_options, key='classification_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
 						step=1, key='classification_sbs_k_features' )
@@ -5078,34 +5522,33 @@ elif mode == 'Classification Models':
 					random_state = st.number_input( 'Random State', min_value=0, value=1,
 						step=1, key='classification_sbs_random_state' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_sbs_apply',
 								use_container_width=True ):
-							
-							if X_cols and target_col:
-								df_processed = df_working.copy( )
+							df_input = get_processing_frame( )
+							X_cols = get_valid_columns( X_cols, df_input )
+							if require_columns( X_cols, 'SBS' ) and target_col in df_input.columns:
 								selector = SBS( classifier=None, k_features=int( k_features ),
 									test_size=float( test_size ), random_state=int( random_state ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-								
-								y_input = df_processed[ target_col ].to_numpy( )
+								X_input = numeric_subset( df_input, X_cols ).to_numpy( )
+								y_input = df_input[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								
+								df_output = replace_columns( df_input, X_cols, result, 'sbs' )
+								commit_processed_frame( df_input, df_output, X_cols,
+									preserve_source=False )
+								
 								st.success( 'SBS applied.' )
+							elif target_col not in df_input.columns:
+								st.warning( 'Select an available target column for SBS.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_sbs_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 				
@@ -5113,10 +5556,14 @@ elif mode == 'Classification Models':
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.RFE )
 					
-					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
+					options = get_column_options( numeric_only=True )
+					prune_multiselect_state( 'classification_rfe_x_cols', options )
+					X_cols = st.multiselect( 'Feature Columns', options=options,
 						key='classification_rfe_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column', options=df_working.columns,
+					all_options = get_column_options( )
+					prune_selectbox_state( 'classification_rfe_target_col', all_options )
+					target_col = st.selectbox( 'Target Column', options=all_options,
 						key='classification_rfe_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain',
@@ -5125,41 +5572,46 @@ elif mode == 'Classification Models':
 					verbose = st.number_input( 'Verbose', min_value=0, value=0,
 						step=1, key='classification_rfe_verbose' )
 					
-					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️', key='classification_rfe_apply',
 								use_container_width=True ):
-							
-							if X_cols and target_col:
-								df_processed = df_working.copy( )
-								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-								
-								y_input = df_processed[ target_col ].to_numpy( )
+							df_input = get_processing_frame( )
+							X_cols = get_valid_columns( X_cols, df_input )
+							if require_columns( X_cols, 'RFE' ) and target_col in df_input.columns:
+								selector = RFE( k_features=int( k_features ),
+									verbose=int( verbose ) )
+								X_input = numeric_subset( df_input, X_cols ).to_numpy( )
+								y_input = df_input[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'rfe' )
-								st.session_state[ 'df_processed' ] = df_processed.copy( )
-								commit_frame( df_processed )
+								
+								df_output = replace_columns( df_input, X_cols, result, 'rfe' )
+								commit_processed_frame( df_input, df_output, X_cols,
+									preserve_source=False )
+								
 								st.success( 'RFE applied.' )
+							elif target_col not in df_input.columns:
+								st.warning( 'Select an available target column for RFE.' )
 					
-					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁', key='classification_rfe_reset',
 								use_container_width=True ):
-							df_processed = None
-							st.session_state[ 'df_processed' ] = None
+							reset_processing_frame( )
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		if df_processed is None:
+		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
+		
+		if not has_processing_frame( df_processed ):
+			st.info('No processed data has been created yet.' )
 			st.stop( )
+		
 		st.markdown( '##### Processed Data' )
 		
-		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption(
+			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='classification_processed_data' )
 			
 		# ------------------------------------------------------------------
@@ -5954,13 +6406,11 @@ elif mode == 'Classification Models':
 					
 					gradient_power = st.number_input( 'Power T', min_value=0.000000,
 						value=float( st.session_state[ 'classification_gradient_power' ] ),
-						step=0.100000, format='%.6f',
-						key='classification_gradient_power' )
+						step=0.100000, format='%.6f', key='classification_gradient_power' )
 					
 					gradient_epsilon = st.number_input( 'Epsilon', min_value=0.000000,
 						value=float( st.session_state[ 'classification_gradient_epsilon' ] ),
-						step=0.010000, format='%.6f',
-						key='classification_gradient_epsilon' )
+						step=0.010000, format='%.6f', key='classification_gradient_epsilon' )
 				
 				with gd_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
@@ -6977,14 +7427,9 @@ elif mode == 'Classification Models':
 				
 				with vote_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					vote_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_vote_test_size' ] ),
-						step=1,
-						key='classification_vote_test_size'
-					) / 100.0
+					vote_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_vote_test_size' ] ), step=1,
+						key='classification_vote_test_size' ) / 100.0
 					
 					vote_random_state = st.number_input( 'Random State',
 						value=int( st.session_state[ 'classification_vote_random_state' ] ),
@@ -8531,6 +8976,7 @@ elif mode == 'Regression Models':
 			
 			with st.expander( label='Feature Extration', icon='⛏️',
 					key='regression_extractors' ):
+				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.TDIDF_VECTORIZER )
@@ -8758,6 +9204,7 @@ elif mode == 'Regression Models':
 			
 			with st.expander( label='Dimensionality Reduction', icon='🎚️',
 					key='regression_selectors' ):
+				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.VARIANCE_THRESHOLD )
