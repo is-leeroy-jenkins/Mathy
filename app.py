@@ -2161,7 +2161,7 @@ def rename_table( old_name: str, new_name: str ) -> None:
 st.set_page_config( page_title='Mathy', layout='wide',
 	page_icon=cfg.FAVICON, initial_sidebar_state='expanded' )
 
-st.logo( image=cfg.LOGO, size='large' )
+st.logo( image=cfg.LOGO, size='large', link=cfg.REPO_URL )
 pd.options.display.float_format = '{:,.2f}'.format
 
 # ============================================
