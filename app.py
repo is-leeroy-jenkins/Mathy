@@ -2172,17 +2172,12 @@ with st.sidebar:
 	st.subheader( 'Data Source' )
 	
 	with st.expander( 'Select Source', expanded=False ):
-		source = st.selectbox(
-			label='Select Source',
+		source = st.selectbox( label='Select Source',
 			options=[ 'Default Data', 'Database Data', 'Custom Data' ],
-			key='source_selectbox'
-		)
+			key='source_selectbox' )
 	
-	uploaded = st.file_uploader(
-		label='Upload Spreadsheet',
-		type=[ 'xlsx', 'xls', 'csv' ],
-		key='source_uploader'
-	)
+	uploaded = st.file_uploader( label='Upload Spreadsheet',
+		type=[ 'xlsx', 'xls', 'csv' ], key='source_uploader' )
 	
 	loaded_df: pd.DataFrame | None = None
 	loaded_original: pd.DataFrame | None = None
@@ -2202,18 +2197,13 @@ with st.sidebar:
                     WHERE type = 'table'
                       AND name NOT LIKE 'sqlite_%'
                     ORDER BY name;
-					""",
-					connection
-				)
+					""", connection )
 				
 				table_options = df_tables[ 'name' ].tolist( )[ :3 ]
 				
 				if table_options:
-					selected_table = st.selectbox(
-						label='Select Database Table',
-						options=table_options,
-						key='database_table_selectbox'
-					)
+					selected_table = st.selectbox( label='Select Database Table',
+						options=table_options, key='database_table_selectbox' )
 					
 					if selected_table:
 						loaded_df = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
