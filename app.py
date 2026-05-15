@@ -5231,7 +5231,7 @@ elif mode == 'Classification Models':
 			st.warning( '⚠️ Classification requires at least two classes.' )
 			st.stop( )
 		
-		df_classifiction = df_model.copy( )
+		df_classification = df_model.copy( )
 		st.session_state[ 'df_classification' ] = df_classification.copy( )
 	
 		# ------------------------------------------------------------------
