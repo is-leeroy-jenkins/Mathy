@@ -1,11 +1,11 @@
 [theme]
 base = 'dark'
 backgroundColor = '#141414'
-secondaryBackgroundColor = '#5E5959'
+secondaryBackgroundColor = '#7D7C7C'
 textColor = '#FFFFFF'
-dataframeBorderColor = '##2CB7DE'
+dataframeBorderColor = '#2CB7DE'
 primaryColor = '#0078FC'
-borderColor = '#565557'
+borderColor = '#8C8B8C'
 dataframeHeaderBackgroundColor = '#023770'
 font = 'Roboto Regular'
-baseFontSize = 13
+baseFontSize = 11
