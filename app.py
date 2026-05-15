@@ -753,7 +753,7 @@ def style_subheaders( ) -> None:
 		div[data-testid="stMarkdownContainer"] h6,
 		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h3,
 		div[data-testid="stChatMessage"] div[data-testid="stMarkdownContainer"] h4 {
-			color: rgb(2, 98, 201) !important;
+			color: rgb(053, 149, 252) !important;
 		}
 		</style>
 		""",
