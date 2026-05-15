@@ -1,7 +1,7 @@
 [theme]
 base = 'dark'
 backgroundColor = '#141414'
-secondaryBackgroundColor = '#414141'
+secondaryBackgroundColor = '#5E5959'
 textColor = '#FFFFFF'
 dataframeBorderColor = '##2CB7DE'
 primaryColor = '#0078FC'
