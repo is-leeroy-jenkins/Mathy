@@ -48,7 +48,7 @@ import multiprocessing
 BASE_DIR = os.path.dirname( os.path.abspath( __file__ ) )
 LOGO = r'resources/img/mathy_logo.png'
 FAVICON = r'resources/favicon.ico'
-BLUE_DIVIDER = "<div style='height:1.5px;align:left;background:#0078FC;margin:20px 0px 20px 0px;'></div>"
+BLUE_DIVIDER = "<div style='height:1.5px;align:left;background:#0078FC;margin:20px 0px 30px 0px;'></div>"
 DEFAULT_DATA = r'stores/excel/Combined Schedules.xlsx'
 DB_PATH = r'stores/sqlite/Data.db'
 LLM_PATH = ''
