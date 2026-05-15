@@ -5176,6 +5176,11 @@ elif mode == 'Classification Models':
 		
 		st.session_state[ 'active_features' ] = active_features
 		st.session_state[ 'active_targets' ] = active_targets
+		
+		if not active_features:
+			st.warning( '⚠️ Classification training requires at least one processed feature column.' )
+			st.stop( )
+
 		if len( active_targets ) != 1:
 			st.warning( '⚠️ Classification models requires exactly one processed target column.' )
 			st.stop( )
