@@ -107,15 +107,7 @@
       <workItem from="1776604996013" duration="21119000" />
       <workItem from="1778849370061" duration="6041000" />
       <workItem from="1778859768442" duration="8092000" />
-      <workItem from="1778880201008" duration="1162000" />
-    </task>
-    <task id="LOCAL-00038" summary="update">
-      <option name="closed" value="true" />
-      <created>1775920378463</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1775920378463</updated>
+      <workItem from="1778880201008" duration="2446000" />
     </task>
     <task id="LOCAL-00039" summary="update">
       <option name="closed" value="true" />
@@ -501,7 +493,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778867542064</updated>
     </task>
-    <option name="localTasksCounter" value="87" />
+    <task id="LOCAL-00087" summary="update">
+      <option name="closed" value="true" />
+      <created>1778881572952</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1778881572953</updated>
+    </task>
+    <option name="localTasksCounter" value="88" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -521,5 +521,16 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="update" />
     <option name="LAST_COMMIT_MESSAGE" value="update" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/app.py</url>
+          <line>8082</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

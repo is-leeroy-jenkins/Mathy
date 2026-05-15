@@ -7422,7 +7422,6 @@ elif mode == 'Classification Models':
 					st.session_state[ 'elapsed_seconds' ] = 0.0
 					st.session_state[ 'model' ] = None
 					st.session_state[ 'y_prediction' ] = None
-					st.session_state[ 'y_predictions' ] = None
 					st.session_state[ 'X_train' ] = None
 					st.session_state[ 'X_test' ] = None
 					st.session_state[ 'y_train' ] = None
@@ -7572,7 +7571,7 @@ elif mode == 'Classification Models':
 					except Exception as ex:
 						st.error( f'Random Forest training failed: {ex}' )
 		
-		with st.expander( 'Ensemble Models', expanded=True ):
+		with st.expander( 'Ensemble Models', expanded=False ):
 			
 			with st.expander( 'Gradient Boost', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
@@ -7586,6 +7585,37 @@ elif mode == 'Classification Models':
 						'classification_gb_test_size': 20,
 						'classification_gb_random_state': 42
 				}
+				
+				def reset_gb_state( ) -> None:
+					"""
+					
+						Purpose:
+						--------
+						Reset Gradient Boost widget values and model outputs before widget
+						instantiation on the next Streamlit run.
+					
+						Parameters:
+						-----------
+						None
+					
+						Returns:
+						--------
+						None
+					
+					"""
+					for reset_key, reset_value in gb_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
+					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'y_predictions' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 				
 				for key, value in gb_defaults.items( ):
 					if key not in st.session_state:
@@ -7603,8 +7633,8 @@ elif mode == 'Classification Models':
 						step=0.010000, format='%.6f', key='classification_gb_rate' )
 					
 					gb_depth = st.number_input( 'Max Depth', min_value=1,
-						value=int( st.session_state[ 'classification_gb_depth' ] ), step=1,
-						key='classification_gb_depth' )
+						value=int( st.session_state[ 'classification_gb_depth' ] ),
+						step=1, key='classification_gb_depth' )
 				
 				with gb_c2:
 					st.markdown( '###### Criterion / Split' )
@@ -7614,62 +7644,79 @@ elif mode == 'Classification Models':
 							st.session_state[ 'classification_gb_criterion' ] ),
 						key='classification_gb_criterion' )
 					
-					gb_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_gb_test_size' ] ), step=1,
-						key='classification_gb_test_size' ) / 100.0
+					gb_test_size = st.slider( 'Test Set Size (%)', min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_gb_test_size' ] ),
+						step=1, key='classification_gb_test_size' ) / 100.0
 				
 				with gb_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					gb_random_state = st.number_input( 'Random State',
+					gb_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_gb_random_state' ] ),
 						step=1, key='classification_gb_random_state' )
 					
-					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
+				# ------------------------------------------------------------------
 				# Model Training
+				# ------------------------------------------------------------------
 				gb_btn_1, gb_btn_2 = st.columns( 2 )
 				with gb_btn_1:
-					train_gb = st.button( '🚂 Train Gradient Boost', key='classification_gb_train',
-						use_container_width=True )
+					train_gb = st.button( '🚂 Train Gradient Boost',
+						key='classification_gb_train', use_container_width=True )
 				
 				with gb_btn_2:
-					reset_gb = st.button( '🔁 Reset Gradient Boost', key='classification_gb_reset',
-						use_container_width=True )
-				
-				if reset_gb:
-					for key, value in gb_defaults.items( ):
-						st.session_state[ key ] = value
-					st.session_state[ 'elapsed_seconds' ] = 0.0
-					st.session_state[ 'model' ] = None
-					st.session_state[ 'y_prediction' ] = None
-					st.session_state[ 'X_train' ] = None
-					st.session_state[ 'X_test' ] = None
-					st.session_state[ 'y_train' ] = None
-					st.session_state[ 'y_test' ] = None
-					st.session_state[ 'df_model' ] = None
-					st.session_state[ 'df_scores' ] = None
-					st.session_state[ 'df_predictions' ] = None
-					st.rerun( )
+					st.button( '🔁 Reset Gradient Boost',
+						key='classification_gb_reset', use_container_width=True,
+						on_click=reset_gb_state )
 				
 				if train_gb:
 					try:
-						start_time = time.perf_counter( )
-						model = classification_model.GradientBoost( estimators=int( gb_estimators ),
-							rate=float( gb_rate ), depth=int( gb_depth ),
-							criterion=str( gb_criterion ), random=int( gb_random_state ) )
+						if X is None or y is None:
+							st.warning( '⚠️ Gradient Boost requires prepared feature and target arrays.' )
+							st.stop( )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( gb_test_size ), random=int( gb_random_state ) )
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning( '⚠️ Gradient Boost requires at least one numeric feature.' )
+							st.stop( )
+						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning( '⚠️ Gradient Boost requires at least two target classes.' )
+							st.stop( )
+						
+						start_time = time.perf_counter( )
+						
+						model = classification_model.GradientBoost(
+							estimators=int( gb_estimators ),
+							rate=float( gb_rate ),
+							depth=int( gb_depth ),
+							criterion=str( gb_criterion ),
+							random=int( gb_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( gb_test_size ),
+							random=int( gb_random_state )
+						)
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 ) )
+						
+						df_scores = model.analyze( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
+							else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7677,23 +7724,29 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
 							int( len( X_test ) ) )
 						
+						y_prediction = np.asarray( y_prediction )
 						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+								'Actual': np.asarray( y_test ),
+								'Predicted': y_prediction
+						} )
+						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'model' ] = model
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'y_predictions' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Gradient Boost training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Gradient Boost training failed: {ex}' )
-					
+						
 			with st.expander( 'Adaptive Boost', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.ADAPTIVE_BOOST_CLASSIFIER )
@@ -7705,6 +7758,37 @@ elif mode == 'Classification Models':
 						'classification_ab_test_size': 20,
 						'classification_ab_random_state': 42
 				}
+				
+				def reset_ab_state( ) -> None:
+					"""
+					
+						Purpose:
+						--------
+						Reset Adaptive Boost widget values and model outputs before widget
+						instantiation on the next Streamlit run.
+					
+						Parameters:
+						-----------
+						None
+					
+						Returns:
+						--------
+						None
+					
+					"""
+					for reset_key, reset_value in ab_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
+					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'y_predictions' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 				
 				for key, value in ab_defaults.items( ):
 					if key not in st.session_state:
@@ -7723,69 +7807,82 @@ elif mode == 'Classification Models':
 				
 				with ab_c2:
 					st.markdown( '###### ♟️ Algorithm / Split' )
-					ab_algorithm = st.selectbox( 'Algorithm', options=[ 'SAMME', 'deprecated', None ],
-						index=[ 'SAMME', 'deprecated', None ].index(
-							st.session_state[ 'classification_ab_algorithm' ] ),
-						format_func=lambda v: 'None' if v is None else str( v ),
-						key='classification_ab_algorithm' )
+					ab_algorithm = st.selectbox( 'Algorithm', options=[ 'SAMME' ],
+						index=0, key='classification_ab_algorithm' )
 					
-					ab_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+					ab_test_size = st.slider( 'Test Set Size (%)', min_value=10,
+						max_value=30,
 						value=int( st.session_state[ 'classification_ab_test_size' ] ),
 						step=1, key='classification_ab_test_size' ) / 100.0
 				
 				with ab_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					ab_random_state = st.number_input( 'Random State',
+					ab_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_ab_random_state' ] ),
 						step=1, key='classification_ab_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
+				# ------------------------------------------------------------------
 				# Model Training
+				# ------------------------------------------------------------------
 				ab_btn_1, ab_btn_2 = st.columns( 2 )
 				with ab_btn_1:
-					train_ab = st.button( '🚂 Train Adaptive Boost', key='classification_ab_train',
-						use_container_width=True )
+					train_ab = st.button( '🚂 Train Adaptive Boost',
+						key='classification_ab_train', use_container_width=True )
 				
 				with ab_btn_2:
-					reset_ab = st.button( '🔁 Reset Adaptive Boost', key='classification_ab_reset',
-						use_container_width=True )
-				
-				if reset_ab:
-					for key, value in ab_defaults.items( ):
-						st.session_state[ key ] = value
-					st.session_state[ 'elapsed_seconds' ] = 0.0
-					st.session_state[ 'model' ] = None
-					st.session_state[ 'y_prediction' ] = None
-					st.session_state[ 'X_train' ] = None
-					st.session_state[ 'X_test' ] = None
-					st.session_state[ 'y_train' ] = None
-					st.session_state[ 'y_test' ] = None
-					st.session_state[ 'df_model' ] = None
-					st.session_state[ 'df_scores' ] = None
-					st.session_state[ 'df_predictions' ] = None
-					st.rerun( )
+					st.button( '🔁 Reset Adaptive Boost',
+						key='classification_ab_reset', use_container_width=True,
+						on_click=reset_ab_state )
 				
 				if train_ab:
 					try:
-						start_time = time.perf_counter( )
-						model = classification_model.AdaptiveBoost( base=None,
-							estimators=int( ab_estimators ), rate=float( ab_rate ),
-							algorithm=ab_algorithm, random=int( ab_random_state ) )
+						if X is None or y is None:
+							st.warning( '⚠️ Adaptive Boost requires prepared feature and target arrays.' )
+							st.stop( )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( ab_test_size ), random=int( ab_random_state ) )
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning( '⚠️ Adaptive Boost requires at least one numeric feature.' )
+							st.stop( )
+						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning( '⚠️ Adaptive Boost requires at least two target classes.' )
+							st.stop( )
+						
+						start_time = time.perf_counter( )
+						
+						model = classification_model.AdaptiveBoost(
+							base=None,
+							estimators=int( ab_estimators ),
+							rate=float( ab_rate ),
+							algorithm=str( ab_algorithm ),
+							random=int( ab_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( ab_test_size ),
+							random=int( ab_random_state )
+						)
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 ) )
+						
+						df_scores = model.analyze( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
+							else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7793,23 +7890,29 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
 							int( len( X_test ) ) )
 						
+						y_prediction = np.asarray( y_prediction )
 						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+								'Actual': np.asarray( y_test ),
+								'Predicted': y_prediction
+						} )
+						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'model' ] = model
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'y_predictions' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Adaptive Boost training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Adaptive Boost training failed: {ex}' )
-					
+						
 			with st.expander( 'Bagging Model', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.BAGGING_CLASSIFIER )
@@ -7819,6 +7922,36 @@ elif mode == 'Classification Models':
 						'classification_bag_test_size': 20,
 						'classification_bag_random_state': 42
 				}
+				
+				def reset_bag_state( ) -> None:
+					"""
+					
+						Purpose:
+						--------
+						Reset Bagging Model widget values and model outputs before widget
+						instantiation on the next Streamlit run.
+					
+						Parameters:
+						-----------
+						None
+					
+						Returns:
+						--------
+						None
+					
+					"""
+					for reset_key, reset_value in bag_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
+					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 				
 				for key, value in bag_defaults.items( ):
 					if key not in st.session_state:
@@ -7839,56 +7972,69 @@ elif mode == 'Classification Models':
 				
 				with bag_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					bag_random_state = st.number_input( 'Random State',
+					bag_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_bag_random_state' ] ),
 						step=1, key='classification_bag_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
+				# ------------------------------------------------------------------
 				# Model Training
+				# ------------------------------------------------------------------
 				bag_btn_1, bag_btn_2 = st.columns( 2 )
 				with bag_btn_1:
-					train_bag = st.button( '🚂 Train Bagging Model', key='classification_bag_train',
-						use_container_width=True )
+					train_bag = st.button( '🚂 Train Bagging Model',
+						key='classification_bag_train', use_container_width=True )
 				
 				with bag_btn_2:
-					reset_bag = st.button( '🔁 Reset Bagging Model', key='classification_bag_reset',
-						use_container_width=True )
-				
-				if reset_bag:
-					for key, value in bag_defaults.items( ):
-						st.session_state[ key ] = value
-					st.session_state[ 'elapsed_seconds' ] = 0.0
-					st.session_state[ 'model' ] = None
-					st.session_state[ 'y_prediction' ] = None
-					st.session_state[ 'X_train' ] = None
-					st.session_state[ 'X_test' ] = None
-					st.session_state[ 'y_train' ] = None
-					st.session_state[ 'y_test' ] = None
-					st.session_state[ 'df_model' ] = None
-					st.session_state[ 'df_scores' ] = None
-					st.session_state[ 'df_predictions' ] = None
-					st.rerun( )
+					st.button( '🔁 Reset Bagging Model',
+						key='classification_bag_reset', use_container_width=True,
+						on_click=reset_bag_state )
 				
 				if train_bag:
 					try:
-						start_time = time.perf_counter( )
-						model = classification_model.BaggingModel( estimators=int( bag_estimators ),
-							random=int( bag_random_state ) )
+						if X is None or y is None:
+							st.warning( '⚠️ Bagging Model requires prepared feature and target arrays.' )
+							st.stop( )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( bag_test_size ), random=int( bag_random_state ) )
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning( '⚠️ Bagging Model requires at least one numeric feature.' )
+							st.stop( )
+						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning( '⚠️ Bagging Model requires at least two target classes.' )
+							st.stop( )
+						
+						start_time = time.perf_counter( )
+						
+						model = classification_model.BaggingModel(
+							estimators=int( bag_estimators ),
+							random=int( bag_random_state )
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( bag_test_size ),
+							random=int( bag_random_state )
+						)
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						df_scores = model.analyze( X_test, y_test ).copy( )
-						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 ) )
+						
+						df_scores = model.analyze( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
+							else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7896,23 +8042,29 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
 							int( len( X_test ) ) )
 						
+						y_prediction = np.asarray( y_prediction )
 						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+								'Actual': np.asarray( y_test ),
+								'Predicted': y_prediction
+						} )
+						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'y_prediction' ] = y_predictions.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'y_predictions' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Bagging Model training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Bagging Model training failed: {ex}' )
-					
+						
 			with st.expander( 'Voting Model', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.VOTING_CLASSFIER )
@@ -7927,6 +8079,37 @@ elif mode == 'Classification Models':
 						'classification_vote_test_size': 20,
 						'classification_vote_random_state': 42
 				}
+				
+				def reset_vote_state( ) -> None:
+					"""
+					
+						Purpose:
+						--------
+						Reset Voting Model widget values and model outputs before widget
+						instantiation on the next Streamlit run.
+					
+						Parameters:
+						-----------
+						None
+					
+						Returns:
+						--------
+						None
+					
+					"""
+					for reset_key, reset_value in vote_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
+					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'y_predictions' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 				
 				for key, value in vote_defaults.items( ):
 					if key not in st.session_state:
@@ -7966,62 +8149,73 @@ elif mode == 'Classification Models':
 				
 				with vote_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					vote_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_vote_test_size' ] ), step=1,
-						key='classification_vote_test_size' ) / 100.0
+					vote_test_size = st.slider( 'Test Set Size (%)', min_value=10,
+						max_value=30,
+						value=int( st.session_state[ 'classification_vote_test_size' ] ),
+						step=1, key='classification_vote_test_size' ) / 100.0
 					
-					vote_random_state = st.number_input( 'Random State',
+					vote_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_vote_random_state' ] ),
 						step=1, key='classification_vote_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
+				# ------------------------------------------------------------------
 				# Model Training
+				# ------------------------------------------------------------------
 				vote_btn_1, vote_btn_2 = st.columns( 2 )
 				with vote_btn_1:
-					train_vote = st.button( '🚂 Train Voting Model', key='classification_vote_train',
-						use_container_width=True )
+					train_vote = st.button( '🚂 Train Voting Model',
+						key='classification_vote_train', use_container_width=True )
 				
 				with vote_btn_2:
-					reset_vote = st.button( '🔁 Reset Voting Model', key='classification_vote_reset',
-						use_container_width=True )
-				
-				if reset_vote:
-					for key, value in vote_defaults.items( ):
-						st.session_state[ key ] = value
-					st.session_state[ 'elapsed_seconds' ] = 0.0
-					st.session_state[ 'model' ] = None
-					st.session_state[ 'y_prediction' ] = None
-					st.session_state[ 'X_train' ] = None
-					st.session_state[ 'X_test' ] = None
-					st.session_state[ 'y_train' ] = None
-					st.session_state[ 'y_test' ] = None
-					st.session_state[ 'df_model' ] = None
-					st.session_state[ 'df_scores' ] = None
-					st.session_state[ 'df_predictions' ] = None
-					st.rerun( )
+					st.button( '🔁 Reset Voting Model',
+						key='classification_vote_reset', use_container_width=True,
+						on_click=reset_vote_state )
 				
 				if train_vote:
 					try:
+						if X is None or y is None:
+							st.warning( '⚠️ Voting Model requires prepared feature and target arrays.' )
+							st.stop( )
+						
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning( '⚠️ Voting Model requires at least one numeric feature.' )
+							st.stop( )
+						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning( '⚠️ Voting Model requires at least two target classes.' )
+							st.stop( )
+						
 						estimators = [ ]
+						
 						if vote_include_logistic:
-							estimators.append( 'logistic', LogisticRegression( max_iter=1000,
-											random_state=int( vote_random_state ) ) )
+							estimators.append( (
+									'logistic',
+									LogisticRegression( max_iter=1000,
+										random_state=int( vote_random_state ) )
+							) )
 						
 						if vote_include_tree:
-							estimators.append( ( 'tree', DecisionTreeClassifier(
-											random_state=int( vote_random_state ) ) ) )
+							estimators.append( (
+									'tree',
+									DecisionTreeClassifier( random_state=int( vote_random_state ) )
+							) )
 						
 						if vote_include_knn:
 							estimators.append( ( 'knn', KNeighborsClassifier( ) ) )
 						
 						if vote_include_forest:
-							estimators.append( ( 'forest', RandomForestClassifier(
-											random_state=int( vote_random_state ) ) ) )
+							estimators.append( (
+									'forest',
+									RandomForestClassifier( random_state=int( vote_random_state ) )
+							) )
 						
 						if vote_include_nb:
 							estimators.append( ( 'naive_bayes', GaussianNB( ) ) )
@@ -8032,18 +8226,28 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.VotingModel( estimators=estimators,
-							vote=str( vote_mode ) )
+						model = classification_model.VotingModel(
+							estimators=estimators,
+							vote=str( vote_mode )
+						)
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( vote_test_size ), random=int( vote_random_state ) )
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( vote_test_size ),
+							random=int( vote_random_state )
+						)
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						df_scores = model.score( X_test, y_test ).copy( )
-						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 ) )
+						
+						df_scores = model.score( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
+							else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8057,23 +8261,29 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Vote Mode',
 							str( vote_mode ) )
 						
-						df_predictions = pd.DataFrame(  {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+						y_prediction = np.asarray( y_prediction )
+						df_predictions = pd.DataFrame( {
+								'Actual': np.asarray( y_test ),
+								'Predicted': y_prediction
+						} )
+						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'y_prediction' ] = y_predictions.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'y_predictions' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Voting Model training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Voting Model training failed: {ex}' )
-					
+						
 			with st.expander( 'Stacking Model', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.STACKING_CLASSIFIER )
@@ -8088,6 +8298,37 @@ elif mode == 'Classification Models':
 						'classification_stack_test_size': 20,
 						'classification_stack_random_state': 42
 				}
+				
+				def reset_stack_state( ) -> None:
+					"""
+					
+						Purpose:
+						--------
+						Reset Stacking Model widget values and model outputs before widget
+						instantiation on the next Streamlit run.
+					
+						Parameters:
+						-----------
+						None
+					
+						Returns:
+						--------
+						None
+					
+					"""
+					for reset_key, reset_value in stack_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
+					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'y_predictions' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 				
 				for key, value in stack_defaults.items( ):
 					if key not in st.session_state:
@@ -8128,66 +8369,74 @@ elif mode == 'Classification Models':
 				with stack_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					stack_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_stack_test_size' ] ), step=1,
-						key='classification_stack_test_size' ) / 100.0
+						value=int( st.session_state[ 'classification_stack_test_size' ] ),
+						step=1, key='classification_stack_test_size' ) / 100.0
 					
-					stack_random_state = st.number_input( 'Random State',
+					stack_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_stack_random_state' ] ),
 						step=1, key='classification_stack_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
+				# ------------------------------------------------------------------
 				# Model Training
+				# ------------------------------------------------------------------
 				stack_btn_1, stack_btn_2 = st.columns( 2 )
 				with stack_btn_1:
 					train_stack = st.button( '🚂 Train Stacking Model',
 						key='classification_stack_train', use_container_width=True )
 				
 				with stack_btn_2:
-					reset_stack = st.button( '🔁 Reset Stacking Model',
-						key='classification_stack_reset',
-						use_container_width=True )
-				
-				if reset_stack:
-					for key, value in stack_defaults.items( ):
-						st.session_state[ key ] = value
-					st.session_state[ 'elapsed_seconds' ] = 0.0
-					st.session_state[ 'model' ] = None
-					st.session_state[ 'y_prediction' ] = None
-					st.session_state[ 'X_train' ] = None
-					st.session_state[ 'X_test' ] = None
-					st.session_state[ 'y_train' ] = None
-					st.session_state[ 'y_test' ] = None
-					st.session_state[ 'df_model' ] = None
-					st.session_state[ 'df_scores' ] = None
-					st.session_state[ 'df_predictions' ] = None
-					st.rerun( )
+					st.button( '🔁 Reset Stacking Model',
+						key='classification_stack_reset', use_container_width=True,
+						on_click=reset_stack_state )
 				
 				if train_stack:
 					try:
+						if X is None or y is None:
+							st.warning( '⚠️ Stacking Model requires prepared feature and target arrays.' )
+							st.stop( )
+						
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning( '⚠️ Stacking Model requires at least one numeric feature.' )
+							st.stop( )
+						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning( '⚠️ Stacking Model requires at least two target classes.' )
+							st.stop( )
+						
 						estimators = [ ]
+						
 						if stack_include_logistic:
-							estimators.append(
-								( 'logistic', LogisticRegression( max_iter=1000,
-											random_state=int( stack_random_state ) ) ) )
+							estimators.append( (
+									'logistic',
+									LogisticRegression( max_iter=1000,
+										random_state=int( stack_random_state ) )
+							) )
 						
 						if stack_include_tree:
-							estimators.append( 'tree', DecisionTreeClassifier(
-								random_state=int( stack_random_state ) ) )
+							estimators.append( (
+									'tree',
+									DecisionTreeClassifier( random_state=int( stack_random_state ) )
+							) )
 						
 						if stack_include_knn:
 							estimators.append( ( 'knn', KNeighborsClassifier( ) ) )
 						
 						if stack_include_forest:
-							estimators.append( ( 'forest', RandomForestClassifier(
-								random_state=int( stack_random_state ) ) ) )
+							estimators.append( (
+									'forest',
+									RandomForestClassifier( random_state=int( stack_random_state ) )
+							) )
 						
 						if stack_include_nb:
-							estimators.append( 'naive_bayes', GaussianNB( ) )
+							estimators.append( ( 'naive_bayes', GaussianNB( ) ) )
 						
 						if len( estimators ) < 2:
 							st.warning( '⚠️ Stacking Model requires at least two base estimators.' )
@@ -8201,18 +8450,29 @@ elif mode == 'Classification Models':
 								random_state=int( stack_random_state ) )
 						
 						start_time = time.perf_counter( )
-						model = classification_model.StackingModel( est=estimators,
-							final=final_estimator )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( stack_test_size ), random=int( stack_random_state ) )
+						model = classification_model.StackingModel(
+							est=estimators,
+							final=final_estimator
+						)
+						
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( stack_test_size ),
+							random=int( stack_random_state )
+						)
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						df_scores = model.score( X_test, y_test ).copy( )
-						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 ) )
+						
+						df_scores = model.score( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
+							else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8223,21 +8483,29 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Estimator Count',
 							int( len( estimators ) ) )
 						
-						df_scores.insert(
-							len( df_scores.columns ), 'Final Estimator', str( stack_final ) )
+						df_scores.insert( len( df_scores.columns ), 'Final Estimator',
+							str( stack_final ) )
 						
-						df_predictions = pd.DataFrame( {'Actual': y_test,
-							 'Predicted': y_prediction } )
+						y_prediction = np.asarray( y_prediction )
+						df_predictions = pd.DataFrame( {
+								'Actual': np.asarray( y_test ),
+								'Predicted': y_prediction
+						} )
+						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'y_prediction' ] = y_predictions.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'y_predictions' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Stacking Model training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Stacking Model training failed: {ex}' )
 					
@@ -8254,6 +8522,37 @@ elif mode == 'Classification Models':
 						'classification_mlp_test_size': 20,
 						'classification_mlp_random_state': 42
 				}
+				
+				def reset_mlp_state( ) -> None:
+					"""
+					
+						Purpose:
+						--------
+						Reset Multi-Layer Perceptron widget values and model outputs before
+						widget instantiation on the next Streamlit run.
+					
+						Parameters:
+						-----------
+						None
+					
+						Returns:
+						--------
+						None
+					
+					"""
+					for reset_key, reset_value in mlp_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
+					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'y_predictions' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 				
 				for key, value in mlp_defaults.items( ):
 					if key not in st.session_state:
@@ -8290,8 +8589,7 @@ elif mode == 'Classification Models':
 					mlp_learning = st.selectbox( 'Learning Rate Schedule',
 						options=[ 'constant', 'invscaling', 'adaptive' ],
 						index=[ 'constant', 'invscaling', 'adaptive' ].index(
-							st.session_state[ 'classification_mlp_learning' ]
-						),
+							st.session_state[ 'classification_mlp_learning' ] ),
 						key='classification_mlp_learning' )
 					
 					mlp_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
@@ -8300,63 +8598,84 @@ elif mode == 'Classification Models':
 				
 				with mlp_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					mlp_random_state = st.number_input( 'Random State',
-						value=int( st.session_state[ 'classification_mlp_random_state' ] ), step=1,
-						key='classification_mlp_random_state' )
+					mlp_random_state = st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'classification_mlp_random_state' ] ),
+						step=1, key='classification_mlp_random_state' )
 					
-					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
+				# ------------------------------------------------------------------
 				# Model Training
+				# ------------------------------------------------------------------
 				mlp_btn_1, mlp_btn_2 = st.columns( 2 )
 				with mlp_btn_1:
 					train_mlp = st.button( '🚂 Train Multi-Layer Perceptron',
 						key='classification_mlp_train', use_container_width=True )
 				
 				with mlp_btn_2:
-					reset_mlp = st.button( '🔁 Reset Multi-Layer Perceptron',
-						key='classification_mlp_reset', use_container_width=True )
-				
-				if reset_mlp:
-					for key, value in mlp_defaults.items( ):
-						st.session_state[ key ] = value
-						st.session_state[ 'elapsed_seconds' ] = 0.0
-						st.session_state[ 'model' ] = None
-						st.session_state[ 'y_prediction' ] = None
-						st.session_state[ 'X_train' ] = None
-						st.session_state[ 'X_test' ] = None
-						st.session_state[ 'y_train' ] = None
-						st.session_state[ 'y_test' ] = None
-						st.session_state[ 'df_model' ] = None
-						st.session_state[ 'df_scores' ] = None
-						st.session_state[ 'df_predictions' ] = None
-					st.rerun( )
+					st.button( '🔁 Reset Multi-Layer Perceptron',
+						key='classification_mlp_reset', use_container_width=True,
+						on_click=reset_mlp_state )
 				
 				if train_mlp:
 					try:
+						if X is None or y is None:
+							st.warning(
+								'⚠️ Multi-Layer Perceptron requires prepared feature and target arrays.'
+							)
+							st.stop( )
+						
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning(
+								'⚠️ Multi-Layer Perceptron requires at least one numeric feature.'
+							)
+							st.stop( )
+						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning(
+								'⚠️ Multi-Layer Perceptron requires at least two target classes.'
+							)
+							st.stop( )
+						
 						if int( mlp_hidden_2 ) > 0:
-							hidden_layers = (int( mlp_hidden_1 ), int( mlp_hidden_2 ))
+							hidden_layers = ( int( mlp_hidden_1 ), int( mlp_hidden_2 ) )
 						else:
-							hidden_layers = (int( mlp_hidden_1 ),)
+							hidden_layers = ( int( mlp_hidden_1 ), )
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.MultiLayerPerceptron( hidden=hidden_layers,
-							activation=str( mlp_activation ), solver=str( mlp_solver ),
-							alpha=float( mlp_alpha ), learning=str( mlp_learning ),
-							rando=int( mlp_random_state ) )
+						model = classification_model.MultiLayerPerceptron(
+							hidden=hidden_layers,
+							activation=str( mlp_activation ),
+							solver=str( mlp_solver ),
+							alpha=float( mlp_alpha ),
+							learning=str( mlp_learning ),
+							rando=int( mlp_random_state )
+						)
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( mlp_test_size ), random=int( mlp_random_state ) )
+						X_train, X_test, y_train, y_test = model.split_data(
+							X,
+							y,
+							size=float( mlp_test_size ),
+							random=int( mlp_random_state )
+						)
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						df_scores = model.score( X_test, y_test ).copy( )
-						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-							round( elapsed_seconds, 4 ) )
+						
+						df_scores = model.score( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
+							else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ),
+							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8367,22 +8686,34 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Hidden Layers',
 							str( hidden_layers ) )
 						
+						df_scores.insert( len( df_scores.columns ), 'Activation',
+							str( mlp_activation ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Solver',
+							str( mlp_solver ) )
+						
+						y_prediction = np.asarray( y_prediction )
 						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+								'Actual': np.asarray( y_test ),
+								'Predicted': y_prediction
+						} )
+						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
+						st.session_state[ 'model' ] = model
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
+						st.session_state[ 'y_predictions' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Multi-Layer Perceptron training completed.' )
+					
 					except Exception as ex:
-						st.error( f'MultiLayerPerceptron training failed: {ex}' )
+						st.error( f'Multi-Layer Perceptron training failed: {ex}' )
 				
 		if st.session_state.get( 'model', None ) is None:
 			st.stop( )
