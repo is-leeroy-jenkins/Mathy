@@ -52,10 +52,10 @@ SQLite data through a guarded SQL/data-administration interface.
 
 
 ## 🧱 Databricks
+- [![Databricks Notebook](https://img.shields.io/badge/Databricks%20Repo-Mathy-FF3621?logo=databricks&logoColor=white)](https://dbc-a0c21f80-7bb3.cloud.databricks.com/editor/notebooks/1460524320197787?o=7474645703081351)
+
 - Notebooks
 - Repo
-[![Databricks Notebook](https://img.shields.io/badge/Databricks%20Repo-Mathy-FF3621?logo=databricks&logoColor=white)](https://dbc-a0c21f80-7bb3.cloud.databricks.com/editor/notebooks/1460524320197787?o=7474645703081351)
-
 
 ## 🧠 Overview
 
