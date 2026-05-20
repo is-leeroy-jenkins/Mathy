@@ -44,12 +44,17 @@ SQLite data through a guarded SQL/data-administration interface.
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
 
-## Inner Webs
+## Web UI
 
 [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit\&logoColor=white)](https://mathy-py.streamlit.app/)
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
 
+
+## 🧱 Databricks
+- Notebooks
+- Repo
+[![Databricks Notebook](https://img.shields.io/badge/Databricks%20Repo-Mathy-FF3621?logo=databricks&logoColor=white)](https://dbc-a0c21f80-7bb3.cloud.databricks.com/editor/notebooks/1460524320197787?o=7474645703081351)
 
 
 ## 🧠 Overview
