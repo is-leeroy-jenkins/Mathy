@@ -1,228 +1,324 @@
-
 ###### Mathy-Py
 
 <p align="center">
   <img src="resources/Mathy.png" alt="Mathy logo" width="800">
 </p>
+<p align="center">
+  <a href="#-overview">Overview</a> ·
+  <a href="#-application-modes">Application Modes</a> ·
+  <a href="#-architecture">Architecture</a> ·
+  <a href="#-data-sources">Data Sources</a> ·
+  <a href="#-data-profile">Data Profile</a> ·
+  <a href="#-statistics">Statistics</a> ·
+  <a href="#-anomaly-detection">Anomaly Detection</a> ·
+  <a href="#-feature-engineering">Feature Engineering</a> ·
+  <a href="#-classification-models">Classification</a> ·
+  <a href="#-regression-models">Regression</a> ·
+  <a href="#-clustering-models">Clustering</a> ·
+  <a href="#-time-series-models">Time Series</a> ·
+  <a href="#-data-management">Data Management</a> ·
+  <a href="#-framework-modules">Framework Modules</a> ·
+  <a href="#-requirements">Requirements</a> ·
+  <a href="#-quickstart-example">Quickstart</a> ·
+  <a href="#-license">License</a>
+</p>
+
+Mathy-Py is a Streamlit-based machine-learning, statistical-analysis, data-transformation, and
+SQLite data-management workspace. It combines a modular Python wrapper framework with an
+interactive application for profiling datasets, computing descriptive and inferential statistics,
+detecting anomalies, engineering features, training supervised and unsupervised models, forecasting
+time series, and administering local data tables.
+
+Mathy is built for repeatable analytical workflows. Users can load default data, database tables, or
+custom spreadsheets; inspect and edit data; profile schema and distributions; apply preprocessing
+operations; train classification, regression, clustering, and forecasting models; and manage local
+SQLite data through a guarded SQL/data-administration interface.
+
+## 🎥 Demo
+
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-demo.gif)
+
+## Google Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
+
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
+
+## Inner Webs
+
+[![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit\&logoColor=white)](https://mathy-py.streamlit.app/)
+
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
 
 
 
 ## 🧠 Overview
 
+| Capability             | Description                                                                                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data loading           | Load the default Excel workbook, SQLite database tables, or user-uploaded `.xlsx`, `.xls`, and `.csv` files.                                                     |
+| Data profiling         | Infer schema, edit records, inspect missingness, cardinality, labels, numeric distributions, and export edited datasets.                                         |
+| Descriptive statistics | Generate summary statistics, percentiles, missingness, zeros, skewness, kurtosis, distributions, Q-Q plots, correlation matrices, heatmaps, and PCA diagnostics. |
+| Inferential statistics | Run normality tests, group comparisons, correlation analysis, categorical association, ANOVA, Kruskal-Wallis, chi-square, and effect-size style metrics.         |
+| Anomaly detection      | Detect outliers through Z-score, modified Z-score, IQR fences, Mahalanobis distance, Isolation Forest, and Local Outlier Factor.                                 |
+| Feature engineering    | Apply scalers, imputers, encoders, transformers, text vectorizers, feature hashing, dimensionality reduction, and feature selection.                             |
+| Classification         | Train and evaluate categorical/discrete target models with scoring and visualization outputs.                                                                    |
+| Regression             | Train and evaluate continuous target models with scoring and visualization outputs.                                                                              |
+| Clustering             | Train unsupervised clustering models and inspect assignments, counts, metrics, centroids, and scatter visualizations.                                            |
+| Forecasting            | Build time-series selections and run lag/ARIMA/SARIMA-style forecasting workflows.                                                                               |
+| SQLite administration  | Import spreadsheets, browse tables, perform CRUD, explore, filter, aggregate, visualize, alter schema, index columns, and run guarded SQL queries.               |
 
-- A modular, object-oriented framework for machine learning and deep learning framework designed to unify data preprocessing, feature engineering, model training, and evaluation under a single, consistent interface. 
-- Built entirely on top of open-source scientific libraries such as NumPy, Pandas, scikit-learn, Statsmodels, and PyTorch, to provide functionality across classifiers, regressors, clusterers, forecasters, and outlier detectors. 
-- Every component—from encoders, scalers, and imputers to neural networks and ensemble models—follows the same method pattern (`train`, `project`, `score`, and `analyze`), enabling seamless pipeline integration, cross-module interoperability, and rapid experimentation. 
-- Mathy offers clarity, consistency, and composability in machine learning workflows.
+## 🧭 Application Modes
 
----
-#### Google Colab
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
+The current `app.py` exposes the following Streamlit data modes.
 
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
+| Mode                       | Purpose                                                                          | Primary Outputs                                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Data Profile**           | Load, inspect, edit, and profile the working dataset.                            | Schema inference, data editor, type counts, missingness charts, cardinality charts, numeric distributions, exportable dataset.    |
+| **Descriptive Statistics** | Summarize numeric variables and inspect distribution/correlation structure.      | Summary table, histograms, KDE overlays, Q-Q plots, Shapiro metrics, correlation matrix, heatmap, PCA explained variance.         |
+| **Inferential Statistics** | Run hypothesis-oriented statistical checks and association tests.                | Normality results, ANOVA, Kruskal-Wallis, Pearson/Spearman correlations, chi-square, Cramér's V, contingency heatmap.             |
+| **Anomaly Detection**      | Identify outliers and anomalous observations through statistical and ML methods. | Flagged rows, consensus counts, ECDF plots, violin/box summaries, bivariate anomaly scatter, CSV export.                          |
+| **Classification Models**  | Build preprocessing pipelines and train categorical/discrete target models.      | Working dataset, processed dataset, trained classifier, predictions, scores, confusion matrix/ROC-style outputs where applicable. |
+| **Regression Models**      | Build preprocessing pipelines and train continuous target models.                | Working dataset, processed dataset, trained regressor, predictions, scores, residual/fit diagnostics where applicable.            |
+| **Clustering Models**      | Prepare numeric feature spaces and train unsupervised clustering models.         | Cluster labels, counts, metrics, centroids, detail tables, scatter plots.                                                         |
+| **Time-Series Models**     | Select time-series fields and run forecasting wrappers.                          | Time-series splits, lagged features, forecast outputs, model diagnostics.                                                         |
+| **Data Management**        | Manage the local SQLite database and imported tables.                            | Imported tables, browsed records, CRUD changes, profiles, filters, aggregates, visualizations, schema changes, SQL results.       |
 
-#### Inner Webs
-[![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)](https://mathy-py.streamlit.app/)
+## 🏛 Architecture
 
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
-
-## 📦 Layout
-
-```plaintext
-mathy/
-├── classifications.py     # Classification wrappers
-├── regressions.py         # Regression wrappers
-├── clusters.py            # Clustering algorithms
-├── forecasting.py         # Time-series forecasting
-├── outliers.py            # Outlier and novelty detection
-├── encoders.py            # Label and categorical encoders
-├── scalers.py             # Feature scaling wrappers
-├── imputers.py            # Missing-value imputers
-├── transformers.py        # Text and column transformers
-├── features.py            # Feature selection utilities
-├── boogr.py               # Error handling and diagnostics
-├── minion.py              # Utility helpers
-└── README.md              # This documentation
+```text
+Data Source
+    │
+    ├── Default Excel Data
+    ├── SQLite Database Tables
+    └── Uploaded XLSX / XLS / CSV
+            │
+            ▼
+      Shared Session State
+            │
+            ├── df_dataset      # active loaded dataset
+            ├── df_original     # original/base copy
+            ├── df_working      # user-selected modeling subset
+            ├── df_processed    # transformed/model-ready data
+            ├── df_features     # active feature matrix
+            └── df_targets      # active target matrix
+            │
+            ├── Data Profile / Statistics / Anomaly Detection
+            ├── Classification / Regression / Clustering / Forecasting
+            └── Data Management / SQLite Administration
 ```
 
----
+## 🗂 Layout
 
-## 🔡 Encoders 
+```text
+mathy/
+├── app.py                  # Main Streamlit application
+├── config.py               # App constants, paths, labels, modes, help text, and styling
+├── classifications.py      # Classification wrappers
+├── regressions.py          # Regression wrappers
+├── clusters.py             # Clustering wrappers
+├── forecasting.py          # Time-series forecasting wrappers
+├── outliers.py             # Outlier and novelty detection wrappers
+├── encoders.py             # Label, categorical, target, and polynomial encoders
+├── scalers.py              # Feature scaling wrappers
+├── imputers.py             # Missing-value imputation wrappers
+├── transformers.py         # Binarizers, text vectorizers, hashers, and column transformers
+├── features.py             # Feature selection and dimensionality-reduction utilities
+├── boogr.py                # Error handling and diagnostics
+├── minion.py               # Utility helpers
+├── stores/
+│   └── sqlite/             # SQLite database storage
+├── resources/              # Images, notebooks, and supporting assets
+└── README.md
+```
 
-| Class Name                                                                      | Description (concise)          |
-|---------------------------------------------------------------------------------| ------------------------------ |
-| [Encoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L54) | Abstract base for encoders.    |
-| [OneHotEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L139)                                                                 | One-hot (dummy) encoding.      |
-| [OrdinalEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L280)                                                                   | Ordinal category mapping.      |
-| [LabelEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L440)                                                                     | Single-column label encoding.  |
-| [TargetEncoder](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py#L583)                                                                    | Mean target encoding.          |
+## 📥 Data Sources
 
+The sidebar supports three source modes.
 
----
+| Source            | Description                                                                   | File / Storage Path                       |
+| ----------------- | ----------------------------------------------------------------------------- | ----------------------------------------- |
+| **Default Data**  | Loads the configured default Excel workbook from `cfg.DEFAULT_DATA`.          | Excel workbook configured in `config.py`. |
+| **Database Data** | Lists local SQLite tables and loads a selected table into the active dataset. | `cfg.DB_PATH`.                            |
+| **Custom Data**   | Uploads a spreadsheet from the browser.                                       | `.xlsx`, `.xls`, `.csv`.                  |
 
-## ⚖️ Scalers  
-- Classes that put features on a common scale by preventing features with larger values from disproportionately influencing the model.
+Once loaded, Mathy stores the dataset into shared session state as `df_dataset`, `df_original`, and
+`raw_df`, allowing later modes to reuse the same working data without reloading it.
 
-| Class Name     | Description (concise)       |
-|----------------| --------------------------- |
-| [Scaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L54)       | Abstract base for scalers.  |
-| [StandardScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L139)  | Z-score scaling.            |
-| [RobustScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L444)    | IQR-based robust scaling.   |
-| [NormalScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L568)    | L2 normalization.           |
-| [MinMaxScaler](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py#L291)    | Min–Max feature scaling.    |
+## 🧾 Data Profile
 
+| Section               | Description                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| Data                  | Displays the active dataset in an editable table.                                               |
+| Types                 | Infers columns as numeric, ordinal/identifier, categorical, or datetime.                        |
+| Records               | Allows row-level editing with type-aware widgets.                                               |
+| Diagnostics           | Shows column type distribution and top columns by missing percentage.                           |
+| Cardinality           | Shows top columns by unique-value count.                                                        |
+| Labels                | Supports column drops, column renames, reset to original, and CSV export.                       |
+| Numeric Distributions | Shows histograms, optional KDE overlays, distribution metrics, and mean/median reference lines. |
 
----
+## 📊 Statistics
 
-## 🩹 Imputers 
-- Functionality to replace missing data with substituted values to ensure dataset completenes
+### Descriptive Statistics
 
-| Class Name           | Description (concise)                         |
-| -------------------- | --------------------------------------------- |
-| [Imputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L55)           | Abstract base for imputers.                   |
-| [SimpleImputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L533)     | Mean/median/most-frequent/simple strategies.  |
-| [NearestImputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L277)    | k-NN based imputation.                        |
-| [IterativeImputer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py#L407)  | Iterative chained models imputation.          |
+| Component                    | Description                                                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Summary table                | Computes count, mean, standard deviation, variance, min, max, optional percentiles, missing values, zero counts, skewness, and kurtosis. |
+| Distribution view            | Renders histogram/KDE and Q-Q plot diagnostics for selected numeric variables.                                                           |
+| Correlation structure        | Computes Pearson or Spearman correlation tables and heatmaps.                                                                            |
+| Principal Component Analysis | Standardizes selected variables and displays explained variance by component.                                                            |
 
+### Inferential Statistics
 
----
+| Component               | Description                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Summary                 | Computes a compact table of normality, group comparison, association, and categorical association statistics. |
+| Normality test          | Runs Shapiro-Wilk and renders Q-Q plots for selected numeric variables.                                       |
+| Group comparison        | Runs one-way ANOVA and Kruskal-Wallis over a selected grouping variable.                                      |
+| Correlation analysis    | Runs Pearson and Spearman correlation between paired numeric variables.                                       |
+| Categorical association | Runs chi-square tests and Cramér's V over two categorical variables.                                          |
 
-## 🧩 Transformers 
--  Algorithms that processes the input sequence, converting it into a rich, contextualized representation.
--  NLP classes for the conversion text features
+## 🚨 Anomaly Detection
 
-| Class Name                                                                                    | Description (concise)                                 |
-|-----------------------------------------------------------------------------------------------|-------------------------------------------------------|
-| [Transformer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L56)       | Abstract base for transformers.                       |
-| [CountVectorizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L1185) | Bag-of-words counts with stopword support.            |
-| [TfidfTransformer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L637) | TF-IDF weighting transformer.                         |
-| [HashVectorizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L1355)  | Hashing trick vectorization.                          |
-| [TfidfVectorizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L953)  | TF-IDF vectorizer (combined tokenizer + weighting)    |
- | [LabelBinarizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L281)    | Learning one regressor or binary classifier per class |
- | [Binarizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L141)         | Set feature values to 0 or 1)                         |
- | [MultiLabelBinarizer](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py#L468)| Transform between iterables and a multilabel format   |
+Mathy supports both univariate and multivariate anomaly detection.
 
----
+| Method               | Purpose                                                                 |
+| -------------------- | ----------------------------------------------------------------------- |
+| Z-Score              | Flags observations outside a selected standard-deviation threshold.     |
+| Modified Z-Score     | Uses median absolute deviation for robust univariate outlier detection. |
+| IQR Fence            | Uses interquartile-range lower/upper fences.                            |
+| Mahalanobis Distance | Detects multivariate distance outliers when covariance is invertible.   |
+| Isolation Forest     | Uses tree-based isolation for multivariate anomaly detection.           |
+| Local Outlier Factor | Uses local density deviation to flag outliers.                          |
 
-## 🧪 Classifications 
-- Supervised learning algorythms that assign data points to predefined categories to learn patterns.
-- Training to predict category of new, unseen data
+Outputs include a flagged-observation table, consensus-strength distribution, empirical cumulative
+distribution function plots, violin/box summaries, bivariate scatter views, and CSV export.
 
-| Class              | Description                                            |
-|--------------------|--------------------------------------------------------|
-| Perceptron         | Single-layer perceptron for linear classification.     |
-| LogisticRegression | Logistic regression classifier.                        |
-| Ridge              | Ridge-regularized linear classifier.                   |
-| SupportVector      | Support Vector Machine for classification.             |
-| NearestNeighbor    | K-Nearest Neighbors classifier.                        |
-| DecisionTree       | Non-parametric decision tree classifier.               |
-| RandomForest       | Ensemble of randomized decision trees.                 |
-| AdaptiveBoost      | Adaptive boosting classifier.                          |
-| GradientBoost      | Gradient boosting ensemble classifier.                 |
-| BaggingModel       | Bootstrap aggregation ensemble.                        |
-| VotingModel        | Hard or soft voting ensemble of base classifiers.      |
-| StackingModel      | Stacked meta-classifier combining multiple learners.   |
-| LeastSquares       | OLS regression for classification.                     |
-| GradientDescent    | Linear model optimized via stochastic gradient descent. |
-| Lasso              | A linear model that estimates sparse coefficients    | 
+## 🧰 Feature Engineering
 
----
+The Classification, Regression, and Clustering workflows expose a shared feature-engineering surface.
+Transformations are applied to `df_processed` after the first processing step; the original user
+selection remains preserved as `df_working`.
 
-## 📈 Regressions 
-- Regression in machine learning refers to a set of supervised learning techniques used to predict a continuous output variable based on one or more input variables. 
-- Unlike classification, which predicts discrete categories, regression models predict numerical values.
+| Group                                | Tools                                                                                                                                                                        |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data Scaling                         | Standard Scaler, Min-Max Scaler, Robust Scaler, Normal Scaler, Max-Absolute Scaler.                                                                                          |
+| Data Imputation                      | Mean Imputer, Nearest Neighbor Imputer, Iterative Imputer, Simple Imputer.                                                                                                   |
+| Data Encoding                        | One-Hot Encoder, Ordinal Encoder, Label Encoder, Target Encoder, Polynomial Features.                                                                                        |
+| Data Transformation                  | Binarizer, Label Binarizer, Multi-Label Binarizer, TF-IDF Transformer, Column Transformer.                                                                                   |
+| Feature Extraction                   | TF-IDF Vectorizer, Count Vectorizer, Hash Vectorizer, Dictionary Vectorizer, Feature Hasher.                                                                                 |
+| Dimensionality Reduction / Selection | Variance Threshold, Canonical Correlation Analysis, Principal Component Analysis, Select-Best, Select-Percent, Sequential Backward Selection, Recursive Feature Elimination. |
 
-| Class Name               | Description (concise)                                                 |
-| ------------------------ | --------------------------------------------------------------------- |
-| Regressor            | Abstract base for all regressors.                                     |
-| MultilayerPerceptron | MLP regressor.                                                        |
-| LeastSquares         | Ordinary least squares (OLS).                                         |
-| Ridge                | L2-regularized linear regression. (See `plot_ridge_path` code path.)  |
-| Lasso                | L1-regularized linear regression.                                     |
-| ElasticNet           | Combined L1/L2 penalty.                                               |
-| BayesianRidge        | Bayesian linear regression.                                           |
-| GaussianProcess      | Gaussian process regressor (GPR). (Imported/used in module.)          |
-| GradientDescent      | SGD regressor.                                                        |
-| NearestNeighbor      | k-NN regressor.                                                       |
-| DecisionTree         | CART regression tree.                                                 |
-| RandomForest         | Random forest regressor.                                              |
-| GradientBoost        | Gradient boosting regressor.                                          |
-| AdaBoost             | Adaptive boosting regressor.                                          |
-| BaggingModel         | Bagging meta-regressor.                                               |
-| VotingModel          | Voting regressor.                                                     |
-| StackModel           | Stacked meta-regressor.                                               |
+## 🧪 Classification Models
 
+Classification mode trains supervised models for categorical or discrete targets. The workflow is:
+select features and target, create a working dataset, apply feature engineering, split train/test
+sets, train a model, and inspect scores/predictions.
 
----
+| Model Family                | Models / Wrappers                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------- |
+| Linear models               | Perceptron, Ordinary Least Squares, Logistic Regression.                                       |
+| Regularized / margin models | Support Vector Classification and related regularized classification controls.                 |
+| Tree models                 | Decision Tree.                                                                                 |
+| Ensemble models             | Random Forest, Bagging, Adaptive Boosting, Gradient Boosting, optional XGBoost when installed. |
+| Instance-based models       | Nearest Neighbor / K-Nearest Neighbors.                                                        |
+| Probabilistic baselines     | Gaussian Naive Bayes where supported.                                                          |
 
-## 🧭 Clusters 
-- Unsupervised learning technique used to group similar data points into clusters without requiring any prior knowledge or labels about the data. 
-- The core idea is that data points within the same cluster exhibit more similarity to each other than to those in different clusters
+Common classification outputs include elapsed training time, predictions, score tables, confusion
+matrix, accuracy, precision, recall, F1 score, and ROC/AUC paths where applicable.
 
-| Class Name        | Description (concise)                                                   |
-| ----------------- | ----------------------------------------------------------------------- |
-| Cluster       | Abstract base for all clustering models.                                |
-| KMeans        | Lloyd-style centroid clustering; includes elbow/visualization helpers.  |
-| DBSCAN        | Density-based clustering.                                               |
-| Agglomerative | Hierarchical/agglomerative clustering.                                  |
-| OPTICS        | Ordering-based density clustering.                                      |
-| MeanShift     | Mode-seeking (kernel) clustering.                                       |
-| Spectral      | Spectral graph clustering (normalized cuts).                            |
-| Birch         | CF-tree incremental clustering.                                         |
+## 📈 Regression Models
 
+Regression mode trains supervised models for continuous targets. It mirrors the classification
+workflow but targets numeric dependent variables.
 
+| Model Family                  | Models / Wrappers                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| Linear models                 | Ordinary Least Squares, Ridge Regression, Lasso Regression, Elastic Net, Bayesian Ridge.            |
+| Stochastic / iterative models | Gradient Descent / SGD-style regression controls.                                                   |
+| Instance-based models         | Nearest Neighbor regression.                                                                        |
+| Kernel models                 | Gaussian Process and support-vector style regression where wrappers are available.                  |
+| Tree models                   | Decision Tree regression.                                                                           |
+| Ensemble models               | Random Forest, Gradient Boosting, AdaBoost, Bagging, Voting, Stacking where wrappers are available. |
 
----
+Outputs include predictions, score tables, elapsed time, train/test split settings, and model-specific
+fit diagnostics.
 
-## 🔍 Outliers 
-- Data points that are significantly different from other observations.  
-- Can arise from errors, fraud, or natural deviations. 
-- Can be detected using methods like the z-score or the interquartile range (IQR), and then either remove them, use a robust model like a tree-based method, or transform the data to reduce their influence
+## 🧭 Clustering Models
 
-| Class Name          | Description (concise)                                     |
-| ------------------- | --------------------------------------------------------- |
-| Outlier         | Abstract base for outlier/novelty models.                 |
-| IsolationForest | Isolation Forest with contamination & decision function.  |
-| OutlierFactor   | LocalOutlierFactor (supports novelty mode).               |
-| OneClass        | One-Class SVM novelty detector.                           |
-| EllipticSquare  | EllipticEnvelope (Gaussian/Mahalanobis).                  |
+Clustering mode prepares unsupervised numeric feature spaces and trains clustering models.
 
+| Model                | Description                                                                 |
+| -------------------- | --------------------------------------------------------------------------- |
+| K-Means              | Centroid-based clustering with cluster labels, counts, and centroid tables. |
+| DBSCAN               | Density-based clustering with noise/outlier handling.                       |
+| Agglomerative        | Hierarchical clustering.                                                    |
+| Spectral             | Graph/spectral clustering.                                                  |
+| OPTICS               | Density ordering and reachability-style clustering.                         |
+| Mean Shift           | Mode-seeking clustering.                                                    |
+| Affinity Propagation | Message-passing exemplar clustering.                                        |
+| Birch                | Incremental clustering using clustering-feature trees.                      |
 
----
+The app tracks cluster results, counts, metrics, centroids, detail records, selected plot features, and
+cluster signatures in session state.
 
-## ⏱️ Forecasting  
-- Algorithms to analyze data points indexed in a time sequence.
-- Trains model to find patterns and make predictions about future values
+## ⏱ Time-Series Models
 
-| Class Name          | Description (concise)                                |
-| ------------------- | ---------------------------------------------------- |
-| TimeSeries      | Base class for TS wrappers.                          |
-| LaggingSeries   | OLS with lag features and recursive projection.      |
-| ARIMA           | Statsmodels ARIMA(p,d,q) with fit/forecast/metrics.  |
-| SARIMA          | Seasonal ARIMA via SARIMAX.                          |
-| ExpandingWindow | Expanding-window CV splitter + visualization.        |
+Time-Series mode supports time-indexed forecasting and split diagnostics.
 
----
+| Component             | Description                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| Time-Series Selection | Select a series/date/index field and target series for modeling.                                |
+| Model Selection       | Run lag-based and ARIMA/SARIMA-style models where configured.                                   |
+| Split Diagnostics     | Display time-series splits through expandable controls.                                         |
+| Forecasting Wrappers  | LaggingSeries, LagBoostingSeries, ARIMA, SARIMA, and TimeSeriesSpliter are imported by the app. |
 
-## 🧮 Feature Selection
-- Finding a subset of relevant input features from a dataset.
-- Machine learning models to reduce complexity, decrease training time, prevent overfitting, and improve accuracy and interpretability.
+## 🗄 Data Management
 
-| Class Name        | Description (concise)                                              |
-| ----------------- | ------------------------------------------------------------------ |
-| Selector      | Base for feature selectors.                                        |
-| SelectBest    | `SelectKBest` with configurable `score_func` and `k`.              |
-| SelectPercent | `SelectPercentile` with configurable `score_func` and percentile.  |
+Data Management provides a SQLite administration workspace for local data operations.
 
----
+| Tab           | Purpose                                                                                                                      |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Import**    | Import Excel workbooks into SQLite with transaction handling and optional overwrite.                                         |
+| **Browse**    | Select and browse local SQLite tables.                                                                                       |
+| **CRUD**      | Insert, update, and delete rows using schema-aware controls.                                                                 |
+| **Explore**   | Page through records with configurable page size.                                                                            |
+| **Filter**    | Apply column-value substring filters.                                                                                        |
+| **Aggregate** | Compute count, sum, average, minimum, maximum, or median over numeric columns.                                               |
+| **Visualize** | Render histogram, bar, line, scatter, box, pie, and correlation charts.                                                      |
+| **Admin**     | Profile data, drop tables, create indexes, create custom tables, inspect schema, add/rename/drop columns, and rename tables. |
+| **SQL**       | Run guarded read-only SQL queries and inspect result timing.                                                                 |
+
+The SQL console blocks mutation statements and accepts read-only query patterns such as `SELECT`,
+`WITH`, `EXPLAIN`, and read-only `PRAGMA` usage.
+
+## 🧩 Framework Modules
+
+| Module               | Purpose                                                         |
+| -------------------- | --------------------------------------------------------------- |
+| `classifications.py` | Classification model wrappers.                                  |
+| `regressions.py`     | Regression model wrappers.                                      |
+| `clusters.py`        | Clustering wrappers.                                            |
+| `forecasting.py`     | Time-series forecasting wrappers.                               |
+| `outliers.py`        | Outlier and novelty detection wrappers.                         |
+| `encoders.py`        | Label, categorical, target, and polynomial encoders.            |
+| `scalers.py`         | Scaling wrappers.                                               |
+| `imputers.py`        | Missing-value imputation wrappers.                              |
+| `transformers.py`    | Binarizers, vectorizers, hashers, and column transformers.      |
+| `features.py`        | Feature selection and dimensionality-reduction utilities.       |
+| `boogr.py`           | Error handling and diagnostics.                                 |
+| `minion.py`          | Utility helpers.                                                |
+| `config.py`          | App constants, mode labels, help text, paths, and style assets. |
 
 ## ⚙️ Quickstart Example
 
 ```python
 import pandas as pd
+
 from encoders import LabelEncoder
 from scalers import StandardScaler
-from classifications import LogisticModel
+from classifications import LogisticRegression
+
 
 df = pd.read_csv("data.csv")
 y = df.pop("Label").values
@@ -235,29 +331,83 @@ model = LogisticRegression().train(X_scaled, y_enc)
 print("Accuracy:", model.score(X_scaled, y_enc))
 ```
 
+## 📦 Requirements
 
----
+The table below reflects the active imports and runtime features used by the current `app.py`. Use
+`requirements.txt` as the installation source of truth when version pins are present.
 
-## 🧠 Dependencies
+| Requirement           | Package / Import                           | Purpose                                                                                                                  | Used By                                                         |
+| --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Python                | `python>=3.10`                             | Runtime for modern type hints and Streamlit execution.                                                                   | Entire application.                                             |
+| Streamlit             | `streamlit`                                | Web UI framework, sidebar controls, data editors, charts, expanders, tabs, metrics, and uploaders.                       | All modes.                                                      |
+| Pandas                | `pandas`                                   | Dataframes, spreadsheet loading, SQL query results, profiling, modeling datasets, exports.                               | All data workflows.                                             |
+| NumPy                 | `numpy`                                    | Numeric arrays, vector operations, statistics, matrix operations, model inputs.                                          | Statistics, anomaly detection, modeling.                        |
+| SciPy                 | `scipy.stats`                              | Normality tests, probability plots, ANOVA, Kruskal-Wallis, chi-square, correlation, distribution utilities.              | Descriptive and inferential statistics, anomaly detection.      |
+| Matplotlib            | `matplotlib.pyplot`                        | Static charts, histograms, Q-Q plots, scatter plots, box/violin overlays, PCA and anomaly visuals.                       | Data Profile, statistics, anomaly detection, model diagnostics. |
+| Seaborn               | `seaborn`                                  | Statistical plots such as histograms/KDE, heatmaps, boxplots, stripplots, violin plots.                                  | Statistics and anomaly detection.                               |
+| Plotly Express        | `plotly.express`                           | Interactive charts over tabular data.                                                                                    | Data Management visualization.                                  |
+| Plotly Graph Objects  | `plotly.graph_objects`                     | Safe lower-level Plotly charts that avoid problematic dataframe serialization paths.                                     | Data Management visualization.                                  |
+| scikit-learn          | `sklearn`                                  | Train/test split, preprocessing, feature selection, classifiers, clustering, neighbors, SVM, metrics, anomaly models.    | Feature engineering and model modes.                            |
+| Statsmodels           | `statsmodels`                              | Statistical modeling and time-series components, including power and ARIMA/SARIMA-style wrappers.                        | Inferential/statistical and forecasting workflows.              |
+| XGBoost               | `xgboost`                                  | Optional gradient-boosted classification when installed.                                                                 | Classification Models.                                          |
+| SQLite                | `sqlite3`                                  | Local database storage, SQL console, imported tables, prompt/chat/embedding tables.                                      | Data Management and local persistence.                          |
+| OpenPyXL              | `openpyxl`                                 | Excel `.xlsx` read support through pandas.                                                                               | Sidebar data loading and Data Management import.                |
+| pathlib               | `pathlib`                                  | Filesystem path creation and management.                                                                                 | SQLite store setup.                                             |
+| regular expressions   | `re`                                       | Identifier sanitization, SQL safety checks, and text/column validation.                                                  | Data Management and utilities.                                  |
+| typing                | `List`, `Dict`, `Optional`, `Tuple`, `Any` | Type annotations and interface clarity.                                                                                  | Application utilities and wrappers.                             |
+| Local scalers         | `scalers.py`                               | Standard, Min-Max, Robust, Normal, and MaxAbs scaling wrappers.                                                          | Feature Engineering.                                            |
+| Local imputers        | `imputers.py`                              | Mean, nearest-neighbor, iterative, and simple imputation wrappers.                                                       | Feature Engineering.                                            |
+| Local encoders        | `encoders.py`                              | One-hot, ordinal, label, target, and polynomial encoders.                                                                | Feature Engineering.                                            |
+| Local transformers    | `transformers.py`                          | Binarizers, text vectorizers, TF-IDF, count/hash/dictionary vectorizers, feature hasher, column transformer.             | Feature Engineering.                                            |
+| Local clusters        | `clusters.py`                              | KMeans, DBSCAN, Agglomerative, Spectral, OPTICS, MeanShift, AffinityPropagation, Birch wrappers.                         | Clustering Models.                                              |
+| Local features        | `features.py`                              | VarianceThreshold, CCA, PCA, SelectBest, SelectPercent, SBS, RFE.                                                        | Feature Engineering and dimensionality reduction.               |
+| Local classifications | `classifications.py`                       | Perceptron, logistic, decision tree, support vector, random forest, nearest neighbor, bagging, AdaBoost, gradient boost. | Classification Models.                                          |
+| Local regressions     | `regressions.py`                           | Regression model wrappers.                                                                                               | Regression Models.                                              |
+| Local forecasting     | `forecasting.py`                           | LaggingSeries, LagBoostingSeries, ARIMA, SARIMA, TimeSeriesSpliter.                                                      | Time-Series Models.                                             |
 
-| Package / Module                   | Used For                                                                                                                  |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **numpy** (`np`)                   | Arrays, math, window ops.                                                                                                 |
-| **pandas** (`pd`)                  | DataFrames for reports/metrics.                                                                                           |
-| **matplotlib.pyplot** (`plt`)      | Visualizations (clusters, CV splits, anomaly bars).                                                                       |
-| **seaborn** (`sns`)                | Bar plots in outlier analysis.                                                                                            |
-| **scikit-learn** (`sklearn.*`)     | Core ML estimators: classifiers, regressors, clustering, encoders, scalers, imputers, metrics, model selection utilities. |
-| **statsmodels** (`statsmodels.*`)  | Time-series (ARIMA/SARIMAX), OLS for `LaggingSeries`.                                                                     |
-| **typing** (`Optional`, etc.)      | Type hints across all modules.                                                                                            |
-| **itertools** (`combinations`)     | Feature set enumeration in selectors.                                                                                     |
-| **boogr** (`Error`, `ErrorDialog`) | Standardized exception handling/log dialogs. (Local module)                                                               |
+## 🔧 Configuration
 
+| Configuration Item  | Purpose                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `cfg.FAVICON`       | Streamlit page icon.                                                                              |
+| `cfg.LOGO`          | Application logo used by `st.logo`.                                                               |
+| `cfg.REPO_URL`      | Repository link for the Streamlit logo.                                                           |
+| `cfg.DEFAULT_DATA`  | Default Excel dataset loaded from the sidebar.                                                    |
+| `cfg.DB_PATH`       | SQLite database path used by Data Management and persistence helpers.                             |
+| `cfg.MODE`          | Mode-label mapping rendered by the sidebar radio selector and page headers.                       |
+| `cfg.BLUE_DIVIDER`  | Shared divider styling.                                                                           |
+| Help-text constants | Mode, scaler, imputer, encoder, transformer, statistics, anomaly, and model-control descriptions. |
+| Plot constants      | Color palettes and markers used for styled charts.                                                |
 
----
+## 🔒 Workflow Notes
+
+| Topic                    | Note                                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Working data             | User-selected modeling data is stored in `df_working`.                                                          |
+| Processed data           | Feature-engineering operations write to `df_processed`; subsequent operations continue from `df_processed`.     |
+| Original data            | `df_original` and `raw_df` preserve the loaded source dataset.                                                  |
+| Mode reset               | Classification and Regression mode state is reset when switching into those modes to prevent stale model state. |
+| SQL safety               | The SQL console blocks mutating SQL statements and multiple-statement execution.                                |
+| Optional XGBoost         | XGBoost is used only when import succeeds.                                                                      |
+| Streamlit display safety | The app includes dataframe display fallbacks for serialization-sensitive values.                                |
 
 ## 📄 License
 
 MIT License © 2022–2025 **Terry D. Eppler**
+
 Contact: [terryeppler@gmail.com](mailto:terryeppler@gmail.com)
 
----
+## 🙌 Acknowledgements
+
+* Streamlit
+* NumPy
+* pandas
+* SciPy
+* scikit-learn
+* statsmodels
+* XGBoost
+* Matplotlib
+* Seaborn
+* Plotly
+* The open-source Python data science and machine-learning ecosystem
+
