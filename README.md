@@ -5,19 +5,19 @@
 </p>
 <p align="center">
   <a href="#-overview">Overview</a> ·
-  <a href="#-application-modes">Application Modes</a> ·
+  <a href="#-application-modes">Modes</a> ·
   <a href="#-architecture">Architecture</a> ·
-  <a href="#-data-sources">Data Sources</a> ·
-  <a href="#-data-profile">Data Profile</a> ·
+  <a href="#-data-sources">Sources</a> ·
+  <a href="#-data-profile">Profile</a> ·
   <a href="#-statistics">Statistics</a> ·
-  <a href="#-anomaly-detection">Anomaly Detection</a> ·
-  <a href="#-feature-engineering">Feature Engineering</a> ·
+  <a href="#-anomaly-detection">Anomalies</a> ·
+  <a href="#-feature-engineering">Features</a> ·
   <a href="#-classification-models">Classification</a> ·
   <a href="#-regression-models">Regression</a> ·
   <a href="#-clustering-models">Clustering</a> ·
-  <a href="#-time-series-models">Time Series</a> ·
-  <a href="#-data-management">Data Management</a> ·
-  <a href="#-framework-modules">Framework Modules</a> ·
+  <a href="#-time-series-models">Time-Series</a> ·
+  <a href="#-data-management">Data</a> ·
+  <a href="#-framework-modules">Modules</a> ·
   <a href="#-requirements">Requirements</a> ·
   <a href="#-quickstart-example">Quickstart</a> ·
   <a href="#-license">License</a>
