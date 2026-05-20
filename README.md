@@ -38,13 +38,13 @@ SQLite data through a guarded SQL/data-administration interface.
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-demo.gif)
 
-## Google Colab
+## ☁️ Google (Cloud)
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
 
-## Web UI
+🕸️ Streamlit (Web UI)
 
 [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit\&logoColor=white)](https://mathy-py.streamlit.app/)
 
