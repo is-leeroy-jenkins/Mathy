@@ -1,0 +1,269 @@
+/* Mathy documentation theme refinements */
+:root
+{
+	--mathy-bg: #141414;
+	--mathy-surface: #1F1F1F;
+	--mathy-surface-2: #2A2A2A;
+	--mathy-border: #565557;
+	--mathy-blue: #0078FC;
+	--mathy-blue-dark: #023770;
+	--mathy-text: #FFFFFF;
+	--mathy-muted: #C7C7C7;
+	--mathy-code-bg: #101820;
+}
+
+/* Page width */
+.md-grid
+{
+	max-width: 92rem;
+}
+
+/* Main content cards */
+.md-typeset
+{
+	color: var(--mathy-text);
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3
+{
+	font-weight: 700;
+}
+
+.md-typeset h2
+{
+	border-bottom: 1px solid var(--mathy-border);
+	padding-bottom: 0.35rem;
+}
+
+/* Links */
+.md-typeset a
+{
+	color: #4DA3FF;
+}
+
+.md-typeset a:hover
+{
+	color: #7DBCFF;
+}
+
+/* Tables */
+.md-typeset table:not([class])
+{
+	background-color: var(--mathy-surface);
+	border: 1px solid var(--mathy-border);
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+
+.md-typeset table:not([class]) th
+{
+	background-color: var(--mathy-blue-dark);
+	color: var(--mathy-text);
+	font-weight: 700;
+}
+
+.md-typeset table:not([class]) td
+{
+	border-top: 1px solid var(--mathy-border);
+}
+
+/* Code blocks */
+.md-typeset pre > code
+{
+	background-color: var(--mathy-code-bg);
+}
+
+.md-typeset code
+{
+	border-radius: 0.25rem;
+}
+
+/* Admonitions */
+.md-typeset .admonition,
+.md-typeset details
+{
+	border-color: var(--mathy-blue);
+	background-color: var(--mathy-surface);
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary
+{
+	background-color: rgba(0, 120, 252, 0.16);
+}
+
+/* API reference blocks */
+.doc-object
+{
+	border-left: 3px solid var(--mathy-blue);
+	padding-left: 0.85rem;
+}
+
+.doc-heading
+{
+	background-color: rgba(0, 120, 252, 0.08);
+	border: 1px solid rgba(0, 120, 252, 0.25);
+	border-radius: 0.45rem;
+	padding: 0.45rem 0.65rem;
+}
+
+/* Images */
+.md-typeset img
+{
+	border-radius: 0.75rem;
+	border: 1px solid var(--mathy-border);
+	box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.35);
+}
+
+/* Footer */
+.md-footer
+{
+	border-top: 1px solid var(--mathy-border);
+}
+
+/* Navigation refinement */
+.md-nav__title
+{
+	font-weight: 700;
+}
+
+.md-nav__link--active
+{
+	color: #4DA3FF;
+}
+
+/* Mathy JavaScript feature styling */
+.mathy-back-to-top
+{
+	position: fixed;
+	right: 1.25rem;
+	bottom: 1.25rem;
+	z-index: 20;
+	display: none;
+	padding: 0.55rem 0.85rem;
+	border: 1px solid rgba(77, 163, 255, 0.65);
+	border-radius: 999px;
+	background: rgba(2, 55, 112, 0.96);
+	color: #FFFFFF;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.35);
+}
+
+.mathy-back-to-top--visible
+{
+	display: inline-flex;
+}
+
+.mathy-back-to-top:hover
+{
+	background: rgba(0, 120, 252, 0.98);
+}
+
+.mathy-code-block
+{
+	position: relative;
+}
+
+.mathy-code-badge
+{
+	position: absolute;
+	top: 0.45rem;
+	right: 0.55rem;
+	padding: 0.12rem 0.45rem;
+	border: 1px solid rgba(77, 163, 255, 0.45);
+	border-radius: 999px;
+	background: rgba(2, 55, 112, 0.75);
+	color: #FFFFFF;
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+}
+
+.mathy-api-tools
+{
+	margin: 1rem 0 1.25rem;
+	padding: 0.85rem;
+	border: 1px solid rgba(77, 163, 255, 0.35);
+	border-radius: 0.75rem;
+	background: rgba(0, 120, 252, 0.08);
+}
+
+.mathy-api-tools__title
+{
+	margin-bottom: 0.55rem;
+	color: #FFFFFF;
+	font-weight: 800;
+}
+
+.mathy-api-filter
+{
+	width: 100%;
+	padding: 0.55rem 0.7rem;
+	border: 1px solid rgba(77, 163, 255, 0.45);
+	border-radius: 0.45rem;
+	background: #101820;
+	color: #FFFFFF;
+	font: inherit;
+}
+
+.mathy-api-filter:focus
+{
+	outline: 2px solid rgba(0, 120, 252, 0.8);
+	outline-offset: 2px;
+}
+
+.mathy-api-filter-status
+{
+	min-height: 1.25rem;
+	margin-top: 0.45rem;
+	color: #C7C7C7;
+	font-size: 0.75rem;
+}
+
+.mathy-api-toggle-row
+{
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-top: 0.65rem;
+}
+
+.mathy-api-button,
+.mathy-copy-import
+{
+	border: 1px solid rgba(77, 163, 255, 0.5);
+	border-radius: 999px;
+	background: rgba(2, 55, 112, 0.75);
+	color: #FFFFFF;
+	font: inherit;
+	font-size: 0.72rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.mathy-api-button
+{
+	padding: 0.35rem 0.65rem;
+}
+
+.mathy-copy-import
+{
+	margin-left: 0.5rem;
+	padding: 0.2rem 0.5rem;
+	vertical-align: middle;
+}
+
+.mathy-api-button:hover,
+.mathy-copy-import:hover
+{
+	background: rgba(0, 120, 252, 0.95);
+}
+
+.mathy-api-object-hidden
+{
+	display: none !important;
+}

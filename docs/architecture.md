@@ -1,5 +1,6 @@
 # Architecture
-
+![](./img/mathy-architecture.png)
+___
 Mathy is organized as a modular statistical modeling and machine learning utility library. The
 architecture separates data preparation, transformation, feature engineering, unsupervised learning,
 supervised learning, outlier detection, and forecasting into focused Python modules that can be used

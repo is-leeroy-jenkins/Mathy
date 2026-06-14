@@ -85,3 +85,9 @@ nav:
       - Classifications: api/classifications.md
       - Forecasting: api/forecasting.md
   - Development: development.md
+
+extra_css:
+  - assets/css/mathy.css
+
+extra_javascript:
+  - assets/js/mathy.js

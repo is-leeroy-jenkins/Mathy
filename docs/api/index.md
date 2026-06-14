@@ -1,7 +1,7 @@
 # API Reference
+![](../img/mathy-architecture.png)
+___
 
-The API reference will be generated from the Mathy Python source modules after the documentation
-shell builds successfully.
 
 The source modules include:
 
