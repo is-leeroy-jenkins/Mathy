@@ -1,10 +1,10 @@
 site_name: Mathy Documentation
 site_description: Documentation for the Mathy statistical modeling and machine learning utility library.
 site_author: Terry D. Eppler
-site_url: ""
+site_url: https://is-leeroy-jenkins.github.io/Mathy/
 
-repo_url: ""
-repo_name: ""
+repo_url: https://github.com/is-leeroy-jenkins/Mathy
+repo_name: is-leeroy-jenkins/Mathy
 
 theme:
   name: material
