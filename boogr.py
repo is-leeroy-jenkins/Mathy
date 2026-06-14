@@ -1,16 +1,16 @@
 '''
   ******************************************************************************************
-      Assembly:                mathy
+      Assembly:                Mathy
       Filename:                boogr.py
       Author:                  Terry D. Eppler
       Created:                 05-31-2022
 
       Last Modified By:        Terry D. Eppler
-      Last Modified On:        05-01-2025
+      Last Modified On:        05-01-2026
   ******************************************************************************************
   <copyright file="boogr.py" company="Terry D. Eppler">
 
-	     mathy Booger
+	 boogr.py
 
      Permission is hereby granted, free of charge, to any person obtaining a copy
      of this software and associated documentation files (the “Software”),
@@ -36,131 +36,69 @@
 
   </copyright>
   <summary>
-    boogr.py
+    Provides exception wrapping and SQLite-backed exception logging for Mathy.
+
+    Purpose:
+        Defines the lightweight Error wrapper used throughout Mathy exception handlers and the
+        Logger utility used to persist wrapped exception details to the configured SQLite logging
+        database. The module centralizes error metadata capture so fetchers, loaders, processors,
+        scrapers, and tool adapters can report failures consistently without duplicating database
+        setup or traceback extraction logic.
   </summary>
   ******************************************************************************************
   '''
 from __future__ import annotations
+
+import os
+import sqlite3
 import traceback
+from datetime import datetime
+from pathlib import Path
 from sys import exc_info
-from pydantic import BaseModel
-from typing import List, Optional, Tuple, Dict, Any
-try:
-	import FreeSimpleGUI as sg
-	GUI_AVAILABLE = True
-except Exception:
-	sg = None
-	GUI_AVAILABLE = False
+from typing import Any, List
 
+import config as cfg
 
-class Dark( ):
-	'''
-
-        Constructor:
-		-----------
-        Dark( )
-
-        Pupose:
-		-------
-		Class representing the theme
-
-    '''
-	theme_background: Optional[ str ]
-	theme_textcolor: Optional[ str ]
-	element_forecolor: Optional[ str ]
-	text_backcolor: Optional[ str ]
-	text_forecolor: Optional[ str ]
-	input_forecolor: Optional[ str ]
-	input_backcolor: Optional[ str ]
-	button_backcolor: Optional[ str ]
-	button_forecolor: Optional[ str ]
-	button_color: Optional[ Tuple[ str, str ] ]
-	icon_path: Optional[ str ]
-	theme_font: Optional[ Tuple[ str, int ] ]
-	scrollbar_color: Optional[ str ]
-	form_size: Optional[ Tuple[ int, int ] ]
-	keep_on_top: Optional[ bool ]
-	top_level: Optional[ bool ]
-	resizeable: Optional[ bool ]
-	context_menu: Optional[ List[ List[ str ] ] ]
-
-	def __init__( self ):
-		if not GUI_AVAILABLE:
-			return
-		sg.theme( 'DarkGrey15' )
-		sg.theme_input_text_color( '#FFFFFF' )
-		sg.theme_element_text_color( '#69B1EF' )
-		sg.theme_text_color( '#69B1EF' )
-		self.theme_background = sg.theme_background_color( )
-		self.theme_textcolor = sg.theme_text_color( )
-		self.element_forecolor = sg.theme_element_text_color( )
-		self.element_backcolor = sg.theme_background_color( )
-		self.text_backcolor = sg.theme_text_element_background_color( )
-		self.text_forecolor = sg.theme_element_text_color( )
-		self.input_forecolor = sg.theme_input_text_color( )
-		self.input_backcolor = sg.theme_input_background_color( )
-		self.button_backcolor = sg.theme_button_color_background( )
-		self.button_forecolor = sg.theme_button_color_text( )
-		self.button_color = sg.theme_button_color( )
-		self.icon_path = r'\resources\ico\mathy_icon.ico'
-		self.theme_font = ('Roboto', 11)
-		self.scrollbar_color = '#755600'
-		self.form_size = (400, 200)
-		self.keep_on_top = True
-		self.top_level = True
-		self.resizable = True,
-		self.context_menu = sg.MENU_RIGHT_CLICK_EDITME_VER_SETTINGS_EXIT
-		sg.set_global_icon( icon=self.icon_path )
-		sg.set_options( font=self.theme_font )
-		sg.user_settings_save( 'Mathy', r'\resources\theme' )
-
-
-	def __dir__( self ) -> List[ str ] | None:
-		'''
-
-		    Purpose:
-		    --------
-		    Creates a List[ str ] of type members
-
-		    Parameters:
-		    ----------
-			self
-
-		    Returns:
-		    ---------
-			List[ str ] | None
-
-		'''
-		return [ 'form_size', 'theme_background',
-		         'theme_textcolor', 'element_backcolor', 'element_forecolor',
-		         'text_forecolor', 'text_backcolor', 'input_backcolor',
-		         'input_forecolor', 'button_color', 'button_backcolor',
-		         'button_forecolor', 'icon_path', 'theme_font',
-		         'scrollbar_color' ]
-
+HEADLESS = ("STREAMLIT_SERVER_RUNNING" in os.environ
+            or "streamlit" in os.environ.get( "PYTHONPATH", "" ).lower( ))
 
 class Error( Exception ):
-	'''
+	"""Wrap an exception with application-specific diagnostic metadata.
 
-        Purpose:
-        ---------
-		Class wrapping error used as the path argument for ErrorDialog class
+	Purpose:
+		Captures the original exception, traceback text, optional heading, cause, module name,
+		and method signature used by Mathy exception handlers. The wrapper provides a stable
+		object that can be raised by calling code and written by the Logger without requiring
+		each caller to format traceback details manually.
 
-        Constructor:
-		----------
-        Error( error: Exception, heading: str=None, cause: str=None,
-                method: str=None, module: str=None )
+	Attributes:
+		exception (Exception): Original exception instance being wrapped.
+		heading (str | None): Optional display heading associated with the error.
+		cause (str | None): Logical component or class responsible for the failure.
+		method (str | None): Stable method or function signature where the failure occurred.
+		module (str | None): Source module where the failure occurred.
+		type (type | None): Active exception type reported by ``sys.exc_info``.
+		trace (str): Formatted traceback text captured at wrapper construction time.
+		info (str): Combined exception type and formatted traceback text.
+	"""
+	
+	def __init__( self, error: Exception, heading: str = None, cause: str = None,
+			method: str = None, module: str = None ):
+		"""Initialize the error wrapper.
 
-    '''
-	error: Optional[ Exception ]
-	heading: Optional[ str ]
-	module: Optional[ str ]
-	info: Optional[ str ]
-	cause: Optional[ str ]
-	method: Optional[ str ]
+		Purpose:
+			Initializes the wrapper with the original exception and optional diagnostic metadata.
+			The constructor captures traceback information immediately so downstream logging can
+			persist the same failure context even after control has moved out of the original
+			exception handler.
 
-	def __init__( self, error: Exception, heading: str=None, cause: str=None,
-	              method: str=None, module: str=None ):
+		Args:
+			error (Exception): Original exception instance being wrapped.
+			heading (str): Optional display heading associated with the error.
+			cause (str): Logical component or class responsible for the failure.
+			method (str): Stable method or function signature where the failure occurred.
+			module (str): Source module where the failure occurred.
+		"""
 		super( ).__init__( )
 		self.exception = error
 		self.heading = heading
@@ -170,186 +108,140 @@ class Error( Exception ):
 		self.type = exc_info( )[ 0 ]
 		self.trace = traceback.format_exc( )
 		self.info = str( exc_info( )[ 0 ] ) + ': \r\n \r\n' + traceback.format_exc( )
-
-
+	
 	def __str__( self ) -> str | None:
-		'''
+		"""Return the captured diagnostic text.
 
-            Purpose:
-            --------
-			returns a string reprentation of the object
+		Purpose:
+			Returns the formatted exception information captured when the wrapper was created.
+			This representation supports direct display, logging, and debugging without requiring
+			callers to inspect individual metadata fields.
 
-            Parameters:
-            ----------
-			self
-
-            Returns:
-            ---------
-			str | None
-
-		'''
+		Returns:
+			Captured exception information when available.
+		"""
 		if self.info is not None:
 			return self.info
-
-
+	
 	def __dir__( self ) -> List[ str ] | None:
-		'''
+		"""Return the public diagnostic member names.
 
-		    Purpose:
-		    --------
-		    Creates a List[ str ] of type members
+		Purpose:
+			Provides a stable member list for inspectors, debuggers, user-interface tooling, and
+			interactive sessions that need to display the important diagnostic fields carried by
+			the wrapper.
 
-		    Parameters:
-		    ----------
-			self
+		Returns:
+			Ordered diagnostic member names exposed by the wrapper.
+		"""
+		return [ 'message', 'cause', 'method', 'module', 'scaler', 'stack_trace', 'info' ]
 
-		    Returns:
-		    ---------
-			List[ str ] | None
+class Logger( ):
+	"""Persist wrapped exception details to the configured SQLite logging database.
 
-		'''
-		return [ 'message', 'cause',  'method', 'module',
-		         'scaler', 'stack_trace', 'info' ]
+	Purpose:
+		Provides a small application logger that writes Error metadata to the SQLite database
+		identified by ``config.LOG_PATH`` and the table identified by ``config.LOG_FILE``. The
+		class creates the logging directory and table as needed, then records exception cause,
+		module, method, message, diagnostic information, traceback text, and creation time.
 
+	Attributes:
+		path (Path): Filesystem path to the SQLite logging database.
+		table (str): SQLite table name used for persisted exception records.
+		query (str | None): SQL statement prepared for the active logging operation.
+		values (tuple[Any, ...] | None): Values prepared for the active logging operation.
+	"""
+	
+	def __init__( self ) -> None:
+		"""Initialize the logger.
 
+		Purpose:
+			Initializes the logger from the central Mathy configuration and prepares local state
+			used by later write operations. The constructor does not open a persistent database
+			connection; connections are created only for bounded setup and write operations.
+		"""
+		self.path = Path( cfg.LOG_PATH ).resolve( )
+		self.table = str( cfg.LOG_FILE or 'Exceptions' )
+		self.query = None
+		self.values = None
+	
+	def __dir__( self ) -> List[ str ]:
+		"""Return the public logger member names.
 
-class ErrorDialog( Dark ):
-	'''
+		Purpose:
+			Provides a stable member list for inspection and debugging of logger configuration,
+			including the configured path, table name, and write helper methods.
 
-	    Purpose:
-	    ---------
-	    Class that displays excetption target_names that accepts
-            a single, optional argument 'error' of scaler Error
+		Returns:
+			Ordered logger member names.
+		"""
+		return [ 'path', 'table', 'query', 'values', 'create_table', 'write' ]
+	
+	def create_table( self ) -> None:
+		"""Create the exception table when it does not already exist.
 
-    '''
-	error: Optional[ Exception ]
-	heading: Optional[ str ]
-	module: Optional[ str ]
-	info: Optional[ str ]
-	cause: Optional[ str ]
-	method: Optional[ str ]
+		Purpose:
+			Ensures the logging directory and SQLite exception table exist before an exception
+			record is written. The schema stores stable diagnostic fields used by Mathy modules
+			and avoids raising setup failures back into application exception handlers.
+		"""
+		try:
+			self.path.parent.mkdir( parents=True, exist_ok=True )
+			self.query = f'''
+				CREATE TABLE IF NOT EXISTS {self.table} (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					created TEXT,
+					cause TEXT,
+					module TEXT,
+					method TEXT,
+					message TEXT,
+					info TEXT,
+					trace TEXT
+				)
+			'''
+			with sqlite3.connect( self.path ) as connection:
+				connection.execute( self.query )
+				connection.commit( )
+		except Exception:
+			return None
+	
+	def write( self, error: Error ) -> None:
+		"""Write an error record to the logging database.
 
+		Purpose:
+			Persists a wrapped Error object to the configured SQLite database using the standard
+			Mathy exception schema. Logging is intentionally failure-safe: a database or filesystem
+			failure during logging is suppressed so it does not mask the original application error.
 
-	def __init__( self, error: Error ):
-		super( ).__init__( )
-		sg.theme( 'DarkGrey15' )
-		sg.theme_input_text_color( '#FFFFFF' )
-		sg.theme_element_text_color( '#69B1EF' )
-		sg.theme_text_color( '#69B1EF' )
-		self.theme_background=sg.theme_background_color( )
-		self.theme_textcolor = sg.theme_text_color( )
-		self.element_forecolor = sg.theme_element_text_color( )
-		self.element_backcolor = sg.theme_background_color( )
-		self.text_backcolor = sg.theme_text_element_background_color( )
-		self.text_forecolor = sg.theme_element_text_color( )
-		self.input_forecolor = sg.theme_input_text_color( )
-		self.input_backcolor = sg.theme_input_background_color( )
-		self.button_backcolor = sg.theme_button_color_background( )
-		self.button_forecolor = sg.theme_button_color_text( )
-		self.button_color = sg.theme_button_color( )
-		self.icon_path = r'\resources\ico\mathy_icon.ico'
-		self.theme_font = ('Roboto', 11)
-		self.scrollbar_color = '#755600'
-		sg.set_global_icon( icon = self.icon_path )
-		sg.set_options( font = self.theme_font )
-		sg.user_settings_save( 'Mathy', r'\resources\theme' )
-		self.form_size = (500, 300)
-		self.error = error
-		self.heading = error.heading
-		self.module = error.module
-		self.info = error.trace
-		self.cause = error.cause
-		self.method = error.method
-
-
-	def __str__( self ) -> str | None:
-		'''
-
-            Purpose:
-            --------
-			returns a string reprentation of the object
-
-            Parameters:
-            ----------
-			self
-
-            Returns:
-            ---------
-			str | None
-
-		'''
-		return self.info
-
-
-	def __dir__( self ) -> List[ str ] | None:
-		'''
-
-		    Purpose:
-		    --------
-		    Creates a List[ str ] of type members
-
-		    Parameters:
-		    ----------
-			self
-
-		    Returns:
-		    ---------
-			List[ str ] | None
-
-		'''
-		return [ 'size', 'settings_path', 'theme_background',
-		         'theme_textcolor', 'element_backcolor', 'element_forecolor',
-		         'text_forecolor', 'text_backcolor', 'input_backcolor',
-		         'input_forecolor', 'button_color', 'button_backcolor',
-		         'button_forecolor', 'icon_path', 'theme_font',
-		         'scrollbar_color', 'progressbar_color',
-		         'info', 'cause', 'method', 'error', 'heading',
-		         'module', 'scaler', 'message' 'show' ]
-
-
-	def show( self ) -> object:
-		'''
-
-            Purpose:
-            --------
-
-
-            Parameters:
-            ----------
-
-
-            Returns:
-            ---------
-
-
-		'''
-		if not GUI_AVAILABLE:
-			raise RuntimeError(self.info)
-		_msg = self.heading if isinstance( self.heading, str ) else None
-		_info = f'Module:\t{self.module}\r\nClass:\t{self.cause}\r\n' \
-		        f'Method:\t{self.method}\r\n \r\n{self.info}'
-		_red = '#F70202'
-		_font = ('Roboto', 10)
-		_padsz = (3, 3)
-		_layout = [ [ sg.Text( ) ],
-		            [ sg.Text( f'{_msg}', size=(100, 1), key='-MSG-', text_color=_red,
-			            font=_font ) ],
-		            [ sg.Text( size=(150, 1) ) ],
-		            [ sg.Multiline( f'{_info}', key='-INFO-', size=(80, 7), pad=_padsz ) ],
-		            [ sg.Text( ) ],
-		            [ sg.Text( size=(20, 1) ), sg.Cancel( size=(15, 1), key='-CANCEL-' ),
-		              sg.Text( size=(10, 1) ), sg.Ok( size=(15, 1), key='-OK-' ) ] ]
-
-		_window = sg.Window( r' mathy', _layout,
-			icon=self.icon_path,
-			font=self.theme_font,
-			size=self.form_size,
-			keep_on_top=True )
-
-		while True:
-			_event, _values = _window.read( )
-			if _event in (sg.WIN_CLOSED, sg.WIN_X_EVENT, 'Canel', '-OK-'):
-				break
-
-		_window.close( )
-
+		Args:
+			error (Error): Wrapped exception object containing diagnostic metadata to persist.
+		"""
+		try:
+			self.create_table( )
+			message = str( getattr( error, 'exception', '' ) )
+			self.query = f'''
+				INSERT INTO {self.table} (
+					created,
+					cause,
+					module,
+					method,
+					message,
+					info,
+					trace
+				)
+				VALUES (?, ?, ?, ?, ?, ?, ?)
+			'''
+			self.values = (
+					datetime.now( ).isoformat( timespec='seconds' ),
+					getattr( error, 'cause', None ),
+					getattr( error, 'module', None ),
+					getattr( error, 'method', None ),
+					message,
+					getattr( error, 'info', None ),
+					getattr( error, 'trace', None ),
+			)
+			with sqlite3.connect( self.path ) as connection:
+				connection.execute( self.query, self.values )
+				connection.commit( )
+		except Exception:
+			return None
