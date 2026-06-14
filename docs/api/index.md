@@ -1,5 +1,5 @@
 # API Reference
-![](../img/mathy-architecture.png)
+![](../img/mathy-classes.png)
 ___
 
 
