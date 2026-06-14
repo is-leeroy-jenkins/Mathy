@@ -28,7 +28,7 @@ ___
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-0078FC?style=for-the-badge&logo=github)](https://is-leeroy-jenkins.github.io/Mathy/)
 
 
-Mathy-Py is a Streamlit-based machine-learning, statistical-analysis, data-transformation, and
+Mathy-Py is a machine-learning, statistical-analysis, data-transformation, and
 SQLite data-management workspace. It combines a modular Python wrapper framework with an
 interactive application for profiling datasets, computing descriptive and inferential statistics,
 detecting anomalies, engineering features, training supervised and unsupervised models, forecasting
