@@ -1,0 +1,2165 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Mathy statistical modeling and machine learning utility library.">
+      
+      
+        <meta name="author" content="Terry D. Eppler">
+      
+      
+        <link rel="canonical" href="https://is-leeroy-jenkins.github.io/Mathy/architecture/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../user-guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Architecture - Mathy Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../assets/css/mathy.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Mathy Documentation" class="md-header__button md-logo" aria-label="Mathy Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mathy Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/is-leeroy-jenkins/Mathy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    is-leeroy-jenkins/Mathy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../user-guide/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../development/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Development
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Mathy Documentation" class="md-nav__button md-logo" aria-label="Mathy Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Mathy Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/is-leeroy-jenkins/Mathy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    is-leeroy-jenkins/Mathy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architectural-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Architectural Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Module Organization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Workflow Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-design-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧩 Core Design Pattern
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-preparation-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗃️ Data Preparation Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preprocessing-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Preprocessing Layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Preprocessing Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Encoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#imputation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imputation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-engineering-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧬 Feature Engineering Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modeling-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 Modeling Layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤖 Modeling Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clustering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clustering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlier-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outlier Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forecasting-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Forecasting Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧾 Documentation Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧯 Error-Handling Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-usage-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 End-to-End Usage Path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-documentation-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Repository Documentation Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Build Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/data-preparation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Preparation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/feature-engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/modeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modeling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/forecasting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Forecasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/scalers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scalers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/encoders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/imputers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Imputers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/transformers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/clusters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clusters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/outliers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Outliers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/regressions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Regressions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/classifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Classifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/forecasting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Forecasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architectural-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Architectural Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Module Organization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Workflow Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-design-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧩 Core Design Pattern
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-preparation-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗃️ Data Preparation Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preprocessing-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Preprocessing Layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Preprocessing Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Encoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#imputation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Imputation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-engineering-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧬 Feature Engineering Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modeling-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 Modeling Layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤖 Modeling Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clustering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clustering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlier-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outlier Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forecasting-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Forecasting Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧾 Documentation Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧯 Error-Handling Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-usage-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 End-to-End Usage Path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-documentation-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧱 Repository Documentation Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Build Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p><img alt="" src="../img/mathy-architecture.png" /></p>
+<hr />
+<p>Mathy is organized as a modular statistical modeling and machine learning utility library. The
+architecture separates data preparation, transformation, feature engineering, unsupervised learning,
+supervised learning, outlier detection, and forecasting into focused Python modules that can be used
+independently or combined into full modeling workflows.</p>
+<h2 id="architectural-purpose">🧭 Architectural Purpose<a class="headerlink" href="#architectural-purpose" title="Permanent link">&para;</a></h2>
+<p>Mathy provides a consistent wrapper layer around common pandas, NumPy, SciPy, statsmodels, and
+scikit-learn workflows. Each module focuses on a distinct stage of the analytical lifecycle while
+preserving a common usage pattern across training, transformation, prediction, scoring, and model
+inspection.</p>
+<p>The architecture is designed to support:</p>
+<ul>
+<li>repeatable data preparation</li>
+<li>reusable preprocessing components</li>
+<li>consistent estimator wrappers</li>
+<li>documented model workflows</li>
+<li>generated API documentation through MkDocs and mkdocstrings</li>
+<li>Google-style source documentation suitable for long-term project maintenance</li>
+</ul>
+<h2 id="module-organization">🧱 Module Organization<a class="headerlink" href="#module-organization" title="Permanent link">&para;</a></h2>
+<p>Mathy is organized around the major stages of a data science workflow.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Module</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data Management</td>
+<td><code>data.py</code></td>
+<td>Dataframe preparation, descriptive statistics, train/test splits, pivots, plotting helpers, and statistical utility functions.</td>
+</tr>
+<tr>
+<td>Scaling</td>
+<td><code>scalers.py</code></td>
+<td>Standardization, normalization, min-max scaling, robust scaling, and maximum-absolute-value scaling.</td>
+</tr>
+<tr>
+<td>Encoding</td>
+<td><code>encoders.py</code></td>
+<td>Label encoding, ordinal encoding, one-hot encoding, target encoding, and polynomial feature expansion.</td>
+</tr>
+<tr>
+<td>Imputation</td>
+<td><code>imputers.py</code></td>
+<td>Mean imputation, nearest-neighbor imputation, iterative imputation, and configurable simple imputation.</td>
+</tr>
+<tr>
+<td>Transformation</td>
+<td><code>transformers.py</code></td>
+<td>Binary transformation, label binarization, multilabel binarization, TF-IDF transformation, vectorization, dictionary transformation, and hashing.</td>
+</tr>
+<tr>
+<td>Feature Engineering</td>
+<td><code>features.py</code></td>
+<td>Feature selection, decomposition, canonical correlation analysis, recursive elimination, and sequential selection.</td>
+</tr>
+<tr>
+<td>Clustering</td>
+<td><code>clusters.py</code></td>
+<td>K-Means, DBSCAN, agglomerative clustering, spectral clustering, mean shift, affinity propagation, Birch, and OPTICS.</td>
+</tr>
+<tr>
+<td>Outlier Detection</td>
+<td><code>outliers.py</code></td>
+<td>Isolation forest, one-class classification, local outlier factor, and covariance-based outlier detection.</td>
+</tr>
+<tr>
+<td>Regression</td>
+<td><code>regressions.py</code></td>
+<td>Supervised regression wrappers for linear, regularized, ensemble, tree-based, support-vector, nearest-neighbor, Bayesian, and boosting models.</td>
+</tr>
+<tr>
+<td>Classification</td>
+<td><code>classifications.py</code></td>
+<td>Supervised classification wrappers for linear, tree-based, ensemble, support-vector, nearest-neighbor, discriminant, probabilistic, and boosting models.</td>
+</tr>
+<tr>
+<td>Forecasting</td>
+<td><code>forecasting.py</code></td>
+<td>Time-series splitting, expanding windows, lagged features, lag-based regressors, ARIMA, and SARIMA models.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="workflow-architecture">🔄 Workflow Architecture<a class="headerlink" href="#workflow-architecture" title="Permanent link">&para;</a></h2>
+<p>Mathy supports a staged workflow that begins with dataframe preparation and ends with model
+evaluation or forecasting output.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Raw Data
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>   v
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>DataSource
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>   |
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>   +--&gt; Descriptive Statistics
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   +--&gt; Train/Test Split
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   +--&gt; Numeric and Categorical Column Detection
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>   |
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>   v
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Preprocessing
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>   |
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>   +--&gt; Scaling
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   +--&gt; Encoding
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>   +--&gt; Imputation
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>   +--&gt; Transformation
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>   |
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>   v
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Feature Engineering
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>   |
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>   +--&gt; Feature Selection
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>   +--&gt; Dimensionality Reduction
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>   +--&gt; Recursive Elimination
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>   +--&gt; Sequential Selection
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>   |
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>   v
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Modeling
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>   |
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>   +--&gt; Regression
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>   +--&gt; Classification
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>   +--&gt; Clustering
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>   +--&gt; Outlier Detection
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>   +--&gt; Forecasting
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>   |
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>   v
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>Scores, Predictions, Labels, Forecasts, Diagnostics
+</code></pre></div>
+<h2 id="core-design-pattern">🧩 Core Design Pattern<a class="headerlink" href="#core-design-pattern" title="Permanent link">&para;</a></h2>
+<p>Most Mathy wrapper classes follow a consistent operational pattern.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>train(...)</code></td>
+<td>Fit the underlying estimator or transformer.</td>
+</tr>
+<tr>
+<td><code>transform(...)</code></td>
+<td>Transform input data using a fitted transformer.</td>
+</tr>
+<tr>
+<td><code>train_transform(...)</code></td>
+<td>Fit and transform data in one operation.</td>
+</tr>
+<tr>
+<td><code>predict(...)</code></td>
+<td>Generate model predictions or cluster labels.</td>
+</tr>
+<tr>
+<td><code>score(...)</code></td>
+<td>Evaluate the fitted model where supported.</td>
+</tr>
+<tr>
+<td><code>inverse_transform(...)</code></td>
+<td>Convert transformed values back to their original representation where supported.</td>
+</tr>
+<tr>
+<td><code>__dir__(...)</code></td>
+<td>Expose a stable interactive inspection surface.</td>
+</tr>
+</tbody>
+</table>
+<p>This convention makes the modules easier to use together because preprocessing wrappers,
+feature-engineering wrappers, and model wrappers expose similar method names even when the
+underlying scikit-learn objects differ.</p>
+<h2 id="data-preparation-layer">🗃️ Data Preparation Layer<a class="headerlink" href="#data-preparation-layer" title="Permanent link">&para;</a></h2>
+<p>The data preparation layer is centered on <code>DataSource</code> in <code>data.py</code>.</p>
+<p><code>DataSource</code> wraps a pandas dataframe and derives common modeling metadata, including:</p>
+<ul>
+<li>feature names</li>
+<li>target values</li>
+<li>target names</li>
+<li>numeric columns</li>
+<li>categorical columns</li>
+<li>numeric summary statistics</li>
+<li>covariance and variance statistics</li>
+<li>train/test splits</li>
+<li>cached transformed data</li>
+<li>optional pivot tables</li>
+<li>plotting support</li>
+</ul>
+<p>This layer provides the foundation for downstream preprocessing and modeling. It allows Mathy
+workflows to begin with a dataframe and move quickly into transformations, feature selection, or
+estimator training.</p>
+<h2 id="preprocessing-layer">🧪 Preprocessing Layer<a class="headerlink" href="#preprocessing-layer" title="Permanent link">&para;</a></h2>
+<p>The preprocessing layer is distributed across four modules:</p>
+<ul>
+<li><code>scalers.py</code></li>
+<li><code>encoders.py</code></li>
+<li><code>imputers.py</code></li>
+<li><code>transformers.py</code></li>
+</ul>
+<p>These modules prepare raw columns and feature matrices for modeling. They handle common requirements
+such as scaling numeric values, encoding categorical values, imputing missing values, vectorizing
+text, and creating transformed feature matrices.</p>
+<h3 id="scaling">Scaling<a class="headerlink" href="#scaling" title="Permanent link">&para;</a></h3>
+<p>The scaling layer wraps common sklearn scalers:</p>
+<ul>
+<li><code>StandardScaler</code></li>
+<li><code>MinMaxScaler</code></li>
+<li><code>RobustScaler</code></li>
+<li><code>NormalScaler</code></li>
+<li><code>MaxAbsScaler</code></li>
+</ul>
+<p>These wrappers normalize numeric feature distributions before they are used by models that are
+sensitive to feature scale.</p>
+<h3 id="encoding">Encoding<a class="headerlink" href="#encoding" title="Permanent link">&para;</a></h3>
+<p>The encoding layer wraps categorical and feature-expansion tools:</p>
+<ul>
+<li><code>LabelEncoder</code></li>
+<li><code>OrdinalEncoder</code></li>
+<li><code>OneHotEncoder</code></li>
+<li><code>TargetEncoder</code></li>
+<li><code>PolynomialFeatures</code></li>
+</ul>
+<p>These wrappers convert categorical labels and feature values into numeric forms suitable for model
+training.</p>
+<h3 id="imputation">Imputation<a class="headerlink" href="#imputation" title="Permanent link">&para;</a></h3>
+<p>The imputation layer handles missing values with multiple strategies:</p>
+<ul>
+<li><code>MeanImputer</code></li>
+<li><code>NearestImputer</code></li>
+<li><code>IterativeImputer</code></li>
+<li><code>SimpleImputer</code></li>
+</ul>
+<p>These wrappers support workflows where incomplete observations must be transformed before model
+training or evaluation.</p>
+<h3 id="transformation">Transformation<a class="headerlink" href="#transformation" title="Permanent link">&para;</a></h3>
+<p>The transformation layer provides wrappers for binary transformation, label binarization, TF-IDF
+transformation, text vectorization, dictionary vectorization, and feature hashing.</p>
+<p>This layer is useful when preparing categorical, textual, sparse, or high-dimensional inputs.</p>
+<h2 id="feature-engineering-layer">🧬 Feature Engineering Layer<a class="headerlink" href="#feature-engineering-layer" title="Permanent link">&para;</a></h2>
+<p>The feature engineering layer is implemented in <code>features.py</code>.</p>
+<p>This layer supports feature reduction, selection, ranking, and decomposition. It allows a workflow
+to reduce dimensionality, identify informative predictors, and prepare a more efficient model input
+matrix.</p>
+<p>Representative capabilities include:</p>
+<ul>
+<li>variance-threshold selection</li>
+<li>principal component analysis</li>
+<li>canonical correlation analysis</li>
+<li>best-feature selection</li>
+<li>percentile-based selection</li>
+<li>sequential backward selection</li>
+<li>recursive feature elimination</li>
+</ul>
+<p>The feature engineering layer is positioned between preprocessing and supervised or unsupervised
+modeling.</p>
+<h2 id="modeling-layer">🤖 Modeling Layer<a class="headerlink" href="#modeling-layer" title="Permanent link">&para;</a></h2>
+<p>Mathy includes separate modeling layers for regression, classification, clustering, and outlier
+detection.</p>
+<h3 id="regression">Regression<a class="headerlink" href="#regression" title="Permanent link">&para;</a></h3>
+<p>The regression layer in <code>regressions.py</code> wraps supervised estimators that predict continuous values.
+It supports a broad set of model families, including linear models, regularized models, tree-based
+models, ensemble models, support-vector models, Bayesian models, nearest-neighbor models, and
+boosting models.</p>
+<h3 id="classification">Classification<a class="headerlink" href="#classification" title="Permanent link">&para;</a></h3>
+<p>The classification layer in <code>classifications.py</code> wraps supervised estimators that predict
+categorical labels. It includes linear classifiers, probabilistic classifiers, tree-based
+classifiers, ensemble classifiers, support-vector classifiers, nearest-neighbor classifiers,
+discriminant classifiers, and boosting classifiers.</p>
+<h3 id="clustering">Clustering<a class="headerlink" href="#clustering" title="Permanent link">&para;</a></h3>
+<p>The clustering layer in <code>clusters.py</code> wraps unsupervised estimators that group observations based on
+similarity or density. It supports centroid-based, density-based, hierarchical, spectral, and
+affinity-based clustering approaches.</p>
+<h3 id="outlier-detection">Outlier Detection<a class="headerlink" href="#outlier-detection" title="Permanent link">&para;</a></h3>
+<p>The outlier detection layer in <code>outliers.py</code> identifies anomalous observations using isolation,
+local-density, one-class, and covariance-based methods.</p>
+<h2 id="forecasting-layer">📈 Forecasting Layer<a class="headerlink" href="#forecasting-layer" title="Permanent link">&para;</a></h2>
+<p>The forecasting layer is implemented in <code>forecasting.py</code>.</p>
+<p>It supports time-series modeling through:</p>
+<ul>
+<li>time-series splitters</li>
+<li>expanding-window splits</li>
+<li>lagged feature construction</li>
+<li>lag-based boosting models</li>
+<li>lag-based quantile models</li>
+<li>ARIMA models</li>
+<li>SARIMA models</li>
+</ul>
+<p>This layer is separate from the general regression layer because time-series forecasting requires
+ordered observations, lagged predictors, and specialized validation strategies.</p>
+<h2 id="documentation-architecture">🧾 Documentation Architecture<a class="headerlink" href="#documentation-architecture" title="Permanent link">&para;</a></h2>
+<p>Mathy uses MkDocs and mkdocstrings to generate documentation from the source code.</p>
+<p>The documentation system uses:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mkdocs.yml</code></td>
+<td>Defines the site, theme, plugins, navigation, Markdown extensions, and mkdocstrings settings.</td>
+</tr>
+<tr>
+<td><code>docs/index.md</code></td>
+<td>Main documentation landing page.</td>
+</tr>
+<tr>
+<td><code>docs/architecture.md</code></td>
+<td>Project architecture and module organization.</td>
+</tr>
+<tr>
+<td><code>docs/user-guide/</code></td>
+<td>Task-oriented usage documentation.</td>
+</tr>
+<tr>
+<td><code>docs/api/</code></td>
+<td>API pages that render source documentation through mkdocstrings.</td>
+</tr>
+<tr>
+<td>Google-style docstrings</td>
+<td>Source documentation parsed by mkdocstrings and griffe.</td>
+</tr>
+</tbody>
+</table>
+<p>Each API page uses a simple mkdocstrings directive:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gh"># Data</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>::: data
+</code></pre></div>
+<p>The directive tells mkdocstrings to load the Python module and render its module, class, method,
+argument, return, and exception documentation.</p>
+<h2 id="error-handling-architecture">🧯 Error-Handling Architecture<a class="headerlink" href="#error-handling-architecture" title="Permanent link">&para;</a></h2>
+<p>Mathy source modules use a consistent wrapped exception pattern built around <code>boogr.Error</code> and
+<code>boogr.Logger</code>.</p>
+<p>The pattern captures:</p>
+<ul>
+<li>source module</li>
+<li>class or function context</li>
+<li>stable method signature</li>
+<li>original exception</li>
+<li>logged exception record</li>
+</ul>
+<p>The standard structure is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">exception</span> <span class="o">=</span> <span class="n">Error</span><span class="p">(</span> <span class="n">e</span> <span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">exception</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="s1">&#39;mathy&#39;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">exception</span><span class="o">.</span><span class="n">cause</span> <span class="o">=</span> <span class="s1">&#39;ClassName&#39;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">exception</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;method_name( self, *args ) -&gt; return_type&#39;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">Logger</span><span class="p">(</span> <span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">exception</span> <span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="k">raise</span> <span class="n">exception</span>
+</code></pre></div>
+<p>For methods with multiple parameters, the method field uses the compact <code>*args</code> pattern to avoid
+logging live values, user data, dataframe contents, file paths, or other sensitive runtime state.</p>
+<h2 id="design-principles">🧠 Design Principles<a class="headerlink" href="#design-principles" title="Permanent link">&para;</a></h2>
+<p>Mathy follows these design principles:</p>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Consistent wrappers</td>
+<td>Similar operations use similar method names across different estimator families.</td>
+</tr>
+<tr>
+<td>Source-driven documentation</td>
+<td>API documentation is generated directly from Google-style source docstrings.</td>
+</tr>
+<tr>
+<td>Separation of concerns</td>
+<td>Data preparation, preprocessing, feature engineering, modeling, and forecasting are separated into focused modules.</td>
+</tr>
+<tr>
+<td>Safe exception metadata</td>
+<td>Error logs store stable method signatures rather than live runtime values.</td>
+</tr>
+<tr>
+<td>Reusable workflows</td>
+<td>Classes are designed to support repeated experimentation and notebook-driven modeling.</td>
+</tr>
+<tr>
+<td>MkDocs compatibility</td>
+<td>Documentation comments are structured for mkdocstrings and griffe parsing.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="end-to-end-usage-path">🧭 End-to-End Usage Path<a class="headerlink" href="#end-to-end-usage-path" title="Permanent link">&para;</a></h2>
+<p>A typical Mathy workflow follows this path:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>1. Load a pandas dataframe.
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>2. Create a DataSource instance.
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>3. Identify numeric, categorical, feature, and target columns.
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>4. Apply scaling, encoding, imputation, or transformation.
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>5. Select or reduce features.
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>6. Train a regression, classification, clustering, outlier, or forecasting model.
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>7. Generate predictions, labels, scores, or forecasts.
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>8. Review generated API documentation for class and method details.
+</code></pre></div>
+<h2 id="repository-documentation-map">🧱 Repository Documentation Map<a class="headerlink" href="#repository-documentation-map" title="Permanent link">&para;</a></h2>
+<p>The recommended documentation layout is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docs/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── index.md
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── architecture.md
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├── development.md
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├── user-guide/
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│   ├── index.md
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>│   ├── data-preparation.md
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>│   ├── feature-engineering.md
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>│   ├── modeling.md
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>│   └── forecasting.md
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>└── api/
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    ├── index.md
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    ├── data.md
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    ├── scalers.md
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    ├── encoders.md
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    ├── imputers.md
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    ├── transformers.md
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    ├── features.md
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>    ├── clusters.md
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    ├── outliers.md
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    ├── regressions.md
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    ├── classifications.md
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>    └── forecasting.md
+</code></pre></div>
+<h2 id="build-verification">✅ Build Verification<a class="headerlink" href="#build-verification" title="Permanent link">&para;</a></h2>
+<p>After adding or updating documentation pages, build the site from the repository root:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">mkdocs</span> <span class="n">build</span>
+</code></pre></div>
+<p>Run the local documentation server:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">mkdocs</span> <span class="n">serve</span>
+</code></pre></div>
+<p>Open the local site:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>http://127.0.0.1:8000/
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.share", "content.code.copy", "content.code.select"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/js/mathy.js"></script>
+      
+    
+  </body>
+</html>
