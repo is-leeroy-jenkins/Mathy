@@ -8,6 +8,7 @@ repo_name: is-leeroy-jenkins/Mathy
 
 theme:
   name: material
+  favicon: img/favicon.ico
   language: en
   features:
     - navigation.instant
