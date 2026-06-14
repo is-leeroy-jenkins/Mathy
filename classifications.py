@@ -1846,7 +1846,7 @@ class Ridge( Classifier ):
 	"""Ridge classifier wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.RidgeClassifier for linear classification with L2 regularization,
+		    Ridge Classifier for linear classification with L2 regularization,
 		    solver selection, iteration control, fitted coefficient access, and Mathy scoring and
 		    visualization helpers.
 
@@ -7454,7 +7454,7 @@ class MultiLayerPerceptron( Classifier ):
 	"""MultiLayerPerceptron classifier wrapper.
 
 		Purpose:
-		    Wraps sklearn.neural_network.MLPClassifier for feed-forward neural-network classification
+		    Multi-Layer Perceptron Classifier for feed-forward neural-network classification
 		    with configurable hidden layers, activation, solver, regularization, learning-rate behavior,
 		    and random state.
 
