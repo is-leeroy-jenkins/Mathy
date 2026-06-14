@@ -1,47 +1,49 @@
-'''
-	******************************************************************************************
-	  Assembly:                Mathy
-	  Filename:                forecasting.py
-	  Author:                  Terry D. Eppler
-	  Created:                 08-31-2025
-	
-	  Last Modified By:        Terry D. Eppler
-	  Last Modified On:        08-31-2025
-	******************************************************************************************
-	<copyright file="forecasting.py" company="Terry D. Eppler">
-	
-		 Mathy Models
-	
-	 Permission is hereby granted, free of charge, to any person obtaining a copy
-	 of this software and associated documentation files (the “Software”),
-	 to deal in the Software without restriction,
-	 including without limitation the rights to use,
-	 copy, modify, merge, publish, distribute, sublicense,
-	 and/or sell copies of the Software,
-	 and to permit persons to whom the Software is furnished to do so,
-	 subject to the following conditions:
-	
-	 The above copyright notice and this permission notice shall be included in all
-	 copies or substantial portions of the Software.
-	
-	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-	 DEALINGS IN THE SOFTWARE.
-	
-	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-	
-	</copyright>
-	<summary>
-		forecasting.py
-	</summary>
+"""******************************************************************************************
+  Assembly:                Mathy
+  Filename:                forecasting.py
+  Author:                  Terry D. Eppler
+  Created:                 08-31-2025
+
+  Last Modified By:        Terry D. Eppler
+  Last Modified On:        08-31-2025
 ******************************************************************************************
-'''
+<copyright file="forecasting.py" company="Terry D. Eppler">
+
+     Mathy Models
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the “Software”),
+ to deal in the Software without restriction,
+ including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software,
+ and to permit persons to whom the Software is furnished to do so,
+ subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+
+ You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+
+</copyright>
+<summary>
+    Provides time-series forecasting, cross-validation, lag-feature modeling, ARIMA,
+    SARIMA, gradient-boosted lag regression, and quantile lag-regression wrappers for
+    Mathy forecasting workflows. The module standardizes training, projection, scoring,
+    and residual-diagnostic operations across statsmodels and sklearn estimators.
+</summary>
+******************************************************************************************
+"""
 from __future__ import annotations
-from boogr import Error
+from boogr import Error, Logger
 from typing import Optional, Dict, Generator, Tuple
 import numpy as np
 import statsmodels.tsa.statespace.sarimax as st
@@ -54,20 +56,23 @@ from statsmodels.regression.linear_model import RegressionResultsWrapper
 import sklearn.ensemble as ske
 import sklearn.linear_model as skl
 
-
 def throw_if( name: str, value: object ):
-    if not value:
-        raise Exception( f'Argument "{name}" cannot be empty!' )
-
+	if not value:
+		raise Exception( f'Argument "{name}" cannot be empty!' )
 
 class TimeSeries( ):
-	'''
-	
+	"""Share time-series state.
+
 		Purpose:
-		--------
-		Base class for time-series objects
-		
-	'''
+		    Provides the base runtime attributes used by forecasting wrappers that train on ordered
+		    observations, store fitted target values, and retain the most recent forecast output.
+		    The class supplies a minimal common state contract for concrete time-series estimators.
+
+		Attributes:
+		    training_data: Feature matrix or lagged design matrix used for training.
+		    tranining_values: Target values aligned to the training matrix.
+		    prediction: Most recent forecast or projection generated by the model.
+	"""
 	training_data: Optional[ np.ndarray ]
 	tranining_values: Optional[ np.ndarray ]
 	prediction: Optional[ np.ndarray ]
@@ -77,19 +82,22 @@ class TimeSeries( ):
 		self.tranining_values = None
 		self.prediction = None
 
-
 class ExpandingWindow( ):
-	"""
+	"""Create expanding-window validation splits.
 
 		Purpose:
-		--------
-		Custom expanding-window time series cross-validator. Compatible with statsmodels.
-		Each split yields a growing training set and fixed-size test set. Expanding window
-		cross-validation (or forward-chaining) is a time series validation technique where the
-		training set grows over time, incorporating more historical data in each subsequent fold
-		while testing on the following period. It ensures temporal order is maintained, preventing
-		data leakage, and is ideal for scenarios with limited data.
+		    Generates forward-chaining train/test indices for time-series validation where each
+		    successive training window expands over time and each test window remains fixed in size.
+		    The splitter preserves temporal order, supports optional gaps, and exposes sklearn-style
+		    split-count and visualization helpers.
 
+		Attributes:
+		    initial_window: Number of observations included in the first training window.
+		    test_window: Number of observations included in each testing window.
+		    max_splits: Maximum number of splits produced by the generator.
+		    n_splits: sklearn-style split count override.
+		    max_train_size: Optional cap on the length of each training window.
+		    gap: Number of observations skipped between each train and test segment.
 	"""
 	initial_window: int
 	test_window: int
@@ -101,29 +109,19 @@ class ExpandingWindow( ):
 	def __init__( self, initial: int = 30, windows: int = 10, splits: int | None = None,
 			n_splits: int | None = None, max_train_size: int | None = None,
 			test_size: int | None = None, gap: int = 0 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the expanding-window cross-validator. The legacy parameters
-			`initial`, `windows`, and `splits` are preserved for drop-in compatibility.
-			The sklearn-like parameters `n_splits`, `max_train_size`, `test_size`, and
-			`gap` are also supported.
-		
-			Parameters:
-			-----------
-			initial (int): Minimum number of observations in the first training window.
-			windows (int): Legacy name for test window size.
-			splits (int | None): Legacy name for the maximum number of splits.
-			n_splits (int | None): Maximum number of splits to generate.
-			max_train_size (int | None): Optional rolling cap on the training window size.
-			test_size (int | None): Size of each test window. Overrides `windows` when set.
-			gap (int): Number of observations between each train and test partition.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize expanding-window splitter.
+
+				Purpose:
+				    Configures the first training-window size, test-window size, split limit, optional train-size cap, sklearn-style split count, and temporal gap used to produce forward-chaining validation indices.
+
+				Args:
+				    initial: Number of observations in the first training window.
+				    windows: Number of observations in each testing window.
+				    splits: Legacy maximum number of expanding-window splits.
+				    n_splits: sklearn-style maximum number of validation splits.
+				    max_train_size: Optional cap applied to each training-window length.
+				    test_size: Optional sklearn-style test-window size override.
+				    gap: Number of observations skipped between train and test windows.
 		"""
 		self.initial_window = int( initial )
 		self.test_window = int( test_size ) if test_size is not None else int( windows )
@@ -134,25 +132,21 @@ class ExpandingWindow( ):
 	
 	def split( self, series: np.ndarray, y: np.ndarray = None,
 			groups: np.ndarray = None ) -> Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
-		"""
-		
-			Purpose:
-			--------
-			Yield expanding train/test index pairs for a one-dimensional time-series.
-			The signature accepts `y` and `groups` for sklearn-style compatibility,
-			although they are not used.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series array.
-			y (Optional[np.ndarray]): Unused. Present for API compatibility.
-			groups (Optional[np.ndarray]): Unused. Present for API compatibility.
-		
-			Returns:
-			--------
-			Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
-				Train/test index pairs.
-		
+		"""Yield expanding-window splits.
+
+				Purpose:
+				    Generates chronological train and test index arrays from a one-dimensional time-series input using the configured expanding-window rules.
+
+				Args:
+				    series: Ordered observations used to determine split boundaries.
+				    y: Optional target array accepted for sklearn splitter compatibility.
+				    groups: Optional group labels accepted for sklearn splitter compatibility.
+
+				Returns:
+				    Generator[Tuple[np.ndarray, np.ndarray], None, None]: Generator[Tuple[np.ndarray, np.ndarray], None, None] returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -210,25 +204,24 @@ class ExpandingWindow( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ExpandingWindow'
-			exception.method = 'split'
+			exception.method = 'split( self, *args ) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def get_splits( self, series: np.ndarray ) -> list[ Tuple[ np.ndarray, np.ndarray ] ]:
-		"""
-		
-			Purpose:
-			--------
-			Materialize and return all expanding-window train/test splits.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series array.
-		
-			Returns:
-			--------
-			list[ Tuple[ np.ndarray, np.ndarray ] ]:
-				List of train/test index pairs.
-		
+		"""Materialize expanding-window splits.
+
+				Purpose:
+				    Collects all expanding-window train/test index pairs into a list for inspection, repeated use, or plotting.
+
+				Args:
+				    series: Ordered observations used to determine split boundaries.
+
+				Returns:
+				    list[Tuple[np.ndarray, np.ndarray]]: list[Tuple[np.ndarray, np.ndarray]] returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -237,30 +230,27 @@ class ExpandingWindow( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ExpandingWindow'
-			exception.method = 'get_splits'
+			exception.method = 'get_splits( self, series: np.ndarray ) -> list[Tuple[np.ndarray, np.ndarray]]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def get_n_splits( self, series: Optional[ np.ndarray ] = None,
 			y: Optional[ np.ndarray ] = None, groups: Optional[ np.ndarray ] = None ) -> int:
-		"""
-		
-			Purpose:
-			--------
-			Return the number of splits. When a series is provided, compute the actual
-			number of realizable splits from the data. Otherwise, return the configured
-			maximum when available.
-		
-			Parameters:
-			-----------
-			series (Optional[np.ndarray]): Optional one-dimensional time-series array.
-			y (Optional[np.ndarray]): Unused. Present for API compatibility.
-			groups (Optional[np.ndarray]): Unused. Present for API compatibility.
-		
-			Returns:
-			--------
-			int:
-				Number of splits.
-		
+		"""Count expanding-window splits.
+
+				Purpose:
+				    Returns the number of validation splits that the expanding-window splitter will produce for the supplied series and configuration.
+
+				Args:
+				    series: Optional ordered observations used to calculate available splits.
+				    y: Optional target array accepted for sklearn splitter compatibility.
+				    groups: Optional group labels accepted for sklearn splitter compatibility.
+
+				Returns:
+				    int: int returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			if series is None:
@@ -278,27 +268,24 @@ class ExpandingWindow( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ExpandingWindow'
-			exception.method = 'get_n_splits'
+			exception.method = 'get_n_splits( self, *args ) -> int'
+			Logger( ).write( exception )
 			raise exception
 	
 	def visualize( self, series: np.ndarray ) -> plt.Figure | None:
-		"""
-		
-			Purpose:
-			--------
-			Build and return a matplotlib figure showing each train/test split.
-			Returning the figure avoids the Streamlit blank-figure issue caused by
-			calling plt.show() internally.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series array.
-		
-			Returns:
-			--------
-			plt.Figure | None:
-				Figure containing the split visualization.
-		
+		"""Visualize expanding-window splits.
+
+				Purpose:
+				    Builds a matplotlib figure showing the chronological train and test windows produced by the expanding-window splitter.
+
+				Args:
+				    series: Ordered observations used to generate the split visualization.
+
+				Returns:
+				    plt.Figure | None: plt.Figure | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -330,18 +317,24 @@ class ExpandingWindow( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ExpandingWindow'
-			exception.method = 'visualize'
+			exception.method = 'visualize( self, series: np.ndarray ) -> plt.Figure | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class TimeSeriesSpliter( ):
-	"""
-	
+	"""Create fixed-window time-series validation splits.
+
 		Purpose:
-		--------
-		Provide a time-series cross-validator that mirrors the current sklearn
-		TimeSeriesSplit behavior and returning train/test index pairs for ordered data.
-	
+		    Produces sklearn-style time-series cross-validation indices using a requested number of
+		    splits, optional training-window cap, optional test-window size, and optional temporal gap.
+		    The splitter maintains chronological ordering and supports split materialization and
+		    visualization for model-validation workflows.
+
+		Attributes:
+		    splits: Number of chronological validation splits to generate.
+		    max_train_size: Optional cap on each training-window length.
+		    test_size: Optional number of observations in each test segment.
+		    gap: Number of observations skipped between train and test segments.
 	"""
 	n_splits: int
 	max_train_size: Optional[ int ]
@@ -350,23 +343,16 @@ class TimeSeriesSpliter( ):
 	
 	def __init__( self, splits: int = 5, max_train_size: Optional[ int ] = None,
 			test_size: Optional[ int ] = None, gap: int = 0 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the time-series cross-validator.
-		
-			Parameters:
-			-----------
-			splits (int): Number of splits to generate.
-			max_train_size (Optional[int]): Optional cap on the training window size.
-			test_size (Optional[int]): Optional fixed size for each test window.
-			gap (int): Number of observations excluded between train and test windows.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize time-series splitter.
+
+				Purpose:
+				    Configures the number of chronological splits, optional maximum training size, optional fixed test size, and temporal gap used by the fixed-window splitter.
+
+				Args:
+				    splits: Number of chronological validation splits.
+				    max_train_size: Optional cap applied to each training-window length.
+				    test_size: Optional number of observations in each testing window.
+				    gap: Number of observations skipped between train and test windows.
 		"""
 		self.n_splits = int( splits )
 		self.max_train_size = max_train_size
@@ -375,24 +361,21 @@ class TimeSeriesSpliter( ):
 	
 	def split( self, series: np.ndarray, y: np.ndarray = None,
 			groups: np.ndarray = None ) -> Generator[ Tuple[ np.ndarray, np.ndarray ], None, None ]:
-		"""
-		
-			Purpose:
-			--------
-			Yield expanding train/test index pairs for an ordered one-dimensional
-			time-series using sklearn-like temporal cross-validation semantics.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional ordered time-series array.
-			y (Optional[np.ndarray]): Unused placeholder for API compatibility.
-			groups (Optional[np.ndarray]): Unused placeholder for API compatibility.
-		
-			Returns:
-			--------
-			Generator[Tuple[np.ndarray, np.ndarray], None, None]:
-				A generator of train/test index pairs.
-		
+		"""Yield time-series splits.
+
+				Purpose:
+				    Generates chronological train and test index arrays from a one-dimensional time-series input using the configured fixed-window split rules.
+
+				Args:
+				    series: Ordered observations used to determine split boundaries.
+				    y: Optional target array accepted for sklearn splitter compatibility.
+				    groups: Optional group labels accepted for sklearn splitter compatibility.
+
+				Returns:
+				    Generator[Tuple[np.ndarray, np.ndarray], None, None]: Generator[Tuple[np.ndarray, np.ndarray], None, None] returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -452,28 +435,27 @@ class TimeSeriesSpliter( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TimeSeriesSpliter'
-			exception.method = 'split'
+			exception.method = 'split( self, *args ) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def get_n_splits( self, series: np.ndarray = None,
 			y: np.ndarray = None, groups: np.ndarray = None ) -> int | None:
-		"""
-		
-			Purpose:
-			--------
-			Return the configured number of time-series splits.
-		
-			Parameters:
-			-----------
-			series (Optional[np.ndarray]): Unused placeholder for API compatibility.
-			y (Optional[np.ndarray]): Unused placeholder for API compatibility.
-			groups (Optional[np.ndarray]): Unused placeholder for API compatibility.
-		
-			Returns:
-			--------
-			int | None:
-				The configured number of splits.
-		
+		"""Count time-series splits.
+
+				Purpose:
+				    Returns the configured number of chronological validation splits available for the supplied series and splitter configuration.
+
+				Args:
+				    series: Optional ordered observations used to validate split availability.
+				    y: Optional target array accepted for sklearn splitter compatibility.
+				    groups: Optional group labels accepted for sklearn splitter compatibility.
+
+				Returns:
+				    int | None: int | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			return self.n_splits
@@ -481,25 +463,24 @@ class TimeSeriesSpliter( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TimeSeriesSpliter'
-			exception.method = 'get_n_splits'
+			exception.method = 'get_n_splits( self, *args ) -> int | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def get_splits( self, series: np.ndarray ) -> list[ Tuple[ np.ndarray, np.ndarray ] ]:
-		"""
-		
-			Purpose:
-			--------
-			Materialize all train/test index pairs for the supplied series.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional ordered time-series array.
-		
-			Returns:
-			--------
-			list[Tuple[np.ndarray, np.ndarray]]:
-				A list of train/test index pairs.
-		
+		"""Materialize time-series splits.
+
+				Purpose:
+				    Collects all chronological train/test index pairs into a list for inspection, repeated use, or plotting.
+
+				Args:
+				    series: Ordered observations used to determine split boundaries.
+
+				Returns:
+				    list[Tuple[np.ndarray, np.ndarray]]: list[Tuple[np.ndarray, np.ndarray]] returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -508,25 +489,24 @@ class TimeSeriesSpliter( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TimeSeriesSpliter'
-			exception.method = 'get_splits'
+			exception.method = 'get_splits( self, series: np.ndarray ) -> list[Tuple[np.ndarray, np.ndarray]]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def visualize( self, series: np.ndarray ) -> plt.Figure | None:
-		"""
-		
-			Purpose:
-			--------
-			Build and return a matplotlib figure showing each train/test split.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional ordered time-series array.
-		
-			Returns:
-			--------
-			plt.Figure | None:
-				A matplotlib figure containing the split visualization.
-		
+		"""Visualize time-series splits.
+
+				Purpose:
+				    Builds a matplotlib figure showing the chronological train and test windows produced by the fixed-window splitter.
+
+				Args:
+				    series: Ordered observations used to generate the split visualization.
+
+				Returns:
+				    plt.Figure | None: plt.Figure | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -557,222 +537,224 @@ class TimeSeriesSpliter( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'TimeSeriesSpliter'
-			exception.method = 'visualize'
+			exception.method = 'visualize( self, series: np.ndarray ) -> plt.Figure | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class LaggingSeries( TimeSeries ):
-    """
-    
-        Purpose:
-        --------
-        Wraps statsmodels.OLS for univariate time-series forecasting using lag features.
+	"""Forecast with linear lag features.
 
+		Purpose:
+			Builds lagged supervised-learning matrices from univariate time-series observations,
+			trains a linear regression model on historical lag windows, projects future values
+			recursively, and reports regression metrics for fitted lag forecasts.
+
+		Attributes:
+			lag: Number of lagged observations used as predictors.
+			model: Linear regression estimator trained on lagged features.
+			training_data: Lagged feature matrix produced from the source series.
+			tranining_values: Target vector aligned to lagged feature rows.
+			prediction: Most recent recursive forecast output.
 	"""
-    model: Optional[ RegressionResultsWrapper ]
-    lag: int
-    prediction: Optional[ np.ndarray ]
-    training_data: Optional[ np.ndarray ]
-    training_values: Optional[ np.ndarray ]
-    design_matrix: Optional[ np.ndarray ]
-    
-    def __init__( self, lag: int = 5 ) -> None:
-	    """
+	model: Optional[ RegressionResultsWrapper ]
+	lag: int
+	prediction: Optional[ np.ndarray ]
+	training_data: Optional[ np.ndarray ]
+	training_values: Optional[ np.ndarray ]
+	design_matrix: Optional[ np.ndarray ]
 	
-			Purpose:
-			--------
-			Initializes the wrapper and sets lag order.
-	
-			Parameters:
-			-----------
-			lag (int): Number of lagged time-steps to use as predictors.
-	
-			Returns:
-			--------
-			None
+	def __init__( self, lag: int = 5 ) -> None:
+		"""Initialize linear lag forecaster.
 
+				Purpose:
+					Configures the lag-window length, constructs the linear regression estimator, and prepares training, target, and prediction caches for lag-based forecasting.
+
+				Args:
+					lag: Number of lagged observations used as predictors.
 		"""
-	    self.lag = lag
-	    self.model = None
-	    self.prediction = None
-	    self.training_data = None
-	    self.training_values = None
-	    self.design_matrix = None
-    
-    def lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
-	    """
+		self.lag = lag
+		self.model = None
+		self.prediction = None
+		self.training_data = None
+		self.training_values = None
+		self.design_matrix = None
 	
-			Purpose:
-			--------
-			Constructs lagged feature matrix and target vector.
-	
-			Parameters:
-			-----------
-			series (np.ndarray): 1D array of time-series values.
-	
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray ]: Lagged predictors and target vector.
+	def lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
+		"""Create lagged training arrays.
 
+				Purpose:
+					Converts an ordered univariate series into a supervised-learning design matrix where each row contains lagged observations and each target value contains the next observation.
+
+				Args:
+					series: Ordered univariate series used to create lagged features and targets.
+
+				Returns:
+					Tuple[np.ndarray, np.ndarray]: Tuple[np.ndarray, np.ndarray] returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'series', series )
-		    if len( series ) <= self.lag:
-			    raise ValueError( f'Argument "series" must contain more than {self.lag} observations.')
-		    
-		    values = np.asarray( series, dtype=float ).reshape( -1 )
-		    n = len( values )
-		    self.training_data = np.array([ values[ i - self.lag:i ] for i in range( self.lag, n )],
-			    dtype=float )
-		    self.training_values = values[ self.lag: ]
-		    return self.training_data, self.training_values
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'LaggingSeries'
-		    exception.method = 'lag_transform'
-		    raise exception
-    
-    def train( self, series: np.ndarray ) -> LaggingSeries | None:
-	    """
+		try:
+			throw_if( 'series', series )
+			if len( series ) <= self.lag:
+				raise ValueError(
+					f'Argument "series" must contain more than {self.lag} observations.' )
+			
+			values = np.asarray( series, dtype=float ).reshape( -1 )
+			n = len( values )
+			self.training_data = np.array(
+				[ values[ i - self.lag:i ] for i in range( self.lag, n ) ],
+				dtype=float )
+			self.training_values = values[ self.lag: ]
+			return self.training_data, self.training_values
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LaggingSeries'
+			exception.method = 'lag_transform( self, series: np.ndarray ) -> Tuple[np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
+			raise exception
 	
-			Purpose:
-			--------
-			Transform univariate series into lagged features and fit OLS model.
-	
-			Parameters:
-			-----------
-			series (np.ndarray): 1D time-series array.
-	
-			Returns:
-			--------
-			LaggingSeries: Current instance.
+	def train( self, series: np.ndarray ) -> LaggingSeries | None:
+		"""Fit LaggingSeries model.
 
+				Purpose:
+					Fits the forecasting estimator to lagged features generated from the supplied time series and stores the training matrix and aligned target vector on the wrapper.
+
+				Args:
+					series: Ordered univariate series used to train the lag-based forecasting model.
+
+				Returns:
+					LaggingSeries | None: LaggingSeries | None returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'series', series )
-		    x_data, y_data = self.lag_transform( series )
-		    self.design_matrix = sm.add_constant( x_data, has_constant='add' )
-		    self.model = sm.OLS( y_data, self.design_matrix ).fit( )
-		    return self
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'LaggingSeries'
-		    exception.method = 'train'
-		    raise exception
-    
-    def project( self, n_steps: int = 1 ) -> np.ndarray:
-	    """
-
-			Purpose:
-			--------
-			Forecasts future values using recursive prediction.
+		try:
+			throw_if( 'series', series )
+			x_data, y_data = self.lag_transform( series )
+			self.design_matrix = sm.add_constant( x_data, has_constant='add' )
+			self.model = sm.OLS( y_data, self.design_matrix ).fit( )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LaggingSeries'
+			exception.method = 'train( self, series: np.ndarray ) -> LaggingSeries | None'
+			Logger( ).write( exception )
+			raise exception
 	
-			Parameters:
-			-----------
-			n_steps (int): Number of time steps to predict ahead.
-	
-			Returns:
-			--------
-			np.ndarray: Array of predicted values.
+	def project( self, n_steps: int = 1 ) -> np.ndarray:
+		"""Project future observations.
 
+				Purpose:
+					Generates recursive forward forecasts by feeding each newly predicted value back into the lag window for subsequent forecast steps.
+
+				Args:
+					n_steps: Number of future periods to forecast.
+
+				Returns:
+					np.ndarray: np.ndarray returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'n_steps', n_steps )
-		    throw_if( 'training_data', self.training_data )
-		    throw_if( 'model', self.model )
-		    if n_steps < 1:
-			    raise ValueError( 'Argument "n_steps" must be greater than zero.' )
-		    
-		    last_window = self.training_data[ -1 ].astype( float ).copy( )
-		    preds = [ ]
-		    for _ in range( n_steps ):
-			    x_input = sm.add_constant( last_window.reshape( 1, -1 ), has_constant='add' )
-			    next_value = float( self.model.predict( x_input )[ 0 ] )
-			    preds.append( next_value )
-			    last_window = np.roll( last_window, -1 )
-			    last_window[ -1 ] = next_value
-		    
-		    self.prediction = np.array( preds, dtype=float )
-		    return self.prediction
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'LaggingSeries'
-		    exception.method = 'project'
-		    raise exception
-    
-    def score( self ) -> float | None:
-	    """
-
-			Purpose:
-			--------
-			Returns R² on the training set.
+		try:
+			throw_if( 'n_steps', n_steps )
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'model', self.model )
+			if n_steps < 1:
+				raise ValueError( 'Argument "n_steps" must be greater than zero.' )
+			
+			last_window = self.training_data[ -1 ].astype( float ).copy( )
+			preds = [ ]
+			for _ in range( n_steps ):
+				x_input = sm.add_constant( last_window.reshape( 1, -1 ), has_constant='add' )
+				next_value = float( self.model.predict( x_input )[ 0 ] )
+				preds.append( next_value )
+				last_window = np.roll( last_window, -1 )
+				last_window[ -1 ] = next_value
+			
+			self.prediction = np.array( preds, dtype=float )
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LaggingSeries'
+			exception.method = 'project( self, n_steps: int=1 ) -> np.ndarray'
+			Logger( ).write( exception )
+			raise exception
 	
-			Parameters:
-			-----------
-			None
-	
-			Returns:
-			--------
-			float: R² coefficient of determination.
+	def score( self ) -> float | None:
+		"""Score fitted forecasts.
 
+				Purpose:
+					Computes the coefficient of determination for fitted in-sample predictions against the stored training target values.
+
+				Returns:
+					float | None: float | None returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'model', self.model )
-		    return float( self.model.rsquared )
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'LaggingSeries'
-		    exception.method = 'score'
-		    raise exception
-    
-    def analyze( self ) -> Dict[ str, float ] | None:
-	    """
-
-			Purpose:
-			--------
-			Computes standard regression evaluation metrics.
+		try:
+			throw_if( 'model', self.model )
+			return float( self.model.rsquared )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LaggingSeries'
+			exception.method = 'score( self ) -> float | None'
+			Logger( ).write( exception )
+			raise exception
 	
-			Parameters:
-			-----------
-			None
-	
-			Returns:
-			--------
-			Dict[ str, float ]: Dictionary of metric names and values.
+	def analyze( self ) -> Dict[ str, float ] | None:
+		"""Analyze forecast residuals.
 
+				Purpose:
+					Computes regression diagnostics for fitted in-sample predictions, including squared error, absolute error, explained variance, maximum error, median absolute error, and coefficient of determination.
+
+				Returns:
+					Dict[str, float] | None: Dict[str, float] | None returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'training_values', self.training_values )
-		    throw_if( 'design_matrix', self.design_matrix )
-		    throw_if( 'model', self.model )
-		    self.prediction = np.asarray( self.model.predict( self.design_matrix ), dtype=float )
-		    return { 'MSE': mean_squared_error( self.training_values, self.prediction ),
-				    'RMSE': np.sqrt( mean_squared_error( self.training_values, self.prediction ) ),
-				    'MAE': mean_absolute_error( self.training_values, self.prediction ),
-				    'MedianAE': median_absolute_error( self.training_values, self.prediction ),
-				    'R2': r2_score( self.training_values, self.prediction ),
-				    'ExplainedVariance': explained_variance_score( self.training_values,
-					    self.prediction ) }
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'LaggingSeries'
-		    exception.method = 'analyze'
-		    raise exception
-
+		try:
+			throw_if( 'training_values', self.training_values )
+			throw_if( 'design_matrix', self.design_matrix )
+			throw_if( 'model', self.model )
+			self.prediction = np.asarray( self.model.predict( self.design_matrix ), dtype=float )
+			return { 'MSE': mean_squared_error( self.training_values, self.prediction ),
+			         'RMSE': np.sqrt( mean_squared_error( self.training_values, self.prediction ) ),
+			         'MAE': mean_absolute_error( self.training_values, self.prediction ),
+			         'MedianAE': median_absolute_error( self.training_values, self.prediction ),
+			         'R2': r2_score( self.training_values, self.prediction ),
+			         'ExplainedVariance': explained_variance_score( self.training_values,
+				         self.prediction ) }
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'LaggingSeries'
+			exception.method = 'analyze( self ) -> Dict[str, float] | None'
+			Logger( ).write( exception )
+			raise exception
 
 class LagBoostingSeries( TimeSeries ):
-	"""
-	
+	"""Forecast with histogram gradient boosting over lag features.
+
 		Purpose:
-		--------
-		Univariate time-series forecasting by transforming the series into lagged
-		supervised-learning features.
-	
+		    Builds lagged supervised-learning matrices and trains a histogram gradient boosting
+		    regressor for nonlinear time-series forecasting. The wrapper exposes the estimator
+		    configuration, recursive multi-step projection, and regression diagnostics for the
+		    fitted lag model.
+
+		Attributes:
+		    lag: Number of lagged observations used as predictors.
+		    model: Boosting estimator trained on lagged features.
+		    training_data: Lagged feature matrix produced from the source series.
+		    tranining_values: Target vector aligned to lagged feature rows.
+		    prediction: Most recent recursive forecast output.
 	"""
 	model: Optional[ ske.HistGradientBoostingRegressor ]
 	lag: int
@@ -817,40 +799,33 @@ class LagBoostingSeries( TimeSeries ):
 			validation: float = 0.1, no_change: int = 10,
 			tol: float = 1e-7, verbose: int = 0,
 			rando: Optional[ int ] = None ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the lagged boosting time-series forecaster.
-		
-			Parameters:
-			-----------
-			lag (int): Number of lag observations used as predictors.
-			loss (str): Boosting loss function.
-			quantile (Optional[float]): Quantile level used when loss is quantile.
-			rate (float): Learning rate applied to each boosting stage.
-			iters (int): Maximum number of boosting iterations.
-			leaf_nodes (Optional[int]): Maximum number of leaf nodes per tree.
-			depth (Optional[int]): Maximum depth of each tree.
-			leaf (int): Minimum samples per leaf.
-			regularization (float): L2 regularization strength.
-			features (float): Proportion of features sampled per split.
-			bins (int): Maximum number of bins used for histogram binning.
-			monotonic (Optional[object]): Monotonic constraints for features.
-			interaction (Optional[object]): Interaction constraints for features.
-			warm (bool): Reuse the solution of the previous call to fit.
-			stopping (str | bool): Early-stopping strategy.
-			scoring (str): Scoring method for early stopping.
-			validation (float): Validation fraction used for early stopping.
-			no_change (int): Early-stopping patience.
-			tol (float): Numerical tolerance for early stopping.
-			verbose (int): Verbosity level.
-			rando (Optional[int]): Random seed.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize boosting lag forecaster.
+
+				Purpose:
+				    Configures the lag-window length and histogram gradient boosting regression options used for nonlinear recursive time-series forecasting.
+
+				Args:
+				    lag: Number of lagged observations used as predictors.
+				    loss: Loss function used by the boosting regressor.
+				    quantile: Quantile value used when quantile loss is selected.
+				    rate: Learning rate for boosting updates.
+				    iters: Maximum number of boosting iterations.
+				    leaf_nodes: Maximum number of leaf nodes per tree.
+				    depth: Maximum tree depth.
+				    leaf: Minimum samples per leaf.
+				    regularization: L2 regularization strength.
+				    features: Fraction or count of features considered per split.
+				    bins: Maximum number of histogram bins.
+				    monotonic: Monotonic constraint configuration.
+				    interaction: Interaction constraint configuration.
+				    warm: Flag indicating whether warm-start fitting is enabled.
+				    stopping: Early-stopping mode.
+				    scoring: Scoring metric used for early stopping.
+				    validation: Validation fraction used for early stopping.
+				    no_change: Iterations without improvement allowed before stopping.
+				    tol: Tolerance used for early-stopping improvement checks.
+				    verbose: Verbosity level passed to the estimator.
+				    rando: Random seed passed to the estimator.
 		"""
 		super( ).__init__( )
 		self.lag = lag
@@ -896,22 +871,19 @@ class LagBoostingSeries( TimeSeries ):
 		self.max_error = 0.0
 	
 	def lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Construct lagged predictors and aligned target values from a
-			one-dimensional time-series.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series values.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray]:
-				Lagged predictor matrix and target vector.
-		
+		"""Create lagged training arrays.
+
+				Purpose:
+				    Converts an ordered univariate series into a supervised-learning design matrix where each row contains lagged observations and each target value contains the next observation.
+
+				Args:
+				    series: Ordered univariate series used to create lagged features and targets.
+
+				Returns:
+				    Tuple[np.ndarray, np.ndarray]: Tuple[np.ndarray, np.ndarray] returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -935,25 +907,24 @@ class LagBoostingSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagBoostingSeries'
-			exception.method = 'lag_transform'
+			exception.method = 'lag_transform( self, series: np.ndarray ) -> Tuple[np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, series: np.ndarray ) -> LagBoostingSeries | None:
-		"""
-		
-			Purpose:
-			--------
-			Transform the series into lagged features and fit the boosting model.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series values.
-		
-			Returns:
-			--------
-			LagBoostingSeries | None:
-				The trained wrapper instance.
-		
+		"""Fit LagBoostingSeries model.
+
+				Purpose:
+				    Fits the forecasting estimator to lagged features generated from the supplied time series and stores the training matrix and aligned target vector on the wrapper.
+
+				Args:
+				    series: Ordered univariate series used to train the lag-based forecasting model.
+
+				Returns:
+				    LagBoostingSeries | None: LagBoostingSeries | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -972,25 +943,24 @@ class LagBoostingSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagBoostingSeries'
-			exception.method = 'train'
+			exception.method = 'train( self, series: np.ndarray ) -> LagBoostingSeries | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, n_steps: int = 1 ) -> np.ndarray | None:
-		"""
-		
-			Purpose:
-			--------
-			Forecast future values using recursive lag-based prediction.
-		
-			Parameters:
-			-----------
-			n_steps (int): Number of future observations to forecast.
-		
-			Returns:
-			--------
-			np.ndarray | None:
-				Forecasted values.
-		
+		"""Project future observations.
+
+				Purpose:
+				    Generates recursive forward forecasts by feeding each newly predicted value back into the lag window for subsequent forecast steps.
+
+				Args:
+				    n_steps: Number of future periods to forecast.
+
+				Returns:
+				    np.ndarray | None: np.ndarray | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'n_steps', n_steps )
@@ -1015,25 +985,21 @@ class LagBoostingSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagBoostingSeries'
-			exception.method = 'project'
+			exception.method = 'project( self, n_steps: int=1 ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self ) -> float | None:
-		"""
-		
-			Purpose:
-			--------
-			Return the in-sample coefficient of determination for the fitted model.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			float | None:
-				In-sample R-squared score.
-		
+		"""Score fitted forecasts.
+
+				Purpose:
+				    Computes the coefficient of determination for fitted in-sample predictions against the stored training target values.
+
+				Returns:
+				    float | None: float | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'training_data', self.training_data )
@@ -1043,25 +1009,21 @@ class LagBoostingSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagBoostingSeries'
-			exception.method = 'score'
+			exception.method = 'score( self ) -> float | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self ) -> Dict[ str, float ] | None:
-		"""
-		
-			Purpose:
-			--------
-			Compute standard regression diagnostics on the fitted in-sample values.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			Dict[str, float] | None:
-				Dictionary of metric names and values.
-		
+		"""Analyze forecast residuals.
+
+				Purpose:
+				    Computes regression diagnostics for fitted in-sample predictions, including squared error, absolute error, explained variance, maximum error, median absolute error, and coefficient of determination.
+
+				Returns:
+				    Dict[str, float] | None: Dict[str, float] | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'training_values', self.training_values )
@@ -1103,18 +1065,26 @@ class LagBoostingSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagBoostingSeries'
-			exception.method = 'analyze'
+			exception.method = 'analyze( self ) -> Dict[str, float] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class LagQuantileSeries( TimeSeries ):
-	"""
-	
+	"""Forecast quantiles with lag features.
+
 		Purpose:
-		--------
-		Univariate time-series forecasting by transforming the series into lagged supervised-learning
-		features and fitting a conditional quantile model.
-	
+		    Builds lagged supervised-learning matrices and trains a quantile regression estimator
+		    for conditional quantile forecasting. The wrapper supports recursive projection and
+		    regression diagnostics for median, lower-tail, or upper-tail time-series forecasts.
+
+		Attributes:
+		    lag: Number of lagged observations used as predictors.
+		    quantile: Conditional quantile estimated by the regression model.
+		    alpha: L1 regularization strength passed to sklearn QuantileRegressor.
+		    model: Quantile regression estimator trained on lagged features.
+		    training_data: Lagged feature matrix produced from the source series.
+		    tranining_values: Target vector aligned to lagged feature rows.
+		    prediction: Most recent recursive forecast output.
 	"""
 	model: Optional[ skl.QuantileRegressor ]
 	lag: int
@@ -1136,25 +1106,18 @@ class LagQuantileSeries( TimeSeries ):
 	def __init__( self, lag: int = 12, quantile: float = 0.5, alpha: float = 1.0,
 			fit: bool = True, solver: str = 'highs',
 			solver_options: Optional[ Dict[ str, object ] ] = None ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the lagged quantile-regression forecaster.
-		
-			Parameters:
-			-----------
-			lag (int): Number of lag observations used as predictors.
-			quantile (float): Target conditional quantile in the open interval (0, 1).
-			alpha (float): L1 regularization strength.
-			fit (bool): Specifies whether to fit an intercept.
-			solver (str): Linear-programming solver used by QuantileRegressor.
-			solver_options (Optional[Dict[str, object]]): Additional solver options.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize quantile lag forecaster.
+
+				Purpose:
+				    Configures the lag-window length and quantile regression options used to estimate conditional quantiles from lagged time-series features.
+
+				Args:
+				    lag: Number of lagged observations used as predictors.
+				    quantile: Conditional quantile estimated by the model.
+				    alpha: L1 regularization strength.
+				    fit: Flag indicating whether an intercept is fitted.
+				    solver: Linear programming solver used by QuantileRegressor.
+				    solver_options: Optional solver-specific configuration dictionary.
 		"""
 		super( ).__init__( )
 		self.lag = lag
@@ -1183,22 +1146,19 @@ class LagQuantileSeries( TimeSeries ):
 		self.max_error = 0.0
 	
 	def lag_transform( self, series: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Construct lagged predictors and aligned target values from a
-			one-dimensional time-series.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series values.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray]:
-				Lagged predictor matrix and target vector.
-		
+		"""Create lagged training arrays.
+
+				Purpose:
+				    Converts an ordered univariate series into a supervised-learning design matrix where each row contains lagged observations and each target value contains the next observation.
+
+				Args:
+				    series: Ordered univariate series used to create lagged features and targets.
+
+				Returns:
+				    Tuple[np.ndarray, np.ndarray]: Tuple[np.ndarray, np.ndarray] returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -1222,25 +1182,24 @@ class LagQuantileSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagQuantileSeries'
-			exception.method = 'lag_transform'
+			exception.method = 'lag_transform( self, series: np.ndarray ) -> Tuple[np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, series: np.ndarray ) -> LagQuantileSeries | None:
-		"""
-		
-			Purpose:
-			--------
-			Transform the series into lagged features and fit the quantile model.
-		
-			Parameters:
-			-----------
-			series (np.ndarray): One-dimensional time-series values.
-		
-			Returns:
-			--------
-			LagQuantileSeries | None:
-				The trained wrapper instance.
-		
+		"""Fit LagQuantileSeries model.
+
+				Purpose:
+				    Fits the forecasting estimator to lagged features generated from the supplied time series and stores the training matrix and aligned target vector on the wrapper.
+
+				Args:
+				    series: Ordered univariate series used to train the lag-based forecasting model.
+
+				Returns:
+				    LagQuantileSeries | None: LagQuantileSeries | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -1262,25 +1221,24 @@ class LagQuantileSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagQuantileSeries'
-			exception.method = 'train'
+			exception.method = 'train( self, series: np.ndarray ) -> LagQuantileSeries | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, n_steps: int = 1 ) -> np.ndarray | None:
-		"""
-		
-			Purpose:
-			--------
-			Forecast future values using recursive lag-based quantile prediction.
-		
-			Parameters:
-			-----------
-			n_steps (int): Number of future observations to forecast.
-		
-			Returns:
-			--------
-			np.ndarray | None:
-				Forecasted quantile values.
-		
+		"""Project future observations.
+
+				Purpose:
+				    Generates recursive forward forecasts by feeding each newly predicted value back into the lag window for subsequent forecast steps.
+
+				Args:
+				    n_steps: Number of future periods to forecast.
+
+				Returns:
+				    np.ndarray | None: np.ndarray | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'n_steps', n_steps )
@@ -1305,25 +1263,21 @@ class LagQuantileSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagQuantileSeries'
-			exception.method = 'project'
+			exception.method = 'project( self, n_steps: int=1 ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self ) -> float | None:
-		"""
-		
-			Purpose:
-			--------
-			Return the in-sample coefficient of determination for the fitted model.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			float | None:
-				In-sample R-squared score.
-		
+		"""Score fitted forecasts.
+
+				Purpose:
+				    Computes the coefficient of determination for fitted in-sample predictions against the stored training target values.
+
+				Returns:
+				    float | None: float | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'training_data', self.training_data )
@@ -1333,25 +1287,21 @@ class LagQuantileSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagQuantileSeries'
-			exception.method = 'score'
+			exception.method = 'score( self ) -> float | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self ) -> Dict[ str, float ] | None:
-		"""
-		
-			Purpose:
-			--------
-			Compute standard regression diagnostics on the fitted in-sample values.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			Dict[str, float] | None:
-				Dictionary of metric names and values.
-		
+		"""Analyze forecast residuals.
+
+				Purpose:
+				    Computes regression diagnostics for fitted in-sample predictions, including squared error, absolute error, explained variance, maximum error, median absolute error, and coefficient of determination.
+
+				Returns:
+				    Dict[str, float] | None: Dict[str, float] | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'training_values', self.training_values )
@@ -1401,26 +1351,24 @@ class LagQuantileSeries( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LagQuantileSeries'
-			exception.method = 'analyze'
+			exception.method = 'analyze( self ) -> Dict[str, float] | None'
+			Logger( ).write( exception )
 			raise exception
-		
-		
+
 class ARIMA( TimeSeries ):
-	"""
+	"""Forecast with ARIMA.
 
 		Purpose:
-		--------
-		Autoregressive Integrated Moving Average (ARIMA)
-		This model is the basic interface for ARIMA-type models, including those with exogenous
-		regressors and those with seasonal components. The most general form of the model is
-		SARIMAX(p, d, q)x(P, D, Q, s). It also allows all specialized cases, including
-		autoregressive models: AR(p)
-		moving average models: MA(q)
-		mixed autoregressive moving average models: ARMA(p, q)
-		integration models: ARIMA(p, d, q)
-		seasonal models: SARIMA(P, D, Q, s)
-		regression with errors that follow one of the above ARIMA-type models
+		    Wraps statsmodels ARIMA for nonseasonal autoregressive integrated moving-average
+		    forecasting. The wrapper stores the fitted results object, produces forward projections,
+		    and reports regression-style diagnostics against fitted in-sample values.
 
+		Attributes:
+		    order: ARIMA autoregressive, differencing, and moving-average order.
+		    model: statsmodels ARIMA model object created during training.
+		    fitted: Fitted statsmodels results object returned by model fitting.
+		    tranining_values: Source series used to fit the ARIMA model.
+		    prediction: Most recent forecast output.
 	"""
 	order: Tuple[ int, int, int ]
 	model: Optional[ am.ARIMA ]
@@ -1428,21 +1376,14 @@ class ARIMA( TimeSeries ):
 	prediction: Optional[ np.ndarray ]
 	train_data: Optional[ np.ndarray ]
 	
-	def __init__( self, order: Tuple[ int, int, int ]=( 1, 0, 0 ) ) -> None:
-		"""
+	def __init__( self, order: Tuple[ int, int, int ] = (1, 0, 0) ) -> None:
+		"""Initialize ARIMA forecaster.
 
-			Purpose:
-			--------
-			Initialize ARIMA model with a given (p,d,q) order.
-	
-			Parameters:
-			-----------
-			order (Tuple[ int, int, int ]): The (p,d,q) order of the model (AR, I, MA).
-	
-			Returns:
-			--------
-			None
+				Purpose:
+				    Configures the nonseasonal ARIMA order and prepares model, fitted-result, training-value, and prediction state for later forecasting.
 
+				Args:
+				    order: Autoregressive, differencing, and moving-average order.
 		"""
 		self.order = order
 		self.model = None
@@ -1451,20 +1392,19 @@ class ARIMA( TimeSeries ):
 		self.train_data = None
 	
 	def train( self, series: np.ndarray ) -> ARIMA | None:
-		"""
+		"""Fit ARIMA model.
 
-			Purpose:
-			--------
-			Fit ARIMA model to univariate time-series data.
-	
-			Parameters:
-			-----------
-			series (np.ndarray): 1D time-series array.
-	
-			Returns:
-			--------
-			ARIMA: Current instance.
+				Purpose:
+				    Fits the statsmodels ARIMA model to the supplied ordered series and stores the fitted results object for forecasting and diagnostics.
 
+				Args:
+				    series: Ordered univariate series used to fit the forecasting model.
+
+				Returns:
+				    ARIMA | None: ARIMA | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'series', series )
@@ -1481,24 +1421,24 @@ class ARIMA( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ARIMA'
-			exception.method = 'train'
+			exception.method = 'train( self, series: np.ndarray ) -> ARIMA | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, n_steps: int=1 ) -> np.ndarray:
-		"""
+	def project( self, n_steps: int = 1 ) -> np.ndarray:
+		"""Project future observations.
 
-			Purpose:
-			--------
-			Forecast n future time steps ahead.
-	
-			Parameters:
-			-----------
-			n_steps (int): Number of steps to forecast ahead.
-	
-			Returns:
-			--------
-			np.ndarray: Forecasted values.
+				Purpose:
+				    Generates a forward forecast from the fitted statsmodels results object for the requested number of future periods.
 
+				Args:
+				    n_steps: Number of future periods to forecast.
+
+				Returns:
+				    np.ndarray: np.ndarray returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'results', self.results )
@@ -1513,24 +1453,21 @@ class ARIMA( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ARIMA'
-			exception.method = 'project'
+			exception.method = 'project( self, n_steps: int=1 ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self ) -> float | None:
-		"""
-	
-			Purpose:
-			--------
-			Returns R² score on training data.
-	
-			Parameters:
-			-----------
-			None
-	
-			Returns:
-			--------
-			float: R² score.
+		"""Score fitted forecasts.
 
+				Purpose:
+				    Computes the coefficient of determination for fitted in-sample values against the original training series.
+
+				Returns:
+				    float | None: float | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'train_data', self.train_data )
@@ -1546,24 +1483,21 @@ class ARIMA( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ARIMA'
-			exception.method = 'score'
+			exception.method = 'score( self ) -> float | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self ) -> Dict[ str, float ] | None:
-		"""
+		"""Analyze forecast residuals.
 
-			Purpose:
-			--------
-			Evaluate ARIMA fit using common metrics.
-	
-			Parameters:
-			-----------
-			None
-	
-			Returns:
-			--------
-			Dict[ str, float ]: MSE, RMSE, MAE, R2, Explained Variance, Median AE.
+				Purpose:
+				    Computes regression diagnostics for fitted in-sample values against the original training series, including squared error, absolute error, explained variance, maximum error, median absolute error, and coefficient of determination.
 
+				Returns:
+				    Dict[str, float] | None: Dict[str, float] | None returned by the forecasting operation.
+
+				Raises:
+				    Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
 		try:
 			throw_if( 'train_data', self.train_data )
@@ -1586,193 +1520,188 @@ class ARIMA( TimeSeries ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ARIMA'
-			exception.method = 'analyze'
+			exception.method = 'analyze( self ) -> Dict[str, float] | None'
+			Logger( ).write( exception )
 			raise exception
-            
 
 class SARIMA( TimeSeries ):
-    """
+	"""Forecast with SARIMA.
 
-        Purpose:
-        --------
-        Wrapper for seasonal ARIMA (SARIMA)
-        models using statsmodels' SARIMAX engine.
+		Purpose:
+			Wraps statsmodels SARIMAX for seasonal autoregressive integrated moving-average
+			forecasting. The wrapper stores the fitted seasonal model, produces forward projections,
+			and reports regression-style diagnostics against fitted in-sample values.
 
-    """
-    order: Tuple[ int, int, int ]
-    seasonal_order: Tuple[ int, int, int, int ]
-    model: Optional[ st.SARIMAX ]
-    results: Optional[ st.SARIMAXResults ]
-    training_data: Optional[ np.ndarray ]
-    prediction: Optional[ np.ndarray ]
-    
-    def __init__( self, order: Tuple[ int, int, int ]=( 1, 1, 1 ),
-		    seasonal: Tuple[ int, int, int, int ]=( 0, 0, 0, 0 ) ) -> None:
-	    """
+		Attributes:
+			order: Nonseasonal autoregressive, differencing, and moving-average order.
+			seasonal: Seasonal ARIMA order and period specification.
+			model: statsmodels SARIMAX model object created during training.
+			fitted: Fitted statsmodels results object returned by model fitting.
+			tranining_values: Source series used to fit the SARIMA model.
+			prediction: Most recent forecast output.
+	"""
+	order: Tuple[ int, int, int ]
+	seasonal_order: Tuple[ int, int, int, int ]
+	model: Optional[ st.SARIMAX ]
+	results: Optional[ st.SARIMAXResults ]
+	training_data: Optional[ np.ndarray ]
+	prediction: Optional[ np.ndarray ]
 	
-			Purpose:
-			--------
-			Initializes SARIMA model with ARIMA and seasonal components.
-	
-			Parameters:
-			-----------
-			order (Tuple[ int, int, int ]): (p,d,q) non-seasonal parameters.
-			seasonal (Tuple[ int, int, int, int ]): (P,D,Q,s) seasonal parameters.
-	
-			Returns:
-			--------
-			None
+	def __init__( self, order: Tuple[ int, int, int ] = (1, 1, 1),
+			seasonal: Tuple[ int, int, int, int ] = (0, 0, 0, 0) ) -> None:
+		"""Initialize SARIMA forecaster.
 
+				Purpose:
+					Configures nonseasonal and seasonal SARIMA orders and prepares model, fitted-result, training-value, and prediction state for later forecasting.
+
+				Args:
+					order: Nonseasonal autoregressive, differencing, and moving-average order.
+					seasonal: Seasonal autoregressive, differencing, moving-average, and period order.
 		"""
-	    self.order = order
-	    self.seasonal_order = seasonal
-	    self.model = None
-	    self.results = None
-	    self.training_data = None
-	    self.prediction = None
-    
-    def train( self, series: np.ndarray ) -> SARIMA | None:
-	    """
-
-			Purpose:
-			--------
-			Fits a SARIMA model to a univariate series.
+		self.order = order
+		self.seasonal_order = seasonal
+		self.model = None
+		self.results = None
+		self.training_data = None
+		self.prediction = None
 	
-			Parameters:
-			-----------
-			series (np.ndarray): 1D time-series array.
-	
-			Returns:
-			--------
-			SARIMA: Current instance.
+	def train( self, series: np.ndarray ) -> SARIMA | None:
+		"""Fit SARIMA model.
 
+				Purpose:
+					Fits the statsmodels SARIMA model to the supplied ordered series and stores the fitted results object for forecasting and diagnostics.
+
+				Args:
+					series: Ordered univariate series used to fit the forecasting model.
+
+				Returns:
+					SARIMA | None: SARIMA | None returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'series', series )
-		    values = np.asarray( series, dtype=float ).reshape( -1 )
-		    min_obs = max( self.order[ 0 ] + self.order[ 1 ] + self.order[ 2 ],
-			    self.seasonal_order[ 0 ] + self.seasonal_order[ 1 ] + self.seasonal_order[ 2 ], 1 )
-		    if len( values ) <= min_obs:
-			    msg = 'Argument "series" doesnt contain enough observations for the selected SARIMA'
-			    raise ValueError( msg )
-		    
-		    self.training_data = values
-		    self.model = st.SARIMAX( endog=self.training_data, order=self.order,
-			    seasonal_order=self.seasonal_order, enforce_stationarity=False,
-			    enforce_invertibility=False )
-		    self.results = self.model.fit( disp=False )
-		    return self
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'SARIMA'
-		    exception.method = 'train'
-		    raise exception
-    
-    def project( self, n_steps: int = 1 ) -> np.ndarray:
-	    """
-
-			Purpose:
-			--------
-			Forecast future time steps using SARIMA.
+		try:
+			throw_if( 'series', series )
+			values = np.asarray( series, dtype=float ).reshape( -1 )
+			min_obs = max( self.order[ 0 ] + self.order[ 1 ] + self.order[ 2 ],
+			               self.seasonal_order[ 0 ] + self.seasonal_order[ 1 ] +
+			               self.seasonal_order[ 2 ], 1 )
+			if len( values ) <= min_obs:
+				msg = 'Argument "series" doesnt contain enough observations for the selected SARIMA'
+				raise ValueError( msg )
+			
+			self.training_data = values
+			self.model = st.SARIMAX( endog=self.training_data, order=self.order,
+				seasonal_order=self.seasonal_order, enforce_stationarity=False,
+				enforce_invertibility=False )
+			self.results = self.model.fit( disp=False )
+			return self
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SARIMA'
+			exception.method = 'train( self, series: np.ndarray ) -> SARIMA | None'
+			Logger( ).write( exception )
+			raise exception
 	
-			Parameters:
-			-----------
-			n_steps (int): Number of periods to forecast.
-	
-			Returns:
-			--------
-			np.ndarray: Predicted future values.
+	def project( self, n_steps: int = 1 ) -> np.ndarray:
+		"""Project future observations.
 
+				Purpose:
+					Generates a forward forecast from the fitted statsmodels results object for the requested number of future periods.
+
+				Args:
+					n_steps: Number of future periods to forecast.
+
+				Returns:
+					np.ndarray: np.ndarray returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'results', self.results )
-		    throw_if( 'n_steps', n_steps )
-		    if n_steps < 1:
-			    raise ValueError( 'Argument "n_steps" must be greater than zero.' )
-		    
-		    forecast = np.asarray( self.results.forecast( steps=n_steps ), dtype=float )
-		    self.prediction = forecast
-		    return self.prediction
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'SARIMA'
-		    exception.method = 'project'
-		    raise exception
-    
-    def score( self ) -> float | None:
-	    """
+		try:
+			throw_if( 'results', self.results )
+			throw_if( 'n_steps', n_steps )
+			if n_steps < 1:
+				raise ValueError( 'Argument "n_steps" must be greater than zero.' )
+			
+			forecast = np.asarray( self.results.forecast( steps=n_steps ), dtype=float )
+			self.prediction = forecast
+			return self.prediction
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SARIMA'
+			exception.method = 'project( self, n_steps: int=1 ) -> np.ndarray'
+			Logger( ).write( exception )
+			raise exception
 	
-			Purpose:
-			--------
-			Returns R² score on in-sample fitted values.
-	
-			Parameters:
-			-----------
-			None
-	
-			Returns:
-			--------
-			float: R² coefficient of determination.
+	def score( self ) -> float | None:
+		"""Score fitted forecasts.
 
+				Purpose:
+					Computes the coefficient of determination for fitted in-sample values against the original training series.
+
+				Returns:
+					float | None: float | None returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'training_data', self.training_data )
-		    throw_if( 'results', self.results )
-		    y_pred = np.asarray( self.results.fittedvalues, dtype=float ).reshape( -1 )
-		    y_true = np.asarray( self.training_data, dtype=float ).reshape( -1 )
-		    if len( y_pred ) == 0:
-			    raise ValueError( 'SARIMA fitted values are empty.' )
-		    
-		    y_true = y_true[ -len( y_pred ): ]
-		    return float( r2_score( y_true, y_pred ) )
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'SARIMA'
-		    exception.method = 'score'
-		    raise exception
-    
-    def analyze( self ) -> Dict[ str, float ] | None:
-	    """
-
-			Purpose:
-			--------
-			Evaluates SARIMA in-sample accuracy using standard regression metrics.
+		try:
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'results', self.results )
+			y_pred = np.asarray( self.results.fittedvalues, dtype=float ).reshape( -1 )
+			y_true = np.asarray( self.training_data, dtype=float ).reshape( -1 )
+			if len( y_pred ) == 0:
+				raise ValueError( 'SARIMA fitted values are empty.' )
+			
+			y_true = y_true[ -len( y_pred ): ]
+			return float( r2_score( y_true, y_pred ) )
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SARIMA'
+			exception.method = 'score( self ) -> float | None'
+			Logger( ).write( exception )
+			raise exception
 	
-			Parameters:
-			-----------
-			None
-	
-			Returns:
-			--------
-			Dict[ str, float ]: Dictionary of MSE, RMSE, MAE, R², and explained variance.
+	def analyze( self ) -> Dict[ str, float ] | None:
+		"""Analyze forecast residuals.
 
+				Purpose:
+					Computes regression diagnostics for fitted in-sample values against the original training series, including squared error, absolute error, explained variance, maximum error, median absolute error, and coefficient of determination.
+
+				Returns:
+					Dict[str, float] | None: Dict[str, float] | None returned by the forecasting operation.
+
+				Raises:
+					Error: Raised when validation, model execution, forecasting, scoring, or diagnostic calculation fails.
 		"""
-	    try:
-		    throw_if( 'training_data', self.training_data )
-		    throw_if( 'results', self.results )
-		    y_pred = np.asarray( self.results.fittedvalues, dtype=float ).reshape( -1 )
-		    y_true = np.asarray( self.training_data, dtype=float ).reshape( -1 )
-		    if len( y_pred ) == 0:
-			    raise ValueError( 'SARIMA fitted values are empty.' )
-		    
-		    y_true = y_true[ -len( y_pred ): ]
-		    return {
-				    'MSE': mean_squared_error( y_true, y_pred ),
-				    'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
-				    'MAE': mean_absolute_error( y_true, y_pred ),
-				    'MedianAE': median_absolute_error( y_true, y_pred ),
-				    'R2': r2_score( y_true, y_pred ),
-				    'ExplainedVariance': explained_variance_score( y_true, y_pred )
-		    }
-	    except Exception as e:
-		    exception = Error( e )
-		    exception.module = 'mathy'
-		    exception.cause = 'SARIMA'
-		    exception.method = 'analyze'
-		    raise exception
+		try:
+			throw_if( 'training_data', self.training_data )
+			throw_if( 'results', self.results )
+			y_pred = np.asarray( self.results.fittedvalues, dtype=float ).reshape( -1 )
+			y_true = np.asarray( self.training_data, dtype=float ).reshape( -1 )
+			if len( y_pred ) == 0:
+				raise ValueError( 'SARIMA fitted values are empty.' )
+			
+			y_true = y_true[ -len( y_pred ): ]
+			return {
+					'MSE': mean_squared_error( y_true, y_pred ),
+					'RMSE': np.sqrt( mean_squared_error( y_true, y_pred ) ),
+					'MAE': mean_absolute_error( y_true, y_pred ),
+					'MedianAE': median_absolute_error( y_true, y_pred ),
+					'R2': r2_score( y_true, y_pred ),
+					'ExplainedVariance': explained_variance_score( y_true, y_pred )
+			}
+		except Exception as e:
+			exception = Error( e )
+			exception.module = 'mathy'
+			exception.cause = 'SARIMA'
+			exception.method = 'analyze( self ) -> Dict[str, float] | None'
+			Logger( ).write( exception )
+			raise exception
 
 
-            
+   

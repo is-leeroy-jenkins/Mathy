@@ -1,45 +1,48 @@
-'''
-	******************************************************************************************
-	  Assembly:                mathy
-	  Filename:                classifications.py
-	  Author:                  Terry D. Eppler
-	  Created:                 05-31-2022
-	
-	  Last Modified By:        Terry D. Eppler
-	  Last Modified On:        05-01-2025
-	******************************************************************************************
-	<copyright file="classifications.py" company="Terry D. Eppler">
-	
-		 mathy Models
-	
-	 Permission is hereby granted, free of charge, to any person obtaining a copy
-	 of this software and associated documentation files (the “Software”),
-	 to deal in the Software without restriction,
-	 including without limitation the rights to use,
-	 copy, modify, merge, publish, distribute, sublicense,
-	 and/or sell copies of the Software,
-	 and to permit persons to whom the Software is furnished to do so,
-	 subject to the following conditions:
-	
-	 The above copyright notice and this permission notice shall be included in all
-	 copies or substantial portions of the Software.
-	
-	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-	 DEALINGS IN THE SOFTWARE.
-	
-	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-	
-	</copyright>
-	<summary>
-		classifications.py
-	</summary>
-	******************************************************************************************
-'''
+"""******************************************************************************************
+  Assembly:                mathy
+  Filename:                classifications.py
+  Author:                  Terry D. Eppler
+  Created:                 05-31-2022
+
+  Last Modified By:        Terry D. Eppler
+  Last Modified On:        05-01-2025
+******************************************************************************************
+<copyright file="classifications.py" company="Terry D. Eppler">
+
+     mathy Models
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the “Software”),
+ to deal in the Software without restriction,
+ including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software,
+ and to permit persons to whom the Software is furnished to do so,
+ subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+
+ You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+
+</copyright>
+<summary>
+    Provides classification wrappers and diagnostics for Mathy modeling workflows. The
+    module centralizes linear classifiers, tree classifiers, ensemble classifiers,
+    nearest-neighbor classifiers, support-vector classifiers, neural-network classifiers,
+    train/test splitting, prediction, scoring, probability estimation, confusion matrices,
+    ROC calculations, and exploratory plotting behind a consistent wrapper interface.
+</summary>
+******************************************************************************************
+"""
 from __future__ import annotations
 from typing import Dict
 from typing import Optional, List, Tuple, Any
@@ -65,20 +68,52 @@ from sklearn.metrics import (recall_score, precision_score, confusion_matrix, cl
                              hinge_loss, log_loss, mean_squared_error, root_mean_squared_error,
                              mean_absolute_error, median_absolute_error)
 from sklearn.preprocessing import Binarizer
-from boogr import Error
+from boogr import Error, Logger
 
 def throw_if( name: str, value: object ):
+	"""Validate a required argument.
+
+		Purpose:
+		    Raises an exception when a required argument is missing so classifier methods fail before
+		    downstream sklearn operations receive invalid input.
+
+		Args:
+		    name: Argument name used in the validation error message.
+		    value: Argument value checked for missing state.
+
+		Raises:
+		    Exception: Raised when `value` is `None`.
+	"""
 	if value is None:
 		raise Exception( f'Argument "{name}" cannot be empty!' )
 
-
 class Classifier( ):
-	"""
+	"""Classifier classifier wrapper.
 
 		Purpose:
-		---------
-		Abstract base class that defines the interface for all classification wrappers.
+		    Defines the shared interface and diagnostic state for Mathy classification wrappers,
+		    including training, prediction, scoring, reporting, confusion-matrix generation, and
+		    exploratory visualization contracts used by concrete classifier implementations.
 
+		Attributes:
+		    max_iter: Max iter value maintained by the Classifier wrapper.
+		    random_state: Random state value maintained by the Classifier wrapper.
+		    learning_rate: Learning rate value maintained by the Classifier wrapper.
+		    binarizer: Binarizer value maintained by the Classifier wrapper.
+		    prediction: Prediction value maintained by the Classifier wrapper.
+		    probability: Probability value maintained by the Classifier wrapper.
+		    decision: Decision value maintained by the Classifier wrapper.
+		    misclass: Misclass value maintained by the Classifier wrapper.
+		    accuracy: Accuracy value maintained by the Classifier wrapper.
+		    precision: Precision value maintained by the Classifier wrapper.
+		    recall: Recall value maintained by the Classifier wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the Classifier wrapper.
+		    f1_score: F1 score value maintained by the Classifier wrapper.
+		    training_score: Training score value maintained by the Classifier wrapper.
+		    testing_score: Testing score value maintained by the Classifier wrapper.
+		    classification_report: Classification report value maintained by the Classifier wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the Classifier wrapper.
+		    markers: Markers value maintained by the Classifier wrapper.
 	"""
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
@@ -100,20 +135,12 @@ class Classifier( ):
 	markers: Optional[ List[ str ] ]
 	
 	def __init__( self ) -> None:
-		"""
+		"""Initialize Classifier.
 
-			Purpose:
-			---------
-			Initialize shared wrapper state.
-
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Purpose:
+				    Initializes the Classifier wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 		"""
 		self.markers = [ '.',
 		                 'o',
@@ -154,118 +181,101 @@ class Classifier( ):
 	
 	def split_data( self, X: np.ndarray,
 			y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ] | None:
-		"""
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split feature and target arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ] | None
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		raise NotImplementedError
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the classifier to the training data.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			object | None
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		raise NotImplementedError
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Generate predicted class labels from the trained classifier.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		raise NotImplementedError
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary metrics for classifier predictions.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame | None
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		raise NotImplementedError
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame | None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Perform tabular or diagnostic analysis for the classifier.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame | None
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		raise NotImplementedError
 	
 	def classification_scores( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Calculate classification metrics.
 
-			Purpose:
-			---------
-			Compute stable scalar classification metrics for UI display using
-			the supplied evaluation data.
+				Purpose:
+				    Builds a classification metrics dataframe from predictions and target labels, including
+				    accuracy, precision, recall, F1, and related diagnostic measures.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -309,24 +319,22 @@ class Classifier( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Classifier'
-			exception.method = 'classification_scores( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'classification_scores( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def correlation_heatmap( self, X: np.ndarray ) -> None:
-		"""
+		"""Render a correlation heatmap.
 
-			Purpose:
-			---------
-			Render a correlation heatmap for the supplied feature matrix.
+				Purpose:
+				    Renders a correlation heatmap for numeric feature data to support exploratory analysis
+				    before classification modeling.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -343,24 +351,25 @@ class Classifier( ):
 			exception.module = 'mathy'
 			exception.cause = 'Classifier'
 			exception.method = 'correlation_heatmap( self, X: np.ndarray ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -376,21 +385,35 @@ class Classifier( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Classifier'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	_classification_scores = classification_scores
 	_correlation_heatmap = correlation_heatmap
 
-
 class Perceptron( Classifier ):
-	"""
+	"""Perceptron classifier wrapper.
 
 		Purpose:
-		---------
-		Perceptron functionality behind the Mathy
-		classification interface used by the surrounding module.
+		    Wraps sklearn.linear_model.Perceptron for linear classification with configurable
+		    regularization, learning rate, iteration count, shuffling behavior, and random state while
+		    exposing consistent Mathy training and evaluation methods.
 
+		Attributes:
+		    model: Model value maintained by the Perceptron wrapper.
+		    binarizer: Binarizer value maintained by the Perceptron wrapper.
+		    prediction: Prediction value maintained by the Perceptron wrapper.
+		    decision: Decision value maintained by the Perceptron wrapper.
+		    random_state: Random state value maintained by the Perceptron wrapper.
+		    alpha: Alpha value maintained by the Perceptron wrapper.
+		    max_iter: Max iter value maintained by the Perceptron wrapper.
+		    shuffle: Shuffle value maintained by the Perceptron wrapper.
+		    penalty: Penalty value maintained by the Perceptron wrapper.
+		    training_score: Training score value maintained by the Perceptron wrapper.
+		    testing_score: Testing score value maintained by the Perceptron wrapper.
+		    classification_report: Classification report value maintained by the Perceptron wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the Perceptron wrapper.
 	"""
 	model: skc.Perceptron
 	binarizer: Optional[ Binarizer ]
@@ -406,28 +429,23 @@ class Perceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.001, eta: float=1.0, iters: int=1000,
-			shuffle: bool=False, penalty: Optional[ str ] = None,
-			random: int=42 ) -> None:
-		"""
+	def __init__( self, alpha: float = 0.001, eta: float = 1.0, iters: int = 1000,
+			shuffle: bool = False, penalty: Optional[ str ] = None,
+			random: int = 42 ) -> None:
+		"""Initialize Perceptron.
 
-			Purpose:
-			---------
-			Initialize the Perceptron classifier wrapper.
+				Purpose:
+				    Initializes the Perceptron wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			alpha (float): Regularization strength.
-			eta (float): Initial learning-rate value passed as eta0.
-			iters (int): Maximum number of iterations.
-			shuffle (bool): Whether to shuffle the training data after each epoch.
-			penalty (Optional[ str ]): Penalty term applied during fitting.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
+				    eta: Learning-rate parameter assigned to the estimator.
+				    iters: Maximum iteration count assigned to the estimator.
+				    shuffle: Flag indicating whether samples are shuffled during estimator training.
+				    penalty: Regularization penalty assigned to the estimator.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.binarizer = Binarizer( threshold=0.5 )
@@ -448,20 +466,14 @@ class Perceptron( Classifier ):
 		)
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -487,20 +499,14 @@ class Perceptron( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			---------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid_penalties = { None, 'l2', 'l1', 'elasticnet' }
@@ -521,24 +527,22 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			---------
-			Return fitted feature weights.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The Perceptron data is untrained.' )
@@ -546,20 +550,17 @@ class Perceptron( Classifier ):
 	
 	@property
 	def iterations( self ) -> np.ndarray:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of completed fitting iterations.
+				Purpose:
+				    Returns fitted iteration-count metadata from the underlying classifier for convergence
+				    inspection.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted iteration metadata from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -567,45 +568,41 @@ class Perceptron( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> Tuple[
+			size: float = 0.2, random: int = 42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -615,27 +612,25 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate decision scores.
 
-			Purpose:
-			---------
-			Compute decision scores for the supplied features.
+				Purpose:
+				    Calculates classifier decision scores, margins, or distances from the fitted estimator for
+				    ranking, thresholding, and diagnostic workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Decision-score array for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -646,24 +641,25 @@ class Perceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Perceptron | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the Perceptron classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Perceptron | None
+				Returns:
+				    Perceptron | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -675,26 +671,26 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Perceptron | None'
+			exception.method = 'train( self, *args ) -> Perceptron | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -704,25 +700,26 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -730,25 +727,26 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Return tabular classifier metrics for analysis.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -760,25 +758,26 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -794,25 +793,23 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -851,24 +848,33 @@ class Perceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Perceptron'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class LeastSquares( Classifier ):
-	"""
-	
+	"""LeastSquares classifier wrapper.
+
 		Purpose:
-		--------
-		Least Squares Regression fits a linear model with coefficients w = (w1, …, wp)
-		to minimize the residual sum of squares between the observed targets
-		in the dataset, and the targets predicted by the linear approximation.
-		
-		Parameters:
-		----------
-		threshold (float, optional):
-		Threshold above which predictions are considered class 1 (default: 0.5).
-		
+		    Wraps sklearn.linear_model.PassiveAggressiveClassifier-style least-squares classification
+		    behavior for linear margin-based classification with configurable regularization, learning
+		    rate, iteration count, and random state.
+
+		Attributes:
+		    model: Model value maintained by the LeastSquares wrapper.
+		    binarizer: Binarizer value maintained by the LeastSquares wrapper.
+		    prediction: Prediction value maintained by the LeastSquares wrapper.
+		    decision: Decision value maintained by the LeastSquares wrapper.
+		    random_state: Random state value maintained by the LeastSquares wrapper.
+		    alpha: Alpha value maintained by the LeastSquares wrapper.
+		    max_iter: Max iter value maintained by the LeastSquares wrapper.
+		    shuffle: Shuffle value maintained by the LeastSquares wrapper.
+		    penalty: Penalty value maintained by the LeastSquares wrapper.
+		    probability: Probability value maintained by the LeastSquares wrapper.
+		    training_score: Training score value maintained by the LeastSquares wrapper.
+		    testing_score: Testing score value maintained by the LeastSquares wrapper.
+		    classification_report: Classification report value maintained by the LeastSquares wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the LeastSquares wrapper.
 	"""
 	model: skc.SGDClassifier
 	binarizer: Optional[ Binarizer ]
@@ -885,28 +891,23 @@ class LeastSquares( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.0001, eta: float=0.01, iters: int=1000,
-			shuffle: bool=False, penalty: Optional[ str ] = 'l2',
-			random: int=42 ) -> None:
-		"""
+	def __init__( self, alpha: float = 0.0001, eta: float = 0.01, iters: int = 1000,
+			shuffle: bool = False, penalty: Optional[ str ] = 'l2',
+			random: int = 42 ) -> None:
+		"""Initialize LeastSquares.
 
-			Purpose:
-			---------
-			Initialize the Least Squares classification wrapper.
+				Purpose:
+				    Initializes the LeastSquares wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			alpha (float): Regularization strength.
-			eta (float): Initial learning-rate value passed as eta0.
-			iters (int): Maximum number of iterations.
-			shuffle (bool): Whether to shuffle the training data after each epoch.
-			penalty (Optional[ str ]): Penalty term applied during fitting.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
+				    eta: Learning-rate parameter assigned to the estimator.
+				    iters: Maximum iteration count assigned to the estimator.
+				    shuffle: Flag indicating whether samples are shuffled during estimator training.
+				    penalty: Regularization penalty assigned to the estimator.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.binarizer = Binarizer( threshold=0.5 )
@@ -922,20 +923,14 @@ class LeastSquares( Classifier ):
 			penalty=self.penalty, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -960,20 +955,14 @@ class LeastSquares( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			---------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid_penalties = { None, 'l2', 'l1', 'elasticnet' }
@@ -994,24 +983,22 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			---------
-			Return fitted feature weights.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1019,20 +1006,17 @@ class LeastSquares( Classifier ):
 	
 	@property
 	def iterations( self ) -> np.ndarray:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of completed fitting iterations.
+				Purpose:
+				    Returns fitted iteration-count metadata from the underlying classifier for convergence
+				    inspection.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted iteration metadata from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1040,45 +1024,41 @@ class LeastSquares( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> Tuple[
+			size: float = 0.2, random: int = 42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1088,27 +1068,25 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate decision scores.
 
-			Purpose:
-			---------
-			Compute decision scores for the supplied features.
+				Purpose:
+				    Calculates classifier decision scores, margins, or distances from the fitted estimator for
+				    ranking, thresholding, and diagnostic workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Decision-score array for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1119,24 +1097,25 @@ class LeastSquares( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the Least Squares classification wrapper.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			LeastSquares | None
+				Returns:
+				    LeastSquares | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1148,26 +1127,26 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LeastSquares | None'
+			exception.method = 'train( self, *args ) -> LeastSquares | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1177,25 +1156,26 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -1203,25 +1183,26 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Return tabular classifier metrics for analysis.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1233,25 +1214,26 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1267,25 +1249,23 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1310,20 +1290,40 @@ class LeastSquares( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class LogisticRegression( Classifier ):
-	"""
+	"""LogisticRegression classifier wrapper.
 
 		Purpose:
-		--------
-		Wrap scikit-learn LogisticRegression behind the Mathy classification
-		interface used by the Streamlit application. This implementation
-		supports binary and multiclass classification, tabular metric analysis,
-		confusion matrix rendering, and binary ROC visualization.
+		    Wraps sklearn.linear_model.LogisticRegression for probabilistic linear classification with
+		    configurable penalty, inverse regularization strength, solver, multiclass handling,
+		    iteration count, and random state.
 
+		Attributes:
+		    model: Model value maintained by the LogisticRegression wrapper.
+		    binarizer: Binarizer value maintained by the LogisticRegression wrapper.
+		    prediction: Prediction value maintained by the LogisticRegression wrapper.
+		    decision: Decision value maintained by the LogisticRegression wrapper.
+		    probability: Probability value maintained by the LogisticRegression wrapper.
+		    transformed_data: Transformed data value maintained by the LogisticRegression wrapper.
+		    random_state: Random state value maintained by the LogisticRegression wrapper.
+		    penalty: Penalty value maintained by the LogisticRegression wrapper.
+		    multi_class: Multi class value maintained by the LogisticRegression wrapper.
+		    C: C value maintained by the LogisticRegression wrapper.
+		    max_iter: Max iter value maintained by the LogisticRegression wrapper.
+		    solver: Solver value maintained by the LogisticRegression wrapper.
+		    accuracy: Accuracy value maintained by the LogisticRegression wrapper.
+		    precision: Precision value maintained by the LogisticRegression wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the LogisticRegression wrapper.
+		    recall: Recall value maintained by the LogisticRegression wrapper.
+		    f1_score: F1 score value maintained by the LogisticRegression wrapper.
+		    training_score: Training score value maintained by the LogisticRegression wrapper.
+		    testing_score: Testing score value maintained by the LogisticRegression wrapper.
+		    classification_report: Classification report value maintained by the LogisticRegression wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the LogisticRegression wrapper.
 	"""
 	model: skc.LogisticRegression
 	binarizer: Optional[ Binarizer ]
@@ -1347,29 +1347,23 @@ class LogisticRegression( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
-			multiclass: str='multinomial', solver: str='lbfgs',
-			random: int=42 ) -> None:
-		"""
+	def __init__( self, C: float = 1.0, penalty: str = 'l2', iters: int = 1000,
+			multiclass: str = 'multinomial', solver: str = 'lbfgs',
+			random: int = 42 ) -> None:
+		"""Initialize LogisticRegression.
 
-			Purpose:
-			--------
-			Initialize the Logistic Regression classifier.
+				Purpose:
+				    Initializes the LogisticRegression wrapper by assigning configuration values, constructing
+				    the underlying sklearn estimator when applicable, and preparing runtime state used by
+				    training, prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			C (float): Inverse regularization strength.
-			penalty (str): Penalty norm retained for wrapper compatibility.
-			iters (int): Maximum number of optimization iterations.
-			multiclass (str): Requested multiclass mode retained for wrapper
-				compatibility.
-			solver (str): Optimization solver.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    C: Inverse regularization strength assigned to the estimator.
+				    penalty: Regularization penalty assigned to the estimator.
+				    iters: Maximum iteration count assigned to the estimator.
+				    multiclass: Multiclass handling strategy assigned to the estimator.
+				    solver: Optimization solver assigned to the estimator.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.C = C
@@ -1383,20 +1377,14 @@ class LogisticRegression( Classifier ):
 			solver=self.solver, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'penalty',
@@ -1424,20 +1412,14 @@ class LogisticRegression( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			--------
-			Validate wrapper-level settings before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			supported_solvers = { 'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag',
@@ -1459,24 +1441,22 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			--------
-			Return fitted coefficient weights.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'coef_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1484,20 +1464,16 @@ class LogisticRegression( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1505,44 +1481,41 @@ class LogisticRegression( Classifier ):
 	
 	@property
 	def iterations( self ) -> np.ndarray:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			--------
-			Return the number of completed optimization iterations.
+				Purpose:
+				    Returns fitted iteration-count metadata from the underlying classifier for convergence
+				    inspection.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted iteration metadata from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_iter_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1554,27 +1527,25 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate decision scores.
 
-			Purpose:
-			--------
-			Compute confidence scores for the supplied features.
+				Purpose:
+				    Calculates classifier decision scores, margins, or distances from the fitted estimator for
+				    ranking, thresholding, and diagnostic workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Decision-score array for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1585,23 +1556,24 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			--------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1612,24 +1584,25 @@ class LogisticRegression( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegression | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the logistic regression model.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			LogisticRegression | None
+				Returns:
+				    LogisticRegression | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1641,26 +1614,26 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> LogisticRegression | None'
+			exception.method = 'train( self, *args ) -> LogisticRegression | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels from input features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1670,25 +1643,26 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -1696,25 +1670,26 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Return tabular classifier metrics for Streamlit display.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1726,25 +1701,26 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			--------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1760,25 +1736,26 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			--------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1806,25 +1783,23 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1863,26 +1838,35 @@ class LogisticRegression( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LogisticRegression'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
-	
+
 class Ridge( Classifier ):
-	"""
+	"""Ridge classifier wrapper.
 
 		Purpose:
-		--------
-		A classifier that first converts binary targets to {-1, 1} and then treats the problem as a
-		regression task, optimizing the same objective as above. The predicted class corresponds
-		to the sign of the regressor’s prediction. For multiclass classification, the problem is
-		treated as multi-output regression, and the predicted class corresponds to the output
-		with the highest value. It might seem questionable to use a (penalized) Least Squares loss to fit a classification
-		model instead of the more traditional logistic or hinge losses. However, in practice,
-		all those models can lead to similar cross-validation scores in terms of accuracy
-		or precision/recall, while the penalized least squares loss used by the RidgeClassifier
-		allows for a very different choice of the numerical solvers with
-		distinct computational performance profiles.
+		    Wraps sklearn.linear_model.RidgeClassifier for linear classification with L2 regularization,
+		    solver selection, iteration control, fitted coefficient access, and Mathy scoring and
+		    visualization helpers.
 
+		Attributes:
+		    model: Model value maintained by the Ridge wrapper.
+		    prediction: Prediction value maintained by the Ridge wrapper.
+		    probability: Probability value maintained by the Ridge wrapper.
+		    decision: Decision value maintained by the Ridge wrapper.
+		    random_state: Random state value maintained by the Ridge wrapper.
+		    alpha: Alpha value maintained by the Ridge wrapper.
+		    solver: Solver value maintained by the Ridge wrapper.
+		    accuracy: Accuracy value maintained by the Ridge wrapper.
+		    precision: Precision value maintained by the Ridge wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the Ridge wrapper.
+		    recall: Recall value maintained by the Ridge wrapper.
+		    f1_score: F1 score value maintained by the Ridge wrapper.
+		    training_score: Training score value maintained by the Ridge wrapper.
+		    testing_score: Testing score value maintained by the Ridge wrapper.
+		    classification_report: Classification report value maintained by the Ridge wrapper.
+		    confusion_matrix: Confusion matrix value maintained by the Ridge wrapper.
 	"""
 	model: skc.RidgeClassifier
 	prediction: Optional[ np.ndarray ]
@@ -1901,24 +1885,20 @@ class Ridge( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, solver: str='auto', iters: int=1000, rando: int=42 ) -> None:
-		"""
+	def __init__( self, alpha: float = 1.0, solver: str = 'auto', iters: int = 1000,
+			rando: int = 42 ) -> None:
+		"""Initialize Ridge.
 
-			Purpose:
-			--------
-			Initialize the Ridge classifier.
+				Purpose:
+				    Initializes the Ridge wrapper by assigning configuration values, constructing the underlying
+				    sklearn estimator when applicable, and preparing runtime state used by training, prediction,
+				    scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			alpha (float): Regularization strength.
-			solver (str): Solver used by RidgeClassifier.
-			iters (int): Maximum number of iterations where supported by the solver.
-			rando (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
+				    solver: Optimization solver assigned to the estimator.
+				    iters: Maximum iteration count assigned to the estimator.
+				    rando: Random seed assigned to the estimator.
 		"""
 		super( ).__init__( )
 		self.alpha = alpha
@@ -1933,20 +1913,14 @@ class Ridge( Classifier ):
 		)
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'max_iter',
@@ -1972,20 +1946,17 @@ class Ridge( Classifier ):
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			--------
-			Return fitted coefficient weights.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.coef_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1993,20 +1964,16 @@ class Ridge( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2014,44 +1981,40 @@ class Ridge( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			--------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
-			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			tuple
+				Returns:
+				    (np.ndarray, np.ndarray, np.ndarray, np.ndarray): Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2063,25 +2026,26 @@ class Ridge( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, *args ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray)'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Ridge | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the Ridge classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Ridge | None
+				Returns:
+				    Ridge | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2092,25 +2056,26 @@ class Ridge( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, *args ) -> Ridge | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
-		"""
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2120,25 +2085,26 @@ class Ridge( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -2146,25 +2112,23 @@ class Ridge( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Render a correlation heatmap for the supplied features.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'y', y )
@@ -2173,24 +2137,25 @@ class Ridge( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate decision scores.
 
-			Purpose:
-			--------
-			Compute decision scores for the supplied features.
+				Purpose:
+				    Calculates classifier decision scores, margins, or distances from the fitted estimator for
+				    ranking, thresholding, and diagnostic workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Decision-score array for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2201,24 +2166,22 @@ class Ridge( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2243,29 +2206,37 @@ class Ridge( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
-			
+
 class Lasso( Classifier ):
-	"""
-	
+	"""Lasso classifier wrapper.
+
 		Purpose:
-		---------
-		Linear Model trained with L1 prior as regularizer
-	
-		Parameters:
-		------------
-		alpha (float, optional):
-		Threshold above which predictions are considered class 1 (default: 0.1).
-		
+		    Wraps sklearn.linear_model.Lasso-derived classification behavior by thresholding continuous
+		    projections into class predictions while exposing coefficient inspection, splitting,
+		    scoring, and visualization utilities.
+
 		Attributes:
-		-----------
-		model (Lasso):
-		Underlying scikit-learn Lasso model.
-		threshold (float):
-		Threshold for classification decision boundary.
-	
+		    model: Model value maintained by the Lasso wrapper.
+		    prediction: Prediction value maintained by the Lasso wrapper.
+		    binarizer: Binarizer value maintained by the Lasso wrapper.
+		    probability: Probability value maintained by the Lasso wrapper.
+		    decision: Decision value maintained by the Lasso wrapper.
+		    random_state: Random state value maintained by the Lasso wrapper.
+		    selection: Selection value maintained by the Lasso wrapper.
+		    alpha: Alpha value maintained by the Lasso wrapper.
+		    threshold: Threshold value maintained by the Lasso wrapper.
+		    accuracy: Accuracy value maintained by the Lasso wrapper.
+		    precision: Precision value maintained by the Lasso wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the Lasso wrapper.
+		    recall: Recall value maintained by the Lasso wrapper.
+		    f1_score: F1 score value maintained by the Lasso wrapper.
+		    training_score: Training score value maintained by the Lasso wrapper.
+		    testing_score: Testing score value maintained by the Lasso wrapper.
+		    classification_report: Classification report value maintained by the Lasso wrapper.
+		    confusion_matrix: Confusion matrix value maintained by the Lasso wrapper.
 	"""
 	model: skc.Lasso
 	prediction: Optional[ np.ndarray ]
@@ -2286,26 +2257,22 @@ class Lasso( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42, threshold: float=0.5, 
-			selection: str='random' ) -> None:
-		"""
+	def __init__( self, alpha: float = 1.0, iters: int = 500, rando: int = 42,
+			threshold: float = 0.5,
+			selection: str = 'random' ) -> None:
+		"""Initialize Lasso.
 
-			Purpose:
-			---------
-			Initialize the thresholded Lasso wrapper.
+				Purpose:
+				    Initializes the Lasso wrapper by assigning configuration values, constructing the underlying
+				    sklearn estimator when applicable, and preparing runtime state used by training, prediction,
+				    scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			alpha (float): Regularization strength.
-			iters (int): Maximum number of coordinate-descent iterations.
-			rando (int): Random seed.
-			threshold (float): Threshold used to convert regression output to class labels.
-			selection (str): Coordinate update order.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
+				    iters: Maximum iteration count assigned to the estimator.
+				    rando: Random seed assigned to the estimator.
+				    threshold: Decision threshold used to convert continuous outputs into class labels.
+				    selection: Coordinate-selection strategy assigned to the estimator.
 		"""
 		super( ).__init__( )
 		self.alpha = alpha
@@ -2318,20 +2285,14 @@ class Lasso( Classifier ):
 			random_state=self.random_state, selection=self.selection )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'max_iter',
@@ -2357,20 +2318,17 @@ class Lasso( Classifier ):
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			---------
-			Return fitted regression coefficients.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.coef_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2378,20 +2336,17 @@ class Lasso( Classifier ):
 	
 	@property
 	def iterations( self ) -> int:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of coordinate-descent iterations used during fitting.
+				Purpose:
+				    Returns fitted iteration-count metadata from the underlying classifier for convergence
+				    inspection.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Fitted iteration metadata from the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2399,44 +2354,40 @@ class Lasso( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
-			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			tuple
+				Returns:
+				    (np.ndarray, np.ndarray, np.ndarray, np.ndarray): Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2447,25 +2398,26 @@ class Lasso( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, *args ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray)'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> Lasso | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the Lasso regression model.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Binary target vector encoded numerically.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Lasso | None
+				Returns:
+				    Lasso | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2476,25 +2428,26 @@ class Lasso( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> Lasso'
+			exception.method = 'train( self, *args ) -> Lasso | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
-		"""
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Convert continuous regression predictions to binary class labels.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2506,25 +2459,26 @@ class Lasso( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics for thresholded predictions.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True binary class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -2532,25 +2486,23 @@ class Lasso( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Render a correlation heatmap for the supplied features.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'y', y )
@@ -2559,25 +2511,23 @@ class Lasso( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against continuous regression estimates.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): True class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2603,34 +2553,38 @@ class Lasso( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class GradientDescent( Classifier ):
-	"""
+	"""GradientDescent classifier wrapper.
 
 		Purpose:
-		--------
-		Linear classifiers (SVM, logistic regression, etc.) with Stochastic Gradient Descent (SGD)
-		training.  This estimator implements regularized linear models with stochastic
-		gradient descent learning:
-		
-		The gradient of the loss is estimated each sample at a time and the model is updated along
-		the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch
-		(online/out-of-core) learning via the partial_fit method. For best results using the
-		default learning rate schedule, the stores should have zero mean and unit variance.
+		    Wraps sklearn.linear_model.SGDClassifier for stochastic-gradient linear classification with
+		    configurable loss, regularization, averaging, learning-rate schedule, and iteration control.
 
-		This implementation works with stores represented as dense or sparse arrays of floating point
-		 values for the feature_names. The model it fits can be controlled with the loss parameter;
-		 by default, it fits a linear support vector machine (SVM).
-
-		The regularizer is a penalty added to the loss function that shrinks model parameters
-		towards the zero vector using either the squared Euclidean norm L2 or the absolute norm
-		L1 or a combination of both (Elastic Net). If the parameter update crosses the 0.0 value
-		because of the regularizer, the update is truncated to 0.0 to allow for learning sparse
-		 models and achieve online feature selection.
-
+		Attributes:
+		    model: Model value maintained by the GradientDescent wrapper.
+		    prediction: Prediction value maintained by the GradientDescent wrapper.
+		    probability: Probability value maintained by the GradientDescent wrapper.
+		    decision: Decision value maintained by the GradientDescent wrapper.
+		    max_iter: Max iter value maintained by the GradientDescent wrapper.
+		    random_state: Random state value maintained by the GradientDescent wrapper.
+		    loss: Loss value maintained by the GradientDescent wrapper.
+		    learning_rate: Learning rate value maintained by the GradientDescent wrapper.
+		    average: Average value maintained by the GradientDescent wrapper.
+		    regularization: Regularization value maintained by the GradientDescent wrapper.
+		    alpha: Alpha value maintained by the GradientDescent wrapper.
+		    accuracy: Accuracy value maintained by the GradientDescent wrapper.
+		    precision: Precision value maintained by the GradientDescent wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the GradientDescent wrapper.
+		    recall: Recall value maintained by the GradientDescent wrapper.
+		    f1_score: F1 score value maintained by the GradientDescent wrapper.
+		    training_score: Training score value maintained by the GradientDescent wrapper.
+		    testing_score: Testing score value maintained by the GradientDescent wrapper.
+		    classification_report: Classification report value maintained by the GradientDescent wrapper.
+		    confusion_matrix: Confusion matrix value maintained by the GradientDescent wrapper.
 	"""
 	model: skc.SGDClassifier
 	prediction: Optional[ np.ndarray ]
@@ -2653,27 +2607,23 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str='hinge', iters: int=100, reg: str='l2', alpha: float=0.00001,
-			ave: bool=True, rate: str='optimal' ) -> None:
-		"""
+	def __init__( self, loss: str = 'hinge', iters: int = 100, reg: str = 'l2',
+			alpha: float = 0.00001,
+			ave: bool = True, rate: str = 'optimal' ) -> None:
+		"""Initialize GradientDescent.
 
-			Purpose:
-			---------
-			Initialize the SGD classifier wrapper.
+				Purpose:
+				    Initializes the GradientDescent wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			loss (str): Loss function used by SGDClassifier.
-			iters (int): Maximum number of iterations.
-			reg (str): Regularization penalty.
-			alpha (float): Regularization strength.
-			ave (bool): Whether to use averaged SGD weights.
-			rate (str): Learning-rate schedule.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    loss: Loss function assigned to the estimator.
+				    iters: Maximum iteration count assigned to the estimator.
+				    reg: Regularization penalty assigned to the estimator.
+				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
+				    ave: Flag controlling averaged stochastic-gradient behavior.
+				    rate: Learning-rate or boosting-rate value assigned to the estimator.
 		"""
 		super( ).__init__( )
 		self.loss = loss
@@ -2682,25 +2632,19 @@ class GradientDescent( Classifier ):
 		self.regularization = reg
 		self.alpha = alpha
 		self.average = ave
-		self.model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter, 
+		self.model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
 			penalty=self.regularization, alpha=self.alpha, average=self.average,
 			learning_rate=self.learning_rate )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'max_iter',
@@ -2730,20 +2674,17 @@ class GradientDescent( Classifier ):
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			---------
-			Return fitted linear coefficients.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.coef_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2751,20 +2692,17 @@ class GradientDescent( Classifier ):
 	
 	@property
 	def iterations( self ) -> np.ndarray:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of completed fitting iterations.
+				Purpose:
+				    Returns fitted iteration-count metadata from the underlying classifier for convergence
+				    inspection.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted iteration metadata from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_iter_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2772,20 +2710,16 @@ class GradientDescent( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2793,44 +2727,40 @@ class GradientDescent( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,  np.ndarray):
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target vector.
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			tuple
+				Returns:
+				    (np.ndarray, np.ndarray, np.ndarray, np.ndarray): Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2841,25 +2771,26 @@ class GradientDescent( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, *args ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray)'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientDescent | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the SGD classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			GradientDescent | None
+				Returns:
+				    GradientDescent | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2870,25 +2801,26 @@ class GradientDescent( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, *args ) -> GradientDescent | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
-		"""
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the provided features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2898,25 +2830,26 @@ class GradientDescent( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -2924,25 +2857,23 @@ class GradientDescent( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Render a correlation heatmap for the supplied features.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'y', y )
@@ -2951,24 +2882,25 @@ class GradientDescent( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate decision scores.
 
-			Purpose:
-			---------
-			Compute decision scores for the supplied features.
+				Purpose:
+				    Calculates classifier decision scores, margins, or distances from the fitted estimator for
+				    ranking, thresholding, and diagnostic workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Decision-score array for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2979,23 +2911,24 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			---------
-			Return class-probability estimates when the selected loss supports them.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3011,24 +2944,22 @@ class GradientDescent( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): True class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3053,24 +2984,36 @@ class GradientDescent( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class NearestNeighbor( Classifier ):
-	"""
+	"""NearestNeighbor classifier wrapper.
 
 		Purpose:
-		--------
-		The principle behind the k-nearest neighbor methods is to find a predefined number of
-		training samples closest in distance to the new point, and predict the label from these.
-		The number of samples can be a user-defined constant (k-nearest neighbor rate),
-		or vary based on the local density of points (radius-based neighbor rate).
-		The distance can, in general, be any metric measure: standard Euclidean distance is the
-		most common choice. Neighbors-based methods are known as non-generalizing
-		machine rate methods, since they simply “remember” all of its training df
-		(possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree).
+		    Wraps sklearn.neighbors.KNeighborsClassifier for instance-based classification using
+		    configurable neighbor count, search algorithm, leaf size, distance metric, and Minkowski
+		    power.
 
+		Attributes:
+		    model: Model value maintained by the NearestNeighbor wrapper.
+		    prediction: Prediction value maintained by the NearestNeighbor wrapper.
+		    probability: Probability value maintained by the NearestNeighbor wrapper.
+		    n_neighbors: N neighbors value maintained by the NearestNeighbor wrapper.
+		    leaf_size: Leaf size value maintained by the NearestNeighbor wrapper.
+		    power: Power value maintained by the NearestNeighbor wrapper.
+		    algorithm: Algorithm value maintained by the NearestNeighbor wrapper.
+		    metric: Metric value maintained by the NearestNeighbor wrapper.
+		    accuracy: Accuracy value maintained by the NearestNeighbor wrapper.
+		    precision: Precision value maintained by the NearestNeighbor wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the NearestNeighbor wrapper.
+		    recall: Recall value maintained by the NearestNeighbor wrapper.
+		    f1_score: F1 score value maintained by the NearestNeighbor wrapper.
+		    training_score: Training score value maintained by the NearestNeighbor wrapper.
+		    testing_score: Testing score value maintained by the NearestNeighbor wrapper.
+		    classification_report: Classification report value maintained by the NearestNeighbor wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the NearestNeighbor wrapper.
 	"""
 	model: skn.KNeighborsClassifier
 	prediction: Optional[ np.ndarray ]
@@ -3090,26 +3033,21 @@ class NearestNeighbor( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int=5, algorithm: str='auto',
-			power: int=2, metric: str='minkowski', leafs: int=30 ) -> None:
-		"""
+	def __init__( self, num: int = 5, algorithm: str = 'auto',
+			power: int = 2, metric: str = 'minkowski', leafs: int = 30 ) -> None:
+		"""Initialize NearestNeighbor.
 
-			Purpose:
-			--------
-			Initialize the K-Nearest Neighbors classifier.
+				Purpose:
+				    Initializes the NearestNeighbor wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			num (int): Number of neighbors.
-			algorithm (str): Neighbor search algorithm.
-			power (int): Power parameter for the Minkowski metric.
-			metric (str): Distance metric.
-			leafs (int): Leaf size for BallTree or KDTree.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    num: Number of neighbors, estimators, or model components assigned to the wrapper.
+				    algorithm: Algorithm option assigned to the estimator.
+				    power: Minkowski distance power assigned to the estimator.
+				    metric: Distance metric assigned to the estimator.
+				    leafs: Leaf-size parameter assigned to the nearest-neighbor estimator.
 		"""
 		super( ).__init__( )
 		self.n_neighbors = num
@@ -3118,24 +3056,19 @@ class NearestNeighbor( Classifier ):
 		self.metric = metric
 		self.leaf_size = leafs
 		self.validate_configuration( )
-		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors, algorithm=self.algorithm,
+		self.model = skn.KNeighborsClassifier( n_neighbors=self.n_neighbors,
+			algorithm=self.algorithm,
 			p=self.power, metric=self.metric, leaf_size=self.leaf_size )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -3165,26 +3098,20 @@ class NearestNeighbor( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			--------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid_algorithms = { 'auto', 'ball_tree', 'kd_tree', 'brute' }
 			_valid_metrics = { 'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'hamming',
-					'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
-					'nan_euclidean', 'mahalanobis', 'seuclidean' }
+			                   'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
+			                   'nan_euclidean', 'mahalanobis', 'seuclidean' }
 			if self.algorithm not in _valid_algorithms:
 				raise ValueError( f'Unsupported algorithm: {self.algorithm}' )
 			
@@ -3201,24 +3128,21 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3226,20 +3150,16 @@ class NearestNeighbor( Classifier ):
 	
 	@property
 	def features_in( self ) -> int:
-		"""
+		"""Return features in metadata.
 
-			Purpose:
-			--------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3247,44 +3167,40 @@ class NearestNeighbor( Classifier ):
 	
 	@property
 	def samples( self ) -> int:
-		"""
+		"""Return samples metadata.
 
-			Purpose:
-			--------
-			Return the number of samples fit during training.
+				Purpose:
+				    Returns fitted sample-count metadata recorded by the underlying nearest-neighbor classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Sample-count metadata learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_samples_fit_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_samples_fit_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3295,28 +3211,26 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the K-Nearest Neighbors classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			NearestNeighbor | None
+				Returns:
+				    NearestNeighbor | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3328,26 +3242,26 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> NearestNeighbor | None'
+			exception.method = 'train( self, *args ) -> NearestNeighbor | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels using the K-Nearest Neighbors classifier.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3357,24 +3271,25 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			--------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3385,24 +3300,25 @@ class NearestNeighbor( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): True class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -3410,25 +3326,26 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Return tabular classifier metrics for Streamlit display.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3440,25 +3357,26 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			--------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3474,25 +3392,26 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			--------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3520,25 +3439,23 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3577,24 +3494,38 @@ class NearestNeighbor( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class DecisionTree( Classifier ):
-	'''
+	"""DecisionTree classifier wrapper.
 
 		Purpose:
-		--------
-		Decision Trees (DTs) are a non-parametric supervised learning method used for
-		classification. The goal is to create a model that predicts the value of a
-		target variable by learning simple decision rules inferred from the stores feature_names.
+		    Wraps sklearn.tree.DecisionTreeClassifier for tree-based classification with configurable
+		    split criterion, splitter strategy, maximum depth, minimum split size, minimum leaf size,
+		    and random state.
 
-		A tree can be seen as a piecewise constant approximation. Decision trees learn from stores
-		to approximate a sine curve with a set of if-then-else decision rules.
-		The deeper the tree, the more complex the decision rules and the fitter the model.
-
-	'''
+		Attributes:
+		    model: Model value maintained by the DecisionTree wrapper.
+		    prediction: Prediction value maintained by the DecisionTree wrapper.
+		    probability: Probability value maintained by the DecisionTree wrapper.
+		    random_state: Random state value maintained by the DecisionTree wrapper.
+		    criterion: Criterion value maintained by the DecisionTree wrapper.
+		    splitter: Splitter value maintained by the DecisionTree wrapper.
+		    max_depth: Max depth value maintained by the DecisionTree wrapper.
+		    min_samples_split: Min samples split value maintained by the DecisionTree wrapper.
+		    min_samples_leaf: Min samples leaf value maintained by the DecisionTree wrapper.
+		    accuracy: Accuracy value maintained by the DecisionTree wrapper.
+		    precision: Precision value maintained by the DecisionTree wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the DecisionTree wrapper.
+		    recall: Recall value maintained by the DecisionTree wrapper.
+		    f1_score: F1 score value maintained by the DecisionTree wrapper.
+		    training_score: Training score value maintained by the DecisionTree wrapper.
+		    testing_score: Testing score value maintained by the DecisionTree wrapper.
+		    classification_report: Classification report value maintained by the DecisionTree wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the DecisionTree wrapper.
+	"""
 	model: skd.DecisionTreeClassifier
 	prediction: Optional[ np.ndarray ]
 	probability: Optional[ np.ndarray ]
@@ -3614,28 +3545,23 @@ class DecisionTree( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, criterion: str='gini', splitter: str='best',
-			depth: Optional[ int ]=None, min_split: int=2,
-			min_leaf: int=1, random: int=42 ) -> None:
-		"""
+	def __init__( self, criterion: str = 'gini', splitter: str = 'best',
+			depth: Optional[ int ] = None, min_split: int = 2,
+			min_leaf: int = 1, random: int = 42 ) -> None:
+		"""Initialize DecisionTree.
 
-			Purpose:
-			---------
-			Initialize the Decision Tree classifier wrapper.
+				Purpose:
+				    Initializes the DecisionTree wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			criterion (str): Split quality criterion.
-			splitter (str): Strategy used to choose the split at each node.
-			depth (Optional[ int ]): Maximum tree depth.
-			min_split (int): Minimum number of samples required to split an internal node.
-			min_leaf (int): Minimum number of samples required at a leaf node.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    criterion: Split or impurity criterion assigned to the estimator.
+				    splitter: Tree split strategy assigned to the estimator.
+				    depth: Maximum model depth assigned to the estimator.
+				    min_split: Minimum sample count required to split an internal tree node.
+				    min_leaf: Minimum sample count required at a tree leaf node.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.criterion = criterion
@@ -3646,24 +3572,18 @@ class DecisionTree( Classifier ):
 		self.random_state = random
 		self.validate_configuration( )
 		self.model = skd.DecisionTreeClassifier( criterion=self.criterion, splitter=self.splitter,
-			max_depth=self.max_depth,  min_samples_split=self.min_samples_split,
+			max_depth=self.max_depth, min_samples_split=self.min_samples_split,
 			min_samples_leaf=self.min_samples_leaf, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -3696,20 +3616,14 @@ class DecisionTree( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			---------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid_criteria = { 'gini', 'entropy', 'log_loss' }
@@ -3734,24 +3648,21 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3759,20 +3670,16 @@ class DecisionTree( Classifier ):
 	
 	@property
 	def features_in( self ) -> int:
-		"""
+		"""Return features in metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3780,20 +3687,17 @@ class DecisionTree( Classifier ):
 	
 	@property
 	def feature_importances( self ) -> np.ndarray:
-		"""
+		"""Return feature importances metadata.
 
-			Purpose:
-			---------
-			Return impurity-based feature importances.
+				Purpose:
+				    Returns impurity-based feature-importance values learned by the underlying tree or ensemble
+				    classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Feature-importance array learned by the fitted classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3801,20 +3705,17 @@ class DecisionTree( Classifier ):
 	
 	@property
 	def classes_count( self ) -> np.ndarray | int:
-		"""
+		"""Return classes count metadata.
 
-			Purpose:
-			---------
-			Return the number of classes after training.
+				Purpose:
+				    Returns the number of samples associated with learned classes or tree outputs, as exposed by
+				    the fitted classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray | int: Class-count metadata exposed by the fitted classifier.
 
-			Returns:
-			--------
-			np.ndarray | int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3822,45 +3723,41 @@ class DecisionTree( Classifier ):
 	
 	@property
 	def outputs( self ) -> int:
-		"""
+		"""Return outputs metadata.
 
-			Purpose:
-			---------
-			Return the number of outputs after training.
+				Purpose:
+				    Returns the number of classifier outputs learned during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Output-count metadata exposed by the fitted classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_outputs_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_outputs_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> Tuple[
+			size: float = 0.2, random: int = 42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3870,28 +3767,26 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the Decision Tree classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			DecisionTree | None
+				Returns:
+				    DecisionTree | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3903,26 +3798,26 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> DecisionTree | None'
+			exception.method = 'train( self, *args ) -> DecisionTree | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3932,24 +3827,25 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			---------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3960,24 +3856,25 @@ class DecisionTree( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -3985,25 +3882,26 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Return tabular classifier metrics for analysis.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4015,25 +3913,26 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4049,25 +3948,26 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			---------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4095,25 +3995,23 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4152,30 +4050,36 @@ class DecisionTree( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class RandomForest( Classifier ):
-	"""
+	"""RandomForest classifier wrapper.
 
 		Purpose:
-		--------
-		In random forests, each tree in the ensemble is built from a sample drawn with replacement
-		(i.e., a bootstrap sample) from the training set.
+		    Wraps sklearn.ensemble.RandomForestClassifier for ensemble tree classification with
+		    configurable estimator count, depth, split criterion, parallelism, and random state.
 
-		Furthermore, when plitting each node during the construction of a tree,
-		the best split is found either from all input feature_names or a random subset of
-		size max_features.s
-
-		The purpose of these two sources of randomness is to decrease the variance
-		of the forest estimator. Individual decision trees typically exhibit high variance
-		and tend to overfit. The injected randomness in forests yield decision trees with
-		decoupled prediction errors. By taking an average of those predictions,
-		errors can cancel out. Random forests achieve a reduced variance
-		by combining diverse trees, sometimes at the cost of a slight increase in bias.
-		The variance reduction is often significant hence yielding an overall better model.
-
+		Attributes:
+		    model: Model value maintained by the RandomForest wrapper.
+		    prediction: Prediction value maintained by the RandomForest wrapper.
+		    probability: Probability value maintained by the RandomForest wrapper.
+		    decision: Decision value maintained by the RandomForest wrapper.
+		    random_state: Random state value maintained by the RandomForest wrapper.
+		    n_estimators: N estimators value maintained by the RandomForest wrapper.
+		    max_depth: Max depth value maintained by the RandomForest wrapper.
+		    criterion: Criterion value maintained by the RandomForest wrapper.
+		    n_jobs: N jobs value maintained by the RandomForest wrapper.
+		    accuracy: Accuracy value maintained by the RandomForest wrapper.
+		    precision: Precision value maintained by the RandomForest wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the RandomForest wrapper.
+		    recall: Recall value maintained by the RandomForest wrapper.
+		    f1_score: F1 score value maintained by the RandomForest wrapper.
+		    training_score: Training score value maintained by the RandomForest wrapper.
+		    testing_score: Testing score value maintained by the RandomForest wrapper.
+		    classification_report: Classification report value maintained by the RandomForest wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the RandomForest wrapper.
 	"""
 	model: ske.RandomForestClassifier
 	prediction: Optional[ np.ndarray ]
@@ -4196,26 +4100,21 @@ class RandomForest( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int=100, depth: Optional[ int ] = None,
-			criterion: str='gini', jobs: int=-1, random: int=42 ) -> None:
-		"""
+	def __init__( self, estimators: int = 100, depth: Optional[ int ] = None,
+			criterion: str = 'gini', jobs: int = -1, random: int = 42 ) -> None:
+		"""Initialize RandomForest.
 
-			Purpose:
-			---------
-			Initialize the Random Forest classifier wrapper.
+				Purpose:
+				    Initializes the RandomForest wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			estimators (int): Number of trees in the forest.
-			depth (Optional[ int ]): Maximum tree depth.
-			criterion (str): Split quality criterion.
-			jobs (int): Number of parallel worker processes.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    estimators: Named estimator collection or estimator count assigned to the ensemble wrapper.
+				    depth: Maximum model depth assigned to the estimator.
+				    criterion: Split or impurity criterion assigned to the estimator.
+				    jobs: Parallel worker count assigned to the estimator.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.n_estimators = estimators
@@ -4229,20 +4128,14 @@ class RandomForest( Classifier ):
 			random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -4273,20 +4166,14 @@ class RandomForest( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			---------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid = { 'gini', 'entropy', 'log_loss' }
@@ -4300,24 +4187,21 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4325,20 +4209,16 @@ class RandomForest( Classifier ):
 	
 	@property
 	def features_in( self ) -> int:
-		"""
+		"""Return features in metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4346,20 +4226,17 @@ class RandomForest( Classifier ):
 	
 	@property
 	def feature_importances( self ) -> np.ndarray:
-		"""
+		"""Return feature importances metadata.
 
-			Purpose:
-			---------
-			Return impurity-based feature importances.
+				Purpose:
+				    Returns impurity-based feature-importance values learned by the underlying tree or ensemble
+				    classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Feature-importance array learned by the fitted classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4367,44 +4244,40 @@ class RandomForest( Classifier ):
 	
 	@property
 	def outputs( self ) -> int:
-		"""
+		"""Return outputs metadata.
 
-			Purpose:
-			---------
-			Return the number of outputs after training.
+				Purpose:
+				    Returns the number of classifier outputs learned during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Output-count metadata exposed by the fitted classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_outputs_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_outputs_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4415,28 +4288,26 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the Random Forest classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			RandomForest | None
+				Returns:
+				    RandomForest | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4448,26 +4319,26 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> RandomForest | None'
+			exception.method = 'train( self, *args ) -> RandomForest | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4477,24 +4348,25 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			---------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4505,24 +4377,25 @@ class RandomForest( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -4530,25 +4403,26 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Return tabular classifier metrics for Streamlit display.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4560,25 +4434,26 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4594,25 +4469,26 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			---------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4640,25 +4516,23 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4697,27 +4571,35 @@ class RandomForest( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class GradientBoost( Classifier ):
-	"""
+	"""GradientBoost classifier wrapper.
 
 		Purpose:
-		--------
-		Gradient Boosting Classifier builds an additive model in a forward stage-wise fashion;
-		it allows for the optimization  of arbitrary differentiable loss functions.
-		In each stage n_classes_ regression trees are  fit on the negative gradient of the binomial
-		or multinomial deviance loss function. Binary classification is a special case where
-		only a single regression tree is induced.
+		    Wraps sklearn.ensemble.GradientBoostingClassifier for staged additive tree classification
+		    with configurable estimator count, learning rate, tree depth, criterion, and random state.
 
-		The feature_names are always randomly permuted at each split. Therefore, the best found
-		split may vary, even with the same training stores and max_features=n_features,
-		if the improvement of the criterion is identical for several splits enumerated
-		during the search of the best split. To obtain a deterministic behaviour during fitting,
-		rando has to be fixed.
-
+		Attributes:
+		    model: Model value maintained by the GradientBoost wrapper.
+		    prediction: Prediction value maintained by the GradientBoost wrapper.
+		    probability: Probability value maintained by the GradientBoost wrapper.
+		    random_state: Random state value maintained by the GradientBoost wrapper.
+		    n_estimators: N estimators value maintained by the GradientBoost wrapper.
+		    learning_rate: Learning rate value maintained by the GradientBoost wrapper.
+		    max_depth: Max depth value maintained by the GradientBoost wrapper.
+		    criterion: Criterion value maintained by the GradientBoost wrapper.
+		    accuracy: Accuracy value maintained by the GradientBoost wrapper.
+		    precision: Precision value maintained by the GradientBoost wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the GradientBoost wrapper.
+		    recall: Recall value maintained by the GradientBoost wrapper.
+		    f1_score: F1 score value maintained by the GradientBoost wrapper.
+		    training_score: Training score value maintained by the GradientBoost wrapper.
+		    testing_score: Testing score value maintained by the GradientBoost wrapper.
+		    classification_report: Classification report value maintained by the GradientBoost wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the GradientBoost wrapper.
 	"""
 	model: ske.GradientBoostingClassifier
 	prediction: Optional[ np.ndarray ]
@@ -4737,26 +4619,21 @@ class GradientBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int=100, rate: float=0.1, depth: int=3,
-			criterion: str='friedman_mse', random: int=42 ) -> None:
-		"""
+	def __init__( self, estimators: int = 100, rate: float = 0.1, depth: int = 3,
+			criterion: str = 'friedman_mse', random: int = 42 ) -> None:
+		"""Initialize GradientBoost.
 
-			Purpose:
-			--------
-			Initialize the Gradient Boosting classifier wrapper.
+				Purpose:
+				    Initializes the GradientBoost wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			estimators (int): Number of boosting stages.
-			rate (float): Learning rate applied to each boosting stage.
-			depth (int): Maximum depth of each regression tree estimator.
-			criterion (str): Split quality criterion used by the individual trees.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    estimators: Named estimator collection or estimator count assigned to the ensemble wrapper.
+				    rate: Learning-rate or boosting-rate value assigned to the estimator.
+				    depth: Maximum model depth assigned to the estimator.
+				    criterion: Split or impurity criterion assigned to the estimator.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.n_estimators = estimators
@@ -4770,20 +4647,14 @@ class GradientBoost( Classifier ):
 			criterion=self.criterion, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -4815,20 +4686,14 @@ class GradientBoost( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			--------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid = { 'friedman_mse', 'squared_error' }
@@ -4848,24 +4713,21 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4873,20 +4735,16 @@ class GradientBoost( Classifier ):
 	
 	@property
 	def features_in( self ) -> int:
-		"""
+		"""Return features in metadata.
 
-			Purpose:
-			--------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4894,20 +4752,17 @@ class GradientBoost( Classifier ):
 	
 	@property
 	def feature_importances( self ) -> np.ndarray:
-		"""
+		"""Return feature importances metadata.
 
-			Purpose:
-			--------
-			Return impurity-based feature importances.
+				Purpose:
+				    Returns impurity-based feature-importance values learned by the underlying tree or ensemble
+				    classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Feature-importance array learned by the fitted classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4915,20 +4770,16 @@ class GradientBoost( Classifier ):
 	
 	@property
 	def outputs( self ) -> int:
-		"""
+		"""Return outputs metadata.
 
-			Purpose:
-			--------
-			Return the number of outputs after training.
+				Purpose:
+				    Returns the number of classifier outputs learned during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Output-count metadata exposed by the fitted classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_trees_per_iteration_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -4936,44 +4787,41 @@ class GradientBoost( Classifier ):
 	
 	@property
 	def stages( self ) -> np.ndarray:
-		"""
+		"""Return stages metadata.
 
-			Purpose:
-			--------
-			Return the staged estimators array.
+				Purpose:
+				    Returns staged decision-function metadata exposed by the fitted gradient-boosting
+				    classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Staged estimator or staged decision metadata exposed by the fitted classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'estimators_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -4984,28 +4832,26 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the Gradient Boosting classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			GradientBoost | None
+				Returns:
+				    GradientBoost | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5017,26 +4863,26 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> GradientBoost | None'
+			exception.method = 'train( self, *args ) -> GradientBoost | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5046,24 +4892,25 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			--------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5074,24 +4921,25 @@ class GradientBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -5099,25 +4947,26 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Return tabular classifier metrics for Streamlit display.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5129,25 +4978,26 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			--------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5163,25 +5013,26 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			--------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5209,25 +5060,23 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5252,20 +5101,35 @@ class GradientBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class AdaptiveBoost( Classifier ):
-	"""
+	"""AdaptiveBoost classifier wrapper.
 
 		Purpose:
-		---------
-		A Boost classifier is a meta-estimator that begins by fitting a classifier
-		on the original dataset and then fits additional copies of the classifier on the
-		same dataset but where the weights of incorrectly classified instances are
-		adjusted such that subsequent classifiers focus more on difficult cases.
+		    Wraps sklearn.ensemble.AdaBoostClassifier for adaptive ensemble classification with
+		    configurable base estimator, estimator count, learning rate, algorithm, and random state.
 
+		Attributes:
+		    model: Model value maintained by the AdaptiveBoost wrapper.
+		    base_estimator: Base estimator value maintained by the AdaptiveBoost wrapper.
+		    prediction: Prediction value maintained by the AdaptiveBoost wrapper.
+		    probability: Probability value maintained by the AdaptiveBoost wrapper.
+		    random_state: Random state value maintained by the AdaptiveBoost wrapper.
+		    n_estimators: N estimators value maintained by the AdaptiveBoost wrapper.
+		    learning_rate: Learning rate value maintained by the AdaptiveBoost wrapper.
+		    algorithm: Algorithm value maintained by the AdaptiveBoost wrapper.
+		    accuracy: Accuracy value maintained by the AdaptiveBoost wrapper.
+		    precision: Precision value maintained by the AdaptiveBoost wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the AdaptiveBoost wrapper.
+		    recall: Recall value maintained by the AdaptiveBoost wrapper.
+		    f1_score: F1 score value maintained by the AdaptiveBoost wrapper.
+		    training_score: Training score value maintained by the AdaptiveBoost wrapper.
+		    testing_score: Testing score value maintained by the AdaptiveBoost wrapper.
+		    classification_report: Classification report value maintained by the AdaptiveBoost wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the AdaptiveBoost wrapper.
 	"""
 	model: ske.AdaBoostClassifier
 	base_estimator: object
@@ -5285,29 +5149,22 @@ class AdaptiveBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, estimators: int=50,
-			rate: float=1.0, algorithm: str='SAMME',
-			random: int=42 ) -> None:
-		"""
+	def __init__( self, base: object = None, estimators: int = 50,
+			rate: float = 1.0, algorithm: str = 'SAMME',
+			random: int = 42 ) -> None:
+		"""Initialize AdaptiveBoost.
 
-			Purpose:
-			---------
-			Initialize the AdaBoost classifier wrapper.
+				Purpose:
+				    Initializes the AdaptiveBoost wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			base (object): Base estimator used inside the ensemble. If None,
-				scikit-learn uses its default DecisionTreeClassifier.
-			estimators (int): Number of boosting stages.
-			rate (float): Learning rate applied to each boosting stage.
-			algorithm (str): Discrete boosting algorithm identifier retained
-				for wrapper compatibility.
-			random (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    base: Base estimator supplied to the ensemble wrapper.
+				    estimators: Named estimator collection or estimator count assigned to the ensemble wrapper.
+				    rate: Learning-rate or boosting-rate value assigned to the estimator.
+				    algorithm: Algorithm option assigned to the estimator.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.base_estimator = base
@@ -5318,23 +5175,17 @@ class AdaptiveBoost( Classifier ):
 		self.validate_configuration( )
 		self.model = ske.AdaBoostClassifier( estimator=self.base_estimator,
 			n_estimators=self.n_estimators, learning_rate=self.learning_rate,
-			random_state=self.random_state 	)
+			random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -5367,20 +5218,14 @@ class AdaptiveBoost( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			---------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			if self.n_estimators is None or self.n_estimators < 1:
@@ -5396,24 +5241,21 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -5421,20 +5263,16 @@ class AdaptiveBoost( Classifier ):
 	
 	@property
 	def features_in( self ) -> int:
-		"""
+		"""Return features in metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -5442,20 +5280,17 @@ class AdaptiveBoost( Classifier ):
 	
 	@property
 	def feature_importances( self ) -> np.ndarray:
-		"""
+		"""Return feature importances metadata.
 
-			Purpose:
-			---------
-			Return impurity-based feature importances when available.
+				Purpose:
+				    Returns impurity-based feature-importance values learned by the underlying tree or ensemble
+				    classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Feature-importance array learned by the fitted classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'feature_importances_' ):
 			raise AttributeError( 'Feature importances are not available for the trained model.' )
@@ -5463,20 +5298,16 @@ class AdaptiveBoost( Classifier ):
 	
 	@property
 	def estimators( self ) -> np.ndarray:
-		"""
+		"""Return estimators metadata.
 
-			Purpose:
-			---------
-			Return fitted boosting estimators.
+				Purpose:
+				    Returns fitted base estimators retained by the ensemble classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted base estimators retained by the ensemble classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'estimators_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -5484,20 +5315,16 @@ class AdaptiveBoost( Classifier ):
 	
 	@property
 	def estimator_weights( self ) -> np.ndarray:
-		"""
+		"""Return estimator weights metadata.
 
-			Purpose:
-			---------
-			Return fitted estimator weights.
+				Purpose:
+				    Returns learned AdaBoost estimator weights assigned during ensemble fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: AdaBoost estimator weights learned during fitting.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'estimator_weights_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -5505,44 +5332,40 @@ class AdaptiveBoost( Classifier ):
 	
 	@property
 	def estimator_errors( self ) -> np.ndarray:
-		"""
+		"""Return estimator errors metadata.
 
-			Purpose:
-			---------
-			Return fitted estimator errors.
+				Purpose:
+				    Returns learned AdaBoost estimator errors assigned during ensemble fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: AdaBoost estimator errors learned during fitting.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'estimator_errors_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimator_errors_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5552,28 +5375,26 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the AdaBoost classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			AdaptiveBoost | None
+				Returns:
+				    AdaptiveBoost | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5585,26 +5406,26 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> AdaptiveBoost | None'
+			exception.method = 'train( self, *args ) -> AdaptiveBoost | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5614,24 +5435,25 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			---------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5642,24 +5464,25 @@ class AdaptiveBoost( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -5667,25 +5490,26 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Return tabular classifier metrics for analysis.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5697,25 +5521,26 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5731,25 +5556,26 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			---------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5777,25 +5603,23 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -5820,26 +5644,34 @@ class AdaptiveBoost( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class BaggingModel( Classifier ):
-	"""
+	"""BaggingModel classifier wrapper.
 
 		Purpose:
-		--------
-		 Bagging methods form a class of algorithms which build several instances of a black-box
-		 estimator on random subsets of the original training set and then aggregate their
-		 individual predictions to form a final prediction. These methods are used as a way
-		 to reduce the variance of a base estimator (e.g., a decision tree), by introducing
-		 randomization into its construction procedure and then making an ensemble out of it.
-		 In many cases, bagging methods constitute a very simple way to improve with respect
-		 to a single model, without making it necessary to adapt the underlying base algorithm.
-		 As they provide a way to reduce overfitting, bagging methods work best with strong and
-		 complex models (e.g., fully developed decision trees), in contrast with boosting methods
-		 which usually work best with weak models (e.g., shallow decision trees).
+		    Wraps sklearn.ensemble.BaggingClassifier for bootstrap-aggregation classification with
+		    configurable base estimator, estimator count, sample fraction, and random state.
 
+		Attributes:
+		    model: Model value maintained by the BaggingModel wrapper.
+		    base_estimator: Base estimator value maintained by the BaggingModel wrapper.
+		    n_estimators: N estimators value maintained by the BaggingModel wrapper.
+		    max_features: Max features value maintained by the BaggingModel wrapper.
+		    random_state: Random state value maintained by the BaggingModel wrapper.
+		    prediction: Prediction value maintained by the BaggingModel wrapper.
+		    probability: Probability value maintained by the BaggingModel wrapper.
+		    accuracy: Accuracy value maintained by the BaggingModel wrapper.
+		    precision: Precision value maintained by the BaggingModel wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the BaggingModel wrapper.
+		    recall: Recall value maintained by the BaggingModel wrapper.
+		    f1_score: F1 score value maintained by the BaggingModel wrapper.
+		    training_score: Training score value maintained by the BaggingModel wrapper.
+		    testing_score: Testing score value maintained by the BaggingModel wrapper.
+		    classification_report: Classification report value maintained by the BaggingModel wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the BaggingModel wrapper.
 	"""
 	model: ske.BaggingClassifier
 	base_estimator: object
@@ -5858,25 +5690,20 @@ class BaggingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, num: int=10, max: int | float = 1.0, rando: int=42 ) -> None:
-		"""
+	def __init__( self, base: object = None, num: int = 10, max: int | float = 1.0,
+			rando: int = 42 ) -> None:
+		"""Initialize BaggingModel.
 
-			Purpose:
-			--------
-			Initialize the Bagging classifier.
+				Purpose:
+				    Initializes the BaggingModel wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			base (object): Base estimator used inside the ensemble. If None,
-				scikit-learn uses its default DecisionTreeClassifier.
-			num (int): Number of estimators in the ensemble.
-			max (int | float): Number or fraction of features drawn for each base estimator.
-			rando (int): Random seed used by supported routines.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    base: Base estimator supplied to the ensemble wrapper.
+				    num: Number of neighbors, estimators, or model components assigned to the wrapper.
+				    max: Maximum sample fraction or count assigned to the bagging estimator.
+				    rando: Random seed assigned to the estimator.
 		"""
 		super( ).__init__( )
 		self.base_estimator = base
@@ -5884,24 +5711,19 @@ class BaggingModel( Classifier ):
 		self.max_features = max
 		self.random_state = rando
 		self.validate_configuration( )
-		self.model = ske.BaggingClassifier( estimator=self.base_estimator, n_estimators=self.n_estimators,
+		self.model = ske.BaggingClassifier( estimator=self.base_estimator,
+			n_estimators=self.n_estimators,
 			max_features=self.max_features, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -5929,20 +5751,14 @@ class BaggingModel( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			--------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			if self.n_estimators is None or self.n_estimators < 1:
@@ -5955,24 +5771,21 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The data has not been trained!' )
@@ -5980,20 +5793,16 @@ class BaggingModel( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			--------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -6001,44 +5810,41 @@ class BaggingModel( Classifier ):
 	
 	@property
 	def estimators( self ) -> List[ Any ]:
-		"""
+		"""Return estimators metadata.
 
-			Purpose:
-			--------
-			Return fitted bagging estimators.
+				Purpose:
+				    Returns fitted base estimators retained by the ensemble classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    List[Any]: Fitted base estimators retained by the ensemble classifier.
 
-			Returns:
-			--------
-			List[ Any ]
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'estimators_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+			size: float = 0.2, random: int = 42 ) -> Tuple[
+		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6049,28 +5855,26 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the Bagging classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			BaggingModel | None
+				Returns:
+				    BaggingModel | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6082,25 +5886,26 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> BaggingModel | None'
+			exception.method = 'train( self, *args ) -> BaggingModel | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6110,24 +5915,25 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			--------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6138,24 +5944,25 @@ class BaggingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -6163,25 +5970,26 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Return tabular classifier metrics for Streamlit display.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6193,25 +6001,26 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			--------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6227,25 +6036,26 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			--------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6273,25 +6083,23 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6316,20 +6124,34 @@ class BaggingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class VotingModel( Classifier ):
-	"""
+	"""VotingModel classifier wrapper.
 
 		Purpose:
-		--------
-		The Voting Model is to combine conceptually different machine rate
-		classifiers and use a majority vote or the average predicted probabilities (soft vote)
-		to predict the class target_names. Such a classifier can be useful for a set of equally
-		well performing model in order to balance out their individual weaknesses.
+		    Wraps sklearn.ensemble.VotingClassifier for hard or soft ensemble voting across named base
+		    estimators while exposing common Mathy training, prediction, scoring, and visualization
+		    methods.
 
+		Attributes:
+		    model: Model value maintained by the VotingModel wrapper.
+		    prediction: Prediction value maintained by the VotingModel wrapper.
+		    probability: Probability value maintained by the VotingModel wrapper.
+		    random_state: Random state value maintained by the VotingModel wrapper.
+		    estimator_list: Estimator list value maintained by the VotingModel wrapper.
+		    voting: Voting value maintained by the VotingModel wrapper.
+		    accuracy: Accuracy value maintained by the VotingModel wrapper.
+		    precision: Precision value maintained by the VotingModel wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the VotingModel wrapper.
+		    recall: Recall value maintained by the VotingModel wrapper.
+		    f1_score: F1 score value maintained by the VotingModel wrapper.
+		    training_score: Training score value maintained by the VotingModel wrapper.
+		    testing_score: Testing score value maintained by the VotingModel wrapper.
+		    classification_report: Classification report value maintained by the VotingModel wrapper.
+		    confusion_matrix: Confusion matrix value maintained by the VotingModel wrapper.
 	"""
 	model: ske.VotingClassifier
 	prediction: Optional[ np.ndarray ]
@@ -6347,22 +6169,17 @@ class VotingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: List[ Tuple[ str, object ] ], vote: str='hard' ) -> None:
-		"""
+	def __init__( self, estimators: List[ Tuple[ str, object ] ], vote: str = 'hard' ) -> None:
+		"""Initialize VotingModel.
 
-			Purpose:
-			--------
-			Initialize the Voting classifier.
+				Purpose:
+				    Initializes the VotingModel wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			estimators (List[ Tuple[ str, object ] ]): Named base estimators.
-			vote (str): Voting method, either 'hard' or 'soft'.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    estimators: Named estimator collection or estimator count assigned to the ensemble wrapper.
+				    vote: Voting strategy assigned to the voting ensemble.
 		"""
 		super( ).__init__( )
 		self.estimator_list = estimators
@@ -6371,20 +6188,14 @@ class VotingModel( Classifier ):
 			voting=self.voting )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -6410,20 +6221,16 @@ class VotingModel( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The data has not been trained!' )
@@ -6431,20 +6238,16 @@ class VotingModel( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			--------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -6452,44 +6255,41 @@ class VotingModel( Classifier ):
 	
 	@property
 	def estimators( self ) -> List[ Any ]:
-		"""
+		"""Return estimators metadata.
 
-			Purpose:
-			--------
-			Return fitted voting estimators.
+				Purpose:
+				    Returns fitted base estimators retained by the ensemble classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    List[Any]: Fitted base estimators retained by the ensemble classifier.
 
-			Returns:
-			--------
-			List[ Any ]
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.estimators_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		"""
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+	                                                  np.ndarray):
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			tuple
+				Returns:
+				    (np.ndarray, np.ndarray, np.ndarray, np.ndarray): Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6500,25 +6300,26 @@ class VotingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, *args ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray)'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> VotingModel | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the Voting classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			VotingModel | None
+				Returns:
+				    VotingModel | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6529,25 +6330,26 @@ class VotingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, *args ) -> VotingModel | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
-		"""
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6557,24 +6359,25 @@ class VotingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			--------
-			Return class-probability estimates when soft voting is enabled.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6588,24 +6391,25 @@ class VotingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -6613,25 +6417,23 @@ class VotingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Render a correlation heatmap for the supplied features.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'y', y )
@@ -6640,25 +6442,23 @@ class VotingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6684,22 +6484,32 @@ class VotingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class StackingModel( Classifier ):
-	"""
+	"""StackingModel classifier wrapper.
 
 		Purpose:
-		-------
-		Stack of estimators with a final classifier. Stacked generalization consists in stacking
-		the output of individual estimator and use a classifier to compute the final prediction.
-		Stacking allows to use the strength of each individual estimator by using their output
-		as input of a final estimator. Note that estimators_ are fitted on the full X while
-		final_estimator_ is trained using cross-validated predictions of the base
-		estimators using cross_val_predict.
+		    Wraps sklearn.ensemble.StackingClassifier for stacked ensemble classification using named
+		    base estimators and an optional final estimator for meta-level prediction.
 
+		Attributes:
+		    model: Model value maintained by the StackingModel wrapper.
+		    estimator_list: Estimator list value maintained by the StackingModel wrapper.
+		    final_estimator: Final estimator value maintained by the StackingModel wrapper.
+		    prediction: Prediction value maintained by the StackingModel wrapper.
+		    probability: Probability value maintained by the StackingModel wrapper.
+		    accuracy: Accuracy value maintained by the StackingModel wrapper.
+		    precision: Precision value maintained by the StackingModel wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the StackingModel wrapper.
+		    recall: Recall value maintained by the StackingModel wrapper.
+		    f1_score: F1 score value maintained by the StackingModel wrapper.
+		    training_score: Training score value maintained by the StackingModel wrapper.
+		    testing_score: Testing score value maintained by the StackingModel wrapper.
+		    classification_report: Classification report value maintained by the StackingModel wrapper.
+		    confusion_matrix: Confusion matrix value maintained by the StackingModel wrapper.
 	"""
 	model: ske.StackingClassifier
 	estimator_list: List[ Tuple[ str, ClassifierMixin ] ]
@@ -6716,22 +6526,18 @@ class StackingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ], final: ClassifierMixin=None ) -> None:
-		"""
+	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
+			final: ClassifierMixin = None ) -> None:
+		"""Initialize StackingModel.
 
-			Purpose:
-			--------
-			Initialize the Stacking classifier.
+				Purpose:
+				    Initializes the StackingModel wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			est (List[ Tuple[ str, ClassifierMixin ] ]): Named base estimators.
-			final (ClassifierMixin): Final estimator fit on stacked predictions.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    est: Named base estimators assigned to the stacking ensemble.
+				    final: Final estimator assigned to the stacking ensemble.
 		"""
 		super( ).__init__( )
 		self.estimator_list = est
@@ -6742,20 +6548,14 @@ class StackingModel( Classifier ):
 		)
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			--------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -6782,20 +6582,16 @@ class StackingModel( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			--------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The data has not been trained!' )
@@ -6803,20 +6599,16 @@ class StackingModel( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			--------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_features_in_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -6824,20 +6616,16 @@ class StackingModel( Classifier ):
 	
 	@property
 	def estimators( self ) -> List[ Any ]:
-		"""
+		"""Return estimators metadata.
 
-			Purpose:
-			--------
-			Return fitted base estimators.
+				Purpose:
+				    Returns fitted base estimators retained by the ensemble classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    List[Any]: Fitted base estimators retained by the ensemble classifier.
 
-			Returns:
-			--------
-			List[ Any ]
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.estimators_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
@@ -6845,44 +6633,41 @@ class StackingModel( Classifier ):
 	
 	@property
 	def final( self ) -> Any:
-		"""
+		"""Return final metadata.
 
-			Purpose:
-			--------
-			Return the fitted final estimator.
+				Purpose:
+				    Returns the fitted final estimator used by the stacking classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    Any: Final estimator used by the stacking classifier.
 
-			Returns:
-			--------
-			Any
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.final_estimator_ is None:
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.final_estimator_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		"""
+			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+	                                                  np.ndarray):
+		"""Split feature and target data.
 
-			Purpose:
-			--------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			tuple
+				Returns:
+				    (np.ndarray, np.ndarray, np.ndarray, np.ndarray): Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6893,25 +6678,26 @@ class StackingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, *args ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray)'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> StackingModel | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			--------
-			Fit the Stacking classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			StackingModel | None
+				Returns:
+				    StackingModel | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6922,25 +6708,26 @@ class StackingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, *args ) -> StackingModel | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
-		"""
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""Generate classifier predictions.
 
-			Purpose:
-			--------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6950,24 +6737,25 @@ class StackingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			--------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -6978,24 +6766,25 @@ class StackingModel( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			--------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -7003,25 +6792,23 @@ class StackingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			--------
-			Render a correlation heatmap for the supplied features.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'y', y )
@@ -7030,25 +6817,23 @@ class StackingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			--------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7074,20 +6859,36 @@ class StackingModel( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class SupportVector( Classifier ):
-	"""
+	"""SupportVector classifier wrapper.
 
-		Support Vector Classifier (SVC) is asupervised machine learning algorithm used primarily
-		for classification, though it also handles regression. It works by finding an optimal
-		"hyperplane"—a decision boundary—that maximizes the margin (distance) between different
-		data classes, which improves prediction accuracy and generalization to new datais
-		based on libsvm. The fit time scales at least quadratically with the number of samples
-		and may be impractical beyond tens of thousands of samples.
+		Purpose:
+		    Wraps sklearn.svm.SVC for support-vector classification with configurable penalty parameter,
+		    kernel, polynomial degree, probability estimation, and random state.
 
+		Attributes:
+		    model: Model value maintained by the SupportVector wrapper.
+		    kernel: Kernel value maintained by the SupportVector wrapper.
+		    regulation: Regulation value maintained by the SupportVector wrapper.
+		    prediction: Prediction value maintained by the SupportVector wrapper.
+		    misclass: Misclass value maintained by the SupportVector wrapper.
+		    probability: Probability value maintained by the SupportVector wrapper.
+		    decision: Decision value maintained by the SupportVector wrapper.
+		    random_state: Random state value maintained by the SupportVector wrapper.
+		    accuracy: Accuracy value maintained by the SupportVector wrapper.
+		    precision: Precision value maintained by the SupportVector wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the SupportVector wrapper.
+		    recall: Recall value maintained by the SupportVector wrapper.
+		    f1_score: F1 score value maintained by the SupportVector wrapper.
+		    training_score: Training score value maintained by the SupportVector wrapper.
+		    testing_score: Testing score value maintained by the SupportVector wrapper.
+		    classification_report: Classification report value maintained by the SupportVector wrapper.
+		    confusion_matrix_values: Confusion matrix values value maintained by the SupportVector wrapper.
+		    degree: Degree value maintained by the SupportVector wrapper.
 	"""
 	model: skv.SVC
 	kernel: Optional[ str ]
@@ -7108,24 +6909,20 @@ class SupportVector( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	degree: int
 	
-	def __init__( self, C: float=1.0, kernel: str='rbf', degree: int=3, random: int=42 ) -> None:
-		"""
+	def __init__( self, C: float = 1.0, kernel: str = 'rbf', degree: int = 3,
+			random: int = 42 ) -> None:
+		"""Initialize SupportVector.
 
-			Purpose:
-			---------
-			Initialize the support vector classifier wrapper.
+				Purpose:
+				    Initializes the SupportVector wrapper by assigning configuration values, constructing the
+				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
+				    prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			C (float): Regularization parameter.
-			kernel (str): Kernel type.
-			degree (int): Polynomial degree used when kernel='poly'.
-			random (int): Random seed used when probability estimation is enabled.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    C: Inverse regularization strength assigned to the estimator.
+				    kernel: Kernel function assigned to the support-vector classifier.
+				    degree: Polynomial kernel degree assigned to the support-vector classifier.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 		"""
 		super( ).__init__( )
 		self.regulation = C
@@ -7137,20 +6934,14 @@ class SupportVector( Classifier ):
 			probability=True, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -7184,20 +6975,14 @@ class SupportVector( Classifier ):
 		         'training_score' ]
 	
 	def validate_configuration( self ) -> None:
-		"""
+		"""Validate classifier configuration.
 
-			Purpose:
-			---------
-			Validate wrapper configuration before estimator construction.
+				Purpose:
+				    Validates classifier configuration values before model training so unsupported options fail
+				    early with explicit errors.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			_valid_kernels = { 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' }
@@ -7211,24 +6996,21 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'validate_configuration( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	@property
 	def vectors( self ) -> np.ndarray:
-		"""
+		"""Return vectors metadata.
 
-			Purpose:
-			---------
-			Return fitted support vectors.
+				Purpose:
+				    Returns support vectors learned by the fitted support-vector classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Support vectors learned by the fitted support-vector classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'support_vectors_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -7236,20 +7018,17 @@ class SupportVector( Classifier ):
 	
 	@property
 	def weights( self ) -> np.ndarray:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			---------
-			Return fitted linear coefficients when a linear kernel is used.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.kernel != 'linear':
 			raise AttributeError( 'The weights are only available when kernel="linear".' )
@@ -7260,20 +7039,16 @@ class SupportVector( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'classes_' ):
 			raise AttributeError( 'The data has not been trained!' )
@@ -7281,20 +7056,17 @@ class SupportVector( Classifier ):
 	
 	@property
 	def iterations( self ) -> np.ndarray:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of optimization iterations.
+				Purpose:
+				    Returns fitted iteration-count metadata from the underlying classifier for convergence
+				    inspection.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Fitted iteration metadata from the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -7302,20 +7074,16 @@ class SupportVector( Classifier ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during training.
+				Purpose:
+				    Returns the number of input features observed by the underlying classifier during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Input-feature count learned by the underlying classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -7323,44 +7091,40 @@ class SupportVector( Classifier ):
 	
 	@property
 	def supports( self ) -> np.ndarray:
-		"""
+		"""Return supports metadata.
 
-			Purpose:
-			---------
-			Return the number of support vectors per class.
+				Purpose:
+				    Returns support-vector indices learned by the fitted support-vector classifier.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Support-vector indices learned by the fitted support-vector classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if not hasattr( self.model, 'n_support_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_support_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Test-set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7371,28 +7135,26 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = (
-					'split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, '
-					'random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]'
-			)
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the support vector classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			SupportVector | None
+				Returns:
+				    SupportVector | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7404,26 +7166,26 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> SupportVector | None'
+			exception.method = 'train( self, *args ) -> SupportVector | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the supplied features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[ np.ndarray ]): Ignored optional argument preserved for
-				signature consistency.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7433,24 +7195,25 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def decision_function( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate decision scores.
 
-			Purpose:
-			---------
-			Compute decision scores for the supplied features.
+				Purpose:
+				    Calculates classifier decision scores, margins, or distances from the fitted estimator for
+				    ranking, thresholding, and diagnostic workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Decision-score array for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7461,23 +7224,24 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'decision_function( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			---------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7488,24 +7252,25 @@ class SupportVector( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -7513,25 +7278,26 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Return tabular classifier metrics for Streamlit display.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification diagnostics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7543,25 +7309,26 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'analyze( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate the confusion matrix.
 
-			Purpose:
-			---------
-			Render a confusion matrix for classifier predictions.
+				Purpose:
+				    Computes and stores the confusion matrix for classifier predictions against supplied target
+				    labels.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Confusion-matrix values for predicted and actual labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7577,25 +7344,26 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'confusion_matrix( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'confusion_matrix( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]:
-		"""
+		"""Calculate ROC curve values.
 
-			Purpose:
-			---------
-			Render a binary ROC curve using predicted class probabilities.
+				Purpose:
+				    Computes receiver-operating-characteristic arrays and area-under-curve values from
+				    classifier probabilities or decision scores.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth binary labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			Tuple[ np.ndarray, np.ndarray, float ]
+				Returns:
+				    Tuple[np.ndarray, np.ndarray, float]: False-positive-rate array, true-positive-rate array, and area-under-curve value.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7623,25 +7391,23 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'roc_curve( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray, float ]'
+			exception.method = 'roc_curve( self, *args ) -> Tuple[np.ndarray, np.ndarray, float]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): True class target vector of shape ( n_samples, ).
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7680,28 +7446,37 @@ class SupportVector( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class MultiLayerPerceptron( Classifier ):
-	"""
+	"""MultiLayerPerceptron classifier wrapper.
 
 		Purpose:
-		-----------
-		This model optimizes the squared error using LBFGS or stochastic gradient descent.
+		    Wraps sklearn.neural_network.MLPClassifier for feed-forward neural-network classification
+		    with configurable hidden layers, activation, solver, regularization, learning-rate behavior,
+		    and random state.
 
-		Activation function for the hidden layers:
-		- ‘identity’, no-op activation, useful to implement linear bottleneck, returns f(x) = x
-		- ‘logistic’, the logistic sigmoid function, returns f(x) = 1 / (1 + exp(-x)).
-		- ‘tanh’, the hyperbolic tan function, returns f(x) = tanh(x).
-		- ‘relu’, the rectified linear unit function, returns f(x) = max(0, x)
-
-		The solver for weight optimization:
-		- ‘lbfgs’ is an optimizer in the family of quasi-Newton methods.
-		- ‘sgd’ refers to stochastic gradient descent.
-		- ‘adam’ refers to a stochastic gradient-based optimizer proposed by Kingma and Diederik
-
+		Attributes:
+		    model: Model value maintained by the MultiLayerPerceptron wrapper.
+		    prediction: Prediction value maintained by the MultiLayerPerceptron wrapper.
+		    probability: Probability value maintained by the MultiLayerPerceptron wrapper.
+		    random_state: Random state value maintained by the MultiLayerPerceptron wrapper.
+		    hidden_layers: Hidden layers value maintained by the MultiLayerPerceptron wrapper.
+		    activation_function: Activation function value maintained by the MultiLayerPerceptron wrapper.
+		    solver: Solver value maintained by the MultiLayerPerceptron wrapper.
+		    alpha: Alpha value maintained by the MultiLayerPerceptron wrapper.
+		    learning_rate: Learning rate value maintained by the MultiLayerPerceptron wrapper.
+		    accuracy: Accuracy value maintained by the MultiLayerPerceptron wrapper.
+		    precision: Precision value maintained by the MultiLayerPerceptron wrapper.
+		    balanced_accuracy: Balanced accuracy value maintained by the MultiLayerPerceptron wrapper.
+		    recall: Recall value maintained by the MultiLayerPerceptron wrapper.
+		    f1_score: F1 score value maintained by the MultiLayerPerceptron wrapper.
+		    training_score: Training score value maintained by the MultiLayerPerceptron wrapper.
+		    testing_score: Testing score value maintained by the MultiLayerPerceptron wrapper.
+		    classification_report: Classification report value maintained by the MultiLayerPerceptron wrapper.
+		    confusion_matrix: Confusion matrix value maintained by the MultiLayerPerceptron wrapper.
 	"""
 	model: snn.MLPClassifier
 	prediction: Optional[ np.ndarray ]
@@ -7723,26 +7498,21 @@ class MultiLayerPerceptron( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, hidden=(100,), activation='logistic', solver='lbfgs', alpha=0.0001,
-			learning: str='constant', rando: int=42 ) -> None:
-		"""
+			learning: str = 'constant', rando: int = 42 ) -> None:
+		"""Initialize MultiLayerPerceptron.
 
-			Purpose:
-			---------
-			Initialize the multilayer perceptron classifier.
+				Purpose:
+				    Initializes the MultiLayerPerceptron wrapper by assigning configuration values, constructing
+				    the underlying sklearn estimator when applicable, and preparing runtime state used by
+				    training, prediction, scoring, and diagnostics.
 
-			Parameters:
-			-----------
-			hidden (Tuple[ int, ... ]): Hidden layer sizes.
-			activation (str): Activation function for the hidden layers.
-			solver (str): Weight optimization solver.
-			alpha (float): L2 regularization strength.
-			learning (str): Learning-rate schedule when solver='sgd'.
-			rando (int): Random seed.
-
-			Returns:
-			--------
-			None
-
+				Args:
+				    hidden: Hidden-layer sizes assigned to the neural-network classifier.
+				    activation: Activation function assigned to the neural-network classifier.
+				    solver: Optimization solver assigned to the estimator.
+				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
+				    learning: Learning-rate schedule assigned to the neural-network classifier.
+				    rando: Random seed assigned to the estimator.
 		"""
 		super( ).__init__( )
 		self.hidden_layers = hidden
@@ -7756,20 +7526,14 @@ class MultiLayerPerceptron( Classifier ):
 			alpha=self.alpha, learning_rate=self.learning_rate, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Provide a list of strings representing class members.
+				Purpose:
+				    Returns the stable public members exposed by the wrapper for interactive discovery, notebook
+				    exploration, and IDE inspection.
 
-			Parameters:
-			-----------
-			None
-
-			Returns:
-			--------
-			List[ str ]
-
+				Returns:
+				    List[str]: Public member names exposed by the wrapper.
 		"""
 		return [ 'prediction',
 		         'probability',
@@ -7799,20 +7563,16 @@ class MultiLayerPerceptron( Classifier ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return class labels known to the classifier.
+				Purpose:
+				    Returns class labels learned by the underlying classifier during training.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    np.ndarray: Class-label array learned by the underlying classifier.
 
-			Returns:
-			--------
-			np.ndarray
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.classes_ is None:
 			raise AttributeError( 'The data has not been trained!' )
@@ -7820,20 +7580,17 @@ class MultiLayerPerceptron( Classifier ):
 	
 	@property
 	def weights( self ) -> List[ np.ndarray ]:
-		"""
+		"""Return weights metadata.
 
-			Purpose:
-			---------
-			Return fitted layer weight matrices.
+				Purpose:
+				    Returns fitted coefficient weights from the underlying classifier for model inspection and
+				    downstream diagnostics.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    List[np.ndarray]: Fitted coefficient array from the underlying classifier.
 
-			Returns:
-			--------
-			List[ np.ndarray ]
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.coefs_ is None:
 			raise AttributeError( 'The weights have not been initialized!' )
@@ -7841,20 +7598,16 @@ class MultiLayerPerceptron( Classifier ):
 	
 	@property
 	def layers( self ) -> int:
-		"""
+		"""Return layers metadata.
 
-			Purpose:
-			---------
-			Return the number of fitted network layers.
+				Purpose:
+				    Returns the number of neural-network layers learned by the fitted multilayer perceptron.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Neural-network layer count learned by the fitted classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_layers_ is None:
 			raise AttributeError( 'The data has not been trained!' )
@@ -7862,44 +7615,40 @@ class MultiLayerPerceptron( Classifier ):
 	
 	@property
 	def outputs( self ) -> int:
-		"""
+		"""Return outputs metadata.
 
-			Purpose:
-			---------
-			Return the number of output units.
+				Purpose:
+				    Returns the number of classifier outputs learned during fitting.
 
-			Parameters:
-			-----------
-			None
+				Returns:
+				    int: Output-count metadata exposed by the fitted classifier.
 
-			Returns:
-			--------
-			int
-
+				Raises:
+				    Exception: Raised when validation fails or required fitted metadata is unavailable.
 		"""
 		if self.model.n_outputs_ is None:
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.n_outputs_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
-			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
-		"""
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+		"""Split feature and target data.
 
-			Purpose:
-			---------
-			Split input arrays into training and testing subsets.
+				Purpose:
+				    Creates reproducible training and testing partitions from feature and target arrays for
+				    classifier fitting, scoring, and evaluation.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): Target vector.
-			size (float): Test set proportion.
-			random (int): Random seed.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
+				    size: Testing-set proportion used for train/test partitioning.
+				    random: Random seed used for reproducible partitioning or estimator behavior.
 
-			Returns:
-			--------
-			tuple
+				Returns:
+				    (np.ndarray, np.ndarray, np.ndarray, np.ndarray): Training features, testing features, training labels, and testing labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7909,25 +7658,26 @@ class MultiLayerPerceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'split_data( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'split_data( self, *args ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray)'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> MultiLayerPerceptron | None:
-		"""
+		"""Train the classifier.
 
-			Purpose:
-			---------
-			Fit the multilayer perceptron classifier.
+				Purpose:
+				    Fits the underlying sklearn classifier to aligned feature and target arrays and returns the
+				    current wrapper for chained modeling workflows.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-			y (np.ndarray): Target labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			MultiLayerPerceptron | None
+				Returns:
+				    MultiLayerPerceptron | None: Fitted classifier wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7938,25 +7688,26 @@ class MultiLayerPerceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train( self, *args ) -> MultiLayerPerceptron | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: np.ndarray=None ) -> np.ndarray:
-		"""
+	def project( self, X: np.ndarray, y: np.ndarray = None ) -> np.ndarray:
+		"""Generate classifier predictions.
 
-			Purpose:
-			---------
-			Predict class labels for the provided features.
+				Purpose:
+				    Generates class predictions from the fitted classifier and stores the predicted labels on
+				    the wrapper for later diagnostics.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
-			y (np.ndarray): Ignored.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Predicted class labels for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7966,24 +7717,25 @@ class MultiLayerPerceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""
+		"""Calculate class probabilities.
 
-			Purpose:
-			---------
-			Return class-probability estimates for the supplied features.
+				Purpose:
+				    Calculates class-membership probabilities from the fitted classifier and stores the
+				    probability matrix for later metric and curve calculations.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input feature matrix.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
 
-			Returns:
-			--------
-			np.ndarray
+				Returns:
+				    np.ndarray: Class-probability matrix for the supplied feature matrix.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -7994,24 +7746,25 @@ class MultiLayerPerceptron( Classifier ):
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
 			exception.method = 'predict_probability( self, X: np.ndarray ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
+		"""Score classifier performance.
 
-			Purpose:
-			---------
-			Compute scalar summary classification metrics.
+				Purpose:
+				    Evaluates classifier performance against supplied features and labels, updates score-related
+				    state, and returns a tabular metrics summary.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			pd.DataFrame
+				Returns:
+				    pd.DataFrame: Classification metrics dataframe produced from supplied features and labels.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			return self.classification_scores( X, y )
@@ -8019,25 +7772,23 @@ class MultiLayerPerceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Analyze classifier performance.
 
-			Purpose:
-			---------
-			Render a correlation heatmap for the supplied features.
+				Purpose:
+				    Computes classification diagnostics for supplied features and labels, including predictions,
+				    metrics, reports, and confusion-matrix values when available.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Input features.
-			y (np.ndarray): Ground-truth labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'y', y )
@@ -8046,25 +7797,23 @@ class MultiLayerPerceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'analyze( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'analyze( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None:
-		"""
+		"""Render a classifier scatter plot.
 
-			Purpose:
-			---------
-			Plot observed labels against predicted labels.
+				Purpose:
+				    Renders a two-dimensional scatter plot of feature values colored by class labels for
+				    exploratory classifier review.
 
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix.
-			y (np.ndarray): True class labels.
+				Args:
+				    X: Feature matrix used by the classifier workflow.
+				    y: Target-label array aligned to the feature matrix.
 
-			Returns:
-			--------
-			None
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -8089,7 +7838,8 @@ class MultiLayerPerceptron( Classifier ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'scatter_plot( self, X: np.ndarray, y: np.ndarray ) -> None'
+			exception.method = 'scatter_plot( self, *args ) -> None'
+			Logger( ).write( exception )
 			raise exception
 			
 

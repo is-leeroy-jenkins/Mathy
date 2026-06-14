@@ -1,52 +1,54 @@
-'''
-	******************************************************************************************
-	  Assembly:                mathy
-	  Filename:                clusters.py
-	  Author:                  Terry D. Eppler
-	  Created:                 05-31-2022
-	
-	  Last Modified By:        Terry D. Eppler
-	  Last Modified On:        05-01-2025
-	******************************************************************************************
-	<copyright file="clusters.py" company="Terry D. Eppler">
-	
-	     mathy Clusters
-	
-	 Permission is hereby granted, free of charge, to any person obtaining a copy
-	 of this software and associated documentation files (the “Software”),
-	 to deal in the Software without restriction,
-	 including without limitation the rights to use,
-	 copy, modify, merge, publish, distribute, sublicense,
-	 and/or sell copies of the Software,
-	 and to permit persons to whom the Software is furnished to do so,
-	 subject to the following conditions:
-	
-	 The above copyright notice and this permission notice shall be included in all
-	 copies or substantial portions of the Software.
-	
-	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-	 DEALINGS IN THE SOFTWARE.
-	
-	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-	
-	</copyright>
-	<summary>
-		clusters.py
-	</summary>
-	******************************************************************************************
-'''
+"""******************************************************************************************
+  Assembly:                mathy
+  Filename:                clusters.py
+  Author:                  Terry D. Eppler
+  Created:                 05-31-2022
+
+  Last Modified By:        Terry D. Eppler
+  Last Modified On:        05-01-2025
+******************************************************************************************
+<copyright file="clusters.py" company="Terry D. Eppler">
+
+     mathy Clusters
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the “Software”),
+ to deal in the Software without restriction,
+ including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software,
+ and to permit persons to whom the Software is furnished to do so,
+ subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+
+ You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+
+</copyright>
+<summary>
+    Provides sklearn clustering wrappers for Mathy modeling workflows. The module centralizes
+    KMeans, DBSCAN, AgglomerativeClustering, SpectralClustering, MeanShift,
+    AffinityPropagation, Birch, and OPTICS behind a consistent training, projection, scoring,
+    and analysis interface with shared clustering metrics and fitted-model metadata access.
+</summary>
+******************************************************************************************
+"""
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from typing import Optional, Dict, Any
-from boogr import Error
+from boogr import Error, Logger
 import sklearn.cluster as skc
 from sklearn.metrics import (silhouette_score, completeness_score, homogeneity_score,
                              mutual_info_score, v_measure_score)
@@ -55,22 +57,20 @@ def throw_if( name: str, value: object ):
 	if not value:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
-
 class Cluster( ):
-	"""
+	"""	Defines the shared clustering wrapper contract for Mathy estimators. The interface standardizes model fitting, label projection, metric scoring, and analysis payload generation across sklearn clustering algorithms.
 
-		Purpose:
-		--------
-		Abstract base class for clustering wrappers with a uniform interface:
-		train → project → score → analyze.
-
-		Methods:
-		--------
-		train( X ) -> Cluster | None
-		project( X ) -> np.ndarray | None
-		score( X, y=None ) -> pd.DataFrame | None
-		analyze( X, y=None ) -> Dict[ str, Any ] | None
-
+		Attributes:
+		    n_clusters: Number of clusters requested or learned by the clustering wrapper.
+		    random_state: Random seed or estimator random-state configuration.
+		    max_iter: Maximum iteration count used by iterative clustering estimators.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: Optional probability-like prediction output retained for interface compatibility.
+		    completeness: Most recent completeness score when reference labels are supplied.
+		    homogeneity: Most recent homogeneity score when reference labels are supplied.
+		    mutual_info: Most recent mutual-information score when reference labels are supplied.
+		    silouette: Most recent silhouette score computed from features and predicted labels.
+		    v_measure: Most recent V-measure score when reference labels are supplied.
 	"""
 	n_clusters: Optional[ int ]
 	random_state: Optional[ int ]
@@ -87,103 +87,96 @@ class Cluster( ):
 		pass
 	
 	def train( self, X: np.ndarray ) -> object | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the clustering model to the input samples.
+				Purpose:
+				    Fits the underlying Cluster estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				object | None: Trained wrapper instance or None.
+				Returns:
+				    object | None: Fitted wrapper instance.
 
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		raise NotImplementedError
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the Cluster estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				np.ndarray | None: Cluster labels for each sample.
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-		"""
-		raise NotImplementedError
-	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
-		"""
-
-			Purpose:
-			---------
-			Compute clustering evaluation metrics for the supplied samples.
-
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for external clustering metrics.
-
-			Returns:
-			--------
-				pd.DataFrame | None: DataFrame containing one or more clustering
-					evaluation metrics.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		raise NotImplementedError
 	
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> Dict[ str, Any ] | None:
-		"""
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+		"""Score.
 
-			Purpose:
-			---------
-			Analyze clustering results using visualizations and summary metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the Cluster output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ) for comparison against predicted clusters.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None: Analysis results or None.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		raise NotImplementedError
+	
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
+		"""Analyze.
 
+				Purpose:
+				    Builds a structured analysis payload for the Cluster clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
+
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
+
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
+
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
+		"""
+		raise NotImplementedError
 
 class KMeans( Cluster ):
-	"""
+	"""	Wraps sklearn KMeans for centroid-based partitioning of numeric feature matrices. The wrapper stores cluster assignments, centroids, inertia, iteration metadata, and feature counts while exposing a consistent training, projection, scoring, and analysis interface.
 
-		Purpose:
-		---------
-		The KMeans algorithm clusters stores by trying to separate samples in n groups of equal
-		variance, minimizing a criterion known as the inertia or within-cluster sum-of-squares.
-		This algorithm requires the number of clusters to be specified.
-		It scales well to large number of samples and has been used across a
-		large range of application areas in many different fields.
-
-		The algorithm has three steps. The first step chooses the initial centroids,
-		with the most basic method being to choose samples from the dataset. After initialization,
-		K-means consists of looping between the two other steps. The first step assigns each sample
-		to its nearest centroid. The second step creates new centroids by taking the mean value of
-		all of the samples assigned to each previous centroid. The difference between the old and
-		the new centroids are computed and the algorithm repeats these last two steps until this
-		value is less than a threshold. In other words, it repeats until the centroids do not move
-		significantly.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    n_clusters: Number of clusters requested by the wrapper.
+		    init: init value retained by the wrapper.
+		    n_init: n init value retained by the wrapper.
+		    tolerance: tolerance value retained by the wrapper.
+		    random_state: Random seed or estimator random-state configuration.
+		    max_iter: Maximum iteration count used by the clustering estimator.
+		    verbose: verbose value retained by the wrapper.
+		    copy_x: copy x value retained by the wrapper.
+		    algorithm: algorithm value retained by the wrapper.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.KMeans
 	n_clusters: Optional[ int ]
@@ -208,30 +201,23 @@ class KMeans( Cluster ):
 			max_iter: int = 300, verbose: int = 0, copy_x: bool = True,
 			algorithm: str = 'lloyd', n_clusters: int | None = None,
 			random_state: int | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the KMeans clustering wrapper.
+				Purpose:
+				    Initializes the KMeans clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				clusters (int): Legacy alias for the number of clusters.
-				init (object): Centroid initialization strategy.
-				n_init (object): Number of initializations to perform.
-				tol (float): Relative convergence tolerance.
-				rando (int | None): Legacy alias for random_state.
-				max_iter (int): Maximum iterations for a single run.
-				verbose (int): Verbosity mode.
-				copy_x (bool): Whether to preserve the original input data.
-				algorithm (str): KMeans algorithm to use.
-				n_clusters (int | None): Explicit scikit-learn style cluster count.
-				random_state (int | None): Explicit scikit-learn style random state.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    clusters: Requested number of clusters or initial cluster-count configuration.
+				    init: Centroid initialization strategy passed to KMeans.
+				    n_init: Number of centroid initializations evaluated by KMeans.
+				    tol: Convergence tolerance passed to the clustering estimator.
+				    rando: Random seed used when constructing the estimator.
+				    max_iter: Maximum number of estimator iterations.
+				    verbose: Estimator verbosity flag.
+				    copy_x: Flag controlling whether KMeans copies the input matrix before centering.
+				    algorithm: Estimator algorithm selection passed to sklearn.
+				    n_clusters: Optional override for the requested number of clusters.
+				    random_state: Random seed or sklearn random-state value.
 		"""
 		super( ).__init__( )
 		self.n_clusters = n_clusters if n_clusters is not None else clusters
@@ -263,21 +249,13 @@ class KMeans( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the KMeans wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -310,21 +288,16 @@ class KMeans( Cluster ):
 	
 	@property
 	def clusters( self ) -> np.ndarray:
-		"""
+		"""Return clusters metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster centers.
+				Purpose:
+				    Returns fitted cluster identifiers or exemplar indices exposed by the clustering estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the KMeans estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster centers.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'cluster_centers_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -332,41 +305,28 @@ class KMeans( Cluster ):
 	
 	@property
 	def centroids_( self ) -> np.ndarray:
-		"""
+		"""Return centroids metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster centers using the name expected by app.py.
+				Purpose:
+				    Returns fitted cluster centers or exemplar center coordinates exposed by the estimator.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				np.ndarray:
-					Cluster centers.
-
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the KMeans estimator.
 		"""
 		return self.clusters
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted sample labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the KMeans estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -374,21 +334,16 @@ class KMeans( Cluster ):
 	
 	@property
 	def inertia( self ) -> float:
-		"""
+		"""Return inertia metadata.
 
-			Purpose:
-			---------
-			Return the fitted within-cluster sum of squares.
+				Purpose:
+				    Returns KMeans inertia from the fitted estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    float: Fitted metadata exposed by the KMeans estimator.
 
-			Returns:
-			--------
-				float:
-					Cluster inertia.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'inertia_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -396,21 +351,16 @@ class KMeans( Cluster ):
 	
 	@property
 	def iterations( self ) -> int:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of iterations run during fitting.
+				Purpose:
+				    Returns the number of iterations completed by the fitted estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the KMeans estimator.
 
-			Returns:
-			--------
-				int:
-					Number of iterations.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -418,43 +368,35 @@ class KMeans( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the KMeans estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> KMeans | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the KMeans model on the supplied data.
+				Purpose:
+				    Fits the underlying KMeans estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				KMeans | None:
-					Trained wrapper instance.
+				Returns:
+				    KMeans | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -466,29 +408,23 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'train( self, X: np.ndarray ) -> KMeans | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the KMeans estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			If the estimator has not yet been fitted, this method fits and predicts
-			in a single step so it remains compatible with the current app.py
-			clustering execution path.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -504,25 +440,23 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Transform.
 
-			Purpose:
-			---------
-			Return distances from samples to fitted cluster centers.
+				Purpose:
+				    Transforms the supplied feature matrix with the fitted KMeans estimator and returns estimator-specific distances, embeddings, or transformed cluster-space values.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Distance matrix.
+				Returns:
+				    np.ndarray | None: Transformed cluster-space representation produced by the estimator.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -537,28 +471,24 @@ class KMeans( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate KMeans clustering performance using intrinsic and optional
-			external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the KMeans output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -598,28 +528,25 @@ class KMeans( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the KMeans clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Analysis details and metrics.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -637,28 +564,30 @@ class KMeans( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'KMeans'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class DBSCAN( Cluster ):
-	"""
+	"""	Wraps sklearn DBSCAN for density-based clustering with noise detection. The wrapper stores fitted labels, core-sample indices, core components, and feature metadata while exposing the shared clustering workflow interface.
 
-		Purpose:
-		---------
-		The DBSCAN algorithm views clusters as areas of high density separated by areas of low
-		density. Due to this rather generic view, clusters found by DBSCAN can be any shape,
-		as opposed to k-means which assumes that clusters are convex shaped. The central component
-		to the DBSCAN is the concept of core samples, which are samples that are in areas of high
-		density.
-
-		A cluster is therefore a set of core samples, each close to each other (measured
-		by some distance measure) and a set of non-core samples that are close to a core sample
-		(but are not themselves core samples). There are two parameters to the algorithm,
-		min_samples and eps, which define formally what we mean when we say dense. Higher
-		min_samples or lower eps indicate higher density necessary to form a cluster.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    epsilon: epsilon value retained by the wrapper.
+		    min_samples: min samples value retained by the wrapper.
+		    metric: metric value retained by the wrapper.
+		    metric_params: metric params value retained by the wrapper.
+		    algorithm: algorithm value retained by the wrapper.
+		    leaf_size: leaf size value retained by the wrapper.
+		    p: p value retained by the wrapper.
+		    n_jobs: n jobs value retained by the wrapper.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.DBSCAN
 	epsilon: Optional[ float ]
@@ -683,30 +612,21 @@ class DBSCAN( Cluster ):
 			algorithm: str = 'auto', leaf_size: int = 30,
 			p: float | None = None, n_jobs: int | None = None,
 			min_samples: int | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the DBSCAN clustering wrapper.
+				Purpose:
+				    Initializes the DBSCAN clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				eps (float): Maximum neighborhood distance.
-				samples (int): Legacy alias for min_samples.
-				metric (object): Distance metric name or callable.
-				metric_params (Dict[ str, Any ] | None): Additional metric
-					keyword arguments.
-				algorithm (str): Neighbor search algorithm.
-				leaf_size (int): Leaf size for BallTree or KDTree.
-				p (float | None): Power parameter for the Minkowski metric.
-				n_jobs (int | None): Number of parallel jobs.
-				min_samples (int | None): Explicit scikit-learn style
-					min_samples value.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    eps: Maximum neighborhood radius for density-based clustering.
+				    samples: Minimum sample count used for density-neighborhood definitions.
+				    metric: Distance metric used by the clustering estimator.
+				    metric_params: Additional metric keyword arguments passed to sklearn.
+				    algorithm: Estimator algorithm selection passed to sklearn.
+				    leaf_size: Leaf size used by tree-based neighbor-search algorithms.
+				    p: Power parameter used by Minkowski distance metrics.
+				    n_jobs: Number of parallel jobs used by sklearn when supported.
+				    min_samples: Optional override for the minimum sample count.
 		"""
 		super( ).__init__( )
 		self.epsilon = eps
@@ -736,21 +656,13 @@ class DBSCAN( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the DBSCAN wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -781,41 +693,28 @@ class DBSCAN( Cluster ):
 	
 	@property
 	def eps( self ) -> float:
-		"""
+		"""Return eps metadata.
 
-			Purpose:
-			---------
-			Return the configured epsilon value using sklearn naming.
+				Purpose:
+				    Returns the fitted DBSCAN neighborhood radius.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				float:
-					Epsilon value.
-
+				Returns:
+				    float: Fitted metadata exposed by the DBSCAN estimator.
 		"""
 		return self.epsilon
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the DBSCAN estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -823,21 +722,16 @@ class DBSCAN( Cluster ):
 	
 	@property
 	def core_samples( self ) -> np.ndarray:
-		"""
+		"""Return core samples metadata.
 
-			Purpose:
-			---------
-			Return the indices of core samples.
+				Purpose:
+				    Returns DBSCAN core-sample indices.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the DBSCAN estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Core sample indices.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'core_sample_indices_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -845,21 +739,16 @@ class DBSCAN( Cluster ):
 	
 	@property
 	def components( self ) -> np.ndarray:
-		"""
+		"""Return components metadata.
 
-			Purpose:
-			---------
-			Return the fitted core sample feature vectors.
+				Purpose:
+				    Returns DBSCAN core-sample feature vectors.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the DBSCAN estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Core sample components.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'components_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -867,43 +756,35 @@ class DBSCAN( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the DBSCAN estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> DBSCAN | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the DBSCAN model on the supplied data.
+				Purpose:
+				    Fits the underlying DBSCAN estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				DBSCAN | None:
-					Trained wrapper instance.
+				Returns:
+				    DBSCAN | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -915,28 +796,23 @@ class DBSCAN( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = 'train( self, X: np.ndarray ) -> DBSCAN | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the DBSCAN estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			DBSCAN does not expose predict for unseen samples, so this method
-			fits and returns labels for the supplied data.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -947,28 +823,24 @@ class DBSCAN( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate DBSCAN clustering performance using intrinsic and optional
-			external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the DBSCAN output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1008,28 +880,25 @@ class DBSCAN( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the DBSCAN clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Analysis details and metrics.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1051,34 +920,31 @@ class DBSCAN( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'DBSCAN'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class Agglomerative( Cluster ):
-	"""
+	"""	Wraps sklearn AgglomerativeClustering for hierarchical bottom-up clustering. The wrapper preserves linkage configuration, tree construction options, fitted labels, linkage children, distances, leaf counts, component counts, and feature metadata.
 
-		Purpose:
-		---------
-		The Agglomerative Cluster object performs a hierarchical clustering using a
-		bottom up approach: each observation starts in its own cluster, and clusters are
-		successively merged together. The linkage criteria determines the metric used for the merge
-		strategy:
-
-		'Minimizes' the sum of squared differences within all clusters. It is a
-		variance-minimizing approach and in this sense is similar to the k-means objective
-		function but tackled with an agglomerative hierarchical approach.
-
-		'Maximum' or complete linkage minimizes the maximum distance between observations of
-		pairs of clusters. Average linkage minimizes the average of the distances between all observations of
-		pairs of clusters.
-
-		'Single' linkage minimizes the distance between the closest observations of pairs of
-		clusters. Agglomerative Cluster can also scale to large number of samples when it is used jointly
-		with a connectivity matrix, but is computationally expensive when no connectivity
-		constraints are added between samples: it considers at each step all the possible merges.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    n_clusters: Number of clusters requested by the wrapper.
+		    metric: metric value retained by the wrapper.
+		    affinity: affinity value retained by the wrapper.
+		    memory: memory value retained by the wrapper.
+		    connectivity: connectivity value retained by the wrapper.
+		    compute_full_tree: compute full tree value retained by the wrapper.
+		    linkage: linkage value retained by the wrapper.
+		    distance_threshold: distance threshold value retained by the wrapper.
+		    compute_distances: compute distances value retained by the wrapper.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.AgglomerativeClustering
 	n_clusters: Optional[ int ]
@@ -1105,29 +971,22 @@ class Agglomerative( Cluster ):
 			distance_threshold: float | None = None,
 			compute_distances: bool = False,
 			n_clusters: int | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the Agglomerative clustering wrapper.
+				Purpose:
+				    Initializes the Agglomerative clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				clusters (int): Legacy alias for the number of clusters.
-				affinity (object): Legacy alias for metric.
-				linkage (str): Linkage criterion.
-				metric (object | None): Distance metric name or callable.
-				memory (object): Optional joblib memory or cache path.
-				connectivity (object): Optional connectivity constraint.
-				compute_full_tree (object): Whether to compute the full tree.
-				distance_threshold (float | None): Linkage distance threshold.
-				compute_distances (bool): Whether to compute distances_.
-				n_clusters (int | None): Explicit scikit-learn style cluster count.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    clusters: Requested number of clusters or initial cluster-count configuration.
+				    affinity: Affinity configuration or similarity measure used by the estimator.
+				    linkage: Linkage criterion used by agglomerative clustering.
+				    metric: Distance metric used by the clustering estimator.
+				    memory: Optional joblib memory configuration used by sklearn.
+				    connectivity: Connectivity matrix or callable used by agglomerative clustering.
+				    compute_full_tree: Tree-construction policy used by agglomerative clustering.
+				    distance_threshold: Distance threshold used to stop hierarchical clustering.
+				    compute_distances: Flag indicating whether agglomerative distances are computed and stored.
+				    n_clusters: Optional override for the requested number of clusters.
 		"""
 		super( ).__init__( )
 		self.n_clusters = n_clusters if n_clusters is not None else clusters
@@ -1149,21 +1008,13 @@ class Agglomerative( Cluster ):
 		self.model = self.create_model( )
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the Agglomerative wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -1197,21 +1048,16 @@ class Agglomerative( Cluster ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Agglomerative estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1219,21 +1065,16 @@ class Agglomerative( Cluster ):
 	
 	@property
 	def children( self ) -> np.ndarray:
-		"""
+		"""Return children metadata.
 
-			Purpose:
-			---------
-			Return the hierarchical merge structure.
+				Purpose:
+				    Returns agglomerative merge children.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Agglomerative estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Merge tree children.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'children_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1241,21 +1082,16 @@ class Agglomerative( Cluster ):
 	
 	@property
 	def distances( self ) -> np.ndarray:
-		"""
+		"""Return distances metadata.
 
-			Purpose:
-			---------
-			Return the fitted linkage distances when available.
+				Purpose:
+				    Returns agglomerative merge distances.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Agglomerative estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Distances between merged nodes.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'distances_' ):
 			raise AttributeError( 'The model distances are not available!' )
@@ -1263,21 +1099,16 @@ class Agglomerative( Cluster ):
 	
 	@property
 	def leaves( self ) -> int:
-		"""
+		"""Return leaves metadata.
 
-			Purpose:
-			---------
-			Return the number of leaves in the hierarchical tree.
+				Purpose:
+				    Returns the number of leaves in the hierarchical clustering tree.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the Agglomerative estimator.
 
-			Returns:
-			--------
-				int:
-					Number of leaves.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_leaves_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1285,21 +1116,16 @@ class Agglomerative( Cluster ):
 	
 	@property
 	def connected_components( self ) -> int:
-		"""
+		"""Return connected components metadata.
 
-			Purpose:
-			---------
-			Return the number of connected components.
+				Purpose:
+				    Returns the number of connected components in the fitted graph.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the Agglomerative estimator.
 
-			Returns:
-			--------
-				int:
-					Connected components.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_connected_components_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1307,43 +1133,32 @@ class Agglomerative( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the Agglomerative estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def create_model( self ) -> skc.AgglomerativeClustering:
-		"""
+		"""Create Model.
 
-			Purpose:
-			---------
-			Construct a validated AgglomerativeClustering estimator using the
-			current wrapper state.
+				Purpose:
+				    Creates the configured sklearn AgglomerativeClustering estimator from the wrapper's normalized constructor options.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    skc.AgglomerativeClustering: Configured sklearn agglomerative clustering estimator.
 
-			Returns:
-			--------
-				skc.AgglomerativeClustering:
-					Configured estimator.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			n_clusters = self.n_clusters
@@ -1372,28 +1187,24 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = \
-				'create_model( self ) -> skc.AgglomerativeClustering'
+			exception.method = 'create_model( self ) -> skc.AgglomerativeClustering'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray ) -> Agglomerative | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the Agglomerative clustering model on the supplied data.
+				Purpose:
+				    Fits the underlying Agglomerative estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ) or a distance matrix when using
-					metric='precomputed'.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				Agglomerative | None:
-					Trained wrapper instance.
+				Returns:
+				    Agglomerative | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1405,31 +1216,24 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = \
-				'train( self, X: np.ndarray ) -> Agglomerative | None'
+			exception.method = 'train( self, X: np.ndarray ) -> Agglomerative | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the Agglomerative estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			AgglomerativeClustering does not expose predict for unseen samples,
-			so this method fits and returns labels for the supplied data.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ) or a distance matrix when using
-					metric='precomputed'.
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1440,31 +1244,25 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = \
-				'project( self, X: np.ndarray ) -> np.ndarray | None'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate Agglomerative clustering performance using intrinsic and
-			optional external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the Agglomerative output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ) or a distance matrix when using
-					metric='precomputed'.
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1506,29 +1304,25 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the Agglomerative clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix of shape
-					( n_samples, n_features ) or a distance matrix when using
-					metric='precomputed'.
-				y (Optional[np.ndarray]): Optional reference labels.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Analysis details and metrics.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1550,28 +1344,37 @@ class Agglomerative( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Agglomerative'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class Spectral( Cluster ):
-	"""
+	"""	Wraps sklearn SpectralClustering for graph-based clustering of nonlinear structures. The wrapper stores affinity configuration, eigen-solver options, label assignments, and feature metadata while exposing the shared clustering workflow interface.
 
-		Purpose:
-		---------
-		Spectral Cluster does a low-dimension embedding of the affinity matrix between samples,
-		followed by a KMeans in the low dimensional space. It is especially efficient if the
-		affinity matrix is sparse and the pyamg module is installed. SpectralCluster requires
-		the number of clusters to be specified. It works well for a small number of clusters but
-		is not advised when using many clusters.
-
-		For two clusters, it solves a convex relaxation of the normalised cuts problem on the
-		similarity graph: cutting the graph in two so that the weight of the edges cut is small
-		compared to the weights of the edges inside each cluster. This criteria is especially
-		interesting when working on images: graph vertices are pixels, and edges of the similarity
-		graph are a function of the gradient of the image.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    n_clusters: Number of clusters requested by the wrapper.
+		    eigen_solver: eigen solver value retained by the wrapper.
+		    n_components: n components value retained by the wrapper.
+		    random_state: Random seed or estimator random-state configuration.
+		    n_init: n init value retained by the wrapper.
+		    gamma: gamma value retained by the wrapper.
+		    affinity: affinity value retained by the wrapper.
+		    n_neighbors: n neighbors value retained by the wrapper.
+		    eigen_tolerance: eigen tolerance value retained by the wrapper.
+		    assign_labels: assign labels value retained by the wrapper.
+		    degree: degree value retained by the wrapper.
+		    coef0: coef0 value retained by the wrapper.
+		    kernel_params: kernel params value retained by the wrapper.
+		    n_jobs: n jobs value retained by the wrapper.
+		    verbose: verbose value retained by the wrapper.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.SpectralClustering
 	n_clusters: Optional[ int ]
@@ -1608,41 +1411,33 @@ class Spectral( Cluster ):
 			affinity: object | None = None, n_neighbors: int | None = None,
 			eigen_tol: object | None = None,
 			assign_labels: str | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the Spectral clustering wrapper.
+				Purpose:
+				    Initializes the Spectral clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				clusters (int): Legacy alias for the number of clusters.
-				random_state (int | None): Random seed for reproducibility.
-				n_init (int): Number of initializations for label assignment.
-				gama (float): Legacy alias for gamma.
-				distance (object): Legacy alias for affinity.
-				neighbors (int): Legacy alias for n_neighbors.
-				tolerance (object): Legacy alias for eigen_tol.
-				assign (str): Legacy alias for assign_labels.
-				eigen_solver (str | None): Eigenvalue decomposition strategy.
-				n_components (int | None): Number of eigenvectors to use.
-				degree (float): Degree for polynomial kernels.
-				coef0 (float): Zero coefficient for poly and sigmoid kernels.
-				kernel_params (Dict[ str, Any ] | None): Parameters for a
-					callable kernel.
-				n_jobs (int | None): Number of parallel jobs.
-				verbose (bool): Verbose mode.
-				n_clusters (int | None): Explicit scikit-learn style cluster count.
-				gamma (float | None): Explicit scikit-learn style gamma value.
-				affinity (object | None): Explicit scikit-learn style affinity.
-				n_neighbors (int | None): Explicit scikit-learn style neighbor count.
-				eigen_tol (object | None): Explicit scikit-learn style eigen tolerance.
-				assign_labels (str | None): Explicit scikit-learn style label assignment.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    clusters: Requested number of clusters or initial cluster-count configuration.
+				    random_state: Random seed or sklearn random-state value.
+				    n_init: Number of centroid initializations evaluated by KMeans.
+				    gama: Legacy gamma parameter value used when constructing spectral affinity.
+				    distance: Legacy affinity or distance configuration used by spectral clustering.
+				    neighbors: Legacy nearest-neighbor count for spectral affinity construction.
+				    tolerance: Legacy eigenvalue-convergence tolerance configuration.
+				    assign: Legacy label-assignment strategy used by spectral clustering.
+				    eigen_solver: Eigenvalue solver used by spectral clustering.
+				    n_components: Number of eigenvectors used for spectral embedding.
+				    degree: Polynomial-kernel degree used by spectral clustering.
+				    coef0: Polynomial or sigmoid kernel coefficient used by spectral clustering.
+				    kernel_params: Additional kernel parameters passed to spectral clustering.
+				    n_jobs: Number of parallel jobs used by sklearn when supported.
+				    verbose: Estimator verbosity flag.
+				    n_clusters: Optional override for the requested number of clusters.
+				    gamma: Optional override for the spectral-clustering gamma parameter.
+				    affinity: Affinity configuration or similarity measure used by the estimator.
+				    n_neighbors: Optional override for nearest-neighbor affinity construction.
+				    eigen_tol: Optional override for eigenvalue-convergence tolerance.
+				    assign_labels: Optional override for spectral label-assignment strategy.
 		"""
 		super( ).__init__( )
 		self.n_clusters = n_clusters if n_clusters is not None else clusters
@@ -1686,21 +1481,13 @@ class Spectral( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the Spectral wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -1735,21 +1522,16 @@ class Spectral( Cluster ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Spectral estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -1757,43 +1539,35 @@ class Spectral( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the Spectral estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> Spectral | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the Spectral clustering model.
+				Purpose:
+				    Fits the underlying Spectral estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				Spectral | None:
-					Trained wrapper instance.
+				Returns:
+				    Spectral | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1805,28 +1579,23 @@ class Spectral( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = 'train( self, X: np.ndarray ) -> Spectral | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the Spectral estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			SpectralClustering exposes fit_predict for the supplied data, so this
-			method fits and returns labels for the supplied samples.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1837,28 +1606,24 @@ class Spectral( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate spectral clustering performance using intrinsic and optional
-			external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the Spectral output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1891,29 +1656,25 @@ class Spectral( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the Spectral clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Dictionary containing analysis results.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1949,30 +1710,29 @@ class Spectral( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Spectral'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class MeanShift( Cluster ):
-	"""
+	"""	Wraps sklearn MeanShift for centroid discovery through mode seeking in feature space. The wrapper stores fitted labels, cluster centers, iteration counts, prediction output, and feature metadata.
 
-		Purpose:
-		---------
-		Mean Shift clustering aims to discover blobs in a smooth density of samples.
-		It is a centroid based algorithm, which works by updating candidates for centroids to be
-		the mean of the points within a given region. These candidates are then filtered in a
-		post-processing stage to eliminate near-duplicates to form the final set of centroids.
-
-		The algorithm automatically sets the number of clusters, instead of relying on a parameter
-		bandwidth, which dictates the size of the region to search through. This parameter can be
-		set manually, but can be estimated using the provided estimate_bandwidth function, which
-		is called if the bandwidth is not set.
-
-		The algorithm is not highly scalable, as it requires multiple nearest neighbor searches
-		during the execution of the algorithm. The algorithm is guaranteed to converge,
-		however the algorithm will stop iterating when the change in centroids is small.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    bandwidth: bandwidth value retained by the wrapper.
+		    seeds: seeds value retained by the wrapper.
+		    bin_seeding: bin seeding value retained by the wrapper.
+		    min_bin_freq: min bin freq value retained by the wrapper.
+		    cluster_all: cluster all value retained by the wrapper.
+		    n_jobs: n jobs value retained by the wrapper.
+		    max_iter: Maximum iteration count used by the clustering estimator.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.MeanShift
 	bandwidth: Optional[ float ]
@@ -1995,30 +1755,21 @@ class MeanShift( Cluster ):
 			bin_seeding: bool = False, n_jobs: int | None = None,
 			max_iter: int = 300, min_bin_freq: int | None = None,
 			cluster_all: bool | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the MeanShift clustering wrapper.
+				Purpose:
+				    Initializes the MeanShift clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				min_bin (int): Legacy alias for min_bin_freq.
-				group_all (bool): Legacy alias for cluster_all.
-				bandwidth (float | None): Bandwidth used in the flat kernel.
-				seeds (np.ndarray | None): Seed points used to initialize kernels.
-				bin_seeding (bool): Whether to initialize kernels from binned seeds.
-				n_jobs (int | None): Number of parallel jobs.
-				max_iter (int): Maximum iterations per seed point.
-				min_bin_freq (int | None): Explicit scikit-learn style minimum
-					bin frequency.
-				cluster_all (bool | None): Explicit scikit-learn style
-					cluster-all behavior.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    min_bin: Legacy minimum bin frequency used by mean-shift bin seeding.
+				    group_all: Legacy flag controlling whether all samples are assigned to clusters.
+				    bandwidth: Kernel bandwidth used by MeanShift.
+				    seeds: Initial seed locations used by MeanShift.
+				    bin_seeding: Flag indicating whether bin seeding is used by MeanShift.
+				    n_jobs: Number of parallel jobs used by sklearn when supported.
+				    max_iter: Maximum number of estimator iterations.
+				    min_bin_freq: Optional override for minimum bin frequency.
+				    cluster_all: Optional override for assigning all samples in MeanShift.
 		"""
 		super( ).__init__( )
 		self.bandwidth = bandwidth
@@ -2046,21 +1797,13 @@ class MeanShift( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the MeanShift wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -2091,21 +1834,16 @@ class MeanShift( Cluster ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the MeanShift estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2113,21 +1851,16 @@ class MeanShift( Cluster ):
 	
 	@property
 	def clusters( self ) -> np.ndarray:
-		"""
+		"""Return clusters metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster centers.
+				Purpose:
+				    Returns fitted cluster identifiers or exemplar indices exposed by the clustering estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the MeanShift estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster centers.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'cluster_centers_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2135,41 +1868,28 @@ class MeanShift( Cluster ):
 	
 	@property
 	def centroids_( self ) -> np.ndarray:
-		"""
+		"""Return centroids metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster centers using the name expected by app.py.
+				Purpose:
+				    Returns fitted cluster centers or exemplar center coordinates exposed by the estimator.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				np.ndarray:
-					Cluster centers.
-
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the MeanShift estimator.
 		"""
 		return self.clusters
 	
 	@property
 	def iterations( self ) -> int:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the maximum number of iterations performed on each seed.
+				Purpose:
+				    Returns the number of iterations completed by the fitted estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the MeanShift estimator.
 
-			Returns:
-			--------
-				int:
-					Iteration count.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2177,43 +1897,35 @@ class MeanShift( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the MeanShift estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> MeanShift | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the MeanShift clustering model.
+				Purpose:
+				    Fits the underlying MeanShift estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				MeanShift | None:
-					Trained wrapper instance.
+				Returns:
+				    MeanShift | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2225,28 +1937,23 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'train( self, X: np.ndarray ) -> MeanShift | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the MeanShift estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			MeanShift exposes fit_predict for the supplied data, so this
-			method fits and returns labels for the supplied samples.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2257,25 +1964,23 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Predict.
 
-			Purpose:
-			---------
-			Predict the closest cluster each sample in X belongs to.
+				Purpose:
+				    Predicts cluster labels for the supplied feature matrix with the fitted MeanShift estimator and caches the prediction output on the wrapper.
 
-			Parameters:
-			-----------
-				X (np.ndarray): New samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
+				Returns:
+				    np.ndarray | None: Predicted cluster labels for the supplied samples.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2289,28 +1994,24 @@ class MeanShift( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate MeanShift clustering performance using intrinsic and optional
-			external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the MeanShift output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2344,29 +2045,25 @@ class MeanShift( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the MeanShift clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Dictionary containing analysis results.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2396,24 +2093,30 @@ class MeanShift( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'MeanShift'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class AffinityPropagation( Cluster ):
-	"""
+	"""	Wraps sklearn AffinityPropagation for exemplar-based clustering from pairwise similarities. The wrapper stores cluster labels, exemplar indices, cluster centers, affinity matrix metadata, iteration counts, and feature metadata.
 
-		Purpose:
-		---------
-		Affinity Propagation creates clusters by sending messages between pairs of samples until
-		convergence. A dataset is then described using a small number of exemplars, which are
-		identified as those most representative of other samples. The messages sent between pairs
-		represent the suitability for one sample to be the exemplar of the other, which is updated
-		in response to the values from other pairs. This updating happens iteratively until
-		convergence, at which point the final exemplars are chosen,
-		and hence the final clustering is given.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    damping: damping value retained by the wrapper.
+		    max_iter: Maximum iteration count used by the clustering estimator.
+		    convergence_iter: convergence iter value retained by the wrapper.
+		    copy: copy value retained by the wrapper.
+		    preference: preference value retained by the wrapper.
+		    affinity: affinity value retained by the wrapper.
+		    verbose: verbose value retained by the wrapper.
+		    random_state: Random seed or estimator random-state configuration.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.AffinityPropagation
 	damping: Optional[ float ]
@@ -2436,28 +2139,20 @@ class AffinityPropagation( Cluster ):
 			convergence_iter: int = 15, preference: object = None,
 			affinity: str = 'euclidean', copy: bool = True,
 			verbose: bool = False, random_state: int | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the AffinityPropagation clustering wrapper.
+				Purpose:
+				    Initializes the AffinityPropagation clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				damping (float): Damping factor in the range [0.5, 1.0).
-				max_iter (int): Maximum number of iterations.
-				convergence_iter (int): Convergence window size.
-				preference (object): Preferences for each sample or a single
-					float preference value.
-				affinity (str): Similarity measure to use.
-				copy (bool): Whether to copy the input data.
-				verbose (bool): Whether to enable verbose output.
-				random_state (int | None): Random state for reproducibility.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    damping: Damping factor used by AffinityPropagation.
+				    max_iter: Maximum number of estimator iterations.
+				    convergence_iter: Iteration count used to determine AffinityPropagation convergence.
+				    preference: Preference value controlling the number of exemplars.
+				    affinity: Affinity configuration or similarity measure used by the estimator.
+				    copy: Flag controlling whether the estimator copies input data.
+				    verbose: Estimator verbosity flag.
+				    random_state: Random seed or sklearn random-state value.
 		"""
 		super( ).__init__( )
 		self.damping = damping
@@ -2487,21 +2182,13 @@ class AffinityPropagation( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the AffinityPropagation wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -2534,21 +2221,16 @@ class AffinityPropagation( Cluster ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the AffinityPropagation estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2556,21 +2238,16 @@ class AffinityPropagation( Cluster ):
 	
 	@property
 	def clusters( self ) -> np.ndarray:
-		"""
+		"""Return clusters metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster centers.
+				Purpose:
+				    Returns fitted cluster identifiers or exemplar indices exposed by the clustering estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the AffinityPropagation estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster centers.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'cluster_centers_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2578,41 +2255,28 @@ class AffinityPropagation( Cluster ):
 	
 	@property
 	def centroids_( self ) -> np.ndarray:
-		"""
+		"""Return centroids metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster centers using the name expected by app.py.
+				Purpose:
+				    Returns fitted cluster centers or exemplar center coordinates exposed by the estimator.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				np.ndarray:
-					Cluster centers.
-
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the AffinityPropagation estimator.
 		"""
 		return self.clusters
 	
 	@property
 	def affinity_matrix( self ) -> np.ndarray:
-		"""
+		"""Return affinity matrix metadata.
 
-			Purpose:
-			---------
-			Return the learned affinity matrix.
+				Purpose:
+				    Returns the fitted AffinityPropagation affinity matrix.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the AffinityPropagation estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Affinity matrix.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'affinity_matrix_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2620,21 +2284,16 @@ class AffinityPropagation( Cluster ):
 	
 	@property
 	def iterations( self ) -> int:
-		"""
+		"""Return iterations metadata.
 
-			Purpose:
-			---------
-			Return the number of iterations run by the estimator.
+				Purpose:
+				    Returns the number of iterations completed by the fitted estimator.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the AffinityPropagation estimator.
 
-			Returns:
-			--------
-				int:
-					Iteration count.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_iter_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2642,44 +2301,35 @@ class AffinityPropagation( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the AffinityPropagation estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> AffinityPropagation | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the AffinityPropagation clustering model.
+				Purpose:
+				    Fits the underlying AffinityPropagation estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ) or similarity matrix when
-					affinity='precomputed'.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				AffinityPropagation | None:
-					Trained wrapper instance.
+				Returns:
+				    AffinityPropagation | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2690,31 +2340,24 @@ class AffinityPropagation( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = \
-				'train( self, X: np.ndarray ) -> AffinityPropagation | None'
+			exception.method = 'train( self, X: np.ndarray ) -> AffinityPropagation | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the AffinityPropagation estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			AffinityPropagation exposes fit_predict for the supplied data, so this
-			method fits and returns labels for the supplied samples.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ) or similarity matrix when
-					affinity='precomputed'.
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2724,27 +2367,24 @@ class AffinityPropagation( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = \
-				'project( self, X: np.ndarray ) -> np.ndarray | None'
+			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Predict.
 
-			Purpose:
-			---------
-			Predict the closest cluster each sample in X belongs to.
+				Purpose:
+				    Predicts cluster labels for the supplied feature matrix with the fitted AffinityPropagation estimator and caches the prediction output on the wrapper.
 
-			Parameters:
-			-----------
-				X (np.ndarray): New samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
+				Returns:
+				    np.ndarray | None: Predicted cluster labels for the supplied samples.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2757,31 +2397,25 @@ class AffinityPropagation( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = \
-				'predict( self, X: np.ndarray ) -> np.ndarray | None'
+			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate AffinityPropagation clustering performance using intrinsic
-			and optional external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the AffinityPropagation output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ) or similarity matrix when
-					affinity='precomputed'.
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2816,30 +2450,25 @@ class AffinityPropagation( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the AffinityPropagation clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ) or similarity matrix when
-					affinity='precomputed'.
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Dictionary containing analysis results.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2871,34 +2500,26 @@ class AffinityPropagation( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'AffinityPropagation'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class Birch( Cluster ):
-	"""
+	"""	Wraps sklearn Birch for scalable clustering through clustering-feature subtrees. The wrapper stores labels, subcluster centers, global centroids, subcluster labels, and feature metadata while supporting projection, prediction, transformation, scoring, and analysis.
 
-		Purpose:
-		---------
-		The Birch builds a tree called the Clustering Feature Tree (CFT) for the given stores.
-		The stores is essentially lossy compressed to a set of Clustering Feature nodes (CF Nodes).
-		The CF Nodes have a number of subclusters called Clustering Feature subclusters
-		(CF Subclusters) and these CF Subclusters located in the non-terminal
-		CF Nodes can have CF Nodes as children.
-
-		The BIRCH algorithm has two parameters, the threshold and the branching factor.
-		The branching factor limits the number of subclusters in a node and the threshold limits
-		the distance between the entering sample and the existing subclusters.
-
-		This algorithm can be viewed as an instance or stores reduction method, since it reduces
-		the input stores to a set of subclusters which are obtained directly from the leaves of the
-		CFT. This reduced stores can be further processed by feeding it into a global clusterer.
-		This global clusterer can be set by n_clusters. If n_clusters is set to None,
-		the subclusters from the leaves are directly read off, otherwise a global clustering step
-		target_names these subclusters into global clusters (target_names) and the samples are
-		mapped to the global label of the nearest subcluster.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    threshold: threshold value retained by the wrapper.
+		    branching_factor: branching factor value retained by the wrapper.
+		    n_clusters: Number of clusters requested by the wrapper.
+		    compute_labels: compute labels value retained by the wrapper.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.Birch
 	threshold: Optional[ float ]
@@ -2915,25 +2536,16 @@ class Birch( Cluster ):
 	
 	def __init__( self, threshold: float = 0.5, branching_factor: int = 50,
 			n_clusters: object = 3, compute_labels: bool = True ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the Birch clustering wrapper.
+				Purpose:
+				    Initializes the Birch clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				threshold (float): Radius threshold used to merge new samples into
-					existing subclusters.
-				branching_factor (int): Maximum number of CF subclusters in each node.
-				n_clusters (object): Number of global clusters after the final
-					clustering step, None, or another cluster model instance.
-				compute_labels (bool): Whether to compute labels for each sample.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    threshold: Birch radius threshold for merging subclusters.
+				    branching_factor: Maximum number of child subclusters in each Birch node.
+				    n_clusters: Optional override for the requested number of clusters.
+				    compute_labels: Flag controlling whether Birch computes labels after fitting.
 		"""
 		super( ).__init__( )
 		self.threshold = threshold
@@ -2955,21 +2567,13 @@ class Birch( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the Birch wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -2998,21 +2602,16 @@ class Birch( Cluster ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted sample labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Birch estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3020,21 +2619,16 @@ class Birch( Cluster ):
 	
 	@property
 	def subcluster_centers( self ) -> np.ndarray:
-		"""
+		"""Return subcluster centers metadata.
 
-			Purpose:
-			---------
-			Return subcluster centers learned by Birch.
+				Purpose:
+				    Returns Birch subcluster centers.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Birch estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Subcluster centers.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'subcluster_centers_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3042,41 +2636,28 @@ class Birch( Cluster ):
 	
 	@property
 	def centroids_( self ) -> np.ndarray:
-		"""
+		"""Return centroids metadata.
 
-			Purpose:
-			---------
-			Return subcluster centers using the centroid name expected by app.py.
+				Purpose:
+				    Returns fitted cluster centers or exemplar center coordinates exposed by the estimator.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				np.ndarray:
-					Subcluster centers.
-
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Birch estimator.
 		"""
 		return self.subcluster_centers
 	
 	@property
 	def subcluster_labels( self ) -> np.ndarray:
-		"""
+		"""Return subcluster labels metadata.
 
-			Purpose:
-			---------
-			Return global labels assigned to each subcluster.
+				Purpose:
+				    Returns Birch subcluster labels.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the Birch estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Subcluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'subcluster_labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3084,43 +2665,35 @@ class Birch( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the Birch estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> Birch | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the Birch clustering model.
+				Purpose:
+				    Fits the underlying Birch estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				Birch | None:
-					Trained wrapper instance.
+				Returns:
+				    Birch | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3133,28 +2706,23 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'train( self, X: np.ndarray ) -> Birch | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the Birch estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			Birch exposes fit_predict for the supplied data, so this method
-			fits and returns labels for the supplied samples.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3165,25 +2733,23 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def predict( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Predict.
 
-			Purpose:
-			---------
-			Predict the closest cluster each sample in X belongs to.
+				Purpose:
+				    Predicts cluster labels for the supplied feature matrix with the fitted Birch estimator and caches the prediction output on the wrapper.
 
-			Parameters:
-			-----------
-				X (np.ndarray): New samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
+				Returns:
+				    np.ndarray | None: Predicted cluster labels for the supplied samples.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3197,25 +2763,23 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'predict( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Transform.
 
-			Purpose:
-			---------
-			Transform X into subcluster centroids distance space.
+				Purpose:
+				    Transforms the supplied feature matrix with the fitted Birch estimator and returns estimator-specific distances, embeddings, or transformed cluster-space values.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Input samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Distance matrix to subcluster centroids.
+				Returns:
+				    np.ndarray | None: Transformed cluster-space representation produced by the estimator.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3231,28 +2795,24 @@ class Birch( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
 			exception.method = 'transform( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate Birch clustering performance using intrinsic and optional
-			external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the Birch output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3286,29 +2846,25 @@ class Birch( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the Birch clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Dictionary containing analysis results.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3336,28 +2892,36 @@ class Birch( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'Birch'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 
-
 class OPTICS( Cluster ):
-	"""
+	"""	Wraps sklearn OPTICS for density-based clustering across varying neighborhood radii. The wrapper stores labels, ordering, reachability distances, core distances, predecessors, and feature metadata for inspection and scoring.
 
-		Purpose:
-		---------
-		The OPTICS is a generalization of DBSCAN that relaxes the eps requirement from a single
-		value to a value range. The key difference between DBSCAN and OPTICS is that the OPTICS
-		algorithm builds a reachability graph, which assigns each sample both a reachability_
-		distance, and a spot within the cluster ordering_ attribute; these two attributes are
-		assigned when the model is fitted, and are used to determine cluster membership.
-
-		If OPTICS is run with the default value of inf set for max_eps, then DBSCAN style
-		cluster extraction can be performed repeatedly in linear time for any given eps value
-		using the cluster_optics_dbscan method. Setting max_eps to a lower value will result
-		in shorter run times, and can be thought of as the maximum neighborhood radius from
-		each point to find other potential reachable points.
-
+		Attributes:
+		    model: Underlying sklearn clustering estimator.
+		    min_samples: min samples value retained by the wrapper.
+		    max_eps: max eps value retained by the wrapper.
+		    metric: metric value retained by the wrapper.
+		    p: p value retained by the wrapper.
+		    metric_params: metric params value retained by the wrapper.
+		    cluster_method: cluster method value retained by the wrapper.
+		    eps: eps value retained by the wrapper.
+		    xi: xi value retained by the wrapper.
+		    predecessor_correction: predecessor correction value retained by the wrapper.
+		    min_cluster_size: min cluster size value retained by the wrapper.
+		    algorithm: algorithm value retained by the wrapper.
+		    leaf_size: leaf size value retained by the wrapper.
+		    memory: memory value retained by the wrapper.
+		    n_jobs: n jobs value retained by the wrapper.
+		    prediction: Most recent cluster-label assignments generated by the wrapper.
+		    probability: probability value retained by the wrapper.
+		    completeness: completeness value retained by the wrapper.
+		    homogeneity: homogeneity value retained by the wrapper.
+		    mutual_info: mutual info value retained by the wrapper.
+		    silouette: silouette value retained by the wrapper.
+		    v_measure: v measure value retained by the wrapper.
 	"""
 	model: skc.OPTICS
 	min_samples: Optional[ int ]
@@ -3391,35 +2955,27 @@ class OPTICS( Cluster ):
 			metric_params: Dict[ str, Any ] | None = None,
 			cluster_method: str = 'xi', xi: float = 0.05,
 			memory: object = None, n_jobs: int | None = None ) -> None:
-		"""
+		"""Initialize clustering wrapper.
 
-			Purpose:
-			---------
-			Initialize the OPTICS clustering wrapper.
+				Purpose:
+				    Initializes the OPTICS clustering wrapper with estimator configuration, runtime metadata fields, prediction caches, and the underlying sklearn clustering model used by training and projection methods.
 
-			Parameters:
-			-----------
-				samples (int): Legacy alias for min_samples.
-				max_eps (float): Maximum reachability distance.
-				metric (object): Distance metric name or callable.
-				algorithm (str): Neighbor search algorithm.
-				leaf_size (int): Leaf size for BallTree or KDTree.
-				eps (float | None): Extraction cutoff for DBSCAN-style extraction.
-				predecessor_correction (bool): Whether predecessor correction is used.
-				min_cluster_size (int | float | None): Minimum cluster size.
-				min_samples (int | None): Explicit scikit-learn style min_samples.
-				p (float): Power parameter for the Minkowski metric.
-				metric_params (Dict[ str, Any ] | None): Additional metric
-					keyword arguments.
-				cluster_method (str): Cluster extraction method.
-				xi (float): Minimum steepness on the reachability plot.
-				memory (object): Optional joblib memory or cache path.
-				n_jobs (int | None): Number of parallel jobs.
-
-			Returns:
-			--------
-				None
-
+				Args:
+				    samples: Minimum sample count used for density-neighborhood definitions.
+				    max_eps: Maximum neighborhood distance considered by OPTICS.
+				    metric: Distance metric used by the clustering estimator.
+				    algorithm: Estimator algorithm selection passed to sklearn.
+				    leaf_size: Leaf size used by tree-based neighbor-search algorithms.
+				    eps: Maximum neighborhood radius for density-based clustering.
+				    predecessor_correction: Flag controlling OPTICS predecessor correction behavior.
+				    min_cluster_size: Minimum cluster size used by OPTICS extraction.
+				    min_samples: Optional override for the minimum sample count.
+				    p: Power parameter used by Minkowski distance metrics.
+				    metric_params: Additional metric keyword arguments passed to sklearn.
+				    cluster_method: Cluster extraction method used by OPTICS.
+				    xi: Steepness threshold used by OPTICS xi extraction.
+				    memory: Optional joblib memory configuration used by sklearn.
+				    n_jobs: Number of parallel jobs used by sklearn when supported.
 		"""
 		super( ).__init__( )
 		self.min_samples = min_samples if min_samples is not None else samples
@@ -3461,21 +3017,13 @@ class OPTICS( Cluster ):
 		self.completeness = 0.0
 	
 	def __dir__( self ) -> list[ str ]:
-		"""
+		"""List public members.
 
-			Purpose:
-			---------
-			Return the primary public members exposed by the wrapper.
+				Purpose:
+				    Returns the stable public member names exposed by the OPTICS wrapper for interactive inspection, notebook exploration, and IDE discovery.
 
-			Parameters:
-			-----------
-				None
-
-			Returns:
-			--------
-				list[ str ]:
-					Member names.
-
+				Returns:
+				    list[str]: Public member names exposed by the wrapper.
 		"""
 		return [
 				'model',
@@ -3513,21 +3061,16 @@ class OPTICS( Cluster ):
 	
 	@property
 	def labels( self ) -> np.ndarray:
-		"""
+		"""Return labels metadata.
 
-			Purpose:
-			---------
-			Return fitted cluster labels.
+				Purpose:
+				    Returns fitted cluster-label assignments.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the OPTICS estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Cluster labels.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'labels_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3535,21 +3078,16 @@ class OPTICS( Cluster ):
 	
 	@property
 	def ordering( self ) -> np.ndarray:
-		"""
+		"""Return ordering metadata.
 
-			Purpose:
-			---------
-			Return the OPTICS ordering of samples.
+				Purpose:
+				    Returns the OPTICS cluster ordering.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the OPTICS estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Ordering indices.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'ordering_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3557,21 +3095,16 @@ class OPTICS( Cluster ):
 	
 	@property
 	def reachability( self ) -> np.ndarray:
-		"""
+		"""Return reachability metadata.
 
-			Purpose:
-			---------
-			Return reachability distances.
+				Purpose:
+				    Returns OPTICS reachability distances.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the OPTICS estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Reachability distances.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'reachability_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3579,21 +3112,16 @@ class OPTICS( Cluster ):
 	
 	@property
 	def core_distances( self ) -> np.ndarray:
-		"""
+		"""Return core distances metadata.
 
-			Purpose:
-			---------
-			Return core distances.
+				Purpose:
+				    Returns OPTICS core-distance values.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the OPTICS estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Core distances.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'core_distances_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3601,21 +3129,16 @@ class OPTICS( Cluster ):
 	
 	@property
 	def predecessor( self ) -> np.ndarray:
-		"""
+		"""Return predecessor metadata.
 
-			Purpose:
-			---------
-			Return predecessor indices.
+				Purpose:
+				    Returns OPTICS predecessor indices.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    np.ndarray: Fitted metadata exposed by the OPTICS estimator.
 
-			Returns:
-			--------
-				np.ndarray:
-					Predecessor indices.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'predecessor_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -3623,43 +3146,35 @@ class OPTICS( Cluster ):
 	
 	@property
 	def features( self ) -> int:
-		"""
+		"""Return features metadata.
 
-			Purpose:
-			---------
-			Return the number of features seen during fitting.
+				Purpose:
+				    Returns the number of input features observed during fitting.
 
-			Parameters:
-			-----------
-				None
+				Returns:
+				    int: Fitted metadata exposed by the OPTICS estimator.
 
-			Returns:
-			--------
-				int:
-					Number of fitted features.
-
+				Raises:
+				    NotImplementedError: Raised when the base interface method is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
 	def train( self, X: np.ndarray ) -> OPTICS | None:
-		"""
+		"""Train.
 
-			Purpose:
-			---------
-			Fit the OPTICS clustering model.
+				Purpose:
+				    Fits the underlying OPTICS estimator to the supplied feature matrix, refreshes fitted prediction metadata when available, and returns the current wrapper for chained clustering workflows.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Returns:
-			--------
-				OPTICS | None:
-					Trained wrapper instance.
+				Returns:
+				    OPTICS | None: Fitted wrapper instance.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3671,28 +3186,23 @@ class OPTICS( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = 'train( self, X: np.ndarray ) -> OPTICS | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray ) -> np.ndarray | None:
-		"""
+		"""Project.
 
-			Purpose:
-			---------
-			Generate cluster assignments for the supplied samples.
+				Purpose:
+				    Generates cluster assignments for the supplied feature matrix using the OPTICS estimator. The method preserves compatibility with wrappers that fit and predict in a single operation when fitted-state metadata is unavailable.
 
-			OPTICS exposes fit_predict for the supplied data, so this method
-			fits and returns labels for the supplied samples.
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
+				Returns:
+				    np.ndarray | None: Cluster labels or projection output generated for the supplied samples.
 
-			Returns:
-			--------
-				np.ndarray | None:
-					Cluster labels for each sample.
-
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3703,28 +3213,24 @@ class OPTICS( Cluster ):
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
 			exception.method = 'project( self, X: np.ndarray ) -> np.ndarray | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
-		"""
+		"""Score.
 
-			Purpose:
-			---------
-			Evaluate OPTICS clustering performance using intrinsic and optional
-			external clustering metrics.
+				Purpose:
+				    Computes intrinsic and optional reference-label clustering metrics for the OPTICS output, including silhouette, completeness, homogeneity, mutual information, and V-measure when supported by the available labels.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				pd.DataFrame | None:
-					DataFrame containing clustering metrics.
+				Returns:
+				    pd.DataFrame | None: Dataframe containing clustering metrics.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3760,29 +3266,25 @@ class OPTICS( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
-			exception.method = \
-				'score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None'
+			exception.method = 'score( self, *args ) -> pd.DataFrame | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None:
-		"""
+		"""Analyze.
 
-			Purpose:
-			---------
-			Produce a summary analysis payload for the fitted clustering model.
+				Purpose:
+				    Builds a structured analysis payload for the OPTICS clustering result by combining fitted labels, estimator metadata, and metric output generated from the supplied feature matrix.
 
-			Parameters:
-			-----------
-				X (np.ndarray): Feature matrix/input samples of shape
-					( n_samples, n_features ).
-				y (Optional[np.ndarray]): Optional reference labels of shape
-					( n_samples, ).
+				Args:
+				    X: Feature matrix with rows as samples and columns as numeric clustering features.
+				    y: Optional reference labels aligned to `X` for external clustering metrics.
 
-			Returns:
-			--------
-				Dict[ str, Any ] | None:
-					Dictionary containing analysis results.
+				Returns:
+				    Dict[str, Any] | None: Dictionary containing labels, estimator metadata, and metric output.
 
+				Raises:
+				    Error: Raised when validation, estimator execution, metric calculation, or wrapped clustering logic fails.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -3821,7 +3323,7 @@ class OPTICS( Cluster ):
 			exception = Error( e )
 			exception.module = 'clusters'
 			exception.cause = 'OPTICS'
-			exception.method = \
-				'analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> Dict[ str, Any ] | None'
+			exception.method = 'analyze( self, *args ) -> Dict[str, Any] | None'
+			Logger( ).write( exception )
 			raise exception
 			

@@ -1,45 +1,46 @@
-'''
-    ******************************************************************************************
-      Assembly:                mathy
-      Filename:                data.py
-      Author:                  Terry D. Eppler
-      Created:                 05-31-2022
+"""******************************************************************************************
+  Assembly:                mathy
+  Filename:                data.py
+  Author:                  Terry D. Eppler
+  Created:                 05-31-2022
 
-      Last Modified By:        Terry D. Eppler
-      Last Modified On:        05-01-2025
-    ******************************************************************************************
-    <copyright file="data.py" company="Terry D. Eppler">
-
-             mathy Data
-
-         Permission is hereby granted, free of charge, to any person obtaining a copy
-         of this software and associated documentation files (the “Software”),
-         to deal in the Software without restriction,
-         including without limitation the rights to use,
-         copy, modify, merge, publish, distribute, sublicense,
-         and/or sell copies of the Software,
-         and to permit persons to whom the Software is furnished to do so,
-         subject to the following conditions:
-
-         The above copyright notice and this permission notice shall be included in all
-         copies or substantial portions of the Software.
-
-         THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-         INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-         FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-         IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-         DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-         ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-         DEALINGS IN THE SOFTWARE.
-
-         You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-
-    </copyright>
-    <summary>
-        data.py
-    </summary>
+  Last Modified By:        Terry D. Eppler
+  Last Modified On:        05-01-2025
 ******************************************************************************************
-'''
+<copyright file="data.py" company="Terry D. Eppler">
+
+         mathy Data
+
+     Permission is hereby granted, free of charge, to any person obtaining a copy
+     of this software and associated documentation files (the “Software”),
+     to deal in the Software without restriction,
+     including without limitation the rights to use,
+     copy, modify, merge, publish, distribute, sublicense,
+     and/or sell copies of the Software,
+     and to permit persons to whom the Software is furnished to do so,
+     subject to the following conditions:
+
+     The above copyright notice and this permission notice shall be included in all
+     copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+     INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+     IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+     DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+     ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+     DEALINGS IN THE SOFTWARE.
+
+     You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+
+</copyright>
+<summary>
+    Provides statistical helper functions and the DataSource preparation wrapper used by
+    Mathy modeling workflows. The module centralizes entropy, information-gain, impurity,
+    clustering-distance, scaling, encoding, profiling, plotting, and train/test split
+    utilities for pandas, NumPy, SciPy, seaborn, matplotlib, and scikit-learn pipelines.
+</summary>
+******************************************************************************************"""
 from argparse import ArgumentError
 from typing import Optional, List, Tuple
 import matplotlib.pyplot as plt
@@ -52,114 +53,102 @@ from sklearn.model_selection import train_test_split as split
 from scalers import Scaler, NormalScaler, StandardScaler, MinMaxScaler
 import scipy.stats as stats
 from typing import Dict, Optional, List, Any
-from boogr import Error
+from boogr import Error, Logger
 from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder
 
-
 def throw_if( name: str, value: object ):
-    if value is None:
-        raise ValueError( f'Argument "{name}" cannot be empty!' )
-
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 def entropy( y: np.ndarray ) -> float | None:
-    """
-        
-        Purpose:
-        --------
-        Calculate the entropy of a label distribution.
-    
-        Entropy is a measure of the impurity or disorder in a set of labels.
-        It is calculated as the sum over all classes:
-        H(y) = -Σ (p_i * log2(p_i))
-    
-        Parameters
-        ----------
-        y : np.ndarray
-        Array of class labels.
-    
-        Returns
-        -------
-        float
-        Entropy value (non-negative scalar).
-    
-    """
-    try:
-        throw_if( 'y', y )
-        unique, counts = np.unique( y, return_counts=True )
-        probs = counts / len( y )
-        _entropy = -np.sum( probs * np.log2( probs + 1e-9 ) )
-        return _entropy
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'entropy( y: np.ndarray ) -> float '
-        raise exception
- 
-        
+	"""Calculate label entropy.
+	
+	Purpose:
+		Computes Shannon entropy for a one-dimensional label distribution. The calculation
+		converts observed class counts into probabilities and returns a non-negative impurity
+		measure suitable for split evaluation, decision-tree criteria, and information-gain
+		calculations.
+	
+	Args:
+		y (np.ndarray): Class-label array used to estimate empirical class probabilities.
+	
+	Returns:
+		Entropy value for the observed label distribution.
+	
+	Raises:
+		Error: Raised when argument validation or entropy calculation fails."""
+	try:
+		throw_if( 'y', y )
+		unique, counts = np.unique( y, return_counts=True )
+		probs = counts / len( y )
+		_entropy = -np.sum( probs * np.log2( probs + 1e-9 ) )
+		return _entropy
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'entropy( y: np.ndarray ) -> float | None'
+		Logger( ).write( exception )
+		raise exception
+
 def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float | None:
-    """
-    
-        Purpose:
-        ---------
-        Compute the information gain from splitting the data at a given threshold.
-        Information gain quantifies the reduction in entropy after a dataset is split.
-        It is calculated as:
-        IG = H(parent) - [ (N_left / N_total) * H(left) + (N_right / N_total) * H(right) ]
-    
-        Parameters
-        ----------
-        X_column : np.ndarray - A single feature column (1D array) of predictor values.
-        y : np.ndarray - Array of target labels.
-        threshold : float -Threshold value to split the feature.
-    
-        Returns
-        -------
-        float
-        Information gain value (higher is better). Returns 0 if no valid split is found.
-    
-    """
-    try:
-        parent_entropy = entropy( y )
-        left_idx = X_column <= threshold
-        right_idx = X_column > threshold
-        if sum( left_idx ) == 0 or sum( right_idx ) == 0:
-            return 0  # Avoid splits with empty subset
-        left_entropy = entropy( y[ left_idx ] )
-        right_entropy = entropy( y[ right_idx ] )
-        num_left, num_right = sum( left_idx ), sum( right_idx )
-        weighted_entropy = (num_left / len( y )) * left_entropy + (
-                num_right / len( y )) * right_entropy
-        _information = parent_entropy - weighted_entropy
-        return _information
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) -> float'
-        raise exception
+	"""Compute information gain.
+	
+	Purpose:
+		Calculates the reduction in entropy achieved by splitting a target label vector on a
+		single feature threshold. The result supports decision-tree split selection by comparing
+		parent entropy against the weighted entropy of the left and right partitions.
+	
+	Args:
+		X_column (np.ndarray): One-dimensional feature array used to form the threshold split.
+		y (np.ndarray): Target-label array aligned to `X_column`.
+		threshold (float): Split value used to separate left and right partitions.
+	
+	Returns:
+		Information-gain value for the requested split, or zero when the split produces an empty
+		partition.
+	
+	Raises:
+		Error: Raised when entropy calculation or threshold partitioning fails."""
+	try:
+		parent_entropy = entropy( y )
+		left_idx = X_column <= threshold
+		right_idx = X_column > threshold
+		if sum( left_idx ) == 0 or sum( right_idx ) == 0:
+			return 0  # Avoid splits with empty subset
+		left_entropy = entropy( y[ left_idx ] )
+		right_entropy = entropy( y[ right_idx ] )
+		num_left, num_right = sum( left_idx ), sum( right_idx )
+		weighted_entropy = (num_left / len( y )) * left_entropy + (
+				num_right / len( y )) * right_entropy
+		_information = parent_entropy - weighted_entropy
+		return _information
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'information_gain( *args ) -> float | None'
+		Logger( ).write( exception )
+		raise exception
 
-
-def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, float ] | None:
-	'''
-
-			Purpose:
-			-------
-			Identify the best feature and threshold to split data for maximum information gain.
-
-			Parameters
-			----------
-			X : np.ndarray - 2D array of shape (n_samples, n_features) representing the input features.
-			y : np.ndarray - 1D array of target labels.
-			number : int, optional - Number of equally spaced thresholds to
-							test per feature (default is 10).
-
-			Returns
-			-------
-			tuple (best_feature_index: int, best_threshold: float) — the feature and threshold that
-			yield the highest information gain. If no split improves entropy, returns (None, None).
-
-	'''
+def best_split( X: np.ndarray, y: np.ndarray, number: int = 10 ) -> Tuple[ int, float ] | None:
+	"""Find the best entropy split.
+	
+	Purpose:
+	    Searches each feature column across evenly spaced candidate thresholds and selects the
+	    feature-threshold pair with the highest information gain. The returned pair is suitable
+	    for constructing a simple decision rule or one-level decision-tree stump.
+	
+	Args:
+	    X (np.ndarray): Feature matrix with rows as samples and columns as candidate split features.
+	    y (np.ndarray): Target-label array aligned to the rows of `X`.
+	    number (int): Number of candidate thresholds evaluated per feature.
+	
+	Returns:
+	    Tuple containing the selected feature index and threshold value.
+	
+	Raises:
+	    Error: Raised when validation, threshold generation, or information-gain scoring fails."""
 	try:
 		throw_if( 'X', X )
 		throw_if( 'y', y )
@@ -180,26 +169,26 @@ def best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple[ int, fl
 		exception = Error( e )
 		exception.module = 'mathy'
 		exception.cause = 'data'
-		exception.method = ('best_split( X: np.ndarray, y: np.ndarray, number: int=10 ) -> Tuple')
+		exception.method = 'best_split( *args ) -> Tuple[ int, float ] | None'
+		Logger( ).write( exception )
 		raise exception
 
-
 def gini_impurity( p: float ) -> float | None:
-	'''
-
-		Purpose:
-		_______
-		Gini impurity for a Bernoulli variable with success probability p.
-
-		Parameters:
-		_________
-		p (float): Probability in [0, 1].
-
-		Returns:
-		_______
-		float | None: Gini impurity, or None on error.
-
-	'''
+	"""Calculate Bernoulli Gini impurity.
+	
+	Purpose:
+	    Computes the Gini impurity for a binary class distribution represented by a success
+	    probability. The value measures expected classification impurity and is valid only for
+	    probabilities in the inclusive range from zero to one.
+	
+	Args:
+	    p (float): Success probability for the positive class.
+	
+	Returns:
+	    Gini impurity value for the supplied Bernoulli probability.
+	
+	Raises:
+	    Error: Raised when the probability is missing or outside the valid range."""
 	try:
 		throw_if( 'p', p )
 		if p < 0 or p > 1:
@@ -211,41 +200,27 @@ def gini_impurity( p: float ) -> float | None:
 		exception.module = 'mathy'
 		exception.cause = 'data'
 		exception.method = 'gini_impurity( p: float ) -> float'
+		Logger( ).write( exception )
 		raise exception
 
-
-def decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 ):
-	"""
-		
-		Purpose:
-		--------
-		Build a one-level decision tree (stump) for classification.
+def decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 ) -> Dict[ str, Any ]:
+	"""Build a one-level decision stump.
 	
-		This function creates a decision rule using a single feature and threshold
-		that maximizes information gain. The leaf nodes are labeled with the
-		most common class in each partition (left and right).
+	Purpose:
+	    Creates a single-feature classification rule by selecting the feature and threshold with
+	    maximum information gain. The resulting dictionary stores the selected split and majority
+	    labels for the left and right partitions.
 	
-		Parameters
-		----------
-		X : np.ndarray
-		2D array of shape (n_samples, n_features) containing normalized feature values.
-		
-		y : np.ndarray
-		1D array of integer class labels.
-		
-		num_thresholds : int, optional
-		Number of threshold points to evaluate per feature (default is 10).
+	Args:
+	    X (np.ndarray): Feature matrix containing normalized or comparable numeric feature values.
+	    y (np.ndarray): Integer class-label array aligned to the rows of `X`.
+	    num_thresholds (int): Number of candidate thresholds evaluated per feature.
 	
-		Returns
-		-------
-		dict
-			A dictionary representing the decision tree stump with keys:
-			- 'feature': int, index of selected feature
-			- 'threshold': float, value used to split
-			- 'left_label': int, majority class for left split
-			- 'right_label': int, majority class for right split
-		
-	"""
+	Returns:
+	    Dictionary describing the decision stump, or `None` when no valid split is identified.
+	
+	Raises:
+	    Error: Raised when split selection, partitioning, or majority-label calculation fails."""
 	try:
 		field, depth = best_split( X, y, num_thresholds )
 		if field is None or depth is None:
@@ -256,99 +231,71 @@ def decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 
 		left_label = np.bincount( y[ left_idx ] ).argmax( )
 		right_label = np.bincount( y[ right_idx ] ).argmax( )
 		return \
-		{
-				'feature': field,
-				'threshold': depth,
-				'left_label': left_label,
-				'right_label': right_label
-		}
+			{
+					'feature': field,
+					'threshold': depth,
+					'left_label': left_label,
+					'right_label': right_label
+			}
 	except Exception as e:
 		exception = Error( e )
 		exception.module = 'mathy'
 		exception.cause = 'data'
-		exception.method = 'decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int=10 )'
+		exception.method = 'decision_tree_stump( *args ) -> dict | None'
+		Logger( ).write( exception )
 		raise exception
 
-
 def euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
-    """
-    
-        Purpose:
-        -----------
-        Compute the Euclidean distance from each data point to each cluster centroid.
-    
-        This function is used in the E-step (Expectation step) of K-Means to determine
-        the "closeness" of each point to every centroid. The result is used to assign
-        each point to the nearest cluster.
-    
-        Parameters
-        ----------
-        X : np.ndarray
-            A 2D array of shape (n_samples, n_features) representing the dataset.
-        centroids : np.ndarray
-            A 2D array of shape (k, n_features) representing the current centroids of the clusters.
-    
-        Returns
-        -------
-        np.ndarray
-            A 2D array of shape (n_samples, k) where the element at [i, j] is the
-            Euclidean distance between sample i and centroid j.
-            
-    """
-    try:
-        throw_if( 'X', X )
-        throw_if( 'centroids', centroids )
-        _distances = np.zeros( (X.shape[ 0 ], centroids.shape[ 0 ]) )
-        for i in range( centroids.shape[ 0 ] ):
-            _distances[ :, i ] = np.linalg.norm( X - centroids[ i ], axis=1 )
-        return _distances
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray'
-        raise exception
-
+	"""Compute distances to centroids.
+	
+	Purpose:
+		Calculates Euclidean distances from each sample row to each centroid row. The resulting
+		distance matrix supports assignment steps in K-Means-style clustering workflows by
+		identifying the nearest centroid for every sample.
+	
+	Args:
+		X (np.ndarray): Feature matrix with rows as samples and columns as features.
+		centroids (np.ndarray): Centroid matrix with rows as cluster centers and columns as features.
+	
+	Returns:
+		Distance matrix where each row corresponds to a sample and each column corresponds to a centroid.
+	
+	Raises:
+		Error: Raised when validation or distance-matrix construction fails."""
+	try:
+		throw_if( 'X', X )
+		throw_if( 'centroids', centroids )
+		_distances = np.zeros( (X.shape[ 0 ], centroids.shape[ 0 ]) )
+		for i in range( centroids.shape[ 0 ] ):
+			_distances[ :, i ] = np.linalg.norm( X - centroids[ i ], axis=1 )
+		return _distances
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'euclidian_distance( *args ) -> np.ndarray'
+		Logger( ).write( exception )
+		raise exception
 
 def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray ] | None:
-	"""
+	"""Cluster samples with K-Means.
 	
-		Purpose:
-		--------
-		Perform K-Means clustering using a manual implementation.
+	Purpose:
+	    Performs a compact manual K-Means clustering loop using random centroid initialization,
+	    Euclidean-distance assignment, centroid recomputation, and early stopping when centroids
+	    stabilize. The routine provides a lightweight clustering implementation independent of
+	    sklearn estimator classes.
 	
-		This function clusters the input data into `k` clusters by minimizing the within-cluster
-		variance (inertia). It follows the standard K-Means iterative process:
-			1. Initialize centroids randomly from data points.
-			2. Assign each data point to the nearest centroid.
-			3. Recalculate centroids as the mean of assigned points.
-			4. Repeat until convergence or maximum iterations reached.
+	Args:
+	    X (np.ndarray): Feature matrix with rows as samples and columns as numeric features.
+	    k (int): Number of clusters to form.
+	    iters (int): Maximum number of assignment and centroid-update iterations.
 	
-		Parameters
-		----------
-		X : np.ndarray
-			A 2D array of shape (n_samples, n_features) representing the input data.
-		k : int
-			The number of clusters to find.
-		iters : int, optional
-			Maximum number of iterations to perform (default is 10).
+	Returns:
+	    Tuple containing the assigned cluster labels and final centroid matrix.
 	
-		Returns
-		-------
-		tuple
-			labels : np.ndarray
-				Array of shape (n_samples,) where each value is the assigned cluster index (0 to
-				k-1).
-			centroids : np.ndarray
-				Array of shape (k, n_features) representing the final cluster centers.
-	
-		Notes
-		-----
-		- This implementation uses Euclidean distance.
-		- Initial centroids are selected randomly, so results may vary unless a random seed is set.
-		- No convergence tolerance is used; it only checks for exact centroid stability.
-	
-	"""
+	Raises:
+	    Error: Raised when validation, centroid initialization, distance calculation, or updates fail."""
 	try:
 		throw_if( 'X', X )
 		centroids = X[ np.random.choice( X.shape[ 0 ], k, replace=False ) ]
@@ -373,97 +320,102 @@ def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray 
 		exception = Error( e )
 		exception.module = 'mathy'
 		exception.cause = 'data'
-		exception.method = ('k_means( X: np.ndarray, k: int, max_iters=10 ) -> Tuple')
+		exception.method = 'k_means( *args ) -> Tuple[ np.ndarray, np.ndarray ] | None'
+		Logger( ).write( exception )
 		raise exception
-	
-		
+
 def misclassification_error( p: float ) -> float | None:
-    '''
+	"""Calculate Bernoulli misclassification error.
+	
+	Purpose:
+		Computes binary misclassification error from a class probability by subtracting the larger
+		class probability from one. The value supports impurity comparisons for simple binary split
+		criteria.
+	
+	Args:
+		p (float): Success probability for the positive class.
+	
+	Returns:
+		Misclassification error rate for the supplied probability.
+	
+	Raises:
+		Error: Raised when validation or error-rate calculation fails."""
+	try:
+		throw_if( 'p', p )
+		_errors = 1 - np.max( [ p, 1 - p ] )
+		return _errors
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'misclassification_error( p: float ) -> float'
+		Logger( ).write( exception )
+		raise exception
 
-        Purpose:
-        ________
-        Misclassification error for Bernoulli (1 - max class probability).
-
-        Parameters:
-        ________
-        p (float): Probability in [0, 1].
-
-        Returns:
-        ________
-        float | None: Error rate, or None on error.
-
-    '''
-    try:
-        throw_if( 'p', p )
-        _errors = 1 - np.max( [ p, 1 - p ] )
-        return _errors
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'misclassification_error( p: float ) -> float'
-        raise exception
-
-   
 def sigmoid( z: float ) -> float | None:
-    '''
-
-        Purpose:
-        _________
-        While the logit function maps the probability to a real-number range, we can consider the
-        inverse of this function to map the real-number range back to a [0, 1] range for the
-        probability p. This inverse of the logit function is typically called the logistic
-        sigmoid function,
-        which is sometimes simply abbreviated to sigmoid function due to its characteristic S-shape
-
-        Parameters:
-        _________
-        z (float): Real-valued input.
-
-        Returns:
-        _________
-        float | None: σ(z), or None on error.
-
-    '''
-    try:
-        throw_if( 'z', z )
-        z = float( np.clip( z, -709, 709 ) )
-        _input = 1.0 / (1.0 + np.exp( -z ) )
-        return _input
-    except Exception as e:
-        exception = Error( e )
-        exception.module = 'mathy'
-        exception.cause = 'data'
-        exception.method = 'sigmoid( z: float ) -> float'
-        raise exception
-
+	"""Calculate the logistic sigmoid.
+	
+	Purpose:
+		Maps a real-valued input onto the interval from zero to one using the logistic sigmoid
+		transformation. The input is clipped to a stable exponent range before evaluating the
+		exponential expression.
+	
+	Args:
+		z (float): Real-valued input to transform.
+	
+	Returns:
+		Logistic sigmoid value for the supplied input.
+	
+	Raises:
+		Error: Raised when validation, numeric conversion, clipping, or exponentiation fails."""
+	try:
+		throw_if( 'z', z )
+		z = float( np.clip( z, -709, 709 ) )
+		_input = 1.0 / (1.0 + np.exp( -z ))
+		return _input
+	except Exception as e:
+		exception = Error( e )
+		exception.module = 'mathy'
+		exception.cause = 'data'
+		exception.method = 'sigmoid( z: float ) -> float'
+		Logger( ).write( exception )
+		raise exception
 
 class DataSource( ):
-	"""
-
-		Purpose:
-		-----------
-		Utility class for preparing machine rate datasets from a pandas DataFrame.
-
-		Members:
-		------------
-		dataframe: pd.DataFrame
-		stores: np.ndarray
-		n_samples: int
-		n_features: int
-		target: str
-		test_size: float
-		random_state: int
-		feature_names: list
-		target_names
-		categorical_columns
-		numeric_columns: list
-		X_training: pd.DataFrame
-		y_training
-		X_testing
-		y_testing
-
-	"""
+	"""Prepare tabular modeling data.
+	
+	Purpose:
+	    Wraps a pandas DataFrame with derived metadata, descriptive statistics, train/test splits,
+	    categorical and numeric partitions, encoding hooks, scaling hooks, pivot creation, export,
+	    and profiling utilities. The wrapper preserves the selected target column and maintains
+	    synchronized feature, target, numeric, categorical, and split attributes after supported
+	    transformations.
+	
+	Attributes:
+	    data (pd.DataFrame): Working dataframe used by transformation and analysis methods.
+	    size (float): Test-set proportion used for train/test splitting.
+	    seed (int): Random seed used by the splitter.
+	    scaler (Optional[Scaler]): Most recent scaler wrapper used by scaling methods.
+	    label_encoder (Optional[OrdinalEncoder]): Most recent label or ordinal encoder wrapper.
+	    target_encoder (Optional[TargetEncoder]): Target encoder reserved for target-aware encoding.
+	    target (Optional[str]): Name of the selected target column.
+	    targets (Optional[np.ndarray]): Current target values from the working dataframe.
+	    n_samples (Optional[int]): Number of rows in the working dataframe at initialization.
+	    n_features (Optional[int]): Number of non-target columns at initialization.
+	    feature_names (Optional[List[str]]): Current non-target feature column names.
+	    target_names (Optional[np.ndarray]): Sorted unique target values.
+	    categorical_columns (Optional[List[str]]): Current categorical column names.
+	    numeric_columns (Optional[List[str]]): Current numeric column names.
+	    numeric_data (Optional[pd.DataFrame]): Current numeric-column dataframe slice.
+	    categorical_data (Optional[pd.DataFrame]): Current categorical-column dataframe slice.
+	    datatuple (Optional[List[Tuple[str, Encoder, List[str]]]]): ColumnTransformer definitions.
+	    numeric_metrics (Optional[pd.DataFrame]): Descriptive statistics for numeric columns.
+	    pivot_table (Optional[pd.DataFrame]): Most recent pivot table generated by `create_pivot`.
+	    column_transformer (Optional[ColumnTransformer]): Most recent fitted column transformer.
+	    X_training (Optional[pd.DataFrame]): Feature training split.
+	    X_testing (Optional[pd.DataFrame]): Feature testing split.
+	    y_training (Optional[pd.Series]): Target training split.
+	    y_testing (Optional[pd.Series]): Target testing split."""
 	data: pd.DataFrame
 	size: float
 	seed: int
@@ -499,24 +451,23 @@ class DataSource( ):
 	y_testing: Optional[ pd.Series ]
 	
 	def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
-		"""
-
-			Purpose:
-			-----------
-			Initialize and split the dataset.
-
-			Parameters:
-			-----------
-			df (pd.DataFrame): Source dataframe.
-			target (str): Name of the target column.
-			size (float): Test set proportion.
-			rando (int): Random seed for reproducibility.
-
-			Returns:
-			-----------
-				None
-
-		"""
+		"""Initialize the data source.
+		
+		Purpose:
+		    Copies the source dataframe, validates the requested target column, derives feature and
+		    target metadata, partitions numeric and categorical columns, computes descriptive
+		    statistics, initializes transformation state, and creates the initial train/test split
+		    used by downstream modeling wrappers.
+		
+		Args:
+		    df (pd.DataFrame): Source dataframe containing feature columns and the target column.
+		    target (str): Name of the target column in `df`.
+		    size (float): Proportion of rows reserved for the testing split.
+		    rando (int): Random seed used by the train/test splitter.
+		
+		Raises:
+		    ArgumentError: Raised when the requested target column is not present in `df`.
+		    ValueError: Raised when required constructor arguments are missing."""
 		throw_if( 'df', df )
 		throw_if( 'target', target )
 		self.data = df.copy( )
@@ -556,13 +507,14 @@ class DataSource( ):
 			random_state=self.seed )
 	
 	def __dir__( self ):
-		'''
-
-			Purpose:
-			-----------
-			This function retuns a list of strings (members of the class)
-
-		'''
+		"""List public members.
+		
+		Purpose:
+		    Returns the stable set of attribute and method names exposed by the data-source wrapper
+		    for interactive discovery, IDE inspection, and notebook-oriented exploration.
+		
+		Returns:
+		    Public member names exposed by the wrapper."""
 		return [ 'data',
 		         'target',
 		         'size',
@@ -607,24 +559,26 @@ class DataSource( ):
 		         'create_pivot',
 		         'create_histogram', ]
 	
-	def transform_columns( self, name: str, encoder: Encoder, columns: List[ str ] ) -> pd.DataFrame:
-		"""
-
-			Purpose:
-			-----------
-			Add a (name, transformer, columns) triple and fit/transform X using ColumnTransformer.
-
-			Parameters:
-			-----------
-			name (str): Transformer name.
-			encoder (Preprocessor): Transformer implementing fit/transform.
-			columns (list[str]): Column names to transform.
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
+	def transform_columns( self, name: str, encoder: Encoder,
+			columns: List[ str ] ) -> pd.DataFrame:
+		"""Transform selected columns.
+		
+		Purpose:
+		    Adds a named encoder definition to the internal ColumnTransformer, fits the transformer
+		    against current feature columns, rebuilds the working dataframe with transformed and
+		    passthrough columns, preserves the target values, refreshes metadata, and recreates the
+		    train/test split from the transformed dataset.
+		
+		Args:
+		    name (str): Transformer name used inside the ColumnTransformer definition.
+		    encoder (Encoder): Encoder or transformer wrapper applied to the selected columns.
+		    columns (List[str]): Column names transformed by the supplied encoder.
+		
+		Returns:
+		    Updated working dataframe after column transformation.
+		
+		Raises:
+		    Error: Raised when validation, transformation, dataframe reconstruction, or split refresh fails."""
 		try:
 			throw_if( 'name', name )
 			throw_if( 'encoder', encoder )
@@ -663,25 +617,23 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
-			exception.method = ('transform_columns( self, name: str, encoder: Encoder, '
-			                    'columns: List[ str ] ) -> pd.DataFrame')
+			exception.method = 'transform_columns( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def standardize( self ) -> pd.DataFrame:
-		"""
-
-			Purpose:
-			-----------
-			Instance method that converts numeric data values
-			into a standardized form (ie, subtracting the average
-			and diidiving by the standard deviation).
-
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
+		"""Standardize numeric data.
+		
+		Purpose:
+		    Applies the StandardScaler wrapper to the current numeric dataframe slice and returns the
+		    standardized numeric matrix. The fitted scaler is stored on the instance for later inspection
+		    or inverse transformation when supported by the scaler wrapper.
+		
+		Returns:
+		    Standardized numeric data produced by the scaler wrapper.
+		
+		Raises:
+		    Error: Raised when scaler construction or numeric transformation fails."""
 		try:
 			self.scaler = StandardScaler( )
 			standard_data = self.scaler.train_transform( self.numeric_data )
@@ -691,23 +643,22 @@ class DataSource( ):
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'standardize( self ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def maxminize( self ) -> pd.DataFrame:
-		"""
-
-			Purpose:
-			-----------
-			Instance method that converts numeric data values
-			into a standardized form (ie, subtracting the average
-			and diidiving by the standard deviation).
-
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
+		"""Scale numeric data to a bounded range.
+		
+		Purpose:
+		    Applies the MinMaxScaler wrapper to the current numeric dataframe slice and returns the
+		    scaled numeric matrix. The fitted scaler is stored on the instance so the scaling operation
+		    remains discoverable after execution.
+		
+		Returns:
+		    Min-max scaled numeric data produced by the scaler wrapper.
+		
+		Raises:
+		    Error: Raised when scaler construction or numeric transformation fails."""
 		try:
 			self.scaler = MinMaxScaler( )
 			standardized_data = self.scaler.train_transform( self.numeric_data )
@@ -716,24 +667,23 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
-			exception.method = 'standardize( self ) -> pd.DataFrame'
+			exception.method = 'maxminize( self ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def normalize( self ) -> pd.DataFrame:
-		"""
-
-			Purpose:
-			-----------
-			Instance method that converts numeric data values
-			into a standardized form (ie, subtracting the average
-			and diidiving by the standard deviation).
-
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
+		"""Normalize numeric data.
+		
+		Purpose:
+		    Applies the NormalScaler wrapper to the current numeric dataframe slice and returns the
+		    normalized numeric matrix. The fitted scaler is stored on the instance for consistent access
+		    after the normalization operation completes.
+		
+		Returns:
+		    Normalized numeric data produced by the scaler wrapper.
+		
+		Raises:
+		    Error: Raised when scaler construction or numeric transformation fails."""
 		try:
 			self.scaler = NormalScaler( )
 			normalized_data = self.scaler.train_transform( self.numeric_data )
@@ -742,24 +692,26 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
-			exception.method = 'standardize( self ) -> pd.DataFrame'
+			exception.method = 'normalize( self ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def encode_labels( self, col: str ) -> np.ndarray:
-		"""
-
-			Purpose:
-			-----------
-			Instance method that converts numeric data values
-			into a standardized form (ie, subtracting the average
-			and diidiving by the standard deviation).
-
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
+		"""Encode a label column.
+		
+		Purpose:
+		    Fits a LabelEncoder wrapper to the specified dataframe column, writes encoded labels back
+		    into the working dataframe, and refreshes target, numeric, or categorical cached slices when
+		    the encoded column participates in those instance attributes.
+		
+		Args:
+		    col (str): Name of the dataframe column to label-encode.
+		
+		Returns:
+		    Encoded label array produced by the label encoder.
+		
+		Raises:
+		    Error: Raised when validation, encoder fitting, transformation, or cache refresh fails."""
 		try:
 			throw_if( 'col', col )
 			self.label_encoder = LabelEncoder( )
@@ -778,22 +730,22 @@ class DataSource( ):
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'encode_labels( self, col: str ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def encode_features( self ) -> pd.DataFrame:
-		"""
-
-			Purpose:
-			-----------
-			Instance method that encodes feature columns while leaving
-			the target column unchanged.
-
-
-			Returns:
-			-----------
-			pd.DataFrame
-
-		"""
+		"""Encode feature columns.
+		
+		Purpose:
+		    Applies an OrdinalEncoder wrapper to every non-target column, rebuilds the working dataframe
+		    with encoded features and the unchanged target column, refreshes metadata and cached slices,
+		    and recreates the train/test split from the encoded feature set.
+		
+		Returns:
+		    Updated working dataframe with encoded feature columns.
+		
+		Raises:
+		    Error: Raised when feature collection, encoding, dataframe reconstruction, or split refresh fails."""
 		try:
 			features = [ ]
 			self.label_encoder = OrdinalEncoder( )
@@ -829,22 +781,22 @@ class DataSource( ):
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'encode_features( self ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def encode_targets( self ) -> np.ndarray:
-		"""
-
-			Purpose:
-			-----------
-			Instance method that encodes the target column
-			and writes the result back to the dataframe.
-
-
-			Returns:
-			-----------
-			np.ndarray
-
-		"""
+		"""Encode target values.
+		
+		Purpose:
+		    Fits a LabelEncoder wrapper to the current target values, writes encoded targets back into
+		    the working dataframe, refreshes target arrays and target names, and recreates the train/test
+		    split with the encoded target column.
+		
+		Returns:
+		    Encoded target array produced by the label encoder.
+		
+		Raises:
+		    Error: Raised when target encoding, metadata refresh, or split recreation fails."""
 		try:
 			self.label_encoder = LabelEncoder( )
 			encoded_targets = self.label_encoder.train_transform( self.targets )
@@ -863,27 +815,27 @@ class DataSource( ):
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'encode_targets( self ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def create_pivot( self, cols: List, vals: List, idx: List ) -> pd.DataFrame:
-		'''
-
-			Purpose:
-			_______
-			Create a spreadsheet-style pivot table as a DataFrame.
-
-			Parameters:
-			__________
-			df (pd.DataFrame): Source dataframe.
-			cols (list): Columns to use for columns axis of pivot.
-			vals (list): Value columns to aggregate.
-			idx (list): Columns to use as row index of pivot.
-
-			Returns:
-			________
-			pd.DataFrame | None: Pivot table or None on error.
-
-		'''
+		"""Create a pivot table.
+		
+		Purpose:
+		    Builds a spreadsheet-style pivot table from the working dataframe using explicit row-index,
+		    column-axis, and value-column selections. The generated pivot is cached on the instance for
+		    later access by reporting or inspection code.
+		
+		Args:
+		    cols (List): Columns used to define the pivot-table column axis.
+		    vals (List): Value columns aggregated inside the pivot table.
+		    idx (List): Columns used to define the pivot-table row index.
+		
+		Returns:
+		    Pivot table generated from the working dataframe.
+		
+		Raises:
+		    Error: Raised when validation or pivot-table creation fails."""
 		try:
 			throw_if( 'cols', cols )
 			throw_if( 'vals', vals )
@@ -895,22 +847,23 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
-			exception.method = 'create_pivot( self ) -> pd.DataFrame '
+			exception.method = 'create_pivot( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def export_excel( self, filepath: str = None ) -> None:
-		'''
-
-			Purpose:
-			--------
-			Exports dataframe to an Excel file.
-
-
-			:param filepath:
-			:type filepath:
-			:return:
-			:rtype:
-		'''
+		"""Export data to Excel.
+		
+		Purpose:
+		    Writes the current working dataframe to an Excel workbook at the supplied file path. The
+		    method delegates file creation to pandas and preserves the dataframe exactly as stored on
+		    the instance at export time.
+		
+		Args:
+		    filepath (str): Output workbook path passed to pandas `to_excel`.
+		
+		Raises:
+		    Error: Raised when validation or workbook export fails."""
 		try:
 			throw_if( 'filepath', filepath )
 			self.data.to_excel( filepath )
@@ -919,17 +872,18 @@ class DataSource( ):
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
 			exception.method = 'export_excel( self, filepath: str=None ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def create_histogram( self ) -> None:
-		'''
-
-			Purpose:
-			________
-
-			Method to create histogram of numeric n_features.
-
-		'''
+		"""Render a numeric histogram.
+		
+		Purpose:
+		    Aggregates numeric dataframe columns, plots their distribution with seaborn, and renders the
+		    histogram through matplotlib for exploratory review of numeric feature totals.
+		
+		Raises:
+		    Error: Raised when numeric aggregation or plot rendering fails."""
 		try:
 			plt.figure( figsize=(8, 6) )
 			data = self.data.sum( axis=0, numeric_only=True )
@@ -942,18 +896,23 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
-			exception.method = 'create_histogram( self )'
+			exception.method = 'create_histogram( self ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def create_heatmap( self, numeric: bool = True ) -> None:
-		'''
-
-			Purpose:
-			--------
-			Method to show the pearson-correlation analysis of the dataset.
-			
-			
-		'''
+		"""Render a correlation heatmap.
+		
+		Purpose:
+		    Computes the Pearson correlation matrix for the working dataframe and renders a seaborn
+		    heatmap for exploratory analysis of numeric relationships. The `numeric` flag controls
+		    pandas correlation handling for numeric-only selection.
+		
+		Args:
+		    numeric (bool): Flag passed to pandas correlation logic for numeric-only behavior.
+		
+		Raises:
+		    Error: Raised when correlation calculation or heatmap rendering fails."""
 		try:
 			correlations = self.data.corr( 'pearson', numeric_only=numeric )
 			plt.figure( figsize=(8, 6) )
@@ -964,55 +923,43 @@ class DataSource( ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DataSource'
-			exception.method = 'create_heatmap( self )'
+			exception.method = 'create_heatmap( self, numeric: bool=True ) -> None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def safe_numeric_series( self, df: pd.DataFrame, col: str ) -> np.ndarray:
-		"""
+		"""Return a clean numeric series.
 		
-			Purpose:
-			________
-			Convert a DataFrame column to a clean numeric NumPy array, dropping any
-			non-numeric or missing values.
+		Purpose:
+		    Converts the selected dataframe column to numeric values, coerces invalid entries to missing
+		    values, drops missing observations, and returns a one-dimensional float array suitable for
+		    descriptive statistics and distribution profiling.
 		
-			Parameters:
-			___________
-			df : pd.DataFrame
-				Source DataFrame containing the column.
-			col : str
-				Name of the column to convert.
+		Args:
+		    df (pd.DataFrame): Source dataframe containing the requested column.
+		    col (str): Column name converted to numeric values.
 		
-			Returns:
-			________
-			np.ndarray
-				One-dimensional array of float values with NaNs removed.
-				
-		"""
+		Returns:
+		    One-dimensional float array with invalid and missing values removed."""
 		v = pd.to_numeric( df[ col ], errors="coerce" ).dropna( ).values.astype( float )
 		return v
-
+	
 	def create_profile( self, df: pd.DataFrame, cols: List[ str ] ) -> pd.DataFrame:
-		"""
+		"""Create a numeric feature profile.
 		
-			Purpose:
-			________
-			Compute an extended descriptive statistics profile for a set of numeric
-			columns, including tails, dispersion measures, and simple outlier rates.
+		Purpose:
+		    Computes an extended descriptive statistics profile for selected numeric columns, including
+		    missing-rate, count, mean, standard deviation, variance, percentile, interquartile range,
+		    median absolute deviation, skewness, kurtosis, zero-rate, outlier-rate, and normality fields.
+		    The returned profile is sorted to prioritize complete columns with higher IQR-based outlier
+		    rates.
 		
-			Parameters:
-			___________
-			df : pd.DataFrame
-				DataFrame containing the numeric columns.
-			cols : List[str]
-				List of column names to profile.
+		Args:
+		    df (pd.DataFrame): Source dataframe containing the columns to profile.
+		    cols (List[str]): Numeric column names included in the profile.
 		
-			Returns:
-			________
-			pd.DataFrame
-				DataFrame with one row per feature and many descriptive statistics
-				columns (mean, std, quantiles, skew, kurtosis, outlier rates, etc.).
-				
-		"""
+		Returns:
+		    Dataframe containing one profile row per numeric feature with descriptive and quality metrics."""
 		rows: List[ Dict[ str, Any ] ] = [ ]
 		n = df.shape[ 0 ]
 		percentiles = [ 0, 1, 5, 10, 25, 50, 75, 90, 95, 99, 100 ]
@@ -1097,4 +1044,3 @@ class DataSource( ):
 		return out.sort_values(
 			[ "missing_pct", "outlier_iqr_pct" ], ascending=[ True, False ]
 		)
-            

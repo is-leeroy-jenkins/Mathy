@@ -1,46 +1,48 @@
-'''
-	******************************************************************************************
-	  Assembly:                Mathy
-	  Filename:                features.py
-	  Author:                  Terry D. Eppler
-	  Created:                 05-31-2022
-	
-	  Last Modified By:        Terry D. Eppler
-	  Last Modified On:        05-01-2025
-	******************************************************************************************
-	<copyright file="features.py" company="Terry D. Eppler">
-	
-	     features.py
-	     Copyright ©  2022  Terry Eppler
-	
-	 Permission is hereby granted, free of charge, to any person obtaining a copy
-	 of this software and associated documentation files (the “Software”),
-	 to deal in the Software without restriction,
-	 including without limitation the rights to use,
-	 copy, modify, merge, publish, distribute, sublicense,
-	 and/or sell copies of the Software,
-	 and to permit persons to whom the Software is furnished to do so,
-	 subject to the following conditions:
-	
-	 The above copyright notice and this permission notice shall be included in all
-	 copies or substantial portions of the Software.
-	
-	 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-	 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	 FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-	 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-	 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-	 DEALINGS IN THE SOFTWARE.
-	
-	 You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
-	
-	</copyright>
-	<summary>
-	features.py
-	</summary>
-	******************************************************************************************
-'''
+"""******************************************************************************************
+  Assembly:                Mathy
+  Filename:                features.py
+  Author:                  Terry D. Eppler
+  Created:                 05-31-2022
+
+  Last Modified By:        Terry D. Eppler
+  Last Modified On:        05-01-2025
+******************************************************************************************
+<copyright file="features.py" company="Terry D. Eppler">
+
+     features.py
+     Copyright ©  2022  Terry Eppler
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the “Software”),
+ to deal in the Software without restriction,
+ including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software,
+ and to permit persons to whom the Software is furnished to do so,
+ subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+
+ You can contact me at:  terryeppler@gmail.com or eppler.terry@epa.gov
+
+</copyright>
+<summary>
+    Provides feature-selection and dimensionality-reduction wrappers for Mathy modeling
+    workflows. The module centralizes variance thresholding, canonical correlation analysis,
+    principal component analysis, univariate feature selection, sequential backward selection,
+    recursive feature elimination, train/test splitting, projection, transformation, and
+    scoring utilities behind a consistent selector interface.
+</summary>
+******************************************************************************************"""
 from typing import Optional, Tuple, List, Dict
 import numpy as np
 import pandas as pd
@@ -54,44 +56,38 @@ from sklearn.base import clone
 from itertools import combinations
 from sklearn.model_selection import train_test_split as split
 from classifications import Classifier, NearestNeighbor
-from boogr import Error
-
+from boogr import Error, Logger
 
 def throw_if( name: str, value: object ):
-    if value is None:
-        raise ValueError( f'Argument "{name}" cannot be empty!' )
-
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Selector( ):
-	'''
-		
-		Purpose:
-		--------
-		Base class for implementing feature selection functionality
-		
-		
-	'''
+	"""Selector feature-selection wrapper.
+
+	Purpose:
+	    Defines the shared feature-selection interface used by dimensionality-reduction and selector
+	    wrappers. The base class stores prediction, transformed-data, accuracy, and plotting-marker
+	    state and specifies the train, project, transform, fit-transform, scoring, and splitting
+	    contracts implemented by concrete selectors.
+
+	Attributes:
+	    markers (Optional[List[str]]): Matplotlib marker symbols available for selector plots.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    transformed_data (Optional[np.ndarray]): Most recent feature matrix produced by projection or transformation.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	"""
 	markers: Optional[ List[ str ] ]
 	prediction: Optional[ np.ndarray ]
 	transformed_data: Optional[ np.ndarray ]
 	accuracy: Optional[ float ]
 	
 	def __init__( self ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize shared selector state and plotting markers used by
-			concrete selector implementations.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize Selector.
+
+		Purpose:
+		    Initializes shared selector runtime state, plotting markers, prediction storage,
+		    transformed-data storage, and accuracy storage used by concrete feature-selection wrappers.
 		"""
 		self.markers = [ '.',
 		                 'o',
@@ -120,151 +116,142 @@ class Selector( ):
 		self.accuracy = None
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray ) -> tuple:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			tuple:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    NotImplementedError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		raise NotImplementedError
 	
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the underlying selector or decomposition model using the
-			specified feature matrix and optional target vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector of shape
-				( n_samples, ). Required only for supervised selectors or
-				supervised decomposition models.
-		
-			Returns:
-			--------
-			object | None:
-				The fitted selector instance or None if not implemented by
-				the concrete subclass.
-		
+		"""Fit Selector.
+
+		Purpose:
+		    Defines the training contract for concrete feature selectors and dimensionality-reduction
+		    wrappers.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    NotImplementedError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		raise NotImplementedError
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project or predict from the specified feature matrix using a fitted
-			model when the wrapped estimator supports that operation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector. This argument is
-				preserved for subclass compatibility where needed.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The projected or predicted output produced by the fitted model.
-		
+		"""Project features with Selector.
+
+		Purpose:
+		    Defines the projection contract for concrete selectors that convert feature matrices into
+		    selected or reduced representations.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    NotImplementedError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		raise NotImplementedError
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Apply the fitted selector or decomposition model to transform the
-			specified feature matrix into a reduced or alternative feature space.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				subclass compatibility where required by the wrapped estimator.
-		
-			Returns:
-			--------
-			object | None:
-				The transformed data produced by the fitted model.
-		
+		"""Transform features with Selector.
+
+		Purpose:
+		    Defines the transformation contract for fitted selectors and dimensionality-reduction
+		    wrappers.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    NotImplementedError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		raise NotImplementedError
 	
 	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the underlying selector or decomposition model and immediately
-			transform the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector of shape
-				( n_samples, ). Required only for supervised selectors or
-				supervised decomposition models.
-		
-			Returns:
-			--------
-			object | None:
-				The transformed data produced by the fitted model.
-		
+		"""Fit and transform with Selector.
+
+		Purpose:
+		    Defines the fit-transform contract for selectors that learn and apply a selected or reduced
+		    feature representation in one operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    NotImplementedError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		raise NotImplementedError
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> Dict[ str, float ] | None:
-		"""
-		
-			Purpose:
-			--------
-			Compute metrics or summary information for the fitted selector or
-			decomposition model using the specified feature matrix and target
-			vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			Dict[str, float] | None:
-				A metrics dictionary or None if the concrete subclass does not
-				expose scoring information.
-		
+		"""Score Selector.
+
+		Purpose:
+		    Defines the scoring contract for concrete selectors that evaluate model performance on
+		    selected or reduced features.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    NotImplementedError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		raise NotImplementedError
 
-
 class VarianceThreshold( Selector ):
-	"""
+	"""VarianceThreshold feature-selection wrapper.
 
-		Purpose:
-		---------
-		Variance Threshold is a simple baseline approach to feature selection. It removes all
-		feature_names whose variance doesn’t meet some threshold. By default, it removes all
-		zero-variance feature_names, i.e. feature_names that have the same value in all samples.
+	Purpose:
+	    Removes low-variance features with sklearn.feature_selection.VarianceThreshold. The wrapper
+	    stores the threshold configuration, transformed feature matrix, prediction state, and
+	    train/test scoring metrics used to evaluate the reduced feature space.
 
+	Attributes:
+	    model (sf.VarianceThreshold): Underlying sklearn selector, decomposition, or cross-decomposition estimator.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    transformed_data (Optional[np.ndarray]): Most recent feature matrix produced by projection or transformation.
+	    threshold (Optional[float]): Variance threshold used to retain features.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    training_score (Optional[float]): Estimator score calculated on the training split.
+	    testing_score (Optional[float]): Estimator score calculated on the testing split.
 	"""
 	model: sf.VarianceThreshold
 	prediction: Optional[ np.ndarray ]
@@ -275,21 +262,14 @@ class VarianceThreshold( Selector ):
 	testing_score: Optional[ float ]
 	
 	def __init__( self, thresh: float = 0.0 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the VarianceThreshold selector.
-		
-			Parameters:
-			-----------
-			thresh (float): Features with training-set variance lower than this
-				threshold are removed.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize VarianceThreshold.
+
+		Purpose:
+		    Initializes the variance-threshold selector with the requested variance cutoff, wrapped
+		    sklearn estimator, prediction state, transformed-data storage, and score fields.
+
+		Args:
+		    thresh (float): Variance threshold used to retain features.
 		"""
 		super( ).__init__( )
 		self.threshold = thresh
@@ -301,21 +281,14 @@ class VarianceThreshold( Selector ):
 		self.testing_score = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the VarianceThreshold wrapper for
+		    interactive inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'threshold',
 		         'model',
@@ -330,26 +303,25 @@ class VarianceThreshold( Selector ):
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
 			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -360,29 +332,28 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> sf.VarianceThreshold | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the variance-threshold selector using the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this selector.
-		
-			Returns:
-			--------
-			sf.VarianceThreshold | None:
-				The fitted wrapper instance.
-		
+	def train( self, X: np.ndarray,
+			y: Optional[ np.ndarray ] = None ) -> sf.VarianceThreshold | None:
+		"""Fit VarianceThreshold.
+
+		Purpose:
+		    Fits the variance-threshold selector to the supplied feature matrix so low-variance columns
+		    can be removed.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -392,28 +363,26 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'train( self, *args ) -> sf.VarianceThreshold | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project the specified feature matrix into the retained feature space.
-			For this selector, projection is equivalent to transformation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this selector.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only retained features.
-		
+		"""Project features with VarianceThreshold.
+
+		Purpose:
+		    Projects the supplied feature matrix with the fitted VarianceThreshold selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -423,29 +392,26 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Return selector summary metrics describing the effect of variance
-			thresholding on the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this selector.
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A one-row dataframe containing threshold and retained-feature
-				metrics for the fitted selector.
-		
+		"""Score VarianceThreshold.
+
+		Purpose:
+		    Evaluates classifier performance after applying the fitted VarianceThreshold selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -456,46 +422,48 @@ class VarianceThreshold( Selector ):
 			_retained_count = int( self.transformed_data.shape[ 1 ] )
 			_removed_count = int( _original_count - _retained_count )
 			_metrics = \
-			{
-				'Threshold': [ self.threshold ],
-				'Original Features': [ _original_count ],
-				'Retained Features': [ _retained_count ],
-				'Removed Features': [ _removed_count ],
-				'Selection Ratio': [ _retained_count / _original_count if _original_count else 0.0 ],
-				'Removed Ratio': [ _removed_count / _original_count if _original_count else 0.0 ],
-				'Minimum Retained Variance': [ float( np.min( self.model.variances_[ _support ] ) )
-						if np.any( _support ) else np.nan ],
-				'Maximum Retained Variance': [ float( np.max( self.model.variances_[ _support ] ) )
-						if np.any( _support ) else np.nan ],
-			}
+				{
+						'Threshold': [ self.threshold ],
+						'Original Features': [ _original_count ],
+						'Retained Features': [ _retained_count ],
+						'Removed Features': [ _removed_count ],
+						'Selection Ratio': [
+								_retained_count / _original_count if _original_count else 0.0 ],
+						'Removed Ratio': [
+								_removed_count / _original_count if _original_count else 0.0 ],
+						'Minimum Retained Variance': [
+								float( np.min( self.model.variances_[ _support ] ) )
+								if np.any( _support ) else np.nan ],
+						'Maximum Retained Variance': [
+								float( np.max( self.model.variances_[ _support ] ) )
+								if np.any( _support ) else np.nan ],
+				}
 			return pd.DataFrame( _metrics )
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = ('score( self, X: np.ndarray, '
-			                    'y: Optional[ np.ndarray ]=None ) -> pd.DataFrame')
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply variance-threshold feature selection to the specified feature
-			matrix using the fitted selector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this selector.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only retained features.
-		
+		"""Transform features with VarianceThreshold.
+
+		Purpose:
+		    Transforms the supplied feature matrix with the fitted VarianceThreshold selector and stores
+		    the transformed output.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -505,28 +473,27 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the variance-threshold selector and immediately transform the
-			specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this selector.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only retained features.
-		
+		"""Fit and transform with VarianceThreshold.
+
+		Purpose:
+		    Fits the VarianceThreshold selector and returns the transformed feature matrix in one
+		    operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -536,18 +503,29 @@ class VarianceThreshold( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VarianceThreshold'
-			exception.method = ('train_transform( self, X: np.ndarray, '
-			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
+			exception.method = 'train_transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class CCA( Selector ):
-	"""
+	"""CCA feature-selection wrapper.
 
-		Canonical Correlation Analysis (CCA) extracts the ‘directions of covariance’,
-		i.e. the components of each data sets that explain the most shared variance
-		between both datasets.
+	Purpose:
+	    Projects paired feature and target matrices with canonical correlation analysis. The wrapper
+	    fits sklearn cross-decomposition CCA, stores canonical components, supports supervised
+	    projections, and evaluates downstream classifier performance on the transformed
+	    representation.
 
+	Attributes:
+	    model (Optional[object]): Underlying sklearn selector, decomposition, or cross-decomposition estimator.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    n_components (Optional[int]): Number of components retained or projected by the selector.
+	    scale (Optional[bool]): Flag controlling feature scaling inside canonical correlation analysis.
+	    max_iter (Optional[int]): Maximum solver iterations used by the wrapped estimator.
+	    transformed_data (Optional[Tuple[np.ndarray, np.ndarray]]): Most recent feature matrix produced by projection or transformation.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    training_score (Optional[float]): Estimator score calculated on the training split.
+	    testing_score (Optional[float]): Estimator score calculated on the testing split.
 	"""
 	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
@@ -560,24 +538,17 @@ class CCA( Selector ):
 	testing_score: Optional[ float ]
 	
 	def __init__( self, num: int = 2, scale: bool = True, size: int = 500 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the Canonical Correlation Analysis wrapper.
-		
-			Parameters:
-			-----------
-			num (int): Number of canonical components to extract.
-			scale (bool): Specifies whether X and y should be scaled before
-				fitting the model.
-			size (int): Maximum number of iterations used by the underlying
-				solver.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize CCA.
+
+		Purpose:
+		    Initializes the canonical-correlation selector with component count, scaling behavior,
+		    maximum iteration count, wrapped sklearn estimator, transformed-data storage, and score
+		    fields.
+
+		Args:
+		    num (int): Number of components or features retained by the selector.
+		    scale (bool): Flag controlling whether CCA scales input variables.
+		    size (int): Testing-set proportion used by train/test splitting.
 		"""
 		super( ).__init__( )
 		self.scale = scale
@@ -592,21 +563,14 @@ class CCA( Selector ):
 		self.testing_score = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the CCA wrapper for interactive
+		    inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'n_components',
@@ -623,27 +587,25 @@ class CCA( Selector ):
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
 			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified predictor matrix and target matrix into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target matrix or vector of shape
-				( n_samples, ) or ( n_samples, n_targets ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -654,31 +616,27 @@ class CCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Predict target values for the specified predictor matrix using the
-			fitted CCA model.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector or matrix preserved
-				for interface compatibility. It is not used by prediction.
-		
-			Returns:
-			--------
-			np.ndarray:
-				Predicted target values of shape ( n_samples, ) or
-				( n_samples, n_targets ).
-		
+		"""Project features with CCA.
+
+		Purpose:
+		    Projects feature data into the canonical correlation space learned by the fitted CCA
+		    estimator.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -688,28 +646,27 @@ class CCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Compute summary metrics for the fitted CCA model, including training
-			and testing coefficient-of-determination scores and output dimensions.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target matrix or vector of shape
-				( n_samples, ) or ( n_samples, n_targets ).
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A one-row dataframe containing model summary metrics.
-		
+		"""Score CCA.
+
+		Purpose:
+		    Evaluates classifier performance on canonical-correlation transformed training and testing
+		    partitions.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -721,41 +678,41 @@ class CCA( Selector ):
 			_target_count = int( y.shape[ 1 ] ) if len( y.shape ) > 1 else 1
 			_prediction_count = int( y_pred.shape[ 1 ] ) if len( y_pred.shape ) > 1 else 1
 			_metrics = \
-			{
-				'Components': [ self.n_components ],
-				'Training Score': [ float( self.training_score ) ],
-				'Testing Score': [ float( self.testing_score ) ],
-				'Predictor Count': [ int( X.shape[ 1 ] ) ],
-				'Target Count': [ _target_count ],
-				'Prediction Count': [ _prediction_count ],
-			}
+				{
+						'Components': [ self.n_components ],
+						'Training Score': [ float( self.training_score ) ],
+						'Testing Score': [ float( self.testing_score ) ],
+						'Predictor Count': [ int( X.shape[ 1 ] ) ],
+						'Target Count': [ _target_count ],
+						'Prediction Count': [ _prediction_count ],
+				}
 			df_metrics = pd.DataFrame( _metrics )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'score( self, X: np.ndarray, y: np.ndarray ) -> pd.DataFrame'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the CCA model to the specified predictor and target data.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target matrix or vector of shape
-				( n_samples, ) or ( n_samples, n_targets ).
-		
-			Returns:
-			--------
-			object | None:
-				The fitted wrapper instance.
-		
+		"""Fit CCA.
+
+		Purpose:
+		    Fits canonical correlation analysis to paired feature and target arrays so shared covariance
+		    directions can be learned.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -766,30 +723,28 @@ class CCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object | None'
+			exception.method = 'train( self, *args ) -> object | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray,
-			y: Optional[ np.ndarray ] = None ) -> Tuple[  np.ndarray, np.ndarray ] | np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply the fitted CCA transformation to the specified predictor matrix
-			and, when provided, the target matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target matrix of shape
-				( n_samples, n_targets ).
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray] | np.ndarray:
-				The transformed predictor matrix when y is omitted, or a tuple
-				containing transformed X and transformed y when y is provided.
-		
+			y: Optional[ np.ndarray ] = None ) -> Tuple[ np.ndarray, np.ndarray ] | np.ndarray:
+		"""Transform features with CCA.
+
+		Purpose:
+		    Transforms feature data, and target data when supplied, with the fitted canonical
+		    correlation estimator.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -802,31 +757,27 @@ class CCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = ('transform( self, X: np.ndarray, '
-			                    'y: Optional[ np.ndarray ]=None )')
+			exception.method = 'transform( self, *args ) -> Tuple[np.ndarray, np.ndarray] | np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[
 		                                                             np.ndarray, np.ndarray ] | np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the CCA model and immediately apply the learned dimension
-			reduction to the specified training data.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Predictor matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target matrix or vector of shape
-				( n_samples, ) or ( n_samples, n_targets ).
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray] | np.ndarray:
-				The transformed predictor matrix and transformed target matrix
-				returned by the fitted CCA model.
-		
+		"""Fit and transform with CCA.
+
+		Purpose:
+		    Fits the CCA selector and returns the transformed feature matrix in one operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -837,22 +788,27 @@ class CCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'CCA'
-			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'train_transform( self, *args ) -> Tuple[np.ndarray, np.ndarray] | np.ndarray'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class PCA( Selector ):
-	"""
+	"""PCA feature-selection wrapper.
 
-		Purpose:
-		---------
-		Principal Component Analysis (PCA). Linear dimensionality reduction using
-		Singular Value Decomposition of the stores to project it to a lower dimensional space.
-		The input stores is centered but not scaled for each feature before applying the SVD.
-		It uses the LAPACK implementation of the full SVD or a randomized truncated SVD
-		by the method of Halko et al. 2009, depending on the shape of the input stores and
-		the number of components to extract.
+	Purpose:
+	    Projects numeric features into a lower-dimensional principal-component space with sklearn
+	    decomposition PCA. The wrapper stores component configuration, explained-variance metadata,
+	    transformed features, and train/test evaluation metrics for reduced feature sets.
 
+	Attributes:
+	    model (Optional[object]): Underlying sklearn selector, decomposition, or cross-decomposition estimator.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    svd_solver (Optional[str]): SVD solver strategy used by PCA.
+	    n_components (Optional[int]): Number of components retained or projected by the selector.
+	    transformed_data (Optional[np.ndarray]): Most recent feature matrix produced by projection or transformation.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    training_score (Optional[float]): Estimator score calculated on the training split.
+	    testing_score (Optional[float]): Estimator score calculated on the testing split.
 	"""
 	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
@@ -863,23 +819,16 @@ class PCA( Selector ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	
-	def __init__( self, num: int=2, solver: str='auto' ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the PCA wrapper.
-		
-			Parameters:
-			-----------
-			num (int): Number of principal components to retain.
-			solver (str): Singular value decomposition solver used by the
-				underlying PCA implementation.
-		
-			Returns:
-			--------
-			None
-		
+	def __init__( self, num: int = 2, solver: str = 'auto' ) -> None:
+		"""Initialize PCA.
+
+		Purpose:
+		    Initializes the principal-component selector with component count, SVD solver configuration,
+		    wrapped sklearn estimator, transformed-data storage, and score fields.
+
+		Args:
+		    num (int): Number of components or features retained by the selector.
+		    solver (str): SVD solver strategy passed to the PCA estimator.
 		"""
 		super( ).__init__( )
 		self.n_components = num
@@ -893,21 +842,14 @@ class PCA( Selector ):
 		self.testing_score = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the PCA wrapper for interactive
+		    inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -925,29 +867,28 @@ class PCA( Selector ):
 	def explained_variance_ratio( self ):
 		if self.model is not None:
 			return self.model.explained_variance_ratio_
-		
-	def split_data( self, X: np.ndarray,  y: np.ndarray,  size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+	
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -958,29 +899,27 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the PCA model to the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by PCA.
-		
-			Returns:
-			--------
-			object | None:
-				The fitted wrapper instance.
-		
+		"""Fit PCA.
+
+		Purpose:
+		    Fits principal component analysis to the supplied feature matrix so principal axes and
+		    explained variance can be learned.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -990,28 +929,27 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'train( self, *args ) -> object | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project the specified feature matrix into principal component space.
-			For this wrapper, projection is equivalent to transformation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by PCA.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix in principal component space.
-		
+		"""Project features with PCA.
+
+		Purpose:
+		    Projects feature data into the principal-component space learned by the fitted PCA
+		    estimator.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1021,28 +959,26 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Return PCA summary metrics describing dimensionality reduction and
-			explained variance for the fitted model.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by PCA.
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A one-row dataframe containing PCA summary metrics.
-		
+		"""Score PCA.
+
+		Purpose:
+		    Evaluates classifier performance on PCA-transformed training and testing partitions.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1053,47 +989,47 @@ class PCA( Selector ):
 			_total_explained = float( np.sum( self.model.explained_variance_ratio_ ) ) \
 				if hasattr( self.model, 'explained_variance_ratio_' ) else np.nan
 			_metrics = \
-			{
-					'Original Features': [ _original_count ],
-					'Components': [ _component_count ],
-					'Explained Variance Total': [ _total_explained ],
-					'Largest Component Variance': [
-							float( np.max( self.model.explained_variance_ratio_ ) )
-							if hasattr( self.model, 'explained_variance_ratio_' )
-							else np.nan ],
-					'Smallest Component Variance': [
-							float( np.min( self.model.explained_variance_ratio_ ) )
-							if hasattr( self.model, 'explained_variance_ratio_' )
-							else np.nan ],
-					'Solver': [ self.svd_solver ],
-			}
+				{
+						'Original Features': [ _original_count ],
+						'Components': [ _component_count ],
+						'Explained Variance Total': [ _total_explained ],
+						'Largest Component Variance': [
+								float( np.max( self.model.explained_variance_ratio_ ) )
+								if hasattr( self.model, 'explained_variance_ratio_' )
+								else np.nan ],
+						'Smallest Component Variance': [
+								float( np.min( self.model.explained_variance_ratio_ ) )
+								if hasattr( self.model, 'explained_variance_ratio_' )
+								else np.nan ],
+						'Solver': [ self.svd_solver ],
+				}
 			df_metrics = pd.DataFrame( _metrics )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply the fitted PCA transformation to the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by PCA.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix in principal component space.
-		
+		"""Transform features with PCA.
+
+		Purpose:
+		    Transforms the supplied feature matrix with the fitted PCA selector and stores the
+		    transformed output.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1103,28 +1039,26 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the PCA model and immediately transform the specified feature
-			matrix into principal component space.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by PCA.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix in principal component space.
-		
+		"""Fit and transform with PCA.
+
+		Purpose:
+		    Fits the PCA selector and returns the transformed feature matrix in one operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1134,20 +1068,27 @@ class PCA( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'PCA'
-			exception.method = ('train_transform( self, X: np.ndarray, '
-			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
+			exception.method = 'train_transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class SelectBest( Selector ):
-	"""
+	"""SelectBest feature-selection wrapper.
 
-		Purpose:
-		---------
-		A univariate feature selection works by selecting the best features based on univariate
-		statistical tests. Removes all but the 'k' highest scoring features
-		
+	Purpose:
+	    Selects the top scoring features with sklearn.feature_selection.SelectKBest. The wrapper
+	    applies univariate statistical tests, stores scores and transformed matrices, and evaluates
+	    classifier performance after retaining the configured number of features.
 
+	Attributes:
+	    model (Optional[object]): Underlying sklearn selector, decomposition, or cross-decomposition estimator.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    score_function (Optional[object]): Univariate scoring function used to rank candidate features.
+	    n_features (Optional[int]): Number of top-ranked features retained by SelectBest.
+	    transformed_data (Optional[np.ndarray]): Most recent feature matrix produced by projection or transformation.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    training_score (Optional[float]): Estimator score calculated on the training split.
+	    testing_score (Optional[float]): Estimator score calculated on the testing split.
 	"""
 	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
@@ -1158,23 +1099,16 @@ class SelectBest( Selector ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	
-	def __init__( self, score_func: object=sf.chi2, num: int=10 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the SelectKBest wrapper.
-		
-			Parameters:
-			-----------
-			score_func (object): Univariate scoring function used to rank
-				features.
-			num (int): Number of top-ranked features to retain.
-		
-			Returns:
-			--------
-			None
-		
+	def __init__( self, score_func: object = sf.chi2, num: int = 10 ) -> None:
+		"""Initialize SelectBest.
+
+		Purpose:
+		    Initializes the top-k univariate selector with its scoring function, feature count, wrapped
+		    sklearn estimator, transformed-data storage, and score fields.
+
+		Args:
+		    score_func (object): Univariate score function used to rank candidate features.
+		    num (int): Number of components or features retained by the selector.
 		"""
 		super( ).__init__( )
 		self.score_function = score_func
@@ -1187,21 +1121,14 @@ class SelectBest( Selector ):
 		self.testing_score = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the SelectBest wrapper for interactive
+		    inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -1216,28 +1143,27 @@ class SelectBest( Selector ):
 		         'transform',
 		         'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1248,29 +1174,27 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | None:
-		"""
-		
-			Purpose:
-			--------
-			Compute chi-square scores and p-values for the specified feature
-			matrix and target vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray] | None:
-				A two-item tuple containing chi-square statistics and p-values.
-		
+		"""Calculate chi-square scores.
+
+		Purpose:
+		    Computes chi-square feature scores and p-values for the supplied feature matrix and target
+		    vector using the SelectBest scoring configuration.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Tuple containing chi-square scores and p-values.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1280,29 +1204,27 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'chi_square( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'chi_square( self, *args ) -> Tuple[np.ndarray, np.ndarray] | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the SelectKBest selector using the specified feature matrix and
-			optional target vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
-				This is generally required for supervised scoring functions such
-				as chi-square.
-		
-			Returns:
-			--------
-			object | None:
-				The fitted wrapper instance.
-		
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+		"""Fit SelectBest.
+
+		Purpose:
+		    Fits the top-k univariate selector to feature and target arrays so the highest scoring
+		    features can be retained.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1312,29 +1234,26 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'train( self, *args ) -> object | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project the specified feature matrix into the retained feature space.
-			For this selector, projection is equivalent to transformation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used during transformation.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only the selected
-				features.
-		
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""Project features with SelectBest.
+
+		Purpose:
+		    Projects the supplied feature matrix with the fitted SelectBest selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1344,29 +1263,26 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Return selector summary metrics describing feature ranking and
-			selection results for the fitted SelectKBest model.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility.
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A dataframe containing feature scores, p-values, and selection
-				indicators.
-		
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+		"""Score SelectBest.
+
+		Purpose:
+		    Evaluates classifier performance after applying the fitted SelectBest selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1376,41 +1292,39 @@ class SelectBest( Selector ):
 			_scores = self.model.scores_
 			_pvalues = self.model.pvalues_ if hasattr( self.model, 'pvalues_' ) else None
 			df_scores = pd.DataFrame(
-			{
-					'Feature': np.arange( 0, X.shape[ 1 ] ),
-					'Score': _scores,
-					'PValue': _pvalues if _pvalues is not None else np.full(
-						X.shape[ 1 ], np.nan ),
-					'Selected': _support,
-			} )
+				{
+						'Feature': np.arange( 0, X.shape[ 1 ] ),
+						'Score': _scores,
+						'PValue': _pvalues if _pvalues is not None else np.full(
+							X.shape[ 1 ], np.nan ),
+						'Selected': _support,
+				} )
 			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply the fitted SelectKBest selector to the specified feature
-			matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used during transformation.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only the selected
-				features.
-		
+		"""Transform features with SelectBest.
+
+		Purpose:
+		    Transforms the supplied feature matrix with the fitted SelectBest selector and stores the
+		    transformed output.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1420,30 +1334,26 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the SelectKBest selector and immediately transform the specified
-			feature matrix into the reduced feature space.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
-				This is generally required for supervised scoring functions such
-				as chi-square.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only the selected
-				features.
-		
+		"""Fit and transform with SelectBest.
+
+		Purpose:
+		    Fits the SelectBest selector and returns the transformed feature matrix in one operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1453,21 +1363,28 @@ class SelectBest( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectBest'
-			exception.method = ('train_transform( self, X: np.ndarray, '
-			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
+			exception.method = 'train_transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class SelectPercent( Selector ):
-	"""
+	"""SelectPercent feature-selection wrapper.
 
-		Purpose:
-		---------
-		A univariate feature selection works by selecting the best features based on univariate
-		statistical tests. It can be seen as a preprocessing step to an estimator.
-		Removes all but a user-specified highest scoring percentage (default - 10%) of features
+	Purpose:
+	    Selects the highest scoring feature percentile with
+	    sklearn.feature_selection.SelectPercentile. The wrapper applies univariate statistical
+	    tests, stores transformed matrices, and evaluates classifier performance after retaining the
+	    configured percentage of features.
 
-
+	Attributes:
+	    model (Optional[object]): Underlying sklearn selector, decomposition, or cross-decomposition estimator.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    score_function (Optional[object]): Univariate scoring function used to rank candidate features.
+	    percentile (Optional[int]): Percentage of top-ranked features retained by SelectPercent.
+	    transformed_data (Optional[np.ndarray]): Most recent feature matrix produced by projection or transformation.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    training_score (Optional[float]): Estimator score calculated on the training split.
+	    testing_score (Optional[float]): Estimator score calculated on the testing split.
 	"""
 	model: Optional[ object ]
 	prediction: Optional[ np.ndarray ]
@@ -1479,22 +1396,15 @@ class SelectPercent( Selector ):
 	testing_score: Optional[ float ]
 	
 	def __init__( self, score_func: object = sf.chi2, pct: int = 10 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the SelectPercentile wrapper.
-		
-			Parameters:
-			-----------
-			score_func (object): Univariate scoring function used to rank
-				features.
-			pct (int): Percentile of top-ranked features to retain.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize SelectPercent.
+
+		Purpose:
+		    Initializes the percentile-based univariate selector with its scoring function, retained
+		    percentile, wrapped sklearn estimator, transformed-data storage, and score fields.
+
+		Args:
+		    score_func (object): Univariate score function used to rank candidate features.
+		    pct (int): Percentage of top-ranked features retained by SelectPercent.
 		"""
 		super( ).__init__( )
 		self.score_function = score_func
@@ -1508,21 +1418,14 @@ class SelectPercent( Selector ):
 		self.testing_score = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the SelectPercent wrapper for
+		    interactive inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'model',
 		         'prediction',
@@ -1537,28 +1440,27 @@ class SelectPercent( Selector ):
 		         'transform',
 		         'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1569,29 +1471,27 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def chi_square( self, X: np.ndarray, y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | None:
-		"""
-		
-			Purpose:
-			--------
-			Compute chi-square scores and p-values for the specified feature
-			matrix and target vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray] | None:
-				A two-item tuple containing chi-square statistics and p-values.
-		
+		"""Calculate chi-square scores.
+
+		Purpose:
+		    Computes chi-square feature scores and p-values for the supplied feature matrix and target
+		    vector using the SelectPercent scoring configuration.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Tuple containing chi-square scores and p-values.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1601,29 +1501,27 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'chi_square( self, X: np.ndarray, y: np.ndarray )'
+			exception.method = 'chi_square( self, *args ) -> Tuple[np.ndarray, np.ndarray] | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the SelectPercentile selector using the specified feature matrix
-			and optional target vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
-				This is generally required for supervised scoring functions such
-				as chi-square.
-		
-			Returns:
-			--------
-			object | None:
-				The fitted wrapper instance.
-		
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+		"""Fit SelectPercent.
+
+		Purpose:
+		    Fits the percentile-based univariate selector to feature and target arrays so the highest
+		    scoring percentage of features can be retained.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1633,29 +1531,26 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'train( self, *args ) -> object | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project the specified feature matrix into the retained feature space.
-			For this selector, projection is equivalent to transformation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used during transformation.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only the selected
-				features.
-		
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""Project features with SelectPercent.
+
+		Purpose:
+		    Projects the supplied feature matrix with the fitted SelectPercent selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1665,29 +1560,26 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Return selector summary metrics describing feature ranking and
-			selection results for the fitted SelectPercentile model.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility.
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A dataframe containing feature scores, p-values, and selection
-				indicators.
-		
+		"""Score SelectPercent.
+
+		Purpose:
+		    Evaluates classifier performance after applying the fitted SelectPercent selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1697,41 +1589,39 @@ class SelectPercent( Selector ):
 			_scores = self.model.scores_
 			_pvalues = self.model.pvalues_ if hasattr( self.model, 'pvalues_' ) else None
 			df_scores = pd.DataFrame(
-			{
-				'Feature': np.arange( 0, X.shape[ 1 ] ),
-				'Score': _scores,
-				'PValue': _pvalues if _pvalues is not None else np.full(
-					X.shape[ 1 ], np.nan ),
-				'Selected': _support,
-			} )
+				{
+						'Feature': np.arange( 0, X.shape[ 1 ] ),
+						'Score': _scores,
+						'PValue': _pvalues if _pvalues is not None else np.full(
+							X.shape[ 1 ], np.nan ),
+						'Selected': _support,
+				} )
 			return df_scores
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply the fitted SelectPercentile selector to the specified feature
-			matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used during transformation.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only the selected
-				features.
-		
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""Transform features with SelectPercent.
+
+		Purpose:
+		    Transforms the supplied feature matrix with the fitted SelectPercent selector and stores the
+		    transformed output.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1741,30 +1631,26 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the SelectPercentile selector and immediately transform the
-			specified feature matrix into the reduced feature space.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Target vector of shape ( n_samples, ).
-				This is generally required for supervised scoring functions such
-				as chi-square.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only the selected
-				features.
-		
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""Fit and transform with SelectPercent.
+
+		Purpose:
+		    Fits the SelectPercent selector and returns the transformed feature matrix in one operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1774,22 +1660,31 @@ class SelectPercent( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SelectPercent'
-			exception.method = ('train_transform( self, X: np.ndarray, '
-			                    'y: Optional[ np.ndarray ]=None ) -> np.ndarray')
+			exception.method = 'train_transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class SBS( Selector ):
-	'''
-	
-			Purpose:
-			--------
-			Implements Sequential Backward Selection (SBS) using a supplied
-			classification estimator and scoring function. The algorithm begins with
-			the full feature set and greedily removes one feature at a time until the
-			desired number of features remains.
-			
-	'''
+	"""SBS feature-selection wrapper.
+
+	Purpose:
+	    Implements sequential backward selection with a cloned classifier and scoring function. The
+	    wrapper iteratively removes features, tracks candidate subsets, records subset scores, and
+	    preserves the selected feature indices for projection and evaluation.
+
+	Attributes:
+	    scoring (Optional[callable]): Callable used to score classifier predictions during sequential selection.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    classifier (Optional[Classifier]): Classifier instance cloned or fitted by the feature selector.
+	    random_state (Optional[int]): Random seed used for reproducible train/test splitting.
+	    test_size (Optional[float]): Testing-set proportion used during feature-selection evaluation.
+	    k_features (Optional[int]): Target number of features retained by sequential backward selection.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    indices_ (Optional[Tuple[int, ...]]): Selected feature-index tuple produced by the selector.
+	    subsets_ (Optional[List[Tuple[int, ...]]]): Feature-index subsets evaluated during sequential selection.
+	    scores_ (Optional[List[float]]): Scores recorded for evaluated feature subsets.
+	    k_score_ (Optional[float]): Best score associated with the selected feature subset.
+	"""
 	scoring: Optional[ callable ]
 	prediction: Optional[ np.ndarray ]
 	classifier: Optional[ Classifier ]
@@ -1802,28 +1697,20 @@ class SBS( Selector ):
 	scores_: Optional[ List[ float ] ]
 	k_score_: Optional[ float ]
 	
-	def __init__( self, classifier: Classifier, k_features: int, scoring: callable=accuracy_score,
-			test_size: float=0.25, random_state: int=1 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the Sequential Backward Selection wrapper.
-		
-			Parameters:
-			-----------
-			classifier (Classifier): Estimator used to evaluate feature subsets.
-			k_features (int): Desired number of features to retain.
-			scoring (callable): Scoring function used to evaluate predictions.
-			test_size (float): Proportion of the dataset reserved for internal
-				validation during subset search.
-			random_state (int): Random seed used for the internal train/test
-				split.
-		
-			Returns:
-			--------
-			None
-		
+	def __init__( self, classifier: Classifier, k_features: int, scoring: callable = accuracy_score,
+			test_size: float = 0.25, random_state: int = 1 ) -> None:
+		"""Initialize SBS.
+
+		Purpose:
+		    Initializes sequential backward selection with a classifier, target feature count, scoring
+		    callable, split configuration, and tracking fields for selected subsets and scores.
+
+		Args:
+		    classifier (Classifier): Classifier used for feature-selection evaluation.
+		    k_features (int): Target number of features retained by sequential backward selection.
+		    scoring (callable): Callable used to evaluate candidate feature subsets.
+		    test_size (float): Testing-set proportion used during selector evaluation.
+		    random_state (int): Random seed used during selector evaluation.
 		"""
 		super( ).__init__( )
 		self.scoring = scoring
@@ -1840,21 +1727,14 @@ class SBS( Selector ):
 		self.k_score_ = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the SBS wrapper for interactive
+		    inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'scoring',
 		         'classifier',
@@ -1875,28 +1755,27 @@ class SBS( Selector ):
 		         'train_transform',
 		         'calc_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1908,30 +1787,27 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the Sequential Backward Selection wrapper by iteratively
-			evaluating reduced feature subsets until the desired number of
-			features remains.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			object | None:
-				The fitted SBS wrapper.
-		
+		"""Fit SBS.
+
+		Purpose:
+		    Runs sequential backward selection by repeatedly evaluating feature subsets and removing
+		    features until the target subset size is reached.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1965,29 +1841,27 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object | None'
+			exception.method = 'train( self, *args ) -> object | None'
+			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project the specified feature matrix onto the selected feature subset.
-			For this wrapper, projection is equivalent to transformation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this method.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix restricted to the selected
-				feature indices.
-		
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+		"""Project features with SBS.
+
+		Purpose:
+		    Projects the supplied feature matrix onto the feature indices selected by sequential
+		    backward selection.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -1997,29 +1871,26 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Return summary metrics describing the selected feature subset and
-			the SBS search history.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not required for summary output.
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A one-row dataframe containing the number of original features,
-				retained features, and the best SBS score.
-		
+		"""Score SBS.
+
+		Purpose:
+		    Evaluates classifier performance after applying the fitted SBS selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2039,27 +1910,27 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply the selected feature subset to the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility. It is not used by this method.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The feature matrix restricted to the selected feature indices.
-		
+		"""Transform features with SBS.
+
+		Purpose:
+		    Transforms the supplied feature matrix with the fitted SBS selector and stores the
+		    transformed output.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2071,27 +1942,27 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the SBS wrapper and immediately transform the specified feature
-			matrix using the selected subset.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			np.ndarray:
-				The feature matrix restricted to the selected feature indices.
-		
+		"""Fit and transform with SBS.
+
+		Purpose:
+		    Fits sequential backward selection and returns the feature matrix projected onto the
+		    selected subset.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2103,31 +1974,31 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def calc_score( self, X_train: np.ndarray, y_train: np.ndarray,
 			X_test: np.ndarray, y_test: np.ndarray, indices: Tuple[ int, ... ] ) -> float:
-		"""
-		
-			Purpose:
-			--------
-			Calculate the validation score for a specified feature subset.
-		
-			Parameters:
-			-----------
-			X_train (np.ndarray): Training feature matrix.
-			y_train (np.ndarray): Training target vector.
-			X_test (np.ndarray): Validation feature matrix.
-			y_test (np.ndarray): Validation target vector.
-			indices (Tuple[int, ...]): Feature indices defining the subset to
-				evaluate.
-		
-			Returns:
-			--------
-			float:
-				The score produced by the configured scoring function.
-		
+		"""Calculate subset score.
+
+		Purpose:
+		    Fits a cloned classifier on the selected training columns and returns prediction accuracy on
+		    the matching testing columns.
+
+		Args:
+		    X_train (np.ndarray): Training feature matrix used to fit the classifier.
+		    y_train (np.ndarray): Training target vector used to fit the classifier.
+		    X_test (np.ndarray): Testing feature matrix used to generate predictions.
+		    y_test (np.ndarray): Testing target vector used to evaluate predictions.
+		    indices (Tuple[int, ...]): Feature-index subset evaluated by the scoring routine.
+
+		Returns:
+		    Accuracy score calculated for the supplied feature-index subset.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X_train', X_train )
@@ -2143,27 +2014,28 @@ class SBS( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SBS'
-			exception.method = ('calc_score( self, X_train: np.ndarray, y_train: np.ndarray, '
-			                    'X_test: np.ndarray, y_test: np.ndarray, '
-			                    'indices: Tuple[ int, ... ] ) -> float')
+			exception.method = 'calc_score( self, *args ) -> float'
+			Logger( ).write( exception )
 			raise exception
-			
 
 class RFE( Selector ):
-	"""
+	"""RFE feature-selection wrapper.
 
-		Purpose:
-		---------
-		Recursive Feature Elimination (RFE) Given an external estimator that assigns weights
-		to features (e.g., the coefficients of a linear model), recursive feature elimination (RFE)
-		is to select features by recursively considering smaller and smaller sets of features.
-		
-		First, the estimator is trained on the initial set of features and the importance of each
-		feature is obtained either through a coef_ attribute or
-		through a feature_importances_ attribute. Then, the least important features are pruned
-		from current set of features. That procedure is recursively repeated on the pruned set
-		until the desired number of features to select is eventually reached.
+	Purpose:
+	    Performs recursive feature elimination with an sklearn-compatible estimator. The wrapper
+	    recursively prunes low-importance features, stores feature rankings, supports projection
+	    into the selected feature set, and evaluates downstream classifier performance.
 
+	Attributes:
+	    model (Optional[sf.RFE]): Underlying sklearn selector, decomposition, or cross-decomposition estimator.
+	    prediction (Optional[np.ndarray]): Most recent classifier predictions generated during scoring.
+	    classifier (Optional[NearestNeighbor]): Classifier instance cloned or fitted by the feature selector.
+	    transformed_data (Optional[np.ndarray]): Most recent feature matrix produced by projection or transformation.
+	    n_features_to_select (Optional[int]): Number of features retained by recursive feature elimination.
+	    verbose (Optional[int]): Verbosity level passed to the recursive feature elimination estimator.
+	    accuracy (Optional[float]): Most recent accuracy score produced by selector evaluation.
+	    training_score (Optional[float]): Estimator score calculated on the training split.
+	    testing_score (Optional[float]): Estimator score calculated on the testing split.
 	"""
 	model: Optional[ sf.RFE ]
 	prediction: Optional[ np.ndarray ]
@@ -2176,28 +2048,23 @@ class RFE( Selector ):
 	testing_score: Optional[ float ]
 	
 	def __init__( self, k_features: int = None, verbose: int = 0 ) -> None:
-		"""
-		
-			Purpose:
-			--------
-			Initialize the Recursive Feature Elimination wrapper.
-		
-			Parameters:
-			-----------
-			k_features (int): Number of features to select. If None, half of the
-				features are selected by the underlying estimator.
-			verbose (int): Controls verbosity of the underlying RFE estimator.
-		
-			Returns:
-			--------
-			None
-		
+		"""Initialize RFE.
+
+		Purpose:
+		    Initializes recursive feature elimination with a nearest-neighbor classifier, retained
+		    feature count, verbosity configuration, wrapped sklearn RFE estimator, transformed-data
+		    storage, and score fields.
+
+		Args:
+		    k_features (int): Target number of features retained by sequential backward selection.
+		    verbose (int): Verbosity level passed to recursive feature elimination.
 		"""
 		super( ).__init__( )
 		self.n_features_to_select = k_features
 		self.classifier = NearestNeighbor( )
 		self.verbose = verbose
-		self.model = sf.RFE( estimator=self.classifier, n_features_to_select=self.n_features_to_select,
+		self.model = sf.RFE( estimator=self.classifier,
+			n_features_to_select=self.n_features_to_select,
 			verbose=self.verbose )
 		self.prediction = None
 		self.transformed_data = None
@@ -2206,21 +2073,14 @@ class RFE( Selector ):
 		self.testing_score = None
 	
 	def __dir__( self ) -> List[ str ]:
-		"""
-		
-			Purpose:
-			--------
-			Return a list of strings representing class members.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			List[str]:
-				A list of member names.
-		
+		"""List public members.
+
+		Purpose:
+		    Returns the stable list of public members exposed by the RFE wrapper for interactive
+		    inspection, notebook exploration, and IDE discovery.
+
+		Returns:
+		    Public member names exposed by the wrapper.
 		"""
 		return [ 'classifier',
 		         'n_features_to_select',
@@ -2238,21 +2098,18 @@ class RFE( Selector ):
 	
 	@property
 	def features_in( self ) -> int:
-		"""
-		
-			Purpose:
-			--------
-			Return the number of input features seen during fitting.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			int:
-				The number of fitted input features.
-		
+		"""Return fitted feature count.
+
+		Purpose:
+		    Returns the number of input features observed by the fitted recursive feature elimination
+		    estimator.
+
+		Returns:
+		    Number of input features observed by the fitted RFE estimator.
+
+		Raises:
+		    AttributeError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		if not hasattr( self.model, 'n_features_in_' ):
 			raise AttributeError( 'The model data has not been trained!' )
@@ -2260,49 +2117,44 @@ class RFE( Selector ):
 	
 	@property
 	def ranking( self ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Return the fitted feature-ranking array, where rank 1 indicates a
-			selected feature.
-		
-			Parameters:
-			-----------
-			None
-		
-			Returns:
-			--------
-			np.ndarray:
-				An array whose entries represent feature rank positions.
-		
+		"""Return feature rankings.
+
+		Purpose:
+		    Returns the feature-ranking array produced by the fitted recursive feature elimination
+		    estimator.
+
+		Returns:
+		    Feature ranking array produced by recursive feature elimination.
+
+		Raises:
+		    AttributeError: Raised when required fitted estimator metadata is unavailable or when the base interface
+		        is called directly.
 		"""
 		if not hasattr( self.model, 'ranking_' ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.ranking_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
-			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
-		"""
-		
-			Purpose:
-			--------
-			Split the specified feature matrix and target vector into training
-			and testing subsets.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-			size (float): Proportion of the dataset to include in the test split.
-			random (int): Random seed used by the splitter.
-		
-			Returns:
-			--------
-			Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-				A four-item tuple in the form
-				( X_train, X_test, y_train, y_test ).
-		
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
+			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+		"""Split training and testing data.
+
+		Purpose:
+		    Splits feature and target arrays into aligned training and testing partitions using the
+		    configured random seed and test-size proportion.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+		    size (float): Testing-set proportion used by train/test splitting.
+		    random (int): Random seed used by train/test splitting.
+
+		Returns:
+		    Tuple containing training features, testing features, training targets, and testing
+		    targets.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2314,29 +2166,27 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = ('split_data( self, X: np.ndarray, y: np.ndarray, '
-			                    'size: float=0.2, random: int=42 ) -> '
-			                    'Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]')
+			exception.method = 'split_data( self, *args ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train( self, X: np.ndarray, y: np.ndarray ) -> object | None:
-		"""
-		
-			Purpose:
-			--------
-			Fit the RFE selector using the specified feature matrix and target
-			vector.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			object | None:
-				The fitted wrapper instance.
-		
+		"""Fit RFE.
+
+		Purpose:
+		    Fits recursive feature elimination to feature and target arrays so selected features and
+		    rankings can be learned.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Fitted selector wrapper or fitted estimator result.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2347,28 +2197,26 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'train( self, X: np.ndarray, y: np.ndarray ) -> object | None'
+			exception.method = 'train( self, *args ) -> object | None'
+			Logger( ).write( exception )
 			raise exception
 	
 	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Project the specified feature matrix into the retained feature space.
-			For this selector, projection is equivalent to transformation.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only retained features.
-		
+		"""Project features with RFE.
+
+		Purpose:
+		    Projects the supplied feature matrix with the fitted RFE selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Projected or selected feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2378,28 +2226,26 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'project( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
-		"""
-		
-			Purpose:
-			--------
-			Return selector summary metrics describing feature ranking and
-			selection results for the fitted RFE model.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility.
-		
-			Returns:
-			--------
-			pd.DataFrame:
-				A dataframe containing feature ranking and selection indicators.
-		
+		"""Score RFE.
+
+		Purpose:
+		    Evaluates classifier performance after applying the fitted RFE selector.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Dataframe or dictionary containing training, testing, and accuracy metrics.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2416,27 +2262,27 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'score( self, *args ) -> pd.DataFrame'
+			Logger( ).write( exception )
 			raise exception
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Apply the fitted RFE transformation to the specified feature matrix.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (Optional[np.ndarray]): Optional target vector preserved for
-				interface compatibility.
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only retained features.
-		
+		"""Transform features with RFE.
+
+		Purpose:
+		    Transforms the supplied feature matrix with the fitted RFE selector and stores the
+		    transformed output.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced by the fitted selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2446,27 +2292,26 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None )'
+			exception.method = 'transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray:
-		"""
-		
-			Purpose:
-			--------
-			Fit the RFE selector and immediately transform the specified feature
-			matrix into the reduced feature space.
-		
-			Parameters:
-			-----------
-			X (np.ndarray): Feature matrix of shape ( n_samples, n_features ).
-			y (np.ndarray): Target vector of shape ( n_samples, ).
-		
-			Returns:
-			--------
-			np.ndarray:
-				The transformed feature matrix containing only retained features.
-		
+		"""Fit and transform with RFE.
+
+		Purpose:
+		    Fits the RFE selector and returns the transformed feature matrix in one operation.
+
+		Args:
+		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or scoring routine.
+		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
+
+		Returns:
+		    Transformed feature matrix produced after fitting the selector.
+
+		Raises:
+		    Error: Raised when validation, fitting, transformation, projection, or scoring fails inside the
+		        wrapped selector operation.
 		"""
 		try:
 			throw_if( 'X', X )
@@ -2477,7 +2322,8 @@ class RFE( Selector ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RFE'
-			exception.method = 'train_transform( self, X: np.ndarray, y: np.ndarray ) -> np.ndarray'
+			exception.method = 'train_transform( self, *args ) -> np.ndarray'
+			Logger( ).write( exception )
 			raise exception
 	
 			
