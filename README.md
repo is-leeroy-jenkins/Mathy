@@ -42,19 +42,29 @@ SQLite data through a guarded SQL/data-administration interface.
 ## 🎥 Demo
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-demo.gif)
+___
 
-## ☁️ Google (Cloud)
+## ☁️ Google 
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
+___
 
-🕸️ Streamlit (Web UI)
+## 🧊 Azure
+
+[![Containerized](https://img.shields.io/badge/Docker-App-2496ED?logo=docker&logoColor=white)](https://mathy.happyground-bf8f32a5.centralus.azurecontainerapps.io/)
+
+- Container App
+
+## 🔥 Streamlit 
 
 [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit\&logoColor=white)](https://mathy-py.streamlit.app/)
 
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
+- Web App
 
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
+___
 
 ## 🧱 Databricks
 [![Databricks Notebook](https://img.shields.io/badge/Databricks%20Repo-Mathy-FF3621?logo=databricks&logoColor=white)](https://dbc-a0c21f80-7bb3.cloud.databricks.com/editor/notebooks/1460524320197787?o=7474645703081351)
