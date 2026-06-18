@@ -3,7 +3,7 @@
 <p align="center">
   <img src="resources/Mathy.png" alt="Mathy logo" width="800">
 </p>
-<p align="center">
+<p align="left">
   <a href="#-overview">Overview</a> ·
   <a href="#-application-modes">Modes</a> ·
   <a href="#-architecture">Architecture</a> ·
