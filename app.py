@@ -913,8 +913,8 @@ def processed_to_working( ) -> None:
 	st.session_state[ 'df_processed' ] = df_reset.copy( )
 	commit_frame( df_reset )
 	
-def normalize_result_frame( result: object, index: pd.Index,
-		prefix: str, columns: list[ str ] ) -> pd.DataFrame:
+def normalize_result_frame( result: object, index: pd.Index, prefix: str,
+		columns: list[ str ] ) -> pd.DataFrame:
 	"""
 		Purpose:
 		--------
@@ -1180,9 +1180,7 @@ def initialize_database( ) -> None:
 			"""
 		)
 		
-		prompt_columns = [ row[ 1 ] for row in
-		                   conn.execute( 'PRAGMA table_info("Prompts");' ).fetchall( ) ]
-		
+		prompt_columns = [ row[ 1 ] for row in  conn.execute( 'PRAGMA table_info("Prompts");' ).fetchall( ) ]
 		if 'Caption' not in prompt_columns:
 			conn.execute( 'ALTER TABLE "Prompts" ADD COLUMN "Caption" TEXT;' )
 		
@@ -1260,10 +1258,7 @@ def read_table( table: str, limit: int = None, offset: int = 0 ) -> pd.DataFrame
 				return value.hex( )
 		
 		if isinstance( value, (list, tuple, set, dict) ):
-			try:
-				return str( normalize( value ) )
-			except Exception:
-				return str( value )
+			return str( value )
 		
 		if hasattr( value, 'model_dump' ):
 			try:
@@ -10635,7 +10630,6 @@ elif mode == 'Regression Models':
 						st.session_state[ key ] = value
 				
 				st.caption( 'Linear regression for continuous targets.' )
-				
 				ols_c1, ols_c2, ols_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with ols_c1:
 					st.markdown( '###### ↔️ Data Split' )
@@ -10663,8 +10657,8 @@ elif mode == 'Regression Models':
 				
 				with ols_c3:
 					st.markdown( '###### ♟️ Solver Settings' )
-					ols_tol = float( st.number_input( 'Tolerance', min_value=0.0,
-							value=float( st.session_state[ 'regression_ols_tol' ] ),
+					ols_tol = float( st.number_input( 'Tolerance',
+							min_value=0.0, value=float( st.session_state[ 'regression_ols_tol' ] ),
 							step=0.000001, format='%.6f', key='regression_ols_tol_input' ) )
 					
 					ols_n_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
@@ -10684,14 +10678,63 @@ elif mode == 'Regression Models':
 					for key, value in ols_defaults.items( ):
 						st.session_state[ key ] = value
 					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'regression_ols_elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'y_prediction' ] = None
 					st.session_state[ 'df_regression' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'regression_ols_elapsed_seconds' ] = None
+					st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 					st.rerun( )
 				
 				if train_ols:
 					try:
+						if X is None or y is None:
+							st.warning( '⚠️ Ordinary Least Squares requires prepared '
+								'feature and target arrays.' )
+							st.stop( )
+						
+						X_ols = np.asarray( X, dtype=float )
+						y_ols = np.asarray( y, dtype=float ).reshape( -1 )
+						if X_ols.ndim != 2 or X_ols.shape[ 1 ] < 1:
+							st.warning( '⚠️ Ordinary Least Squares requires at least '
+								'one numeric feature.' )
+							st.stop( )
+						
+						if y_ols.ndim != 1:
+							st.warning( '⚠️ The Ordinary Least Squares target must be '
+								'one-dimensional.' )
+							st.stop( )
+						
+						if len( X_ols ) != len( y_ols ):
+							st.warning( '⚠️ Feature and target row counts do not match.' )
+							st.stop( )
+						
+						if len( X_ols ) < 2:
+							st.warning( '⚠️ Ordinary Least Squares requires at least '
+								'two observations.' )
+							st.stop( )
+						
+						if not np.isfinite( X_ols ).all( ):
+							st.warning( '⚠️ The Ordinary Least Squares feature matrix '
+								'contains non-finite values.' )
+							st.stop( )
+						
+						if not np.isfinite( y_ols ).all( ):
+							st.warning( '⚠️ The Ordinary Least Squares target contains '
+								'non-finite values.' )
+							st.stop( )
+						
+						if len( np.unique( y_ols ) ) < 2:
+							st.warning( '⚠️ The regression target must contain at '
+								'least two distinct values.' )
+							st.stop( )
+						
 						st.session_state[ 'regression_ols_test_size' ] = float( ols_test_size )
 						st.session_state[ 'regression_ols_random_state' ] = int( ols_random_state )
 						st.session_state[ 'regression_ols_fit_intercept' ] = bool( ols_fit_intercept )
@@ -10699,59 +10742,60 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_ols_tol' ] = float( ols_tol )
 						st.session_state[ 'regression_ols_n_jobs' ] = int( ols_n_jobs )
 						st.session_state[ 'regression_ols_positive' ] = bool( ols_positive )
-						
-						df_training = df_model.copy( )
-						X = df_training[ active_features ].apply(
-							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-						
-						y = pd.to_numeric(
-							df_training[ target_name ], errors='coerce' ).fillna(
-							0.0 ).to_numpy( ).reshape( -1 )
-						
-						if len( np.unique( y ) ) < 2:
-							st.warning( '⚠️ The target must contain at least two distinct values.' )
-							st.stop( )
-						
 						start_time = time.perf_counter( )
 						
 						model = regression_model.LeastSquares( fit=bool( ols_fit_intercept ),
 							copy=bool( ols_copy_x ), tol=float( ols_tol ), jobs=int( ols_n_jobs ),
 							positive=bool( ols_positive ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
+						X_train, X_test, y_train, y_test = model.split_data( X_ols, y_ols,
 							size=float( ols_test_size ), random=int( ols_random_state ) )
+						
+						if len( X_train ) < 1 or len( X_test ) < 1:
+							st.warning( '⚠️ The selected test size does not produce '
+								'valid training and testing partitions.' )
+							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_ols_elapsed_seconds' ] = elapsed_seconds
-						df_scores = model.analyze( X_test, y_test ).copy( )
+						df_scores = model.analyze( X_test, y_test )
+						if not isinstance( df_scores, pd.DataFrame ):
+							df_scores = pd.DataFrame( )
+						else:
+							df_scores = df_scores.copy( )
+						
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
 						
-						df_scores.insert( len( df_scores.columns ), 'Training Rows',
-							int( len( X_train ) ) )
+						df_scores.insert( len( df_scores.columns ), 'Training Rows', int( len( X_train ) ) )
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows', int( len( X_test ) ) )
 						
-						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
-							int( len( X_test ) ) )
-						
-						df_predictions = pd.DataFrame(  {
-									'Actual': y_test,
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
+						df_predictions = pd.DataFrame( {
+									'Actual': np.asarray(
+										y_test,
+										dtype=float
+									).reshape( -1 ),
 									'Predicted': y_prediction
 							} )
 						
+						st.session_state[ 'regression_ols_elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
-						st.session_state[ 'df_regression' ] = df_training.copy( )
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'df_regression' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-					except Exception as e:
-						st.error( f'Error training Ordinary Least Squares: {e}' )
-					
+						st.success( 'Ordinary Least Squares training completed.' )
+					except Exception as ex:
+						st.error( f'Ordinary Least Squares training failed: {ex}')
+						
 			with st.expander( 'Ridge Regression', expanded=False ):
 				ridge_defaults = {
 						'regression_ridge_alpha': 1.0,
@@ -10772,12 +10816,12 @@ elif mode == 'Regression Models':
 				st.caption( 'L2-regularized linear regression for continuous targets.' )
 				
 				ridge_c1, ridge_c2, ridge_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
 				with ridge_c1:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
-					
 					ridge_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
-						value=float( st.session_state[ 'regression_ridge_alpha' ] ),
-						step=0.100000, format='%.6f', key='regression_ridge_alpha_input' ) )
+							value=float( st.session_state[ 'regression_ridge_alpha' ] ),
+							step=0.100000, format='%.6f', key='regression_ridge_alpha_input' ) )
 					
 					ridge_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_ridge_fit_intercept' ] ),
@@ -10789,31 +10833,19 @@ elif mode == 'Regression Models':
 				
 				with ridge_c2:
 					st.markdown( '###### ♟️ Solver / Iteration' )
+					ridge_solvers = [ 'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag',
+							'saga', 'lbfgs' ]
 					
-					ridge_solver = st.selectbox( 'Solver', options=[
-								'auto',
-								'svd',
-								'cholesky',
-								'lsqr',
-								'sparse_cg',
-								'sag',
-								'saga',
-								'lbfgs'
-						],
-						index=[
-								'auto',
-								'svd',
-								'cholesky',
-								'lsqr',
-								'sparse_cg',
-								'sag',
-								'saga',
-								'lbfgs'
-						].index( st.session_state[ 'regression_ridge_solver' ] ),
+					ridge_solver_value = st.session_state.get( 'regression_ridge_solver', 'auto' )
+					if ridge_solver_value not in ridge_solvers:
+						ridge_solver_value = 'auto'
+					
+					ridge_solver = st.selectbox( 'Solver', options=ridge_solvers,
+						index=ridge_solvers.index( ridge_solver_value ),
 						key='regression_ridge_solver_select' )
 					
-					ridge_max_iter_raw = int( st.number_input( 'Max Iterations (0 = Auto)', min_value=0,
-							value=int( st.session_state[ 'regression_ridge_max_iter' ] ),
+					ridge_max_iter_raw = int( st.number_input( 'Max Iterations (0 = Auto)',
+							min_value=0, value=int( st.session_state[ 'regression_ridge_max_iter' ] ),
 							step=1, key='regression_ridge_max_iter_input' ) )
 					
 					ridge_tol = float( st.number_input( 'Tolerance', min_value=0.0,
@@ -10825,7 +10857,11 @@ elif mode == 'Regression Models':
 						key='regression_ridge_positive_check' )
 					
 					if ridge_positive and ridge_solver != 'lbfgs':
-						st.info( "Positive coefficients require the 'lbfgs' solver." )
+						st.info( "Positive coefficients require the 'lbfgs' solver. "
+							"The solver will be set to 'lbfgs' during training." )
+					
+					if not ridge_positive and ridge_solver == 'lbfgs':
+						st.warning( "The 'lbfgs' solver requires Positive Coefficients." )
 				
 				with ridge_c3:
 					st.markdown( '###### ↔️ Data Split' )
@@ -10838,8 +10874,9 @@ elif mode == 'Regression Models':
 							step=1, key='regression_ridge_random_state_input' ) )
 				
 				ridge_btn_1, ridge_btn_2 = st.columns( 2 )
-				with ridge_btn_1: train_ridge = st.button( '🚂 Train Ridge Regression',
-					key='regression_ridge_train', use_container_width=True )
+				with ridge_btn_1:
+					train_ridge = st.button( '🚂 Train Ridge Regression', key='regression_ridge_train',
+						use_container_width=True )
 				
 				with ridge_btn_2:
 					reset_ridge = st.button( '🔄 Reset Ridge Regression', key='regression_ridge_reset',
@@ -10849,15 +10886,73 @@ elif mode == 'Regression Models':
 					for key, value in ridge_defaults.items( ):
 						st.session_state[ key ] = value
 					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'regression_ridge_elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'y_prediction' ] = None
 					st.session_state[ 'df_regression' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 					st.session_state[ 'df_coefficients' ] = pd.DataFrame( )
-					st.session_state[ 'regression_ridge_elapsed_seconds' ] = None
 					st.rerun( )
 				
 				if train_ridge:
 					try:
+						if X is None or y is None:
+							st.warning( '⚠️ Ridge Regression requires prepared feature & target arrays.' )
+							st.stop( )
+						
+						X_ridge = np.asarray( X, dtype=float )
+						y_ridge = np.asarray( y, dtype=float ).reshape( -1 )
+						if X_ridge.ndim != 2 or X_ridge.shape[ 1 ] < 1:
+							st.warning( '⚠️ Ridge Regression requires at least one numeric feature.' )
+							st.stop( )
+						
+						if y_ridge.ndim != 1:
+							st.warning( '⚠️ The Ridge Regression target must be one-dimensional.' )
+							st.stop( )
+						
+						if len( X_ridge ) != len( y_ridge ):
+							st.warning( '⚠️ Feature and target row counts do not match.' )
+							st.stop( )
+						
+						if len( X_ridge ) < 2:
+							st.warning( '⚠️ Ridge Regression requires at least two observations.' )
+							st.stop( )
+						
+						if not np.isfinite( X_ridge ).all( ):
+							st.warning( '⚠️ The Ridge feature matrix contains non-finite values.' )
+							st.stop( )
+						
+						if not np.isfinite( y_ridge ).all( ):
+							st.warning( '⚠️ The Ridge target contains non-finite values.' )
+							st.stop( )
+						
+						if len( np.unique( y_ridge ) ) < 2:
+							st.warning( '⚠️ The regression target must contain at '
+								'least two distinct values.' )
+							st.stop( )
+						
+						if ridge_alpha <= 0.0:
+							st.warning( '⚠️ Ridge alpha must be greater than zero.' )
+							st.stop( )
+						
+						if ridge_tol < 0.0:
+							st.warning( '⚠️ Ridge tolerance cannot be negative.' )
+							st.stop( )
+						
+						if ( not ridge_positive and ridge_solver == 'lbfgs' ):
+							st.warning( "⚠️ The 'lbfgs' solver requires Positive Coefficients." )
+							st.stop( )
+						
+						effective_solver = ( 'lbfgs' if ridge_positive else str( ridge_solver ) )
+						effective_max_iter = ( None if ridge_max_iter_raw == 0 else int( ridge_max_iter_raw ) )
+						
 						st.session_state[ 'regression_ridge_alpha' ] = float( ridge_alpha )
 						st.session_state[ 'regression_ridge_fit_intercept' ] = bool( ridge_fit_intercept )
 						st.session_state[ 'regression_ridge_copy_x' ] = bool( ridge_copy_x )
@@ -10868,67 +10963,82 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_ridge_test_size' ] = float( ridge_test_size )
 						st.session_state[ 'regression_ridge_random_state' ] = int( ridge_random_state )
 						
-						df_training = df_model.copy( )
-						X = df_training[ active_features ].apply(
-							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-						
-						y = pd.to_numeric( df_training[ target_name ],
-							errors='coerce' ).fillna( 0.0 ).to_numpy( ).reshape( -1 )
-						
-						if len( np.unique( y ) ) < 2:
-							m = ('⚠️ The selected numeric target must contain at '
-							     'least two distinct values.')
-							
-							st.warning( m )
-							st.stop( )
-						
-						effective_solver = 'lbfgs' if ridge_positive else ridge_solver
-						effective_max_iter = None if ridge_max_iter_raw == 0 else int( ridge_max_iter_raw )
-						
 						start_time = time.perf_counter( )
+						
 						model = regression_model.Ridge( alpha=float( ridge_alpha ),
 							fit=bool( ridge_fit_intercept ), copy=bool( ridge_copy_x ),
 							iters=effective_max_iter, tol=float( ridge_tol ),
-							solver=str( effective_solver ), positive=bool( ridge_positive ),
+							solver=effective_solver, positive=bool( ridge_positive ),
 							rando=int( ridge_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( ridge_test_size ), random=int( ridge_random_state ) )
+						X_train, X_test, y_train, y_test = ( model.split_data( X_ridge, y_ridge,
+							size=float( ridge_test_size ), random=int( ridge_random_state ) ) )
+						
+						if len( X_train ) < 1 or len( X_test ) < 1:
+							st.warning( '⚠️ The selected test size does not produce '
+								'valid training and testing partitions.' )
+							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_ridge_elapsed_seconds' ] = elapsed_seconds
+						df_scores = model.analyze( X_test, y_test )
+						if not isinstance( df_scores, pd.DataFrame ):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
+						else:
+							df_scores = df_scores.copy( )
 						
-						df_scores = model.analyze( X_test, y_test ).copy( )
-						if df_scores is not None and not df_scores.empty:
-							if df_scores.shape[ 1 ] == 1:
-								df_scores.columns = [ 'Value' ]
-							
-							df_scores.loc[ 'Training Score', 'Value' ] = float( model.training_score )
-							df_scores.loc[ 'Testing Score', 'Value' ] = float( model.testing_score )
-							df_scores.loc[ 'R-Squared Score', 'Value' ] = float( r2_score( y_test, y_prediction ) )
-							df_scores.loc[ 'Processing Time (Seconds)', 'Value' ] = round( elapsed_seconds, 4 )
-							df_scores.loc[ 'Training Rows', 'Value' ] = int( len( X_train ) )
-							df_scores.loc[ 'Testing Rows', 'Value' ] = int( len( X_test ) )
-							df_scores.loc[ 'Alpha', 'Value' ] = float( ridge_alpha )
-							df_scores.loc[ 'Solver', 'Value' ] = str( effective_solver )
+						if ( 'Metric' not in df_scores.columns or 'Value' not in df_scores.columns ):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_predictions = pd.DataFrame(  {
-									'Actual': y_test,
+						df_metadata = pd.DataFrame( { 'Metric': [ 'Processing Time (Seconds)',
+						                                          'Training Rows', 'Testing Rows',
+						                                          'Alpha', 'Solver',
+						                                          'Maximum Iterations',
+						                                          'Positive Coefficients' ],
+						                              'Value': [ round( elapsed_seconds, 4 ),
+						                                         int( len( X_train ) ),
+						                                         int( len( X_test ) ),
+						                                         float( ridge_alpha ),
+						                                         str( effective_solver ),
+							             ( 'Auto' if effective_max_iter is None else int( effective_max_iter ) ),
+											bool( ridge_positive ) ] } )
+						
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
+						df_predictions = pd.DataFrame( {
+									'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
 									'Predicted': y_prediction
 							} )
 						
+						coefficient_values = np.asarray( model.weights, dtype=float ).reshape( -1 )
+						if len( coefficient_values ) != len( active_features ):
+							coefficient_names = [ f'Feature {index + 1}'
+									for index in range( len( coefficient_values ) ) ]
+						else:
+							coefficient_names = active_features.copy( )
+						
+						df_coefficients = pd.DataFrame( {
+									'Feature': coefficient_names,
+									'Coefficient': coefficient_values
+							} )
+						
+						st.session_state[ 'regression_ridge_elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
-						st.session_state[ 'df_regression' ] = df_training.copy( )
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'df_regression' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
+						
+						st.success( 'Ridge Regression training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Ridge Regression training failed: {ex}' )
 					
