@@ -8941,14 +8941,14 @@ elif mode == 'Classification Models':
 # REGRESSION MODE
 # ============================================
 elif mode == 'Regression Models':
-	df_original = st.session_state.get( 'df_original', None )
 	df_dataset = st.session_state.get( 'df_dataset', None )
-	df_working = st.session_state.get( 'df_working', None )
-	df_processed = st.session_state.get( 'df_processed', None )
-	df_regression = st.session_state.get( 'df_regression', None )
-	df_model = st.session_state.get( 'df_model', None )
-	df_scores = st.session_state.get( 'df_scores', None )
-	df_predictions = st.session_state.get( 'df_predictions', None )
+	df_original = st.session_state.get( 'df_original', None )
+	df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
+	df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
+	df_regression = st.session_state.get( 'df_regression', pd.DataFrame( ) )
+	df_model = st.session_state.get( 'df_model', pd.DataFrame( ) )
+	df_scores = st.session_state.get( 'df_scores', pd.DataFrame( ) )
+	df_predictions = st.session_state.get( 'df_predictions', pd.DataFrame( ) )
 	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
 	features = st.session_state.get( 'features', [ ] )
@@ -8963,79 +8963,149 @@ elif mode == 'Regression Models':
 	y_series = st.session_state.get( 'y_series', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )		
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Regression Models' ] )
-		st.caption( 'Predictive Models for Continuous-Values' )
+		st.caption( 'Predictive Models for Continuous Values' )
 		st.divider( )
-		if df_dataset is None or df_dataset.empty:
+		
+		if not has_loaded_dataset( df_dataset ):
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
-		st.session_state[ 'df_original' ] = df_original
-		numeric_columns = [ c for c in df_original.columns if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
+		st.session_state[ 'df_original' ] = df_original.copy( )
 		
-		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
-		st.session_state[ 'categorical_columns' ] = categorical_columns
-		st.session_state[ 'numeric_columns' ] = numeric_columns
-		if not numeric_columns or not categorical_columns:
-			st.warning( '⚠️ Regression requires numeric targets and a categorical features.' )
+		numeric_columns = [ column for column in df_original.columns
+				if pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
+		
+		categorical_columns = [ column for column in df_original.columns
+				if column not in numeric_columns ]
+		
+		st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
+		st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
+		
+		if len( df_original.columns ) < 2:
+			st.warning( '⚠️ Regression requires at least one feature column and one target column.' )
+			st.stop( )
+		
+		if not numeric_columns:
+			st.warning( '⚠️ Regression requires at least one numeric target column.' )
 			st.stop( )
 		
 		# ======================================================================================
 		# Data Selection
 		# ======================================================================================
 		st.markdown( '##### Feature Selection' )
-		st.caption( f'Samples: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
+		st.caption( f'Samples: {len( df_original ):,} | '
+			f'Features: {len( df_original.columns ):,}' )
 		
-		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )		
 		with col_c1:
-			features = st.multiselect( 'Select Features', options=categorical_columns,
+			features = st.multiselect( 'Select Features', options=df_original.columns.tolist( ),
 				key='regression_features' )
 		
 		with col_c2:
-			target_options = [ t for t in df_original.columns if t not in features ]
-			targets = st.multiselect( 'Select Targets', options=target_options,
-				key='regression_target' )
+			target_options = [ column for column in numeric_columns
+					if column not in features ]
+			
+			if target_options:
+				target = st.selectbox( 'Select Target', options=target_options,
+					key='regression_target' )
+			else:
+				target = None
+				st.info( 'At least one numeric column must remain available as the regression target.' )
 		
-		# Create Button
-		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
+		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )		
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='regression_create_dataset',
 					use_container_width=True ):
-				selected_all = features + [ t for t in targets if t not in features ]
+				if not features:
+					st.warning( '⚠️ Select at least one feature column.' )
+					st.stop( )
 				
-				if selected_all:
-					df_working = df_original[ selected_all ].copy( )
-				else:
-					df_working = df_original.copy( )
+				if target is None:
+					st.warning( '⚠️ Select one numeric target column.' )
+					st.stop( )
+				
+				if target in features:
+					st.warning( '⚠️ The regression target cannot also be selected as a feature.' )
+					st.stop( )
+				
+				selected_all = features.copy( )
+				selected_all.append( target )				
+				df_working = df_original[ selected_all ].copy( )
+				
+				if df_working.empty:
+					st.warning( '⚠️ The selected feature and target columns contain no observations.' )
+					st.stop( )
 				
 				st.session_state[ 'features' ] = features.copy( )
-				st.session_state[ 'targets' ] = targets.copy( )
+				st.session_state[ 'targets' ] = [ target ]
+				st.session_state[ 'selected_all' ] = selected_all.copy( )
 				st.session_state[ 'df_working' ] = df_working.copy( )
+				st.session_state[ 'df_processed' ] = pd.DataFrame( )
+				st.session_state[ 'df_model' ] = pd.DataFrame( )
+				st.session_state[ 'df_scores' ] = pd.DataFrame( )
+				st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+				st.session_state[ 'df_regression' ] = pd.DataFrame( )
+				st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
+				st.session_state[ 'active_features' ] = [ ]
+				st.session_state[ 'active_targets' ] = [ ]
+				st.session_state[ 'X_data' ] = None
+				st.session_state[ 'X_train' ] = None
+				st.session_state[ 'X_test' ] = None
+				st.session_state[ 'y_train' ] = None
+				st.session_state[ 'y_test' ] = None
+				st.session_state[ 'y_series' ] = None
+				st.session_state[ 'y_prediction' ] = None
+				st.session_state[ 'model' ] = None
+				st.session_state[ 'elapsed_seconds' ] = 0.0
+				st.session_state[ 'target_count' ] = 1.0
+				
 				commit_frame( df_working )
 				st.success( 'Working Dataset Created!' )
+				st.rerun( )
 		
-		# Reset Button
 		with sel_b2:
 			if st.button( 'Reset Working Dataset', icon='🔁', key='regression_reset_to_original',
 					use_container_width=True ):
-				st.session_state[ 'features' ] = [ ]
-				st.session_state[ 'targets' ] = [ ]
-				st.session_state[ 'df_working' ] = pd.DataFrame( )
-				df_working = None
-				df_processed = None
-				st.success( 'Reset to Original' )
+				reset_regression_mode_state( )
+				st.success( 'Regression working data reset.' )
 				st.rerun( )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
-		if df_working is None:
-			st.stop( )
-		st.markdown( '##### Working Data' )
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )		
+		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
 		
-		st.caption( f'Samples: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
-		st.data_editor( df_working, key='regression_working_data' )
+		if not has_loaded_dataset( df_working ):
+			i = 'Select regression features and one numeric target, then create the working dataset.'
+			st.info( i )
+			st.stop( )
+		
+		features = [ column for column in st.session_state.get( 'features', [ ] )
+				if column in df_working.columns ]
+		
+		targets = [ column for column in st.session_state.get( 'targets', [ ] )
+				if column in df_working.columns ]
+		
+		if not features:
+			st.warning( '⚠️ The working dataset does not contain any selected feature columns.' )
+			st.stop( )
+		
+		if len( targets ) != 1:
+			st.warning( '⚠️ Regression requires exactly one numeric target column.' )
+			st.stop( )
+		
+		target_name = targets[ 0 ]		
+		if not pd.api.types.is_numeric_dtype( df_working[ target_name ] ):
+			st.warning( '⚠️ The selected regression target must be numeric.' )
+			st.stop( )
+		
+		st.markdown( '##### Working Data' )
+		st.caption( f'Samples: {len( df_working ):,} | '
+			f'Features: {len( features ):,} | Target: {target_name}' )
+		
+		st.data_editor( df_working, key='regression_working_data', use_container_width=True )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -14098,8 +14168,7 @@ elif mode == 'Regression Models':
 		
 		if hasattr( model, 'training_score' ):
 			try:
-				detail_rows.append( { 'Property': 'Training Score',
-				                      'Value': model.training_score } )
+				detail_rows.append( { 'Property': 'Training Score', 'Value': model.training_score } )
 			except Exception:
 				pass
 		
@@ -14114,8 +14183,7 @@ elif mode == 'Regression Models':
 			try:
 				weights = model.weights
 				if weights is not None:
-					df_weights = pd.DataFrame(
-						{
+					df_weights = pd.DataFrame( {
 								'Feature': features,
 								'Weight': np.asarray( weights ).reshape( -1 )
 						} )
