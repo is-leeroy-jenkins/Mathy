@@ -2227,7 +2227,7 @@ with st.sidebar:
 	
 	# ------- Mode Selection
 	st.sidebar.divider( )
-	with st.expander( 'Data Mode', expanded=True ):
+	with st.expander( 'Data Modes', expanded=True ):
 		mode = st.radio( label='Select', options=cfg.MODE.keys( ), index=0,
 			key='data_mode_radio' )
 	
@@ -3717,41 +3717,37 @@ elif mode == 'Classification Models':
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 			
-			df_original = df_dataset.copy( )
-			st.session_state[ 'df_original' ] = df_original.copy( )
+		df_original = df_dataset.copy( )
+		st.session_state[ 'df_original' ] = df_original.copy( )
+		numeric_columns = [ column for column in df_original.columns
+				if pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
+		
+		categorical_columns = [ column for column in df_original.columns
+				if column not in numeric_columns ]
+		
+		st.session_state[ 'numeric_columns' ] = numeric_columns
+		st.session_state[ 'categorical_columns' ] = categorical_columns
+		if len( df_original.columns ) < 2:
+			warn = '⚠️ Classification requires at least one feature column and one target column.'
+			st.warning( warn )
+			st.stop( )
+		
+		# ======================================================================================
+		# Data Selection
+		# ======================================================================================
+		st.markdown( '##### Feature Selection' )
+		st.caption( f'Samples: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with col_c1:
+			features = st.multiselect( 'Select Features', options=df_original.columns.tolist( ),
+				key='classification_features' )
+		
+		with col_c2:
+			target_options = [ column for column in df_original.columns
+					if column not in features ]
 			
-			numeric_columns = [ column for column in df_original.columns
-					if pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
-			
-			categorical_columns = [ column for column in df_original.columns
-					if column not in numeric_columns ]
-			
-			st.session_state[ 'numeric_columns' ] = numeric_columns
-			st.session_state[ 'categorical_columns' ] = categorical_columns
-			
-			if len( df_original.columns ) < 2:
-				warn = '⚠️ Classification requires at least one feature column and one target column.'
-				st.warning( warn )
-				st.stop( )
-			
-			# ======================================================================================
-			# Data Selection
-			# ======================================================================================
-			st.markdown( '##### Feature Selection' )
-			st.caption( f'Samples: {len( df_original ):,} | '
-				f'Features: {len( df_original.columns ):,}' )
-			
-			col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-			with col_c1:
-				features = st.multiselect( 'Select Features', options=df_original.columns.tolist( ),
-					key='classification_features' )
-			
-			with col_c2:
-				target_options = [ column for column in df_original.columns
-						if column not in features ]
-				
-				targets = st.selectbox( 'Select Target', options=target_options,
-					key='classification_target' )
+			targets = st.selectbox( 'Select Target', options=target_options,
+				key='classification_target' )
 		
 		# Create Button
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
@@ -8984,7 +8980,6 @@ elif mode == 'Regression Models':
 		
 		st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
 		st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
-		
 		if len( df_original.columns ) < 2:
 			st.warning( '⚠️ Regression requires at least one feature column and one target column.' )
 			st.stop( )
@@ -9006,12 +9001,9 @@ elif mode == 'Regression Models':
 				key='regression_features' )
 		
 		with col_c2:
-			target_options = [ column for column in numeric_columns
-					if column not in features ]
-			
+			target_options = [ column for column in numeric_columns if column not in features ]
 			if target_options:
-				target = st.selectbox( 'Select Target', options=target_options,
-					key='regression_target' )
+				target = st.selectbox( 'Select Target', options=target_options, key='regression_target' )
 			else:
 				target = None
 				st.info( 'At least one numeric column must remain available as the regression target.' )
@@ -9035,7 +9027,6 @@ elif mode == 'Regression Models':
 				selected_all = features.copy( )
 				selected_all.append( target )				
 				df_working = df_original[ selected_all ].copy( )
-				
 				if df_working.empty:
 					st.warning( '⚠️ The selected feature and target columns contain no observations.' )
 					st.stop( )
@@ -9062,7 +9053,6 @@ elif mode == 'Regression Models':
 				st.session_state[ 'model' ] = None
 				st.session_state[ 'elapsed_seconds' ] = 0.0
 				st.session_state[ 'target_count' ] = 1.0
-				
 				commit_frame( df_working )
 				st.success( 'Working Dataset Created!' )
 				st.rerun( )
@@ -10529,56 +10519,100 @@ elif mode == 'Regression Models':
 				f'⚠️ The processed dataframe is missing required columns: {missing_columns}. '
 				f'Apply preprocessing again or reset the working dataset.' )
 			st.stop( )
+			
+		active_features = list( st.session_state.get( 'df_features', pd.DataFrame( ) ).columns )
+		active_targets = list( st.session_state.get( 'df_targets', pd.DataFrame( ) ).columns )		
+		st.session_state[ 'active_features' ] = active_features.copy( )
+		st.session_state[ 'active_targets' ] = active_targets.copy( )		
+		if not active_features:
+			st.warning( '⚠️ Regression training requires at least one processed feature column.' )
+			st.stop( )
 		
-		df_model = df_processed[ active_features + [ target_name ] ].copy( )
-		df_model = df_model.dropna( subset=active_features + [ target_name ] ).copy( )
-		st.session_state[ 'df_model' ] = df_model.copy( )
+		if len( active_targets ) != 1:
+			st.warning( '⚠️ Regression training requires exactly one processed target column.' )
+			st.stop( )
+		
+		target_name = active_targets[ 0 ]		
+		if target_name in active_features:
+			st.warning( '⚠️ The regression target cannot also be used as a feature.' )
+			st.stop( )
+		
+		required_columns = active_features + [ target_name ]
+		missing_columns = [ column for column in required_columns if column not in df_processed.columns ]
+		
+		if missing_columns:
+			st.warning( f'⚠️ The processed dataframe is missing required columns: '
+				f'{missing_columns}. Apply preprocessing again or reset the '
+				f'working dataset.' )
+			st.stop( )
+		
+		df_model = df_processed[ required_columns ].copy( )		
+		for column in required_columns:
+			df_model[ column ] = pd.to_numeric( df_model[ column ], errors='coerce' )
+		
+		df_model = df_model.replace( [ np.inf, -np.inf ], np.nan )
+		
+		df_model = df_model.dropna( subset=required_columns ).copy( )
+		
+		if df_model.empty:
+			st.warning( '⚠️ No complete numeric observations remain after model-input validation.' )
+			st.stop( )
+		
+		if len( df_model ) < 2:
+			st.warning( '⚠️ Regression training requires at least two complete observations.' )
+			st.stop( )
+		
 		X_data = df_model[ active_features ].copy( )
-		st.session_state[ 'X_data' ] = X_data.copy( )
-		for col in X_data.columns:
-			X_data[ col ] = pd.to_numeric( X_data[ col ], errors='coerce' )
+		y_series = df_model[ target_name ].copy( )		
+		if X_data.empty or len( X_data.columns ) == 0:
+			st.warning( '⚠️ Regression training requires at least one numeric feature.' )
+			st.stop( )
 		
 		if X_data.isna( ).any( ).any( ):
-			st.warning( '⚠️ One or more feature columns are still non-numeric after preprocessing.'
-			            'Apply the appropriate encoder/transformer before training.' )
+			st.warning( '⚠️ One or more feature columns contain invalid numeric values.' )
 			st.stop( )
 		
-		# Create training matrix and target vector
+		if y_series.isna( ).any( ):
+			st.warning( '⚠️ The regression target contains invalid numeric values.' )
+			st.stop( )
+		
+		if int( y_series.nunique( dropna=True ) ) < 2:
+			st.warning( '⚠️ The regression target must contain at least two distinct values.' )
+			st.stop( )
+		
 		X = X_data.to_numpy( dtype=float )
-		y_series = df_model[ target_name ].copy( )
-		st.session_state[ 'y_series' ] = y_series.copy( )
-		if isinstance( y_series, pd.DataFrame ):
-			st.warning( '⚠️ The processed target must resolve to a single column.' )
+		y = y_series.to_numpy( dtype=float ).reshape( -1 )
+		
+		if X.ndim != 2 or X.shape[ 1 ] < 1:
+			st.warning( '⚠️ Regression training requires a two-dimensional feature matrix.' )
 			st.stop( )
 		
-		y = y_series.to_numpy( )
 		if y.ndim != 1:
-			y = np.ravel( y )
+			st.warning( '⚠️ The regression target must resolve to a one-dimensional vector.' )
+			st.stop( )
 		
-		if len( y ) != len( X ):
+		if len( X ) != len( y ):
 			st.warning( '⚠️ Feature and target row counts do not match.' )
 			st.stop( )
 		
-		if pd.api.types.is_numeric_dtype( y_series ):
-			y_num = pd.to_numeric( y_series, errors='coerce' ).dropna( )
-			if len( y_num ) == 0:
-				st.warning( '⚠️ The processed target contains no valid values.' )
-				st.stop( )
-			
-		unique_count = int( y_num.nunique( ) )
-		unique_ratio = float( unique_count / max( 1, len( y_num ) ) )
-		
-		if unique_count > 20 and unique_ratio > 0.20:
-			st.warning( '⚠️ The processed target appears continuous. ' )
+		if not np.isfinite( X ).all( ):
+			st.warning( '⚠️ The regression feature matrix contains non-finite values.' )
 			st.stop( )
 		
-		class_counts = pd.Series( y ).value_counts( dropna=False )
-		if len( class_counts ) < 1:
-			st.warning( '⚠️ Requires at least two classes.' )
+		if not np.isfinite( y ).all( ):
+			st.warning( '⚠️ The regression target contains non-finite values.' )
 			st.stop( )
 		
-		df_regression = df_model.copy( )
+		df_regression = df_model.copy( )		
+		st.session_state[ 'df_model' ] = df_model.copy( )
 		st.session_state[ 'df_regression' ] = df_regression.copy( )
+		st.session_state[ 'X_data' ] = X_data.copy( )
+		st.session_state[ 'y_series' ] = y_series.copy( )
+		st.session_state[ 'X_train' ] = None
+		st.session_state[ 'X_test' ] = None
+		st.session_state[ 'y_train' ] = None
+		st.session_state[ 'y_test' ] = None
+		st.session_state[ 'y_prediction' ] = None
 		
 		# ------------------------------------------------------------------
 		# REGRESSION MODELS
