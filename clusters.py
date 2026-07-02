@@ -53,8 +53,31 @@ import sklearn.cluster as skc
 from sklearn.metrics import (silhouette_score, completeness_score, homogeneity_score,
                              mutual_info_score, v_measure_score)
 
-def throw_if( name: str, value: object ):
-	if not value:
+def throw_if( name: str, value: object ) -> None:
+	"""
+	
+		Purpose:
+		--------
+		Validate that a required argument is not null or empty without evaluating
+		NumPy arrays as Boolean values.
+	
+		Parameters:
+		-----------
+		name ( str ): Argument name used in the validation message.
+		value ( object ): Argument value to validate.
+	
+		Returns:
+		--------
+		None
+	
+	"""
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (str, list, tuple, dict, set) ) and len( value ) == 0:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Cluster( ):

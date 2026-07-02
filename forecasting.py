@@ -56,9 +56,31 @@ from statsmodels.regression.linear_model import RegressionResultsWrapper
 import sklearn.ensemble as ske
 import sklearn.linear_model as skl
 
-def throw_if( name: str, value: object ):
-	if not value:
-		raise Exception( f'Argument "{name}" cannot be empty!' )
+def throw_if( name: str, value: object ) -> None:
+	"""Validate a required forecasting argument.
+
+		Purpose:
+		    Enforces the presence of required time-series inputs, fitted models, design matrices,
+		    and forecast parameters before model execution. The validation accepts populated NumPy
+		    arrays and standard Python containers while rejecting null values and empty collections
+		    that cannot support training, projection, scoring, cross-validation, or diagnostic
+		    calculations.
+
+		Args:
+		    name: Argument name used in the validation error message.
+		    value: Argument value checked for a null or empty state.
+
+		Raises:
+		    ValueError: Raised when `value` is None or empty.
+	"""
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (str, list, tuple, dict, set) ) and len( value ) == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class TimeSeries( ):
 	"""Share time-series state.

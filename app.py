@@ -2196,7 +2196,6 @@ with st.sidebar:
 					""", connection )
 				
 				table_options = df_tables[ 'name' ].tolist( )[ :3 ]
-				
 				if table_options:
 					selected_table = st.selectbox( label='Select Database Table',
 						options=table_options, key='database_table_selectbox' )
@@ -2228,11 +2227,11 @@ with st.sidebar:
 	
 	# ------- Mode Selection
 	st.sidebar.divider( )
-	st.subheader( 'Data Mode' )
+	with st.expander( 'Data Mode', expanded=True ):
+		mode = st.radio( label='Select', options=cfg.MODE.keys( ), index=0,
+			key='data_mode_radio' )
 	
-	mode = st.sidebar.radio( 'Select', cfg.MODE.keys( ), index=0 )
 	previous_mode = st.session_state.get( 'previous_mode', None )
-	
 	if previous_mode != mode:
 		if mode == 'Classification Models':
 			reset_classification_mode_state( )
@@ -2404,7 +2403,6 @@ if mode == 'Data Profile':
 				
 				if submitted:
 					before = df_dataset.loc[ row_idx ].copy( )
-					
 					for col, value in updated.items( ):
 						if schema[ col ] == 'datetime':
 							st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime( value )
@@ -2414,10 +2412,8 @@ if mode == 'Data Profile':
 					after = st.session_state.df_dataset.loc[ row_idx ]
 					log_step( f'Updated row {row_idx}' )
 					st.success( f'Row {row_idx} updated.' )
-					st.data_editor(
-						pd.DataFrame( { 'Before': before, 'After': after } ),
-						use_container_width=True
-					)
+					st.data_editor( pd.DataFrame( { 'Before': before, 'After': after } ),
+						use_container_width=True )
 					
 					st.rerun( )
 				
@@ -2585,7 +2581,6 @@ if mode == 'Data Profile':
 			
 			stat_mode = 'density' if dist_mode == 'Density' else 'count'
 			grid_cols = st.columns( 2, border=True )
-			
 			for i, col in enumerate( numeric_dist_cols ):
 				with grid_cols[ i % 2 ]:
 					s = pd.to_numeric( df_dataset[ col ], errors='coerce' )
@@ -2740,7 +2735,6 @@ elif mode == 'Descriptive Statistics':
 			}
 			
 			column_config = { k: v for k, v in column_config.items( ) if k in df_descriptive.columns }
-			
 			st.data_editor( df_descriptive, use_container_width=True, hide_index=True,
 				disabled=True, column_config=column_config, key='desc_summary_editor' )
 		else:
@@ -2929,7 +2923,6 @@ elif mode == 'Inferential Statistics':
 		
 		numeric_columns = st.session_state.numeric_columns
 		categorical_columns = st.session_state.categorical_columns
-		
 		if not numeric_columns:
 			st.info( 'No numeric variables available for inferential analysis.' )
 			st.stop( )
@@ -3005,8 +2998,7 @@ elif mode == 'Inferential Statistics':
 		if len( summary_series ) >= 3:
 			try:
 				shapiro_stat, shapiro_p = stats.shapiro( summary_series )
-				infer_rows.append(
-				{
+				infer_rows.append({
 					'Analysis': 'Outcome Distribution',
 					'Test': 'Shapiro-Wilk',
 					'Statistic': shapiro_stat,
@@ -3036,8 +3028,7 @@ elif mode == 'Inferential Statistics':
 			if len( valid_group_arrays ) >= 2:
 				try:
 					f_stat, p_anova = stats.f_oneway( *valid_group_arrays )
-					infer_rows.append(
-					{
+					infer_rows.append( {
 							'Analysis': 'Group Comparison',
 							'Test': 'One-Way ANOVA',
 							'Statistic': f_stat,
@@ -3052,8 +3043,7 @@ elif mode == 'Inferential Statistics':
 				
 				try:
 					h_stat, p_kw = stats.kruskal( *valid_group_arrays )
-					infer_rows.append(
-					{
+					infer_rows.append( {
 						'Analysis': 'Group Comparison',
 						'Test': 'Kruskal-Wallis',
 						'Statistic': h_stat,
@@ -3078,8 +3068,7 @@ elif mode == 'Inferential Statistics':
 					pearson_r, pearson_p = stats.pearsonr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
 					
-					infer_rows.append(
-					{
+					infer_rows.append( {
 						'Analysis': 'Association',
 						'Test': 'Pearson Correlation',
 						'Statistic': pearson_r,
@@ -3096,8 +3085,7 @@ elif mode == 'Inferential Statistics':
 					spearman_rho, spearman_p = stats.spearmanr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
 					
-					infer_rows.append(
-					{
+					infer_rows.append( {
 						'Analysis': 'Association',
 						'Test': 'Spearman Correlation',
 						'Statistic': spearman_rho,
@@ -3106,7 +3094,7 @@ elif mode == 'Inferential Statistics':
 						'Effect Size': abs( spearman_rho ),
 						'N': float( pair_mask.sum( ) ),
 						'Notes': f'{summary_y} vs {summary_x}'
-					})
+					} )
 				except Exception:
 					pass
 		
@@ -3728,34 +3716,42 @@ elif mode == 'Classification Models':
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
-		
-		df_original = df_dataset.copy( )
-		st.session_state[ 'df_original' ] = df_original.copy( )
-		numeric_columns = [ c for c in df_original.columns
-		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
-		
-		categorical_columns = [ c for c in df_original.columns if c not in numeric_columns ]
-		st.session_state[ 'numeric_columns' ] = numeric_columns
-		st.session_state[ 'categorical_columns' ] = categorical_columns
-		if not numeric_columns or not categorical_columns:
-			st.warning( '⚠️ Classifications requires numeric features and a float target.' )
-			st.stop( )
-		
-		# ======================================================================================
-		# Data Selection
-		# ======================================================================================
-		st.markdown( '##### Feature Selection' )
-		st.caption( f'Samples: {len( df_original ):,} | Features: {len( df_original.columns ):,}' )
-		
-		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
-		with col_c1:
-			features = st.multiselect( 'Select Features', options=categorical_columns,
-				key='classification_features' )
-		
-		with col_c2:
-			target_options = [ t for t in df_original.columns if t not in features  ]
-			targets = st.selectbox( 'Select Target', options=target_options,
-				key='classification_target' )
+			
+			df_original = df_dataset.copy( )
+			st.session_state[ 'df_original' ] = df_original.copy( )
+			
+			numeric_columns = [ column for column in df_original.columns
+					if pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
+			
+			categorical_columns = [ column for column in df_original.columns
+					if column not in numeric_columns ]
+			
+			st.session_state[ 'numeric_columns' ] = numeric_columns
+			st.session_state[ 'categorical_columns' ] = categorical_columns
+			
+			if len( df_original.columns ) < 2:
+				warn = '⚠️ Classification requires at least one feature column and one target column.'
+				st.warning( warn )
+				st.stop( )
+			
+			# ======================================================================================
+			# Data Selection
+			# ======================================================================================
+			st.markdown( '##### Feature Selection' )
+			st.caption( f'Samples: {len( df_original ):,} | '
+				f'Features: {len( df_original.columns ):,}' )
+			
+			col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+			with col_c1:
+				features = st.multiselect( 'Select Features', options=df_original.columns.tolist( ),
+					key='classification_features' )
+			
+			with col_c2:
+				target_options = [ column for column in df_original.columns
+						if column not in features ]
+				
+				targets = st.selectbox( 'Select Target', options=target_options,
+					key='classification_target' )
 		
 		# Create Button
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
@@ -14392,6 +14388,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='cluster_imputers' ):
+				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
@@ -14542,6 +14539,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='cluster_encoders' ):
+				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=features,
@@ -14700,6 +14698,7 @@ elif mode == 'Clustering Models':
 		
 		with feature_c2:
 			with st.expander( label='Data Transformation', icon='⚡', key='cluster_transformers' ):
+				
 				with st.expander( 'Binarizer', expanded=False ):
 					transform_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_binarizer_cols' )
@@ -14935,6 +14934,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='cluster_extractors' ):
+				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					text_cols = st.multiselect( 'Text Columns',
 						options=categorical_columns,
@@ -15122,6 +15122,7 @@ elif mode == 'Clustering Models':
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='cluster_selectors' ):
+				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_variance_threshold_cols' )

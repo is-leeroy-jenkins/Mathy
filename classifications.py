@@ -70,22 +70,30 @@ from sklearn.metrics import (recall_score, precision_score, confusion_matrix, cl
 from sklearn.preprocessing import Binarizer
 from boogr import Error, Logger
 
-def throw_if( name: str, value: object ):
-	"""Validate a required argument.
+def throw_if( name: str, value: object ) -> None:
+	"""Validate a required clustering argument.
 
 		Purpose:
-		    Raises an exception when a required argument is missing so classifier methods fail before
-		    downstream sklearn operations receive invalid input.
+		    Enforces the presence of required clustering inputs before estimator execution. The
+		    validation accepts populated NumPy arrays and standard Python containers while rejecting
+		    null values and empty collections that would otherwise cause downstream sklearn operations
+		    to fail or produce undefined clustering results.
 
 		Args:
 		    name: Argument name used in the validation error message.
-		    value: Argument value checked for missing state.
+		    value: Argument value checked for a null or empty state.
 
 		Raises:
-		    Exception: Raised when `value` is `None`.
+		    ValueError: Raised when `value` is None or empty.
 	"""
 	if value is None:
-		raise Exception( f'Argument "{name}" cannot be empty!' )
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (str, list, tuple, dict, set) ) and len( value ) == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Classifier( ):
 	"""Classifier classifier wrapper.
@@ -2607,35 +2615,63 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'hinge', iters: int = 100, reg: str = 'l2',
-			alpha: float = 0.00001,
-			ave: bool = True, rate: str = 'optimal' ) -> None:
-		"""Initialize GradientDescent.
+	def __init__( self, loss: str = 'hinge', iters: int = 100,
+			reg: str = 'l2', alpha: float = 0.00001,
+			ave: bool = True, rate: str = 'optimal',
+			penalty: str | None = None, shuffle: bool = True,
+			eta: float = 0.0, learning: str | None = None,
+			power: float = 0.5, epsilon: float = 0.1,
+			rando: int | None = 42 ) -> None:
+		"""Initialize the stochastic-gradient classifier.
 
 				Purpose:
-				    Initializes the GradientDescent wrapper by assigning configuration values, constructing the
-				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
-				    prediction, scoring, and diagnostics.
+				    Configures the SGDClassifier estimator with the selected loss function,
+				    regularization penalty, learning-rate schedule, convergence controls,
+				    averaging behavior, sample-order behavior, and reproducible random state.
+				    Legacy `reg` and `rate` arguments remain supported when the corresponding
+				    application-facing `penalty` and `learning` arguments are not supplied.
 
 				Args:
-				    loss: Loss function assigned to the estimator.
-				    iters: Maximum iteration count assigned to the estimator.
-				    reg: Regularization penalty assigned to the estimator.
-				    alpha: Regularization strength or learning-rate parameter assigned to the estimator.
-				    ave: Flag controlling averaged stochastic-gradient behavior.
-				    rate: Learning-rate or boosting-rate value assigned to the estimator.
+				    loss: Loss function used to train the linear classifier.
+				    iters: Maximum number of training iterations.
+				    reg: Legacy regularization penalty used when `penalty` is not supplied.
+				    alpha: Regularization strength applied by the estimator.
+				    ave: Flag controlling averaged stochastic-gradient weights.
+				    rate: Legacy learning-rate schedule used when `learning` is not supplied.
+				    penalty: Regularization penalty selected by the application.
+				    shuffle: Flag controlling whether training samples are shuffled each epoch.
+				    eta: Initial learning rate used by supported learning-rate schedules.
+				    learning: Learning-rate schedule selected by the application.
+				    power: Exponent used by the inverse-scaling learning-rate schedule.
+				    epsilon: Width of the insensitive region for supported loss functions.
+				    rando: Random seed used for reproducible estimator behavior.
 		"""
 		super( ).__init__( )
 		self.loss = loss
-		self.learning_rate = rate
 		self.max_iter = iters
-		self.regularization = reg
+		self.regularization = penalty if penalty is not None else reg
 		self.alpha = alpha
 		self.average = ave
-		self.model = skc.SGDClassifier( loss=self.loss, max_iter=self.max_iter,
-			penalty=self.regularization, alpha=self.alpha, average=self.average,
-			learning_rate=self.learning_rate )
-	
+		self.learning_rate = learning if learning is not None else rate
+		self.random_state = rando
+		self.shuffle = shuffle
+		self.eta0 = eta
+		self.power_t = power
+		self.epsilon = epsilon
+		self.model = skc.SGDClassifier(
+			loss=self.loss,
+			penalty=self.regularization,
+			alpha=self.alpha,
+			max_iter=self.max_iter,
+			shuffle=self.shuffle,
+			eta0=self.eta0,
+			learning_rate=self.learning_rate,
+			power_t=self.power_t,
+			epsilon=self.epsilon,
+			average=self.average,
+			random_state=self.random_state
+		)
+		
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
 
@@ -4101,31 +4137,46 @@ class RandomForest( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, estimators: int = 100, depth: Optional[ int ] = None,
-			criterion: str = 'gini', jobs: int = -1, random: int = 42 ) -> None:
-		"""Initialize RandomForest.
+			criterion: str = 'gini', jobs: int = -1, random: int = 42,
+			n_estimators: Optional[ int ] = None, min_split: int = 2,
+			min_leaf: int = 1 ) -> None:
+		"""Initialize the random-forest classifier.
 
 				Purpose:
-				    Initializes the RandomForest wrapper by assigning configuration values, constructing the
-				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
-				    prediction, scoring, and diagnostics.
+				    Configures an ensemble of decision-tree classifiers for supervised class prediction,
+				    probability estimation, feature-importance analysis, and classification diagnostics.
+				    Supports the legacy `estimators` argument and the application-facing `n_estimators`
+				    argument while applying maximum-depth, node-split, leaf-size, parallel-processing,
+				    impurity-criterion, and random-state controls to the underlying estimator.
 
 				Args:
-				    estimators: Named estimator collection or estimator count assigned to the ensemble wrapper.
-				    depth: Maximum model depth assigned to the estimator.
-				    criterion: Split or impurity criterion assigned to the estimator.
-				    jobs: Parallel worker count assigned to the estimator.
-				    random: Random seed used for reproducible partitioning or estimator behavior.
+				    estimators: Legacy number of decision trees created by the ensemble.
+				    depth: Maximum depth permitted for each decision tree.
+				    criterion: Function used to measure the quality of tree splits.
+				    jobs: Number of parallel worker processes used during fitting and prediction.
+				    random: Random seed used for reproducible estimator behavior.
+				    n_estimators: Application-facing number of decision trees created by the ensemble.
+				    min_split: Minimum number of samples required to split an internal tree node.
+				    min_leaf: Minimum number of samples required at a tree leaf node.
 		"""
 		super( ).__init__( )
-		self.n_estimators = estimators
+		self.n_estimators = n_estimators if n_estimators is not None else estimators
 		self.max_depth = depth
 		self.criterion = criterion
 		self.n_jobs = jobs
 		self.random_state = random
+		self.min_samples_split = min_split
+		self.min_samples_leaf = min_leaf
 		self.validate_configuration( )
-		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
-			max_depth=self.max_depth, criterion=self.criterion, n_jobs=self.n_jobs,
-			random_state=self.random_state )
+		self.model = ske.RandomForestClassifier(
+			n_estimators=self.n_estimators,
+			max_depth=self.max_depth,
+			criterion=self.criterion,
+			n_jobs=self.n_jobs,
+			random_state=self.random_state,
+			min_samples_split=self.min_samples_split,
+			min_samples_leaf=self.min_samples_leaf
+		)
 	
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
@@ -5690,30 +5741,35 @@ class BaggingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, num: int = 10, max: int | float = 1.0,
-			rando: int = 42 ) -> None:
+	def __init__( self, base: object = None, num: int = 10,
+			max: int | float = 1.0, rando: int = 42,
+			estimators: Optional[ int ] = None,
+			random: Optional[ int ] = None ) -> None:
 		"""Initialize BaggingModel.
 
 				Purpose:
-				    Initializes the BaggingModel wrapper by assigning configuration values, constructing the
-				    underlying sklearn estimator when applicable, and preparing runtime state used by training,
-				    prediction, scoring, and diagnostics.
+				    Configures a bootstrap-aggregation classifier that combines predictions from multiple
+				    base estimators to improve classification stability and reduce estimator variance.
+				    Supports estimator-count, feature-sampling, base-estimator, and random-state settings
+				    used by the Mathy classification workflow.
 
 				Args:
-				    base: Base estimator supplied to the ensemble wrapper.
-				    num: Number of neighbors, estimators, or model components assigned to the wrapper.
-				    max: Maximum sample fraction or count assigned to the bagging estimator.
-				    rando: Random seed assigned to the estimator.
+				    base: Base estimator fitted independently within the bagging ensemble.
+				    num: Number of estimators created when `estimators` is not supplied.
+				    max: Maximum number or proportion of features sampled for each estimator.
+				    rando: Random seed used when `random` is not supplied.
+				    estimators: Number of estimators requested by the application.
+				    random: Random seed requested by the application.
 		"""
 		super( ).__init__( )
 		self.base_estimator = base
-		self.n_estimators = num
+		self.n_estimators = estimators if estimators is not None else num
 		self.max_features = max
-		self.random_state = rando
+		self.random_state = random if random is not None else rando
 		self.validate_configuration( )
 		self.model = ske.BaggingClassifier( estimator=self.base_estimator,
-			n_estimators=self.n_estimators,
-			max_features=self.max_features, random_state=self.random_state )
+			n_estimators=self.n_estimators, max_features=self.max_features,
+			random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.

@@ -1173,23 +1173,27 @@ class Lasso( Regression ):
 	def __init__( self, alpha: float = 0.01, fit: bool = True, precompute: bool = False,
 			copy: bool = True, iters: int = 1000, tol: float = 1e-4, warm: bool = False,
 			positive: bool = False, rando: Optional[ int ] = None,
-			select: str = 'cyclic' ) -> None:
-		"""Initialize instance.
+			select: str = 'cyclic', selection: Optional[ str ] = None ) -> None:
+		"""Initialize the Lasso regression wrapper.
 
 				Purpose:
-				    Initializes the Lasso wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Configures an L1-regularized linear regression estimator for sparse coefficient
+				    estimation, continuous-target prediction, model scoring, residual analysis, and
+				    coefficient diagnostics. Supports the existing `select` parameter and the
+				    application-facing `selection` parameter for coordinate-descent feature selection.
 
 				Args:
-				    alpha: Regularization strength, loss parameter, or model-specific alpha value.
-				    fit: Flag indicating whether the estimator fits an intercept term.
-				    precompute: Flag or setting controlling Gram-matrix precomputation.
-				    copy: Flag indicating whether input feature data is copied during fitting.
-				    iters: Maximum number of optimization iterations.
-				    tol: Numerical tolerance used by estimator optimization or convergence checks.
-				    warm: Flag indicating whether previous estimator state is reused across fits.
-				    positive: Flag constraining fitted coefficients to positive values when supported.
-				    rando: Random-state seed passed to the underlying estimator.
-				    select: Coordinate-selection strategy used during optimization.
+				    alpha: Regularization strength applied to the L1 penalty.
+				    fit: Flag indicating whether the estimator fits an intercept.
+				    precompute: Flag controlling Gram-matrix precomputation.
+				    copy: Flag indicating whether the input feature matrix is copied.
+				    iters: Maximum number of coordinate-descent iterations.
+				    tol: Optimization tolerance used to determine convergence.
+				    warm: Flag indicating whether the previous fitted solution is reused.
+				    positive: Flag constraining fitted coefficients to nonnegative values.
+				    rando: Random seed used when random coordinate selection is enabled.
+				    select: Coordinate-selection strategy used when `selection` is not supplied.
+				    selection: Coordinate-selection strategy supplied by the application.
 		"""
 		super( ).__init__( )
 		self.alpha = alpha
@@ -1201,7 +1205,7 @@ class Lasso( Regression ):
 		self.warm_start = warm
 		self.positive = positive
 		self.random_state = rando
-		self.selection = select
+		self.selection = selection if selection is not None else select
 		self.model = skl.Lasso(
 			alpha=self.alpha,
 			fit_intercept=self.fit_intercept,
@@ -1214,27 +1218,13 @@ class Lasso( Regression ):
 			random_state=self.random_state,
 			selection=self.selection
 		)
-		self.prediction = None
-		self.transformed_data = None
-		self.mean_absolute_error = 0.0
-		self.mean_squared_error = 0.0
-		self.root_mean_squared_error = 0.0
-		self.r2_score = 0.0
-		self.explained_variance_score = 0.0
-		self.median_absolute_error = 0.0
-		self.max_error = 0.0
-		self.training_score = 0.0
-		self.testing_score = 0.0
-		self.X_train = None
-		self.X_test = None
-		self.y_train = None
-		self.y_test = None
 	
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the Lasso wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the Lasso wrapper for
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
