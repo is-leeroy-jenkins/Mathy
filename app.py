@@ -12083,204 +12083,505 @@ elif mode == 'Regression Models':
 						'regression_knn_test_size': 0.20,
 						'regression_knn_random_state': 42
 				}
+				
 				for key, value in knn_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
 				
 				st.caption( 'Instance-based regression using nearby observations.' )
 				
-				knn_c1, knn_c2, knn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				knn_c1, knn_c2, knn_c3 = st.columns(
+					[ 0.34, 0.33, 0.33 ],
+					border=True
+				)
+				
 				with knn_c1:
 					st.markdown( '###### Neighbor Parameters' )
-					knn_neighbors = int( st.number_input( 'Neighbors', min_value=1,
-						value=int( st.session_state[ 'regression_knn_neighbors' ] ), step=1,
-						key='regression_knn_neighbors_input' ) )
 					
-					knn_weights = st.selectbox( 'Weights', options=[ 'uniform', 'distance' ],
-						index=[ 'uniform', 'distance' ].index(
-							st.session_state[ 'regression_knn_weights' ] ),
-						key='regression_knn_weights_select' )
+					knn_neighbors = int(
+						st.number_input(
+							'Neighbors',
+							min_value=1,
+							value=int(
+								st.session_state[ 'regression_knn_neighbors' ]
+							),
+							step=1,
+							key='regression_knn_neighbors_input'
+						)
+					)
 					
-					knn_power = float( st.number_input( 'Power', min_value=1.0,
-						value=float( st.session_state[ 'regression_knn_power' ] ), step=1.0,
-						format='%.1f', key='regression_knn_power_input' ) )
+					knn_weights_options = [
+							'uniform',
+							'distance'
+					]
 					
-					knn_leaf_size = int( st.number_input( 'Leaf Size', min_value=1,
-						value=int( st.session_state[ 'regression_knn_leaf_size' ] ), step=1,
-						key='regression_knn_leaf_size_input' ) )
+					knn_weights_value = st.session_state.get(
+						'regression_knn_weights',
+						'uniform'
+					)
+					
+					if knn_weights_value not in knn_weights_options:
+						knn_weights_value = 'uniform'
+					
+					knn_weights = st.selectbox(
+						'Weights',
+						options=knn_weights_options,
+						index=knn_weights_options.index( knn_weights_value ),
+						key='regression_knn_weights_select'
+					)
+					
+					knn_power = float(
+						st.number_input(
+							'Power',
+							min_value=1.0,
+							value=float(
+								st.session_state[ 'regression_knn_power' ]
+							),
+							step=1.0,
+							format='%.1f',
+							key='regression_knn_power_input'
+						)
+					)
+					
+					knn_leaf_size = int(
+						st.number_input(
+							'Leaf Size',
+							min_value=1,
+							value=int(
+								st.session_state[ 'regression_knn_leaf_size' ]
+							),
+							step=1,
+							key='regression_knn_leaf_size_input'
+						)
+					)
 				
 				with knn_c2:
 					st.markdown( '###### Distance / Search' )
-					knn_algorithm = st.selectbox( 'Algorithm', options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
-						index=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ].index(
-							st.session_state[ 'regression_knn_algorithm' ] ),
-						key='regression_knn_algorithm_select' )
 					
-					knn_metric = st.selectbox( 'Metric',
-						options=[
-								'minkowski',
-								'euclidean',
-								'manhattan',
-								'chebyshev',
-								'canberra',
-								'braycurtis',
-								'cityblock',
-								'cosine',
-								'l1',
-								'l2',
-								'nan_euclidean',
-								'hamming'
-						],
-						index=[
-								'minkowski',
-								'euclidean',
-								'manhattan',
-								'chebyshev',
-								'canberra',
-								'braycurtis',
-								'cityblock',
-								'cosine',
-								'l1',
-								'l2',
-								'nan_euclidean',
-								'hamming'
-						].index( st.session_state[ 'regression_knn_metric' ] ),
-						key='regression_knn_metric_select' )
+					knn_algorithm_options = [
+							'auto',
+							'ball_tree',
+							'kd_tree',
+							'brute'
+					]
 					
-					knn_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
-						value=int( st.session_state[ 'regression_knn_jobs' ] ), step=1,
-						key='regression_knn_jobs_input' ) )
+					knn_algorithm_value = st.session_state.get(
+						'regression_knn_algorithm',
+						'auto'
+					)
+					
+					if knn_algorithm_value not in knn_algorithm_options:
+						knn_algorithm_value = 'auto'
+					
+					knn_algorithm = st.selectbox(
+						'Algorithm',
+						options=knn_algorithm_options,
+						index=knn_algorithm_options.index( knn_algorithm_value ),
+						key='regression_knn_algorithm_select'
+					)
+					
+					knn_metric_options = [
+							'minkowski',
+							'euclidean',
+							'manhattan',
+							'chebyshev',
+							'canberra',
+							'braycurtis',
+							'cityblock',
+							'cosine',
+							'l1',
+							'l2',
+							'nan_euclidean',
+							'hamming'
+					]
+					
+					knn_metric_value = st.session_state.get(
+						'regression_knn_metric',
+						'minkowski'
+					)
+					
+					if knn_metric_value not in knn_metric_options:
+						knn_metric_value = 'minkowski'
+					
+					knn_metric = st.selectbox(
+						'Metric',
+						options=knn_metric_options,
+						index=knn_metric_options.index( knn_metric_value ),
+						key='regression_knn_metric_select'
+					)
+					
+					knn_jobs = int(
+						st.number_input(
+							'Parallel Jobs',
+							min_value=1,
+							value=int(
+								st.session_state[ 'regression_knn_jobs' ]
+							),
+							step=1,
+							key='regression_knn_jobs_input'
+						)
+					)
 					
 					if knn_metric != 'minkowski':
-						st.caption( 'Power is primarily used with the Minkowski metric.' )
+						st.caption(
+							'Power is primarily used with the Minkowski metric.'
+						)
 				
 				with knn_c3:
 					st.markdown( '###### Data Split' )
-					knn_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
-						value=int( st.session_state[ 'regression_knn_test_size' ] * 100 ),
+					
+					knn_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=40,
+						value=int(
+							st.session_state[ 'regression_knn_test_size' ] * 100
+						),
 						step=5,
-						key='regression_knn_test_size_slider' ) / 100.0
+						key='regression_knn_test_size_slider'
+					) / 100.0
 					
-					knn_random_state = int( st.number_input( 'Random State', min_value=0,
-						value=int( st.session_state[ 'regression_knn_random_state' ] ), step=1,
-						key='regression_knn_random_state_input' ) )
+					knn_random_state = int(
+						st.number_input(
+							'Random State',
+							min_value=0,
+							value=int(
+								st.session_state[
+									'regression_knn_random_state'
+								]
+							),
+							step=1,
+							key='regression_knn_random_state_input'
+						)
+					)
 					
-					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-						f'Target: {target_name}' )
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Target: {target_name}'
+					)
 				
 				knn_btn_1, knn_btn_2 = st.columns( 2 )
+				
 				with knn_btn_1:
-					train_knn = st.button( '🚂 Train k-Nearest Neighbors',
-						key='regression_knn_train', use_container_width=True )
+					train_knn = st.button(
+						'🚂 Train k-Nearest Neighbors',
+						key='regression_knn_train',
+						use_container_width=True
+					)
 				
 				with knn_btn_2:
-					reset_knn = st.button( '🔄 Reset k-Nearest Neighbors',
-						key='regression_knn_reset', use_container_width=True )
+					reset_knn = st.button(
+						'🔄 Reset k-Nearest Neighbors',
+						key='regression_knn_reset',
+						use_container_width=True
+					)
 				
 				if reset_knn:
 					for key, value in knn_defaults.items( ):
 						st.session_state[ key ] = value
 					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'regression_knn_elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'y_prediction' ] = None
 					st.session_state[ 'df_regression' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'regression_knn_elapsed_seconds' ] = None
 					st.rerun( )
 				
 				if train_knn:
 					try:
-						st.session_state[ 'regression_knn_neighbors' ] = int( knn_neighbors )
-						st.session_state[ 'regression_knn_weights' ] = str( knn_weights )
-						st.session_state[ 'regression_knn_algorithm' ] = str( knn_algorithm )
-						st.session_state[ 'regression_knn_leaf_size' ] = int( knn_leaf_size )
-						st.session_state[ 'regression_knn_power' ] = float( knn_power )
-						st.session_state[ 'regression_knn_metric' ] = str( knn_metric )
-						st.session_state[ 'regression_knn_jobs' ] = int( knn_jobs )
-						st.session_state[ 'regression_knn_test_size' ] = float( knn_test_size )
-						st.session_state[ 'regression_knn_random_state' ] = int( knn_random_state )
-						
-						df_training = df_model.copy( )
-						X = df_training[ active_features ].apply(
-							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-						
-						y = pd.to_numeric(
-							df_training[ target_name ], errors='coerce' ).fillna( 0.0 ).to_numpy( ).reshape( -1 )
-						
-						if len( np.unique( y ) ) < 2:
-							st.warning( '⚠️ The target must contain at least two distinct values.' )
+						if X is None or y is None:
+							st.warning(
+								'⚠️ k-Nearest Neighbors requires prepared '
+								'feature and target arrays.'
+							)
 							st.stop( )
 						
+						X_knn = np.asarray(
+							X,
+							dtype=float
+						)
+						
+						y_knn = np.asarray(
+							y,
+							dtype=float
+						).reshape( -1 )
+						
+						if X_knn.ndim != 2 or X_knn.shape[ 1 ] < 1:
+							st.warning(
+								'⚠️ k-Nearest Neighbors requires at least one '
+								'numeric feature.'
+							)
+							st.stop( )
+						
+						if y_knn.ndim != 1:
+							st.warning(
+								'⚠️ The k-Nearest Neighbors target must be '
+								'one-dimensional.'
+							)
+							st.stop( )
+						
+						if len( X_knn ) != len( y_knn ):
+							st.warning(
+								'⚠️ Feature and target row counts do not match.'
+							)
+							st.stop( )
+						
+						if len( X_knn ) < 2:
+							st.warning(
+								'⚠️ k-Nearest Neighbors requires at least two '
+								'observations.'
+							)
+							st.stop( )
+						
+						if not np.isfinite( X_knn ).all( ):
+							st.warning(
+								'⚠️ The k-Nearest Neighbors feature matrix '
+								'contains non-finite values.'
+							)
+							st.stop( )
+						
+						if not np.isfinite( y_knn ).all( ):
+							st.warning(
+								'⚠️ The k-Nearest Neighbors target contains '
+								'non-finite values.'
+							)
+							st.stop( )
+						
+						if len( np.unique( y_knn ) ) < 2:
+							st.warning(
+								'⚠️ The regression target must contain at '
+								'least two distinct values.'
+							)
+							st.stop( )
+						
+						if knn_neighbors < 1:
+							st.warning(
+								'⚠️ The number of neighbors must be greater '
+								'than zero.'
+							)
+							st.stop( )
+						
+						if knn_leaf_size < 1:
+							st.warning(
+								'⚠️ Leaf Size must be greater than zero.'
+							)
+							st.stop( )
+						
+						if knn_power < 1.0:
+							st.warning(
+								'⚠️ Minkowski Power must be at least 1.0.'
+							)
+							st.stop( )
+						
+						if knn_jobs < 1:
+							st.warning(
+								'⚠️ Parallel Jobs must be greater than zero.'
+							)
+							st.stop( )
+						
+						st.session_state[
+							'regression_knn_neighbors'
+						] = int( knn_neighbors )
+						st.session_state[
+							'regression_knn_weights'
+						] = str( knn_weights )
+						st.session_state[
+							'regression_knn_algorithm'
+						] = str( knn_algorithm )
+						st.session_state[
+							'regression_knn_leaf_size'
+						] = int( knn_leaf_size )
+						st.session_state[
+							'regression_knn_power'
+						] = float( knn_power )
+						st.session_state[
+							'regression_knn_metric'
+						] = str( knn_metric )
+						st.session_state[
+							'regression_knn_jobs'
+						] = int( knn_jobs )
+						st.session_state[
+							'regression_knn_test_size'
+						] = float( knn_test_size )
+						st.session_state[
+							'regression_knn_random_state'
+						] = int( knn_random_state )
+						
 						start_time = time.perf_counter( )
-						model = regression_model.NearestNeighbor( num=int( knn_neighbors ),
-							weight=str( knn_weights ), algo=str( knn_algorithm ),
-							leaf=int( knn_leaf_size ), power=float( knn_power ),
-							metric=str( knn_metric ), metric_params=None,
-							jobs=int( knn_jobs ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( knn_test_size ), random=int( knn_random_state ) )
+						model = regression_model.NearestNeighbor(
+							num=int( knn_neighbors ),
+							weight=str( knn_weights ),
+							algo=str( knn_algorithm ),
+							leaf=int( knn_leaf_size ),
+							power=float( knn_power ),
+							metric=str( knn_metric ),
+							metric_params=None,
+							jobs=int( knn_jobs )
+						)
 						
-						model.train( X_train, y_train )
-						y_prediction = model.project( X_test )
+						X_train, X_test, y_train, y_test = model.split_data(
+							X_knn,
+							y_knn,
+							size=float( knn_test_size ),
+							random=int( knn_random_state )
+						)
 						
-						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_knn_elapsed_seconds' ] = elapsed_seconds
+						if len( X_train ) < 1 or len( X_test ) < 1:
+							st.warning(
+								'⚠️ The selected test size does not produce '
+								'valid training and testing partitions.'
+							)
+							st.stop( )
 						
-						df_scores = model.analyze( X_test, y_test ).copy( )
+						if knn_neighbors > len( X_train ):
+							st.warning(
+								'⚠️ Neighbors cannot exceed the number of '
+								'training observations.'
+							)
+							st.stop( )
 						
-						if df_scores is not None and not df_scores.empty:
-							if 'Metric' in df_scores.columns and 'Value' in df_scores.columns:
-								df_scores = df_scores.copy( )
-							elif df_scores.shape[ 1 ] == 1:
-								df_scores = df_scores.reset_index( )
-								df_scores.columns = [ 'Metric', 'Value' ]
-							
-							df_extra = pd.DataFrame( {
-										'Metric': [
-												'Processing Time (Seconds)',
-												'Training Rows',
-												'Testing Rows',
-												'Neighbors',
-												'Weights',
-												'Metric'
-										],
-										'Value': [
-												round( elapsed_seconds, 4 ),
-												int( len( X_train ) ),
-												int( len( X_test ) ),
-												int( knn_neighbors ),
-												str( knn_weights ),
-												str( knn_metric )
-										]
-								} )
-							
-							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
+						model.train(
+							X_train,
+							y_train
+						)
 						
-						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
+						y_prediction = model.project(
+							X_test
+						)
+						
+						elapsed_seconds = float(
+							time.perf_counter( ) - start_time
+						)
+						
+						df_scores = model.analyze(
+							X_test,
+							y_test
+						)
+						
+						if not isinstance( df_scores, pd.DataFrame ):
+							df_scores = pd.DataFrame(
+								columns=[ 'Metric', 'Value' ]
+							)
+						else:
+							df_scores = df_scores.copy( )
+						
+						if (
+								'Metric' not in df_scores.columns
+								or 'Value' not in df_scores.columns
+						):
+							df_scores = pd.DataFrame(
+								columns=[ 'Metric', 'Value' ]
+							)
+						
+						df_metadata = pd.DataFrame(
+							{
+									'Metric': [
+											'Processing Time (Seconds)',
+											'Training Rows',
+											'Testing Rows',
+											'Neighbors',
+											'Weights',
+											'Algorithm',
+											'Metric',
+											'Power'
+									],
+									'Value': [
+											round( elapsed_seconds, 4 ),
+											int( len( X_train ) ),
+											int( len( X_test ) ),
+											int( knn_neighbors ),
+											str( knn_weights ),
+											str( knn_algorithm ),
+											str( knn_metric ),
+											float( knn_power )
+									]
+							}
+						)
+						
+						df_scores = pd.concat(
+							[
+									df_scores,
+									df_metadata
+							],
+							ignore_index=True
+						)
+						
+						y_prediction = np.asarray(
+							y_prediction,
+							dtype=float
+						).reshape( -1 )
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': np.asarray(
+										y_test,
+										dtype=float
+									).reshape( -1 ),
 									'Predicted': y_prediction
-							} )
+							}
+						)
 						
-						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
-						st.session_state[ 'df_regression' ] = df_training.copy( )
-						st.session_state[ 'df_scores' ] = df_scores.copy( )
-						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						st.session_state[
+							'regression_knn_elapsed_seconds'
+						] = elapsed_seconds
+						st.session_state[
+							'elapsed_seconds'
+						] = elapsed_seconds
+						st.session_state[ 'model' ] = model
+						st.session_state[
+							'X_train'
+						] = np.asarray( X_train ).copy( )
+						st.session_state[
+							'X_test'
+						] = np.asarray( X_test ).copy( )
+						st.session_state[
+							'y_train'
+						] = np.asarray( y_train ).copy( )
+						st.session_state[
+							'y_test'
+						] = np.asarray( y_test ).copy( )
+						st.session_state[
+							'y_prediction'
+						] = y_prediction.copy( )
+						st.session_state[
+							'df_regression'
+						] = df_model.copy( )
+						st.session_state[
+							'df_scores'
+						] = df_scores.copy( )
+						st.session_state[
+							'df_regression_scores'
+						] = df_scores.copy( )
+						st.session_state[
+							'df_predictions'
+						] = df_predictions.copy( )
+						
+						st.success(
+							'k-Nearest Neighbors training completed.'
+						)
+					
 					except Exception as ex:
-						st.error( f'k-Nearest Neighbors training failed: {ex}' )
+						st.error(
+							f'k-Nearest Neighbors training failed: {ex}'
+						)
 			
 			with st.expander( 'Support Vector Machine', expanded=False ):
 				svr_defaults = {
 						'regression_svr_kernel': 'rbf',
 						'regression_svr_degree': 3,
 						'regression_svr_gamma_mode': 'scale',
-						'regression_svr_gamma_value': 0.100000,
+						'regression_svr_gamma_value': 0.1,
 						'regression_svr_coef0': 0.0,
-						'regression_svr_tol': 0.001000,
+						'regression_svr_tol': 0.001,
 						'regression_svr_c': 1.0,
 						'regression_svr_epsilon': 0.1,
 						'regression_svr_shrinking': True,
@@ -12297,203 +12598,565 @@ elif mode == 'Regression Models':
 				
 				st.caption( 'Support Vector Regression for continuous targets.' )
 				
-				svr_c1, svr_c2, svr_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				svr_c1, svr_c2, svr_c3 = st.columns(
+					[ 0.34, 0.33, 0.33 ],
+					border=True
+				)
+				
 				with svr_c1:
 					st.markdown( '###### Kernel Parameters' )
-					svr_kernel = st.selectbox( 'Kernel',
-						options=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ],
-						index=[ 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed' ].index(
-							st.session_state[ 'regression_svr_kernel' ] ),
-						key='regression_svr_kernel_select' )
 					
-					svr_degree = int( st.number_input( 'Degree', min_value=1,
-						value=int( st.session_state[ 'regression_svr_degree' ] ),
-						step=1, key='regression_svr_degree_input' ) )
+					svr_kernel_options = [
+							'linear',
+							'poly',
+							'rbf',
+							'sigmoid'
+					]
 					
-					svr_gamma_mode = st.selectbox( 'Gamma',
-						options=[ 'scale', 'auto', 'custom' ],
-						index=[ 'scale', 'auto', 'custom' ].index(
-							st.session_state[ 'regression_svr_gamma_mode' ]
-						),
-						key='regression_svr_gamma_mode_select' )
+					svr_kernel_value = st.session_state.get(
+						'regression_svr_kernel',
+						'rbf'
+					)
 					
-					svr_gamma_value = float( st.number_input( 'Gamma Value', min_value=0.000001,
-						value=float( st.session_state[ 'regression_svr_gamma_value' ] ),
-						step=0.010000, format='%.6f', key='regression_svr_gamma_value_input' ) )
+					if svr_kernel_value not in svr_kernel_options:
+						svr_kernel_value = 'rbf'
 					
-					svr_coef0 = float( st.number_input( 'Coef0',
-						value=float( st.session_state[ 'regression_svr_coef0' ] ),
-						step=0.100000, format='%.6f', key='regression_svr_coef0_input' ) )
+					svr_kernel = st.selectbox(
+						'Kernel',
+						options=svr_kernel_options,
+						index=svr_kernel_options.index( svr_kernel_value ),
+						key='regression_svr_kernel_select'
+					)
+					
+					svr_degree = int(
+						st.number_input(
+							'Degree',
+							min_value=1,
+							value=int(
+								st.session_state[ 'regression_svr_degree' ]
+							),
+							step=1,
+							key='regression_svr_degree_input'
+						)
+					)
+					
+					svr_gamma_options = [
+							'scale',
+							'auto',
+							'custom'
+					]
+					
+					svr_gamma_mode_value = st.session_state.get(
+						'regression_svr_gamma_mode',
+						'scale'
+					)
+					
+					if svr_gamma_mode_value not in svr_gamma_options:
+						svr_gamma_mode_value = 'scale'
+					
+					svr_gamma_mode = st.selectbox(
+						'Gamma',
+						options=svr_gamma_options,
+						index=svr_gamma_options.index( svr_gamma_mode_value ),
+						key='regression_svr_gamma_mode_select'
+					)
+					
+					svr_gamma_value = float(
+						st.number_input(
+							'Gamma Value',
+							min_value=0.000001,
+							value=float(
+								st.session_state[
+									'regression_svr_gamma_value'
+								]
+							),
+							step=0.010000,
+							format='%.6f',
+							key='regression_svr_gamma_value_input'
+						)
+					)
+					
+					svr_coef0 = float(
+						st.number_input(
+							'Coef0',
+							value=float(
+								st.session_state[ 'regression_svr_coef0' ]
+							),
+							step=0.100000,
+							format='%.6f',
+							key='regression_svr_coef0_input'
+						)
+					)
 				
 				with svr_c2:
 					st.markdown( '###### Regularization / Solver' )
 					
-					svr_c = float( st.number_input( 'C', min_value=0.000001,
-						value=float( st.session_state[ 'regression_svr_c' ] ),
-						step=0.100000, format='%.6f', key='regression_svr_c_input' ) )
+					svr_c = float(
+						st.number_input(
+							'C',
+							min_value=0.000001,
+							value=float(
+								st.session_state[ 'regression_svr_c' ]
+							),
+							step=0.100000,
+							format='%.6f',
+							key='regression_svr_c_input'
+						)
+					)
 					
-					svr_epsilon = float( st.number_input( 'Epsilon', min_value=0.000001,
-						value=float( st.session_state[ 'regression_svr_epsilon' ] ),
-						step=0.010000, format='%.6f', key='regression_svr_epsilon_input' ) )
+					svr_epsilon = float(
+						st.number_input(
+							'Epsilon',
+							min_value=0.0,
+							value=float(
+								st.session_state[
+									'regression_svr_epsilon'
+								]
+							),
+							step=0.010000,
+							format='%.6f',
+							key='regression_svr_epsilon_input'
+						)
+					)
 					
-					svr_tol = float( st.number_input( 'Tolerance', min_value=0.0,
-						value=float( st.session_state[ 'regression_svr_tol' ] ),
-						step=0.000100, format='%.6f', key='regression_svr_tol_input' ) )
+					svr_tol = float(
+						st.number_input(
+							'Tolerance',
+							min_value=0.0,
+							value=float(
+								st.session_state[ 'regression_svr_tol' ]
+							),
+							step=0.000100,
+							format='%.6f',
+							key='regression_svr_tol_input'
+						)
+					)
 					
-					svr_shrinking = st.checkbox( 'Shrinking Heuristic',
-						value=bool( st.session_state[ 'regression_svr_shrinking' ] ),
-						key='regression_svr_shrinking_check' )
+					svr_shrinking = st.checkbox(
+						'Shrinking Heuristic',
+						value=bool(
+							st.session_state[
+								'regression_svr_shrinking'
+							]
+						),
+						key='regression_svr_shrinking_check'
+					)
 					
-					svr_cache_size = float( st.number_input( 'Cache Size (MB)', min_value=1.0,
-							value=float( st.session_state[ 'regression_svr_cache_size' ] ),
-							step=10.0, format='%.1f',
-							key='regression_svr_cache_size_input' ) )
+					svr_cache_size = float(
+						st.number_input(
+							'Cache Size (MB)',
+							min_value=1.0,
+							value=float(
+								st.session_state[
+									'regression_svr_cache_size'
+								]
+							),
+							step=10.0,
+							format='%.1f',
+							key='regression_svr_cache_size_input'
+						)
+					)
 					
-					svr_verbose = st.checkbox( 'Verbose',
-						value=bool( st.session_state[ 'regression_svr_verbose' ] ),
-						key='regression_svr_verbose_check' )
+					svr_verbose = st.checkbox(
+						'Verbose',
+						value=bool(
+							st.session_state[
+								'regression_svr_verbose'
+							]
+						),
+						key='regression_svr_verbose_check'
+					)
 					
-					svr_max_iter = int( st.number_input( 'Max Iterations (-1 = No Limit)',
-							value=int( st.session_state[ 'regression_svr_max_iter' ] ),
-							step=1, key='regression_svr_max_iter_input' ) )
+					svr_max_iter = int(
+						st.number_input(
+							'Max Iterations (-1 = No Limit)',
+							min_value=-1,
+							value=int(
+								st.session_state[
+									'regression_svr_max_iter'
+								]
+							),
+							step=1,
+							key='regression_svr_max_iter_input'
+						)
+					)
 				
 				with svr_c3:
 					st.markdown( '###### Data Split' )
 					
-					svr_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
-						value=int( st.session_state[ 'regression_svr_test_size' ] * 100 ),
-						step=5, key='regression_svr_test_size_slider' ) / 100.0
+					svr_test_size = st.slider(
+						'Test Set Size (%)',
+						min_value=10,
+						max_value=40,
+						value=int(
+							st.session_state[
+								'regression_svr_test_size'
+							] * 100
+						),
+						step=5,
+						key='regression_svr_test_size_slider'
+					) / 100.0
 					
-					svr_random_state = int( st.number_input( 'Random State', min_value=0,
-							value=int( st.session_state[ 'regression_svr_random_state' ] ),
-							step=1, key='regression_svr_random_state_input' ) )
+					svr_random_state = int(
+						st.number_input(
+							'Random State',
+							min_value=0,
+							value=int(
+								st.session_state[
+									'regression_svr_random_state'
+								]
+							),
+							step=1,
+							key='regression_svr_random_state_input'
+						)
+					)
 					
 					if svr_kernel != 'poly':
-						st.caption( 'Degree is only used when kernel = poly.' )
+						st.caption(
+							'Degree is only used when Kernel = poly.'
+						)
 					
 					if svr_kernel not in [ 'poly', 'sigmoid' ]:
-						st.caption( 'Coef0 is mainly used by poly and sigmoid kernels.' )
+						st.caption(
+							'Coef0 is mainly used by poly and sigmoid kernels.'
+						)
 					
 					if svr_gamma_mode != 'custom':
-						st.caption( 'Gamma Value is only used when Gamma = custom.' )
+						st.caption(
+							'Gamma Value is only used when Gamma = custom.'
+						)
+					
+					st.caption(
+						f'Rows: {len( df_model ):,} | '
+						f'Features: {len( active_features ):,} | '
+						f'Target: {target_name}'
+					)
 				
 				svr_btn_1, svr_btn_2 = st.columns( 2 )
+				
 				with svr_btn_1:
-					train_svr = st.button( '🚂 Train Support Vector', key='regression_svr_train',
-						use_container_width=True )
+					train_svr = st.button(
+						'🚂 Train Support Vector',
+						key='regression_svr_train',
+						use_container_width=True
+					)
 				
 				with svr_btn_2:
-					reset_svr = st.button( '🔄 Reset Support Vector',
-						key='regression_svr_reset', use_container_width=True )
+					reset_svr = st.button(
+						'🔄 Reset Support Vector',
+						key='regression_svr_reset',
+						use_container_width=True
+					)
 				
 				if reset_svr:
 					for key, value in svr_defaults.items( ):
 						st.session_state[ key ] = value
 					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'regression_svr_elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'y_prediction' ] = None
 					st.session_state[ 'df_regression' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-					st.session_state[ 'regression_svr_elapsed_seconds' ] = None
 					st.rerun( )
 				
 				if train_svr:
 					try:
-						st.session_state[ 'regression_svr_kernel' ] = str( svr_kernel )
-						st.session_state[ 'regression_svr_degree' ] = int( svr_degree )
-						st.session_state[ 'regression_svr_gamma_mode' ] = str( svr_gamma_mode )
-						st.session_state[ 'regression_svr_gamma_value' ] = float( svr_gamma_value )
-						st.session_state[ 'regression_svr_coef0' ] = float( svr_coef0 )
-						st.session_state[ 'regression_svr_tol' ] = float( svr_tol )
-						st.session_state[ 'regression_svr_c' ] = float( svr_c )
-						st.session_state[ 'regression_svr_epsilon' ] = float( svr_epsilon )
-						st.session_state[ 'regression_svr_shrinking' ] = bool( svr_shrinking )
-						st.session_state[ 'regression_svr_cache_size' ] = float( svr_cache_size )
-						st.session_state[ 'regression_svr_verbose' ] = bool( svr_verbose )
-						st.session_state[ 'regression_svr_max_iter' ] = int( svr_max_iter )
-						st.session_state[ 'regression_svr_test_size' ] = float( svr_test_size )
-						st.session_state[ 'regression_svr_random_state' ] = int( svr_random_state )
-						
-						df_training = df_model.copy( )
-						
-						X = df_training[ active_features ].apply(
-							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
-						
-						y = pd.to_numeric(
-							df_training[ target_name ], errors='coerce' ).fillna(
-							0.0 ).to_numpy( ).reshape( -1 )
-						
-						if len( np.unique( y ) ) < 2:
+						if X is None or y is None:
 							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
+								'⚠️ Support Vector Regression requires prepared '
+								'feature and target arrays.'
 							)
 							st.stop( )
 						
-						effective_gamma = ( float( svr_gamma_value )
+						X_svr = np.asarray( X, dtype=float )
+						y_svr = np.asarray( y, dtype=float ).reshape( -1 )
+						
+						if X_svr.ndim != 2 or X_svr.shape[ 1 ] < 1:
+							st.warning(
+								'⚠️ Support Vector Regression requires at least '
+								'one numeric feature.'
+							)
+							st.stop( )
+						
+						if y_svr.ndim != 1:
+							st.warning(
+								'⚠️ The Support Vector Regression target must be '
+								'one-dimensional.'
+							)
+							st.stop( )
+						
+						if len( X_svr ) != len( y_svr ):
+							st.warning(
+								'⚠️ Feature and target row counts do not match.'
+							)
+							st.stop( )
+						
+						if len( X_svr ) < 2:
+							st.warning(
+								'⚠️ Support Vector Regression requires at least '
+								'two observations.'
+							)
+							st.stop( )
+						
+						if not np.isfinite( X_svr ).all( ):
+							st.warning(
+								'⚠️ The Support Vector Regression feature matrix '
+								'contains non-finite values.'
+							)
+							st.stop( )
+						
+						if not np.isfinite( y_svr ).all( ):
+							st.warning(
+								'⚠️ The Support Vector Regression target contains '
+								'non-finite values.'
+							)
+							st.stop( )
+						
+						if len( np.unique( y_svr ) ) < 2:
+							st.warning(
+								'⚠️ The regression target must contain at least '
+								'two distinct values.'
+							)
+							st.stop( )
+						
+						if svr_c <= 0.0:
+							st.warning(
+								'⚠️ Support Vector C must be greater than zero.'
+							)
+							st.stop( )
+						
+						if svr_epsilon < 0.0:
+							st.warning(
+								'⚠️ Support Vector epsilon cannot be negative.'
+							)
+							st.stop( )
+						
+						if svr_tol < 0.0:
+							st.warning(
+								'⚠️ Support Vector tolerance cannot be negative.'
+							)
+							st.stop( )
+						
+						if svr_cache_size <= 0.0:
+							st.warning(
+								'⚠️ Support Vector cache size must be greater '
+								'than zero.'
+							)
+							st.stop( )
+						
+						if svr_max_iter == 0 or svr_max_iter < -1:
+							st.warning(
+								'⚠️ Max Iterations must be -1 or greater than zero.'
+							)
+							st.stop( )
+						
+						if svr_gamma_mode == 'custom' and svr_gamma_value <= 0.0:
+							st.warning(
+								'⚠️ Custom gamma must be greater than zero.'
+							)
+							st.stop( )
+						
+						effective_gamma = (
+								float( svr_gamma_value )
 								if svr_gamma_mode == 'custom'
-								else str( svr_gamma_mode ) )
+								else str( svr_gamma_mode )
+						)
+						
+						st.session_state[
+							'regression_svr_kernel'
+						] = str( svr_kernel )
+						st.session_state[
+							'regression_svr_degree'
+						] = int( svr_degree )
+						st.session_state[
+							'regression_svr_gamma_mode'
+						] = str( svr_gamma_mode )
+						st.session_state[
+							'regression_svr_gamma_value'
+						] = float( svr_gamma_value )
+						st.session_state[
+							'regression_svr_coef0'
+						] = float( svr_coef0 )
+						st.session_state[
+							'regression_svr_tol'
+						] = float( svr_tol )
+						st.session_state[
+							'regression_svr_c'
+						] = float( svr_c )
+						st.session_state[
+							'regression_svr_epsilon'
+						] = float( svr_epsilon )
+						st.session_state[
+							'regression_svr_shrinking'
+						] = bool( svr_shrinking )
+						st.session_state[
+							'regression_svr_cache_size'
+						] = float( svr_cache_size )
+						st.session_state[
+							'regression_svr_verbose'
+						] = bool( svr_verbose )
+						st.session_state[
+							'regression_svr_max_iter'
+						] = int( svr_max_iter )
+						st.session_state[
+							'regression_svr_test_size'
+						] = float( svr_test_size )
+						st.session_state[
+							'regression_svr_random_state'
+						] = int( svr_random_state )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.SupportVector( kernel=str( svr_kernel ),
-							degree=int( svr_degree ), gamma=effective_gamma,
-							coef0=float( svr_coef0 ), tol=float( svr_tol ),
-							penalty=float( svr_c ), epsilon=float( svr_epsilon ),
-							shrinking=bool( svr_shrinking ), cache=float( svr_cache_size ),
-							verbose=bool( svr_verbose ), iters=int( svr_max_iter ) )
+						model = regression_model.SupportVector(
+							kernel=str( svr_kernel ),
+							degree=int( svr_degree ),
+							gamma=effective_gamma,
+							coef0=float( svr_coef0 ),
+							tol=float( svr_tol ),
+							penalty=float( svr_c ),
+							epsilon=float( svr_epsilon ),
+							shrinking=bool( svr_shrinking ),
+							cache=float( svr_cache_size ),
+							verbose=bool( svr_verbose ),
+							iters=int( svr_max_iter )
+						)
 						
-						X_train, X_test, y_train, y_test = model.split_data( X, y,
-							size=float( svr_test_size ), random=int( svr_random_state ) )
+						X_train, X_test, y_train, y_test = model.split_data(
+							X_svr,
+							y_svr,
+							size=float( svr_test_size ),
+							random=int( svr_random_state )
+						)
+						
+						if len( X_train ) < 1 or len( X_test ) < 1:
+							st.warning(
+								'⚠️ The selected test size does not produce '
+								'valid training and testing partitions.'
+							)
+							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
-						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_svr_elapsed_seconds' ] = elapsed_seconds
-						df_scores = model.analyze( X_test, y_test ).copy( )
 						
-						if df_scores is not None and not df_scores.empty:
-							if 'Metric' in df_scores.columns and 'Value' in df_scores.columns:
-								df_scores = df_scores.copy( )
-							elif df_scores.shape[ 1 ] == 1:
-								df_scores = df_scores.reset_index( )
-								df_scores.columns = [ 'Metric', 'Value' ]
-							
-							df_extra = pd.DataFrame( {
-										'Metric': [
-												'Processing Time (Seconds)',
-												'Training Rows',
-												'Testing Rows',
-												'Kernel',
-												'C',
-												'Epsilon'
-										],
-										'Value': [
-												round( elapsed_seconds, 4 ),
-												int( len( X_train ) ),
-												int( len( X_test ) ),
-												str( svr_kernel ),
-												float( svr_c ),
-												float( svr_epsilon )
-										]
-								} )
-							
-							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
+						elapsed_seconds = float(
+							time.perf_counter( ) - start_time
+						)
 						
-						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
+						df_scores = model.analyze( X_test, y_test )
+						
+						if not isinstance( df_scores, pd.DataFrame ):
+							df_scores = pd.DataFrame(
+								columns=[ 'Metric', 'Value' ]
+							)
+						else:
+							df_scores = df_scores.copy( )
+						
+						if (
+								'Metric' not in df_scores.columns
+								or 'Value' not in df_scores.columns
+						):
+							df_scores = pd.DataFrame(
+								columns=[ 'Metric', 'Value' ]
+							)
+						
+						df_metadata = pd.DataFrame(
+							{
+									'Metric': [
+											'Processing Time (Seconds)',
+											'Training Rows',
+											'Testing Rows',
+											'Kernel',
+											'C',
+											'Epsilon',
+											'Gamma',
+											'Maximum Iterations'
+									],
+									'Value': [
+											round( elapsed_seconds, 4 ),
+											int( len( X_train ) ),
+											int( len( X_test ) ),
+											str( svr_kernel ),
+											float( svr_c ),
+											float( svr_epsilon ),
+											effective_gamma,
+											int( svr_max_iter )
+									]
+							}
+						)
+						
+						df_scores = pd.concat(
+							[
+									df_scores,
+									df_metadata
+							],
+							ignore_index=True
+						)
+						
+						y_prediction = np.asarray(
+							y_prediction,
+							dtype=float
+						).reshape( -1 )
+						
+						df_predictions = pd.DataFrame(
+							{
+									'Actual': np.asarray(
+										y_test,
+										dtype=float
+									).reshape( -1 ),
 									'Predicted': y_prediction
-							} )
+							}
+						)
 						
-						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
-						st.session_state[ 'df_regression' ] = df_training.copy( )
-						st.session_state[ 'df_scores' ] = df_scores.copy( )
-						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						st.session_state[
+							'regression_svr_elapsed_seconds'
+						] = elapsed_seconds
+						st.session_state[
+							'elapsed_seconds'
+						] = elapsed_seconds
+						st.session_state[ 'model' ] = model
+						st.session_state[
+							'X_train'
+						] = np.asarray( X_train ).copy( )
+						st.session_state[
+							'X_test'
+						] = np.asarray( X_test ).copy( )
+						st.session_state[
+							'y_train'
+						] = np.asarray( y_train ).copy( )
+						st.session_state[
+							'y_test'
+						] = np.asarray( y_test ).copy( )
+						st.session_state[
+							'y_prediction'
+						] = y_prediction.copy( )
+						st.session_state[
+							'df_regression'
+						] = df_model.copy( )
+						st.session_state[
+							'df_scores'
+						] = df_scores.copy( )
+						st.session_state[
+							'df_regression_scores'
+						] = df_scores.copy( )
+						st.session_state[
+							'df_predictions'
+						] = df_predictions.copy( )
+						
+						st.success(
+							'Support Vector Regression training completed.'
+						)
+					
 					except Exception as ex:
-						st.error( f'Support Vector training failed: {ex}' )
+						st.error(
+							f'Support Vector Regression training failed: {ex}'
+						)
 		
 		with st.expander( 'Tree Models', expanded=False):
 			
