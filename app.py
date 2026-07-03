@@ -94,9 +94,7 @@ import sklearn.feature_selection as sf
 import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split as split
 from scalers import (StandardScaler, MinMaxScaler, RobustScaler, NormalScaler, MaxAbsScaler)
-
 from imputers import (MeanImputer, NearestImputer, IterativeImputer, SimpleImputer)
-
 from encoders import (OneHotEncoder, OrdinalEncoder, LabelEncoder, TargetEncoder,
                       PolynomialFeatures)
 
@@ -108,7 +106,6 @@ from clusters import (KMeans, DBSCAN, Agglomerative, Spectral, OPTICS, MeanShift
                       AffinityPropagation, Birch)
 
 from features import (VarianceThreshold, CCA, PCA, SelectBest, SelectPercent, SBS, RFE)
-
 import classifications as classification_model
 import regressions as regression_model
 
@@ -117,7 +114,6 @@ from classifications import (Perceptron, LogisticRegression, DecisionTree, Suppo
                              GradientBoost)
 
 from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
-
 from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
 from forecasting import (LaggingSeries, LagQuantileSeries, LagBoostingSeries, ARIMA, SARIMA,
                          TimeSeriesSpliter)
@@ -125,14 +121,6 @@ from forecasting import (LaggingSeries, LagQuantileSeries, LagBoostingSeries, AR
 # ============================================
 # Session State
 # ============================================
-
-if 'mode' not in st.session_state or st.session_state[ 'mode' ] is None:
-	st.session_state[ 'mode' ] = 'Data Transformation'
-
-if 'df_dataset' not in st.session_state or st.session_state[ 'df_dataset' ] is None:
-	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
-
-# ------ Data Processing Members
 
 if 'df_original' not in st.session_state or st.session_state[ 'df_original' ] is None:
 	st.session_state[ 'df_original' ] = pd.DataFrame( )
@@ -250,6 +238,26 @@ if 'cluster_signature' not in st.session_state:
 # Session State
 # ============================================
 
+def throw_if( name: str, value: object ) -> None:
+	"""Input guard.
+	
+	Purpose:
+	    Validates that a required argument contains a usable value before the surrounding workflow
+	    continues. This guard centralizes early validation so provider wrappers and UI routines fail
+	    with consistent, readable error messages.
+	
+	Args:
+	    name (str): Name value used by the operation.
+	    value (object): Value value used by the operation.
+	
+	Returns:
+	    None: This function performs its work through side effects and does not return a value."""
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be None.' )
+	
+	if isinstance( value, str ) and not value.strip( ):
+		raise ValueError( f'Argument "{name}" cannot be empty.' )
+	
 def init_state( ) -> None:
 	defaults = { 'df_dataset': None, 'df_original': None, 'df_processed': None,
 		'numeric_columns': [ ], 'categorical_columns': [ ], 'features': [ ], 'targets': [ ],
