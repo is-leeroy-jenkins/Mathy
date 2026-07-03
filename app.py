@@ -2358,41 +2358,26 @@ if mode == 'Data Profile':
 						
 						with target:
 							if dtype == 'numeric':
-								updated[ col ] = st.number_input(
-									col,
-									value=float( val ) if pd.notna( val ) else 0.0
-								)
+								updated[ col ] = st.number_input( col,
+									value=float( val ) if pd.notna( val ) else 0.0 )
 							elif dtype == 'ordinal':
-								updated[ col ] = st.number_input(
-									col,
-									value=int( val ) if pd.notna( val ) else 0
-								)
+								updated[ col ] = st.number_input( col,
+									value=int( val ) if pd.notna( val ) else 0 )
 							elif dtype == 'datetime':
-								updated[ col ] = st.date_input(
-									col,
-									value=pd.to_datetime( val ).date( )
-									if pd.notna( val )
-									else pd.Timestamp.today( ).date( )
-								)
+								updated[ col ] = st.date_input( col,
+									value=pd.to_datetime( val ).date( ) if pd.notna(
+										val ) else pd.Timestamp.today( ).date( ) )
 							elif dtype == 'categorical':
 								options = df_dataset[ col ].dropna( ).unique( ).tolist( )
 								if options:
-									updated[ col ] = st.selectbox(
-										col,
-										options,
-										index=options.index( val ) if val in options else 0
-									)
+									updated[ col ] = st.selectbox( col, options,
+										index=options.index( val ) if val in options else 0 )
 								else:
-									updated[ col ] = st.text_input(
-										col,
-										value='' if pd.isna( val ) else str( val )
-									)
+									updated[ col ] = st.text_input( col,
+										value='' if pd.isna( val ) else str( val ) )
 							else:
-								updated[ col ] = st.text_input(
-									col,
-									value=str( val ),
-									disabled=True
-								)
+								updated[ col ] = st.text_input( col, value=str( val ),
+									disabled=True )
 					
 					submitted = st.form_submit_button( 'Apply Row Update' )
 				
@@ -2400,7 +2385,8 @@ if mode == 'Data Profile':
 					before = df_dataset.loc[ row_idx ].copy( )
 					for col, value in updated.items( ):
 						if schema[ col ] == 'datetime':
-							st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime( value )
+							st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime(
+								value )
 						else:
 							st.session_state.df_dataset.at[ row_idx, col ] = value
 					
@@ -2749,7 +2735,6 @@ elif mode == 'Descriptive Statistics':
 		
 			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( f'##### Distribution & Shape — {col}' )
-			
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
 				fig, ax = plt.subplots( figsize=(7, 4.75) )
@@ -2874,8 +2859,7 @@ elif mode == 'Descriptive Statistics':
 			Xs = SKStandardScaler( ).fit_transform( X )
 			pca = PCA( num=n_comp ).train( Xs )
 			
-			df_explained = pd.DataFrame(
-				{
+			df_explained = pd.DataFrame( {
 					'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
 					'Explained Variance (%)': pca.explained_variance_ratio * 100
 				} )
@@ -3112,8 +3096,7 @@ elif mode == 'Inferential Statistics':
 							if min( c_dim - 1, r_dim - 1 ) > 0
 							else np.nan )
 					
-					infer_rows.append(
-					{
+					infer_rows.append( {
 						'Analysis': 'Categorical Association',
 						'Test': 'Chi-Square',
 						'Statistic': chi2_stat,
@@ -3469,7 +3452,6 @@ elif mode == 'Anomaly Detection':
 				df_anamolies[ f'{col}_iqr' ] = (s < lo) | (s > hi)
 		
 		df_muliti = df_analysis.dropna( axis=0 )
-		
 		if df_muliti.shape[ 0 ] >= 10 and df_muliti.shape[ 1 ] >= 2:
 			if use_mahal:
 				cov = np.cov( df_muliti.values, rowvar=False )
@@ -3483,7 +3465,6 @@ elif mode == 'Anomaly Detection':
 			
 			if use_iforest:
 				from sklearn.ensemble import IsolationForest
-				
 				iso = IsolationForest( contamination='auto', random_state=42 )
 				preds = iso.fit_predict( df_muliti.values )
 				df_anamolies.loc[ df_muliti.index, 'iforest' ] = preds == -1
@@ -3517,7 +3498,6 @@ elif mode == 'Anomaly Detection':
 		m4.metric( 'Min Methods', f'{min_methods:,}' )
 		
 		c_o1, c_o2 = st.columns( 2, border=True )
-		
 		with c_o1:
 			st.markdown( '##### Flagged Observations' )
 			render_table( anomalies.sort_values( 'methods_flagged', ascending=False ) )
@@ -3580,7 +3560,6 @@ elif mode == 'Anomaly Detection':
 				
 				mean_val = float( s_clean.mean( ) )
 				median_val = float( s_clean.median( ) )
-				
 				ax.axvline( mean_val, linestyle='--', linewidth=1.4,
 					label=f'Mean: {mean_val:,.2f}' )
 				
@@ -5773,7 +5752,6 @@ elif mode == 'Classification Models':
 					st.session_state[ 'y_test' ] = None
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
-				
 				for key, value in perceptron_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
@@ -8729,19 +8707,15 @@ elif mode == 'Classification Models':
 				and 'Mis-Classifications' in df_scores.columns
 		)
 		
-		has_prediction_frame = (
-				isinstance( df_predictions, pd.DataFrame )
+		has_prediction_frame = ( isinstance( df_predictions, pd.DataFrame )
 				and not df_predictions.empty
 				and 'Actual' in df_predictions.columns
-				and 'Predicted' in df_predictions.columns
-		)
+				and 'Predicted' in df_predictions.columns )
 		
-		has_visual_context = (
-				model is not None
+		has_visual_context = ( model is not None
 				and X_test is not None
 				and y_test is not None
-				and y_prediction is not None
-		)
+				and y_prediction is not None )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Performance' )
@@ -8841,8 +8815,7 @@ elif mode == 'Classification Models':
 						'Predicted': y_prediction
 				} )
 				
-				df_evaluation[ 'Correct' ] = (
-						df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
+				df_evaluation[ 'Correct' ] = ( df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
 				
 				df_class_acc = df_evaluation.groupby( 'Actual',
 					dropna=False )[ 'Correct' ].mean( ).sort_index( )
@@ -9061,7 +9034,6 @@ elif mode == 'Regression Models':
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )		
 		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
-		
 		if not has_loaded_dataset( df_working ):
 			i = 'Select regression features and one numeric target, then create the working dataset.'
 			st.info( i )
@@ -9097,10 +9069,8 @@ elif mode == 'Regression Models':
 		# -----------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Feature-Engineering' )
-		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
-			
 			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
@@ -10482,8 +10452,8 @@ elif mode == 'Regression Models':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		if df_processed is None:
 			st.stop( )
-		st.markdown( '##### Processed Data' )
 		
+		st.markdown( '##### Processed Data' )
 		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='regression_processed_data' )
 		
@@ -10492,7 +10462,6 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Training' )
-		
 		active_features = list( st.session_state.get( 'df_features', pd.DataFrame( ) ).columns )
 		active_targets = list( st.session_state.get( 'df_targets', pd.DataFrame( ) ).columns )
 		st.session_state[ 'active_features' ] = active_features.copy( )
@@ -10611,6 +10580,7 @@ elif mode == 'Regression Models':
 		# REGRESSION MODELS
 		# ------------------------------------------------------------------
 		with st.expander( 'Linear Models', expanded=False ):
+			
 			with st.expander( 'Ordinary Least Squares', expanded=False ):
 				ols_defaults = { 'regression_ols_test_size': 0.20,
 					'regression_ols_random_state': 42, 'regression_ols_fit_intercept': True,
@@ -10799,9 +10769,7 @@ elif mode == 'Regression Models':
 						st.session_state[ key ] = value
 				
 				st.caption( 'L2-regularized linear regression for continuous targets.' )
-				
 				ridge_c1, ridge_c2, ridge_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-				
 				with ridge_c1:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					ridge_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
@@ -11024,9 +10992,7 @@ elif mode == 'Regression Models':
 						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
-						
 						st.success( 'Ridge Regression training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Ridge Regression training failed: {ex}' )
 			
@@ -11741,418 +11707,365 @@ elif mode == 'Regression Models':
 						st.error( f'Bayesian Ridge training failed: {ex}' )
 			
 			with st.expander( 'Stochastic Gradient Descent', expanded=False ):
-				sgd_defaults = {
-						'regression_sgd_loss': 'squared_error',
-						'regression_sgd_penalty': 'l2',
-						'regression_sgd_alpha': 0.0001,
-						'regression_sgd_iters': 1000,
-						'regression_sgd_shuffle': True,
-						'regression_sgd_learning_rate': 'invscaling',
-						'regression_sgd_l1_ratio': 0.15,
-						'regression_sgd_fit_intercept': True,
-						'regression_sgd_tol': 0.001000,
-						'regression_sgd_verbose': 0,
-						'regression_sgd_epsilon': 0.1,
-						'regression_sgd_eta0': 0.01,
-						'regression_sgd_power_t': 0.25,
-						'regression_sgd_early_stopping': False,
-						'regression_sgd_validation_fraction': 0.1,
-						'regression_sgd_n_iter_no_change': 5,
-						'regression_sgd_warm_start': False,
-						'regression_sgd_average': False,
-						'regression_sgd_test_size': 0.20,
-						'regression_sgd_random_state': 42
-				}
+				sgd_defaults = { 'regression_sgd_loss': 'squared_error',
+					'regression_sgd_penalty': 'l2', 'regression_sgd_alpha': 0.0001,
+					'regression_sgd_iters': 1000, 'regression_sgd_shuffle': True,
+					'regression_sgd_learning_rate': 'invscaling', 'regression_sgd_l1_ratio': 0.15,
+					'regression_sgd_fit_intercept': True, 'regression_sgd_tol': 0.001,
+					'regression_sgd_verbose': 0, 'regression_sgd_epsilon': 0.1,
+					'regression_sgd_eta0': 0.01, 'regression_sgd_power_t': 0.25,
+					'regression_sgd_early_stopping': False,
+					'regression_sgd_validation_fraction': 0.1,
+					'regression_sgd_n_iter_no_change': 5,
+					'regression_sgd_warm_start': False, 'regression_sgd_average': False,
+					'regression_sgd_test_size': 0.20, 'regression_sgd_random_state': 42 }
 				
 				for key, value in sgd_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
 				
-				st.caption( 'Linear regression trained with SGD for large-scale continuous targets.' )
+				st.caption(
+					'Linear regression trained with SGD for large-scale continuous targets.' )
 				
 				sgd_c1, sgd_c2, sgd_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				
 				with sgd_c1:
 					st.markdown( '###### Loss / Penalty' )
 					
-					sgd_loss = st.selectbox(
-						'Loss',
-						options=[
-								'squared_error',
-								'huber',
-								'epsilon_insensitive',
-								'squared_epsilon_insensitive'
-						],
-						index=[
-								'squared_error',
-								'huber',
-								'epsilon_insensitive',
-								'squared_epsilon_insensitive'
-						].index( st.session_state[ 'regression_sgd_loss' ] ),
-						key='regression_sgd_loss_select'
-					)
+					sgd_loss_options = [ 'squared_error', 'huber', 'epsilon_insensitive',
+						'squared_epsilon_insensitive' ]
 					
-					sgd_penalty = st.selectbox(
-						'Penalty',
-						options=[ None, 'l2', 'l1', 'elasticnet' ],
-						index=[ None, 'l2', 'l1', 'elasticnet' ].index(
-							st.session_state[ 'regression_sgd_penalty' ]
-						),
-						format_func=lambda v: 'None' if v is None else str( v ),
-						key='regression_sgd_penalty_select'
-					)
+					sgd_loss_value = st.session_state.get( 'regression_sgd_loss', 'squared_error' )
 					
-					sgd_alpha = float(
-						st.number_input(
-							'Alpha',
-							min_value=0.000001,
-							value=float( st.session_state[ 'regression_sgd_alpha' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_sgd_alpha_input'
-						)
-					)
+					if sgd_loss_value not in sgd_loss_options:
+						sgd_loss_value = 'squared_error'
 					
-					sgd_iters = int(
-						st.number_input(
-							'Iterations',
-							min_value=1,
-							value=int( st.session_state[ 'regression_sgd_iters' ] ),
-							step=1,
-							key='regression_sgd_iters_input'
-						)
-					)
+					sgd_loss = st.selectbox( 'Loss', options=sgd_loss_options,
+						index=sgd_loss_options.index( sgd_loss_value ),
+						key='regression_sgd_loss_select' )
 					
-					sgd_l1_ratio = float(
-						st.slider(
-							'L1 Ratio',
-							min_value=0.0,
-							max_value=1.0,
-							value=float( st.session_state[ 'regression_sgd_l1_ratio' ] ),
-							step=0.05,
-							key='regression_sgd_l1_ratio_slider'
-						)
-					)
+					sgd_penalty_options = [ None, 'l2', 'l1', 'elasticnet' ]
+					sgd_penalty_value = st.session_state.get( 'regression_sgd_penalty', 'l2' )					
+					if sgd_penalty_value not in sgd_penalty_options:
+						sgd_penalty_value = 'l2'
+					
+					sgd_penalty = st.selectbox( 'Penalty', options=sgd_penalty_options,
+						index=sgd_penalty_options.index( sgd_penalty_value ),
+						format_func=lambda value: 'None' if value is None else str( value ),
+						key='regression_sgd_penalty_select' )
+					
+					sgd_alpha = float( st.number_input( 'Alpha', min_value=0.000001,
+						value=float( st.session_state[ 'regression_sgd_alpha' ] ), step=0.0001,
+						format='%.6f', key='regression_sgd_alpha_input' ) )
+					
+					sgd_iters = int( st.number_input( 'Iterations', min_value=1,
+						value=int( st.session_state[ 'regression_sgd_iters' ] ), step=1,
+						key='regression_sgd_iters_input' ) )
+					
+					sgd_l1_ratio = float( st.slider( 'L1 Ratio', min_value=0.0, max_value=1.0,
+						value=float( st.session_state[ 'regression_sgd_l1_ratio' ] ), step=0.05,
+						key='regression_sgd_l1_ratio_slider' ) )
 				
 				with sgd_c2:
 					st.markdown( '###### Learning Controls' )
 					
-					sgd_shuffle = st.checkbox(
-						'Shuffle',
+					sgd_shuffle = st.checkbox( 'Shuffle',
 						value=bool( st.session_state[ 'regression_sgd_shuffle' ] ),
-						key='regression_sgd_shuffle_check'
-					)
+						key='regression_sgd_shuffle_check' )
 					
-					sgd_learning_rate = st.selectbox(
-						'Learning Rate Schedule',
-						options=[ 'constant', 'optimal', 'invscaling', 'adaptive' ],
-						index=[ 'constant', 'optimal', 'invscaling', 'adaptive' ].index(
-							st.session_state[ 'regression_sgd_learning_rate' ]
-						),
-						key='regression_sgd_learning_rate_select'
-					)
+					sgd_learning_rate_options = [ 'constant', 'optimal', 'invscaling', 'adaptive' ]
 					
-					sgd_eta0 = float(
-						st.number_input(
-							'Eta0',
-							min_value=0.000001,
-							value=float( st.session_state[ 'regression_sgd_eta0' ] ),
-							step=0.010000,
-							format='%.6f',
-							key='regression_sgd_eta0_input'
-						)
-					)
+					sgd_learning_rate_value = st.session_state.get( 'regression_sgd_learning_rate',
+						'invscaling' )
 					
-					sgd_power_t = float(
-						st.number_input(
-							'Power T',
-							min_value=0.0,
-							value=float( st.session_state[ 'regression_sgd_power_t' ] ),
-							step=0.100000,
-							format='%.6f',
-							key='regression_sgd_power_t_input'
-						)
-					)
+					if sgd_learning_rate_value not in sgd_learning_rate_options:
+						sgd_learning_rate_value = 'invscaling'
 					
-					sgd_epsilon = float(
-						st.number_input(
-							'Epsilon',
-							min_value=0.0,
-							value=float( st.session_state[ 'regression_sgd_epsilon' ] ),
-							step=0.010000,
-							format='%.6f',
-							key='regression_sgd_epsilon_input'
-						)
-					)
+					sgd_learning_rate = st.selectbox( 'Learning Rate Schedule',
+						options=sgd_learning_rate_options,
+						index=sgd_learning_rate_options.index( sgd_learning_rate_value ),
+						key='regression_sgd_learning_rate_select' )
 					
-					sgd_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
-							value=float( st.session_state[ 'regression_sgd_tol' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_sgd_tol_input'
-						)
-					)
+					sgd_eta0 = float( st.number_input( 'Eta0', min_value=0.000001,
+						value=float( st.session_state[ 'regression_sgd_eta0' ] ), step=0.01,
+						format='%.6f', key='regression_sgd_eta0_input' ) )
 					
-					sgd_fit_intercept = st.checkbox(
-						'Fit Intercept',
+					sgd_power_t = float( st.number_input( 'Power T', min_value=0.0,
+						value=float( st.session_state[ 'regression_sgd_power_t' ] ), step=0.1,
+						format='%.6f', key='regression_sgd_power_t_input' ) )
+					
+					sgd_epsilon = float( st.number_input( 'Epsilon', min_value=0.0,
+						value=float( st.session_state[ 'regression_sgd_epsilon' ] ), step=0.01,
+						format='%.6f', key='regression_sgd_epsilon_input' ) )
+					
+					sgd_tol = float( st.number_input( 'Tolerance', min_value=0.0,
+						value=float( st.session_state[ 'regression_sgd_tol' ] ), step=0.0001,
+						format='%.6f', key='regression_sgd_tol_input' ) )
+					
+					sgd_fit_intercept = st.checkbox( 'Fit Intercept',
 						value=bool( st.session_state[ 'regression_sgd_fit_intercept' ] ),
-						key='regression_sgd_fit_intercept_check'
-					)
+						key='regression_sgd_fit_intercept_check' )
 				
 				with sgd_c3:
-					st.markdown( '###### 🏃 Run Configuration' )
-					
-					sgd_early_stopping = st.checkbox(
-						'Early Stopping',
+					st.markdown( '###### 🏃 Run Configuration' )					
+					sgd_early_stopping = st.checkbox( 'Early Stopping',
 						value=bool( st.session_state[ 'regression_sgd_early_stopping' ] ),
-						key='regression_sgd_early_stopping_check'
-					)
+						key='regression_sgd_early_stopping_check' )
 					
 					sgd_validation_fraction = float(
-						st.slider(
-							'Validation Fraction',
-							min_value=0.05,
-							max_value=0.40,
-							value=float( st.session_state[ 'regression_sgd_validation_fraction' ] ),
-							step=0.05,
-							key='regression_sgd_validation_fraction_slider'
-						)
-					)
+						st.slider( 'Validation Fraction', min_value=0.05, max_value=0.40,
+							value=float( st.session_state[ 'regression_sgd_validation_fraction'] ),
+							step=0.05, key='regression_sgd_validation_fraction_slider' ) )
 					
-					sgd_n_iter_no_change = int(
-						st.number_input(
-							'N Iter No Change',
-							min_value=1,
-							value=int( st.session_state[ 'regression_sgd_n_iter_no_change' ] ),
-							step=1,
-							key='regression_sgd_n_iter_no_change_input'
-						)
-					)
+					sgd_n_iter_no_change = int( st.number_input( 'N Iter No Change', min_value=1,
+						value=int( st.session_state[ 'regression_sgd_n_iter_no_change' ] ), step=1,
+						key='regression_sgd_n_iter_no_change_input' ) )
 					
-					sgd_warm_start = st.checkbox(
-						'Warm Start',
+					sgd_warm_start = st.checkbox( 'Warm Start',
 						value=bool( st.session_state[ 'regression_sgd_warm_start' ] ),
-						key='regression_sgd_warm_start_check'
-					)
+						key='regression_sgd_warm_start_check' )
 					
-					sgd_average = st.checkbox(
-						'Average Weights',
+					sgd_average = st.checkbox( 'Average Weights',
 						value=bool( st.session_state[ 'regression_sgd_average' ] ),
-						key='regression_sgd_average_check'
-					)
+						key='regression_sgd_average_check' )
 					
-					sgd_verbose = int(
-						st.number_input(
-							'Verbose',
-							min_value=0,
-							value=int( st.session_state[ 'regression_sgd_verbose' ] ),
-							step=1,
-							key='regression_sgd_verbose_input'
-						)
-					)
+					sgd_verbose = int( st.number_input( 'Verbose', min_value=0,
+						value=int( st.session_state[ 'regression_sgd_verbose' ] ), step=1,
+						key='regression_sgd_verbose_input' ) )
 					
-					sgd_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int( st.session_state[ 'regression_sgd_test_size' ] * 100 ),
-						step=5,
-						key='regression_sgd_test_size_slider'
-					) / 100.0
+					sgd_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_sgd_test_size' ] * 100 ), step=5,
+						key='regression_sgd_test_size_slider' ) / 100.0
 					
-					sgd_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int( st.session_state[ 'regression_sgd_random_state' ] ),
-							step=1,
-							key='regression_sgd_random_state_input'
-						)
-					)
+					sgd_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_sgd_random_state' ] ), step=1,
+						key='regression_sgd_random_state_input' ) )
 					
 					if sgd_penalty != 'elasticnet':
 						st.caption( 'L1 Ratio is only used when Penalty = elasticnet.' )
 					
-					if sgd_loss not in [ 'huber', 'epsilon_insensitive',
-					                     'squared_epsilon_insensitive' ]:
-						st.caption( 'Epsilon is only used by Huber and epsilon-insensitive losses.' )
+					epsilon_losses = [ 'huber', 'epsilon_insensitive','squared_epsilon_insensitive' ]
+					
+					if sgd_loss not in epsilon_losses:
+						st.caption( 'Epsilon is only used by Huber and '
+						            'epsilon-insensitive losses.' )
 				
 				sgd_btn_1, sgd_btn_2 = st.columns( 2 )
 				
 				with sgd_btn_1:
-					train_sgd = st.button(
-						'🚂 Train Stochastic Gradient Descent',
-						key='regression_sgd_train',
-						use_container_width=True
-					)
+					train_sgd = st.button( '🚂 Train Stochastic Gradient Descent',
+						key='regression_sgd_train', use_container_width=True )
 				
 				with sgd_btn_2:
-					reset_sgd = st.button(
-						'🔄 Reset Stochastic Gradient Descent',
-						key='regression_sgd_reset',
-						use_container_width=True
-					)
+					reset_sgd = st.button( '🔄 Reset Stochastic Gradient Descent',
+						key='regression_sgd_reset', use_container_width=True )
 				
 				if reset_sgd:
 					for key, value in sgd_defaults.items( ):
 						st.session_state[ key ] = value
 					
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'regression_sgd_elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'y_prediction' ] = None
 					st.session_state[ 'df_regression' ] = df_model.copy( )
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 					st.session_state[ 'df_coefficients' ] = pd.DataFrame( )
-					st.session_state[ 'regression_sgd_elapsed_seconds' ] = None
 					st.rerun( )
 				
 				if train_sgd:
 					try:
+						if X is None or y is None:
+							st.warning( '⚠️ Stochastic Gradient Descent requires prepared '
+							            'feature and target arrays.' )
+							st.stop( )
+						
+						X_sgd = np.asarray( X, dtype=float )
+						y_sgd = np.asarray( y, dtype=float ).reshape( -1 )						
+						if X_sgd.ndim != 2 or X_sgd.shape[ 1 ] < 1:
+							st.warning( '⚠️ Stochastic Gradient Descent requires at least '
+							            'one numeric feature.' )
+							st.stop( )
+						
+						if y_sgd.ndim != 1:
+							st.warning( '⚠️ The Stochastic Gradient Descent target must be '
+							            'one-dimensional.' )
+							st.stop( )
+						
+						if len( X_sgd ) != len( y_sgd ):
+							st.warning( '⚠️ Feature and target row counts do not match.' )
+							st.stop( )
+						
+						if len( X_sgd ) < 2:
+							st.warning( '⚠️ Stochastic Gradient Descent requires at least '
+							            'two observations.' )
+							st.stop( )
+						
+						if not np.isfinite( X_sgd ).all( ):
+							st.warning( '⚠️ The Stochastic Gradient Descent feature matrix '
+							            'contains non-finite values.' )
+							st.stop( )
+						
+						if not np.isfinite( y_sgd ).all( ):
+							st.warning( '⚠️ The Stochastic Gradient Descent target contains '
+							            'non-finite values.' )
+							st.stop( )
+						
+						if len( np.unique( y_sgd ) ) < 2:
+							st.warning( '⚠️ The regression target must contain at least '
+							            'two distinct values.' )
+							st.stop( )
+						
+						if sgd_alpha <= 0.0:
+							st.warning( '⚠️ SGD alpha must be greater than zero.' )
+							st.stop( )
+						
+						if sgd_iters < 1:
+							st.warning( '⚠️ SGD iterations must be greater than zero.' )
+							st.stop( )
+						
+						if sgd_tol < 0.0:
+							st.warning( '⚠️ SGD tolerance cannot be negative.' )
+							st.stop( )
+						
+						if sgd_eta0 <= 0.0:
+							st.warning( '⚠️ SGD Eta0 must be greater than zero.' )
+							st.stop( )
+						
+						if sgd_power_t < 0.0:
+							st.warning( '⚠️ SGD Power T cannot be negative.' )
+							st.stop( )
+						
+						if sgd_epsilon < 0.0:
+							st.warning( '⚠️ SGD epsilon cannot be negative.' )
+							st.stop( )
+						
+						if sgd_l1_ratio < 0.0 or sgd_l1_ratio > 1.0:
+							st.warning( '⚠️ SGD L1 Ratio must be between 0.0 and 1.0.' )
+							st.stop( )
+						
+						if (sgd_validation_fraction <= 0.0 or sgd_validation_fraction >= 1.0):
+							st.warning( '⚠️ Validation Fraction must be greater than zero '
+							            'and less than one.' )
+							st.stop( )
+						
+						if sgd_n_iter_no_change < 1:
+							st.warning( '⚠️ N Iter No Change must be greater than zero.' )
+							st.stop( )
+						
 						st.session_state[ 'regression_sgd_loss' ] = str( sgd_loss )
 						st.session_state[ 'regression_sgd_penalty' ] = sgd_penalty
 						st.session_state[ 'regression_sgd_alpha' ] = float( sgd_alpha )
 						st.session_state[ 'regression_sgd_iters' ] = int( sgd_iters )
 						st.session_state[ 'regression_sgd_shuffle' ] = bool( sgd_shuffle )
-						st.session_state[
-							'regression_sgd_learning_rate' ] = str( sgd_learning_rate )
+						st.session_state[ 'regression_sgd_learning_rate' ] = str(
+							sgd_learning_rate )
 						st.session_state[ 'regression_sgd_l1_ratio' ] = float( sgd_l1_ratio )
 						st.session_state[ 'regression_sgd_fit_intercept' ] = bool(
-							sgd_fit_intercept
-						)
+							sgd_fit_intercept )
 						st.session_state[ 'regression_sgd_tol' ] = float( sgd_tol )
 						st.session_state[ 'regression_sgd_verbose' ] = int( sgd_verbose )
 						st.session_state[ 'regression_sgd_epsilon' ] = float( sgd_epsilon )
 						st.session_state[ 'regression_sgd_eta0' ] = float( sgd_eta0 )
 						st.session_state[ 'regression_sgd_power_t' ] = float( sgd_power_t )
 						st.session_state[ 'regression_sgd_early_stopping' ] = bool(
-							sgd_early_stopping
-						)
+							sgd_early_stopping )
 						st.session_state[ 'regression_sgd_validation_fraction' ] = float(
-							sgd_validation_fraction
-						)
+							sgd_validation_fraction )
 						st.session_state[ 'regression_sgd_n_iter_no_change' ] = int(
-							sgd_n_iter_no_change
-						)
+							sgd_n_iter_no_change )
 						st.session_state[ 'regression_sgd_warm_start' ] = bool( sgd_warm_start )
 						st.session_state[ 'regression_sgd_average' ] = bool( sgd_average )
 						st.session_state[ 'regression_sgd_test_size' ] = float( sgd_test_size )
-						st.session_state[ 'regression_sgd_random_state' ] = int(
-							sgd_random_state
-						)
-						
-						df_training = df_model.copy( )
-						
-						X = df_training[ active_features ].apply(
-							pd.to_numeric,
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( )
-						
-						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
-						
-						if len( np.unique( y ) ) < 2:
-							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
-							st.stop( )
-						
+						st.session_state[ 'regression_sgd_random_state' ] = int( sgd_random_state )						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.GradientDescent(
-							loss=str( sgd_loss ),
-							iters=int( sgd_iters ),
-							penalty=sgd_penalty,
-							alpha=float( sgd_alpha ),
-							rando=int( sgd_random_state ),
-							learning_rate=str( sgd_learning_rate ),
-							l1_ratio=float( sgd_l1_ratio ),
-							fit=bool( sgd_fit_intercept ),
-							tol=float( sgd_tol ),
-							shuffle=bool( sgd_shuffle ),
-							verbose=int( sgd_verbose ),
-							epsilon=float( sgd_epsilon ),
-							eta0=float( sgd_eta0 ),
-							power_t=float( sgd_power_t ),
+						model = regression_model.GradientDescent( loss=str( sgd_loss ),
+							iters=int( sgd_iters ), penalty=sgd_penalty, alpha=float( sgd_alpha ),
+							rando=int( sgd_random_state ), learning_rate=str( sgd_learning_rate ),
+							l1_ratio=float( sgd_l1_ratio ), fit=bool( sgd_fit_intercept ),
+							tol=float( sgd_tol ), shuffle=bool( sgd_shuffle ),
+							verbose=int( sgd_verbose ), epsilon=float( sgd_epsilon ),
+							eta0=float( sgd_eta0 ), power_t=float( sgd_power_t ),
 							early_stopping=bool( sgd_early_stopping ),
 							validation_fraction=float( sgd_validation_fraction ),
 							n_iter_no_change=int( sgd_n_iter_no_change ),
-							warm=bool( sgd_warm_start ),
-							average=bool( sgd_average )
-						)
+							warm=bool( sgd_warm_start ), average=bool( sgd_average ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( sgd_test_size ),
-							random=int( sgd_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_sgd, y_sgd,
+							size=float( sgd_test_size ), random=int( sgd_random_state ) )
+						
+						if len( X_train ) < 1 or len( X_test ) < 1:
+							st.warning( '⚠️ The selected test size does not produce '
+							            'valid training and testing partitions.' )
+							st.stop( )
+						
+						if sgd_early_stopping and len( X_train ) < 10:
+							st.warning( '⚠️ Early stopping requires a larger training set. '
+							            'Disable Early Stopping or use more observations.' )
+							st.stop( )
 						
 						model.train( X_train, y_train )
-						y_prediction = model.project( X_test )
+						y_prediction = model.project( X_test )						
+						elapsed_seconds = float( time.perf_counter( ) - start_time )						
+						df_scores = model.analyze( X_test, y_test )
 						
-						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						st.session_state[ 'regression_sgd_elapsed_seconds' ] = elapsed_seconds
+						if not isinstance( df_scores, pd.DataFrame ):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
+						else:
+							df_scores = df_scores.copy( )
 						
-						df_scores = model.analyze( X_test, y_test ).copy( )
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						if df_scores is not None and not df_scores.empty:
-							if 'Metric' in df_scores.columns and 'Value' in df_scores.columns:
-								df_scores = df_scores.copy( )
-							elif df_scores.shape[ 1 ] == 1:
-								df_scores = df_scores.reset_index( )
-								df_scores.columns = [ 'Metric', 'Value' ]
-							
-							df_extra = pd.DataFrame(
-								{
-										'Metric': [
-												'Processing Time (Seconds)',
-												'Training Rows',
-												'Testing Rows',
-												'Loss',
-												'Penalty',
-												'Learning Rate'
-										],
-										'Value': [
-												round( elapsed_seconds, 4 ),
-												int( len( X_train ) ),
-												int( len( X_test ) ),
-												str( sgd_loss ),
-												'None' if sgd_penalty is None else str( sgd_penalty ),
-												str( sgd_learning_rate )
-										]
-								}
-							)
-							
-							df_scores = pd.concat(
-								[ df_scores, df_extra ],
-								ignore_index=True
-							)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Loss', 'Penalty', 'Learning Rate', 'Iterations',
+								'Alpha' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), str( sgd_loss ),
+								('None' if sgd_penalty is None else str( sgd_penalty )),
+								str( sgd_learning_rate ), int( sgd_iters ), float( sgd_alpha ) ]
+						} )
 						
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )						
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': y_test,
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
+						
+						coefficient_values = np.asarray( model.weights, dtype=float ).reshape( -1 )						
+						if len( coefficient_values ) == len( active_features ):
+							coefficient_names = active_features.copy( )
+						else:
+							coefficient_names = [ f'Feature {index + 1}' for index in
+								range( len( coefficient_values ) ) ]
 						
 						df_coefficients = pd.DataFrame(
-							{
-									'Feature': active_features,
-									'Coefficient': np.asarray( model.weights ).reshape( -1 )
-							}
-						)
+							{ 'Feature': coefficient_names, 'Coefficient': coefficient_values } )
 						
+						st.session_state[ 'regression_sgd_elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-						st.session_state[ 'model' ] = model.copy( )
-						st.session_state[ 'X_train' ] = X_train.copy( )
-						st.session_state[ 'y_train' ] = y_train.copy( )
-						st.session_state[ 'X_test' ] = X_test.copy( )
-						st.session_state[ 'y_test' ] = y_test.copy( )
-						st.session_state[ 'df_regression' ] = df_training.copy( )
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'df_regression' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						st.session_state[ 'df_coefficients' ] = df_coefficients.copy( )
+						
+						st.success( 'Stochastic Gradient Descent training completed.' )
+					
 					except Exception as ex:
 						st.error( f'Stochastic Gradient Descent training failed: {ex}' )
 		
@@ -15788,67 +15701,35 @@ elif mode == 'Clustering Models':
 			st.caption( 'Prototype-based clustering using centroid minimization.' )
 			
 			km_c1, km_c2, km_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with km_c1:
-				n_clusters = st.number_input(
-					'Number of Clusters (K)',
-					min_value=2,
-					step=1,
-					key='cluster_kmeans_n_clusters'
-				)
+				n_clusters = st.number_input( 'Number of Clusters (K)', min_value=2, step=1,
+					key='cluster_kmeans_n_clusters' )
 				
-				init = st.selectbox(
-					'Initialization',
-					options=[ 'k-means++', 'random' ],
-					key='cluster_kmeans_init'
-				)
+				init = st.selectbox( 'Initialization', options=[ 'k-means++', 'random' ],
+					key='cluster_kmeans_init' )
 				
-				algorithm = st.selectbox(
-					'Algorithm',
-					options=[ 'lloyd', 'elkan' ],
-					key='cluster_kmeans_algorithm'
-				)
+				algorithm = st.selectbox( 'Algorithm', options=[ 'lloyd', 'elkan' ],
+					key='cluster_kmeans_algorithm' )
 			
 			with km_c2:
-				n_init_mode = st.selectbox(
-					'Initialization Runs',
-					options=[ 'auto', 'manual' ],
-					key='cluster_kmeans_n_init_mode'
-				)
+				n_init_mode = st.selectbox( 'Initialization Runs', options=[ 'auto', 'manual' ],
+					key='cluster_kmeans_n_init_mode' )
 				
 				if n_init_mode == 'manual':
-					n_init = int(
-						st.number_input(
-							'Number of Initializations',
-							min_value=1,
-							step=1,
-							key='cluster_kmeans_n_init_value'
-						)
-					)
+					n_init = int( st.number_input( 'Number of Initializations', min_value=1,
+						step=1,
+						key='cluster_kmeans_n_init_value' ) )
 				else:
 					n_init = 'auto'
-					st.text_input(
-						'Number of Initializations',
-						value='auto',
-						disabled=True,
-						key='cluster_kmeans_n_init_display'
-					)
+					st.text_input( 'Number of Initializations', value='auto', disabled=True,
+						key='cluster_kmeans_n_init_display' )
 				
-				max_iter = st.number_input(
-					'Maximum Iterations',
-					min_value=1,
-					step=1,
-					key='cluster_kmeans_max_iter'
-				)
+				max_iter = st.number_input( 'Maximum Iterations', min_value=1, step=1,
+					key='cluster_kmeans_max_iter' )
 			
 			with km_c3:
-				tol = st.number_input(
-					'Tolerance',
-					min_value=0.0,
-					step=0.0001,
-					format='%.4f',
-					key='cluster_kmeans_tol'
-				)
+				tol = st.number_input( 'Tolerance', min_value=0.0, step=0.0001, format='%.4f',
+					key='cluster_kmeans_tol' )
 				
 				random_state = st.number_input( 'Random State', step=1,
 					key='cluster_kmeans_random_state' )
@@ -15914,37 +15795,18 @@ elif mode == 'Clustering Models':
 							df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 						
 						detail_rows = [ ]
-						for prop in [
-								'features',
-								'inertia',
-								'iterations',
-								'metric',
-								'algorithm',
-								'n_clusters',
-								'n_init',
-								'max_iter',
-								'tolerance',
-								'random_state'
-						]:
+						for prop in [ 'features', 'inertia', 'iterations', 'metric', 'algorithm',
+								'n_clusters', 'n_init', 'max_iter', 'tolerance', 'random_state' ]:
 							if hasattr( model, prop ):
 								try:
 									value = getattr( model, prop )
-									if value is not None and not isinstance(
-											value,
-											(np.ndarray, pd.DataFrame)
-									):
-										detail_rows.append(
-											{ 'Property': prop, 'Value': value }
-										)
+									if value is not None and not isinstance( value,
+											(np.ndarray, pd.DataFrame) ):
+										detail_rows.append( { 'Property': prop, 'Value': value } )
 								except Exception:
 									pass
 						
-						df_details = (
-								pd.DataFrame( detail_rows )
-								if detail_rows
-								else pd.DataFrame( )
-						)
-						
+						df_details = ( pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( ) )
 						df_centroids = pd.DataFrame( )
 						if hasattr( model, 'centroids_' ):
 							try:
@@ -16108,13 +15970,8 @@ elif mode == 'Time-Series Models':
 		# ------------------------------------------------------------------
 		# MODEL SELECTION
 		# ------------------------------------------------------------------
-		model_map = \
-			{
-					'Lagged Linear Regression': 'lag',
-					'Lagged Boosting Regression': 'boost',
-					'ARIMA': 'arima',
-					'SARIMA': 'sarima'
-			}
+		model_map = { 'Lagged Linear Regression': 'lag', 'Lagged Boosting Regression': 'boost',
+			'ARIMA': 'arima', 'SARIMA': 'sarima' }
 		
 		st.markdown( '##### Model Selection' )
 		model_name = st.selectbox( 'Select time-series model', list( model_map.keys( ) ),
@@ -16133,81 +15990,44 @@ elif mode == 'Time-Series Models':
 		elif model_name == 'Lagged Boosting Regression':
 			lag = st.number_input( 'Lag order', min_value=1, value=12 )
 			loss = st.selectbox( 'Loss',
-				[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ],
-				index=0, key='loss_box' )
+				[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ], index=0,
+				key='loss_box' )
 			
 			quantile = None
 			if loss == 'quantile':
-				quantile = st.number_input(
-					'Quantile',
-					min_value=0.01,
-					max_value=0.99,
-					value=0.50,
-					step=0.01
-				)
+				quantile = st.number_input( 'Quantile', min_value=0.01, max_value=0.99, value=0.50,
+					step=0.01 )
 			
-			rate = st.number_input(
-				'Learning Rate',
-				min_value=0.001,
-				max_value=1.0,
-				value=0.1,
-				step=0.001,
-				format='%.3f'
-			)
+			rate = st.number_input( 'Learning Rate', min_value=0.001, max_value=1.0, value=0.1,
+				step=0.001, format='%.3f' )
 			iters = st.number_input( 'Max Iterations', min_value=10, value=100 )
 			leaf_nodes = st.number_input( 'Max Leaf Nodes (0 = None)', min_value=0, value=31 )
 			depth = st.number_input( 'Max Depth (0 = None)', min_value=0, value=0 )
 			leaf = st.number_input( 'Min Samples Leaf', min_value=1, value=20 )
-			regularization = st.number_input(
-				'L2 Regularization',
-				min_value=0.0,
-				value=0.0,
-				step=0.001,
-				format='%.3f'
-			)
-			features = st.number_input(
-				'Max Features',
-				min_value=0.1,
-				max_value=1.0,
-				value=1.0,
-				step=0.1,
-				format='%.1f'
-			)
+			regularization = st.number_input( 'L2 Regularization', min_value=0.0, value=0.0,
+				step=0.001, format='%.3f' )
+			features = st.number_input( 'Max Features', min_value=0.1, max_value=1.0, value=1.0,
+				step=0.1, format='%.1f' )
 			bins = st.number_input( 'Max Bins', min_value=2, max_value=255, value=255 )
-			stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ],
-				index=0, key='stop_box' )
+			stopping = st.selectbox( 'Early Stopping', [ 'auto', True, False ], index=0,
+				key='stop_box' )
 			validation = st.number_input( 'Validation Fraction', min_value=0.01, max_value=0.50,
 				value=0.10, step=0.01, format='%.2f', key='validation_input' )
 			no_change = st.number_input( 'Iterations No Change', min_value=1, value=10 )
-			tol = st.number_input(
-				'Tolerance',
-				min_value=0.0,
-				value=1e-7,
-				step=1e-7,
-				format='%.7f'
-			)
+			tol = st.number_input( 'Tolerance', min_value=0.0, value=1e-7, step=1e-7,
+				format='%.7f' )
 			verbose = st.number_input( 'Verbose', min_value=0, value=0 )
 			rando = st.number_input( 'Random State (-1 = None)', min_value=-1, value=-1 )
 			
-			model = LagBoostingSeries(
-				lag=int( lag ),
-				loss=loss,
-				quantile=float( quantile ) if quantile is not None else None,
-				rate=float( rate ),
-				iters=int( iters ),
-				leaf_nodes=int( leaf_nodes ) if int( leaf_nodes ) > 0 else None,
-				depth=int( depth ) if int( depth ) > 0 else None,
-				leaf=int( leaf ),
-				regularization=float( regularization ),
-				features=float( features ),
-				bins=int( bins ),
-				stopping=stopping,
-				validation=float( validation ),
-				no_change=int( no_change ),
-				tol=float( tol ),
-				verbose=int( verbose ),
-				rando=None if int( rando ) < 0 else int( rando )
-			)
+			model = LagBoostingSeries( lag=int( lag ), loss=loss,
+				quantile=float( quantile ) if quantile is not None else None, rate=float( rate ),
+				iters=int( iters ), leaf_nodes=int( leaf_nodes ) if int( leaf_nodes ) > 0 else
+				None,
+				depth=int( depth ) if int( depth ) > 0 else None, leaf=int( leaf ),
+				regularization=float( regularization ), features=float( features ),
+				bins=int( bins ), stopping=stopping, validation=float( validation ),
+				no_change=int( no_change ), tol=float( tol ), verbose=int( verbose ),
+				rando=None if int( rando ) < 0 else int( rando ) )
 		
 		elif model_name == 'ARIMA':
 			p = st.number_input( 'p (AR)', min_value=0, value=1 )
@@ -16223,10 +16043,8 @@ elif mode == 'Time-Series Models':
 			D = st.number_input( 'D (Seasonal I)', min_value=0, value=0 )
 			Q = st.number_input( 'Q (Seasonal MA)', min_value=0, value=0 )
 			s = st.number_input( 'Season Length', min_value=0, value=0 )
-			model = SARIMA(
-				order=(int( p ), int( d ), int( q )),
-				seasonal=(int( P ), int( D ), int( Q ), int( s ))
-			)
+			model = SARIMA( order=(int( p ), int( d ), int( q )),
+				seasonal=(int( P ), int( D ), int( Q ), int( s )) )
 		
 		# ------------------------------------------------------------------
 		# TRAIN / FORECAST
@@ -16252,12 +16070,8 @@ elif mode == 'Time-Series Models':
 				st.subheader( 'Observed vs Forecast' )
 				fig, ax = plt.subplots( )
 				ax.plot( range( len( series ) ), series, label='Observed' )
-				ax.plot(
-					range( len( series ), len( series ) + len( forecast ) ),
-					forecast,
-					label='Forecast',
-					linestyle='--'
-				)
+				ax.plot( range( len( series ), len( series ) + len( forecast ) ), forecast,
+					label='Forecast', linestyle='--' )
 				ax.set_title( 'Time-Series Forecast' )
 				ax.legend( )
 				st.pyplot( fig )
@@ -16274,14 +16088,12 @@ elif mode == 'Time-Series Models':
 			splits = st.number_input( 'Number of splits', min_value=2, value=5 )
 			test_size = st.number_input( 'Test window size', min_value=1, value=10 )
 			gap = st.number_input( 'Gap size', min_value=0, value=0 )
-			max_train_size = st.number_input( 'Max train size (0 = unlimited)', min_value=0, value=0 )
+			max_train_size = st.number_input( 'Max train size (0 = unlimited)', min_value=0,
+				value=0 )
 			
-			splitter = TimeSeriesSpliter(
-				splits=int( splits ),
-				test_size=int( test_size ),
+			splitter = TimeSeriesSpliter( splits=int( splits ), test_size=int( test_size ),
 				gap=int( gap ),
-				max_train_size=int( max_train_size ) if int( max_train_size ) > 0 else None
-			)
+				max_train_size=int( max_train_size ) if int( max_train_size ) > 0 else None )
 			
 			if st.button( 'Visualize CV Splits' ):
 				try:
@@ -16299,8 +16111,9 @@ elif mode == 'Data Management':
 	st.subheader( cfg.MODE[ 'Database' ] )
 	left, center, right = st.columns( [ 0.05, 0.90, 0.05 ] )
 	with center:
-		tabs = st.tabs( [ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter',
-		                  'Aggregate', 'Visualize', 'Admin', 'SQL' ] )
+		tabs = st.tabs(
+			[ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter', 'Aggregate', 'Visualize', 'Admin',
+				'SQL' ] )
 		
 		tables = list_tables( )
 		if not tables:
@@ -16316,7 +16129,7 @@ elif mode == 'Data Management':
 			upl_c1, upl_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 			with upl_c1:
 				uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
-				
+			
 			with upl_c2:
 				overwrite = st.checkbox( 'Overwrite existing tables', value=True )
 				if uploaded_file:
@@ -16336,15 +16149,15 @@ elif mode == 'Data Management':
 									sql_type = get_sqlite_type( df[ col ].dtype )
 									columns.append( f'"{col}" {sql_type}' )
 								
-								create_stmt = ( f'CREATE TABLE "{table_name}" '
-										f'({", ".join( columns )});' )
+								create_stmt = (f'CREATE TABLE "{table_name}" '
+								               f'({", ".join( columns )});')
 								
 								conn.execute( create_stmt )
 								
 								# --- Insert Data ---
 								placeholders = ", ".join( [ "?" ] * len( df.columns ) )
-								insert_stmt = ( f'INSERT INTO "{table_name}" '
-										f'VALUES ({placeholders});' )
+								insert_stmt = (f'INSERT INTO "{table_name}" '
+								               f'VALUES ({placeholders});')
 								
 								conn.executemany( insert_stmt,
 									df.where( pd.notnull( df ), None ).values.tolist( ) )
@@ -16590,7 +16403,8 @@ elif mode == 'Data Management':
 			
 			st.markdown( '##### Create Custom Table' )
 			new_table_name = st.text_input( 'Table Name' )
-			column_count = st.number_input( 'Number of Columns', min_value=1, max_value=20, value=1 )
+			column_count = st.number_input( 'Number of Columns', min_value=1, max_value=20,
+				value=1 )
 			columns = [ ]
 			for i in range( column_count ):
 				st.markdown( f'### Column {i + 1}' )
@@ -16602,12 +16416,8 @@ elif mode == 'Data Management':
 				primary_key = st.checkbox( 'PRIMARY KEY', key=f'pk_{i}' )
 				auto_inc = st.checkbox( 'AUTOINCREMENT (INTEGER only)', key=f'ai_{i}' )
 				
-				columns.append( {
-						'name': col_name,
-						'type': col_type,
-						'not_null': not_null,
-						'primary_key': primary_key,
-						'auto_increment': auto_inc } )
+				columns.append( { 'name': col_name, 'type': col_type, 'not_null': not_null,
+					'primary_key': primary_key, 'auto_increment': auto_inc } )
 			
 			if st.button( 'Create Table' ):
 				try:
@@ -16625,8 +16435,7 @@ elif mode == 'Data Management':
 			if tables:
 				table = st.selectbox( 'Select Table', tables, key='schema_view_table' )
 				schema = create_schema( table )
-				schema_df = pd.DataFrame(
-					schema,
+				schema_df = pd.DataFrame( schema,
 					columns=[ 'cid', 'name', 'type', 'notnull', 'default', 'pk' ] )
 				
 				st.markdown( "##### Columns" )
@@ -16634,9 +16443,7 @@ elif mode == 'Data Management':
 				
 				# Row count
 				with create_connection( ) as conn:
-					count = conn.execute(
-						f'SELECT COUNT(*) FROM "{table}"'
-					).fetchone( )[ 0 ]
+					count = conn.execute( f'SELECT COUNT(*) FROM "{table}"' ).fetchone( )[ 0 ]
 				
 				st.metric( "Row Count", f"{count:,}" )
 				
@@ -16742,8 +16549,8 @@ elif mode == 'Data Management':
 						# ----------------------------------------------------------
 						if not result.empty:
 							csv = result.to_csv( index=False ).encode( 'utf-8' )
-							st.download_button( 'Download CSV', csv,
-								'query_results.csv', 'text/csv' )
+							st.download_button( 'Download CSV', csv, 'query_results.csv',
+								'text/csv' )
 					
 					except Exception as e:
 						st.error( f'Execution failed: {e}' )
