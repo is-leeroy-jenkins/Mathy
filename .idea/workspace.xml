@@ -134,15 +134,8 @@
       <workItem from="1782991636268" duration="10300000" />
       <workItem from="1783028694625" duration="894000" />
       <workItem from="1783036067013" duration="1840000" />
-      <workItem from="1783080232693" duration="17489000" />
-    </task>
-    <task id="LOCAL-00061" summary="update">
-      <option name="closed" value="true" />
-      <created>1776548081888</created>
-      <option name="number" value="00061" />
-      <option name="presentableId" value="LOCAL-00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1776548081888</updated>
+      <workItem from="1783080232693" duration="17670000" />
+      <workItem from="1783112648633" duration="582000" />
     </task>
     <task id="LOCAL-00062" summary="update">
       <option name="closed" value="true" />
@@ -528,7 +521,15 @@
       <option name="project" value="LOCAL" />
       <updated>1783106700732</updated>
     </task>
-    <option name="localTasksCounter" value="110" />
+    <task id="LOCAL-00110" summary="update">
+      <option name="closed" value="true" />
+      <created>1783112437315</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1783112437315</updated>
+    </task>
+    <option name="localTasksCounter" value="111" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -556,11 +557,6 @@
           <url>file://$PROJECT_DIR$/app.py</url>
           <line>7667</line>
           <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app.py</url>
-          <line>1238</line>
-          <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

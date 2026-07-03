@@ -499,7 +499,7 @@ def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ i
 	return fig, ax
 
 def blue_divider( ) -> None:
-	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+	blue_divider( )
 
 def log_step( msg: str ) -> None:
 	st.session_state.pipeline_log.append( msg )
@@ -2187,7 +2187,7 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# SCHEMA METRICS
 		# -------------------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Types' )
 		type_counts = pd.Series( schema ).value_counts( )
 		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
@@ -2198,7 +2198,7 @@ if mode == 'Data Profile':
 		m4.metric( 'Categorical', type_counts.get( 'categorical', 0 ) )
 		m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Records' )
 		
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
@@ -2271,7 +2271,7 @@ if mode == 'Data Profile':
 		# =====================================================================================
 		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
 		# =====================================================================================
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Diagnostics' )
 		
 		v1, v2 = st.columns( 2, border=True )
@@ -2314,7 +2314,7 @@ if mode == 'Data Profile':
 			else:
 				st.info( 'No Missing Values Detected.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Cardinality', help=cfg.DATA_CARDINALITY )
 		
 		v3, v4 = st.columns( 2, border=True )
@@ -2344,7 +2344,7 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# COLUMN CRUD
 		# -------------------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Labels' )
 		
 		with st.expander( label='Edit', icon='✏️', expanded=True ):
@@ -2389,7 +2389,7 @@ if mode == 'Data Profile':
 		# -------------------------------------------------------------------------------------
 		# Probability Distributions
 		# -------------------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Numeric Distributions' )
 		
 		numeric_dist_cols = [ c for c in df_dataset.columns if
@@ -2601,7 +2601,7 @@ elif mode == 'Descriptive Statistics':
 				st.warning( f'{col}: no plottable numeric values.' )
 				continue
 			
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( f'##### Distribution & Shape — {col}' )
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
@@ -2677,7 +2677,7 @@ elif mode == 'Descriptive Statistics':
 						f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
 					q3.metric( 'Shapiro P', 'n/a' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
 		
 		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
@@ -2717,7 +2717,7 @@ elif mode == 'Descriptive Statistics':
 			with c4:
 				st.caption( 'Heatmap will appear here once at least two variables are selected.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Principal Component Analysis', help=cfg.PCA )
 		
 		pca_c1, pca_c2 = st.columns( [ 0.5, 0.5 ], border=True )
@@ -2973,7 +2973,7 @@ elif mode == 'Inferential Statistics':
 		else:
 			st.info( 'Unable to compute inferential summary for the current selections.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		
 		# -------------------------------------------------------------------------------------
 		# NORMALITY + GROUP COMPARISON
@@ -3061,7 +3061,7 @@ elif mode == 'Inferential Statistics':
 			else:
 				st.info( 'Select a grouping variable to compare groups.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		
 		# -------------------------------------------------------------------------------------
 		# CORRELATION ANALYSIS
@@ -3119,7 +3119,7 @@ elif mode == 'Inferential Statistics':
 				st.pyplot( fig )
 				plt.close( fig )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		
 		# -------------------------------------------------------------------------------------
 		# CATEGORICAL ASSOCIATION
@@ -3238,7 +3238,7 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Method Selection
 		# -------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Detection Methods' )
 		
 		c_m1, c_m2 = st.columns( 2, border=True )
@@ -3255,7 +3255,7 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Threshold Controls
 		# -------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Thresholds' )
 		
 		c_t1, c_t2 = st.columns( 2, border=True )
@@ -3327,7 +3327,7 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Consensus & Output
 		# -------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Outlier Summary' )
 		
 		if df_anamolies.empty:
@@ -3373,7 +3373,7 @@ elif mode == 'Anomaly Detection':
 		# -------------------------------------------------------------------------
 		# Visualization — Distribution with Anomalies
 		# -------------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Empirical Cumulative Distribution Function (ECDF)', help=cfg.ECDF )
 		
 		for col in vars_sel:
@@ -3459,7 +3459,7 @@ elif mode == 'Anomaly Detection':
 				st.pyplot( fig, use_container_width=True )
 				plt.close( fig )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		
 		# -------------------------------------------------------------------------
 		# Bivariate View
@@ -3606,7 +3606,7 @@ elif mode == 'Classification Models':
 				st.success( 'Reset to Original' )
 				st.rerun( )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		if df_working is None:
 			st.stop( )
 		st.markdown( '##### Working Data' )
@@ -3617,7 +3617,7 @@ elif mode == 'Classification Models':
 		# -----------------------------------------------------------------
 		# Data Processing
 		# -----------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Feature-Engineering' )
 		
 		def has_classification_frame( df_frame: object ) -> bool:
@@ -5412,7 +5412,7 @@ elif mode == 'Classification Models':
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
 		
 		if not has_classification_frame( df_processed ):
@@ -5427,7 +5427,7 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# MODEL TRAINING
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Model Training', help=cfg.CLASSIFICATION_MODELS )
 		
 		active_features = [ ftr for ftr in st.session_state.get( 'features', [ ] ) if
@@ -8283,7 +8283,7 @@ elif mode == 'Classification Models':
 					model is not None and X_test is not None and y_test is not None and
 					y_prediction is not None)
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Model Performance' )
 		
 		if has_metric_frame:
@@ -8304,7 +8304,7 @@ elif mode == 'Classification Models':
 			st.info( 'No classification performance metrics are available yet. '
 			         'Train a classification model to populate this section.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Predictions' )
 		
 		if has_prediction_frame:
@@ -8313,7 +8313,7 @@ elif mode == 'Classification Models':
 		else:
 			st.info( 'No predictions are available for the current classification result.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Confusion Matrix', help=cfg.CONFUSION_MATRIX )
 		
 		if has_visual_context:
@@ -8341,7 +8341,7 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# Actual vs Predicted Class Counts
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Actual vs Predicted Counts' )
 		
 		if has_visual_context:
@@ -8369,7 +8369,7 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# Per-Class Accuracy
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Per-Class Accuracy', help=cfg.PERCLASS_ACCURACY )
 		
 		if has_visual_context:
@@ -8401,7 +8401,7 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# Prediction Confidence
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Prediction Confidence', help=cfg.PREDICTION_CONFIDENCE )
 		
 		if has_visual_context and hasattr( model, 'predict_probability' ):
@@ -8429,7 +8429,7 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# Observed vs Predicted
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Observed vs Predicted' )
 		
 		if has_visual_context and target_count == 2 and hasattr( model, 'scatter_plot' ):
@@ -8447,7 +8447,7 @@ elif mode == 'Classification Models':
 		# ------------------------------------------------------------------
 		# ROC Curve
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### ROC Curve', help=cfg.ROC_CURVE )
 		
 		if has_visual_context and target_count == 2 and hasattr( model, 'roc_curve' ):
@@ -8597,7 +8597,7 @@ elif mode == 'Regression Models':
 				st.success( 'Regression working data reset.' )
 				st.rerun( )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
 		if not has_loaded_dataset( df_working ):
 			i = ('Select regression features and one numeric target, then create the working '
@@ -8633,7 +8633,7 @@ elif mode == 'Regression Models':
 		# -----------------------------------------------------------------
 		# Data Processing
 		# -----------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Feature-Engineering' )
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
@@ -9983,7 +9983,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		if df_processed is None:
 			st.stop( )
 		
@@ -9995,7 +9995,7 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		# MODEL TRAINING
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Model Training' )
 		active_features = list( st.session_state.get( 'df_features', pd.DataFrame( ) ).columns )
 		active_targets = list( st.session_state.get( 'df_targets', pd.DataFrame( ) ).columns )
@@ -13926,7 +13926,7 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		# PREDICTIONS
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Predictions' )
 		y_prediction = model.project( X_test )
 		df_predictions = pd.DataFrame(
@@ -13940,7 +13940,7 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		# MODEL DETAILS
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Model Details' )
 		detail_rows = [ ]
 		
@@ -13991,7 +13991,7 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		# SCATTER PLOT
 		# ------------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Observed vs Predicted' )
 		plt.close( 'all' )
 		model.scatter_plot( X_test, y_test )
@@ -14113,7 +14113,7 @@ elif mode == 'Clustering Models':
 				commit_frame( df_working )
 				st.success( 'Reset to Original' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Working Data' )
 		st.caption( f'Samples: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
@@ -14129,7 +14129,7 @@ elif mode == 'Clustering Models':
 		# -----------------------------------------------------------------
 		# Data Processing
 		# -----------------------------------------------------------------
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Feature-Engineering' )
 		
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
@@ -15330,7 +15330,7 @@ elif mode == 'Clustering Models':
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+		blue_divider( )
 		st.markdown( '##### Processed Data' )
 		st.caption(
 			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
@@ -15564,7 +15564,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if df_counts is not None and not df_counts.empty:
@@ -15583,7 +15583,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if df_results is not None and not df_results.empty:
@@ -15613,7 +15613,7 @@ elif mode == 'Clustering Models':
 			# CENTROIDS (IF AVAILABLE)
 			# ------------------------------------------------------------------
 			if df_centroids is not None and not df_centroids.empty:
-				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+				blue_divider( )
 				st.markdown( '##### Cluster Centroids' )
 				st.data_editor( df_centroids, use_container_width=True )
 		
@@ -15786,7 +15786,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -15805,7 +15805,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -16042,7 +16042,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -16061,7 +16061,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -16345,7 +16345,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -16364,7 +16364,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -16640,7 +16640,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -16664,7 +16664,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -16861,7 +16861,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -16885,7 +16885,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -17082,7 +17082,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -17106,7 +17106,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -17308,7 +17308,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
@@ -17331,7 +17331,7 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			# VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
 			
 			if not df_results.empty:
@@ -17530,7 +17530,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# MODEL EVALUATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
@@ -17542,7 +17542,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
@@ -17554,7 +17554,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
@@ -17835,7 +17835,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# MODEL EVALUATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
@@ -17852,7 +17852,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
@@ -17864,7 +17864,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
@@ -18044,7 +18044,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# MODEL EVALUATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
@@ -18061,7 +18061,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
@@ -18073,7 +18073,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
@@ -18230,7 +18230,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# MODEL EVALUATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
@@ -18247,7 +18247,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Forecast Results' )
 			if not df_results.empty:
 				st.data_editor( df_results, use_container_width=True, hide_index=True,
@@ -18258,7 +18258,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
 			if len( forecast ) > 0:
 				plt.close( 'all' )
@@ -18464,7 +18464,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# MODEL EVALUATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
@@ -18481,7 +18481,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
@@ -18493,7 +18493,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
@@ -18694,7 +18694,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# SPLIT SUMMARY
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Split Summary' )
 			
 			if not df_split_summary.empty:
@@ -18711,7 +18711,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# SPLIT ASSIGNMENTS
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Split Assignments' )
 			
 			if not df_split_results.empty:
@@ -18723,7 +18723,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			# SPLIT VISUALIZATION
 			# ------------------------------------------------------------------
-			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			blue_divider( )
 			st.markdown( '##### Split Visualization' )
 			
 			if split_figure is not None:
