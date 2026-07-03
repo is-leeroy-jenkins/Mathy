@@ -122,7 +122,8 @@ from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
 
 
 from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
-from forecasting import ( LaggingSeries, LagBoostingSeries, ARIMA, SARIMA, TimeSeriesSpliter )
+from forecasting import ( LaggingSeries, LagQuantileSeries, LagBoostingSeries, ARIMA,
+                          SARIMA, TimeSeriesSpliter )
 
 # ============================================
 # Session State
@@ -17807,9 +17808,3046 @@ elif mode == 'Clustering Models':
 				st.markdown( '##### Cluster Centroids' )
 				st.data_editor( df_centroids, use_container_width=True )
 
-# ============================================
-# TIME SERIES MODE
-# ============================================
+		if 'cluster_dbscan_eps' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_eps' ] = 0.5
+		
+		if 'cluster_dbscan_min_samples' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_min_samples' ] = 5
+		
+		if 'cluster_dbscan_metric' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_metric' ] = 'euclidean'
+		
+		if 'cluster_dbscan_algorithm' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_algorithm' ] = 'auto'
+		
+		if 'cluster_dbscan_leaf_size' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_leaf_size' ] = 30
+		
+		if 'cluster_dbscan_p' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_p' ] = 2.0
+		
+		if 'cluster_dbscan_n_jobs' not in st.session_state:
+			st.session_state[ 'cluster_dbscan_n_jobs' ] = 1
+		
+		with st.expander( 'DBSCAN', expanded=False ):
+			st.caption(
+				'Density-based clustering that identifies dense regions and isolates noise.'
+			)
+			
+			db_c1, db_c2, db_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with db_c1:
+				epsilon = st.number_input(
+					'Neighborhood Radius',
+					min_value=0.0001,
+					step=0.1,
+					format='%.4f',
+					key='cluster_dbscan_eps'
+				)
+				
+				min_samples = st.number_input(
+					'Minimum Samples',
+					min_value=1,
+					step=1,
+					key='cluster_dbscan_min_samples'
+				)
+			
+			with db_c2:
+				metric = st.selectbox(
+					'Distance Metric',
+					options=[
+							'euclidean',
+							'manhattan',
+							'chebyshev',
+							'minkowski',
+							'cosine'
+					],
+					key='cluster_dbscan_metric'
+				)
+				
+				algorithm = st.selectbox(
+					'Neighbor Algorithm',
+					options=[
+							'auto',
+							'ball_tree',
+							'kd_tree',
+							'brute'
+					],
+					key='cluster_dbscan_algorithm'
+				)
+			
+			with db_c3:
+				leaf_size = st.number_input(
+					'Leaf Size',
+					min_value=1,
+					step=1,
+					key='cluster_dbscan_leaf_size'
+				)
+				
+				p_value = st.number_input(
+					'Minkowski Power',
+					min_value=1.0,
+					step=1.0,
+					format='%.1f',
+					key='cluster_dbscan_p'
+				)
+				
+				n_jobs = st.number_input(
+					'Parallel Jobs',
+					min_value=-1,
+					step=1,
+					key='cluster_dbscan_n_jobs'
+				)
+			
+			db_b1, db_b2 = st.columns( 2 )
+			
+			with db_b1:
+				run_dbscan = st.button(
+					'Run DBSCAN',
+					icon='🏃',
+					key='cluster_dbscan_run',
+					use_container_width=True
+				)
+			
+			with db_b2:
+				reset_dbscan = st.button(
+					'Reset DBSCAN',
+					icon='🔁',
+					key='cluster_dbscan_reset',
+					use_container_width=True
+				)
+			
+			if reset_dbscan:
+				clear_keys(
+					[
+							'cluster_dbscan_eps',
+							'cluster_dbscan_min_samples',
+							'cluster_dbscan_metric',
+							'cluster_dbscan_algorithm',
+							'cluster_dbscan_leaf_size',
+							'cluster_dbscan_p',
+							'cluster_dbscan_n_jobs'
+					]
+				)
+				
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.rerun( )
+			
+			if run_dbscan:
+				model_parameters = {
+						'Model': 'DBSCAN',
+						'eps': float( epsilon ),
+						'min_samples': int( min_samples ),
+						'metric': metric,
+						'algorithm': algorithm,
+						'leaf_size': int( leaf_size ),
+						'p': float( p_value ),
+						'n_jobs': int( n_jobs )
+				}
+				
+				cluster_signature = (
+						tuple( active_features ),
+						'DBSCAN',
+						tuple(
+							(k, str( value ))
+							for k, value in model_parameters.items( )
+						)
+				)
+				
+				try:
+					model = DBSCAN(
+						eps=float( epsilon ),
+						samples=int( min_samples ),
+						metric=metric,
+						metric_params=None,
+						algorithm=algorithm,
+						leaf_size=int( leaf_size ),
+						p=float( p_value ),
+						n_jobs=int( n_jobs )
+					)
+					
+					start_time = time.time( )
+					labels = model.project( X )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					try:
+						df_metrics = model.score( X )
+						
+						if df_metrics is None:
+							df_metrics = pd.DataFrame( )
+					except Exception:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					unique_labels = np.unique( labels )
+					cluster_labels = unique_labels[ unique_labels != -1 ]
+					noise_count = int( np.sum( labels == -1 ) )
+					
+					detail_rows = [
+							{
+									'Property': 'features',
+									'Value': int( model.features )
+							},
+							{
+									'Property': 'clusters',
+									'Value': int( len( cluster_labels ) )
+							},
+							{
+									'Property': 'noise_samples',
+									'Value': noise_count
+							},
+							{
+									'Property': 'core_samples',
+									'Value': int( len( model.core_samples ) )
+							},
+							{
+									'Property': 'epsilon',
+									'Value': float( model.epsilon )
+							},
+							{
+									'Property': 'min_samples',
+									'Value': int( model.min_samples )
+							},
+							{
+									'Property': 'metric',
+									'Value': model.metric
+							},
+							{
+									'Property': 'algorithm',
+									'Value': model.algorithm
+							},
+							{
+									'Property': 'leaf_size',
+									'Value': int( model.leaf_size )
+							},
+							{
+									'Property': 'p',
+									'Value': model.p
+							},
+							{
+									'Property': 'n_jobs',
+									'Value': model.n_jobs
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					df_centroids = pd.DataFrame( )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success( 'DBSCAN clustering complete.' )
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error( f'DBSCAN clustering failed: {ex}' )
+			
+			dbscan_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( dbscan_signature, tuple )
+					and len( dbscan_signature ) > 1
+					and dbscan_signature[ 1 ] == 'DBSCAN'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor(
+					df_counts,
+					use_container_width=True
+				)
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor(
+						df_metrics,
+						use_container_width=True
+					)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True
+					)
+			else:
+				st.info(
+					'Run DBSCAN to view cluster counts, noise counts, and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title( 'DBSCAN Cluster Assignments' )
+					
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info( 'Run DBSCAN to view the scatter plot.' )
+
+		if 'cluster_agglomerative_n_clusters' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_n_clusters' ] = 2
+		
+		if 'cluster_agglomerative_metric' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_metric' ] = 'euclidean'
+		
+		if 'cluster_agglomerative_linkage' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_linkage' ] = 'ward'
+		
+		if 'cluster_agglomerative_compute_full_tree' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_compute_full_tree' ] = 'auto'
+		
+		if 'cluster_agglomerative_use_distance_threshold' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_use_distance_threshold' ] = False
+		
+		if 'cluster_agglomerative_distance_threshold' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_distance_threshold' ] = 0.0
+		
+		if 'cluster_agglomerative_compute_distances' not in st.session_state:
+			st.session_state[ 'cluster_agglomerative_compute_distances' ] = False
+		
+		with st.expander( 'Agglomerative Clustering', expanded=False ):
+			st.caption(
+				'Hierarchical bottom-up clustering that successively merges related observations.'
+			)
+			
+			ag_c1, ag_c2, ag_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with ag_c1:
+				agglomerative_clusters = int(
+					st.number_input(
+						'Number of Clusters',
+						min_value=2,
+						max_value=max( 2, len( df_cluster_input ) - 1 ),
+						step=1,
+						key='cluster_agglomerative_n_clusters'
+					)
+				)
+				
+				agglomerative_linkage = st.selectbox(
+					'Linkage',
+					options=[
+							'ward',
+							'complete',
+							'average',
+							'single'
+					],
+					key='cluster_agglomerative_linkage'
+				)
+			
+			with ag_c2:
+				agglomerative_metric = st.selectbox(
+					'Distance Metric',
+					options=[
+							'euclidean',
+							'manhattan',
+							'cosine',
+							'l1',
+							'l2'
+					],
+					key='cluster_agglomerative_metric'
+				)
+				
+				agglomerative_compute_full_tree = st.selectbox(
+					'Compute Full Tree',
+					options=[
+							'auto',
+							True,
+							False
+					],
+					key='cluster_agglomerative_compute_full_tree'
+				)
+			
+			with ag_c3:
+				agglomerative_use_distance_threshold = st.checkbox(
+					'Use Distance Threshold',
+					key='cluster_agglomerative_use_distance_threshold'
+				)
+				
+				agglomerative_distance_threshold = float(
+					st.number_input(
+						'Distance Threshold',
+						min_value=0.0,
+						step=0.1,
+						format='%.4f',
+						disabled=not agglomerative_use_distance_threshold,
+						key='cluster_agglomerative_distance_threshold'
+					)
+				)
+				
+				agglomerative_compute_distances = st.checkbox(
+					'Compute Merge Distances',
+					key='cluster_agglomerative_compute_distances'
+				)
+			
+			ag_b1, ag_b2 = st.columns( 2 )
+			
+			with ag_b1:
+				run_agglomerative = st.button(
+					'Run Agglomerative Clustering',
+					icon='🏃',
+					key='cluster_agglomerative_run',
+					use_container_width=True
+				)
+			
+			with ag_b2:
+				reset_agglomerative = st.button(
+					'Reset Agglomerative Clustering',
+					icon='🔁',
+					key='cluster_agglomerative_reset',
+					use_container_width=True
+				)
+			
+			if reset_agglomerative:
+				st.session_state[ 'cluster_agglomerative_n_clusters' ] = 2
+				st.session_state[ 'cluster_agglomerative_metric' ] = 'euclidean'
+				st.session_state[ 'cluster_agglomerative_linkage' ] = 'ward'
+				st.session_state[ 'cluster_agglomerative_compute_full_tree' ] = 'auto'
+				st.session_state[
+					'cluster_agglomerative_use_distance_threshold'
+				] = False
+				st.session_state[
+					'cluster_agglomerative_distance_threshold'
+				] = 0.0
+				st.session_state[
+					'cluster_agglomerative_compute_distances'
+				] = False
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.rerun( )
+			
+			if run_agglomerative:
+				try:
+					if (
+							agglomerative_linkage == 'ward'
+							and agglomerative_metric != 'euclidean'
+					):
+						st.warning(
+							'⚠️ Ward linkage requires the Euclidean distance metric.'
+						)
+						st.stop( )
+					
+					if (
+							agglomerative_use_distance_threshold
+							and agglomerative_distance_threshold <= 0.0
+					):
+						st.warning(
+							'⚠️ Distance Threshold must be greater than zero when enabled.'
+						)
+						st.stop( )
+					
+					distance_threshold = (
+							float( agglomerative_distance_threshold )
+							if agglomerative_use_distance_threshold
+							else None
+					)
+					
+					model_parameters = {
+							'Model': 'Agglomerative',
+							'n_clusters': (
+									None
+									if distance_threshold is not None
+									else int( agglomerative_clusters )
+							),
+							'metric': agglomerative_metric,
+							'linkage': agglomerative_linkage,
+							'compute_full_tree': agglomerative_compute_full_tree,
+							'distance_threshold': distance_threshold,
+							'compute_distances': bool(
+								agglomerative_compute_distances
+							)
+					}
+					
+					cluster_signature = (
+							tuple( active_features ),
+							'Agglomerative',
+							tuple(
+								(
+										key,
+										str( value )
+								)
+								for key, value in model_parameters.items( )
+							)
+					)
+					
+					model = Agglomerative(
+						clusters=int( agglomerative_clusters ),
+						affinity=agglomerative_metric,
+						linkage=agglomerative_linkage,
+						metric=agglomerative_metric,
+						memory=None,
+						connectivity=None,
+						compute_full_tree=agglomerative_compute_full_tree,
+						distance_threshold=distance_threshold,
+						compute_distances=bool(
+							agglomerative_compute_distances
+						),
+						n_clusters=(
+								None
+								if distance_threshold is not None
+								else int( agglomerative_clusters )
+						)
+					)
+					
+					start_time = time.time( )
+					labels = model.project( X )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					try:
+						df_metrics = model.score( X )
+						
+						if df_metrics is None:
+							df_metrics = pd.DataFrame( )
+					except Exception:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					detail_rows = [ ]
+					
+					for property_name in [
+							'features',
+							'leaves',
+							'connected_components',
+							'n_clusters',
+							'metric',
+							'linkage',
+							'compute_full_tree',
+							'distance_threshold',
+							'compute_distances'
+					]:
+						if hasattr( model, property_name ):
+							try:
+								property_value = getattr(
+									model,
+									property_name
+								)
+								
+								if (
+										property_value is not None
+										and not isinstance(
+											property_value,
+											(
+													np.ndarray,
+													pd.DataFrame
+											)
+										)
+								):
+									detail_rows.append(
+										{
+												'Property': property_name,
+												'Value': property_value
+										}
+									)
+							except Exception:
+								pass
+					
+					df_details = (
+							pd.DataFrame( detail_rows )
+							if detail_rows
+							else pd.DataFrame( )
+					)
+					
+					df_centroids = pd.DataFrame( )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[
+						'df_cluster_centroids'
+					] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[
+						'cluster_plot_features'
+					] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success(
+						'Agglomerative clustering complete.'
+					)
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[
+						'df_cluster_centroids'
+					] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error(
+						f'Agglomerative clustering failed: {ex}'
+					)
+			
+			agglomerative_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( agglomerative_signature, tuple )
+					and len( agglomerative_signature ) > 1
+					and agglomerative_signature[ 1 ] == 'Agglomerative'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor(
+					df_counts,
+					use_container_width=True
+				)
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor(
+						df_metrics,
+						use_container_width=True
+					)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True
+					)
+			else:
+				st.info(
+					'Run Agglomerative Clustering to view cluster counts and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title(
+						'Agglomerative Cluster Assignments'
+					)
+					
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info(
+					'Run Agglomerative Clustering to view the scatter plot.'
+				)
+				
+		if 'cluster_spectral_n_clusters' not in st.session_state:
+			st.session_state[ 'cluster_spectral_n_clusters' ] = 2
+		
+		if 'cluster_spectral_affinity' not in st.session_state:
+			st.session_state[ 'cluster_spectral_affinity' ] = 'rbf'
+		
+		if 'cluster_spectral_gamma' not in st.session_state:
+			st.session_state[ 'cluster_spectral_gamma' ] = 1.0
+		
+		if 'cluster_spectral_n_neighbors' not in st.session_state:
+			st.session_state[ 'cluster_spectral_n_neighbors' ] = 10
+		
+		if 'cluster_spectral_eigen_solver' not in st.session_state:
+			st.session_state[ 'cluster_spectral_eigen_solver' ] = 'None'
+		
+		if 'cluster_spectral_n_components' not in st.session_state:
+			st.session_state[ 'cluster_spectral_n_components' ] = 0
+		
+		if 'cluster_spectral_n_init' not in st.session_state:
+			st.session_state[ 'cluster_spectral_n_init' ] = 10
+		
+		if 'cluster_spectral_eigen_tolerance' not in st.session_state:
+			st.session_state[ 'cluster_spectral_eigen_tolerance' ] = 'auto'
+		
+		if 'cluster_spectral_assign_labels' not in st.session_state:
+			st.session_state[ 'cluster_spectral_assign_labels' ] = 'kmeans'
+		
+		if 'cluster_spectral_degree' not in st.session_state:
+			st.session_state[ 'cluster_spectral_degree' ] = 3.0
+		
+		if 'cluster_spectral_coef0' not in st.session_state:
+			st.session_state[ 'cluster_spectral_coef0' ] = 1.0
+		
+		if 'cluster_spectral_n_jobs' not in st.session_state:
+			st.session_state[ 'cluster_spectral_n_jobs' ] = 1
+		
+		if 'cluster_spectral_verbose' not in st.session_state:
+			st.session_state[ 'cluster_spectral_verbose' ] = False
+		
+		if 'cluster_spectral_random_state' not in st.session_state:
+			st.session_state[ 'cluster_spectral_random_state' ] = 42
+		
+		with st.expander( 'Spectral Clustering', expanded=False ):
+			st.caption(
+				'Graph-based clustering for identifying nonlinear cluster structures.'
+			)
+			
+			sp_c1, sp_c2, sp_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with sp_c1:
+				spectral_clusters = int(
+					st.number_input(
+						'Number of Clusters',
+						min_value=2,
+						max_value=max( 2, len( df_cluster_input ) - 1 ),
+						step=1,
+						key='cluster_spectral_n_clusters'
+					)
+				)
+				
+				spectral_affinity = st.selectbox(
+					'Affinity',
+					options=[
+							'rbf',
+							'nearest_neighbors',
+							'polynomial',
+							'sigmoid',
+							'cosine'
+					],
+					key='cluster_spectral_affinity'
+				)
+				
+				spectral_gamma = float(
+					st.number_input(
+						'Gamma',
+						min_value=0.0001,
+						step=0.1,
+						format='%.4f',
+						key='cluster_spectral_gamma'
+					)
+				)
+				
+				spectral_neighbors = int(
+					st.number_input(
+						'Nearest Neighbors',
+						min_value=1,
+						max_value=max( 1, len( df_cluster_input ) - 1 ),
+						step=1,
+						key='cluster_spectral_n_neighbors'
+					)
+				)
+			
+			with sp_c2:
+				spectral_eigen_solver_display = st.selectbox(
+					'Eigen Solver',
+					options=[
+							'None',
+							'arpack',
+							'lobpcg'
+					],
+					key='cluster_spectral_eigen_solver'
+				)
+				
+				spectral_components = int(
+					st.number_input(
+						'Embedding Components (0 = Default)',
+						min_value=0,
+						max_value=max( 1, len( df_cluster_input ) - 1 ),
+						step=1,
+						key='cluster_spectral_n_components'
+					)
+				)
+				
+				spectral_n_init = int(
+					st.number_input(
+						'K-Means Initializations',
+						min_value=1,
+						step=1,
+						key='cluster_spectral_n_init'
+					)
+				)
+				
+				spectral_eigen_tolerance = st.selectbox(
+					'Eigen Tolerance',
+					options=[
+							'auto',
+							0.0,
+							0.0001,
+							0.001,
+							0.01
+					],
+					key='cluster_spectral_eigen_tolerance'
+				)
+			
+			with sp_c3:
+				spectral_assign_labels = st.selectbox(
+					'Label Assignment',
+					options=[
+							'kmeans',
+							'discretize',
+							'cluster_qr'
+					],
+					key='cluster_spectral_assign_labels'
+				)
+				
+				spectral_degree = float(
+					st.number_input(
+						'Polynomial Degree',
+						min_value=1.0,
+						step=1.0,
+						format='%.1f',
+						key='cluster_spectral_degree'
+					)
+				)
+				
+				spectral_coef0 = float(
+					st.number_input(
+						'Kernel Coefficient',
+						step=0.1,
+						format='%.4f',
+						key='cluster_spectral_coef0'
+					)
+				)
+				
+				spectral_jobs = int(
+					st.number_input(
+						'Parallel Jobs',
+						min_value=-1,
+						step=1,
+						key='cluster_spectral_n_jobs'
+					)
+				)
+				
+				spectral_verbose = st.checkbox(
+					'Verbose',
+					key='cluster_spectral_verbose'
+				)
+				
+				spectral_random_state = int(
+					st.number_input(
+						'Random State',
+						min_value=0,
+						step=1,
+						key='cluster_spectral_random_state'
+					)
+				)
+			
+			sp_b1, sp_b2 = st.columns( 2 )
+			
+			with sp_b1:
+				run_spectral = st.button(
+					'Run Spectral Clustering',
+					icon='🏃',
+					key='cluster_spectral_run',
+					use_container_width=True
+				)
+			
+			with sp_b2:
+				reset_spectral = st.button(
+					'Reset Spectral Clustering',
+					icon='🔁',
+					key='cluster_spectral_reset',
+					use_container_width=True
+				)
+			
+			if reset_spectral:
+				clear_keys(
+					[
+							'cluster_spectral_n_clusters',
+							'cluster_spectral_affinity',
+							'cluster_spectral_gamma',
+							'cluster_spectral_n_neighbors',
+							'cluster_spectral_eigen_solver',
+							'cluster_spectral_n_components',
+							'cluster_spectral_n_init',
+							'cluster_spectral_eigen_tolerance',
+							'cluster_spectral_assign_labels',
+							'cluster_spectral_degree',
+							'cluster_spectral_coef0',
+							'cluster_spectral_n_jobs',
+							'cluster_spectral_verbose',
+							'cluster_spectral_random_state'
+					]
+				)
+				
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.rerun( )
+			
+			if run_spectral:
+				try:
+					if spectral_clusters >= len( df_cluster_input ):
+						st.warning(
+							'⚠️ Number of Clusters must be less than the number of samples.'
+						)
+						st.stop( )
+					
+					if (
+							spectral_affinity == 'nearest_neighbors'
+							and spectral_neighbors >= len( df_cluster_input )
+					):
+						st.warning(
+							'⚠️ Nearest Neighbors must be less than the number of samples.'
+						)
+						st.stop( )
+					
+					if (
+							spectral_components > 0
+							and spectral_components >= len( df_cluster_input )
+					):
+						st.warning(
+							'⚠️ Embedding Components must be less than the number of samples.'
+						)
+						st.stop( )
+					
+					spectral_eigen_solver = (
+							None
+							if spectral_eigen_solver_display == 'None'
+							else spectral_eigen_solver_display
+					)
+					
+					spectral_n_components = (
+							None
+							if spectral_components == 0
+							else spectral_components
+					)
+					
+					model_parameters = {
+							'Model': 'Spectral',
+							'n_clusters': spectral_clusters,
+							'affinity': spectral_affinity,
+							'gamma': spectral_gamma,
+							'n_neighbors': spectral_neighbors,
+							'eigen_solver': spectral_eigen_solver,
+							'n_components': spectral_n_components,
+							'n_init': spectral_n_init,
+							'eigen_tol': spectral_eigen_tolerance,
+							'assign_labels': spectral_assign_labels,
+							'degree': spectral_degree,
+							'coef0': spectral_coef0,
+							'n_jobs': spectral_jobs,
+							'verbose': spectral_verbose,
+							'random_state': spectral_random_state
+					}
+					
+					cluster_signature = (
+							tuple( active_features ),
+							'Spectral',
+							tuple(
+								(
+										key,
+										str( value )
+								)
+								for key, value in model_parameters.items( )
+							)
+					)
+					
+					model = Spectral(
+						clusters=spectral_clusters,
+						random_state=spectral_random_state,
+						n_init=spectral_n_init,
+						gama=spectral_gamma,
+						distance=spectral_affinity,
+						neighbors=spectral_neighbors,
+						tolerance=spectral_eigen_tolerance,
+						assign=spectral_assign_labels,
+						eigen_solver=spectral_eigen_solver,
+						n_components=spectral_n_components,
+						degree=spectral_degree,
+						coef0=spectral_coef0,
+						kernel_params=None,
+						n_jobs=spectral_jobs,
+						verbose=spectral_verbose
+					)
+					
+					start_time = time.time( )
+					labels = model.project( X )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					try:
+						df_metrics = model.score( X )
+						
+						if df_metrics is None:
+							df_metrics = pd.DataFrame( )
+					except Exception:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					detail_rows = [
+							{
+									'Property': 'features',
+									'Value': int( model.features )
+							},
+							{
+									'Property': 'n_clusters',
+									'Value': int( model.n_clusters )
+							},
+							{
+									'Property': 'affinity',
+									'Value': model.affinity
+							},
+							{
+									'Property': 'gamma',
+									'Value': float( model.gamma )
+							},
+							{
+									'Property': 'n_neighbors',
+									'Value': int( model.n_neighbors )
+							},
+							{
+									'Property': 'eigen_solver',
+									'Value': model.eigen_solver
+							},
+							{
+									'Property': 'n_components',
+									'Value': model.n_components
+							},
+							{
+									'Property': 'n_init',
+									'Value': int( model.n_init )
+							},
+							{
+									'Property': 'eigen_tolerance',
+									'Value': model.eigen_tolerance
+							},
+							{
+									'Property': 'assign_labels',
+									'Value': model.assign_labels
+							},
+							{
+									'Property': 'degree',
+									'Value': model.degree
+							},
+							{
+									'Property': 'coef0',
+									'Value': model.coef0
+							},
+							{
+									'Property': 'n_jobs',
+									'Value': model.n_jobs
+							},
+							{
+									'Property': 'verbose',
+									'Value': model.verbose
+							},
+							{
+									'Property': 'random_state',
+									'Value': model.random_state
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					df_centroids = pd.DataFrame( )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[
+						'df_cluster_centroids'
+					] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[
+						'cluster_plot_features'
+					] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success( 'Spectral clustering complete.' )
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[
+						'df_cluster_centroids'
+					] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error(
+						f'Spectral clustering failed: {ex}'
+					)
+			
+			spectral_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( spectral_signature, tuple )
+					and len( spectral_signature ) > 1
+					and spectral_signature[ 1 ] == 'Spectral'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor(
+					df_counts,
+					use_container_width=True
+				)
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor(
+						df_metrics,
+						use_container_width=True
+					)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True
+					)
+			else:
+				st.info(
+					'Run Spectral Clustering to view cluster counts and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title( 'Spectral Cluster Assignments' )
+					
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info(
+					'Run Spectral Clustering to view the scatter plot.'
+				)
+		
+		if 'cluster_optics_min_samples' not in st.session_state:
+			st.session_state[ 'cluster_optics_min_samples' ] = 5
+		
+		if 'cluster_optics_max_eps' not in st.session_state:
+			st.session_state[ 'cluster_optics_max_eps' ] = 0.0
+		
+		if 'cluster_optics_metric' not in st.session_state:
+			st.session_state[ 'cluster_optics_metric' ] = 'minkowski'
+		
+		if 'cluster_optics_p' not in st.session_state:
+			st.session_state[ 'cluster_optics_p' ] = 2.0
+		
+		if 'cluster_optics_cluster_method' not in st.session_state:
+			st.session_state[ 'cluster_optics_cluster_method' ] = 'xi'
+		
+		if 'cluster_optics_eps' not in st.session_state:
+			st.session_state[ 'cluster_optics_eps' ] = 0.5
+		
+		if 'cluster_optics_xi' not in st.session_state:
+			st.session_state[ 'cluster_optics_xi' ] = 0.05
+		
+		if 'cluster_optics_predecessor_correction' not in st.session_state:
+			st.session_state[ 'cluster_optics_predecessor_correction' ] = True
+		
+		if 'cluster_optics_min_cluster_size' not in st.session_state:
+			st.session_state[ 'cluster_optics_min_cluster_size' ] = 0
+		
+		if 'cluster_optics_algorithm' not in st.session_state:
+			st.session_state[ 'cluster_optics_algorithm' ] = 'auto'
+		
+		if 'cluster_optics_leaf_size' not in st.session_state:
+			st.session_state[ 'cluster_optics_leaf_size' ] = 30
+		
+		if 'cluster_optics_n_jobs' not in st.session_state:
+			st.session_state[ 'cluster_optics_n_jobs' ] = 1
+		
+		with st.expander( 'OPTICS Clustering', expanded=False ):
+			st.caption(
+				'Density-based clustering across varying neighborhood radii with explicit noise detection.'
+			)
+			
+			op_c1, op_c2, op_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with op_c1:
+				optics_min_samples = int(
+					st.number_input(
+						'Minimum Samples',
+						min_value=2,
+						max_value=max( 2, len( df_cluster_input ) ),
+						step=1,
+						key='cluster_optics_min_samples'
+					)
+				)
+				
+				optics_max_eps_input = float(
+					st.number_input(
+						'Maximum Epsilon (0 = Unlimited)',
+						min_value=0.0,
+						step=0.1,
+						format='%.4f',
+						key='cluster_optics_max_eps'
+					)
+				)
+				
+				optics_metric = st.selectbox(
+					'Distance Metric',
+					options=[
+							'minkowski',
+							'euclidean',
+							'manhattan',
+							'chebyshev',
+							'cosine'
+					],
+					key='cluster_optics_metric'
+				)
+				
+				optics_p = float(
+					st.number_input(
+						'Minkowski Power',
+						min_value=1.0,
+						step=1.0,
+						format='%.1f',
+						key='cluster_optics_p'
+					)
+				)
+			
+			with op_c2:
+				optics_cluster_method = st.selectbox(
+					'Cluster Extraction Method',
+					options=[
+							'xi',
+							'dbscan'
+					],
+					key='cluster_optics_cluster_method'
+				)
+				
+				optics_eps = float(
+					st.number_input(
+						'DBSCAN Epsilon',
+						min_value=0.0001,
+						step=0.1,
+						format='%.4f',
+						disabled=optics_cluster_method != 'dbscan',
+						key='cluster_optics_eps'
+					)
+				)
+				
+				optics_xi = float(
+					st.number_input(
+						'Xi',
+						min_value=0.0001,
+						max_value=1.0,
+						step=0.01,
+						format='%.4f',
+						disabled=optics_cluster_method != 'xi',
+						key='cluster_optics_xi'
+					)
+				)
+				
+				optics_predecessor_correction = st.checkbox(
+					'Predecessor Correction',
+					disabled=optics_cluster_method != 'xi',
+					key='cluster_optics_predecessor_correction'
+				)
+			
+			with op_c3:
+				optics_min_cluster_size_input = int(
+					st.number_input(
+						'Minimum Cluster Size (0 = Default)',
+						min_value=0,
+						max_value=max( 1, len( df_cluster_input ) ),
+						step=1,
+						key='cluster_optics_min_cluster_size'
+					)
+				)
+				
+				optics_algorithm = st.selectbox(
+					'Neighbor Algorithm',
+					options=[
+							'auto',
+							'ball_tree',
+							'kd_tree',
+							'brute'
+					],
+					key='cluster_optics_algorithm'
+				)
+				
+				optics_leaf_size = int(
+					st.number_input(
+						'Leaf Size',
+						min_value=1,
+						step=1,
+						key='cluster_optics_leaf_size'
+					)
+				)
+				
+				optics_n_jobs = int(
+					st.number_input(
+						'Parallel Jobs',
+						min_value=-1,
+						step=1,
+						key='cluster_optics_n_jobs'
+					)
+				)
+			
+			op_b1, op_b2 = st.columns( 2 )
+			
+			with op_b1:
+				run_optics = st.button(
+					'Run OPTICS Clustering',
+					icon='🏃',
+					key='cluster_optics_run',
+					use_container_width=True
+				)
+			
+			with op_b2:
+				reset_optics = st.button(
+					'Reset OPTICS Clustering',
+					icon='🔁',
+					key='cluster_optics_reset',
+					use_container_width=True
+				)
+			
+			if reset_optics:
+				clear_keys(
+					[
+							'cluster_optics_min_samples',
+							'cluster_optics_max_eps',
+							'cluster_optics_metric',
+							'cluster_optics_p',
+							'cluster_optics_cluster_method',
+							'cluster_optics_eps',
+							'cluster_optics_xi',
+							'cluster_optics_predecessor_correction',
+							'cluster_optics_min_cluster_size',
+							'cluster_optics_algorithm',
+							'cluster_optics_leaf_size',
+							'cluster_optics_n_jobs'
+					]
+				)
+				
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.rerun( )
+			
+			if run_optics:
+				try:
+					if optics_min_samples > len( df_cluster_input ):
+						st.warning(
+							'⚠️ Minimum Samples cannot exceed the number of samples.'
+						)
+						st.stop( )
+					
+					if (
+							optics_min_cluster_size_input > 0
+							and optics_min_cluster_size_input > len( df_cluster_input )
+					):
+						st.warning(
+							'⚠️ Minimum Cluster Size cannot exceed the number of samples.'
+						)
+						st.stop( )
+					
+					optics_max_eps = (
+							np.inf
+							if optics_max_eps_input == 0.0
+							else optics_max_eps_input
+					)
+					
+					optics_min_cluster_size = (
+							None
+							if optics_min_cluster_size_input == 0
+							else optics_min_cluster_size_input
+					)
+					
+					optics_effective_eps = (
+							optics_eps
+							if optics_cluster_method == 'dbscan'
+							else None
+					)
+					
+					model_parameters = {
+							'Model': 'OPTICS',
+							'min_samples': optics_min_samples,
+							'max_eps': optics_max_eps,
+							'metric': optics_metric,
+							'p': optics_p,
+							'cluster_method': optics_cluster_method,
+							'eps': optics_effective_eps,
+							'xi': optics_xi,
+							'predecessor_correction': optics_predecessor_correction,
+							'min_cluster_size': optics_min_cluster_size,
+							'algorithm': optics_algorithm,
+							'leaf_size': optics_leaf_size,
+							'n_jobs': optics_n_jobs
+					}
+					
+					cluster_signature = (
+							tuple( active_features ),
+							'OPTICS',
+							tuple(
+								(
+										key,
+										str( value )
+								)
+								for key, value in model_parameters.items( )
+							)
+					)
+					
+					model = OPTICS(
+						samples=optics_min_samples,
+						max_eps=optics_max_eps,
+						metric=optics_metric,
+						algorithm=optics_algorithm,
+						leaf_size=optics_leaf_size,
+						eps=optics_effective_eps,
+						predecessor_correction=optics_predecessor_correction,
+						min_cluster_size=optics_min_cluster_size,
+						p=optics_p,
+						metric_params=None,
+						cluster_method=optics_cluster_method,
+						xi=optics_xi,
+						memory=None,
+						n_jobs=optics_n_jobs
+					)
+					
+					start_time = time.time( )
+					labels = model.project( X )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					df_metrics = model.score( X )
+					
+					if df_metrics is None:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					unique_labels = np.unique( labels )
+					cluster_labels = unique_labels[ unique_labels != -1 ]
+					noise_count = int( np.sum( labels == -1 ) )
+					
+					detail_rows = [
+							{
+									'Property': 'features',
+									'Value': int( model.features )
+							},
+							{
+									'Property': 'clusters',
+									'Value': int( len( cluster_labels ) )
+							},
+							{
+									'Property': 'noise_samples',
+									'Value': noise_count
+							},
+							{
+									'Property': 'min_samples',
+									'Value': model.min_samples
+							},
+							{
+									'Property': 'max_eps',
+									'Value': model.max_eps
+							},
+							{
+									'Property': 'metric',
+									'Value': model.metric
+							},
+							{
+									'Property': 'p',
+									'Value': model.p
+							},
+							{
+									'Property': 'cluster_method',
+									'Value': model.cluster_method
+							},
+							{
+									'Property': 'eps',
+									'Value': model.eps
+							},
+							{
+									'Property': 'xi',
+									'Value': model.xi
+							},
+							{
+									'Property': 'predecessor_correction',
+									'Value': model.predecessor_correction
+							},
+							{
+									'Property': 'min_cluster_size',
+									'Value': model.min_cluster_size
+							},
+							{
+									'Property': 'algorithm',
+									'Value': model.algorithm
+							},
+							{
+									'Property': 'leaf_size',
+									'Value': model.leaf_size
+							},
+							{
+									'Property': 'n_jobs',
+									'Value': model.n_jobs
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					df_ordering = pd.DataFrame(
+						{
+								'Sample': np.arange( len( model.ordering ) ),
+								'Ordering': model.ordering,
+								'Reachability': model.reachability,
+								'Core Distance': model.core_distances,
+								'Predecessor': model.predecessor
+						}
+					)
+					
+					df_centroids = pd.DataFrame( )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[ 'df_cluster_ordering' ] = df_ordering.copy( )
+					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success( 'OPTICS clustering complete.' )
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_ordering' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error( f'OPTICS clustering failed: {ex}' )
+			
+			optics_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( optics_signature, tuple )
+					and len( optics_signature ) > 1
+					and optics_signature[ 1 ] == 'OPTICS'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+				
+				df_ordering = st.session_state.get(
+					'df_cluster_ordering',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+				df_ordering = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor(
+					df_counts,
+					use_container_width=True
+				)
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor(
+						df_metrics,
+						use_container_width=True
+					)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True
+					)
+				
+				if not df_ordering.empty:
+					st.caption( 'Reachability and Ordering' )
+					st.data_editor(
+						df_ordering,
+						use_container_width=True
+					)
+			else:
+				st.info(
+					'Run OPTICS Clustering to view cluster counts, noise counts, and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title( 'OPTICS Cluster Assignments' )
+					
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info(
+					'Run OPTICS Clustering to view the scatter plot.'
+				)		
+		
+		if 'cluster_mean_shift_bandwidth' not in st.session_state:
+			st.session_state[ 'cluster_mean_shift_bandwidth' ] = 0.0
+		
+		if 'cluster_mean_shift_bin_seeding' not in st.session_state:
+			st.session_state[ 'cluster_mean_shift_bin_seeding' ] = False
+		
+		if 'cluster_mean_shift_min_bin_freq' not in st.session_state:
+			st.session_state[ 'cluster_mean_shift_min_bin_freq' ] = 1
+		
+		if 'cluster_mean_shift_cluster_all' not in st.session_state:
+			st.session_state[ 'cluster_mean_shift_cluster_all' ] = True
+		
+		if 'cluster_mean_shift_n_jobs' not in st.session_state:
+			st.session_state[ 'cluster_mean_shift_n_jobs' ] = 1
+		
+		if 'cluster_mean_shift_max_iter' not in st.session_state:
+			st.session_state[ 'cluster_mean_shift_max_iter' ] = 300
+		
+		with st.expander( 'Mean Shift Clustering', expanded=False ):
+			st.caption(
+				'Centroid-based clustering that discovers cluster centers from the density of the data.'
+			)
+			
+			ms_c1, ms_c2, ms_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with ms_c1:
+				mean_shift_bandwidth_input = float(
+					st.number_input(
+						'Bandwidth (0 = Automatic)',
+						min_value=0.0,
+						step=0.1,
+						format='%.4f',
+						key='cluster_mean_shift_bandwidth'
+					)
+				)
+				
+				mean_shift_bin_seeding = st.checkbox(
+					'Use Bin Seeding',
+					key='cluster_mean_shift_bin_seeding'
+				)
+			
+			with ms_c2:
+				mean_shift_min_bin_freq = int(
+					st.number_input(
+						'Minimum Bin Frequency',
+						min_value=1,
+						step=1,
+						key='cluster_mean_shift_min_bin_freq'
+					)
+				)
+				
+				mean_shift_cluster_all = st.checkbox(
+					'Assign All Samples',
+					key='cluster_mean_shift_cluster_all'
+				)
+			
+			with ms_c3:
+				mean_shift_n_jobs = int(
+					st.number_input(
+						'Parallel Jobs',
+						min_value=-1,
+						step=1,
+						key='cluster_mean_shift_n_jobs'
+					)
+				)
+				
+				mean_shift_max_iter = int(
+					st.number_input(
+						'Maximum Iterations',
+						min_value=1,
+						step=1,
+						key='cluster_mean_shift_max_iter'
+					)
+				)
+			
+			ms_b1, ms_b2 = st.columns( 2 )
+			
+			with ms_b1:
+				run_mean_shift = st.button(
+					'Run Mean Shift Clustering',
+					icon='🏃',
+					key='cluster_mean_shift_run',
+					use_container_width=True
+				)
+			
+			with ms_b2:
+				reset_mean_shift = st.button(
+					'Reset Mean Shift Clustering',
+					icon='🔁',
+					key='cluster_mean_shift_reset',
+					use_container_width=True
+				)
+			
+			if reset_mean_shift:
+				clear_keys(
+					[
+							'cluster_mean_shift_bandwidth',
+							'cluster_mean_shift_bin_seeding',
+							'cluster_mean_shift_min_bin_freq',
+							'cluster_mean_shift_cluster_all',
+							'cluster_mean_shift_n_jobs',
+							'cluster_mean_shift_max_iter'
+					]
+				)
+				
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.rerun( )
+			
+			if run_mean_shift:
+				try:
+					mean_shift_bandwidth = (
+							None
+							if mean_shift_bandwidth_input == 0.0
+							else mean_shift_bandwidth_input
+					)
+					
+					model_parameters = {
+							'Model': 'MeanShift',
+							'bandwidth': mean_shift_bandwidth,
+							'bin_seeding': mean_shift_bin_seeding,
+							'min_bin_freq': mean_shift_min_bin_freq,
+							'cluster_all': mean_shift_cluster_all,
+							'n_jobs': mean_shift_n_jobs,
+							'max_iter': mean_shift_max_iter
+					}
+					
+					cluster_signature = (
+							tuple( active_features ),
+							'MeanShift',
+							tuple(
+								(
+										key,
+										str( value )
+								)
+								for key, value in model_parameters.items( )
+							)
+					)
+					
+					model = MeanShift(
+						min_bin=mean_shift_min_bin_freq,
+						group_all=mean_shift_cluster_all,
+						bandwidth=mean_shift_bandwidth,
+						seeds=None,
+						bin_seeding=mean_shift_bin_seeding,
+						n_jobs=mean_shift_n_jobs,
+						max_iter=mean_shift_max_iter,
+						min_bin_freq=mean_shift_min_bin_freq,
+						cluster_all=mean_shift_cluster_all
+					)
+					
+					start_time = time.time( )
+					labels = model.project( X )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					df_metrics = model.score( X )
+					
+					if df_metrics is None:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					centroids = np.asarray(
+						model.centroids_
+					)
+					
+					df_centroids = pd.DataFrame(
+						centroids,
+						columns=feature_columns
+					)
+					
+					df_centroids.insert(
+						0,
+						'Cluster',
+						np.arange( len( df_centroids ) )
+					)
+					
+					detail_rows = [
+							{
+									'Property': 'features',
+									'Value': int( model.features )
+							},
+							{
+									'Property': 'clusters',
+									'Value': int( len( centroids ) )
+							},
+							{
+									'Property': 'bandwidth',
+									'Value': model.bandwidth
+							},
+							{
+									'Property': 'bin_seeding',
+									'Value': model.bin_seeding
+							},
+							{
+									'Property': 'min_bin_freq',
+									'Value': model.min_bin_freq
+							},
+							{
+									'Property': 'cluster_all',
+									'Value': model.cluster_all
+							},
+							{
+									'Property': 'n_jobs',
+									'Value': model.n_jobs
+							},
+							{
+									'Property': 'max_iter',
+									'Value': model.max_iter
+							},
+							{
+									'Property': 'iterations',
+									'Value': model.iterations
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[
+						'df_cluster_centroids'
+					] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[
+						'cluster_plot_features'
+					] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success( 'Mean Shift clustering complete.' )
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error(
+						f'Mean Shift clustering failed: {ex}'
+					)
+			
+			mean_shift_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( mean_shift_signature, tuple )
+					and len( mean_shift_signature ) > 1
+					and mean_shift_signature[ 1 ] == 'MeanShift'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				
+				df_centroids = st.session_state.get(
+					'df_cluster_centroids',
+					pd.DataFrame( )
+				)
+				
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_centroids = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor(
+					df_counts,
+					use_container_width=True
+				)
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor(
+						df_metrics,
+						use_container_width=True
+					)
+				
+				if not df_centroids.empty:
+					st.caption( 'Cluster Centroids' )
+					st.data_editor(
+						df_centroids,
+						use_container_width=True
+					)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True
+					)
+			else:
+				st.info(
+					'Run Mean Shift Clustering to view cluster counts, centroids, and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					if not df_centroids.empty:
+						ax.scatter(
+							df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ],
+							marker='X',
+							s=180,
+							edgecolors='black',
+							linewidths=1.0,
+							label='Centroids'
+						)
+						
+						ax.legend( )
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title( 'Mean Shift Cluster Assignments' )
+					
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info(
+					'Run Mean Shift Clustering to view the scatter plot.'
+				)
+		
+		with st.expander( 'Affinity Propagation Clustering', expanded=False ):
+			affinity_defaults = {
+					'cluster_affinity_damping': 0.5,
+					'cluster_affinity_max_iter': 200,
+					'cluster_affinity_convergence_iter': 15,
+					'cluster_affinity_use_preference': False,
+					'cluster_affinity_preference': 0.0,
+					'cluster_affinity_copy': True,
+					'cluster_affinity_verbose': False,
+					'cluster_affinity_random_state': 42
+			}
+			
+			for key, value in affinity_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Exemplar-based clustering that determines cluster representatives from pairwise similarities.'
+			)
+			
+			ap_c1, ap_c2, ap_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
+			with ap_c1:
+				affinity_damping = float(
+					st.number_input( 'Damping', min_value=0.5, max_value=0.9999,
+						step=0.01, format='%.4f', key='cluster_affinity_damping' )
+				)
+				
+				affinity_max_iter = int(
+					st.number_input( 'Maximum Iterations', min_value=1, step=1,
+						key='cluster_affinity_max_iter' )
+				)
+			
+			with ap_c2:
+				affinity_convergence_iter = int(
+					st.number_input( 'Convergence Iterations', min_value=1, step=1,
+						key='cluster_affinity_convergence_iter' )
+				)
+				
+				affinity_copy = st.checkbox(
+					'Copy Input Data',
+					key='cluster_affinity_copy'
+				)
+			
+			with ap_c3:
+				affinity_use_preference = st.checkbox(
+					'Use Custom Preference',
+					key='cluster_affinity_use_preference'
+				)
+				
+				affinity_preference_input = float(
+					st.number_input( 'Preference', step=0.1, format='%.4f',
+						disabled=not affinity_use_preference,
+						key='cluster_affinity_preference' )
+				)
+				
+				affinity_verbose = st.checkbox(
+					'Verbose',
+					key='cluster_affinity_verbose'
+				)
+				
+				affinity_random_state = int(
+					st.number_input( 'Random State', min_value=0, step=1,
+						key='cluster_affinity_random_state' )
+				)
+			
+			affinity_reset_keys = list( affinity_defaults.keys( ) ) + [
+					'df_cluster_results',
+					'df_cluster_counts',
+					'df_cluster_metrics',
+					'df_cluster_centroids',
+					'df_cluster_details',
+					'cluster_plot_features',
+					'cluster_signature'
+			]
+			
+			ap_b1, ap_b2 = st.columns( 2 )
+			with ap_b1:
+				run_affinity = st.button( 'Run Affinity Propagation', icon='🏃',
+					key='cluster_affinity_run', use_container_width=True )
+			
+			with ap_b2:
+				st.button( 'Reset Affinity Propagation', icon='🔁',
+					key='cluster_affinity_reset', use_container_width=True,
+					on_click=clear_keys, args=( affinity_reset_keys, ) )
+			
+			if run_affinity:
+				try:
+					if affinity_convergence_iter > affinity_max_iter:
+						st.warning(
+							'⚠️ Convergence Iterations cannot exceed Maximum Iterations.'
+						)
+						st.stop( )
+					
+					affinity_preference = (
+							affinity_preference_input
+							if affinity_use_preference
+							else None
+					)
+					
+					model_parameters = {
+							'Model': 'AffinityPropagation',
+							'damping': affinity_damping,
+							'max_iter': affinity_max_iter,
+							'convergence_iter': affinity_convergence_iter,
+							'preference': affinity_preference,
+							'affinity': 'euclidean',
+							'copy': affinity_copy,
+							'verbose': affinity_verbose,
+							'random_state': affinity_random_state
+					}
+					
+					cluster_signature = (
+							tuple( active_features ),
+							'AffinityPropagation',
+							tuple(
+								( key, str( value ) )
+								for key, value in model_parameters.items( )
+							)
+					)
+					
+					model = AffinityPropagation(
+						damping=affinity_damping,
+						max_iter=affinity_max_iter,
+						convergence_iter=affinity_convergence_iter,
+						preference=affinity_preference,
+						affinity='euclidean',
+						copy=affinity_copy,
+						verbose=affinity_verbose,
+						random_state=affinity_random_state
+					)
+					
+					start_time = time.time( )
+					labels = model.project( X )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					try:
+						df_metrics = model.score( X )
+						if df_metrics is None:
+							df_metrics = pd.DataFrame( )
+					except Exception:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					centroids = np.asarray( model.centroids_ )
+					df_centroids = pd.DataFrame(
+						centroids,
+						columns=feature_columns
+					)
+					df_centroids.insert(
+						0,
+						'Cluster',
+						range( len( df_centroids ) )
+					)
+					
+					detail_rows = [
+							{
+									'Property': 'features',
+									'Value': model.features
+							},
+							{
+									'Property': 'clusters',
+									'Value': len( df_centroids )
+							},
+							{
+									'Property': 'iterations',
+									'Value': model.iterations
+							},
+							{
+									'Property': 'damping',
+									'Value': model.damping
+							},
+							{
+									'Property': 'max_iter',
+									'Value': model.max_iter
+							},
+							{
+									'Property': 'convergence_iter',
+									'Value': model.convergence_iter
+							},
+							{
+									'Property': 'preference',
+									'Value': model.preference
+							},
+							{
+									'Property': 'affinity',
+									'Value': model.affinity
+							},
+							{
+									'Property': 'copy',
+									'Value': model.copy
+							},
+							{
+									'Property': 'verbose',
+									'Value': model.verbose
+							},
+							{
+									'Property': 'random_state',
+									'Value': model.random_state
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success( 'Affinity Propagation clustering complete.' )
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error( f'Affinity Propagation clustering failed: {ex}' )
+			
+			affinity_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( affinity_signature, tuple )
+					and len( affinity_signature ) > 1
+					and affinity_signature[ 1 ] == 'AffinityPropagation'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				df_centroids = st.session_state.get(
+					'df_cluster_centroids',
+					pd.DataFrame( )
+				)
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_centroids = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor( df_counts, use_container_width=True )
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor( df_metrics, use_container_width=True )
+				
+				if not df_centroids.empty:
+					st.caption( 'Cluster Exemplars' )
+					st.data_editor( df_centroids, use_container_width=True )
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor( df_details, use_container_width=True )
+			else:
+				st.info(
+					'Run Affinity Propagation to view cluster counts, exemplars, and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					if not df_centroids.empty:
+						ax.scatter(
+							df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ],
+							marker='X',
+							s=180,
+							edgecolors='black',
+							linewidths=1.0,
+							label='Exemplars'
+						)
+						ax.legend( )
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title(
+						'Affinity Propagation Cluster Assignments'
+					)
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info(
+					'Run Affinity Propagation to view the scatter plot.'
+				)
+		
+		with st.expander( 'Birch Clustering', expanded=False ):
+			birch_defaults = {
+					'cluster_birch_threshold': 0.5,
+					'cluster_birch_branching_factor': 50,
+					'cluster_birch_use_global_clusters': True,
+					'cluster_birch_n_clusters': 3,
+					'cluster_birch_compute_labels': True
+			}
+			
+			for key, value in birch_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Scalable hierarchical clustering using a clustering-feature tree.'
+			)
+			
+			br_c1, br_c2, br_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with br_c1:
+				birch_threshold = float(
+					st.number_input(
+						'Threshold',
+						min_value=0.0001,
+						step=0.1,
+						format='%.4f',
+						key='cluster_birch_threshold'
+					)
+				)
+			
+			with br_c2:
+				birch_branching_factor = int(
+					st.number_input(
+						'Branching Factor',
+						min_value=2,
+						step=1,
+						key='cluster_birch_branching_factor'
+					)
+				)
+				
+				birch_compute_labels = st.checkbox(
+					'Compute Labels',
+					key='cluster_birch_compute_labels'
+				)
+			
+			with br_c3:
+				birch_use_global_clusters = st.checkbox(
+					'Apply Global Clustering',
+					key='cluster_birch_use_global_clusters'
+				)
+				
+				birch_n_clusters = int(
+					st.number_input(
+						'Number of Clusters',
+						min_value=2,
+						max_value=max( 2, len( df_cluster_input ) - 1 ),
+						step=1,
+						disabled=not birch_use_global_clusters,
+						key='cluster_birch_n_clusters'
+					)
+				)
+			
+			br_b1, br_b2 = st.columns( 2 )
+			
+			with br_b1:
+				run_birch = st.button(
+					'Run Birch Clustering',
+					icon='🏃',
+					key='cluster_birch_run',
+					use_container_width=True
+				)
+			
+			with br_b2:
+				reset_birch = st.button(
+					'Reset Birch Clustering',
+					icon='🔁',
+					key='cluster_birch_reset',
+					use_container_width=True
+				)
+			
+			if reset_birch:
+				clear_keys(
+					[
+							'cluster_birch_threshold',
+							'cluster_birch_branching_factor',
+							'cluster_birch_use_global_clusters',
+							'cluster_birch_n_clusters',
+							'cluster_birch_compute_labels'
+					]
+				)
+				
+				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+				st.session_state[ 'cluster_plot_features' ] = [ ]
+				st.session_state[ 'cluster_signature' ] = None
+				st.rerun( )
+			
+			if run_birch:
+				try:
+					if (
+							birch_use_global_clusters
+							and birch_n_clusters >= len( df_cluster_input )
+					):
+						st.warning(
+							'⚠️ Number of Clusters must be less than the number of samples.'
+						)
+						st.stop( )
+					
+					effective_clusters = (
+							birch_n_clusters
+							if birch_use_global_clusters
+							else None
+					)
+					
+					model_parameters = {
+							'Model': 'Birch',
+							'threshold': birch_threshold,
+							'branching_factor': birch_branching_factor,
+							'n_clusters': effective_clusters,
+							'compute_labels': birch_compute_labels
+					}
+					
+					cluster_signature = (
+							tuple( active_features ),
+							'Birch',
+							tuple(
+								( key, str( value ) )
+								for key, value in model_parameters.items( )
+							)
+					)
+					
+					model = Birch(
+						threshold=birch_threshold,
+						branching_factor=birch_branching_factor,
+						n_clusters=effective_clusters,
+						compute_labels=birch_compute_labels
+					)
+					
+					start_time = time.time( )
+					
+					if birch_compute_labels:
+						labels = model.project( X )
+					else:
+						model.train( X )
+						labels = model.predict( X )
+					
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_results = df_cluster_input.copy( )
+					df_results[ 'Cluster' ] = labels
+					
+					df_counts = (
+							df_results[ 'Cluster' ]
+							.value_counts( dropna=False )
+							.rename_axis( 'Cluster' )
+							.reset_index( name='Count' )
+							.sort_values( by='Cluster' )
+							.reset_index( drop=True )
+					)
+					
+					try:
+						df_metrics = model.score( X )
+						if df_metrics is None:
+							df_metrics = pd.DataFrame( )
+					except Exception:
+						df_metrics = pd.DataFrame( )
+					
+					if df_metrics.empty:
+						df_metrics = pd.DataFrame(
+							[
+									{
+											'Processing Time (sec)': round(
+												elapsed_seconds,
+												4
+											)
+									}
+							]
+						)
+					else:
+						df_metrics = df_metrics.copy( )
+						df_metrics[ 'Processing Time (sec)' ] = round(
+							elapsed_seconds,
+							4
+						)
+					
+					subcluster_centers = np.asarray(
+						model.subcluster_centers
+					)
+					
+					df_centroids = pd.DataFrame(
+						subcluster_centers,
+						columns=feature_columns
+					)
+					
+					df_centroids.insert(
+						0,
+						'Subcluster',
+						range( len( df_centroids ) )
+					)
+					
+					try:
+						subcluster_labels = np.asarray(
+							model.subcluster_labels
+						).reshape( -1 )
+						
+						if len( subcluster_labels ) == len( df_centroids ):
+							df_centroids.insert(
+								1,
+								'Cluster',
+								subcluster_labels
+							)
+					except Exception:
+						pass
+					
+					detail_rows = [
+							{
+									'Property': 'features',
+									'Value': model.features
+							},
+							{
+									'Property': 'clusters',
+									'Value': len( np.unique( labels ) )
+							},
+							{
+									'Property': 'subclusters',
+									'Value': len( df_centroids )
+							},
+							{
+									'Property': 'threshold',
+									'Value': model.threshold
+							},
+							{
+									'Property': 'branching_factor',
+									'Value': model.branching_factor
+							},
+							{
+									'Property': 'n_clusters',
+									'Value': model.n_clusters
+							},
+							{
+									'Property': 'compute_labels',
+									'Value': model.compute_labels
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					st.session_state[ 'model' ] = model
+					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_signature' ] = cluster_signature
+					
+					st.success( 'Birch clustering complete.' )
+				except Exception as ex:
+					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_plot_features' ] = [ ]
+					st.session_state[ 'cluster_signature' ] = None
+					st.error( f'Birch clustering failed: {ex}' )
+			
+			birch_signature = st.session_state.get(
+				'cluster_signature',
+				None
+			)
+			
+			if (
+					isinstance( birch_signature, tuple )
+					and len( birch_signature ) > 1
+					and birch_signature[ 1 ] == 'Birch'
+			):
+				df_results = st.session_state.get(
+					'df_cluster_results',
+					pd.DataFrame( )
+				)
+				df_counts = st.session_state.get(
+					'df_cluster_counts',
+					pd.DataFrame( )
+				)
+				df_metrics = st.session_state.get(
+					'df_cluster_metrics',
+					pd.DataFrame( )
+				)
+				df_centroids = st.session_state.get(
+					'df_cluster_centroids',
+					pd.DataFrame( )
+				)
+				df_details = st.session_state.get(
+					'df_cluster_details',
+					pd.DataFrame( )
+				)
+			else:
+				df_results = pd.DataFrame( )
+				df_counts = pd.DataFrame( )
+				df_metrics = pd.DataFrame( )
+				df_centroids = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+			
+			# ------------------------------------------------------------------
+			# CLUSTER SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Cluster Summary' )
+			
+			if not df_counts.empty:
+				st.data_editor( df_counts, use_container_width=True )
+				
+				if not df_metrics.empty:
+					st.caption( 'Metrics' )
+					st.data_editor( df_metrics, use_container_width=True )
+				
+				if not df_centroids.empty:
+					st.caption( 'Subcluster Centers' )
+					st.data_editor( df_centroids, use_container_width=True )
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor( df_details, use_container_width=True )
+			else:
+				st.info(
+					'Run Birch Clustering to view cluster counts, subclusters, and metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.subheader( 'Cluster Visualization' )
+			
+			if not df_results.empty:
+				if len( feature_columns ) == 2:
+					plt.close( 'all' )
+					fig, ax = plt.subplots( )
+					ax.scatter(
+						df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ],
+						c=df_results[ 'Cluster' ],
+						alpha=0.7
+					)
+					
+					if not df_centroids.empty:
+						ax.scatter(
+							df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ],
+							marker='X',
+							s=140,
+							edgecolors='black',
+							linewidths=1.0,
+							label='Subcluster Centers'
+						)
+						ax.legend( )
+					
+					ax.set_xlabel( feature_columns[ 0 ] )
+					ax.set_ylabel( feature_columns[ 1 ] )
+					ax.set_title( 'Birch Cluster Assignments' )
+					st.pyplot( fig )
+					plt.close( fig )
+				else:
+					st.info( 'Visualization limited to two features.' )
+			else:
+				st.info(
+					'Run Birch Clustering to view the scatter plot.'
+				)
+				
 # ============================================
 # TIME SERIES MODE
 # ============================================
@@ -17820,15 +20858,10 @@ elif mode == 'Time-Series Models':
 		st.divider( )
 		
 		# ------------------------------------------------------------------
-		# DATA VALIDATION
+		# TIME-SERIES INPUT
 		# ------------------------------------------------------------------
-		df_dataset = st.session_state.get( 'df_processed', None )
-		
-		if df_dataset is None or df_dataset.empty:
-			df_dataset = st.session_state.get( 'df_working', None )
-		
-		if df_dataset is None or df_dataset.empty:
-			df_dataset = st.session_state.get( 'df_dataset', None )
+		df_dataset = st.session_state.get( 'df_infer', None )
+		numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
 		
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
@@ -17836,18 +20869,29 @@ elif mode == 'Time-Series Models':
 		
 		numeric_columns = [
 				column
-				for column in df_dataset.columns
-				if pd.api.types.is_numeric_dtype( df_dataset[ column ] )
+				for column in numeric_columns
+				if column in df_dataset.columns
 		]
 		
 		if not numeric_columns:
-			st.warning( '⚠️ No numeric columns available for time-series analysis.' )
+			st.warning(
+				'⚠️ No numeric columns available for time-series analysis.'
+			)
 			st.stop( )
 		
-		# ------------------------------------------------------------------
-		# SERIES SELECTION
-		# ------------------------------------------------------------------
+		timeseries_defaults = {
+				'timeseries_col_box': numeric_columns[ 0 ]
+		}
+		
+		for key, value in timeseries_defaults.items( ):
+			if key not in st.session_state:
+				st.session_state[ key ] = value
+		
+		if st.session_state[ 'timeseries_col_box' ] not in numeric_columns:
+			st.session_state[ 'timeseries_col_box' ] = numeric_columns[ 0 ]
+		
 		st.markdown( '##### Time-Series Selection' )
+		
 		series_col = st.selectbox(
 			'Select Numeric Time-Series Column',
 			numeric_columns,
@@ -17866,404 +20910,2656 @@ elif mode == 'Time-Series Models':
 		
 		series = series_values.to_numpy( dtype=float )
 		
-		if series.ndim != 1 or len( series ) < 10:
-			st.warning( '⚠️ Selected series is too short for modeling.' )
+		if series.ndim != 1:
+			st.warning(
+				'⚠️ The selected column could not be converted to a one-dimensional series.'
+			)
 			st.stop( )
 		
-		# ------------------------------------------------------------------
-		# MODEL SELECTION
-		# ------------------------------------------------------------------
-		model_map = {
-				'Lagged Linear Regression': 'lag',
-				'Lagged Boosting Regression': 'boost',
-				'ARIMA': 'arima',
-				'SARIMA': 'sarima'
-		}
+		if len( series ) < 10:
+			st.warning(
+				'⚠️ Selected series must contain at least 10 valid observations.'
+			)
+			st.stop( )
 		
-		st.markdown( '##### Model Selection' )
-		model_name = st.selectbox(
-			'Select time-series model',
-			list( model_map.keys( ) ),
-			key='model_name_box'
+		st.session_state[ 'timeseries_column' ] = series_col
+		st.session_state[ 'timeseries_series' ] = series.copy( )
+		
+		df_timeseries_summary = pd.DataFrame(
+			[
+					{
+							'Series': series_col,
+							'Observations': len( series ),
+							'Minimum': float( np.min( series ) ),
+							'Maximum': float( np.max( series ) ),
+							'Mean': float( np.mean( series ) ),
+							'Standard Deviation': float( np.std( series ) )
+					}
+			]
+		)
+		
+		st.data_editor(
+			df_timeseries_summary,
+			use_container_width=True,
+			hide_index=True,
+			disabled=True
 		)
 		
 		# ------------------------------------------------------------------
-		# MODEL PARAMETERS
+		# LAGGED LINEAR REGRESSION
 		# ------------------------------------------------------------------
-		st.subheader( '🎚️ Hyper Parameters' )
-		model = None
-		lag = None
-		P = 0
-		D = 0
-		Q = 0
-		s = 0
-		
-		if model_name == 'Lagged Linear Regression':
-			lag = st.number_input(
-				'Lag order',
-				min_value=1,
-				value=5,
-				key='lag_input'
+		with st.expander( 'Lagged Linear Regression', expanded=False ):
+			lag_linear_defaults = {
+					'timeseries_lag_linear_lag': 5,
+					'timeseries_lag_linear_horizon': 5
+			}
+			
+			for key, value in lag_linear_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Linear autoregressive forecasting using lagged observations as predictors.'
 			)
 			
-			model = LaggingSeries(
-				lag=int( lag )
-			)
-		
-		elif model_name == 'Lagged Boosting Regression':
-			lag = st.number_input(
-				'Lag order',
-				min_value=1,
-				value=12
-			)
+			ll_c1, ll_c2 = st.columns( 2, border=True )
 			
-			loss = st.selectbox(
-				'Loss',
-				[
-						'squared_error',
-						'absolute_error',
-						'gamma',
-						'poisson',
-						'quantile'
-				],
-				index=0,
-				key='loss_box'
-			)
-			
-			quantile = None
-			if loss == 'quantile':
-				quantile = st.number_input(
-					'Quantile',
-					min_value=0.01,
-					max_value=0.99,
-					value=0.50,
-					step=0.01
+			with ll_c1:
+				lag_linear_order = int(
+					st.number_input(
+						'Lag Order',
+						min_value=1,
+						max_value=max( 1, len( series ) - 1 ),
+						step=1,
+						key='timeseries_lag_linear_lag'
+					)
 				)
 			
-			rate = st.number_input(
-				'Learning Rate',
-				min_value=0.001,
-				max_value=1.0,
-				value=0.1,
-				step=0.001,
-				format='%.3f'
-			)
-			
-			iters = st.number_input(
-				'Max Iterations',
-				min_value=10,
-				value=100
-			)
-			
-			leaf_nodes = st.number_input(
-				'Max Leaf Nodes (0 = None)',
-				min_value=0,
-				value=31
-			)
-			
-			depth = st.number_input(
-				'Max Depth (0 = None)',
-				min_value=0,
-				value=0
-			)
-			
-			leaf = st.number_input(
-				'Min Samples Leaf',
-				min_value=1,
-				value=20
-			)
-			
-			regularization = st.number_input(
-				'L2 Regularization',
-				min_value=0.0,
-				value=0.0,
-				step=0.001,
-				format='%.3f'
-			)
-			
-			features = st.number_input(
-				'Max Features',
-				min_value=0.1,
-				max_value=1.0,
-				value=1.0,
-				step=0.1,
-				format='%.1f'
-			)
-			
-			bins = st.number_input(
-				'Max Bins',
-				min_value=2,
-				max_value=255,
-				value=255
-			)
-			
-			stopping = st.selectbox(
-				'Early Stopping',
-				[ 'auto', True, False ],
-				index=0,
-				key='stop_box'
-			)
-			
-			validation = st.number_input(
-				'Validation Fraction',
-				min_value=0.01,
-				max_value=0.50,
-				value=0.10,
-				step=0.01,
-				format='%.2f',
-				key='validation_input'
-			)
-			
-			no_change = st.number_input(
-				'Iterations No Change',
-				min_value=1,
-				value=10
-			)
-			
-			tol = st.number_input(
-				'Tolerance',
-				min_value=0.0,
-				value=1e-7,
-				step=1e-7,
-				format='%.7f'
-			)
-			
-			verbose = st.number_input(
-				'Verbose',
-				min_value=0,
-				value=0
-			)
-			
-			rando = st.number_input(
-				'Random State (-1 = None)',
-				min_value=-1,
-				value=-1
-			)
-			
-			model = LagBoostingSeries(
-				lag=int( lag ),
-				loss=loss,
-				quantile=float( quantile ) if quantile is not None else None,
-				rate=float( rate ),
-				iters=int( iters ),
-				leaf_nodes=int( leaf_nodes ) if int( leaf_nodes ) > 0 else None,
-				depth=int( depth ) if int( depth ) > 0 else None,
-				leaf=int( leaf ),
-				regularization=float( regularization ),
-				features=float( features ),
-				bins=int( bins ),
-				stopping=stopping,
-				validation=float( validation ),
-				no_change=int( no_change ),
-				tol=float( tol ),
-				verbose=int( verbose ),
-				rando=None if int( rando ) < 0 else int( rando )
-			)
-		
-		elif model_name == 'ARIMA':
-			p = st.number_input(
-				'p (AR)',
-				min_value=0,
-				value=1
-			)
-			
-			d = st.number_input(
-				'd (I)',
-				min_value=0,
-				value=0
-			)
-			
-			q = st.number_input(
-				'q (MA)',
-				min_value=0,
-				value=0
-			)
-			
-			model = ARIMA(
-				order=(int( p ), int( d ), int( q ))
-			)
-		
-		elif model_name == 'SARIMA':
-			p = st.number_input(
-				'p (AR)',
-				min_value=0,
-				value=1
-			)
-			
-			d = st.number_input(
-				'd (I)',
-				min_value=0,
-				value=1
-			)
-			
-			q = st.number_input(
-				'q (MA)',
-				min_value=0,
-				value=1
-			)
-			
-			P = st.number_input(
-				'P (Seasonal AR)',
-				min_value=0,
-				value=0
-			)
-			
-			D = st.number_input(
-				'D (Seasonal I)',
-				min_value=0,
-				value=0
-			)
-			
-			Q = st.number_input(
-				'Q (Seasonal MA)',
-				min_value=0,
-				value=0
-			)
-			
-			s = st.number_input(
-				'Season Length',
-				min_value=0,
-				value=0
-			)
-			
-			model = SARIMA(
-				order=(int( p ), int( d ), int( q )),
-				seasonal=(int( P ), int( D ), int( Q ), int( s ))
-			)
-		
-		# ------------------------------------------------------------------
-		# TRAIN / FORECAST
-		# ------------------------------------------------------------------
-		st.subheader( 'Train & Forecast' )
-		forecast_horizon = st.number_input(
-			'Forecast Horizon (Steps)',
-			min_value=1,
-			value=5
-		)
-		
-		if st.button( '🚀 Run Time-Series Model' ):
-			try:
-				if lag is not None and int( lag ) >= len( series ):
-					st.warning(
-						'⚠️ Lag order must be less than the number of time-series observations.'
+			with ll_c2:
+				lag_linear_horizon = int(
+					st.number_input(
+						'Forecast Horizon',
+						min_value=1,
+						step=1,
+						key='timeseries_lag_linear_horizon'
 					)
-					st.stop( )
-				
-				if model_name == 'SARIMA':
-					has_seasonal_order = any(
-						value > 0
-						for value in [ int( P ), int( D ), int( Q ) ]
-					)
-					
-					if has_seasonal_order and int( s ) < 2:
-						st.warning(
-							'⚠️ Season Length must be at least 2 when seasonal terms are used.'
-						)
-						st.stop( )
-				
-				plt.close( 'all' )
-				model.train( series )
-				forecast = model.project(
-					n_steps=int( forecast_horizon )
 				)
-				
-				st.session_state[ 'model' ] = model
-				st.session_state[ 'y_series' ] = series.copy( )
-				st.session_state[ 'y_prediction' ] = np.asarray(
-					forecast
-				).copy( )
-				
-				st.subheader( 'Model Evaluation' )
-				metrics = model.analyze( )
-				
-				if isinstance( metrics, pd.DataFrame ):
-					df_metrics = metrics.copy( )
-				else:
-					df_metrics = pd.DataFrame(
-						metrics,
-						index=[ 'Value' ]
-					).T
-				
-				st.session_state[ 'df_scores' ] = df_metrics.copy( )
-				st.data_editor(
-					df_metrics,
+			
+			lag_linear_reset_keys = list( lag_linear_defaults.keys( ) ) + [
+					'timeseries_lag_linear_model',
+					'timeseries_lag_linear_forecast',
+					'timeseries_lag_linear_metrics',
+					'timeseries_lag_linear_results',
+					'timeseries_lag_linear_signature'
+			]
+			
+			ll_b1, ll_b2 = st.columns( 2 )
+			
+			with ll_b1:
+				run_lag_linear = st.button(
+					'Run Lagged Linear Regression',
+					icon='🏃',
+					key='timeseries_lag_linear_run',
 					use_container_width=True
 				)
-				
-				st.subheader( 'Observed vs Forecast' )
+			
+			with ll_b2:
+				st.button(
+					'Reset Lagged Linear Regression',
+					icon='🔁',
+					key='timeseries_lag_linear_reset',
+					use_container_width=True,
+					on_click=clear_keys,
+					args=( lag_linear_reset_keys, )
+				)
+			
+			if run_lag_linear:
+				try:
+					if lag_linear_order >= len( series ):
+						st.warning(
+							'⚠️ Lag Order must be less than the number of observations.'
+						)
+						st.stop( )
+					
+					model = LaggingSeries( lag=lag_linear_order )
+					
+					start_time = time.time( )
+					model.train( series )
+					metrics = model.analyze( )
+					forecast = model.project( n_steps=lag_linear_horizon )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_metrics = pd.DataFrame(
+						[
+								{
+										'Metric': metric,
+										'Value': float( value )
+								}
+								for metric, value in metrics.items( )
+						]
+					)
+					
+					df_metrics = pd.concat(
+						[
+								df_metrics,
+								pd.DataFrame(
+									[
+											{
+													'Metric': 'Processing Time (sec)',
+													'Value': round(
+														elapsed_seconds,
+														4
+													)
+											}
+									]
+								)
+						],
+						ignore_index=True
+					)
+					
+					forecast_index = np.arange(
+						len( series ),
+						len( series ) + len( forecast )
+					)
+					
+					df_results = pd.DataFrame(
+						{
+								'Period': forecast_index,
+								'Forecast': np.asarray(
+									forecast,
+									dtype=float
+								)
+						}
+					)
+					
+					lag_linear_signature = (
+							series_col,
+							len( series ),
+							lag_linear_order,
+							lag_linear_horizon
+					)
+					
+					st.session_state[
+						'timeseries_lag_linear_model'
+					] = model
+					st.session_state[
+						'timeseries_lag_linear_forecast'
+					] = np.asarray( forecast, dtype=float )
+					st.session_state[
+						'timeseries_lag_linear_metrics'
+					] = df_metrics.copy( )
+					st.session_state[
+						'timeseries_lag_linear_results'
+					] = df_results.copy( )
+					st.session_state[
+						'timeseries_lag_linear_signature'
+					] = lag_linear_signature
+					
+					st.success(
+						'Lagged Linear Regression forecasting complete.'
+					)
+				except Exception as ex:
+					st.session_state.pop(
+						'timeseries_lag_linear_model',
+						None
+					)
+					st.session_state.pop(
+						'timeseries_lag_linear_forecast',
+						None
+					)
+					st.session_state.pop(
+						'timeseries_lag_linear_metrics',
+						None
+					)
+					st.session_state.pop(
+						'timeseries_lag_linear_results',
+						None
+					)
+					st.session_state.pop(
+						'timeseries_lag_linear_signature',
+						None
+					)
+					st.error(
+						f'Lagged Linear Regression failed: {ex}'
+					)
+			
+			lag_linear_signature = st.session_state.get(
+				'timeseries_lag_linear_signature',
+				None
+			)
+			
+			current_lag_linear_signature = (
+					series_col,
+					len( series ),
+					lag_linear_order,
+					lag_linear_horizon
+			)
+			
+			if lag_linear_signature == current_lag_linear_signature:
+				df_metrics = st.session_state.get(
+					'timeseries_lag_linear_metrics',
+					pd.DataFrame( )
+				)
+				df_results = st.session_state.get(
+					'timeseries_lag_linear_results',
+					pd.DataFrame( )
+				)
+				forecast = st.session_state.get(
+					'timeseries_lag_linear_forecast',
+					np.array( [ ], dtype=float )
+				)
+			else:
+				df_metrics = pd.DataFrame( )
+				df_results = pd.DataFrame( )
+				forecast = np.array( [ ], dtype=float )
+			
+			# ------------------------------------------------------------------
+			# MODEL EVALUATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Model Evaluation' )
+			
+			if not df_metrics.empty:
+				st.data_editor(
+					df_metrics,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info(
+					'Run Lagged Linear Regression to view model metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# FORECAST RESULTS
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Forecast Results' )
+			
+			if not df_results.empty:
+				st.data_editor(
+					df_results,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info(
+					'Run Lagged Linear Regression to view forecast values.'
+				)
+			
+			# ------------------------------------------------------------------
+			# FORECAST VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Observed vs Forecast' )
+			
+			if len( forecast ) > 0:
+				plt.close( 'all' )
 				fig, ax = plt.subplots( )
 				
+				observed_index = np.arange( len( series ) )
+				forecast_index = np.arange(
+					len( series ),
+					len( series ) + len( forecast )
+				)
+				
 				ax.plot(
-					range( len( series ) ),
+					observed_index,
 					series,
 					label='Observed'
 				)
-				
 				ax.plot(
-					range(
-						len( series ),
-						len( series ) + len( forecast )
-					),
+					forecast_index,
 					forecast,
 					label='Forecast',
 					linestyle='--'
 				)
-				
-				ax.set_title( 'Time-Series Forecast' )
+				ax.set_xlabel( 'Period' )
+				ax.set_ylabel( series_col )
+				ax.set_title(
+					'Lagged Linear Regression Forecast'
+				)
 				ax.legend( )
+				
 				st.pyplot( fig )
 				plt.close( fig )
-			except Exception as e:
-				st.error( f'Time-Series Modeling failed: {e}' )
+			else:
+				st.info(
+					'Run Lagged Linear Regression to view the forecast plot.'
+				)
+		
+		# ------------------------------------------------------------------
+		# LAGGED BOOSTING REGRESSION
+		# ------------------------------------------------------------------
+		with st.expander( 'Lagged Boosting Regression', expanded=False ):
+			lag_boost_defaults = {
+					'timeseries_lag_boost_lag': 12,
+					'timeseries_lag_boost_loss': 'squared_error',
+					'timeseries_lag_boost_quantile': 0.5,
+					'timeseries_lag_boost_rate': 0.1,
+					'timeseries_lag_boost_iters': 100,
+					'timeseries_lag_boost_leaf_nodes': 31,
+					'timeseries_lag_boost_use_depth': False,
+					'timeseries_lag_boost_depth': 3,
+					'timeseries_lag_boost_leaf': 20,
+					'timeseries_lag_boost_regularization': 0.0,
+					'timeseries_lag_boost_features': 1.0,
+					'timeseries_lag_boost_bins': 255,
+					'timeseries_lag_boost_warm': False,
+					'timeseries_lag_boost_stopping': 'auto',
+					'timeseries_lag_boost_scoring': 'loss',
+					'timeseries_lag_boost_validation': 0.1,
+					'timeseries_lag_boost_no_change': 10,
+					'timeseries_lag_boost_tolerance': 0.0000001,
+					'timeseries_lag_boost_verbose': 0,
+					'timeseries_lag_boost_random_state': 42,
+					'timeseries_lag_boost_horizon': 5
+			}
+			
+			for key, value in lag_boost_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Nonlinear autoregressive forecasting using histogram gradient boosting over lagged observations.'
+			)
+			
+			lb_c1, lb_c2, lb_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with lb_c1:
+				lag_boost_order = int(
+					st.number_input(
+						'Lag Order',
+						min_value=1,
+						max_value=max( 1, len( series ) - 1 ),
+						step=1,
+						key='timeseries_lag_boost_lag'
+					)
+				)
+				
+				lag_boost_loss = st.selectbox(
+					'Loss',
+					options=[
+							'squared_error',
+							'absolute_error',
+							'gamma',
+							'poisson',
+							'quantile'
+					],
+					key='timeseries_lag_boost_loss'
+				)
+				
+				lag_boost_quantile = float(
+					st.number_input(
+						'Quantile',
+						min_value=0.0001,
+						max_value=0.9999,
+						step=0.05,
+						format='%.4f',
+						disabled=lag_boost_loss != 'quantile',
+						key='timeseries_lag_boost_quantile'
+					)
+				)
+				
+				lag_boost_rate = float(
+					st.number_input(
+						'Learning Rate',
+						min_value=0.0001,
+						step=0.01,
+						format='%.4f',
+						key='timeseries_lag_boost_rate'
+					)
+				)
+				
+				lag_boost_iters = int(
+					st.number_input(
+						'Maximum Iterations',
+						min_value=1,
+						step=1,
+						key='timeseries_lag_boost_iters'
+					)
+				)
+				
+				lag_boost_leaf_nodes = int(
+					st.number_input(
+						'Maximum Leaf Nodes',
+						min_value=2,
+						step=1,
+						key='timeseries_lag_boost_leaf_nodes'
+					)
+				)
+				
+				lag_boost_horizon = int(
+					st.number_input(
+						'Forecast Horizon',
+						min_value=1,
+						step=1,
+						key='timeseries_lag_boost_horizon'
+					)
+				)
+			
+			with lb_c2:
+				lag_boost_use_depth = st.checkbox(
+					'Limit Tree Depth',
+					key='timeseries_lag_boost_use_depth'
+				)
+				
+				lag_boost_depth_input = int(
+					st.number_input(
+						'Maximum Depth',
+						min_value=1,
+						step=1,
+						disabled=not lag_boost_use_depth,
+						key='timeseries_lag_boost_depth'
+					)
+				)
+				
+				lag_boost_leaf = int(
+					st.number_input(
+						'Minimum Samples per Leaf',
+						min_value=1,
+						step=1,
+						key='timeseries_lag_boost_leaf'
+					)
+				)
+				
+				lag_boost_regularization = float(
+					st.number_input(
+						'L2 Regularization',
+						min_value=0.0,
+						step=0.1,
+						format='%.4f',
+						key='timeseries_lag_boost_regularization'
+					)
+				)
+				
+				lag_boost_features = float(
+					st.number_input(
+						'Maximum Features',
+						min_value=0.0001,
+						max_value=1.0,
+						step=0.05,
+						format='%.4f',
+						key='timeseries_lag_boost_features'
+					)
+				)
+				
+				lag_boost_bins = int(
+					st.number_input(
+						'Maximum Bins',
+						min_value=2,
+						max_value=255,
+						step=1,
+						key='timeseries_lag_boost_bins'
+					)
+				)
+				
+				lag_boost_warm = st.checkbox(
+					'Warm Start',
+					key='timeseries_lag_boost_warm'
+				)
+			
+			with lb_c3:
+				lag_boost_stopping = st.selectbox(
+					'Early Stopping',
+					options=[
+							'auto',
+							True,
+							False
+					],
+					key='timeseries_lag_boost_stopping'
+				)
+				
+				lag_boost_scoring = st.selectbox(
+					'Early-Stopping Scoring',
+					options=[
+							'loss',
+							'r2',
+							'neg_mean_absolute_error',
+							'neg_mean_squared_error'
+					],
+					key='timeseries_lag_boost_scoring'
+				)
+				
+				lag_boost_validation = float(
+					st.number_input(
+						'Validation Fraction',
+						min_value=0.01,
+						max_value=0.99,
+						step=0.01,
+						format='%.4f',
+						key='timeseries_lag_boost_validation'
+					)
+				)
+				
+				lag_boost_no_change = int(
+					st.number_input(
+						'Iterations Without Improvement',
+						min_value=1,
+						step=1,
+						key='timeseries_lag_boost_no_change'
+					)
+				)
+				
+				lag_boost_tolerance = float(
+					st.number_input(
+						'Tolerance',
+						min_value=0.0,
+						step=0.0000001,
+						format='%.8f',
+						key='timeseries_lag_boost_tolerance'
+					)
+				)
+				
+				lag_boost_verbose = int(
+					st.number_input(
+						'Verbosity',
+						min_value=0,
+						step=1,
+						key='timeseries_lag_boost_verbose'
+					)
+				)
+				
+				lag_boost_random_state = int(
+					st.number_input(
+						'Random State',
+						min_value=0,
+						step=1,
+						key='timeseries_lag_boost_random_state'
+					)
+				)
+			
+			lag_boost_reset_keys = list( lag_boost_defaults.keys( ) ) + [
+					'timeseries_lag_boost_model',
+					'timeseries_lag_boost_forecast',
+					'timeseries_lag_boost_metrics',
+					'timeseries_lag_boost_results',
+					'timeseries_lag_boost_details',
+					'timeseries_lag_boost_signature'
+			]
+			
+			lb_b1, lb_b2 = st.columns( 2 )
+			
+			with lb_b1:
+				run_lag_boost = st.button(
+					'Run Lagged Boosting Regression',
+					icon='🏃',
+					key='timeseries_lag_boost_run',
+					use_container_width=True
+				)
+			
+			with lb_b2:
+				st.button(
+					'Reset Lagged Boosting Regression',
+					icon='🔁',
+					key='timeseries_lag_boost_reset',
+					use_container_width=True,
+					on_click=clear_keys,
+					args=( lag_boost_reset_keys, )
+				)
+			
+			if run_lag_boost:
+				try:
+					if lag_boost_order >= len( series ):
+						st.warning(
+							'⚠️ Lag Order must be less than the number of observations.'
+						)
+						st.stop( )
+					
+					if lag_boost_loss == 'quantile':
+						quantile = lag_boost_quantile
+					else:
+						quantile = None
+					
+					if lag_boost_loss in [ 'gamma', 'poisson' ] and np.any( series <= 0 ):
+						st.warning(
+							'⚠️ Gamma and Poisson loss require strictly positive observations.'
+						)
+						st.stop( )
+					
+					if (
+							lag_boost_stopping is not False
+							and lag_boost_validation * ( len( series ) - lag_boost_order ) < 1
+					):
+						st.warning(
+							'⚠️ Validation Fraction is too small for the available lagged observations.'
+						)
+						st.stop( )
+					
+					max_depth = (
+							lag_boost_depth_input
+							if lag_boost_use_depth
+							else None
+					)
+					
+					model = LagBoostingSeries(
+						lag=lag_boost_order,
+						loss=lag_boost_loss,
+						quantile=quantile,
+						rate=lag_boost_rate,
+						iters=lag_boost_iters,
+						leaf_nodes=lag_boost_leaf_nodes,
+						depth=max_depth,
+						leaf=lag_boost_leaf,
+						regularization=lag_boost_regularization,
+						features=lag_boost_features,
+						bins=lag_boost_bins,
+						monotonic=None,
+						interaction=None,
+						warm=lag_boost_warm,
+						stopping=lag_boost_stopping,
+						scoring=lag_boost_scoring,
+						validation=lag_boost_validation,
+						no_change=lag_boost_no_change,
+						tol=lag_boost_tolerance,
+						verbose=lag_boost_verbose,
+						rando=lag_boost_random_state
+					)
+					
+					start_time = time.time( )
+					model.train( series )
+					metrics = model.analyze( )
+					forecast = model.project( n_steps=lag_boost_horizon )
+					elapsed_seconds = time.time( ) - start_time
+					
+					df_metrics = pd.DataFrame(
+						[
+								{
+										'Metric': metric,
+										'Value': float( value )
+								}
+								for metric, value in metrics.items( )
+						]
+					)
+					
+					df_metrics = pd.concat(
+						[
+								df_metrics,
+								pd.DataFrame(
+									[
+											{
+													'Metric': 'Processing Time (sec)',
+													'Value': round(
+														elapsed_seconds,
+														4
+													)
+											}
+									]
+								)
+						],
+						ignore_index=True
+					)
+					
+					forecast = np.asarray(
+						forecast,
+						dtype=float
+					).reshape( -1 )
+					
+					forecast_index = np.arange(
+						len( series ),
+						len( series ) + len( forecast )
+					)
+					
+					df_results = pd.DataFrame(
+						{
+								'Period': forecast_index,
+								'Forecast': forecast
+						}
+					)
+					
+					detail_rows = [
+							{
+									'Property': 'Lag Order',
+									'Value': model.lag
+							},
+							{
+									'Property': 'Loss',
+									'Value': model.loss
+							},
+							{
+									'Property': 'Quantile',
+									'Value': model.quantile
+							},
+							{
+									'Property': 'Learning Rate',
+									'Value': model.learning_rate
+							},
+							{
+									'Property': 'Maximum Iterations',
+									'Value': model.max_iter
+							},
+							{
+									'Property': 'Maximum Leaf Nodes',
+									'Value': model.max_leaf_nodes
+							},
+							{
+									'Property': 'Maximum Depth',
+									'Value': model.max_depth
+							},
+							{
+									'Property': 'Minimum Samples per Leaf',
+									'Value': model.min_samples_leaf
+							},
+							{
+									'Property': 'L2 Regularization',
+									'Value': model.l2_regularization
+							},
+							{
+									'Property': 'Maximum Features',
+									'Value': model.max_features
+							},
+							{
+									'Property': 'Maximum Bins',
+									'Value': model.max_bins
+							},
+							{
+									'Property': 'Warm Start',
+									'Value': model.warm_start
+							},
+							{
+									'Property': 'Early Stopping',
+									'Value': model.early_stopping
+							},
+							{
+									'Property': 'Scoring',
+									'Value': model.scoring
+							},
+							{
+									'Property': 'Validation Fraction',
+									'Value': model.validation_fraction
+							},
+							{
+									'Property': 'Iterations Without Improvement',
+									'Value': model.n_iter_no_change
+							},
+							{
+									'Property': 'Tolerance',
+									'Value': model.tol
+							},
+							{
+									'Property': 'Random State',
+									'Value': model.random_state
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					lag_boost_signature = (
+							series_col,
+							len( series ),
+							lag_boost_order,
+							lag_boost_loss,
+							quantile,
+							lag_boost_rate,
+							lag_boost_iters,
+							lag_boost_leaf_nodes,
+							max_depth,
+							lag_boost_leaf,
+							lag_boost_regularization,
+							lag_boost_features,
+							lag_boost_bins,
+							lag_boost_warm,
+							lag_boost_stopping,
+							lag_boost_scoring,
+							lag_boost_validation,
+							lag_boost_no_change,
+							lag_boost_tolerance,
+							lag_boost_verbose,
+							lag_boost_random_state,
+							lag_boost_horizon
+					)
+					
+					st.session_state[
+						'timeseries_lag_boost_model'
+					] = model
+					st.session_state[
+						'timeseries_lag_boost_forecast'
+					] = forecast.copy( )
+					st.session_state[
+						'timeseries_lag_boost_metrics'
+					] = df_metrics.copy( )
+					st.session_state[
+						'timeseries_lag_boost_results'
+					] = df_results.copy( )
+					st.session_state[
+						'timeseries_lag_boost_details'
+					] = df_details.copy( )
+					st.session_state[
+						'timeseries_lag_boost_signature'
+					] = lag_boost_signature
+					
+					st.success(
+						'Lagged Boosting Regression forecasting complete.'
+					)
+				except Exception as ex:
+					for key in [
+							'timeseries_lag_boost_model',
+							'timeseries_lag_boost_forecast',
+							'timeseries_lag_boost_metrics',
+							'timeseries_lag_boost_results',
+							'timeseries_lag_boost_details',
+							'timeseries_lag_boost_signature'
+					]:
+						st.session_state.pop( key, None )
+					
+					st.error(
+						f'Lagged Boosting Regression failed: {ex}'
+					)
+			
+			current_quantile = (
+					lag_boost_quantile
+					if lag_boost_loss == 'quantile'
+					else None
+			)
+			
+			current_max_depth = (
+					lag_boost_depth_input
+					if lag_boost_use_depth
+					else None
+			)
+			
+			current_lag_boost_signature = (
+					series_col,
+					len( series ),
+					lag_boost_order,
+					lag_boost_loss,
+					current_quantile,
+					lag_boost_rate,
+					lag_boost_iters,
+					lag_boost_leaf_nodes,
+					current_max_depth,
+					lag_boost_leaf,
+					lag_boost_regularization,
+					lag_boost_features,
+					lag_boost_bins,
+					lag_boost_warm,
+					lag_boost_stopping,
+					lag_boost_scoring,
+					lag_boost_validation,
+					lag_boost_no_change,
+					lag_boost_tolerance,
+					lag_boost_verbose,
+					lag_boost_random_state,
+					lag_boost_horizon
+			)
+			
+			lag_boost_signature = st.session_state.get(
+				'timeseries_lag_boost_signature',
+				None
+			)
+			
+			if lag_boost_signature == current_lag_boost_signature:
+				df_metrics = st.session_state.get(
+					'timeseries_lag_boost_metrics',
+					pd.DataFrame( )
+				)
+				df_results = st.session_state.get(
+					'timeseries_lag_boost_results',
+					pd.DataFrame( )
+				)
+				df_details = st.session_state.get(
+					'timeseries_lag_boost_details',
+					pd.DataFrame( )
+				)
+				forecast = st.session_state.get(
+					'timeseries_lag_boost_forecast',
+					np.array( [ ], dtype=float )
+				)
+			else:
+				df_metrics = pd.DataFrame( )
+				df_results = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+				forecast = np.array( [ ], dtype=float )
+			
+			# ------------------------------------------------------------------
+			# MODEL EVALUATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Model Evaluation' )
+			
+			if not df_metrics.empty:
+				st.data_editor(
+					df_metrics,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True,
+						hide_index=True,
+						disabled=True
+					)
+			else:
+				st.info(
+					'Run Lagged Boosting Regression to view model metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# FORECAST RESULTS
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Forecast Results' )
+			
+			if not df_results.empty:
+				st.data_editor(
+					df_results,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info(
+					'Run Lagged Boosting Regression to view forecast values.'
+				)
+			
+			# ------------------------------------------------------------------
+			# FORECAST VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Observed vs Forecast' )
+			
+			if len( forecast ) > 0:
+				plt.close( 'all' )
+				fig, ax = plt.subplots( )
+				
+				observed_index = np.arange( len( series ) )
+				forecast_index = np.arange(
+					len( series ),
+					len( series ) + len( forecast )
+				)
+				
+				ax.plot(
+					observed_index,
+					series,
+					label='Observed'
+				)
+				ax.plot(
+					forecast_index,
+					forecast,
+					label='Forecast',
+					linestyle='--'
+				)
+				ax.set_xlabel( 'Period' )
+				ax.set_ylabel( series_col )
+				ax.set_title(
+					'Lagged Boosting Regression Forecast'
+				)
+				ax.legend( )
+				
+				st.pyplot( fig )
+				plt.close( fig )
+			else:
+				st.info(
+					'Run Lagged Boosting Regression to view the forecast plot.'
+				)
+		
+		# ------------------------------------------------------------------
+		# LAGGED QUANTILE REGRESSION
+		# ------------------------------------------------------------------
+		with st.expander( 'Lagged Quantile Regression', expanded=False ):
+			lag_quantile_defaults = {
+					'timeseries_lag_quantile_lag': 12,
+					'timeseries_lag_quantile_quantile': 0.5,
+					'timeseries_lag_quantile_alpha': 1.0,
+					'timeseries_lag_quantile_fit': True,
+					'timeseries_lag_quantile_solver': 'highs',
+					'timeseries_lag_quantile_horizon': 5
+			}
+			
+			for key, value in lag_quantile_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Conditional quantile forecasting using linear regression over lagged observations.'
+			)
+			
+			lq_c1, lq_c2, lq_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
+			)
+			
+			with lq_c1:
+				lag_quantile_order = int(
+					st.number_input(
+						'Lag Order',
+						min_value=1,
+						max_value=max( 1, len( series ) - 1 ),
+						step=1,
+						key='timeseries_lag_quantile_lag'
+					)
+				)
+				
+				lag_quantile_value = float(
+					st.number_input(
+						'Conditional Quantile',
+						min_value=0.0001,
+						max_value=0.9999,
+						step=0.05,
+						format='%.4f',
+						key='timeseries_lag_quantile_quantile'
+					)
+				)
+			
+			with lq_c2:
+				lag_quantile_alpha = float(
+					st.number_input(
+						'L1 Regularization',
+						min_value=0.0,
+						step=0.1,
+						format='%.4f',
+						key='timeseries_lag_quantile_alpha'
+					)
+				)
+				
+				lag_quantile_fit = st.checkbox(
+					'Fit Intercept',
+					key='timeseries_lag_quantile_fit'
+				)
+			
+			with lq_c3:
+				lag_quantile_solver = st.selectbox(
+					'Solver',
+					options=[
+							'highs',
+							'highs-ds',
+							'highs-ipm',
+							'interior-point',
+							'revised simplex'
+					],
+					key='timeseries_lag_quantile_solver'
+				)
+				
+				lag_quantile_horizon = int(
+					st.number_input(
+						'Forecast Horizon',
+						min_value=1,
+						step=1,
+						key='timeseries_lag_quantile_horizon'
+					)
+				)
+			
+			lag_quantile_reset_keys = list(
+				lag_quantile_defaults.keys( )
+			) + [
+					'timeseries_lag_quantile_model',
+					'timeseries_lag_quantile_forecast',
+					'timeseries_lag_quantile_metrics',
+					'timeseries_lag_quantile_results',
+					'timeseries_lag_quantile_details',
+					'timeseries_lag_quantile_signature'
+			]
+			
+			lq_b1, lq_b2 = st.columns( 2 )
+			
+			with lq_b1:
+				run_lag_quantile = st.button(
+					'Run Lagged Quantile Regression',
+					icon='🏃',
+					key='timeseries_lag_quantile_run',
+					use_container_width=True
+				)
+			
+			with lq_b2:
+				st.button(
+					'Reset Lagged Quantile Regression',
+					icon='🔁',
+					key='timeseries_lag_quantile_reset',
+					use_container_width=True,
+					on_click=clear_keys,
+					args=( lag_quantile_reset_keys, )
+				)
+			
+			if run_lag_quantile:
+				try:
+					if lag_quantile_order >= len( series ):
+						st.warning(
+							'⚠️ Lag Order must be less than the number of observations.'
+						)
+						st.stop( )
+					
+					if not 0.0 < lag_quantile_value < 1.0:
+						st.warning(
+							'⚠️ Conditional Quantile must be strictly between 0 and 1.'
+						)
+						st.stop( )
+					
+					if lag_quantile_alpha < 0.0:
+						st.warning(
+							'⚠️ L1 Regularization cannot be negative.'
+						)
+						st.stop( )
+					
+					model = LagQuantileSeries(
+						lag=lag_quantile_order,
+						quantile=lag_quantile_value,
+						alpha=lag_quantile_alpha,
+						fit=lag_quantile_fit,
+						solver=lag_quantile_solver,
+						solver_options=None
+					)
+					
+					start_time = time.time( )
+					model.train( series )
+					metrics = model.analyze( )
+					forecast = model.project(
+						n_steps=lag_quantile_horizon
+					)
+					elapsed_seconds = time.time( ) - start_time
+					
+					if metrics is None:
+						metrics = { }
+					
+					df_metrics = pd.DataFrame(
+						[
+								{
+										'Metric': metric,
+										'Value': float( value )
+								}
+								for metric, value in metrics.items( )
+						]
+					)
+					
+					df_metrics = pd.concat(
+						[
+								df_metrics,
+								pd.DataFrame(
+									[
+											{
+													'Metric': 'Processing Time (sec)',
+													'Value': round(
+														elapsed_seconds,
+														4
+													)
+											}
+									]
+								)
+						],
+						ignore_index=True
+					)
+					
+					forecast = np.asarray(
+						forecast,
+						dtype=float
+					).reshape( -1 )
+					
+					forecast_index = np.arange(
+						len( series ),
+						len( series ) + len( forecast )
+					)
+					
+					df_results = pd.DataFrame(
+						{
+								'Period': forecast_index,
+								'Quantile': lag_quantile_value,
+								'Forecast': forecast
+						}
+					)
+					
+					detail_rows = [
+							{
+									'Property': 'Lag Order',
+									'Value': model.lag
+							},
+							{
+									'Property': 'Conditional Quantile',
+									'Value': model.quantile
+							},
+							{
+									'Property': 'L1 Regularization',
+									'Value': model.alpha
+							},
+							{
+									'Property': 'Fit Intercept',
+									'Value': model.fit_intercept
+							},
+							{
+									'Property': 'Solver',
+									'Value': model.solver
+							},
+							{
+									'Property': 'Training Samples',
+									'Value': len( model.training_values )
+							},
+							{
+									'Property': 'Forecast Horizon',
+									'Value': lag_quantile_horizon
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					lag_quantile_signature = (
+							series_col,
+							len( series ),
+							lag_quantile_order,
+							lag_quantile_value,
+							lag_quantile_alpha,
+							lag_quantile_fit,
+							lag_quantile_solver,
+							lag_quantile_horizon
+					)
+					
+					st.session_state[
+						'timeseries_lag_quantile_model'
+					] = model
+					st.session_state[
+						'timeseries_lag_quantile_forecast'
+					] = forecast.copy( )
+					st.session_state[
+						'timeseries_lag_quantile_metrics'
+					] = df_metrics.copy( )
+					st.session_state[
+						'timeseries_lag_quantile_results'
+					] = df_results.copy( )
+					st.session_state[
+						'timeseries_lag_quantile_details'
+					] = df_details.copy( )
+					st.session_state[
+						'timeseries_lag_quantile_signature'
+					] = lag_quantile_signature
+					
+					st.success(
+						'Lagged Quantile Regression forecasting complete.'
+					)
+				except Exception as ex:
+					for key in [
+							'timeseries_lag_quantile_model',
+							'timeseries_lag_quantile_forecast',
+							'timeseries_lag_quantile_metrics',
+							'timeseries_lag_quantile_results',
+							'timeseries_lag_quantile_details',
+							'timeseries_lag_quantile_signature'
+					]:
+						st.session_state.pop( key, None )
+					
+					st.error(
+						f'Lagged Quantile Regression failed: {ex}'
+					)
+			
+			current_lag_quantile_signature = (
+					series_col,
+					len( series ),
+					lag_quantile_order,
+					lag_quantile_value,
+					lag_quantile_alpha,
+					lag_quantile_fit,
+					lag_quantile_solver,
+					lag_quantile_horizon
+			)
+			
+			lag_quantile_signature = st.session_state.get(
+				'timeseries_lag_quantile_signature',
+				None
+			)
+			
+			if lag_quantile_signature == current_lag_quantile_signature:
+				df_metrics = st.session_state.get(
+					'timeseries_lag_quantile_metrics',
+					pd.DataFrame( )
+				)
+				df_results = st.session_state.get(
+					'timeseries_lag_quantile_results',
+					pd.DataFrame( )
+				)
+				df_details = st.session_state.get(
+					'timeseries_lag_quantile_details',
+					pd.DataFrame( )
+				)
+				forecast = st.session_state.get(
+					'timeseries_lag_quantile_forecast',
+					np.array( [ ], dtype=float )
+				)
+			else:
+				df_metrics = pd.DataFrame( )
+				df_results = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+				forecast = np.array( [ ], dtype=float )
+			
+			# ------------------------------------------------------------------
+			# MODEL EVALUATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Model Evaluation' )
+			
+			if not df_metrics.empty:
+				st.data_editor(
+					df_metrics,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True,
+						hide_index=True,
+						disabled=True
+					)
+			else:
+				st.info(
+					'Run Lagged Quantile Regression to view model metrics.'
+				)
+			
+			# ------------------------------------------------------------------
+			# FORECAST RESULTS
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Forecast Results' )
+			
+			if not df_results.empty:
+				st.data_editor(
+					df_results,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info(
+					'Run Lagged Quantile Regression to view forecast values.'
+				)
+			
+			# ------------------------------------------------------------------
+			# FORECAST VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Observed vs Forecast' )
+			
+			if len( forecast ) > 0:
+				plt.close( 'all' )
+				fig, ax = plt.subplots( )
+				
+				observed_index = np.arange( len( series ) )
+				forecast_index = np.arange(
+					len( series ),
+					len( series ) + len( forecast )
+				)
+				
+				ax.plot(
+					observed_index,
+					series,
+					label='Observed'
+				)
+				ax.plot(
+					forecast_index,
+					forecast,
+					label=f'Quantile {lag_quantile_value:.2f}',
+					linestyle='--'
+				)
+				ax.set_xlabel( 'Period' )
+				ax.set_ylabel( series_col )
+				ax.set_title(
+					'Lagged Quantile Regression Forecast'
+				)
+				ax.legend( )
+				
+				st.pyplot( fig )
+				plt.close( fig )
+			else:
+				st.info(
+					'Run Lagged Quantile Regression to view the forecast plot.'
+				)
+				
+		# ------------------------------------------------------------------
+		# ARIMA
+		# ------------------------------------------------------------------
+		with st.expander( 'ARIMA', expanded=False ):
+			arima_defaults = {
+					'timeseries_arima_p': 1,
+					'timeseries_arima_d': 0,
+					'timeseries_arima_q': 0,
+					'timeseries_arima_horizon': 5
+			}
+			
+			for key, value in arima_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Nonseasonal autoregressive integrated moving-average forecasting.'
+			)
+			
+			ar_c1, ar_c2, ar_c3, ar_c4 = st.columns( 4, border=True )
+			
+			with ar_c1:
+				arima_p = int(
+					st.number_input(
+						'Autoregressive Order (p)',
+						min_value=0,
+						step=1,
+						key='timeseries_arima_p'
+					)
+				)
+			
+			with ar_c2:
+				arima_d = int(
+					st.number_input(
+						'Differencing Order (d)',
+						min_value=0,
+						step=1,
+						key='timeseries_arima_d'
+					)
+				)
+			
+			with ar_c3:
+				arima_q = int(
+					st.number_input(
+						'Moving-Average Order (q)',
+						min_value=0,
+						step=1,
+						key='timeseries_arima_q'
+					)
+				)
+			
+			with ar_c4:
+				arima_horizon = int(
+					st.number_input(
+						'Forecast Horizon',
+						min_value=1,
+						step=1,
+						key='timeseries_arima_horizon'
+					)
+				)
+			
+			arima_reset_keys = list( arima_defaults.keys( ) ) + [
+					'timeseries_arima_model',
+					'timeseries_arima_forecast',
+					'timeseries_arima_metrics',
+					'timeseries_arima_results',
+					'timeseries_arima_details',
+					'timeseries_arima_signature'
+			]
+			
+			ar_b1, ar_b2 = st.columns( 2 )
+			
+			with ar_b1:
+				run_arima = st.button(
+					'Run ARIMA',
+					icon='🏃',
+					key='timeseries_arima_run',
+					use_container_width=True
+				)
+			
+			with ar_b2:
+				st.button(
+					'Reset ARIMA',
+					icon='🔁',
+					key='timeseries_arima_reset',
+					use_container_width=True,
+					on_click=clear_keys,
+					args=( arima_reset_keys, )
+				)
+			
+			if run_arima:
+				try:
+					minimum_observations = max( arima_p, arima_q, 1 )
+					
+					if len( series ) <= minimum_observations:
+						st.warning(
+							'⚠️ The selected series does not contain enough observations for the ARIMA order.'
+						)
+						st.stop( )
+					
+					if arima_p == 0 and arima_d == 0 and arima_q == 0:
+						st.warning(
+							'⚠️ At least one ARIMA order must be greater than zero.'
+						)
+						st.stop( )
+					
+					arima_order = (
+							arima_p,
+							arima_d,
+							arima_q
+					)
+					
+					model = ARIMA( order=arima_order )
+					
+					start_time = time.time( )
+					model.train( series )
+					metrics = model.analyze( )
+					forecast = model.project( n_steps=arima_horizon )
+					elapsed_seconds = time.time( ) - start_time
+					
+					if metrics is None:
+						metrics = { }
+					
+					df_metrics = pd.DataFrame(
+						[
+								{
+										'Metric': metric,
+										'Value': float( value )
+								}
+								for metric, value in metrics.items( )
+						]
+					)
+					
+					df_metrics = pd.concat(
+						[
+								df_metrics,
+								pd.DataFrame(
+									[
+											{
+													'Metric': 'Processing Time (sec)',
+													'Value': round(
+														elapsed_seconds,
+														4
+													)
+											}
+									]
+								)
+						],
+						ignore_index=True
+					)
+					
+					forecast = np.asarray(
+						forecast,
+						dtype=float
+					).reshape( -1 )
+					
+					forecast_index = np.arange(
+						len( series ),
+						len( series ) + len( forecast )
+					)
+					
+					df_results = pd.DataFrame(
+						{
+								'Period': forecast_index,
+								'Forecast': forecast
+						}
+					)
+					
+					detail_rows = [
+							{
+									'Property': 'Order',
+									'Value': str( model.order )
+							},
+							{
+									'Property': 'Autoregressive Order',
+									'Value': arima_p
+							},
+							{
+									'Property': 'Differencing Order',
+									'Value': arima_d
+							},
+							{
+									'Property': 'Moving-Average Order',
+									'Value': arima_q
+							},
+							{
+									'Property': 'Training Observations',
+									'Value': len( model.train_data )
+							},
+							{
+									'Property': 'Forecast Horizon',
+									'Value': arima_horizon
+							},
+							{
+									'Property': 'AIC',
+									'Value': float( model.results.aic )
+							},
+							{
+									'Property': 'BIC',
+									'Value': float( model.results.bic )
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					arima_signature = (
+							series_col,
+							len( series ),
+							arima_p,
+							arima_d,
+							arima_q,
+							arima_horizon
+					)
+					
+					st.session_state[ 'timeseries_arima_model' ] = model
+					st.session_state[
+						'timeseries_arima_forecast'
+					] = forecast.copy( )
+					st.session_state[
+						'timeseries_arima_metrics'
+					] = df_metrics.copy( )
+					st.session_state[
+						'timeseries_arima_results'
+					] = df_results.copy( )
+					st.session_state[
+						'timeseries_arima_details'
+					] = df_details.copy( )
+					st.session_state[
+						'timeseries_arima_signature'
+					] = arima_signature
+					
+					st.success( 'ARIMA forecasting complete.' )
+				except Exception as ex:
+					for key in [
+							'timeseries_arima_model',
+							'timeseries_arima_forecast',
+							'timeseries_arima_metrics',
+							'timeseries_arima_results',
+							'timeseries_arima_details',
+							'timeseries_arima_signature'
+					]:
+						st.session_state.pop( key, None )
+					
+					st.error( f'ARIMA forecasting failed: {ex}' )
+			
+			current_arima_signature = (
+					series_col,
+					len( series ),
+					arima_p,
+					arima_d,
+					arima_q,
+					arima_horizon
+			)
+			
+			arima_signature = st.session_state.get(
+				'timeseries_arima_signature',
+				None
+			)
+			
+			if arima_signature == current_arima_signature:
+				df_metrics = st.session_state.get(
+					'timeseries_arima_metrics',
+					pd.DataFrame( )
+				)
+				df_results = st.session_state.get(
+					'timeseries_arima_results',
+					pd.DataFrame( )
+				)
+				df_details = st.session_state.get(
+					'timeseries_arima_details',
+					pd.DataFrame( )
+				)
+				forecast = st.session_state.get(
+					'timeseries_arima_forecast',
+					np.array( [ ], dtype=float )
+				)
+			else:
+				df_metrics = pd.DataFrame( )
+				df_results = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+				forecast = np.array( [ ], dtype=float )
+			
+			# ------------------------------------------------------------------
+			# MODEL EVALUATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Model Evaluation' )
+			
+			if not df_metrics.empty:
+				st.data_editor(
+					df_metrics,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True,
+						hide_index=True,
+						disabled=True
+					)
+			else:
+				st.info( 'Run ARIMA to view model metrics.' )
+			
+			# ------------------------------------------------------------------
+			# FORECAST RESULTS
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Forecast Results' )
+			
+			if not df_results.empty:
+				st.data_editor(
+					df_results,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info( 'Run ARIMA to view forecast values.' )
+			
+			# ------------------------------------------------------------------
+			# FORECAST VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Observed vs Forecast' )
+			
+			if len( forecast ) > 0:
+				plt.close( 'all' )
+				fig, ax = plt.subplots( )
+				
+				observed_index = np.arange( len( series ) )
+				forecast_index = np.arange(
+					len( series ),
+					len( series ) + len( forecast )
+				)
+				
+				ax.plot(
+					observed_index,
+					series,
+					label='Observed'
+				)
+				ax.plot(
+					forecast_index,
+					forecast,
+					label='Forecast',
+					linestyle='--'
+				)
+				ax.set_xlabel( 'Period' )
+				ax.set_ylabel( series_col )
+				ax.set_title(
+					f'ARIMA{( arima_p, arima_d, arima_q )} Forecast'
+				)
+				ax.legend( )
+				
+				st.pyplot( fig )
+				plt.close( fig )
+			else:
+				st.info(
+					'Run ARIMA to view the forecast plot.'
+				)
+		
+		# ------------------------------------------------------------------
+		# SARIMA
+		# ------------------------------------------------------------------
+		with st.expander( 'SARIMA', expanded=False ):
+			sarima_defaults = {
+					'timeseries_sarima_p': 1,
+					'timeseries_sarima_d': 0,
+					'timeseries_sarima_q': 0,
+					'timeseries_sarima_seasonal_p': 0,
+					'timeseries_sarima_seasonal_d': 0,
+					'timeseries_sarima_seasonal_q': 0,
+					'timeseries_sarima_seasonal_period': 0,
+					'timeseries_sarima_horizon': 5
+			}
+			
+			for key, value in sarima_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Seasonal autoregressive integrated moving-average forecasting.'
+			)
+			
+			sa_c1, sa_c2, sa_c3, sa_c4 = st.columns(
+				4,
+				border=True
+			)
+			
+			with sa_c1:
+				sarima_p = int(
+					st.number_input(
+						'Autoregressive Order (p)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_p'
+					)
+				)
+				
+				sarima_seasonal_p = int(
+					st.number_input(
+						'Seasonal Autoregressive Order (P)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_seasonal_p'
+					)
+				)
+			
+			with sa_c2:
+				sarima_d = int(
+					st.number_input(
+						'Differencing Order (d)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_d'
+					)
+				)
+				
+				sarima_seasonal_d = int(
+					st.number_input(
+						'Seasonal Differencing Order (D)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_seasonal_d'
+					)
+				)
+			
+			with sa_c3:
+				sarima_q = int(
+					st.number_input(
+						'Moving-Average Order (q)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_q'
+					)
+				)
+				
+				sarima_seasonal_q = int(
+					st.number_input(
+						'Seasonal Moving-Average Order (Q)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_seasonal_q'
+					)
+				)
+			
+			with sa_c4:
+				sarima_seasonal_period = int(
+					st.number_input(
+						'Seasonal Period (s)',
+						min_value=0,
+						step=1,
+						key='timeseries_sarima_seasonal_period'
+					)
+				)
+				
+				sarima_horizon = int(
+					st.number_input(
+						'Forecast Horizon',
+						min_value=1,
+						step=1,
+						key='timeseries_sarima_horizon'
+					)
+				)
+			
+			sarima_reset_keys = list( sarima_defaults.keys( ) ) + [
+					'timeseries_sarima_model',
+					'timeseries_sarima_forecast',
+					'timeseries_sarima_metrics',
+					'timeseries_sarima_results',
+					'timeseries_sarima_details',
+					'timeseries_sarima_signature'
+			]
+			
+			sa_b1, sa_b2 = st.columns( 2 )
+			
+			with sa_b1:
+				run_sarima = st.button(
+					'Run SARIMA',
+					icon='🏃',
+					key='timeseries_sarima_run',
+					use_container_width=True
+				)
+			
+			with sa_b2:
+				st.button(
+					'Reset SARIMA',
+					icon='🔁',
+					key='timeseries_sarima_reset',
+					use_container_width=True,
+					on_click=clear_keys,
+					args=( sarima_reset_keys, )
+				)
+			
+			if run_sarima:
+				try:
+					nonseasonal_order = (
+							sarima_p,
+							sarima_d,
+							sarima_q
+					)
+					
+					seasonal_terms = (
+							sarima_seasonal_p,
+							sarima_seasonal_d,
+							sarima_seasonal_q
+					)
+					
+					uses_seasonality = any(
+						value > 0
+						for value in seasonal_terms
+					)
+					
+					if (
+							all( value == 0 for value in nonseasonal_order )
+							and not uses_seasonality
+					):
+						st.warning(
+							'⚠️ At least one nonseasonal or seasonal order must be greater than zero.'
+						)
+						st.stop( )
+					
+					if uses_seasonality and sarima_seasonal_period < 2:
+						st.warning(
+							'⚠️ Seasonal Period must be at least 2 when seasonal orders are used.'
+						)
+						st.stop( )
+					
+					if (
+							not uses_seasonality
+							and sarima_seasonal_period not in [ 0, 1 ]
+					):
+						st.warning(
+							'⚠️ Set Seasonal Period to 0 when no seasonal orders are used.'
+						)
+						st.stop( )
+					
+					effective_seasonal_period = (
+							sarima_seasonal_period
+							if uses_seasonality
+							else 0
+					)
+					
+					seasonal_order = (
+							sarima_seasonal_p,
+							sarima_seasonal_d,
+							sarima_seasonal_q,
+							effective_seasonal_period
+					)
+					
+					minimum_observations = max(
+						sarima_p + sarima_d + sarima_q,
+						sarima_seasonal_p
+						+ sarima_seasonal_d
+						+ sarima_seasonal_q,
+						1
+					)
+					
+					if len( series ) <= minimum_observations:
+						st.warning(
+							'⚠️ The selected series does not contain enough observations for the SARIMA orders.'
+						)
+						st.stop( )
+					
+					if (
+							uses_seasonality
+							and len( series ) <= effective_seasonal_period
+					):
+						st.warning(
+							'⚠️ The selected series must contain more observations than the Seasonal Period.'
+						)
+						st.stop( )
+					
+					model = SARIMA(
+						order=nonseasonal_order,
+						seasonal=seasonal_order
+					)
+					
+					start_time = time.time( )
+					model.train( series )
+					metrics = model.analyze( )
+					forecast = model.project(
+						n_steps=sarima_horizon
+					)
+					elapsed_seconds = time.time( ) - start_time
+					
+					if metrics is None:
+						metrics = { }
+					
+					df_metrics = pd.DataFrame(
+						[
+								{
+										'Metric': metric,
+										'Value': float( value )
+								}
+								for metric, value in metrics.items( )
+						]
+					)
+					
+					df_metrics = pd.concat(
+						[
+								df_metrics,
+								pd.DataFrame(
+									[
+											{
+													'Metric': 'Processing Time (sec)',
+													'Value': round(
+														elapsed_seconds,
+														4
+													)
+											}
+									]
+								)
+						],
+						ignore_index=True
+					)
+					
+					forecast = np.asarray(
+						forecast,
+						dtype=float
+					).reshape( -1 )
+					
+					forecast_index = np.arange(
+						len( series ),
+						len( series ) + len( forecast )
+					)
+					
+					df_results = pd.DataFrame(
+						{
+								'Period': forecast_index,
+								'Forecast': forecast
+						}
+					)
+					
+					detail_rows = [
+							{
+									'Property': 'Order',
+									'Value': str( model.order )
+							},
+							{
+									'Property': 'Seasonal Order',
+									'Value': str( model.seasonal_order )
+							},
+							{
+									'Property': 'Training Observations',
+									'Value': len( model.training_data )
+							},
+							{
+									'Property': 'Forecast Horizon',
+									'Value': sarima_horizon
+							},
+							{
+									'Property': 'AIC',
+									'Value': float( model.results.aic )
+							},
+							{
+									'Property': 'BIC',
+									'Value': float( model.results.bic )
+							}
+					]
+					
+					df_details = pd.DataFrame( detail_rows )
+					
+					sarima_signature = (
+							series_col,
+							len( series ),
+							sarima_p,
+							sarima_d,
+							sarima_q,
+							sarima_seasonal_p,
+							sarima_seasonal_d,
+							sarima_seasonal_q,
+							effective_seasonal_period,
+							sarima_horizon
+					)
+					
+					st.session_state[ 'timeseries_sarima_model' ] = model
+					st.session_state[
+						'timeseries_sarima_forecast'
+					] = forecast.copy( )
+					st.session_state[
+						'timeseries_sarima_metrics'
+					] = df_metrics.copy( )
+					st.session_state[
+						'timeseries_sarima_results'
+					] = df_results.copy( )
+					st.session_state[
+						'timeseries_sarima_details'
+					] = df_details.copy( )
+					st.session_state[
+						'timeseries_sarima_signature'
+					] = sarima_signature
+					
+					st.success( 'SARIMA forecasting complete.' )
+				except Exception as ex:
+					for key in [
+							'timeseries_sarima_model',
+							'timeseries_sarima_forecast',
+							'timeseries_sarima_metrics',
+							'timeseries_sarima_results',
+							'timeseries_sarima_details',
+							'timeseries_sarima_signature'
+					]:
+						st.session_state.pop( key, None )
+					
+					st.error( f'SARIMA forecasting failed: {ex}' )
+			
+			current_uses_seasonality = any(
+				value > 0
+				for value in (
+						sarima_seasonal_p,
+						sarima_seasonal_d,
+						sarima_seasonal_q
+				)
+			)
+			
+			current_seasonal_period = (
+					sarima_seasonal_period
+					if current_uses_seasonality
+					else 0
+			)
+			
+			current_sarima_signature = (
+					series_col,
+					len( series ),
+					sarima_p,
+					sarima_d,
+					sarima_q,
+					sarima_seasonal_p,
+					sarima_seasonal_d,
+					sarima_seasonal_q,
+					current_seasonal_period,
+					sarima_horizon
+			)
+			
+			sarima_signature = st.session_state.get(
+				'timeseries_sarima_signature',
+				None
+			)
+			
+			if sarima_signature == current_sarima_signature:
+				df_metrics = st.session_state.get(
+					'timeseries_sarima_metrics',
+					pd.DataFrame( )
+				)
+				df_results = st.session_state.get(
+					'timeseries_sarima_results',
+					pd.DataFrame( )
+				)
+				df_details = st.session_state.get(
+					'timeseries_sarima_details',
+					pd.DataFrame( )
+				)
+				forecast = st.session_state.get(
+					'timeseries_sarima_forecast',
+					np.array( [ ], dtype=float )
+				)
+			else:
+				df_metrics = pd.DataFrame( )
+				df_results = pd.DataFrame( )
+				df_details = pd.DataFrame( )
+				forecast = np.array( [ ], dtype=float )
+			
+			# ------------------------------------------------------------------
+			# MODEL EVALUATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Model Evaluation' )
+			
+			if not df_metrics.empty:
+				st.data_editor(
+					df_metrics,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+				
+				if not df_details.empty:
+					st.caption( 'Model Details' )
+					st.data_editor(
+						df_details,
+						use_container_width=True,
+						hide_index=True,
+						disabled=True
+					)
+			else:
+				st.info( 'Run SARIMA to view model metrics.' )
+			
+			# ------------------------------------------------------------------
+			# FORECAST RESULTS
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Forecast Results' )
+			
+			if not df_results.empty:
+				st.data_editor(
+					df_results,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info( 'Run SARIMA to view forecast values.' )
+			
+			# ------------------------------------------------------------------
+			# FORECAST VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Observed vs Forecast' )
+			
+			if len( forecast ) > 0:
+				plt.close( 'all' )
+				fig, ax = plt.subplots( )
+				
+				observed_index = np.arange( len( series ) )
+				forecast_index = np.arange(
+					len( series ),
+					len( series ) + len( forecast )
+				)
+				
+				ax.plot(
+					observed_index,
+					series,
+					label='Observed'
+				)
+				ax.plot(
+					forecast_index,
+					forecast,
+					label='Forecast',
+					linestyle='--'
+				)
+				ax.set_xlabel( 'Period' )
+				ax.set_ylabel( series_col )
+				ax.set_title(
+					f'SARIMA{( sarima_p, sarima_d, sarima_q )}'
+					f'{( sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period )} Forecast'
+				)
+				ax.legend( )
+				
+				st.pyplot( fig )
+				plt.close( fig )
+			else:
+				st.info(
+					'Run SARIMA to view the forecast plot.'
+				)
 		
 		# ------------------------------------------------------------------
 		# TIME-SERIES CROSS-VALIDATION
 		# ------------------------------------------------------------------
-		st.subheader( 'Time-Series Cross-Validation' )
-		
-		with st.expander( 'Show time-series splits' ):
-			splits = st.number_input(
-				'Number of splits',
-				min_value=2,
-				value=5
+		with st.expander( 'Time-Series Cross-Validation', expanded=False ):
+			splitter_defaults = {
+					'timeseries_splitter_splits': 5,
+					'timeseries_splitter_use_train_size': False,
+					'timeseries_splitter_train_size': 20,
+					'timeseries_splitter_use_test_size': False,
+					'timeseries_splitter_test_size': 5,
+					'timeseries_splitter_gap': 0
+			}
+			
+			for key, value in splitter_defaults.items( ):
+				if key not in st.session_state:
+					st.session_state[ key ] = value
+			
+			st.caption(
+				'Chronological train-and-test windows for evaluating time-series models without random shuffling.'
 			)
 			
-			test_size = st.number_input(
-				'Test window size',
-				min_value=1,
-				value=10
+			cv_c1, cv_c2, cv_c3 = st.columns(
+				[ 0.33, 0.33, 0.34 ],
+				border=True
 			)
 			
-			gap = st.number_input(
-				'Gap size',
-				min_value=0,
-				value=0
-			)
+			with cv_c1:
+				splitter_splits = int(
+					st.number_input(
+						'Number of Splits',
+						min_value=2,
+						max_value=max( 2, len( series ) - 1 ),
+						step=1,
+						key='timeseries_splitter_splits'
+					)
+				)
+				
+				splitter_gap = int(
+					st.number_input(
+						'Temporal Gap',
+						min_value=0,
+						max_value=max( 0, len( series ) - 2 ),
+						step=1,
+						key='timeseries_splitter_gap'
+					)
+				)
 			
-			max_train_size = st.number_input(
-				'Max train size (0 = unlimited)',
-				min_value=0,
-				value=0
-			)
+			with cv_c2:
+				splitter_use_train_size = st.checkbox(
+					'Limit Training Window',
+					key='timeseries_splitter_use_train_size'
+				)
+				
+				splitter_train_size_input = int(
+					st.number_input(
+						'Maximum Training Size',
+						min_value=1,
+						max_value=max( 1, len( series ) - 1 ),
+						step=1,
+						disabled=not splitter_use_train_size,
+						key='timeseries_splitter_train_size'
+					)
+				)
 			
-			splitter = TimeSeriesSpliter(
-				splits=int( splits ),
-				test_size=int( test_size ),
-				gap=int( gap ),
-				max_train_size=int( max_train_size )
-				if int( max_train_size ) > 0
-				else None
-			)
+			with cv_c3:
+				splitter_use_test_size = st.checkbox(
+					'Use Fixed Test Size',
+					key='timeseries_splitter_use_test_size'
+				)
+				
+				splitter_test_size_input = int(
+					st.number_input(
+						'Test Size',
+						min_value=1,
+						max_value=max( 1, len( series ) - 1 ),
+						step=1,
+						disabled=not splitter_use_test_size,
+						key='timeseries_splitter_test_size'
+					)
+				)
 			
-			if st.button( 'Visualize CV Splits' ):
+			splitter_reset_keys = list( splitter_defaults.keys( ) ) + [
+					'timeseries_splitter_model',
+					'timeseries_splitter_results',
+					'timeseries_splitter_summary',
+					'timeseries_splitter_figure',
+					'timeseries_splitter_signature'
+			]
+			
+			cv_b1, cv_b2 = st.columns( 2 )
+			
+			with cv_b1:
+				run_splitter = st.button(
+					'Generate Time-Series Splits',
+					icon='🏃',
+					key='timeseries_splitter_run',
+					use_container_width=True
+				)
+			
+			with cv_b2:
+				st.button(
+					'Reset Time-Series Splits',
+					icon='🔁',
+					key='timeseries_splitter_reset',
+					use_container_width=True,
+					on_click=clear_keys,
+					args=( splitter_reset_keys, )
+				)
+			
+			if run_splitter:
 				try:
-					plt.close( 'all' )
-					fig = splitter.visualize( series )
-					st.pyplot( fig )
-					plt.close( fig )
-				except Exception as e:
-					st.error( f'Time-Series split visualization failed: {e}' )
-
+					max_train_size = (
+							splitter_train_size_input
+							if splitter_use_train_size
+							else None
+					)
+					
+					test_size = (
+							splitter_test_size_input
+							if splitter_use_test_size
+							else None
+					)
+					
+					computed_test_size = (
+							len( series ) // ( splitter_splits + 1 )
+							if test_size is None
+							else test_size
+					)
+					
+					required_observations = (
+							splitter_splits
+							* computed_test_size
+							+ splitter_gap
+					)
+					
+					if computed_test_size < 1:
+						st.warning(
+							'⚠️ The selected configuration produces an invalid test-window size.'
+						)
+						st.stop( )
+					
+					if required_observations >= len( series ):
+						st.warning(
+							'⚠️ The selected series does not contain enough observations for the requested splits, test size, and gap.'
+						)
+						st.stop( )
+					
+					splitter = TimeSeriesSpliter(
+						splits=splitter_splits,
+						max_train_size=max_train_size,
+						test_size=test_size,
+						gap=splitter_gap
+					)
+					
+					start_time = time.time( )
+					split_pairs = splitter.get_splits( series )
+					figure = splitter.visualize( series )
+					elapsed_seconds = time.time( ) - start_time
+					
+					if not split_pairs:
+						st.warning(
+							'⚠️ No time-series splits were generated.'
+						)
+						st.stop( )
+					
+					result_rows = [ ]
+					summary_rows = [ ]
+					
+					for split_number, split_pair in enumerate(
+							split_pairs,
+							start=1
+					):
+						train_index, test_index = split_pair
+						
+						train_start = int( train_index[ 0 ] )
+						train_end = int( train_index[ -1 ] )
+						test_start = int( test_index[ 0 ] )
+						test_end = int( test_index[ -1 ] )
+						
+						summary_rows.append(
+							{
+									'Split': split_number,
+									'Train Start': train_start,
+									'Train End': train_end,
+									'Train Size': len( train_index ),
+									'Test Start': test_start,
+									'Test End': test_end,
+									'Test Size': len( test_index ),
+									'Gap': splitter_gap
+							}
+						)
+						
+						for index in train_index:
+							result_rows.append(
+								{
+										'Split': split_number,
+										'Period': int( index ),
+										'Value': float( series[ index ] ),
+										'Partition': 'Train'
+								}
+							)
+						
+						for index in test_index:
+							result_rows.append(
+								{
+										'Split': split_number,
+										'Period': int( index ),
+										'Value': float( series[ index ] ),
+										'Partition': 'Test'
+								}
+							)
+					
+					df_split_results = pd.DataFrame( result_rows )
+					df_split_summary = pd.DataFrame( summary_rows )
+					
+					df_processing = pd.DataFrame(
+						[
+								{
+										'Property': 'Configured Splits',
+										'Value': splitter.get_n_splits( series )
+								},
+								{
+										'Property': 'Generated Splits',
+										'Value': len( split_pairs )
+								},
+								{
+										'Property': 'Maximum Training Size',
+										'Value': max_train_size
+								},
+								{
+										'Property': 'Test Size',
+										'Value': computed_test_size
+								},
+								{
+										'Property': 'Temporal Gap',
+										'Value': splitter_gap
+								},
+								{
+										'Property': 'Processing Time (sec)',
+										'Value': round(
+											elapsed_seconds,
+											4
+										)
+								}
+						]
+					)
+					
+					splitter_signature = (
+							series_col,
+							len( series ),
+							splitter_splits,
+							max_train_size,
+							test_size,
+							splitter_gap
+					)
+					
+					st.session_state[
+						'timeseries_splitter_model'
+					] = splitter
+					st.session_state[
+						'timeseries_splitter_results'
+					] = df_split_results.copy( )
+					st.session_state[
+						'timeseries_splitter_summary'
+					] = df_split_summary.copy( )
+					st.session_state[
+						'timeseries_splitter_details'
+					] = df_processing.copy( )
+					st.session_state[
+						'timeseries_splitter_figure'
+					] = figure
+					st.session_state[
+						'timeseries_splitter_signature'
+					] = splitter_signature
+					
+					st.success(
+						'Time-series cross-validation splits generated.'
+					)
+				except Exception as ex:
+					for key in [
+							'timeseries_splitter_model',
+							'timeseries_splitter_results',
+							'timeseries_splitter_summary',
+							'timeseries_splitter_details',
+							'timeseries_splitter_figure',
+							'timeseries_splitter_signature'
+					]:
+						st.session_state.pop( key, None )
+					
+					st.error(
+						f'Time-Series Cross-Validation failed: {ex}'
+					)
+			
+			current_max_train_size = (
+					splitter_train_size_input
+					if splitter_use_train_size
+					else None
+			)
+			
+			current_test_size = (
+					splitter_test_size_input
+					if splitter_use_test_size
+					else None
+			)
+			
+			current_splitter_signature = (
+					series_col,
+					len( series ),
+					splitter_splits,
+					current_max_train_size,
+					current_test_size,
+					splitter_gap
+			)
+			
+			splitter_signature = st.session_state.get(
+				'timeseries_splitter_signature',
+				None
+			)
+			
+			if splitter_signature == current_splitter_signature:
+				df_split_results = st.session_state.get(
+					'timeseries_splitter_results',
+					pd.DataFrame( )
+				)
+				df_split_summary = st.session_state.get(
+					'timeseries_splitter_summary',
+					pd.DataFrame( )
+				)
+				df_split_details = st.session_state.get(
+					'timeseries_splitter_details',
+					pd.DataFrame( )
+				)
+				split_figure = st.session_state.get(
+					'timeseries_splitter_figure',
+					None
+				)
+			else:
+				df_split_results = pd.DataFrame( )
+				df_split_summary = pd.DataFrame( )
+				df_split_details = pd.DataFrame( )
+				split_figure = None
+			
+			# ------------------------------------------------------------------
+			# SPLIT SUMMARY
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Split Summary' )
+			
+			if not df_split_summary.empty:
+				st.data_editor(
+					df_split_summary,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+				
+				if not df_split_details.empty:
+					st.caption( 'Splitter Details' )
+					st.data_editor(
+						df_split_details,
+						use_container_width=True,
+						hide_index=True,
+						disabled=True
+					)
+			else:
+				st.info(
+					'Generate time-series splits to view the train-and-test windows.'
+				)
+			
+			# ------------------------------------------------------------------
+			# SPLIT ASSIGNMENTS
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Split Assignments' )
+			
+			if not df_split_results.empty:
+				st.data_editor(
+					df_split_results,
+					use_container_width=True,
+					hide_index=True,
+					disabled=True
+				)
+			else:
+				st.info(
+					'Generate time-series splits to view individual period assignments.'
+				)
+			
+			# ------------------------------------------------------------------
+			# SPLIT VISUALIZATION
+			# ------------------------------------------------------------------
+			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
+			st.markdown( '##### Split Visualization' )
+			
+			if split_figure is not None:
+				st.pyplot( split_figure )
+			else:
+				st.info(
+					'Generate time-series splits to view the validation windows.'
+				)
+				
 # ============================================
 # DATA MANAGEMENT MODE
 # ============================================
