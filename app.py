@@ -71,10 +71,8 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import (
-	confusion_matrix, roc_curve, auc, r2_score,
-	accuracy_score, precision_score, recall_score, f1_score
-)
+from sklearn.metrics import (confusion_matrix, roc_curve, auc, r2_score, accuracy_score,
+                             precision_score, recall_score, f1_score)
 
 try:
 	from xgboost import XGBClassifier
@@ -95,35 +93,34 @@ import seaborn as sns
 import sklearn.feature_selection as sf
 import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split as split
-from scalers import ( StandardScaler, MinMaxScaler, RobustScaler, NormalScaler, MaxAbsScaler )
+from scalers import (StandardScaler, MinMaxScaler, RobustScaler, NormalScaler, MaxAbsScaler)
 
-from imputers import ( MeanImputer, NearestImputer, IterativeImputer, SimpleImputer )
+from imputers import (MeanImputer, NearestImputer, IterativeImputer, SimpleImputer)
 
-from encoders import ( OneHotEncoder, OrdinalEncoder, LabelEncoder, TargetEncoder,
-                       PolynomialFeatures )
+from encoders import (OneHotEncoder, OrdinalEncoder, LabelEncoder, TargetEncoder,
+                      PolynomialFeatures)
 
-from transformers import ( Binarizer, LabelBinarizer, MultiLabelBinarizer, TfidfTransformer,
-	ColumnTransformer, TfidfVectorizer, CountVectorizer, HashVectorizer, DictVectorizer,
-	FeatureHasher )
+from transformers import (Binarizer, LabelBinarizer, MultiLabelBinarizer, TfidfTransformer,
+                          ColumnTransformer, TfidfVectorizer, CountVectorizer, HashVectorizer,
+                          DictVectorizer, FeatureHasher)
 
-from clusters import ( KMeans, DBSCAN, Agglomerative, Spectral, OPTICS, MeanShift,
-	AffinityPropagation, Birch )
+from clusters import (KMeans, DBSCAN, Agglomerative, Spectral, OPTICS, MeanShift,
+                      AffinityPropagation, Birch)
 
-from features import ( VarianceThreshold, CCA, PCA, SelectBest, SelectPercent, SBS, RFE )
+from features import (VarianceThreshold, CCA, PCA, SelectBest, SelectPercent, SBS, RFE)
 
 import classifications as classification_model
 import regressions as regression_model
 
-from classifications import ( Perceptron, LogisticRegression, DecisionTree,
-	SupportVector, RandomForest, NearestNeighbor, BaggingModel, AdaptiveBoost, GradientBoost )
+from classifications import (Perceptron, LogisticRegression, DecisionTree, SupportVector,
+                             RandomForest, NearestNeighbor, BaggingModel, AdaptiveBoost,
+                             GradientBoost)
 
 from encoders import (OneHotEncoder, OrdinalEncoder, TargetEncoder)
 
-
-
 from imputers import (MeanImputer, SimpleImputer, NearestImputer, IterativeImputer)
-from forecasting import ( LaggingSeries, LagQuantileSeries, LagBoostingSeries, ARIMA,
-                          SARIMA, TimeSeriesSpliter )
+from forecasting import (LaggingSeries, LagQuantileSeries, LagBoostingSeries, ARIMA, SARIMA,
+                         TimeSeriesSpliter)
 
 # ============================================
 # Session State
@@ -307,8 +304,7 @@ def get_loaded_dataset( ) -> pd.DataFrame | None:
 	
 	return df_frame.copy( )
 
-def store_loaded_dataset( df_dataset: pd.DataFrame,
-	df_original: pd.DataFrame | None = None ) -> None:
+def store_loaded_dataset( df_dataset: pd.DataFrame, df_original: pd.DataFrame = None ) -> None:
 	"""
 		Purpose:
 		--------
@@ -1124,9 +1120,9 @@ def read_table( table: str, limit: int = None, offset: int = 0 ) -> pd.DataFrame
 		-----------
 		table : str
 			Table name.
-		limit : int = None
+		limit : int=None
 			Optional row limit.
-		offset : int = 0
+		offset : int=0
 			Optional row offset.
 	
 		Returns:
@@ -3533,7 +3529,7 @@ elif mode == 'Classification Models':
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with (((center))):
+	with center:
 		st.subheader( cfg.MODE[ 'Classification Models' ] )
 		st.caption( 'Predictive Models for Categorical, Discrete-Values' )
 		st.divider( )
@@ -3569,7 +3565,6 @@ elif mode == 'Classification Models':
 		
 		with col_c2:
 			target_options = [ column for column in df_original.columns if column not in features ]
-			
 			targets = st.selectbox( 'Select Target', options=target_options,
 				key='classification_target' )
 		
@@ -3595,8 +3590,7 @@ elif mode == 'Classification Models':
 		
 		# Reset Button
 		with sel_b2:
-			if st.button( 'Reset Working Dataset', icon='🔁',
-					key='classification_reset_to_original',
+			if st.button( 'Reset Working Dataset', icon='🔁', key='classification_reset_to_original',
 					use_container_width=True ):
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
@@ -3785,7 +3779,8 @@ elif mode == 'Classification Models':
 			if key in st.session_state and st.session_state[ key ] not in options:
 				del st.session_state[ key ]
 		
-		def get_valid_classification_columns( column_names: list[ str ], df_frame: pd.DataFrame ) -> list[ str ]:
+		def get_valid_classification_columns( column_names: list[ str ],
+			df_frame: pd.DataFrame ) -> list[ str ]:
 			"""
 
 				Purpose:
@@ -3952,6 +3947,7 @@ elif mode == 'Classification Models':
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
 			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
+				
 				with st.expander( 'Standard Scaler', expanded=False ):
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.STANDARD_SCALER )
@@ -4139,6 +4135,7 @@ elif mode == 'Classification Models':
 							st.rerun( )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
+				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.MEAN_IMPUTER )
@@ -4327,6 +4324,7 @@ elif mode == 'Classification Models':
 							st.rerun( )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='classification_encoders' ):
+				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.ONEHOT_ENCODER )
@@ -4532,6 +4530,7 @@ elif mode == 'Classification Models':
 		with feature_c2:
 			with st.expander( label='Data Transformation', icon='⚡',
 					key='classification_transformers' ):
+				
 				with st.expander( 'Binarizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.BINARIZER )
@@ -5414,7 +5413,6 @@ elif mode == 'Classification Models':
 		
 		blue_divider( )
 		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
-		
 		if not has_classification_frame( df_processed ):
 			st.info( 'No processed classification data has been created.' )
 			st.stop( )
@@ -5438,10 +5436,9 @@ elif mode == 'Classification Models':
 		
 		st.session_state[ 'active_features' ] = active_features
 		st.session_state[ 'active_targets' ] = active_targets
-		
 		if not active_features:
-			st.warning(
-				'⚠️ Classification training requires at least one processed feature column.' )
+			warn = '⚠️ Classification training requires at least one processed feature column.'
+			st.warning( warn )
 			st.stop( )
 		
 		if len( active_targets ) != 1:
@@ -5619,13 +5616,11 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
-						
 						if len( np.unique( y ) ) < 2:
 							st.warning( '⚠️ Perceptron requires at least two target classes.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
-						
 						model = classification_model.Perceptron( alpha=float( perceptron_alpha ),
 							eta=float( perceptron_eta ), iters=int( perceptron_iters ),
 							shuffle=bool( perceptron_shuffle ), penalty=perceptron_penalty,
@@ -5638,7 +5633,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.analyze( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -5666,9 +5660,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Perceptron training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Perceptron training failed: {ex}' )
 			
@@ -6420,9 +6412,8 @@ elif mode == 'Classification Models':
 				if train_gradient:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Gradient Descent requires prepared feature and target '
-								'arrays.' )
+							st.warning( '⚠️ Gradient Descent requires prepared feature and target '
+							            'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -6597,9 +6588,8 @@ elif mode == 'Classification Models':
 				if train_nearest:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Nearest Neighbor requires prepared feature and target '
-								'arrays.' )
+							st.warning( '⚠️ Nearest Neighbor requires prepared feature and target '
+							            'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -6608,7 +6598,6 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
-						
 						if len( np.unique( y ) ) < 2:
 							st.warning(
 								'⚠️ Nearest Neighbor requires at least two target classes.' )
@@ -6620,15 +6609,13 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						if str( nearest_metric ) in [ 'mahalanobis', 'seuclidean' ]:
-							st.warning(
-								'⚠️ The selected metric requires additional metric parameters. '
+							st.warning( '⚠️ The selected metric requires additional parameters. '
 								'Use minkowski, euclidean, manhattan, cityblock, l1, l2, '
 								'cosine, chebyshev, hamming, canberra, braycurtis, or '
 								'nan_euclidean for this UI path.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
-						
 						model = classification_model.NearestNeighbor( num=int( nearest_num ),
 							algorithm=str( nearest_algorithm ), power=int( nearest_power ),
 							metric=str( nearest_metric ), leafs=int( nearest_leafs ) )
@@ -6638,14 +6625,12 @@ elif mode == 'Classification Models':
 						
 						if int( nearest_num ) > len( X_train ):
 							st.warning( '⚠️ Neighbors cannot exceed the number of training '
-							            'samples '
-							            'after the train/test split.' )
+							            'samples after the train/test split.' )
 							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.analyze( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -6673,9 +6658,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Nearest Neighbor training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Nearest Neighbor training failed: {ex}' )
 			
@@ -6786,9 +6769,8 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Support Vector Machine requires at least one numeric '
-								'feature.' )
+							st.warning( '⚠️ Support Vector Machine requires at least one numeric '
+							            'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
@@ -7305,13 +7287,11 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
-						
 						if len( np.unique( y ) ) < 2:
 							st.warning( '⚠️ Gradient Boost requires at least two target classes.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
-						
 						model = classification_model.GradientBoost( estimators=int(
 							gb_estimators ),
 							rate=float( gb_rate ), depth=int( gb_depth ),
@@ -7323,7 +7303,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.analyze( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -7352,9 +7331,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Gradient Boost training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Gradient Boost training failed: {ex}' )
 			
@@ -7601,16 +7578,13 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
-						
 						if len( np.unique( y ) ) < 2:
 							st.warning( '⚠️ Bagging Model requires at least two target classes.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
-						
-						model = classification_model.BaggingModel( estimators=int(
-							bag_estimators ),
-							random=int( bag_random_state ) )
+						model = classification_model.BaggingModel(
+							estimators=int( bag_estimators ), random=int( bag_random_state ) )
 						
 						X_train, X_test, y_train, y_test = model.split_data( X, y,
 							size=float( bag_test_size ), random=int( bag_random_state ) )
@@ -7618,7 +7592,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.analyze( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -7647,9 +7620,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Bagging Model training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Bagging Model training failed: {ex}' )
 			
@@ -7804,7 +7775,6 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						start_time = time.perf_counter( )
-						
 						model = classification_model.VotingModel( estimators=estimators,
 							vote=str( vote_mode ) )
 						
@@ -7814,7 +7784,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.score( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -7832,7 +7801,6 @@ elif mode == 'Classification Models':
 							int( len( estimators ) ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Vote Mode', str( vote_mode ) )
-						
 						y_prediction = np.asarray( y_prediction )
 						df_predictions = pd.DataFrame(
 							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
@@ -7848,9 +7816,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Voting Model training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Voting Model training failed: {ex}' )
 			
@@ -7974,13 +7940,11 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
-						
 						if len( np.unique( y ) ) < 2:
 							st.warning( '⚠️ Stacking Model requires at least two target classes.' )
 							st.stop( )
 						
 						estimators = [ ]
-						
 						if stack_include_logistic:
 							estimators.append( ('logistic', LogisticRegression( max_iter=1000,
 								random_state=int( stack_random_state ) )) )
@@ -8000,8 +7964,7 @@ elif mode == 'Classification Models':
 							estimators.append( ('naive_bayes', GaussianNB( )) )
 						
 						if len( estimators ) < 2:
-							st.warning( '⚠️ Stacking Model requires at least two base '
-							            'estimators.' )
+							st.warning( '⚠️ Stacking Model requires at least two base estimators.' )
 							st.stop( )
 						
 						if stack_final == 'logistic':
@@ -8022,7 +7985,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.score( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -8057,9 +8019,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Stacking Model training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Stacking Model training failed: {ex}' )
 		
@@ -8178,9 +8138,8 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Multi-Layer Perceptron requires at least one numeric '
-								'feature.' )
+							st.warning( '⚠️ Multi-Layer Perceptron requires at least one numeric '
+							            'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
@@ -8196,7 +8155,6 @@ elif mode == 'Classification Models':
 							hidden_layers = (int( mlp_hidden_1 ),)
 						
 						start_time = time.perf_counter( )
-						
 						model = classification_model.MultiLayerPerceptron( hidden=hidden_layers,
 							activation=str( mlp_activation ), solver=str( mlp_solver ),
 							alpha=float( mlp_alpha ), learning=str( mlp_learning ),
@@ -8208,7 +8166,6 @@ elif mode == 'Classification Models':
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
-						
 						df_scores = model.score( X_test, y_test )
 						df_scores = df_scores.copy( ) if isinstance( df_scores,
 							pd.DataFrame ) else pd.DataFrame( )
@@ -8229,7 +8186,6 @@ elif mode == 'Classification Models':
 							str( mlp_activation ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Solver', str( mlp_solver ) )
-						
 						y_prediction = np.asarray( y_prediction )
 						df_predictions = pd.DataFrame(
 							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
@@ -8245,9 +8201,7 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_model' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-						
 						st.success( 'Multi-Layer Perceptron training completed.' )
-					
 					except Exception as ex:
 						st.error( f'Multi-Layer Perceptron training failed: {ex}' )
 		
@@ -8258,19 +8212,16 @@ elif mode == 'Classification Models':
 		# Performance Metrics & Visualizations
 		# ------------------------------------------------------------------
 		target_count = int( st.session_state.get( 'target_count', 0 ) )
-		
 		model = st.session_state.get( 'model', None )
 		X_test = st.session_state.get( 'X_test', None )
 		y_test = st.session_state.get( 'y_test', None )
 		y_prediction = st.session_state.get( 'y_prediction', None )
-		
 		if y_prediction is None:
 			y_prediction = st.session_state.get( 'y_prediction', None )
 		
 		df_scores = st.session_state.get( 'df_scores', pd.DataFrame( ) )
 		df_predictions = st.session_state.get( 'df_predictions', pd.DataFrame( ) )
 		elapsed_seconds = float( st.session_state.get( 'elapsed_seconds', 0.0 ) )
-		
 		has_metric_frame = (isinstance( df_scores,
 			pd.DataFrame ) and not df_scores.empty and 'Accuracy Score' in df_scores.columns and
 		                    'Mis-Classifications' in df_scores.columns)
@@ -8280,8 +8231,8 @@ elif mode == 'Classification Models':
 		                        'Predicted' in df_predictions.columns)
 		
 		has_visual_context = (
-					model is not None and X_test is not None and y_test is not None and
-					y_prediction is not None)
+				model is not None and X_test is not None and y_test is not None and y_prediction
+				is not None)
 		
 		blue_divider( )
 		st.markdown( '##### Model Performance' )
@@ -8375,9 +8326,8 @@ elif mode == 'Classification Models':
 		if has_visual_context:
 			try:
 				df_evaluation = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_prediction } )
-				
 				df_evaluation[ 'Correct' ] = (
-							df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
+						df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
 				
 				df_class_acc = df_evaluation.groupby( 'Actual', dropna=False )[
 					'Correct' ].mean( ).sort_index( )
@@ -13630,7 +13580,8 @@ elif mode == 'Regression Models':
 						
 						if len( np.unique( y ) ) < 2:
 							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct '
+								'⚠️ The selected numeric target must contain at least two '
+								'distinct '
 								'values.' )
 							st.stop( )
 						
@@ -14004,7 +13955,7 @@ elif mode == 'Regression Models':
 elif mode == 'Clustering Models':
 	df_dataset = st.session_state.get( 'df_dataset', None )
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with ((center)):
+	with center:
 		st.subheader( cfg.MODE[ 'Clustering Models' ] )
 		st.divider( )
 		
@@ -14026,6 +13977,7 @@ elif mode == 'Clustering Models':
 			tuple( str( dtype ) for dtype in df_original.dtypes.tolist( ) ),
 			int( len( df_original ) ),
 			int( pd.util.hash_pandas_object( df_original, index=True ).sum( ) ))
+		
 		prior_cluster_source_signature = st.session_state.get( 'clustering_source_signature',
 			None )
 		
@@ -14047,13 +13999,11 @@ elif mode == 'Clustering Models':
 		st.session_state[ 'df_original' ] = df_original.copy( )
 		st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
 		st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
-		
 		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
 		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
 		df_cluster = st.session_state.get( 'df_cluster', pd.DataFrame( ) )
 		features = st.session_state.get( 'features', [ ] )
 		targets = st.session_state.get( 'targets', [ ] )
-		
 		if df_working is None or df_working.empty:
 			df_working = df_original.copy( )
 			st.session_state[ 'df_working' ] = df_working.copy( )
@@ -14091,12 +14041,10 @@ elif mode == 'Clustering Models':
 					df_working = df_original.copy( )
 				
 				df_processed = df_working.copy( )
-				
 				st.session_state[ 'features' ] = features.copy( )
 				st.session_state[ 'targets' ] = targets.copy( )
 				st.session_state[ 'df_working' ] = df_working.copy( )
 				st.session_state[ 'df_processed' ] = df_processed.copy( )
-				
 				commit_frame( df_working )
 				st.success( 'Working Dataset Created!' )
 		
@@ -14116,7 +14064,6 @@ elif mode == 'Clustering Models':
 		blue_divider( )
 		st.markdown( '##### Working Data' )
 		st.caption( f'Samples: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
-		
 		st.data_editor( df_working, key='clusters_working_data', disabled=True )
 		
 		# ------------------------------------------------------------------
@@ -14614,7 +14561,6 @@ elif mode == 'Clustering Models':
 						key='cluster_binarizer_threshold' )
 					
 					copy = st.checkbox( 'Copy', value=True, key='cluster_binarizer_copy' )
-					
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Binarizer', key='cluster_binarizer_apply',
@@ -15355,13 +15301,11 @@ elif mode == 'Clustering Models':
 		
 		feature_columns = active_features.copy( )
 		df_cluster_input = df_processed[ feature_columns ].copy( )
-		
 		for column in feature_columns:
 			df_cluster_input[ column ] = pd.to_numeric( df_cluster_input[ column ],
 				errors='coerce' )
 		
 		df_cluster_input = df_cluster_input.replace( [ np.inf, -np.inf ], np.nan )
-		
 		if df_cluster_input.isna( ).any( ).any( ):
 			st.warning(
 				'⚠️ One or more clustering feature columns contain invalid numeric values.' )
@@ -15372,8 +15316,7 @@ elif mode == 'Clustering Models':
 			st.stop( )
 		
 		X = df_cluster_input.to_numpy( dtype=float )
-		cluster_data_signature = int(
-			pd.util.hash_pandas_object( df_cluster_input, index=True ).sum( ) )
+		cluster_data_signature = int( pd.util.hash_pandas_object( df_cluster_input, index=True ).sum( ) )
 		st.session_state[ 'active_features' ] = active_features.copy( )
 		st.session_state[ 'X_data' ] = df_cluster_input.copy( )
 		
@@ -15479,14 +15422,12 @@ elif mode == 'Clustering Models':
 						start_time = time.time( )
 						labels = model.project( X )
 						elapsed_seconds = time.time( ) - start_time
-						
 						df_results = df_cluster_input.copy( )
 						df_results[ 'Cluster' ] = labels
 						
-						df_counts = (
-							df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
-								'Cluster' ).reset_index( name='Count' ).sort_values(
-								by='Cluster' ).reset_index( drop=True ))
+						df_counts = ( df_results[ 'Cluster' ].value_counts(
+							dropna=False ).rename_axis( 'Cluster' ).reset_index(
+							name='Count' ).sort_values( by='Cluster' ).reset_index( drop=True ))
 						
 						try:
 							df_metrics = model.score( X )
@@ -15496,7 +15437,8 @@ elif mode == 'Clustering Models':
 							df_metrics = pd.DataFrame( )
 						
 						if df_metrics is None or df_metrics.empty:
-							df_metrics = pd.DataFrame( [ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
+							df_metrics = pd.DataFrame(
+								[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 						else:
 							df_metrics = df_metrics.copy( )
 							df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
@@ -15534,9 +15476,7 @@ elif mode == 'Clustering Models':
 						st.session_state[ 'df_cluster_kmeans_details' ] = df_details
 						st.session_state[ 'cluster_kmeans_plot_features' ] = feature_columns.copy( )
 						st.session_state[ 'cluster_kmeans_signature' ] = cluster_kmeans_signature
-						
 						st.success( 'K-Means clustering complete.' )
-					
 					except Exception as ex:
 						st.session_state[ 'df_cluster_kmeans_results' ] = pd.DataFrame( )
 						st.session_state[ 'df_cluster_kmeans_counts' ] = pd.DataFrame( )
@@ -15585,7 +15525,6 @@ elif mode == 'Clustering Models':
 			# ------------------------------------------------------------------
 			blue_divider( )
 			st.subheader( 'Cluster Visualization' )
-			
 			if df_results is not None and not df_results.empty:
 				if len( feature_columns ) == 2:
 					plt.close( 'all' )
@@ -15643,7 +15582,6 @@ elif mode == 'Clustering Models':
 				'Density-based clustering that identifies dense regions and isolates noise.' )
 			
 			db_c1, db_c2, db_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with db_c1:
 				epsilon = st.number_input( 'Neighborhood Radius', min_value=0.0001, step=0.1,
 					format='%.4f', key='cluster_dbscan_eps' )
@@ -15671,7 +15609,6 @@ elif mode == 'Clustering Models':
 					key='cluster_dbscan_n_jobs' )
 			
 			db_b1, db_b2 = st.columns( 2 )
-			
 			with db_b1:
 				run_dbscan = st.button( 'Run DBSCAN', icon='🏃', key='cluster_dbscan_run',
 					use_container_width=True )
@@ -15704,17 +15641,14 @@ elif mode == 'Clustering Models':
 					start_time = time.time( )
 					labels = model.project( X )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
 					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
 						'Cluster' ).reset_index( name='Count' ).sort_values(
 						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
-						
 						if df_metrics is None:
 							df_metrics = pd.DataFrame( )
 					except Exception:
@@ -15730,7 +15664,6 @@ elif mode == 'Clustering Models':
 					unique_labels = np.unique( labels )
 					cluster_labels = unique_labels[ unique_labels != -1 ]
 					noise_count = int( np.sum( labels == -1 ) )
-					
 					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
 						{ 'Property': 'clusters', 'Value': int( len( cluster_labels ) ) },
 						{ 'Property': 'noise_samples', 'Value': noise_count },
@@ -15745,7 +15678,6 @@ elif mode == 'Clustering Models':
 					
 					df_details = pd.DataFrame( detail_rows )
 					df_centroids = pd.DataFrame( )
-					
 					st.session_state[ 'model' ] = model
 					st.session_state[ 'df_cluster_dbscan_results' ] = df_results.copy( )
 					st.session_state[ 'df_cluster_dbscan_counts' ] = df_counts.copy( )
@@ -15754,7 +15686,6 @@ elif mode == 'Clustering Models':
 					st.session_state[ 'df_cluster_dbscan_details' ] = df_details.copy( )
 					st.session_state[ 'cluster_dbscan_plot_features' ] = feature_columns.copy( )
 					st.session_state[ 'cluster_dbscan_signature' ] = cluster_dbscan_signature
-					
 					st.success( 'DBSCAN clustering complete.' )
 				except Exception as ex:
 					st.session_state[ 'df_cluster_dbscan_results' ] = pd.DataFrame( )
@@ -15767,15 +15698,11 @@ elif mode == 'Clustering Models':
 					st.error( f'DBSCAN clustering failed: {ex}' )
 			
 			dbscan_signature = st.session_state.get( 'cluster_dbscan_signature', None )
-			
 			if (isinstance( dbscan_signature, tuple ) and len( dbscan_signature ) > 1 and
 					dbscan_signature[ 1 ] == 'DBSCAN'):
 				df_results = st.session_state.get( 'df_cluster_dbscan_results', pd.DataFrame( ) )
-				
 				df_counts = st.session_state.get( 'df_cluster_dbscan_counts', pd.DataFrame( ) )
-				
 				df_metrics = st.session_state.get( 'df_cluster_dbscan_metrics', pd.DataFrame( ) )
-				
 				df_details = st.session_state.get( 'df_cluster_dbscan_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
@@ -15812,14 +15739,12 @@ elif mode == 'Clustering Models':
 				if len( feature_columns ) == 2:
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
-					
 					ax.scatter( df_results[ feature_columns[ 0 ] ],
 						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
 					ax.set_title( 'DBSCAN Cluster Assignments' )
-					
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
@@ -15855,12 +15780,10 @@ elif mode == 'Clustering Models':
 				cluster_max_clusters )
 		
 		with st.expander( 'Agglomerative Clustering', expanded=False ):
-			st.caption(
-				'Hierarchical bottom-up clustering that successively merges related '
-				'observations.' )
+			st.caption( 'Hierarchical bottom-up clustering that successively merges related '
+			            'observations.' )
 			
 			ag_c1, ag_c2, ag_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with ag_c1:
 				agglomerative_clusters = int( st.number_input( 'Number of Clusters', min_value=2,
 					max_value=max( 2, len( df_cluster_input ) - 1 ), step=1,
@@ -15918,8 +15841,7 @@ elif mode == 'Clustering Models':
 						st.warning( '⚠️ Ward linkage requires the Euclidean distance metric.' )
 						st.stop( )
 					
-					if (
-							agglomerative_use_distance_threshold and
+					if ( agglomerative_use_distance_threshold and
 							agglomerative_distance_threshold <= 0.0):
 						st.warning(
 							'⚠️ Distance Threshold must be greater than zero when enabled.' )
@@ -15952,17 +15874,14 @@ elif mode == 'Clustering Models':
 					start_time = time.time( )
 					labels = model.project( X )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
 					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
 						'Cluster' ).reset_index( name='Count' ).sort_values(
 						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
-						
 						if df_metrics is None:
 							df_metrics = pd.DataFrame( )
 					except Exception:
@@ -15976,7 +15895,6 @@ elif mode == 'Clustering Models':
 						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					detail_rows = [ ]
-					
 					for property_name in [ 'features', 'leaves', 'connected_components',
 						'n_clusters', 'metric', 'linkage', 'compute_full_tree',
 						'distance_threshold', 'compute_distances' ]:
@@ -15985,27 +15903,22 @@ elif mode == 'Clustering Models':
 								property_value = getattr( model, property_name )
 								
 								if (property_value is not None and not isinstance( property_value,
-									(np.ndarray, pd.DataFrame) )):
+										(np.ndarray, pd.DataFrame) )):
 									detail_rows.append(
 										{ 'Property': property_name, 'Value': property_value } )
 							except Exception:
 								pass
 					
 					df_details = (pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( ))
-					
 					df_centroids = pd.DataFrame( )
-					
 					st.session_state[ 'model' ] = model
 					st.session_state[ 'df_cluster_agglomerative_results' ] = df_results.copy( )
 					st.session_state[ 'df_cluster_agglomerative_counts' ] = df_counts.copy( )
 					st.session_state[ 'df_cluster_agglomerative_metrics' ] = df_metrics.copy( )
 					st.session_state[ 'df_cluster_agglomerative_centroids' ] = df_centroids.copy( )
 					st.session_state[ 'df_cluster_agglomerative_details' ] = df_details.copy( )
-					st.session_state[
-						'cluster_agglomerative_plot_features' ] = feature_columns.copy( )
-					st.session_state[
-						'cluster_agglomerative_signature' ] = cluster_agglomerative_signature
-					
+					st.session_state[ 'cluster_agglomerative_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_agglomerative_signature' ] = cluster_agglomerative_signature
 					st.success( 'Agglomerative clustering complete.' )
 				except Exception as ex:
 					st.session_state[ 'df_cluster_agglomerative_results' ] = pd.DataFrame( )
@@ -16021,7 +15934,7 @@ elif mode == 'Clustering Models':
 				None )
 			
 			if (isinstance( agglomerative_signature, tuple ) and len(
-				agglomerative_signature ) > 1 and agglomerative_signature[ 1 ] == 'Agglomerative'):
+					agglomerative_signature ) > 1 and agglomerative_signature[ 1 ] == 'Agglomerative'):
 				df_results = st.session_state.get( 'df_cluster_agglomerative_results',
 					pd.DataFrame( ) )
 				
@@ -16075,7 +15988,6 @@ elif mode == 'Clustering Models':
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
 					ax.set_title( 'Agglomerative Cluster Assignments' )
-					
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
@@ -16135,7 +16047,6 @@ elif mode == 'Clustering Models':
 			st.caption( 'Graph-based clustering for identifying nonlinear cluster structures.' )
 			
 			sp_c1, sp_c2, sp_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with sp_c1:
 				spectral_clusters = int( st.number_input( 'Number of Clusters', min_value=2,
 					max_value=max( 2, len( df_cluster_input ) - 1 ), step=1,
@@ -16192,7 +16103,6 @@ elif mode == 'Clustering Models':
 					key='cluster_spectral_random_state' ) )
 			
 			sp_b1, sp_b2 = st.columns( 2 )
-			
 			with sp_b1:
 				run_spectral = st.button( 'Run Spectral Clustering', icon='🏃',
 					key='cluster_spectral_run', use_container_width=True )
@@ -16220,7 +16130,7 @@ elif mode == 'Clustering Models':
 						st.stop( )
 					
 					if (spectral_affinity == 'nearest_neighbors' and spectral_neighbors >= len(
-						df_cluster_input )):
+							df_cluster_input )):
 						st.warning(
 							'⚠️ Nearest Neighbors must be less than the number of samples.' )
 						st.stop( )
@@ -16263,17 +16173,14 @@ elif mode == 'Clustering Models':
 					start_time = time.time( )
 					labels = model.project( X )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
 					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
 						'Cluster' ).reset_index( name='Count' ).sort_values(
 						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
-						
 						if df_metrics is None:
 							df_metrics = pd.DataFrame( )
 					except Exception:
@@ -16304,7 +16211,6 @@ elif mode == 'Clustering Models':
 					
 					df_details = pd.DataFrame( detail_rows )
 					df_centroids = pd.DataFrame( )
-					
 					st.session_state[ 'model' ] = model
 					st.session_state[ 'df_cluster_spectral_results' ] = df_results.copy( )
 					st.session_state[ 'df_cluster_spectral_counts' ] = df_counts.copy( )
@@ -16313,7 +16219,6 @@ elif mode == 'Clustering Models':
 					st.session_state[ 'df_cluster_spectral_details' ] = df_details.copy( )
 					st.session_state[ 'cluster_spectral_plot_features' ] = feature_columns.copy( )
 					st.session_state[ 'cluster_spectral_signature' ] = cluster_spectral_signature
-					
 					st.success( 'Spectral clustering complete.' )
 				except Exception as ex:
 					st.session_state[ 'df_cluster_spectral_results' ] = pd.DataFrame( )
@@ -16326,15 +16231,11 @@ elif mode == 'Clustering Models':
 					st.error( f'Spectral clustering failed: {ex}' )
 			
 			spectral_signature = st.session_state.get( 'cluster_spectral_signature', None )
-			
 			if (isinstance( spectral_signature, tuple ) and len( spectral_signature ) > 1 and
 					spectral_signature[ 1 ] == 'Spectral'):
 				df_results = st.session_state.get( 'df_cluster_spectral_results', pd.DataFrame( ) )
-				
 				df_counts = st.session_state.get( 'df_cluster_spectral_counts', pd.DataFrame( ) )
-				
 				df_metrics = st.session_state.get( 'df_cluster_spectral_metrics', pd.DataFrame( ) )
-				
 				df_details = st.session_state.get( 'df_cluster_spectral_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
@@ -16371,14 +16272,12 @@ elif mode == 'Clustering Models':
 				if len( feature_columns ) == 2:
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
-					
 					ax.scatter( df_results[ feature_columns[ 0 ] ],
 						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
 					ax.set_title( 'Spectral Cluster Assignments' )
-					
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
@@ -16428,7 +16327,6 @@ elif mode == 'Clustering Models':
 				'detection.' )
 			
 			op_c1, op_c2, op_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with op_c1:
 				optics_min_samples = int( st.number_input( 'Minimum Samples', min_value=2,
 					max_value=max( 2, len( df_cluster_input ) ), step=1,
@@ -16480,11 +16378,9 @@ elif mode == 'Clustering Models':
 					key='cluster_optics_n_jobs' ) )
 			
 			op_b1, op_b2 = st.columns( 2 )
-			
 			with op_b1:
 				run_optics = st.button( 'Run OPTICS Clustering', icon='🏃',
-					key='cluster_optics_run',
-					use_container_width=True )
+					key='cluster_optics_run', use_container_width=True )
 			
 			optics_reset_keys = [ 'cluster_optics_min_samples', 'cluster_optics_max_eps',
 				'cluster_optics_metric', 'cluster_optics_p', 'cluster_optics_cluster_method',
@@ -16507,7 +16403,7 @@ elif mode == 'Clustering Models':
 						st.stop( )
 					
 					if (optics_min_cluster_size_input > 0 and optics_min_cluster_size_input > len(
-						df_cluster_input )):
+							df_cluster_input )):
 						st.warning( '⚠️ Minimum Cluster Size cannot exceed the number of '
 						            'samples.' )
 						st.stop( )
@@ -16530,8 +16426,7 @@ elif mode == 'Clustering Models':
 						'leaf_size': optics_leaf_size, 'n_jobs': optics_n_jobs }
 					
 					cluster_optics_signature = ((tuple( active_features ), cluster_data_signature),
-						'OPTICS',
-						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
+						'OPTICS', tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
 					model = OPTICS( samples=optics_min_samples, max_eps=optics_max_eps,
 						metric=optics_metric, algorithm=optics_algorithm,
@@ -16544,16 +16439,13 @@ elif mode == 'Clustering Models':
 					start_time = time.time( )
 					labels = model.project( X )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
 					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
 						'Cluster' ).reset_index( name='Count' ).sort_values(
 						by='Cluster' ).reset_index( drop=True ))
 					
 					df_metrics = model.score( X )
-					
 					if df_metrics is None:
 						df_metrics = pd.DataFrame( )
 					
@@ -16567,7 +16459,6 @@ elif mode == 'Clustering Models':
 					unique_labels = np.unique( labels )
 					cluster_labels = unique_labels[ unique_labels != -1 ]
 					noise_count = int( np.sum( labels == -1 ) )
-					
 					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
 						{ 'Property': 'clusters', 'Value': int( len( cluster_labels ) ) },
 						{ 'Property': 'noise_samples', 'Value': noise_count },
@@ -16586,7 +16477,6 @@ elif mode == 'Clustering Models':
 						{ 'Property': 'n_jobs', 'Value': model.n_jobs } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
 					df_ordering = pd.DataFrame(
 						{ 'Sample': np.arange( len( model.ordering ) ), 'Ordering': model.ordering,
 							'Reachability': model.reachability,
@@ -16594,7 +16484,6 @@ elif mode == 'Clustering Models':
 							'Predecessor': model.predecessor } )
 					
 					df_centroids = pd.DataFrame( )
-					
 					st.session_state[ 'model' ] = model
 					st.session_state[ 'df_cluster_optics_results' ] = df_results.copy( )
 					st.session_state[ 'df_cluster_optics_counts' ] = df_counts.copy( )
@@ -16604,7 +16493,6 @@ elif mode == 'Clustering Models':
 					st.session_state[ 'df_cluster_optics_ordering' ] = df_ordering.copy( )
 					st.session_state[ 'cluster_optics_plot_features' ] = feature_columns.copy( )
 					st.session_state[ 'cluster_optics_signature' ] = cluster_optics_signature
-					
 					st.success( 'OPTICS clustering complete.' )
 				except Exception as ex:
 					st.session_state[ 'df_cluster_optics_results' ] = pd.DataFrame( )
@@ -16618,17 +16506,12 @@ elif mode == 'Clustering Models':
 					st.error( f'OPTICS clustering failed: {ex}' )
 			
 			optics_signature = st.session_state.get( 'cluster_optics_signature', None )
-			
 			if (isinstance( optics_signature, tuple ) and len( optics_signature ) > 1 and
 					optics_signature[ 1 ] == 'OPTICS'):
 				df_results = st.session_state.get( 'df_cluster_optics_results', pd.DataFrame( ) )
-				
 				df_counts = st.session_state.get( 'df_cluster_optics_counts', pd.DataFrame( ) )
-				
 				df_metrics = st.session_state.get( 'df_cluster_optics_metrics', pd.DataFrame( ) )
-				
 				df_details = st.session_state.get( 'df_cluster_optics_details', pd.DataFrame( ) )
-				
 				df_ordering = st.session_state.get( 'df_cluster_optics_ordering', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
@@ -16658,8 +16541,7 @@ elif mode == 'Clustering Models':
 					st.caption( 'Reachability and Ordering' )
 					st.data_editor( df_ordering, use_container_width=True )
 			else:
-				st.info(
-					'Run OPTICS Clustering to view cluster counts, noise counts, and metrics.' )
+				st.info( 'Run OPTICS Clustering to view cluster counts, noise counts, and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -16678,7 +16560,6 @@ elif mode == 'Clustering Models':
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
 					ax.set_title( 'OPTICS Cluster Assignments' )
-					
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
@@ -16710,7 +16591,6 @@ elif mode == 'Clustering Models':
 				'data.' )
 			
 			ms_c1, ms_c2, ms_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with ms_c1:
 				mean_shift_bandwidth_input = float(
 					st.number_input( 'Bandwidth (0 = Automatic)', min_value=0.0, step=0.1,
@@ -16720,9 +16600,8 @@ elif mode == 'Clustering Models':
 					key='cluster_mean_shift_bin_seeding' )
 			
 			with ms_c2:
-				mean_shift_min_bin_freq = int(
-					st.number_input( 'Minimum Bin Frequency', min_value=1, step=1,
-						key='cluster_mean_shift_min_bin_freq' ) )
+				mean_shift_min_bin_freq = int( st.number_input( 'Minimum Bin Frequency',
+					min_value=1, step=1, key='cluster_mean_shift_min_bin_freq' ) )
 				
 				mean_shift_cluster_all = st.checkbox( 'Assign All Samples',
 					key='cluster_mean_shift_cluster_all' )
@@ -16731,9 +16610,8 @@ elif mode == 'Clustering Models':
 				mean_shift_n_jobs = int( st.number_input( 'Parallel Jobs', min_value=-1, step=1,
 					key='cluster_mean_shift_n_jobs' ) )
 				
-				mean_shift_max_iter = int(
-					st.number_input( 'Maximum Iterations', min_value=1, step=1,
-						key='cluster_mean_shift_max_iter' ) )
+				mean_shift_max_iter = int( st.number_input( 'Maximum Iterations', min_value=1,
+					step=1, key='cluster_mean_shift_max_iter' ) )
 			
 			ms_b1, ms_b2 = st.columns( 2 )
 			
@@ -16778,16 +16656,13 @@ elif mode == 'Clustering Models':
 					start_time = time.time( )
 					labels = model.project( X )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
 					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
 						'Cluster' ).reset_index( name='Count' ).sort_values(
 						by='Cluster' ).reset_index( drop=True ))
 					
 					df_metrics = model.score( X )
-					
 					if df_metrics is None:
 						df_metrics = pd.DataFrame( )
 					
@@ -16799,11 +16674,8 @@ elif mode == 'Clustering Models':
 						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					centroids = np.asarray( model.centroids_ )
-					
 					df_centroids = pd.DataFrame( centroids, columns=feature_columns )
-					
 					df_centroids.insert( 0, 'Cluster', np.arange( len( df_centroids ) ) )
-					
 					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
 						{ 'Property': 'clusters', 'Value': int( len( centroids ) ) },
 						{ 'Property': 'bandwidth', 'Value': model.bandwidth },
@@ -16835,22 +16707,13 @@ elif mode == 'Clustering Models':
 					st.error( f'Mean Shift clustering failed: {ex}' )
 			
 			mean_shift_signature = st.session_state.get( 'cluster_mean_shift_signature', None )
-			
 			if (isinstance( mean_shift_signature, tuple ) and len( mean_shift_signature ) > 1 and
 					mean_shift_signature[ 1 ] == 'MeanShift'):
-				df_results = st.session_state.get( 'df_cluster_mean_shift_results',
-					pd.DataFrame( ) )
-				
+				df_results = st.session_state.get( 'df_cluster_mean_shift_results', pd.DataFrame( ) )
 				df_counts = st.session_state.get( 'df_cluster_mean_shift_counts', pd.DataFrame( ) )
-				
-				df_metrics = st.session_state.get( 'df_cluster_mean_shift_metrics',
-					pd.DataFrame( ) )
-				
-				df_centroids = st.session_state.get( 'df_cluster_mean_shift_centroids',
-					pd.DataFrame( ) )
-				
-				df_details = st.session_state.get( 'df_cluster_mean_shift_details',
-					pd.DataFrame( ) )
+				df_metrics = st.session_state.get( 'df_cluster_mean_shift_metrics', pd.DataFrame( ) )
+				df_centroids = st.session_state.get( 'df_cluster_mean_shift_centroids', pd.DataFrame( ) )
+				df_details = st.session_state.get( 'df_cluster_mean_shift_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -16906,7 +16769,6 @@ elif mode == 'Clustering Models':
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
 					ax.set_title( 'Mean Shift Cluster Assignments' )
-					
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
@@ -16915,8 +16777,7 @@ elif mode == 'Clustering Models':
 				st.info( 'Run Mean Shift Clustering to view the scatter plot.' )
 		
 		with st.expander( 'Affinity Propagation Clustering', expanded=False ):
-			affinity_defaults = { 'cluster_affinity_damping': 0.5, 'cluster_affinity_max_iter':
-				200,
+			affinity_defaults = { 'cluster_affinity_damping': 0.5, 'cluster_affinity_max_iter': 200,
 				'cluster_affinity_convergence_iter': 15, 'cluster_affinity_use_preference': False,
 				'cluster_affinity_preference': 0.0, 'cluster_affinity_copy': True,
 				'cluster_affinity_verbose': False, 'cluster_affinity_random_state': 42 }
@@ -16931,18 +16792,15 @@ elif mode == 'Clustering Models':
 			
 			ap_c1, ap_c2, ap_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			with ap_c1:
-				affinity_damping = float(
-					st.number_input( 'Damping', min_value=0.5, max_value=0.9999, step=0.01,
-						format='%.4f', key='cluster_affinity_damping' ) )
+				affinity_damping = float( st.number_input( 'Damping', min_value=0.5,
+					max_value=0.9999, step=0.01, format='%.4f', key='cluster_affinity_damping' ) )
 				
 				affinity_max_iter = int( st.number_input( 'Maximum Iterations', min_value=1,
-					step=1,
-					key='cluster_affinity_max_iter' ) )
+					step=1, key='cluster_affinity_max_iter' ) )
 			
 			with ap_c2:
-				affinity_convergence_iter = int(
-					st.number_input( 'Convergence Iterations', min_value=1, step=1,
-						key='cluster_affinity_convergence_iter' ) )
+				affinity_convergence_iter = int( st.number_input( 'Convergence Iterations',
+					min_value=1, step=1, key='cluster_affinity_convergence_iter' ) )
 				
 				affinity_copy = st.checkbox( 'Copy Input Data', key='cluster_affinity_copy' )
 			
@@ -16950,12 +16808,11 @@ elif mode == 'Clustering Models':
 				affinity_use_preference = st.checkbox( 'Use Custom Preference',
 					key='cluster_affinity_use_preference' )
 				
-				affinity_preference_input = float(
-					st.number_input( 'Preference', step=0.1, format='%.4f',
-						disabled=not affinity_use_preference, key='cluster_affinity_preference' ) )
+				affinity_preference_input = float( st.number_input( 'Preference', step=0.1,
+					format='%.4f', disabled=not affinity_use_preference,
+					key='cluster_affinity_preference' ) )
 				
 				affinity_verbose = st.checkbox( 'Verbose', key='cluster_affinity_verbose' )
-				
 				affinity_random_state = int( st.number_input( 'Random State', min_value=0, step=1,
 					key='cluster_affinity_random_state' ) )
 			
@@ -16980,9 +16837,7 @@ elif mode == 'Clustering Models':
 						st.warning( '⚠️ Convergence Iterations cannot exceed Maximum Iterations.' )
 						st.stop( )
 					
-					affinity_preference = (
-						affinity_preference_input if affinity_use_preference else None)
-					
+					affinity_preference = ( affinity_preference_input if affinity_use_preference else None)
 					model_parameters = { 'Model': 'AffinityPropagation',
 						'damping': affinity_damping, 'max_iter': affinity_max_iter,
 						'convergence_iter': affinity_convergence_iter,
@@ -17002,13 +16857,11 @@ elif mode == 'Clustering Models':
 					start_time = time.time( )
 					labels = model.project( X )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
-					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
-						'Cluster' ).reset_index( name='Count' ).sort_values(
-						by='Cluster' ).reset_index( drop=True ))
+					df_counts = (df_results[ 'Cluster' ].value_counts(
+						dropna=False ).rename_axis( 'Cluster' ).reset_index(
+						name='Count' ).sort_values( by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
@@ -17041,7 +16894,6 @@ elif mode == 'Clustering Models':
 						{ 'Property': 'random_state', 'Value': model.random_state } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
 					st.session_state[ 'model' ] = model
 					st.session_state[ 'df_cluster_affinity_results' ] = df_results.copy( )
 					st.session_state[ 'df_cluster_affinity_counts' ] = df_counts.copy( )
@@ -17050,7 +16902,6 @@ elif mode == 'Clustering Models':
 					st.session_state[ 'df_cluster_affinity_details' ] = df_details.copy( )
 					st.session_state[ 'cluster_affinity_plot_features' ] = feature_columns.copy( )
 					st.session_state[ 'cluster_affinity_signature' ] = cluster_affinity_signature
-					
 					st.success( 'Affinity Propagation clustering complete.' )
 				except Exception as ex:
 					st.session_state[ 'df_cluster_affinity_results' ] = pd.DataFrame( )
@@ -17063,14 +16914,12 @@ elif mode == 'Clustering Models':
 					st.error( f'Affinity Propagation clustering failed: {ex}' )
 			
 			affinity_signature = st.session_state.get( 'cluster_affinity_signature', None )
-			
 			if (isinstance( affinity_signature, tuple ) and len( affinity_signature ) > 1 and
 					affinity_signature[ 1 ] == 'AffinityPropagation'):
 				df_results = st.session_state.get( 'df_cluster_affinity_results', pd.DataFrame( ) )
 				df_counts = st.session_state.get( 'df_cluster_affinity_counts', pd.DataFrame( ) )
 				df_metrics = st.session_state.get( 'df_cluster_affinity_metrics', pd.DataFrame( ) )
-				df_centroids = st.session_state.get( 'df_cluster_affinity_centroids',
-					pd.DataFrame( ) )
+				df_centroids = st.session_state.get( 'df_cluster_affinity_centroids', pd.DataFrame( ) )
 				df_details = st.session_state.get( 'df_cluster_affinity_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
@@ -17151,7 +17000,6 @@ elif mode == 'Clustering Models':
 			st.caption( 'Scalable hierarchical clustering using a clustering-feature tree.' )
 			
 			br_c1, br_c2, br_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with br_c1:
 				birch_threshold = float(
 					st.number_input( 'Threshold', min_value=0.0001, step=0.1, format='%.4f',
@@ -17174,7 +17022,6 @@ elif mode == 'Clustering Models':
 					disabled=not birch_use_global_clusters, key='cluster_birch_n_clusters' ) )
 			
 			br_b1, br_b2 = st.columns( 2 )
-			
 			with br_b1:
 				run_birch = st.button( 'Run Birch Clustering', icon='🏃', key='cluster_birch_run',
 					use_container_width=True )
@@ -17199,7 +17046,6 @@ elif mode == 'Clustering Models':
 						st.stop( )
 					
 					effective_clusters = (birch_n_clusters if birch_use_global_clusters else None)
-					
 					model_parameters = { 'Model': 'Birch', 'threshold': birch_threshold,
 						'branching_factor': birch_branching_factor,
 						'n_clusters': effective_clusters, 'compute_labels': birch_compute_labels }
@@ -17208,12 +17054,10 @@ elif mode == 'Clustering Models':
 						'Birch',
 						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = Birch( threshold=birch_threshold,
-						branching_factor=birch_branching_factor, n_clusters=effective_clusters,
-						compute_labels=birch_compute_labels )
+					model = Birch( threshold=birch_threshold, branching_factor=birch_branching_factor,
+						n_clusters=effective_clusters, compute_labels=birch_compute_labels )
 					
 					start_time = time.time( )
-					
 					if birch_compute_labels:
 						labels = model.project( X )
 					else:
@@ -17221,10 +17065,8 @@ elif mode == 'Clustering Models':
 						labels = model.predict( X )
 					
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
-					
 					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
 						'Cluster' ).reset_index( name='Count' ).sort_values(
 						by='Cluster' ).reset_index( drop=True ))
@@ -17244,14 +17086,10 @@ elif mode == 'Clustering Models':
 						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					subcluster_centers = np.asarray( model.subcluster_centers )
-					
 					df_centroids = pd.DataFrame( subcluster_centers, columns=feature_columns )
-					
 					df_centroids.insert( 0, 'Subcluster', range( len( df_centroids ) ) )
-					
 					try:
 						subcluster_labels = np.asarray( model.subcluster_labels ).reshape( -1 )
-						
 						if len( subcluster_labels ) == len( df_centroids ):
 							df_centroids.insert( 1, 'Cluster', subcluster_labels )
 					except Exception:
@@ -17266,7 +17104,6 @@ elif mode == 'Clustering Models':
 						{ 'Property': 'compute_labels', 'Value': model.compute_labels } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
 					st.session_state[ 'model' ] = model
 					st.session_state[ 'df_cluster_birch_results' ] = df_results.copy( )
 					st.session_state[ 'df_cluster_birch_counts' ] = df_counts.copy( )
@@ -17275,7 +17112,6 @@ elif mode == 'Clustering Models':
 					st.session_state[ 'df_cluster_birch_details' ] = df_details.copy( )
 					st.session_state[ 'cluster_birch_plot_features' ] = feature_columns.copy( )
 					st.session_state[ 'cluster_birch_signature' ] = cluster_birch_signature
-					
 					st.success( 'Birch clustering complete.' )
 				except Exception as ex:
 					st.session_state[ 'df_cluster_birch_results' ] = pd.DataFrame( )
@@ -17288,15 +17124,12 @@ elif mode == 'Clustering Models':
 					st.error( f'Birch clustering failed: {ex}' )
 			
 			birch_signature = st.session_state.get( 'cluster_birch_signature', None )
-			
 			if (isinstance( birch_signature, tuple ) and len( birch_signature ) > 1 and
 					birch_signature[ 1 ] == 'Birch'):
 				df_results = st.session_state.get( 'df_cluster_birch_results', pd.DataFrame( ) )
 				df_counts = st.session_state.get( 'df_cluster_birch_counts', pd.DataFrame( ) )
 				df_metrics = st.session_state.get( 'df_cluster_birch_metrics', pd.DataFrame( ) )
-				df_centroids = st.session_state.get( 'df_cluster_birch_centroids', pd.DataFrame(
-				
-				) )
+				df_centroids = st.session_state.get( 'df_cluster_birch_centroids', pd.DataFrame( ) )
 				df_details = st.session_state.get( 'df_cluster_birch_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
@@ -17362,28 +17195,42 @@ elif mode == 'Clustering Models':
 # ============================================
 elif mode == 'Time-Series Models':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with (center):
+	with (((center))):
 		st.subheader( cfg.MODE[ 'Time-Series Models' ] )
 		st.divider( )
 		
 		# ------------------------------------------------------------------
 		# TIME-SERIES INPUT
 		# ------------------------------------------------------------------
-		df_dataset = st.session_state.get( 'df_infer', None )
-		numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
-		
+		df_dataset = get_loaded_dataset( )
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		numeric_columns = [ column for column in numeric_columns if column in df_dataset.columns ]
+		numeric_columns = [ column for column in df_dataset.columns if
+			pd.api.types.is_numeric_dtype(
+				df_dataset[ column ] ) and not pd.api.types.is_bool_dtype( df_dataset[ column ] ) ]
 		
 		if not numeric_columns:
 			st.warning( '⚠️ No numeric columns available for time-series analysis.' )
 			st.stop( )
 		
-		timeseries_defaults = { 'timeseries_col_box': numeric_columns[ 0 ] }
+		timeseries_source_signature = (tuple( df_dataset.columns.tolist( ) ),
+			tuple( str( dtype ) for dtype in df_dataset.dtypes.tolist( ) ),
+			int( len( df_dataset ) ),
+			int( pd.util.hash_pandas_object( df_dataset, index=True ).sum( ) ))
 		
+		prior_timeseries_source_signature = st.session_state.get( 'timeseries_source_signature',
+			None )
+		
+		if ( prior_timeseries_source_signature is not None
+				and prior_timeseries_source_signature != timeseries_source_signature):
+			timeseries_keys = \
+			[ key for key in list( st.session_state.keys( ) ) if key.startswith( 'timeseries_' ) ]
+			clear_keys( timeseries_keys )
+		
+		st.session_state[ 'timeseries_source_signature' ] = timeseries_source_signature
+		timeseries_defaults = { 'timeseries_col_box': numeric_columns[ 0 ] }
 		for key, value in timeseries_defaults.items( ):
 			if key not in st.session_state:
 				st.session_state[ key ] = value
@@ -17392,16 +17239,19 @@ elif mode == 'Time-Series Models':
 			st.session_state[ 'timeseries_col_box' ] = numeric_columns[ 0 ]
 		
 		st.markdown( '##### Time-Series Selection' )
-		
 		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_columns,
 			key='timeseries_col_box' )
 		
 		series_values = pd.to_numeric( df_dataset[ series_col ], errors='coerce' )
-		
-		series_values = series_values.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
+		series_values = series_values.replace( [ np.inf, -np.inf ], np.nan )
+		invalid_observations = int( series_values.isna( ).sum( ) )
+		if invalid_observations > 0:
+			st.warning( f'⚠️ The selected series contains {invalid_observations:,} missing, '
+			            'infinite, or nonnumeric observation(s). Resolve them before forecasting '
+			            'to preserve temporal spacing.' )
+			st.stop( )
 		
 		series = series_values.to_numpy( dtype=float )
-		
 		if series.ndim != 1:
 			st.warning(
 				'⚠️ The selected column could not be converted to a one-dimensional series.' )
@@ -17411,9 +17261,9 @@ elif mode == 'Time-Series Models':
 			st.warning( '⚠️ Selected series must contain at least 10 valid observations.' )
 			st.stop( )
 		
+		series_signature = int( pd.util.hash_pandas_object( series_values, index=True ).sum( ) )
 		st.session_state[ 'timeseries_column' ] = series_col
 		st.session_state[ 'timeseries_series' ] = series.copy( )
-		
 		df_timeseries_summary = pd.DataFrame(
 			[ { 'Series': series_col, 'Observations': len( series ),
 				'Minimum': float( np.min( series ) ), 'Maximum': float( np.max( series ) ),
@@ -17434,11 +17284,13 @@ elif mode == 'Time-Series Models':
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Linear autoregressive forecasting using lagged observations as predictors.' )
+			maximum_lag = max( 1, len( series ) - 1 )
+			st.session_state[ 'timeseries_lag_linear_lag' ] = min(
+				int( st.session_state[ 'timeseries_lag_linear_lag' ] ), maximum_lag )
+			
+			st.caption( 'Linear autoregressive forecasting using lagged observations as predictors.' )
 			
 			ll_c1, ll_c2 = st.columns( 2, border=True )
-			
 			with ll_c1:
 				lag_linear_order = int( st.number_input( 'Lag Order', min_value=1,
 					max_value=max( 1, len( series ) - 1 ), step=1,
@@ -17454,7 +17306,6 @@ elif mode == 'Time-Series Models':
 				'timeseries_lag_linear_signature' ]
 			
 			ll_b1, ll_b2 = st.columns( 2 )
-			
 			with ll_b1:
 				run_lag_linear = st.button( 'Run Lagged Linear Regression', icon='🏃',
 					key='timeseries_lag_linear_run', use_container_width=True )
@@ -17471,13 +17322,11 @@ elif mode == 'Time-Series Models':
 						st.stop( )
 					
 					model = LaggingSeries( lag=lag_linear_order )
-					
 					start_time = time.time( )
 					model.train( series )
 					metrics = model.analyze( )
 					forecast = model.project( n_steps=lag_linear_horizon )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_metrics = pd.DataFrame(
 						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
 							metrics.items( ) ] )
@@ -17487,12 +17336,11 @@ elif mode == 'Time-Series Models':
 							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
 					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-					
 					df_results = pd.DataFrame( { 'Period': forecast_index,
 						'Forecast': np.asarray( forecast, dtype=float ) } )
 					
-					lag_linear_signature = (series_col, len( series ), lag_linear_order,
-						lag_linear_horizon)
+					lag_linear_signature = (series_col, len( series ), series_signature,
+						lag_linear_order, lag_linear_horizon)
 					
 					st.session_state[ 'timeseries_lag_linear_model' ] = model
 					st.session_state[ 'timeseries_lag_linear_forecast' ] = np.asarray( forecast,
@@ -17500,7 +17348,6 @@ elif mode == 'Time-Series Models':
 					st.session_state[ 'timeseries_lag_linear_metrics' ] = df_metrics.copy( )
 					st.session_state[ 'timeseries_lag_linear_results' ] = df_results.copy( )
 					st.session_state[ 'timeseries_lag_linear_signature' ] = lag_linear_signature
-					
 					st.success( 'Lagged Linear Regression forecasting complete.' )
 				except Exception as ex:
 					st.session_state.pop( 'timeseries_lag_linear_model', None )
@@ -17511,9 +17358,8 @@ elif mode == 'Time-Series Models':
 					st.error( f'Lagged Linear Regression failed: {ex}' )
 			
 			lag_linear_signature = st.session_state.get( 'timeseries_lag_linear_signature', None )
-			
-			current_lag_linear_signature = (series_col, len( series ), lag_linear_order,
-				lag_linear_horizon)
+			current_lag_linear_signature = (series_col, len( series ), series_signature,
+				lag_linear_order, lag_linear_horizon)
 			
 			if lag_linear_signature == current_lag_linear_signature:
 				df_metrics = st.session_state.get( 'timeseries_lag_linear_metrics',
@@ -17556,21 +17402,17 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
-			
 			if len( forecast ) > 0:
 				plt.close( 'all' )
 				fig, ax = plt.subplots( )
-				
 				observed_index = np.arange( len( series ) )
 				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				
 				ax.plot( observed_index, series, label='Observed' )
 				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
 				ax.set_title( 'Lagged Linear Regression Forecast' )
 				ax.legend( )
-				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
@@ -17596,12 +17438,14 @@ elif mode == 'Time-Series Models':
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Nonlinear autoregressive forecasting using histogram gradient boosting over '
+			maximum_lag = max( 1, len( series ) - 1 )
+			st.session_state[ 'timeseries_lag_boost_lag' ] = min(
+				int( st.session_state[ 'timeseries_lag_boost_lag' ] ), maximum_lag )
+			
+			st.caption( 'Nonlinear autoregressive forecasting using histogram gradient boosting over '
 				'lagged observations.' )
 			
 			lb_c1, lb_c2, lb_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with lb_c1:
 				lag_boost_order = int( st.number_input( 'Lag Order', min_value=1,
 					max_value=max( 1, len( series ) - 1 ), step=1,
@@ -17664,17 +17508,14 @@ elif mode == 'Time-Series Models':
 					options=[ 'loss', 'r2', 'neg_mean_absolute_error', 'neg_mean_squared_error' ],
 					key='timeseries_lag_boost_scoring' )
 				
-				lag_boost_validation = float(
-					st.number_input( 'Validation Fraction', min_value=0.01, max_value=0.99,
-						step=0.01, format='%.4f', key='timeseries_lag_boost_validation' ) )
+				lag_boost_validation = float( st.number_input( 'Validation Fraction', min_value=0.01,
+					max_value=0.99, step=0.01, format='%.4f', key='timeseries_lag_boost_validation' ) )
 				
-				lag_boost_no_change = int(
-					st.number_input( 'Iterations Without Improvement', min_value=1, step=1,
-						key='timeseries_lag_boost_no_change' ) )
+				lag_boost_no_change = int( st.number_input( 'Iterations Without Improvement',
+					min_value=1, step=1, key='timeseries_lag_boost_no_change' ) )
 				
-				lag_boost_tolerance = float(
-					st.number_input( 'Tolerance', min_value=0.0, step=0.0000001, format='%.8f',
-						key='timeseries_lag_boost_tolerance' ) )
+				lag_boost_tolerance = float( st.number_input( 'Tolerance', min_value=0.0,
+					step=0.0000001, format='%.8f', key='timeseries_lag_boost_tolerance' ) )
 				
 				lag_boost_verbose = int( st.number_input( 'Verbosity', min_value=0, step=1,
 					key='timeseries_lag_boost_verbose' ) )
@@ -17688,7 +17529,6 @@ elif mode == 'Time-Series Models':
 				'timeseries_lag_boost_details', 'timeseries_lag_boost_signature' ]
 			
 			lb_b1, lb_b2 = st.columns( 2 )
-			
 			with lb_b1:
 				run_lag_boost = st.button( 'Run Lagged Boosting Regression', icon='🏃',
 					key='timeseries_lag_boost_run', use_container_width=True )
@@ -17717,13 +17557,11 @@ elif mode == 'Time-Series Models':
 					
 					if (lag_boost_stopping is not False and lag_boost_validation * (
 							len( series ) - lag_boost_order) < 1):
-						st.warning(
-							'⚠️ Validation Fraction is too small for the available lagged '
-							'observations.' )
+						st.warning( '⚠️ Validation Fraction is too small for the available lagged '
+						            'observations.' )
 						st.stop( )
 					
 					max_depth = (lag_boost_depth_input if lag_boost_use_depth else None)
-					
 					model = LagBoostingSeries( lag=lag_boost_order, loss=lag_boost_loss,
 						quantile=quantile, rate=lag_boost_rate, iters=lag_boost_iters,
 						leaf_nodes=lag_boost_leaf_nodes, depth=max_depth, leaf=lag_boost_leaf,
@@ -17739,7 +17577,6 @@ elif mode == 'Time-Series Models':
 					metrics = model.analyze( )
 					forecast = model.project( n_steps=lag_boost_horizon )
 					elapsed_seconds = time.time( ) - start_time
-					
 					df_metrics = pd.DataFrame(
 						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
 							metrics.items( ) ] )
@@ -17749,11 +17586,8 @@ elif mode == 'Time-Series Models':
 							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
 					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
-					
 					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-					
 					df_results = pd.DataFrame( { 'Period': forecast_index, 'Forecast': forecast } )
-					
 					detail_rows = [ { 'Property': 'Lag Order', 'Value': model.lag },
 						{ 'Property': 'Loss', 'Value': model.loss },
 						{ 'Property': 'Quantile', 'Value': model.quantile },
@@ -17770,15 +17604,13 @@ elif mode == 'Time-Series Models':
 						{ 'Property': 'Early Stopping', 'Value': model.early_stopping },
 						{ 'Property': 'Scoring', 'Value': model.scoring },
 						{ 'Property': 'Validation Fraction', 'Value': model.validation_fraction },
-						{ 'Property': 'Iterations Without Improvement',
-							'Value': model.n_iter_no_change },
+						{ 'Property': 'Iterations Without Improvement', 'Value': model.n_iter_no_change },
 						{ 'Property': 'Tolerance', 'Value': model.tol },
 						{ 'Property': 'Random State', 'Value': model.random_state } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
-					lag_boost_signature = (series_col, len( series ), lag_boost_order,
-						lag_boost_loss, quantile, lag_boost_rate, lag_boost_iters,
+					lag_boost_signature = (series_col, len( series ), series_signature,
+						lag_boost_order, lag_boost_loss, quantile, lag_boost_rate, lag_boost_iters,
 						lag_boost_leaf_nodes, max_depth, lag_boost_leaf, lag_boost_regularization,
 						lag_boost_features, lag_boost_bins, lag_boost_warm, lag_boost_stopping,
 						lag_boost_scoring, lag_boost_validation, lag_boost_no_change,
@@ -17791,7 +17623,6 @@ elif mode == 'Time-Series Models':
 					st.session_state[ 'timeseries_lag_boost_results' ] = df_results.copy( )
 					st.session_state[ 'timeseries_lag_boost_details' ] = df_details.copy( )
 					st.session_state[ 'timeseries_lag_boost_signature' ] = lag_boost_signature
-					
 					st.success( 'Lagged Boosting Regression forecasting complete.' )
 				except Exception as ex:
 					for key in [ 'timeseries_lag_boost_model', 'timeseries_lag_boost_forecast',
@@ -17802,28 +17633,19 @@ elif mode == 'Time-Series Models':
 					st.error( f'Lagged Boosting Regression failed: {ex}' )
 			
 			current_quantile = (lag_boost_quantile if lag_boost_loss == 'quantile' else None)
-			
 			current_max_depth = (lag_boost_depth_input if lag_boost_use_depth else None)
-			
-			current_lag_boost_signature = (series_col, len( series ), lag_boost_order,
-				lag_boost_loss, current_quantile, lag_boost_rate, lag_boost_iters,
+			current_lag_boost_signature = (series_col, len( series ), series_signature,
+				lag_boost_order, lag_boost_loss, current_quantile, lag_boost_rate, lag_boost_iters,
 				lag_boost_leaf_nodes, current_max_depth, lag_boost_leaf, lag_boost_regularization,
 				lag_boost_features, lag_boost_bins, lag_boost_warm, lag_boost_stopping,
 				lag_boost_scoring, lag_boost_validation, lag_boost_no_change, lag_boost_tolerance,
 				lag_boost_verbose, lag_boost_random_state, lag_boost_horizon)
 			
 			lag_boost_signature = st.session_state.get( 'timeseries_lag_boost_signature', None )
-			
 			if lag_boost_signature == current_lag_boost_signature:
-				df_metrics = st.session_state.get( 'timeseries_lag_boost_metrics', pd.DataFrame(
-				
-				) )
-				df_results = st.session_state.get( 'timeseries_lag_boost_results', pd.DataFrame(
-				
-				) )
-				df_details = st.session_state.get( 'timeseries_lag_boost_details', pd.DataFrame(
-				
-				) )
+				df_metrics = st.session_state.get( 'timeseries_lag_boost_metrics', pd.DataFrame( ) )
+				df_results = st.session_state.get( 'timeseries_lag_boost_results', pd.DataFrame( ) )
+				df_details = st.session_state.get( 'timeseries_lag_boost_details', pd.DataFrame( ) )
 				forecast = st.session_state.get( 'timeseries_lag_boost_forecast',
 					np.array( [ ], dtype=float ) )
 			else:
@@ -17870,17 +17692,14 @@ elif mode == 'Time-Series Models':
 			if len( forecast ) > 0:
 				plt.close( 'all' )
 				fig, ax = plt.subplots( )
-				
 				observed_index = np.arange( len( series ) )
 				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				
 				ax.plot( observed_index, series, label='Observed' )
 				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
 				ax.set_title( 'Lagged Boosting Regression Forecast' )
 				ax.legend( )
-				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
@@ -17899,12 +17718,14 @@ elif mode == 'Time-Series Models':
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Conditional quantile forecasting using linear regression over lagged '
-				'observations.' )
+			maximum_lag = max( 1, len( series ) - 1 )
+			st.session_state[ 'timeseries_lag_quantile_lag' ] = min( int(
+				st.session_state[ 'timeseries_lag_quantile_lag' ] ), maximum_lag )
+			
+			st.caption( 'Conditional quantile forecasting using linear regression over lagged '
+			            'observations.' )
 			
 			lq_c1, lq_c2, lq_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with lq_c1:
 				lag_quantile_order = int( st.number_input( 'Lag Order', min_value=1,
 					max_value=max( 1, len( series ) - 1 ), step=1,
@@ -17915,9 +17736,8 @@ elif mode == 'Time-Series Models':
 						step=0.05, format='%.4f', key='timeseries_lag_quantile_quantile' ) )
 			
 			with lq_c2:
-				lag_quantile_alpha = float(
-					st.number_input( 'L1 Regularization', min_value=0.0, step=0.1, format='%.4f',
-						key='timeseries_lag_quantile_alpha' ) )
+				lag_quantile_alpha = float( st.number_input( 'L1 Regularization', min_value=0.0,
+					step=0.1, format='%.4f', key='timeseries_lag_quantile_alpha' ) )
 				
 				lag_quantile_fit = st.checkbox( 'Fit Intercept',
 					key='timeseries_lag_quantile_fit' )
@@ -17937,7 +17757,6 @@ elif mode == 'Time-Series Models':
 				'timeseries_lag_quantile_details', 'timeseries_lag_quantile_signature' ]
 			
 			lq_b1, lq_b2 = st.columns( 2 )
-			
 			with lq_b1:
 				run_lag_quantile = st.button( 'Run Lagged Quantile Regression', icon='🏃',
 					key='timeseries_lag_quantile_run', use_container_width=True )
@@ -17970,7 +17789,6 @@ elif mode == 'Time-Series Models':
 					metrics = model.analyze( )
 					forecast = model.project( n_steps=lag_quantile_horizon )
 					elapsed_seconds = time.time( ) - start_time
-					
 					if metrics is None:
 						metrics = { }
 					
@@ -17983,9 +17801,7 @@ elif mode == 'Time-Series Models':
 							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
 					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
-					
 					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-					
 					df_results = pd.DataFrame( { 'Period': forecast_index, 'Quantile': lag_quantile_value,
 							'Forecast': forecast } )
 					
@@ -17998,10 +17814,9 @@ elif mode == 'Time-Series Models':
 						{ 'Property': 'Forecast Horizon', 'Value': lag_quantile_horizon } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
-					lag_quantile_signature = (series_col, len( series ), lag_quantile_order,
-						lag_quantile_value, lag_quantile_alpha, lag_quantile_fit,
-						lag_quantile_solver, lag_quantile_horizon)
+					lag_quantile_signature = (series_col, len( series ), series_signature,
+						lag_quantile_order, lag_quantile_value, lag_quantile_alpha,
+						lag_quantile_fit, lag_quantile_solver, lag_quantile_horizon)
 					
 					st.session_state[ 'timeseries_lag_quantile_model' ] = model
 					st.session_state[ 'timeseries_lag_quantile_forecast' ] = forecast.copy( )
@@ -18019,9 +17834,9 @@ elif mode == 'Time-Series Models':
 					
 					st.error( f'Lagged Quantile Regression failed: {ex}' )
 			
-			current_lag_quantile_signature = (series_col, len( series ), lag_quantile_order,
-				lag_quantile_value, lag_quantile_alpha, lag_quantile_fit, lag_quantile_solver,
-				lag_quantile_horizon)
+			current_lag_quantile_signature = (series_col, len( series ), series_signature,
+				lag_quantile_order, lag_quantile_value, lag_quantile_alpha, lag_quantile_fit,
+				lag_quantile_solver, lag_quantile_horizon)
 			
 			lag_quantile_signature = st.session_state.get( 'timeseries_lag_quantile_signature',
 				None )
@@ -18079,10 +17894,8 @@ elif mode == 'Time-Series Models':
 			if len( forecast ) > 0:
 				plt.close( 'all' )
 				fig, ax = plt.subplots( )
-				
 				observed_index = np.arange( len( series ) )
 				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				
 				ax.plot( observed_index, series, label='Observed' )
 				ax.plot( forecast_index, forecast, label=f'Quantile {lag_quantile_value:.2f}',
 					linestyle='--' )
@@ -18090,7 +17903,6 @@ elif mode == 'Time-Series Models':
 				ax.set_ylabel( series_col )
 				ax.set_title( 'Lagged Quantile Regression Forecast' )
 				ax.legend( )
-				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
@@ -18108,9 +17920,7 @@ elif mode == 'Time-Series Models':
 					st.session_state[ key ] = value
 			
 			st.caption( 'Nonseasonal autoregressive integrated moving-average forecasting.' )
-			
 			ar_c1, ar_c2, ar_c3, ar_c4 = st.columns( 4, border=True )
-			
 			with ar_c1:
 				arima_p = int( st.number_input( 'Autoregressive Order (p)', min_value=0, step=1,
 					key='timeseries_arima_p' ) )
@@ -18129,11 +17939,9 @@ elif mode == 'Time-Series Models':
 			
 			arima_reset_keys = list( arima_defaults.keys( ) ) + [ 'timeseries_arima_model',
 				'timeseries_arima_forecast', 'timeseries_arima_metrics',
-				'timeseries_arima_results', 'timeseries_arima_details',
-				'timeseries_arima_signature' ]
+				'timeseries_arima_results', 'timeseries_arima_details', 'timeseries_arima_signature' ]
 			
 			ar_b1, ar_b2 = st.columns( 2 )
-			
 			with ar_b1:
 				run_arima = st.button( 'Run ARIMA', icon='🏃', key='timeseries_arima_run',
 					use_container_width=True )
@@ -18145,7 +17953,6 @@ elif mode == 'Time-Series Models':
 			if run_arima:
 				try:
 					minimum_observations = max( arima_p, arima_q, 1 )
-					
 					if len( series ) <= minimum_observations:
 						st.warning(
 							'⚠️ The selected series does not contain enough observations for the '
@@ -18157,15 +17964,12 @@ elif mode == 'Time-Series Models':
 						st.stop( )
 					
 					arima_order = (arima_p, arima_d, arima_q)
-					
 					model = ARIMA( order=arima_order )
-					
 					start_time = time.time( )
 					model.train( series )
 					metrics = model.analyze( )
 					forecast = model.project( n_steps=arima_horizon )
 					elapsed_seconds = time.time( ) - start_time
-					
 					if metrics is None:
 						metrics = { }
 					
@@ -18178,11 +17982,8 @@ elif mode == 'Time-Series Models':
 							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
 					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
-					
 					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-					
 					df_results = pd.DataFrame( { 'Period': forecast_index, 'Forecast': forecast } )
-					
 					detail_rows = [ { 'Property': 'Order', 'Value': str( model.order ) },
 						{ 'Property': 'Autoregressive Order', 'Value': arima_p },
 						{ 'Property': 'Differencing Order', 'Value': arima_d },
@@ -18193,8 +17994,8 @@ elif mode == 'Time-Series Models':
 						{ 'Property': 'BIC', 'Value': float( model.results.bic ) } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					arima_signature = (series_col, len( series ), arima_p, arima_d, arima_q,
-						arima_horizon)
+					arima_signature = (series_col, len( series ), series_signature, arima_p,
+						arima_d, arima_q, arima_horizon)
 					
 					st.session_state[ 'timeseries_arima_model' ] = model
 					st.session_state[ 'timeseries_arima_forecast' ] = forecast.copy( )
@@ -18211,8 +18012,8 @@ elif mode == 'Time-Series Models':
 					
 					st.error( f'ARIMA forecasting failed: {ex}' )
 			
-			current_arima_signature = (series_col, len( series ), arima_p, arima_d, arima_q,
-				arima_horizon)
+			current_arima_signature = (series_col, len( series ), series_signature, arima_p,
+				arima_d, arima_q, arima_horizon)
 			
 			arima_signature = st.session_state.get( 'timeseries_arima_signature', None )
 			if arima_signature == current_arima_signature:
@@ -18249,6 +18050,7 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			blue_divider( )
 			st.markdown( '##### Forecast Results' )
+			
 			if not df_results.empty:
 				st.data_editor( df_results, use_container_width=True, hide_index=True,
 					disabled=True )
@@ -18260,17 +18062,21 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
+			
 			if len( forecast ) > 0:
 				plt.close( 'all' )
 				fig, ax = plt.subplots( )
+				
 				observed_index = np.arange( len( series ) )
 				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
+				
 				ax.plot( observed_index, series, label='Observed' )
 				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
 				ax.set_title( f'ARIMA{(arima_p, arima_d, arima_q)} Forecast' )
 				ax.legend( )
+				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
@@ -18290,22 +18096,22 @@ elif mode == 'Time-Series Models':
 					st.session_state[ key ] = value
 			
 			st.caption( 'Seasonal autoregressive integrated moving-average forecasting.' )
-			
 			sa_c1, sa_c2, sa_c3, sa_c4 = st.columns( 4, border=True )
-			
 			with sa_c1:
 				sarima_p = int( st.number_input( 'Autoregressive Order (p)', min_value=0, step=1,
 					key='timeseries_sarima_p' ) )
 				
-				sarima_seasonal_p = int( st.number_input( 'Seasonal Autoregressive Order (P)',
-					min_value=0, step=1, key='timeseries_sarima_seasonal_p' ) )
+				sarima_seasonal_p = int(
+					st.number_input( 'Seasonal Autoregressive Order (P)', min_value=0, step=1,
+						key='timeseries_sarima_seasonal_p' ) )
 			
 			with sa_c2:
 				sarima_d = int( st.number_input( 'Differencing Order (d)', min_value=0, step=1,
 					key='timeseries_sarima_d' ) )
 				
-				sarima_seasonal_d = int( st.number_input( 'Seasonal Differencing Order (D)',
-					min_value=0, step=1, key='timeseries_sarima_seasonal_d' ) )
+				sarima_seasonal_d = int(
+					st.number_input( 'Seasonal Differencing Order (D)', min_value=0, step=1,
+						key='timeseries_sarima_seasonal_d' ) )
 			
 			with sa_c3:
 				sarima_q = int( st.number_input( 'Moving-Average Order (q)', min_value=0, step=1,
@@ -18329,7 +18135,6 @@ elif mode == 'Time-Series Models':
 				'timeseries_sarima_signature' ]
 			
 			sa_b1, sa_b2 = st.columns( 2 )
-			
 			with sa_b1:
 				run_sarima = st.button( 'Run SARIMA', icon='🏃', key='timeseries_sarima_run',
 					use_container_width=True )
@@ -18341,11 +18146,8 @@ elif mode == 'Time-Series Models':
 			if run_sarima:
 				try:
 					nonseasonal_order = (sarima_p, sarima_d, sarima_q)
-					
 					seasonal_terms = (sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q)
-					
 					uses_seasonality = any( value > 0 for value in seasonal_terms )
-					
 					if (all( value == 0 for value in nonseasonal_order ) and not uses_seasonality):
 						st.warning(
 							'⚠️ At least one nonseasonal or seasonal order must be greater than '
@@ -18364,7 +18166,6 @@ elif mode == 'Time-Series Models':
 						st.stop( )
 					
 					effective_seasonal_period = (sarima_seasonal_period if uses_seasonality else 0)
-					
 					seasonal_order = (sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q,
 						effective_seasonal_period)
 					
@@ -18384,13 +18185,11 @@ elif mode == 'Time-Series Models':
 						st.stop( )
 					
 					model = SARIMA( order=nonseasonal_order, seasonal=seasonal_order )
-					
 					start_time = time.time( )
 					model.train( series )
 					metrics = model.analyze( )
 					forecast = model.project( n_steps=sarima_horizon )
 					elapsed_seconds = time.time( ) - start_time
-					
 					if metrics is None:
 						metrics = { }
 					
@@ -18403,11 +18202,8 @@ elif mode == 'Time-Series Models':
 							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
 					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
-					
 					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-					
 					df_results = pd.DataFrame( { 'Period': forecast_index, 'Forecast': forecast } )
-					
 					detail_rows = [ { 'Property': 'Order', 'Value': str( model.order ) },
 						{ 'Property': 'Seasonal Order', 'Value': str( model.seasonal_order ) },
 						{ 'Property': 'Training Observations',
@@ -18417,9 +18213,9 @@ elif mode == 'Time-Series Models':
 						{ 'Property': 'BIC', 'Value': float( model.results.bic ) } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
-					sarima_signature = (series_col, len( series ), sarima_p, sarima_d, sarima_q,
-						sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q,
+					sarima_signature = (series_col, len( series ), series_signature, sarima_p,
+						sarima_d, sarima_q, sarima_seasonal_p, sarima_seasonal_d,
+						sarima_seasonal_q,
 						effective_seasonal_period, sarima_horizon)
 					
 					st.session_state[ 'timeseries_sarima_model' ] = model
@@ -18428,7 +18224,6 @@ elif mode == 'Time-Series Models':
 					st.session_state[ 'timeseries_sarima_results' ] = df_results.copy( )
 					st.session_state[ 'timeseries_sarima_details' ] = df_details.copy( )
 					st.session_state[ 'timeseries_sarima_signature' ] = sarima_signature
-					
 					st.success( 'SARIMA forecasting complete.' )
 				except Exception as ex:
 					for key in [ 'timeseries_sarima_model', 'timeseries_sarima_forecast',
@@ -18442,13 +18237,11 @@ elif mode == 'Time-Series Models':
 				value > 0 for value in (sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q) )
 			
 			current_seasonal_period = (sarima_seasonal_period if current_uses_seasonality else 0)
-			
-			current_sarima_signature = (series_col, len( series ), sarima_p, sarima_d, sarima_q,
-				sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period,
-				sarima_horizon)
+			current_sarima_signature = (series_col, len( series ), series_signature, sarima_p,
+				sarima_d, sarima_q, sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q,
+				current_seasonal_period, sarima_horizon)
 			
 			sarima_signature = st.session_state.get( 'timeseries_sarima_signature', None )
-			
 			if sarima_signature == current_sarima_signature:
 				df_metrics = st.session_state.get( 'timeseries_sarima_metrics', pd.DataFrame( ) )
 				df_results = st.session_state.get( 'timeseries_sarima_results', pd.DataFrame( ) )
@@ -18499,10 +18292,8 @@ elif mode == 'Time-Series Models':
 			if len( forecast ) > 0:
 				plt.close( 'all' )
 				fig, ax = plt.subplots( )
-				
 				observed_index = np.arange( len( series ) )
 				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				
 				ax.plot( observed_index, series, label='Observed' )
 				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
@@ -18510,7 +18301,6 @@ elif mode == 'Time-Series Models':
 				ax.set_title( f'SARIMA{(sarima_p, sarima_d, sarima_q)}'
 				              f'{(sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period)} Forecast' )
 				ax.legend( )
-				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
@@ -18519,7 +18309,7 @@ elif mode == 'Time-Series Models':
 		# ------------------------------------------------------------------
 		# TIME-SERIES CROSS-VALIDATION
 		# ------------------------------------------------------------------
-		with st.expander( 'Time-Series Cross-Validation', expanded=False ):
+		with st.expander( 'Time-Series Validation Windows', expanded=False ):
 			splitter_defaults = { 'timeseries_splitter_splits': 5,
 				'timeseries_splitter_use_train_size': False, 'timeseries_splitter_train_size': 20,
 				'timeseries_splitter_use_test_size': False, 'timeseries_splitter_test_size': 5,
@@ -18529,30 +18319,38 @@ elif mode == 'Time-Series Models':
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Chronological train-and-test windows for evaluating time-series models without '
-				'random shuffling.' )
+			maximum_split_count = max( 2, len( series ) - 1 )
+			maximum_window_size = max( 1, len( series ) - 1 )
+			st.session_state[ 'timeseries_splitter_splits' ] = min(
+				max( 2, int( st.session_state[ 'timeseries_splitter_splits' ] ) ),
+				maximum_split_count )
+			st.session_state[ 'timeseries_splitter_train_size' ] = min(
+				max( 1, int( st.session_state[ 'timeseries_splitter_train_size' ] ) ),
+				maximum_window_size )
+			st.session_state[ 'timeseries_splitter_test_size' ] = min(
+				max( 1, int( st.session_state[ 'timeseries_splitter_test_size' ] ) ),
+				maximum_window_size )
+			st.session_state[ 'timeseries_splitter_gap' ] = min(
+				max( 0, int( st.session_state[ 'timeseries_splitter_gap' ] ) ),
+				max( 0, len( series ) - 2 ) )
 			
+			st.caption( 'Chronological windows for subsequent model evaluation without random shuffling.' )
 			cv_c1, cv_c2, cv_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
-			
 			with cv_c1:
 				splitter_splits = int( st.number_input( 'Number of Splits', min_value=2,
 					max_value=max( 2, len( series ) - 1 ), step=1,
 					key='timeseries_splitter_splits' ) )
 				
 				splitter_gap = int( st.number_input( 'Temporal Gap', min_value=0,
-					max_value=max( 0, len( series ) - 2 ), step=1, key='timeseries_splitter_gap'
-				) )
+					max_value=max( 0, len( series ) - 2 ), step=1, key='timeseries_splitter_gap' ) )
 			
 			with cv_c2:
 				splitter_use_train_size = st.checkbox( 'Limit Training Window',
 					key='timeseries_splitter_use_train_size' )
 				
-				splitter_train_size_input = int(
-					st.number_input( 'Maximum Training Size', min_value=1,
+				splitter_train_size_input = int( st.number_input( 'Maximum Training Size', min_value=1,
 						max_value=max( 1, len( series ) - 1 ), step=1,
-						disabled=not splitter_use_train_size,
-						key='timeseries_splitter_train_size' ) )
+						disabled=not splitter_use_train_size, key='timeseries_splitter_train_size' ) )
 			
 			with cv_c3:
 				splitter_use_test_size = st.checkbox( 'Use Fixed Test Size',
@@ -18562,13 +18360,12 @@ elif mode == 'Time-Series Models':
 					max_value=max( 1, len( series ) - 1 ), step=1,
 					disabled=not splitter_use_test_size, key='timeseries_splitter_test_size' ) )
 			
-			splitter_reset_keys = list( splitter_defaults.keys( ) ) + [
-				'timeseries_splitter_model',
+			splitter_reset_keys = list( splitter_defaults.keys( ) ) + [ 'timeseries_splitter_model',
 				'timeseries_splitter_results', 'timeseries_splitter_summary',
-				'timeseries_splitter_figure', 'timeseries_splitter_signature' ]
+				'timeseries_splitter_details', 'timeseries_splitter_figure',
+				'timeseries_splitter_signature' ]
 			
 			cv_b1, cv_b2 = st.columns( 2 )
-			
 			with cv_b1:
 				run_splitter = st.button( 'Generate Time-Series Splits', icon='🏃',
 					key='timeseries_splitter_run', use_container_width=True )
@@ -18579,29 +18376,21 @@ elif mode == 'Time-Series Models':
 			
 			if run_splitter:
 				try:
-					max_train_size = (
-						splitter_train_size_input if splitter_use_train_size else None)
-					
+					max_train_size = ( splitter_train_size_input if splitter_use_train_size else None)
 					test_size = (splitter_test_size_input if splitter_use_test_size else None)
-					
-					computed_test_size = (
-						len( series ) // (splitter_splits + 1) if test_size is None else test_size)
-					
+					computed_test_size = ( len( series ) // (splitter_splits + 1) if test_size is None else test_size)
 					required_observations = (splitter_splits * computed_test_size + splitter_gap)
-					
 					if computed_test_size < 1:
-						st.warning(
-							'⚠️ The selected configuration produces an invalid test-window size.' )
+						st.warning( '⚠️ The selected configuration produces an invalid test-window size.' )
 						st.stop( )
 					
 					if required_observations >= len( series ):
-						st.warning(
-							'⚠️ The selected series does not contain enough observations for the '
+						st.warning( '⚠️ The selected series does not contain enough observations for the '
 							'requested splits, test size, and gap.' )
 						st.stop( )
 					
-					splitter = TimeSeriesSpliter( splits=splitter_splits,
-						max_train_size=max_train_size, test_size=test_size, gap=splitter_gap )
+					splitter = TimeSeriesSpliter( splits=splitter_splits, max_train_size=max_train_size,
+						test_size=test_size, gap=splitter_gap )
 					
 					start_time = time.time( )
 					split_pairs = splitter.get_splits( series )
@@ -18614,15 +18403,12 @@ elif mode == 'Time-Series Models':
 					
 					result_rows = [ ]
 					summary_rows = [ ]
-					
 					for split_number, split_pair in enumerate( split_pairs, start=1 ):
 						train_index, test_index = split_pair
-						
 						train_start = int( train_index[ 0 ] )
 						train_end = int( train_index[ -1 ] )
 						test_start = int( test_index[ 0 ] )
 						test_end = int( test_index[ -1 ] )
-						
 						summary_rows.append( { 'Split': split_number, 'Train Start': train_start,
 							'Train End': train_end, 'Train Size': len( train_index ),
 							'Test Start': test_start, 'Test End': test_end,
@@ -18638,7 +18424,6 @@ elif mode == 'Time-Series Models':
 					
 					df_split_results = pd.DataFrame( result_rows )
 					df_split_summary = pd.DataFrame( summary_rows )
-					
 					df_processing = pd.DataFrame( [ { 'Property': 'Configured Splits',
 						'Value': splitter.get_n_splits( series ) },
 						{ 'Property': 'Generated Splits', 'Value': len( split_pairs ) },
@@ -18648,8 +18433,8 @@ elif mode == 'Time-Series Models':
 						{ 'Property': 'Processing Time (sec)',
 							'Value': round( elapsed_seconds, 4 ) } ] )
 					
-					splitter_signature = (series_col, len( series ), splitter_splits,
-						max_train_size, test_size, splitter_gap)
+					splitter_signature = (series_col, len( series ), series_signature,
+						splitter_splits, max_train_size, test_size, splitter_gap)
 					
 					st.session_state[ 'timeseries_splitter_model' ] = splitter
 					st.session_state[ 'timeseries_splitter_results' ] = df_split_results.copy( )
@@ -18657,7 +18442,6 @@ elif mode == 'Time-Series Models':
 					st.session_state[ 'timeseries_splitter_details' ] = df_processing.copy( )
 					st.session_state[ 'timeseries_splitter_figure' ] = figure
 					st.session_state[ 'timeseries_splitter_signature' ] = splitter_signature
-					
 					st.success( 'Time-series cross-validation splits generated.' )
 				except Exception as ex:
 					for key in [ 'timeseries_splitter_model', 'timeseries_splitter_results',
@@ -18667,16 +18451,12 @@ elif mode == 'Time-Series Models':
 					
 					st.error( f'Time-Series Cross-Validation failed: {ex}' )
 			
-			current_max_train_size = (
-				splitter_train_size_input if splitter_use_train_size else None)
-			
+			current_max_train_size = ( splitter_train_size_input if splitter_use_train_size else None)
 			current_test_size = (splitter_test_size_input if splitter_use_test_size else None)
-			
-			current_splitter_signature = (series_col, len( series ), splitter_splits,
-				current_max_train_size, current_test_size, splitter_gap)
+			current_splitter_signature = (series_col, len( series ), series_signature,
+				splitter_splits, current_max_train_size, current_test_size, splitter_gap)
 			
 			splitter_signature = st.session_state.get( 'timeseries_splitter_signature', None )
-			
 			if splitter_signature == current_splitter_signature:
 				df_split_results = st.session_state.get( 'timeseries_splitter_results',
 					pd.DataFrame( ) )
@@ -18730,7 +18510,7 @@ elif mode == 'Time-Series Models':
 				st.pyplot( split_figure )
 			else:
 				st.info( 'Generate time-series splits to view the validation windows.' )
-				
+
 # ============================================
 # DATA MANAGEMENT MODE
 # ============================================
