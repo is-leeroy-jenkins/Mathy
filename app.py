@@ -158,10 +158,6 @@ if 'df_scores' not in st.session_state:
 if 'df_model' not in st.session_state or st.session_state[ 'df_model' ] is None:
 	st.session_state[ 'df_model' ] = pd.DataFrame( )
 
-if 'df_evaluationuation' not in st.session_state or st.session_state[
-	'df_evaluationuation' ] is None:
-	st.session_state[ 'df_evaluationuation' ] = pd.DataFrame( )
-
 if 'numeric_columns' not in st.session_state:
 	st.session_state[ 'numeric_columns' ] = [ ]
 
@@ -212,8 +208,7 @@ if 'elapsed_seconds' not in st.session_state:
 if 'df_classification' not in st.session_state or st.session_state[ 'df_classification' ] is None:
 	st.session_state[ 'df_classification' ] = pd.DataFrame( )
 
-if 'df_classification_scores' not in st.session_state or st.session_state[
-	'df_classification_scores' ] is None:
+if 'df_classification_scores' not in st.session_state or st.session_state[ 'df_classification_scores' ] is None:
 	st.session_state[ 'df_classification_scores' ] = pd.DataFrame( )
 
 # ----------- Regression Members
@@ -500,14 +495,6 @@ def blue_divider( ) -> None:
 def log_step( msg: str ) -> None:
 	st.session_state.pipeline_log.append( msg )
 
-def render_table( df: pd.DataFrame, height: int = 360 ) -> None:
-	disp = df.copy( )
-	float_cols = disp.select_dtypes( include=[ np.floating ] ).columns
-	num_cols = disp.select_dtypes( include=[ np.number ] ).columns
-	disp[ float_cols ] = disp[ float_cols ].round( 4 )
-	disp[ num_cols ] = df[ num_cols ].map( '{:,.2f}'.format )
-	st.data_editor( disp, use_container_width=True, height='auto' )
-
 def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]:
 	numeric_hints = ('py', 'cy', 'by', 'amount', 'total', 'value', 'balance', 'outlay')
 	categorical_hints = ('fy', 'code', 'id', 'name', 'type', 'symbol')
@@ -529,8 +516,8 @@ def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]
 	
 	return numeric, categorical
 
-def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: int = 0,
-	label: Optional[ str ] = None, size: int = 30, ) -> None:
+def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: int=0,
+	label: Optional[ str ] = None, size: int=30, ) -> None:
 	"""
 	
 		Purpose:
@@ -565,7 +552,7 @@ def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: in
 		marker=marker, label=label, )
 	ax.grid( True, alpha=0.25 )
 
-def auto_float_format( series: pd.Series, max_decimals: int = 4 ) -> str:
+def auto_float_format( series: pd.Series, max_decimals: int=4 ) -> str:
 	"""
 	
 		Purpose:
@@ -618,7 +605,7 @@ def clean_numeric( df: pd.DataFrame ) -> pd.DataFrame:
 def analysis_fillna_mean( df: pd.DataFrame ) -> pd.DataFrame:
 	return df.apply( lambda c: c.fillna( c.mean( ) ) if c.dtype.kind in "fc" else c )
 
-def default_pick( items: List[ str ], k: int = 2 ) -> List[ str ]:
+def default_pick( items: List[ str ], k: int=2 ) -> List[ str ]:
 	return items[ : min( k, len( items ) ) ] if items else [ ]
 
 def create_visualization( df: pd.DataFrame ):
@@ -1109,7 +1096,7 @@ def create_schema( table: str ) -> List[ Tuple ]:
 	with create_connection( ) as conn:
 		return conn.execute( f'PRAGMA table_info("{table}");' ).fetchall( )
 
-def read_table( table: str, limit: int = None, offset: int = 0 ) -> pd.DataFrame:
+def read_table( table: str, limit: int=None, offset: int=0 ) -> pd.DataFrame:
 	"""
 	
 		Purpose:
