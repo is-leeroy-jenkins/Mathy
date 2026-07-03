@@ -133,8 +133,8 @@ if 'mode' not in st.session_state or st.session_state[ 'mode' ] is None:
 	st.session_state[ 'mode' ] = 'Data Transformation'
 
 if 'df_dataset' not in st.session_state or st.session_state[ 'df_dataset' ] is None:
-	st.session_state[ 'df_dataset'] = pd.DataFrame( )
-	
+	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
+
 # ------ Data Processing Members
 
 if 'df_original' not in st.session_state or st.session_state[ 'df_original' ] is None:
@@ -161,7 +161,8 @@ if 'df_scores' not in st.session_state:
 if 'df_model' not in st.session_state or st.session_state[ 'df_model' ] is None:
 	st.session_state[ 'df_model' ] = pd.DataFrame( )
 
-if 'df_evaluationuation' not in st.session_state or st.session_state[ 'df_evaluationuation' ] is None:
+if 'df_evaluationuation' not in st.session_state or st.session_state[
+	'df_evaluationuation' ] is None:
 	st.session_state[ 'df_evaluationuation' ] = pd.DataFrame( )
 
 if 'numeric_columns' not in st.session_state:
@@ -184,7 +185,7 @@ if 'targets' not in st.session_state:
 
 if 'X_data' not in st.session_state:
 	st.session_state[ 'X_data' ] = None
-	
+
 if 'X_train' not in st.session_state:
 	st.session_state[ 'X_train' ] = None
 
@@ -199,13 +200,13 @@ if 'y_test' not in st.session_state:
 
 if 'y_prediction' not in st.session_state:
 	st.session_state[ 'y_prediction' ] = None
-	
+
 if 'y_series' not in st.session_state:
 	st.session_state[ 'y_series' ] = None
 
 if 'target_count' not in st.session_state:
 	st.session_state[ 'target_count' ] = 0.0
-	
+
 if 'elapsed_seconds' not in st.session_state:
 	st.session_state[ 'elapsed_seconds' ] = 0.0
 
@@ -214,7 +215,8 @@ if 'elapsed_seconds' not in st.session_state:
 if 'df_classification' not in st.session_state or st.session_state[ 'df_classification' ] is None:
 	st.session_state[ 'df_classification' ] = pd.DataFrame( )
 
-if 'df_classification_scores' not in st.session_state or st.session_state[ 'df_classification_scores' ] is None:
+if 'df_classification_scores' not in st.session_state or st.session_state[
+	'df_classification_scores' ] is None:
 	st.session_state[ 'df_classification_scores' ] = pd.DataFrame( )
 
 # ----------- Regression Members
@@ -222,7 +224,8 @@ if 'df_classification_scores' not in st.session_state or st.session_state[ 'df_c
 if 'df_regression' not in st.session_state or st.session_state[ 'df_regression' ] is None:
 	st.session_state[ 'df_regression' ] = pd.DataFrame( )
 
-if 'df_regression_scores' not in st.session_state or st.session_state[ 'df_regression_scores' ] is None:
+if 'df_regression_scores' not in st.session_state or st.session_state[
+	'df_regression_scores' ] is None:
 	st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 
 # ----------- Clustering Members
@@ -256,16 +259,9 @@ if 'cluster_signature' not in st.session_state:
 # ============================================
 
 def init_state( ) -> None:
-	defaults = {
-			'df_dataset': None,
-			'df_original': None,
-			'df_processed': None,
-			'numeric_columns': [ ],
-			'categorical_columns': [ ],
-			'features': [ ],
-			'targets': [ ],
-			'pipeline_log': [ ]
-	}
+	defaults = { 'df_dataset': None, 'df_original': None, 'df_processed': None,
+		'numeric_columns': [ ], 'categorical_columns': [ ], 'features': [ ], 'targets': [ ],
+		'pipeline_log': [ ] }
 	for k, v in defaults.items( ):
 		if k not in st.session_state:
 			st.session_state[ k ] = v
@@ -287,11 +283,8 @@ def has_loaded_dataset( df_frame: object ) -> bool:
 		bool:
 			True when the object is a non-empty dataframe with at least one column.
 	"""
-	return (
-			isinstance( df_frame, pd.DataFrame )
-			and not df_frame.empty
-			and len( df_frame.columns ) > 0
-	)
+	return (isinstance( df_frame, pd.DataFrame ) and not df_frame.empty and len(
+		df_frame.columns ) > 0)
 
 def get_loaded_dataset( ) -> pd.DataFrame | None:
 	"""
@@ -315,7 +308,7 @@ def get_loaded_dataset( ) -> pd.DataFrame | None:
 	return df_frame.copy( )
 
 def store_loaded_dataset( df_dataset: pd.DataFrame,
-		df_original: pd.DataFrame | None = None ) -> None:
+	df_original: pd.DataFrame | None = None ) -> None:
 	"""
 		Purpose:
 		--------
@@ -339,7 +332,7 @@ def store_loaded_dataset( df_dataset: pd.DataFrame,
 	st.session_state[ 'raw_df' ] = df_source.copy( )
 	st.session_state[ 'df_original' ] = df_base.copy( )
 	st.session_state[ 'df_dataset' ] = df_source.copy( )
-	
+
 def clear_keys( keys: List[ str ] ) -> None:
 	"""
 	
@@ -378,32 +371,12 @@ def reset_classification_mode_state( ) -> None:
 		None
 	
 	"""
-	classification_keys = [
-			'df_working',
-			'df_processed',
-			'df_model',
-			'df_scores',
-			'df_predictions',
-			'df_classification',
-			'df_classification_scores',
-			'df_features',
-			'df_targets',
-			'features',
-			'targets',
-			'selected_all',
-			'active_features',
-			'active_targets',
-			'X_data',
-			'X_train',
-			'X_test',
-			'y_train',
-			'y_test',
-			'y_series',
-			'y_prediction',
-			'model',
-			'elapsed_seconds',
-			'target_count'
-	]
+	classification_keys = [ 'df_working', 'df_processed', 'df_model', 'df_scores',
+		'df_predictions',
+		'df_classification', 'df_classification_scores', 'df_features', 'df_targets', 'features',
+		'targets', 'selected_all', 'active_features', 'active_targets', 'X_data', 'X_train',
+		'X_test', 'y_train', 'y_test', 'y_series', 'y_prediction', 'model', 'elapsed_seconds',
+		'target_count' ]
 	
 	clear_keys( classification_keys )
 	st.session_state[ 'df_working' ] = pd.DataFrame( )
@@ -448,32 +421,12 @@ def reset_regression_mode_state( ) -> None:
 		None
 	
 	"""
-	regression_keys = [
-			'df_working',
-			'df_processed',
-			'df_model',
-			'df_scores',
-			'df_predictions',
-			'df_regression',
-			'df_regression_scores',
-			'df_features',
-			'df_targets',
-			'features',
-			'targets',
-			'selected_all',
-			'active_features',
-			'active_targets',
-			'X_data',
-			'X_train',
-			'X_test',
-			'y_train',
-			'y_test',
-			'y_series',
-			'y_prediction',
-			'model',
-			'elapsed_seconds',
-			'target_count'
-	]
+	regression_keys = [ 'df_working', 'df_processed', 'df_model', 'df_scores', 'df_predictions',
+		'df_regression', 'df_regression_scores', 'df_features', 'df_targets', 'features',
+		'targets',
+		'selected_all', 'active_features', 'active_targets', 'X_data', 'X_train', 'X_test',
+		'y_train', 'y_test', 'y_series', 'y_prediction', 'model', 'elapsed_seconds',
+		'target_count' ]
 	
 	clear_keys( regression_keys )
 	st.session_state[ 'df_working' ] = pd.DataFrame( )
@@ -500,14 +453,13 @@ def reset_regression_mode_state( ) -> None:
 	st.session_state[ 'model' ] = None
 	st.session_state[ 'elapsed_seconds' ] = 0.0
 	st.session_state[ 'target_count' ] = 0.0
-	
+
 # ============================================
 # Utilities
 # ============================================
-def inferential_plot( title: str, subtitle: str | None = None,
-    figsize: tuple[int, int] = (6, 4), grid: bool = True,
-    ref_line: float | None = None, legend: bool = True ):
-    """
+def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ int, int ] = (6, 4),
+	grid: bool = True, ref_line: float | None = None, legend: bool = True ):
+	"""
 	    Purpose:
 	        Create a standardized matplotlib figure for inferential plots.
 	
@@ -522,42 +474,29 @@ def inferential_plot( title: str, subtitle: str | None = None,
 	    Returns:
 	        (fig, ax): Matplotlib figure and axis.
     """
-    fig, ax = plt.subplots(figsize=figsize)
-
-    # Grid (subtle)
-    if grid:
-        ax.grid(True, alpha=0.25, linewidth=0.8)
-
-    # Titles
-    ax.set_title(title, fontsize=12, fontweight="bold", pad=8)
-    if subtitle:
-        ax.text(
-            0.5, 1.02,
-            subtitle,
-            transform=ax.transAxes,
-            ha="center",
-            va="bottom",
-            fontsize=9,
-            alpha=0.85
-        )
-
-    # Reference line
-    if ref_line is not None:
-        ax.axhline(
-            ref_line,
-            color="black",
-            linestyle="--",
-            linewidth=1.2,
-            alpha=0.7
-        )
-
-    # Legend handling
-    if not legend:
-        ax.get_legend().remove()
-    else:
-        ax.legend(frameon=False)
-
-    return fig, ax
+	fig, ax = plt.subplots( figsize=figsize )
+	
+	# Grid (subtle)
+	if grid:
+		ax.grid( True, alpha=0.25, linewidth=0.8 )
+	
+	# Titles
+	ax.set_title( title, fontsize=12, fontweight="bold", pad=8 )
+	if subtitle:
+		ax.text( 0.5, 1.02, subtitle, transform=ax.transAxes, ha="center", va="bottom", fontsize=9,
+			alpha=0.85 )
+	
+	# Reference line
+	if ref_line is not None:
+		ax.axhline( ref_line, color="black", linestyle="--", linewidth=1.2, alpha=0.7 )
+	
+	# Legend handling
+	if not legend:
+		ax.get_legend( ).remove( )
+	else:
+		ax.legend( frameon=False )
+	
+	return fig, ax
 
 def blue_divider( ) -> None:
 	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
@@ -565,7 +504,7 @@ def blue_divider( ) -> None:
 def log_step( msg: str ) -> None:
 	st.session_state.pipeline_log.append( msg )
 
-def render_table( df: pd.DataFrame, height: int=360 ) -> None:
+def render_table( df: pd.DataFrame, height: int = 360 ) -> None:
 	disp = df.copy( )
 	float_cols = disp.select_dtypes( include=[ np.floating ] ).columns
 	num_cols = disp.select_dtypes( include=[ np.number ] ).columns
@@ -595,7 +534,7 @@ def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]
 	return numeric, categorical
 
 def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: int = 0,
-		label: Optional[ str ] = None, size: int = 30, ) -> None:
+	label: Optional[ str ] = None, size: int = 30, ) -> None:
 	"""
 	
 		Purpose:
@@ -626,8 +565,8 @@ def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: in
 	"""
 	color = cfg.PALETTE[ series_index % len( cfg.PALETTE ) ]
 	marker = cfg.MARKERS[ series_index % len( cfg.MARKERS ) ]
-	ax.scatter( x, y, s=size, alpha=0.9, edgecolors="#020617",
-		linewidths=0.6, c=[ color ], marker=marker, label=label, )
+	ax.scatter( x, y, s=size, alpha=0.9, edgecolors="#020617", linewidths=0.6, c=[ color ],
+		marker=marker, label=label, )
 	ax.grid( True, alpha=0.25 )
 
 def auto_float_format( series: pd.Series, max_decimals: int = 4 ) -> str:
@@ -673,8 +612,7 @@ def auto_float_format( series: pd.Series, max_decimals: int = 4 ) -> str:
 	return f"{{:,.{decimals}f}}"
 
 def clean_numeric( df: pd.DataFrame ) -> pd.DataFrame:
-	out = df.replace( [ np.inf,
-	                    -np.inf ], np.nan )
+	out = df.replace( [ np.inf, -np.inf ], np.nan )
 	for c in out.columns:
 		out[ c ] = pd.to_numeric( out[ c ], errors="coerce" )
 	out = out.dropna( axis=1, how="all" )
@@ -693,8 +631,8 @@ def create_visualization( df: pd.DataFrame ):
 	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
 	categorical_columns = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
 	
-	chart = st.selectbox( 'Chart Type', [ 'Histogram', 'Bar', 'Line', 'Scatter',
-	                                      'Box', 'Pie', 'Correlation' ] )
+	chart = st.selectbox( 'Chart Type',
+		[ 'Histogram', 'Bar', 'Line', 'Scatter', 'Box', 'Pie', 'Correlation' ] )
 	
 	if chart == 'Histogram' and numeric_cols:
 		col = st.selectbox( 'Column', numeric_cols )
@@ -742,8 +680,7 @@ def style_subheaders( ) -> None:
 		Sets the style of subheaders in the main UI
 		
 	"""
-	st.markdown(
-		"""
+	st.markdown( """
 		<style>
 		div[data-testid="stMarkdownContainer"] h3,
 		div[data-testid="stMarkdownContainer"] h4,
@@ -753,9 +690,7 @@ def style_subheaders( ) -> None:
 			color: rgb(053, 149, 252) !important;
 		}
 		</style>
-		""",
-		unsafe_allow_html=True,
-	)
+		""", unsafe_allow_html=True, )
 
 # ----------- Data Plumbing Utilities
 
@@ -774,8 +709,7 @@ def get_numeric_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 		list[ str ]:
 			Numeric column names.
 	"""
-	return [ c for c in df_frame.columns
-	         if pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
+	return [ c for c in df_frame.columns if pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
 
 def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""
@@ -792,8 +726,7 @@ def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 		list[ str ]:
 			Non-numeric column names.
 	"""
-	return [ c for c in df_frame.columns
-	         if not pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
+	return [ c for c in df_frame.columns if not pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
 
 def get_working_frame( ) -> pd.DataFrame:
 	"""
@@ -830,8 +763,7 @@ def get_feature_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 		list[ str ]:
 			Active feature columns.
 	"""
-	return [ c for c in st.session_state.get( 'features', [ ] )
-	         if c in df_frame.columns ]
+	return [ c for c in st.session_state.get( 'features', [ ] ) if c in df_frame.columns ]
 
 def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""
@@ -848,8 +780,7 @@ def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 		list[ str ]:
 			Active target columns.
 	"""
-	return [ c for c in st.session_state.get( 'targets', [ ] )
-	         if c in df_frame.columns ]
+	return [ c for c in st.session_state.get( 'targets', [ ] ) if c in df_frame.columns ]
 
 def commit_frame( df_frame: pd.DataFrame ) -> None:
 	"""
@@ -913,9 +844,9 @@ def processed_to_working( ) -> None:
 	df_reset = st.session_state[ 'df_working' ].copy( )
 	st.session_state[ 'df_processed' ] = df_reset.copy( )
 	commit_frame( df_reset )
-	
+
 def normalize_result_frame( result: object, index: pd.Index, prefix: str,
-		columns: list[ str ] ) -> pd.DataFrame:
+	columns: list[ str ] ) -> pd.DataFrame:
 	"""
 		Purpose:
 		--------
@@ -941,12 +872,8 @@ def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	if isinstance( result, tuple ):
 		parts = [ ]
 		for i, item in enumerate( result ):
-			df_part = normalize_result_frame(
-				item,
-				index=index,
-				prefix=f'{prefix}_{i + 1}',
-				columns=None
-			)
+			df_part = normalize_result_frame( item, index=index, prefix=f'{prefix}_{i + 1}',
+				columns=None )
 			parts.append( df_part )
 		return pd.concat( parts, axis=1 )
 	
@@ -965,8 +892,8 @@ def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	generated = [ f'{prefix}_{i + 1}' for i in range( arr.shape[ 1 ] ) ]
 	return pd.DataFrame( arr, index=index, columns=generated )
 
-def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ],
-		result: object, prefix: str ) -> pd.DataFrame:
+def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ], result: object,
+	prefix: str ) -> pd.DataFrame:
 	"""
 		Purpose:
 		--------
@@ -984,15 +911,15 @@ def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ],
 		pd.DataFrame:
 			Updated dataframe.
 	"""
-	df_result = normalize_result_frame( result=result, index=df_frame.index,
-		prefix=prefix, columns=column_names )
+	df_result = normalize_result_frame( result=result, index=df_frame.index, prefix=prefix,
+		columns=column_names )
 	
 	df_updated = df_frame.drop( columns=column_names, errors='ignore' )
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
-def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ],
-		vectorizer: object, prefix: str ) -> pd.DataFrame:
+def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ], vectorizer: object,
+	prefix: str ) -> pd.DataFrame:
 	"""
 		Purpose:
 		--------
@@ -1013,15 +940,15 @@ def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ],
 	text = df_frame[ column_names ].fillna( '' ).astype( str ).agg( ' '.join, axis=1 ).tolist( )
 	
 	result = vectorizer.train_transform( text )
-	df_result = normalize_result_frame( result=result, index=df_frame.index,
-		prefix=prefix, columns=None )
+	df_result = normalize_result_frame( result=result, index=df_frame.index, prefix=prefix,
+		columns=None )
 	
 	df_updated = df_frame.drop( columns=column_names, errors='ignore' )
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
-def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ],
-		transformer: object, prefix: str ) -> pd.DataFrame:
+def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ], transformer: object,
+	prefix: str ) -> pd.DataFrame:
 	"""
 		Purpose:
 		--------
@@ -1041,12 +968,8 @@ def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ],
 	"""
 	records = df_frame[ column_names ].fillna( '' ).to_dict( orient='records' )
 	result = transformer.train_transform( records )
-	df_result = normalize_result_frame(
-		result=result,
-		index=df_frame.index,
-		prefix=prefix,
-		columns=None
-	)
+	df_result = normalize_result_frame( result=result, index=df_frame.index, prefix=prefix,
+		columns=None )
 	
 	df_updated = df_frame.drop( columns=column_names, errors='ignore' )
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
@@ -1069,8 +992,7 @@ def parse_multilabel_series( series: pd.Series, delimiter: str ) -> np.ndarray:
 			Array of parsed label collections.
 	"""
 	values = series.fillna( '' ).astype( str ).apply(
-		lambda s: [ item.strip( ) for item in s.split( delimiter ) if item.strip( ) ]
-	)
+		lambda s: [ item.strip( ) for item in s.split( delimiter ) if item.strip( ) ] )
 	return values.to_numpy( )
 
 def score_function_from_name( name: str ) -> object:
@@ -1088,13 +1010,9 @@ def score_function_from_name( name: str ) -> object:
 		object:
 			Scoring function.
 	"""
-	mapper = {
-			'chi2': sf.chi2,
-			'f_classif': sf.f_classif,
-			'f_regression': sf.f_regression,
-			'mutual_info_classif': sf.mutual_info_classif,
-			'mutual_info_regression': sf.mutual_info_regression
-	}
+	mapper = { 'chi2': sf.chi2, 'f_classif': sf.f_classif, 'f_regression': sf.f_regression,
+		'mutual_info_classif': sf.mutual_info_classif,
+		'mutual_info_regression': sf.mutual_info_regression }
 	return mapper[ name ]
 
 # ----------  Database Utilities ----------
@@ -1116,72 +1034,67 @@ def initialize_database( ) -> None:
 	"""
 	Path( 'stores/sqlite' ).mkdir( parents=True, exist_ok=True )
 	with sqlite3.connect( cfg.DB_PATH ) as conn:
-		conn.execute(
-			"""
-            CREATE TABLE IF NOT EXISTS chat_history
-            (
-                id
-                INTEGER
-                PRIMARY
-                KEY
-                AUTOINCREMENT,
-                role
-                TEXT,
-                content
-                TEXT
-            )
-			"""
-		)
+		conn.execute( """
+                      CREATE TABLE IF NOT EXISTS chat_history
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY
+                          AUTOINCREMENT,
+                          role
+                          TEXT,
+                          content
+                          TEXT
+                      )
+		              """ )
 		
-		conn.execute(
-			"""
-            CREATE TABLE IF NOT EXISTS embeddings
-            (
-                id
-                INTEGER
-                PRIMARY
-                KEY
-                AUTOINCREMENT,
-                chunk
-                TEXT,
-                vector
-                BLOB
-            )
-			"""
-		)
+		conn.execute( """
+                      CREATE TABLE IF NOT EXISTS embeddings
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY
+                          AUTOINCREMENT,
+                          chunk
+                          TEXT,
+                          vector
+                          BLOB
+                      )
+		              """ )
 		
-		conn.execute(
-			"""
-            CREATE TABLE IF NOT EXISTS Prompts
-            (
-                PromptsId
-                INTEGER
-                NOT
-                NULL
-                PRIMARY
-                KEY
-                AUTOINCREMENT,
-                Caption
-                TEXT,
-                Name
-                TEXT
-            (
-                80
-            ),
-                Text TEXT,
-                Version TEXT
-            (
-                80
-            ),
-                ID TEXT
-            (
-                80
-            )
-                )
-			"""
-		)
+		conn.execute( """
+                      CREATE TABLE IF NOT EXISTS Prompts
+                      (
+                          PromptsId
+                          INTEGER
+                          NOT
+                          NULL
+                          PRIMARY
+                          KEY
+                          AUTOINCREMENT,
+                          Caption
+                          TEXT,
+                          Name
+                          TEXT
+                      (
+                          80
+                      ),
+                          Text TEXT,
+                          Version TEXT
+                      (
+                          80
+                      ),
+                          ID TEXT
+                      (
+                          80
+                      )
+                          )
+		              """ )
 		
-		prompt_columns = [ row[ 1 ] for row in  conn.execute( 'PRAGMA table_info("Prompts");' ).fetchall( ) ]
+		prompt_columns = [ row[ 1 ] for row in
+			conn.execute( 'PRAGMA table_info("Prompts");' ).fetchall( ) ]
 		if 'Caption' not in prompt_columns:
 			conn.execute( 'ALTER TABLE "Prompts" ADD COLUMN "Caption" TEXT;' )
 		
@@ -1319,9 +1232,7 @@ def make_display_safe( df: pd.DataFrame ) -> pd.DataFrame:
 	display_df = df.copy( )
 	
 	for col in display_df.columns:
-		display_df[ col ] = display_df[ col ].map(
-			lambda x: '' if x is None else str( x )
-		)
+		display_df[ col ] = display_df[ col ].map( lambda x: '' if x is None else str( x ) )
 	
 	return display_df
 
@@ -1476,9 +1387,7 @@ def create_visualization( df: pd.DataFrame ) -> None:
 	
 	for col in df_plot.columns:
 		if df_plot[ col ].dtype == object:
-			df_plot[ col ] = df_plot[ col ].map(
-				lambda x: '' if x is None else str( x )
-			)
+			df_plot[ col ] = df_plot[ col ].map( lambda x: '' if x is None else str( x ) )
 	
 	numeric_cols: List[ str ] = [ ]
 	for col in df_plot.columns:
@@ -1486,10 +1395,10 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		if series_num.notna( ).any( ):
 			numeric_cols.append( col )
 	
-	categorical_columns: List[ str ] = [ col for col in df_plot.columns if col not in numeric_cols ]
+	categorical_columns: List[ str ] = [ col for col in df_plot.columns if col not in
+	                                                                       numeric_cols ]
 	
-	chart = st.selectbox(
-		'Chart Type',
+	chart = st.selectbox( 'Chart Type',
 		[ 'Histogram', 'Bar', 'Line', 'Scatter', 'Box', 'Pie', 'Correlation' ] )
 	
 	if chart == 'Histogram':
@@ -1588,11 +1497,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		corr = corr_df.corr( )
 		
-		fig = go.Figure(
-			data=[ go.Heatmap(
-				z=corr.values.tolist( ),
-				x=corr.columns.tolist( ),
-				y=corr.index.tolist( ) ) ] )
+		fig = go.Figure( data=[ go.Heatmap( z=corr.values.tolist( ), x=corr.columns.tolist( ),
+			y=corr.index.tolist( ) ) ] )
 		st.plotly_chart( fig, use_container_width=True )
 
 def convert_dataframe( table_name: str, df: pd.DataFrame ):
@@ -1774,8 +1680,8 @@ def is_safe_query( query: str ) -> bool:
 	# ------------------------------------------------------------------
 	# Block dangerous keywords anywhere
 	# ------------------------------------------------------------------
-	blocked_keywords = ('insert ', 'update ', 'delete ', 'drop ', 'alter ',
-	                    'create ', 'attach ', 'detach ', 'vacuum ', 'replace ', 'trigger ')
+	blocked_keywords = ('insert ', 'update ', 'delete ', 'drop ', 'alter ', 'create ', 'attach ',
+		'detach ', 'vacuum ', 'replace ', 'trigger ')
 	
 	for keyword in blocked_keywords:
 		if keyword in q:
@@ -1817,8 +1723,7 @@ def add_column( table: str, column: str, col_type: str ):
 	col_type = col_type.upper( )
 	
 	with create_connection( ) as conn:
-		conn.execute(
-			f'ALTER TABLE "{table}" ADD COLUMN "{column}" {col_type};' )
+		conn.execute( f'ALTER TABLE "{table}" ADD COLUMN "{column}" {col_type};' )
 		conn.commit( )
 
 def rename_column( table_name: str, old_name: str, new_name: str ) -> None:
@@ -1852,35 +1757,28 @@ def rename_column( table_name: str, old_name: str, new_name: str ) -> None:
 	with create_connection( ) as conn:
 		try:
 			conn.execute(
-				f'ALTER TABLE "{table_name}" RENAME COLUMN "{old_name}" TO "{new_name}";'
-			)
+				f'ALTER TABLE "{table_name}" RENAME COLUMN "{old_name}" TO "{new_name}";' )
 			conn.commit( )
 			return
 		except Exception:
 			pass
 		
-		row = conn.execute(
-			"""
-            SELECT sql
-            FROM sqlite_master
-            WHERE type ='table' AND name =?
-			""",
-			(table_name,)
-		).fetchone( )
+		row = conn.execute( """
+                            SELECT sql
+                            FROM sqlite_master
+                            WHERE type ='table' AND name =?
+		                    """, (table_name,) ).fetchone( )
 		
 		if not row or not row[ 0 ]:
 			raise ValueError( "Table definition not found." )
 		
 		create_sql = row[ 0 ]
 		
-		indexes = conn.execute(
-			"""
-            SELECT sql
-            FROM sqlite_master
-            WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
-			""",
-			(table_name,)
-		).fetchall( )
+		indexes = conn.execute( """
+                                SELECT sql
+                                FROM sqlite_master
+                                WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
+		                        """, (table_name,) ).fetchall( )
 		
 		schema = conn.execute( f'PRAGMA table_info("{table_name}");' ).fetchall( )
 		cols = [ r[ 1 ] for r in schema ]
@@ -1924,8 +1822,7 @@ def rename_column( table_name: str, old_name: str, new_name: str ) -> None:
 		conn.execute( "BEGIN" )
 		conn.execute( new_create_sql )
 		conn.execute(
-			f'INSERT INTO "{temp_table}" ({new_insert}) SELECT {old_select} FROM "{table_name}";'
-		)
+			f'INSERT INTO "{temp_table}" ({new_insert}) SELECT {old_select} FROM "{table_name}";' )
 		
 		conn.execute( f'DROP TABLE "{table_name}";' )
 		conn.execute( f'ALTER TABLE "{temp_table}" RENAME TO "{table_name}";' )
@@ -1946,12 +1843,9 @@ def create_profile_table( table: str ):
 		series = df[ col ]
 		null_count = series.isna( ).sum( )
 		distinct_count = series.nunique( dropna=True )
-		row = \
-			{
-					'column': col, 'dtype': str( series.dtype ),
-					'null_%': round( (null_count / total_rows) * 100, 2 ) if total_rows else 0,
-					'distinct_%': round( ( distinct_count / total_rows) * 100, 2 ) if total_rows else 0,
-			}
+		row = { 'column': col, 'dtype': str( series.dtype ),
+			'null_%': round( (null_count / total_rows) * 100, 2 ) if total_rows else 0,
+			'distinct_%': round( (distinct_count / total_rows) * 100, 2 ) if total_rows else 0, }
 		
 		if pd.api.types.is_numeric_dtype( series ):
 			row[ 'min' ] = series.min( )
@@ -1974,14 +1868,11 @@ def drop_column( table: str, column: str ):
 		# ------------------------------------------------------------
 		# Fetch original CREATE TABLE statement
 		# ------------------------------------------------------------
-		row = conn.execute(
-			"""
-            SELECT sql
-            FROM sqlite_master
-            WHERE type ='table' AND name =?
-			""",
-			(table,)
-		).fetchone( )
+		row = conn.execute( """
+                            SELECT sql
+                            FROM sqlite_master
+                            WHERE type ='table' AND name =?
+		                    """, (table,) ).fetchone( )
 		
 		if not row or not row[ 0 ]:
 			raise ValueError( 'Table definition not found.' )
@@ -2016,11 +1907,7 @@ def drop_column( table: str, column: str ):
 		# ------------------------------------------------------------
 		temp_table = f"{table}_rebuild_temp"
 		
-		new_create_sql = (
-				f'CREATE TABLE "{temp_table}" ('
-				+ ", ".join( new_defs )
-				+ ");"
-		)
+		new_create_sql = (f'CREATE TABLE "{temp_table}" (' + ", ".join( new_defs ) + ");")
 		
 		# ------------------------------------------------------------
 		# Begin transaction
@@ -2029,32 +1916,22 @@ def drop_column( table: str, column: str ):
 		
 		conn.execute( new_create_sql )
 		
-		remaining_cols = [
-				c.split( )[ 0 ].strip( '"' )
-				for c in new_defs
-		]
+		remaining_cols = [ c.split( )[ 0 ].strip( '"' ) for c in new_defs ]
 		
 		col_list = ", ".join( [ f'"{c}"' for c in remaining_cols ] )
 		
-		conn.execute(
-			f'INSERT INTO "{temp_table}" ({col_list}) '
-			f'SELECT {col_list} FROM "{table}";'
-		)
+		conn.execute( f'INSERT INTO "{temp_table}" ({col_list}) '
+		              f'SELECT {col_list} FROM "{table}";' )
 		
 		# Preserve indexes
-		indexes = conn.execute(
-			"""
-            SELECT sql
-            FROM sqlite_master
-            WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
-			""",
-			(table,)
-		).fetchall( )
+		indexes = conn.execute( """
+                                SELECT sql
+                                FROM sqlite_master
+                                WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
+		                        """, (table,) ).fetchall( )
 		
 		conn.execute( f'DROP TABLE "{table}";' )
-		conn.execute(
-			f'ALTER TABLE "{temp_table}" RENAME TO "{table}";'
-		)
+		conn.execute( f'ALTER TABLE "{temp_table}" RENAME TO "{table}";' )
 		
 		# Recreate indexes
 		for idx in indexes:
@@ -2097,28 +1974,22 @@ def rename_table( old_name: str, new_name: str ) -> None:
 		except Exception:
 			pass
 		
-		row = conn.execute(
-			"""
-            SELECT sql
-            FROM sqlite_master
-            WHERE type ='table' AND name =?
-			""",
-			(old_name,)
-		).fetchone( )
+		row = conn.execute( """
+                            SELECT sql
+                            FROM sqlite_master
+                            WHERE type ='table' AND name =?
+		                    """, (old_name,) ).fetchone( )
 		
 		if not row or not row[ 0 ]:
 			raise ValueError( "Table definition not found." )
 		
 		create_sql = row[ 0 ]
 		
-		indexes = conn.execute(
-			"""
-            SELECT sql
-            FROM sqlite_master
-            WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
-			""",
-			(old_name,)
-		).fetchall( )
+		indexes = conn.execute( """
+                                SELECT sql
+                                FROM sqlite_master
+                                WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
+		                        """, (old_name,) ).fetchall( )
 		
 		open_paren = create_sql.find( "(" )
 		if open_paren == -1:
@@ -2133,8 +2004,7 @@ def rename_table( old_name: str, new_name: str ) -> None:
 		col_list = ", ".join( [ f'"{c}"' for c in cols ] )
 		
 		conn.execute(
-			f'INSERT INTO "{temp_name}" ({col_list}) SELECT {col_list} FROM "{old_name}";'
-		)
+			f'INSERT INTO "{temp_name}" ({col_list}) SELECT {col_list} FROM "{old_name}";' )
 		
 		conn.execute( f'DROP TABLE "{old_name}";' )
 		conn.execute( f'ALTER TABLE "{temp_name}" RENAME TO "{new_name}";' )
@@ -2150,8 +2020,8 @@ def rename_table( old_name: str, new_name: str ) -> None:
 # ============================================
 # Page Configuration
 # ============================================
-st.set_page_config( page_title='Mathy', layout='wide',
-	page_icon=cfg.FAVICON, initial_sidebar_state='expanded' )
+st.set_page_config( page_title='Mathy', layout='wide', page_icon=cfg.FAVICON,
+	initial_sidebar_state='expanded' )
 
 st.logo( image=cfg.LOGO, size='large', link=cfg.REPO_URL )
 pd.options.display.float_format = '{:,.2f}'.format
@@ -2165,11 +2035,10 @@ with st.sidebar:
 	
 	with st.expander( 'Select Source', expanded=False ):
 		source = st.selectbox( label='Select Source',
-			options=[ 'Default Data', 'Database Data', 'Custom Data' ],
-			key='source_selectbox' )
+			options=[ 'Default Data', 'Database Data', 'Custom Data' ], key='source_selectbox' )
 	
-	uploaded = st.file_uploader( label='Upload Spreadsheet',
-		type=[ 'xlsx', 'xls', 'csv' ], key='source_uploader' )
+	uploaded = st.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx', 'xls', 'csv' ],
+		key='source_uploader' )
 	
 	loaded_df: pd.DataFrame | None = None
 	loaded_original: pd.DataFrame | None = None
@@ -2182,14 +2051,13 @@ with st.sidebar:
 	elif source == 'Database Data':
 		try:
 			with sqlite3.connect( cfg.DB_PATH ) as connection:
-				df_tables = pd.read_sql_query(
-					"""
-                    SELECT name
-                    FROM sqlite_master
-                    WHERE type = 'table'
-                      AND name NOT LIKE 'sqlite_%'
-                    ORDER BY name;
-					""", connection )
+				df_tables = pd.read_sql_query( """
+                                               SELECT name
+                                               FROM sqlite_master
+                                               WHERE type = 'table'
+                                                 AND name NOT LIKE 'sqlite_%'
+                                               ORDER BY name;
+				                               """, connection )
 				
 				table_options = df_tables[ 'name' ].tolist( )[ :3 ]
 				if table_options:
@@ -2224,8 +2092,7 @@ with st.sidebar:
 	# ------- Mode Selection
 	st.sidebar.divider( )
 	with st.expander( 'Data Modes', expanded=True ):
-		mode = st.radio( label='Select', options=cfg.MODE.keys( ), index=0,
-			key='data_mode_radio' )
+		mode = st.radio( label='Select', options=cfg.MODE.keys( ), index=0, key='data_mode_radio' )
 	
 	previous_mode = st.session_state.get( 'previous_mode', None )
 	if previous_mode != mode:
@@ -2281,13 +2148,14 @@ if mode == 'Data Profile':
 							continue
 					except Exception:
 						pass
-					
+				
 				# ------------------------------------------------------------------
 				# 2) Numeric detection: ints AND floats
 				# ------------------------------------------------------------------
 				if pd.api.types.is_numeric_dtype( s ):
 					# Identifier heuristics for numeric codes/keys
-					if ('id' in name) or ('code' in name) or ('key' in name) or (unique_ratio > 0.8):
+					if ('id' in name) or ('code' in name) or ('key' in name) or (
+							unique_ratio > 0.8):
 						schema[ col ] = 'identifier'
 						continue
 					if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
@@ -2325,7 +2193,8 @@ if mode == 'Data Profile':
 		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
 		m1.metric( 'Rows', len( df_dataset ) )
 		m2.metric( 'Numeric', type_counts.get( 'numeric', 0 ) )
-		m3.metric( 'Ordinal / ID', type_counts.get( 'ordinal', 0 ) + type_counts.get( 'identifier', 0 ) )
+		m3.metric( 'Ordinal / ID',
+			type_counts.get( 'ordinal', 0 ) + type_counts.get( 'identifier', 0 ) )
 		m4.metric( 'Categorical', type_counts.get( 'categorical', 0 ) )
 		m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
 		
@@ -2344,8 +2213,8 @@ if mode == 'Data Profile':
 					default_row_index = max( 0, min( default_row_index, max_row_index ) )
 					
 					row_idx = st.number_input( 'Select Index', min_value=0,
-						max_value=max_row_index, value=default_row_index,
-						step=1, key='row_editor_index' )
+						max_value=max_row_index,
+						value=default_row_index, step=1, key='row_editor_index' )
 				
 				row = df_dataset.iloc[ row_idx ]
 				updated = { }
@@ -2398,7 +2267,7 @@ if mode == 'Data Profile':
 						use_container_width=True )
 					
 					st.rerun( )
-				
+		
 		# =====================================================================================
 		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
 		# =====================================================================================
@@ -2408,8 +2277,8 @@ if mode == 'Data Profile':
 		v1, v2 = st.columns( 2, border=True )
 		with v1:
 			fig, ax = plt.subplots( figsize=(6, 4.5) )
-			type_counts.sort_values( ascending=False ).plot(
-				kind='bar', ax=ax, width=0.75, edgecolor='#0f172a', linewidth=0.9 )
+			type_counts.sort_values( ascending=False ).plot( kind='bar', ax=ax, width=0.75,
+				edgecolor='#0f172a', linewidth=0.9 )
 			ax.set_title( 'Column Type Distribution', fontsize=12, fontweight='bold' )
 			ax.set_xlabel( '' )
 			ax.set_ylabel( 'Count' )
@@ -2427,8 +2296,8 @@ if mode == 'Data Profile':
 			missing_pct = missing_pct[ missing_pct > 0 ].head( 10 )
 			if not missing_pct.empty:
 				fig, ax = plt.subplots( figsize=(6, 4.5) )
-				missing_pct.sort_values( ascending=True ).plot( kind='barh', ax=ax,
-					width=0.75, edgecolor='#0f172a', linewidth=0.9 )
+				missing_pct.sort_values( ascending=True ).plot( kind='barh', ax=ax, width=0.75,
+					edgecolor='#0f172a', linewidth=0.9 )
 				ax.set_title( 'Top Columns by Missing %', fontsize=12, fontweight='bold' )
 				ax.set_xlabel( 'Percent Missing' )
 				ax.set_ylabel( '' )
@@ -2437,7 +2306,7 @@ if mode == 'Data Profile':
 				ax.spines[ 'right' ].set_visible( False )
 				for container in ax.containers:
 					labels = [ f'{v:.1f}%' for v in
-					           missing_pct.sort_values( ascending=True ).values ]
+						missing_pct.sort_values( ascending=True ).values ]
 					ax.bar_label( container, labels=labels, padding=3, fontsize=9 )
 				fig.tight_layout( )
 				st.pyplot( fig )
@@ -2450,7 +2319,8 @@ if mode == 'Data Profile':
 		
 		v3, v4 = st.columns( 2, border=True )
 		with v3:
-			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head( 10 )
+			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head(
+				10 )
 			fig, ax = plt.subplots( figsize=(6, 4.5) )
 			cardinality.sort_values( ascending=True ).plot( kind='barh', ax=ax, width=0.75,
 				edgecolor='#0f172a', linewidth=0.9 )
@@ -2490,17 +2360,19 @@ if mode == 'Data Profile':
 						st.rerun( )
 			
 			with c2:
-				rename_col = st.selectbox( 'Rename Column', [ '<None>' ] + df_dataset.columns.tolist( ) )
+				rename_col = st.selectbox( 'Rename Column',
+					[ '<None>' ] + df_dataset.columns.tolist( ) )
 				new_name = st.text_input( 'New Column Name' )
 				if st.button( 'Rename' ):
 					if rename_col != '<None>' and new_name:
 						if new_name in df_dataset.columns:
 							st.error( 'Column Name Already Exists.' )
 						else:
-							st.session_state.df_dataset = df_dataset.rename( columns={ rename_col: new_name } )
+							st.session_state.df_dataset = df_dataset.rename(
+								columns={ rename_col: new_name } )
 							log_step( f'Renamed {rename_col} → {new_name}' )
 							st.rerun( )
-							
+			
 			r1, r2 = st.columns( 2 )
 			with r1:
 				if st.button( label='Reset to Original', icon='🔄' ):
@@ -2511,18 +2383,18 @@ if mode == 'Data Profile':
 			
 			with r2:
 				st.download_button( 'Export Dataset (CSV)',
-					st.session_state.df_dataset.to_csv( index=False ),
-					'dataset.csv', 'text/csv', icon='📥', )
-				
+					st.session_state.df_dataset.to_csv( index=False ), 'dataset.csv', 'text/csv',
+					icon='📥', )
+		
 		# -------------------------------------------------------------------------------------
 		# Probability Distributions
 		# -------------------------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Numeric Distributions' )
 		
-		numeric_dist_cols = [ c for c in df_dataset.columns
-				if pd.api.types.is_numeric_dtype( df_dataset[ c ] )
-				   and not pd.api.types.is_bool_dtype( df_dataset[ c ] ) ]
+		numeric_dist_cols = [ c for c in df_dataset.columns if
+			pd.api.types.is_numeric_dtype( df_dataset[ c ] ) and not pd.api.types.is_bool_dtype(
+				df_dataset[ c ] ) ]
 		
 		if not numeric_dist_cols:
 			st.info( 'No numeric columns detected.' )
@@ -2531,8 +2403,8 @@ if mode == 'Data Profile':
 			
 			ctrl1, ctrl2, ctrl3 = st.columns( 3, border=True )
 			with ctrl1:
-				dist_bins = st.slider( 'Bins', min_value=10, max_value=60,
-					value=30, step=5, key='profile_numeric_dist_bins' )
+				dist_bins = st.slider( 'Bins', min_value=10, max_value=60, value=30, step=5,
+					key='profile_numeric_dist_bins' )
 			
 			with ctrl2:
 				show_kde = st.checkbox( 'Show KDE Overlay', value=True,
@@ -2542,8 +2414,7 @@ if mode == 'Data Profile':
 				dist_mode = st.radio( 'Display', options=[ 'Density', 'Frequency' ],
 					horizontal=True, key='profile_numeric_dist_mode' )
 			
-			st.markdown(
-				"""
+			st.markdown( """
 				<style>
 				[data-testid="stMetricLabel"] p {
 					font-size: 0.80rem;
@@ -2558,8 +2429,7 @@ if mode == 'Data Profile':
 					padding-bottom: 0.10rem;
 				}
 				</style>
-				""",
-				unsafe_allow_html=True )
+				""", unsafe_allow_html=True )
 			
 			stat_mode = 'density' if dist_mode == 'Density' else 'count'
 			grid_cols = st.columns( 2, border=True )
@@ -2573,9 +2443,8 @@ if mode == 'Data Profile':
 						continue
 					
 					fig, ax = plt.subplots( figsize=(7, 4.5) )
-					sns.histplot( s, bins=dist_bins, kde=show_kde, stat=stat_mode,
-						ax=ax, edgecolor='#0f172a',
-						line_kws={ 'linewidth': 2.0 } if show_kde else None )
+					sns.histplot( s, bins=dist_bins, kde=show_kde, stat=stat_mode, ax=ax,
+						edgecolor='#0f172a', line_kws={ 'linewidth': 2.0 } if show_kde else None )
 					
 					mean_val = float( s.mean( ) )
 					median_val = float( s.median( ) )
@@ -2602,8 +2471,8 @@ if mode == 'Data Profile':
 					m1.metric( 'Count', f'{len( s ):,}' )
 					m2.metric( 'Mean', f'{mean_val:,.2f}' )
 					m3.metric( 'Median', f'{median_val:,.2f}' )
-					m4.metric( 'Std', f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.00' )
-		
+					m4.metric( 'Std',
+						f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.00' )
 		
 		# -------------------------------------------------------------------------------------
 		# RESET / EXPORT
@@ -2631,8 +2500,7 @@ elif mode == 'Descriptive Statistics':
 		
 		all_num_cols = df_numeric.columns.tolist( )
 		
-		st.markdown(
-			"""
+		st.markdown( """
 			<style>
 			[data-testid="stMetricLabel"] p {
 				font-size: 0.80rem;
@@ -2655,12 +2523,11 @@ elif mode == 'Descriptive Statistics':
 		with num_c1:
 			vars_sel = st.multiselect( 'Select Numeric Variables', all_num_cols,
 				default=default_pick( all_num_cols, 3 ) )
-			
+		
 		sum_c1, sum_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with sum_c1:
-			summary_vars = st.multiselect( 'Variables for Summary Table',
-				all_num_cols, default=all_num_cols[ : min( 8, len( all_num_cols ) ) ],
-				key='desc_summary_vars' )
+			summary_vars = st.multiselect( 'Variables for Summary Table', all_num_cols,
+				default=all_num_cols[ : min( 8, len( all_num_cols ) ) ], key='desc_summary_vars' )
 		
 		with sum_c2:
 			show_percentiles = st.checkbox( 'Include Percentiles', value=True,
@@ -2674,20 +2541,20 @@ elif mode == 'Descriptive Statistics':
 			df_descriptive[ 'Variance' ] = df_summary_source.var( ddof=1 ).values
 			df_descriptive[ 'Missing' ] = df_dataset[ summary_vars ].isna( ).sum( ).values
 			df_descriptive[ 'Missing %' ] = (
-					df_dataset[ summary_vars ].isna( ).mean( ).values * 100.0 )
+					df_dataset[ summary_vars ].isna( ).mean( ).values * 100.0)
 			
 			df_descriptive[ 'Skew' ] = df_summary_source.skew( ).values
 			df_descriptive[ 'Kurtosis' ] = df_summary_source.kurtosis( ).values
 			df_descriptive[ 'Zeros' ] = (df_summary_source == 0).sum( ).values
-			df_descriptive[ 'Zeros %' ] = (
-					(df_summary_source == 0).mean( ).values * 100.0 )
+			df_descriptive[ 'Zeros %' ] = ((df_summary_source == 0).mean( ).values * 100.0)
 			
 			ordered_cols = [ 'Variable', 'count', 'mean', 'std', 'Variance', 'min' ]
 			if show_percentiles:
 				for pcol in [ '5%', '25%', '50%', '75%', '95%' ]:
 					if pcol in df_descriptive.columns:
 						ordered_cols.append( pcol )
-			ordered_cols += [ 'max', 'Missing', 'Missing %', 'Zeros', 'Zeros %', 'Skew', 'Kurtosis' ]
+			ordered_cols += [ 'max', 'Missing', 'Missing %', 'Zeros', 'Zeros %', 'Skew',
+				'Kurtosis' ]
 			ordered_cols = [ c for c in ordered_cols if c in df_descriptive.columns ]
 			df_descriptive = df_descriptive[ ordered_cols ]
 			
@@ -2695,28 +2562,28 @@ elif mode == 'Descriptive Statistics':
 				if c != 'Variable':
 					df_descriptive[ c ] = pd.to_numeric( df_descriptive[ c ], errors='coerce' )
 			
-			column_config = {
-					'Variable': st.column_config.TextColumn( 'Variable', width='medium' ),
-					'count': st.column_config.NumberColumn( 'Count', format='%.0f' ),
-					'mean': st.column_config.NumberColumn( 'Mean', format='%.2f' ),
-					'std': st.column_config.NumberColumn( 'Std', format='%.2f' ),
-					'Variance': st.column_config.NumberColumn( 'Variance', format='%.2f' ),
-					'min': st.column_config.NumberColumn( 'Min', format='%.2f' ),
-					'5%': st.column_config.NumberColumn( 'P5', format='%.2f' ),
-					'25%': st.column_config.NumberColumn( 'P25', format='%.2f' ),
-					'50%': st.column_config.NumberColumn( 'Median', format='%.2f' ),
-					'75%': st.column_config.NumberColumn( 'P75', format='%.2f' ),
-					'95%': st.column_config.NumberColumn( 'P95', format='%.2f' ),
-					'max': st.column_config.NumberColumn( 'Max', format='%.2f' ),
-					'Missing': st.column_config.NumberColumn( 'Missing', format='%.0f' ),
-					'Missing %': st.column_config.NumberColumn( 'Missing %', format='%.2f' ),
-					'Zeros': st.column_config.NumberColumn( 'Zeros', format='%.0f' ),
-					'Zeros %': st.column_config.NumberColumn( 'Zeros %', format='%.2f' ),
-					'Skew': st.column_config.NumberColumn( 'Skew', format='%.4f' ),
-					'Kurtosis': st.column_config.NumberColumn( 'Kurtosis', format='%.4f' )
-			}
+			column_config = { 'Variable': st.column_config.TextColumn( 'Variable',
+				width='medium' ),
+				'count': st.column_config.NumberColumn( 'Count', format='%.0f' ),
+				'mean': st.column_config.NumberColumn( 'Mean', format='%.2f' ),
+				'std': st.column_config.NumberColumn( 'Std', format='%.2f' ),
+				'Variance': st.column_config.NumberColumn( 'Variance', format='%.2f' ),
+				'min': st.column_config.NumberColumn( 'Min', format='%.2f' ),
+				'5%': st.column_config.NumberColumn( 'P5', format='%.2f' ),
+				'25%': st.column_config.NumberColumn( 'P25', format='%.2f' ),
+				'50%': st.column_config.NumberColumn( 'Median', format='%.2f' ),
+				'75%': st.column_config.NumberColumn( 'P75', format='%.2f' ),
+				'95%': st.column_config.NumberColumn( 'P95', format='%.2f' ),
+				'max': st.column_config.NumberColumn( 'Max', format='%.2f' ),
+				'Missing': st.column_config.NumberColumn( 'Missing', format='%.0f' ),
+				'Missing %': st.column_config.NumberColumn( 'Missing %', format='%.2f' ),
+				'Zeros': st.column_config.NumberColumn( 'Zeros', format='%.0f' ),
+				'Zeros %': st.column_config.NumberColumn( 'Zeros %', format='%.2f' ),
+				'Skew': st.column_config.NumberColumn( 'Skew', format='%.4f' ),
+				'Kurtosis': st.column_config.NumberColumn( 'Kurtosis', format='%.4f' ) }
 			
-			column_config = { k: v for k, v in column_config.items( ) if k in df_descriptive.columns }
+			column_config = { k: v for k, v in column_config.items( ) if
+				k in df_descriptive.columns }
 			st.data_editor( df_descriptive, use_container_width=True, hide_index=True,
 				disabled=True, column_config=column_config, key='desc_summary_editor' )
 		else:
@@ -2733,19 +2600,20 @@ elif mode == 'Descriptive Statistics':
 			if s.empty:
 				st.warning( f'{col}: no plottable numeric values.' )
 				continue
-		
+			
 			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( f'##### Distribution & Shape — {col}' )
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
 				fig, ax = plt.subplots( figsize=(7, 4.75) )
 				sns.histplot( s, bins=dist_bins, kde=True, stat='count', ax=ax,
-					edgecolor='#0f172a', line_kws={ 'linewidth': 2.0 } )
+					edgecolor='#0f172a',
+					line_kws={ 'linewidth': 2.0 } )
 				
 				mean_val = float( s.mean( ) )
 				median_val = float( s.median( ) )
-				ax.axvline( mean_val, linestyle='--',
-					linewidth=1.5, label=f'Mean: {mean_val:,.2f}' )
+				ax.axvline( mean_val, linestyle='--', linewidth=1.5,
+					label=f'Mean: {mean_val:,.2f}' )
 				
 				ax.axvline( median_val, linestyle=':', linewidth=1.5,
 					label=f'Median: {median_val:,.2f}' )
@@ -2765,7 +2633,8 @@ elif mode == 'Descriptive Statistics':
 				m1.metric( 'Count', f'{len( s ):,}' )
 				m2.metric( 'Mean', f'{mean_val:,.2f}' )
 				m3.metric( 'Median', f'{median_val:,.2f}' )
-				m4.metric( 'Deviation', f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.000' )
+				m4.metric( 'Deviation',
+					f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.000' )
 			
 			with c2:
 				fig, ax = plt.subplots( figsize=(7, 4.75) )
@@ -2788,20 +2657,26 @@ elif mode == 'Descriptive Statistics':
 					if 3 <= len( s ) <= 5000:
 						shapiro_stat, shapiro_p = stats.shapiro( s )
 						q1, q2, q3 = st.columns( 3, border=True )
-						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
-						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
+						q1.metric( 'Skew',
+							f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
+						q2.metric( 'Kurtosis',
+							f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
 						q3.metric( 'Shapiro P', f'{shapiro_p:,.3f}' )
 					else:
 						q1, q2, q3 = st.columns( 3, border=True )
-						q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
-						q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
+						q1.metric( 'Skew',
+							f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
+						q2.metric( 'Kurtosis',
+							f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
 						q3.metric( 'Shapiro P', 'n/a' )
 				except Exception:
 					q1, q2, q3 = st.columns( 3, border=True )
-					q1.metric( 'Skew', f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
-					q2.metric( 'Kurtosis', f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
+					q1.metric( 'Skew',
+						f'{float( stats.skew( s ) ):,.3f}' if len( s ) >= 3 else '0.000' )
+					q2.metric( 'Kurtosis',
+						f'{float( stats.kurtosis( s ) ):,.3f}' if len( s ) >= 4 else '0.000' )
 					q3.metric( 'Shapiro P', 'n/a' )
-
+		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
 		
@@ -2824,8 +2699,8 @@ elif mode == 'Descriptive Statistics':
 			
 			with c4:
 				fig, ax = plt.subplots( figsize=(7, 6) )
-				sns.heatmap( corr, ax=ax, cmap='coolwarm', vmin=-1, vmax=1,
-					center=0, annot=True, fmt='.2f', square=False, linewidths=0.5,
+				sns.heatmap( corr, ax=ax, cmap='coolwarm', vmin=-1, vmax=1, center=0, annot=True,
+					fmt='.2f', square=False, linewidths=0.5,
 					cbar_kws={ 'shrink': 0.85, 'label': 'Correlation' } )
 				
 				ax.set_title( f'Correlation Heatmap — {corr_method}', fontsize=12,
@@ -2841,7 +2716,7 @@ elif mode == 'Descriptive Statistics':
 				st.info( 'Select at least two numeric variables.' )
 			with c4:
 				st.caption( 'Heatmap will appear here once at least two variables are selected.' )
-			
+		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Principal Component Analysis', help=cfg.PCA )
 		
@@ -2860,18 +2735,16 @@ elif mode == 'Descriptive Statistics':
 			Xs = SKStandardScaler( ).fit_transform( X )
 			pca = PCA( num=n_comp ).train( Xs )
 			
-			df_explained = pd.DataFrame( {
-					'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
-					'Explained Variance (%)': pca.explained_variance_ratio * 100
-				} )
+			df_explained = pd.DataFrame( { 'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
+				'Explained Variance (%)': pca.explained_variance_ratio * 100 } )
 			
 			with c5:
 				render_table( df_explained )
 			
 			with c6:
 				fig, ax = plt.subplots( figsize=(7, 5) )
-				bars = ax.bar( df_explained[ 'Component' ], df_explained[ 'Explained Variance (%)' ],
-					edgecolor='#0f172a', linewidth=0.9 )
+				bars = ax.bar( df_explained[ 'Component' ],
+					df_explained[ 'Explained Variance (%)' ], edgecolor='#0f172a', linewidth=0.9 )
 				ax.set_ylabel( '% Variance Explained' )
 				ax.set_title( 'PCA Variance Explained', fontsize=12, fontweight='bold' )
 				ax.grid( axis='y', alpha=0.25, linestyle='--' )
@@ -2885,7 +2758,9 @@ elif mode == 'Descriptive Statistics':
 			with c5:
 				st.info( 'Select at least two numeric variables for PCA.' )
 			with c6:
-				st.caption( 'Explained variance chart will appear here once at least two variables are selected.' )
+				st.caption(
+					'Explained variance chart will appear here once at least two variables are '
+					'selected.' )
 
 # ============================================
 # INFERENTIAL STATISTICS MODE
@@ -2907,8 +2782,7 @@ elif mode == 'Inferential Statistics':
 			st.info( 'No numeric variables available for inferential analysis.' )
 			st.stop( )
 		
-		st.markdown(
-			"""
+		st.markdown( """
 			<style>
 			[data-testid="stMetricLabel"] p {
 				font-size: 0.80rem;
@@ -2978,16 +2852,10 @@ elif mode == 'Inferential Statistics':
 		if len( summary_series ) >= 3:
 			try:
 				shapiro_stat, shapiro_p = stats.shapiro( summary_series )
-				infer_rows.append({
-					'Analysis': 'Outcome Distribution',
-					'Test': 'Shapiro-Wilk',
-					'Statistic': shapiro_stat,
-					'P-Value': shapiro_p,
-					'DoF': np.nan,
-					'Effect Size': np.nan,
-					'N': float( len( summary_series ) ),
-					'Notes': 'Normality Assessment'
-				})
+				infer_rows.append( { 'Analysis': 'Outcome Distribution', 'Test': 'Shapiro-Wilk',
+					'Statistic': shapiro_stat, 'P-Value': shapiro_p, 'DoF': np.nan,
+					'Effect Size': np.nan, 'N': float( len( summary_series ) ),
+					'Notes': 'Normality Assessment' } )
 			except Exception:
 				pass
 		
@@ -3002,37 +2870,27 @@ elif mode == 'Inferential Statistics':
 			df_group_summary = df_group_summary.dropna( subset=[ summary_group, summary_y ] )
 			
 			group_arrays = [ grp[ summary_y ].values for _, grp in
-			                 df_group_summary.groupby( summary_group ) ]
+				df_group_summary.groupby( summary_group ) ]
 			
 			valid_group_arrays = [ g for g in group_arrays if len( g ) >= 2 ]
 			if len( valid_group_arrays ) >= 2:
 				try:
 					f_stat, p_anova = stats.f_oneway( *valid_group_arrays )
-					infer_rows.append( {
-							'Analysis': 'Group Comparison',
-							'Test': 'One-Way ANOVA',
-							'Statistic': f_stat,
-							'P-Value': p_anova,
-							'DoF': float( len( valid_group_arrays ) - 1 ),
-							'Effect Size': np.nan,
-							'N': float( sum( len( g ) for g in valid_group_arrays ) ),
-							'Notes': f'{summary_y} by {summary_group}'
-					} )
+					infer_rows.append( { 'Analysis': 'Group Comparison', 'Test': 'One-Way ANOVA',
+						'Statistic': f_stat, 'P-Value': p_anova,
+						'DoF': float( len( valid_group_arrays ) - 1 ), 'Effect Size': np.nan,
+						'N': float( sum( len( g ) for g in valid_group_arrays ) ),
+						'Notes': f'{summary_y} by {summary_group}' } )
 				except Exception:
 					pass
 				
 				try:
 					h_stat, p_kw = stats.kruskal( *valid_group_arrays )
-					infer_rows.append( {
-						'Analysis': 'Group Comparison',
-						'Test': 'Kruskal-Wallis',
-						'Statistic': h_stat,
-						'P-Value': p_kw,
-						'DoF': float( len( valid_group_arrays ) - 1 ),
-						'Effect Size': np.nan,
+					infer_rows.append( { 'Analysis': 'Group Comparison', 'Test': 'Kruskal-Wallis',
+						'Statistic': h_stat, 'P-Value': p_kw,
+						'DoF': float( len( valid_group_arrays ) - 1 ), 'Effect Size': np.nan,
 						'N': float( sum( len( g ) for g in valid_group_arrays ) ),
-						'Notes': f'{summary_y} by {summary_group}'
-					} )
+						'Notes': f'{summary_y} by {summary_group}' } )
 				except Exception:
 					pass
 		
@@ -3048,16 +2906,10 @@ elif mode == 'Inferential Statistics':
 					pearson_r, pearson_p = stats.pearsonr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
 					
-					infer_rows.append( {
-						'Analysis': 'Association',
-						'Test': 'Pearson Correlation',
-						'Statistic': pearson_r,
-						'P-Value': pearson_p,
-						'DoF': float( pair_mask.sum( ) - 2 ),
-						'Effect Size': abs( pearson_r ),
-						'N': float( pair_mask.sum( ) ),
-						'Notes': f'{summary_y} vs {summary_x}'
-					} )
+					infer_rows.append( { 'Analysis': 'Association', 'Test': 'Pearson Correlation',
+						'Statistic': pearson_r, 'P-Value': pearson_p,
+						'DoF': float( pair_mask.sum( ) - 2 ), 'Effect Size': abs( pearson_r ),
+						'N': float( pair_mask.sum( ) ), 'Notes': f'{summary_y} vs {summary_x}' } )
 				except Exception:
 					pass
 				
@@ -3065,16 +2917,10 @@ elif mode == 'Inferential Statistics':
 					spearman_rho, spearman_p = stats.spearmanr( x_summary[ pair_mask ],
 						y_summary[ pair_mask ] )
 					
-					infer_rows.append( {
-						'Analysis': 'Association',
-						'Test': 'Spearman Correlation',
-						'Statistic': spearman_rho,
-						'P-Value': spearman_p,
-						'DoF': np.nan,
-						'Effect Size': abs( spearman_rho ),
-						'N': float( pair_mask.sum( ) ),
-						'Notes': f'{summary_y} vs {summary_x}'
-					} )
+					infer_rows.append( { 'Analysis': 'Association', 'Test': 'Spearman Correlation',
+						'Statistic': spearman_rho, 'P-Value': spearman_p, 'DoF': np.nan,
+						'Effect Size': abs( spearman_rho ), 'N': float( pair_mask.sum( ) ),
+						'Notes': f'{summary_y} vs {summary_x}' } )
 				except Exception:
 					pass
 		
@@ -3082,7 +2928,8 @@ elif mode == 'Inferential Statistics':
 		# Categorical Association Summary
 		# -----------------------------------------------------------------
 		if summary_cat1 and summary_cat2:
-			contingency_summary = pd.crosstab( df_dataset[ summary_cat1 ], df_dataset[ summary_cat2 ] )
+			contingency_summary = pd.crosstab( df_dataset[ summary_cat1 ],
+				df_dataset[ summary_cat2 ] )
 			
 			if not contingency_summary.empty and contingency_summary.shape[ 0 ] >= 2 and \
 					contingency_summary.shape[ 1 ] >= 2:
@@ -3093,20 +2940,14 @@ elif mode == 'Inferential Statistics':
 					n_total = contingency_summary.to_numpy( ).sum( )
 					phi2 = chi2_stat / n_total if n_total > 0 else np.nan
 					r_dim, c_dim = contingency_summary.shape
-					cramers_v = ( np.sqrt( phi2 / min( c_dim - 1, r_dim - 1 ) )
-							if min( c_dim - 1, r_dim - 1 ) > 0
-							else np.nan )
+					cramers_v = (np.sqrt( phi2 / min( c_dim - 1, r_dim - 1 ) ) if min( c_dim - 1,
+						r_dim - 1 ) > 0 else np.nan)
 					
-					infer_rows.append( {
-						'Analysis': 'Categorical Association',
-						'Test': 'Chi-Square',
-						'Statistic': chi2_stat,
-						'P Value': chi2_p,
-						'DoF': float( chi2_dof ),
-						'Effect Size': cramers_v,
-						'N': float( n_total ),
-						'Notes': f'{summary_cat1} vs {summary_cat2}'
-					} )
+					infer_rows.append(
+						{ 'Analysis': 'Categorical Association', 'Test': 'Chi-Square',
+							'Statistic': chi2_stat, 'P Value': chi2_p, 'DoF': float( chi2_dof ),
+							'Effect Size': cramers_v, 'N': float( n_total ),
+							'Notes': f'{summary_cat1} vs {summary_cat2}' } )
 				except Exception:
 					pass
 		
@@ -3118,15 +2959,14 @@ elif mode == 'Inferential Statistics':
 					df_infer_summary[ c ] = pd.to_numeric( df_infer_summary[ c ], errors='coerce' )
 			
 			infer_column_config = {
-					'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
-					'Test': st.column_config.TextColumn( 'Test', width='medium' ),
-					'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.2f' ),
-					'P-Value': st.column_config.NumberColumn( 'P Value', format='%.2g' ),
-					'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
-					'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.2f' ),
-					'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
-					'Notes': st.column_config.TextColumn( 'Notes', width='large' )
-			}
+				'Analysis': st.column_config.TextColumn( 'Analysis', width='medium' ),
+				'Test': st.column_config.TextColumn( 'Test', width='medium' ),
+				'Statistic': st.column_config.NumberColumn( 'Statistic', format='%.2f' ),
+				'P-Value': st.column_config.NumberColumn( 'P Value', format='%.2g' ),
+				'DoF': st.column_config.NumberColumn( 'DoF', format='%.0f' ),
+				'Effect Size': st.column_config.NumberColumn( 'Effect Size', format='%.2f' ),
+				'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
+				'Notes': st.column_config.TextColumn( 'Notes', width='large' ) }
 			
 			st.data_editor( df_infer_summary, use_container_width=True, hide_index=True,
 				disabled=True, column_config=infer_column_config, key='infer_summary_editor' )
@@ -3170,7 +3010,8 @@ elif mode == 'Inferential Statistics':
 				if p_value < 0.05:
 					st.caption( 'Distribution departs from normality at α = 0.05.' )
 				else:
-					st.caption('Distribution does not significantly depart from normality at α=0.05')
+					st.caption(
+						'Distribution does not significantly depart from normality at α=0.05' )
 			else:
 				st.info( 'Not enough observations for normality testing.' )
 		
@@ -3194,10 +3035,10 @@ elif mode == 'Inferential Statistics':
 					h_stat, p_kw = stats.kruskal( *valid_groups )
 					fig, ax = plt.subplots( figsize=(6.5, 5.25) )
 					sns.boxplot( data=df_group, x=col_group, y=col_y, ax=ax )
-					sns.stripplot( data=df_group, x=col_group, y=col_y, ax=ax,
-						color='black', alpha=0.45, size=4 )
-					ax.set_title( f'Group Comparison — {col_y} by {col_group}',
-						fontsize=12, fontweight='bold', pad=10 )
+					sns.stripplot( data=df_group, x=col_group, y=col_y, ax=ax, color='black',
+						alpha=0.45, size=4 )
+					ax.set_title( f'Group Comparison — {col_y} by {col_group}', fontsize=12,
+						fontweight='bold', pad=10 )
 					ax.set_xlabel( col_group )
 					ax.set_ylabel( col_y )
 					ax.grid( axis='y', alpha=0.20, linestyle='--' )
@@ -3213,7 +3054,8 @@ elif mode == 'Inferential Statistics':
 					g3.metric( 'ANOVA P', f'{p_anova:,.2g}' )
 					g4.metric( 'Kruskal P', f'{p_kw:,.2g}' )
 					st.caption( f'Kruskal–Wallis H = {h_stat:.4f}. '
-						f'Use the nonparametric result when normality or homoscedasticity is doubtful.' )
+					            f'Use the nonparametric result when normality or homoscedasticity '
+					            f'is doubtful.' )
 				else:
 					st.info( 'Not enough valid groups for group comparison.' )
 			else:
@@ -3259,14 +3101,14 @@ elif mode == 'Inferential Statistics':
 				if mask.sum( ) >= 2:
 					try:
 						m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
-						xline = np.linspace( float( x[ mask ].min( ) ),
-							float( x[ mask ].max( ) ), 100 )
+						xline = np.linspace( float( x[ mask ].min( ) ), float( x[ mask ].max( ) ),
+							100 )
 						ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
 					except Exception:
 						pass
 				
-				ax.set_title( f'Correlation — {col_y} vs {col_x2}', fontsize=12,
-					fontweight='bold', pad=10 )
+				ax.set_title( f'Correlation — {col_y} vs {col_x2}', fontsize=12, fontweight='bold',
+					pad=10 )
 				
 				ax.set_xlabel( col_x2 )
 				ax.set_ylabel( col_y )
@@ -3284,12 +3126,13 @@ elif mode == 'Inferential Statistics':
 		# -------------------------------------------------------------------------------------
 		st.markdown( '##### Categorical Association' )
 		if not categorical_columns or len( categorical_columns ) < 2:
-			st.info( 'At least two categorical variables are required for categorical association.' )
+			st.info(
+				'At least two categorical variables are required for categorical association.' )
 		else:
 			cat_c1, cat_c2 = st.columns( [ 0.5, 0.5 ] )
 			with cat_c1:
 				col_cat1 = st.selectbox( 'Select First Categorical Variable', categorical_columns )
-				
+			
 			with cat_c2:
 				col_cat2 = st.selectbox( 'Select Second Categorical Variable',
 					[ c for c in categorical_columns if c != col_cat1 ] )
@@ -3303,32 +3146,34 @@ elif mode == 'Inferential Statistics':
 				n = contingency.to_numpy( ).sum( )
 				phi2 = chi2 / n if n > 0 else np.nan
 				r, k = contingency.shape
-				cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1, r - 1 ) > 0 else np.nan
+				cramers_v = np.sqrt( phi2 / min( k - 1, r - 1 ) ) if min( k - 1,
+					r - 1 ) > 0 else np.nan
 				
 				ca1, ca2 = st.columns( 2, border=True )
 				with ca1:
-					st.data_editor( contingency, key='inference_data',
-						height='stretch', num_rows='dynamic')
+					st.data_editor( contingency, key='inference_data', height='stretch',
+						num_rows='dynamic' )
 				
 				with ca2:
-					fig, ax = plt.subplots( figsize=( 7, 5.5 ) )
-					sns.heatmap( contingency, annot=True, fmt='d', cmap='Blues',
-						linewidths=0.5, ax=ax, cbar_kws={ 'shrink': 0.85, 'label': 'Count' } )
+					fig, ax = plt.subplots( figsize=(7, 5.5) )
+					sns.heatmap( contingency, annot=True, fmt='d', cmap='Blues', linewidths=0.5,
+						ax=ax, cbar_kws={ 'shrink': 0.85, 'label': 'Count' } )
 					
-					ax.set_title( f'Contingency Heatmap — {col_cat1} vs {col_cat2}',
-						fontsize=12, fontweight='bold', pad=10 )
+					ax.set_title( f'Contingency Heatmap — {col_cat1} vs {col_cat2}', fontsize=12,
+						fontweight='bold', pad=10 )
 					
 					ax.set_xlabel( col_cat2 )
 					ax.set_ylabel( col_cat1 )
 					fig.tight_layout( )
 					st.pyplot( fig )
 					plt.close( fig )
-			
+				
 				cm1, cm2, cm3, cm4 = st.columns( 4, border=True )
 				cm1.metric( 'Chi-Square', f'{chi2:,.2f}' )
 				cm2.metric( 'P Value', f'{p_chi:,.2g}' )
 				cm3.metric( 'DoF', f'{dof:,}' )
-				cm4.metric( "Cramér's V", f'{cramers_v:,.2f}' if np.isfinite( cramers_v ) else 'n/a' )
+				cm4.metric( "Cramér's V",
+					f'{cramers_v:,.2f}' if np.isfinite( cramers_v ) else 'n/a' )
 
 # ============================================
 # ANOMALY DETECTION MODE
@@ -3348,8 +3193,7 @@ elif mode == 'Anomaly Detection':
 			st.info( 'No usable numeric columns available for anomaly detection.' )
 			st.stop( )
 		
-		st.markdown(
-			"""
+		st.markdown( """
 			<style>
 			[data-testid="stMetricLabel"] p {
 				font-size: 0.80rem;
@@ -3382,11 +3226,12 @@ elif mode == 'Anomaly Detection':
 		with aml_c2:
 			analysis_scale = st.checkbox( 'Use Analysis-Only Standardization', value=False )
 			df_analysis = df_numeric[ vars_sel ].astype( float ).copy( )
-	
+			
 			if analysis_scale and len( vars_sel ) > 1:
-				df_analysis = pd.DataFrame( SKStandardScaler( ).fit_transform( df_analysis.values ),
+				df_analysis = pd.DataFrame( SKStandardScaler( ).fit_transform(
+					df_analysis.values ),
 					columns=df_analysis.columns, index=df_analysis.index )
-				
+			
 			if analysis_scale and len( vars_sel ) > 1:
 				df_analysis[ : ] = SKStandardScaler( ).fit_transform( df_analysis.values )
 		
@@ -3415,13 +3260,14 @@ elif mode == 'Anomaly Detection':
 		
 		c_t1, c_t2 = st.columns( 2, border=True )
 		with c_t1:
-			z_thresh = st.slider( 'Z / Modified Z threshold', 2.0, 5.0, 3.0, 0.1, help=cfg.MODIFIED_Z )
+			z_thresh = st.slider( 'Z / Modified Z threshold', 2.0, 5.0, 3.0, 0.1,
+				help=cfg.MODIFIED_Z )
 			iqr_mult = st.slider( 'IQR Multiplier', 1.0, 3.0, 1.5, 0.1, help=cfg.IQR_MULTIPLIER )
 		
 		with c_t2:
 			lof_k = st.slider( 'LOF Neighbors (k)', 5, 50, 20, 1, help=cfg.LOF_K )
 			min_methods = st.slider( 'Consensus: minimum methods flagging a row', 1, 4, 1, 1,
-			help=cfg.MIN_METHODS)
+				help=cfg.MIN_METHODS )
 		
 		# -------------------------------------------------------------------------
 		# Run Detection
@@ -3466,6 +3312,7 @@ elif mode == 'Anomaly Detection':
 			
 			if use_iforest:
 				from sklearn.ensemble import IsolationForest
+				
 				iso = IsolationForest( contamination='auto', random_state=42 )
 				preds = iso.fit_predict( df_muliti.values )
 				df_anamolies.loc[ df_muliti.index, 'iforest' ] = preds == -1
@@ -3510,8 +3357,8 @@ elif mode == 'Anomaly Detection':
 			else:
 				fig, ax = plt.subplots( figsize=(7, 5) )
 				vc = anomalies[ 'methods_flagged' ].value_counts( ).sort_index( )
-				bars = ax.bar( vc.index.astype( str ), vc.values, width=0.75,
-					edgecolor='black', linewidth=0.9 )
+				bars = ax.bar( vc.index.astype( str ), vc.values, width=0.75, edgecolor='black',
+					linewidth=0.9 )
 				ax.set_xlabel( 'Number of Methods Flagging' )
 				ax.set_ylabel( 'Observation Count' )
 				ax.set_title( 'Consensus Strength', fontsize=10, fontweight='bold' )
@@ -3533,16 +3380,17 @@ elif mode == 'Anomaly Detection':
 			if col not in df_analysis.columns:
 				continue
 			
-			s = pd.to_numeric( df_analysis[ col ], errors='coerce' ).replace(
-				[ np.inf, -np.inf ], np.nan )
+			s = pd.to_numeric( df_analysis[ col ], errors='coerce' ).replace( [ np.inf, -np.inf ],
+				np.nan )
 			
 			s_clean = s.dropna( )
 			if s_clean.empty:
 				continue
 			
 			flagged_idx = anomalies.index.intersection( s_clean.index )
-			flagged_vals = s_clean.loc[ flagged_idx ] if not flagged_idx.empty else pd.Series( dtype=float )
-		
+			flagged_vals = s_clean.loc[ flagged_idx ] if not flagged_idx.empty else pd.Series(
+				dtype=float )
+			
 			c_v1, c_v2 = st.columns( 2, border=True )
 			with c_v1:
 				fig, ax = plt.subplots( figsize=(7, 5) )
@@ -3587,13 +3435,14 @@ elif mode == 'Anomaly Detection':
 					medianprops=dict( color='black', linewidth=1.4 ),
 					whiskerprops=dict( color='black', linewidth=0.9 ),
 					capprops=dict( color='black', linewidth=0.9 ),
-					flierprops=dict( marker='o', markerfacecolor='#475569', markeredgecolor='black',
+					flierprops=dict( marker='o', markerfacecolor='#475569',
+						markeredgecolor='black',
 						markersize=4, alpha=0.7 ) )
 				
 				if not flagged_vals.empty:
-					ax.scatter( flagged_vals.values, np.ones( len( flagged_vals ) ), color='crimson',
-						alpha=0.85, s=34, edgecolors='black', linewidths=0.4, label='Flagged',
-						zorder=3 )
+					ax.scatter( flagged_vals.values, np.ones( len( flagged_vals ) ),
+						color='crimson', alpha=0.85, s=34, edgecolors='black', linewidths=0.4,
+						label='Flagged', zorder=3 )
 				
 				ax.axvline( float( s_clean.mean( ) ), linestyle='--', linewidth=1.4 )
 				ax.axvline( float( s_clean.median( ) ), linestyle=':', linewidth=1.4 )
@@ -3627,13 +3476,14 @@ elif mode == 'Anomaly Detection':
 				
 				fig, ax = plt.subplots( figsize=(8, 5.5) )
 				ax.scatter( df_scatter.loc[ ~flag_mask, x_col ].values,
-					df_scatter.loc[ ~flag_mask, y_col ].values, s=34, alpha=0.70, edgecolors='black',
-					linewidths=0.5, label='Inliers' )
+					df_scatter.loc[ ~flag_mask, y_col ].values, s=34, alpha=0.70,
+					edgecolors='black', linewidths=0.5, label='Inliers' )
 				
 				if flag_mask.any( ):
 					ax.scatter( df_scatter.loc[ flag_mask, x_col ].values,
-						df_scatter.loc[ flag_mask, y_col ].values, s=52, alpha=0.92, edgecolors='black',
-						linewidths=0.7, c='crimson', marker='X', label='Flagged' )
+						df_scatter.loc[ flag_mask, y_col ].values, s=52, alpha=0.92,
+						edgecolors='black', linewidths=0.7, c='crimson', marker='X',
+						label='Flagged' )
 				
 				ax.set_title( f'Anomaly Scatter — {x_col} vs {y_col}', fontsize=12,
 					fontweight='bold', pad=10 )
@@ -3683,7 +3533,7 @@ elif mode == 'Classification Models':
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with (center):
+	with (((center))):
 		st.subheader( cfg.MODE[ 'Classification Models' ] )
 		st.caption( 'Predictive Models for Categorical, Discrete-Values' )
 		st.divider( )
@@ -3691,14 +3541,14 @@ elif mode == 'Classification Models':
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
-			
+		
 		df_original = df_dataset.copy( )
 		st.session_state[ 'df_original' ] = df_original.copy( )
-		numeric_columns = [ column for column in df_original.columns
-				if pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
+		numeric_columns = [ column for column in df_original.columns if
+			pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
 		
-		categorical_columns = [ column for column in df_original.columns
-				if column not in numeric_columns ]
+		categorical_columns = [ column for column in df_original.columns if
+			column not in numeric_columns ]
 		
 		st.session_state[ 'numeric_columns' ] = numeric_columns
 		st.session_state[ 'categorical_columns' ] = categorical_columns
@@ -3718,8 +3568,7 @@ elif mode == 'Classification Models':
 				key='classification_features' )
 		
 		with col_c2:
-			target_options = [ column for column in df_original.columns
-					if column not in features ]
+			target_options = [ column for column in df_original.columns if column not in features ]
 			
 			targets = st.selectbox( 'Select Target', options=target_options,
 				key='classification_target' )
@@ -3729,7 +3578,6 @@ elif mode == 'Classification Models':
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='classification_create_dataset',
 					use_container_width=True ):
-				
 				selected_all = features.copy( )
 				if targets not in selected_all:
 					selected_all.append( targets )
@@ -3747,9 +3595,9 @@ elif mode == 'Classification Models':
 		
 		# Reset Button
 		with sel_b2:
-			if st.button( 'Reset Working Dataset', icon='🔁', key='classification_reset_to_original',
+			if st.button( 'Reset Working Dataset', icon='🔁',
+					key='classification_reset_to_original',
 					use_container_width=True ):
-				
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
 				st.session_state[ 'df_working' ] = pd.DataFrame( )
@@ -3758,7 +3606,6 @@ elif mode == 'Classification Models':
 				st.success( 'Reset to Original' )
 				st.rerun( )
 		
-			
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		if df_working is None:
 			st.stop( )
@@ -3790,11 +3637,8 @@ elif mode == 'Classification Models':
 				columns.
 
 			"""
-			return (
-					isinstance( df_frame, pd.DataFrame )
-					and not df_frame.empty
-					and len( df_frame.columns ) > 0
-			)
+			return (isinstance( df_frame, pd.DataFrame ) and not df_frame.empty and len(
+				df_frame.columns ) > 0)
 		
 		def get_classification_source_signature( df_frame: pd.DataFrame ) -> tuple:
 			"""
@@ -3872,7 +3716,7 @@ elif mode == 'Classification Models':
 			return st.session_state[ 'df_working' ].copy( )
 		
 		def get_classification_columns( numeric_only: bool = False,
-				categorical_only: bool = False ) -> list[ str ]:
+			categorical_only: bool = False ) -> list[ str ]:
 			"""
 
 				Purpose:
@@ -3891,16 +3735,12 @@ elif mode == 'Classification Models':
 			"""
 			df_input = get_classification_pipeline_frame( )
 			if numeric_only:
-				return [
-						col for col in df_input.columns
-						if pd.api.types.is_numeric_dtype( df_input[ col ] )
-				]
+				return [ col for col in df_input.columns if
+					pd.api.types.is_numeric_dtype( df_input[ col ] ) ]
 			
 			if categorical_only:
-				return [
-						col for col in df_input.columns
-						if not pd.api.types.is_numeric_dtype( df_input[ col ] )
-				]
+				return [ col for col in df_input.columns if
+					not pd.api.types.is_numeric_dtype( df_input[ col ] ) ]
 			
 			return df_input.columns.tolist( )
 		
@@ -3922,9 +3762,8 @@ elif mode == 'Classification Models':
 
 			"""
 			if key in st.session_state and isinstance( st.session_state[ key ], list ):
-				st.session_state[ key ] = [
-						value for value in st.session_state[ key ] if value in options
-				]
+				st.session_state[ key ] = [ value for value in st.session_state[ key ] if
+					value in options ]
 		
 		def prune_classification_selectbox( key: str, options: list[ str ] ) -> None:
 			"""
@@ -3946,8 +3785,7 @@ elif mode == 'Classification Models':
 			if key in st.session_state and st.session_state[ key ] not in options:
 				del st.session_state[ key ]
 		
-		def get_valid_classification_columns( column_names: list[ str ],
-				df_frame: pd.DataFrame ) -> list[ str ]:
+		def get_valid_classification_columns( column_names: list[ str ], df_frame: pd.DataFrame ) -> list[ str ]:
 			"""
 
 				Purpose:
@@ -3970,7 +3808,7 @@ elif mode == 'Classification Models':
 			return [ col for col in column_names if col in df_frame.columns ]
 		
 		def get_numeric_classification_subset( df_frame: pd.DataFrame,
-				column_names: list[ str ] ) -> pd.DataFrame:
+			column_names: list[ str ] ) -> pd.DataFrame:
 			"""
 
 				Purpose:
@@ -4013,8 +3851,8 @@ elif mode == 'Classification Models':
 			return True
 		
 		def update_classification_pipeline_contract( df_before: pd.DataFrame,
-				df_after: pd.DataFrame, source_columns: list[ str ],
-				preserve_source_names: bool ) -> None:
+			df_after: pd.DataFrame, source_columns: list[ str ],
+			preserve_source_names: bool ) -> None:
 			"""
 
 				Purpose:
@@ -4039,25 +3877,19 @@ elif mode == 'Classification Models':
 			targets_current = st.session_state.get( 'targets', [ ] )
 			
 			if preserve_source_names:
-				st.session_state[ 'features' ] = [
-						col for col in features_current if col in df_after.columns
-				]
-				st.session_state[ 'targets' ] = [
-						col for col in targets_current if col in df_after.columns
-				]
+				st.session_state[ 'features' ] = [ col for col in features_current if
+					col in df_after.columns ]
+				st.session_state[ 'targets' ] = [ col for col in targets_current if
+					col in df_after.columns ]
 				return
 			
-			replacement_columns = [
-					col for col in df_after.columns if col not in df_before.columns
-			]
+			replacement_columns = [ col for col in df_after.columns if
+				col not in df_before.columns ]
 			
 			if not replacement_columns:
-				replacement_columns = [
-						col for col in df_after.columns if col not in [
-								old_col for old_col in df_before.columns
-								if old_col not in source_columns
-						]
-				]
+				replacement_columns = [ col for col in df_after.columns if
+					col not in [ old_col for old_col in df_before.columns if
+						old_col not in source_columns ] ]
 			
 			features_next = [ ]
 			for col in features_current:
@@ -4080,9 +3912,8 @@ elif mode == 'Classification Models':
 			st.session_state[ 'features' ] = features_next
 			st.session_state[ 'targets' ] = targets_next
 		
-		def commit_classification_processed_frame( df_before: pd.DataFrame,
-				df_after: pd.DataFrame, source_columns: list[ str ] | None = None,
-				preserve_source_names: bool = True ) -> None:
+		def commit_classification_processed_frame( df_before: pd.DataFrame, df_after: pd.DataFrame,
+			source_columns: list[ str ] | None = None, preserve_source_names: bool = True ) -> None:
 			"""
 
 				Purpose:
@@ -4103,19 +3934,16 @@ elif mode == 'Classification Models':
 				None
 
 			"""
-			update_classification_pipeline_contract(
-				df_before=df_before,
-				df_after=df_after,
-				source_columns=source_columns or [ ],
-				preserve_source_names=preserve_source_names
-			)
+			update_classification_pipeline_contract( df_before=df_before, df_after=df_after,
+				source_columns=source_columns or [ ], preserve_source_names=preserve_source_names )
 			
 			st.session_state[ 'df_processed' ] = df_after.copy( )
 			commit_frame( df_after )
 		
 		df_working_current = st.session_state[ 'df_working' ].copy( )
 		source_signature = get_classification_source_signature( df_working_current )
-		prior_signature = st.session_state.get( 'classification_processing_source_signature', None )
+		prior_signature = st.session_state.get( 'classification_processing_source_signature',
+			None )
 		
 		if prior_signature is not None and prior_signature != source_signature:
 			clear_classification_processed_state( )
@@ -4124,7 +3952,6 @@ elif mode == 'Classification Models':
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
 			with st.expander( label='Data Scaling', icon='⚖️', key='classification_scalers' ):
-				
 				with st.expander( 'Standard Scaler', expanded=False ):
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.STANDARD_SCALER )
@@ -4148,13 +3975,15 @@ elif mode == 'Classification Models':
 									get_numeric_classification_subset( df_input,
 										columns ).to_numpy( ) )
 								df_output[ columns ] = result
-								commit_classification_processed_frame( df_input, df_output, columns,
+								commit_classification_processed_frame( df_input, df_output,
+									columns,
 									True )
 								st.success( 'Standard Scaler applied.' )
 								st.rerun( )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_standard_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_standard_reset',
 								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
@@ -4165,7 +3994,8 @@ elif mode == 'Classification Models':
 						help=cfg.MINMAX_SCALER )
 					
 					options = get_classification_columns( numeric_only=True )
-					prune_classification_multiselect( 'classification_minmax_scaler_cols', options )
+					prune_classification_multiselect( 'classification_minmax_scaler_cols',
+						options )
 					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_minmax_scaler_cols' )
 					
@@ -4200,7 +4030,8 @@ elif mode == 'Classification Models':
 						help=cfg.ROBUST_SCALER )
 					
 					options = get_classification_columns( numeric_only=True )
-					prune_classification_multiselect( 'classification_robust_scaler_cols', options )
+					prune_classification_multiselect( 'classification_robust_scaler_cols',
+						options )
 					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_robust_scaler_cols' )
 					
@@ -4235,12 +4066,13 @@ elif mode == 'Classification Models':
 						help=cfg.NORMAL_SCALER )
 					
 					options = get_classification_columns( numeric_only=True )
-					prune_classification_multiselect( 'classification_normal_scaler_cols', options )
+					prune_classification_multiselect( 'classification_normal_scaler_cols',
+						options )
 					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_normal_scaler_cols' )
 					
-					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
-						index=1, key='classification_normal_scaler_norm' )
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ], index=1,
+						key='classification_normal_scaler_norm' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -4274,7 +4106,8 @@ elif mode == 'Classification Models':
 						help=cfg.MAXABS_SCALER )
 					
 					options = get_classification_columns( numeric_only=True )
-					prune_classification_multiselect( 'classification_maxabs_scaler_cols', options )
+					prune_classification_multiselect( 'classification_maxabs_scaler_cols',
+						options )
 					scale_cols = st.multiselect( 'Columns', options=options,
 						key='classification_maxabs_scaler_cols' )
 					
@@ -4306,7 +4139,6 @@ elif mode == 'Classification Models':
 							st.rerun( )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='classification_imputers' ):
-				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.MEAN_IMPUTER )
@@ -4322,7 +4154,8 @@ elif mode == 'Classification Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='classification_mean_imputer_apply', use_container_width=True ):
+								key='classification_mean_imputer_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							impute_cols = get_valid_classification_columns( impute_cols, df_input )
 							if require_classification_columns( impute_cols, 'Mean Imputer' ):
@@ -4334,18 +4167,15 @@ elif mode == 'Classification Models':
 								
 								df_output = replace_columns( df_input, impute_cols, result,
 									'mean_imputer' )
-								commit_classification_processed_frame(
-									df_input,
-									df_output,
-									impute_cols,
-									not bool( add_indicator )
-								)
+								commit_classification_processed_frame( df_input, df_output,
+									impute_cols, not bool( add_indicator ) )
 								st.success( 'MeanImputer applied.' )
 								st.rerun( )
 					
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='classification_mean_imputer_reset', use_container_width=True ):
+								key='classification_mean_imputer_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -4360,8 +4190,8 @@ elif mode == 'Classification Models':
 					impute_cols = st.multiselect( 'Columns', options=options,
 						key='classification_nearest_imputer_cols' )
 					
-					neighbors = st.number_input( 'Neighbors', min_value=1,
-						value=5, step=1, key='classification_nearest_imputer_neighbors' )
+					neighbors = st.number_input( 'Neighbors', min_value=1, value=5, step=1,
+						key='classification_nearest_imputer_neighbors' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -4402,11 +4232,11 @@ elif mode == 'Classification Models':
 					impute_cols = st.multiselect( 'Columns', options=options,
 						key='classification_iterative_imputer_cols' )
 					
-					max_iter = st.number_input( 'Max Iterations', min_value=1,
-						value=10, step=1, key='classification_iterative_imputer_max_iter' )
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=10, step=1,
+						key='classification_iterative_imputer_max_iter' )
 					
-					random_state = st.number_input( 'Random State', min_value=0,
-						value=0, step=1, key='classification_iterative_imputer_random_state' )
+					random_state = st.number_input( 'Random State', min_value=0, value=0, step=1,
+						key='classification_iterative_imputer_random_state' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -4476,20 +4306,15 @@ elif mode == 'Classification Models':
 									df_values = df_input[ impute_cols ].copy( )
 									fill_object = fill_value
 								
-								imputer = SimpleImputer( strategy=strategy,
-									fill_value=fill_object,
+								imputer = SimpleImputer( strategy=strategy, fill_value=fill_object,
 									add_indicator=add_indicator,
 									keep_empty_features=keep_empty_features )
 								
 								result = imputer.train_transform( df_values.to_numpy( ) )
 								df_output = replace_columns( df_input, impute_cols, result,
 									'simple_imputer' )
-								commit_classification_processed_frame(
-									df_input,
-									df_output,
-									impute_cols,
-									not bool( add_indicator )
-								)
+								commit_classification_processed_frame( df_input, df_output,
+									impute_cols, not bool( add_indicator ) )
 								st.success( 'Simple Imputer Applied' )
 								st.rerun( )
 					
@@ -4502,7 +4327,6 @@ elif mode == 'Classification Models':
 							st.rerun( )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='classification_encoders' ):
-				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.ONEHOT_ENCODER )
@@ -4521,22 +4345,20 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='classification_onehot_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='classification_onehot_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							encode_cols = get_valid_classification_columns( encode_cols, df_input )
 							if require_classification_columns( encode_cols, 'One-Hot Encoder' ):
 								encoder = OneHotEncoder( sparse=bool( sparse ), unknown=unknown )
 								result = encoder.train_transform(
-									df_input[ encode_cols ].fillna( '' ).astype( str ).to_numpy( ) )
+									df_input[ encode_cols ].fillna( '' ).astype( str ).to_numpy(
+									
+									) )
 								df_output = replace_columns( df_input, encode_cols, result,
 									'onehot' )
-								commit_classification_processed_frame(
-									df_input,
-									df_output,
-									encode_cols,
-									False
-								)
+								commit_classification_processed_frame( df_input, df_output,
+									encode_cols, False )
 								st.success( 'One-Hot Encoder applied.' )
 								st.rerun( )
 					
@@ -4558,8 +4380,8 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='classification_ordinal_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='classification_ordinal_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							encode_cols = get_valid_classification_columns( encode_cols, df_input )
 							if require_classification_columns( encode_cols, 'Ordinal Encoder' ):
@@ -4600,7 +4422,9 @@ elif mode == 'Classification Models':
 								encoder = LabelEncoder( )
 								df_output = df_input.copy( )
 								result = encoder.train_transform(
-									df_output[ target_col ].fillna( '' ).astype( str ).to_numpy( ) )
+									df_output[ target_col ].fillna( '' ).astype( str ).to_numpy(
+									
+									) )
 								df_output[ target_col ] = result
 								commit_classification_processed_frame( df_input, df_output,
 									[ target_col ], True )
@@ -4624,8 +4448,8 @@ elif mode == 'Classification Models':
 					options = get_classification_columns( )
 					prune_classification_multiselect( 'classification_target_encoder_cols',
 						options )
-					encode_cols = st.multiselect( 'Categorical Feature Columns',
-						options=options, key='classification_target_encoder_cols' )
+					encode_cols = st.multiselect( 'Categorical Feature Columns', options=options,
+						key='classification_target_encoder_cols' )
 					
 					prune_classification_selectbox( 'classification_target_encoder_target_col',
 						options )
@@ -4673,8 +4497,8 @@ elif mode == 'Classification Models':
 					poly_cols = st.multiselect( 'Columns', options=options,
 						key='classification_polynomial_cols' )
 					
-					degree = st.slider( 'Degree', min_value=2, max_value=4,
-						value=2, key='classification_polynomial_degree' )
+					degree = st.slider( 'Degree', min_value=2, max_value=4, value=2,
+						key='classification_polynomial_degree' )
 					
 					interaction = st.checkbox( 'Interaction Only', value=True,
 						key='classification_polynomial_interaction' )
@@ -4708,7 +4532,6 @@ elif mode == 'Classification Models':
 		with feature_c2:
 			with st.expander( label='Data Transformation', icon='⚡',
 					key='classification_transformers' ):
-				
 				with st.expander( 'Binarizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.BINARIZER )
@@ -4745,7 +4568,8 @@ elif mode == 'Classification Models':
 					
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='classification_binarizer_reset', use_container_width=True ):
+								key='classification_binarizer_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -4771,7 +4595,8 @@ elif mode == 'Classification Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply LabelBinarizer',
-								key='classification_lblbinarizer_apply', use_container_width=True ):
+								key='classification_lblbinarizer_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							if target_col and target_col in df_input.columns:
 								transformer = LabelBinarizer( pos_label=int( pos_label ),
@@ -4779,8 +4604,8 @@ elif mode == 'Classification Models':
 									sparse_output=bool( sparse_output ) )
 								result = transformer.train_transform(
 									df_input[ target_col ].fillna( '' ).astype( str ).to_numpy( ) )
-								df_output = replace_columns( df_input, [ target_col ],
-									result, 'label_binarizer' )
+								df_output = replace_columns( df_input, [ target_col ], result,
+									'label_binarizer' )
 								preserve_name = np.asarray( result ).ndim == 1
 								commit_classification_processed_frame( df_input, df_output,
 									[ target_col ], preserve_name )
@@ -4791,7 +4616,8 @@ elif mode == 'Classification Models':
 					
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='classification_lblbinarizer_reset', use_container_width=True ):
+								key='classification_lblbinarizer_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -4824,8 +4650,8 @@ elif mode == 'Classification Models':
 								transformer = MultiLabelBinarizer( classes=None,
 									sparse_output=bool( sparse_output ) )
 								result = transformer.train_transform( y_multi )
-								df_output = replace_columns( df_input, [ target_col ],
-									result, 'multilabel_binarizer' )
+								df_output = replace_columns( df_input, [ target_col ], result,
+									'multilabel_binarizer' )
 								commit_classification_processed_frame( df_input, df_output,
 									[ target_col ], False )
 								st.success( 'Multi-Label Binarizer Applied.' )
@@ -4849,11 +4675,11 @@ elif mode == 'Classification Models':
 					options = get_classification_columns( numeric_only=True )
 					prune_classification_multiselect( 'classification_tfidf_transformer_cols',
 						options )
-					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=options, key='classification_tfidf_transformer_cols' )
+					text_count_cols = st.multiselect( 'Count Matrix Columns', options=options,
+						key='classification_tfidf_transformer_cols' )
 					
-					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
-						index=1, key='classification_tfidf_transformer_norm' )
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ], index=1,
+						key='classification_tfidf_transformer_norm' )
 					
 					use_idf = st.checkbox( 'Use IDF', value=True,
 						key='classification_tfidf_transformer_use_idf' )
@@ -4878,10 +4704,10 @@ elif mode == 'Classification Models':
 									smooth_idf=bool( smooth_idf ),
 									sublinear_tf=bool( sublinear_tf ) )
 								result = transformer.train_transform(
-									get_numeric_classification_subset(
-										df_input, text_count_cols ).to_numpy( ) )
-								df_output = replace_columns( df_input, text_count_cols,
-									result, 'tfidf_transformer' )
+									get_numeric_classification_subset( df_input,
+										text_count_cols ).to_numpy( ) )
+								df_output = replace_columns( df_input, text_count_cols, result,
+									'tfidf_transformer' )
 								commit_classification_processed_frame( df_input, df_output,
 									text_count_cols, True )
 								st.success( 'TFIDF Transformer Applied.' )
@@ -4901,33 +4727,26 @@ elif mode == 'Classification Models':
 					
 					all_options = get_classification_columns( )
 					df_column_input = get_classification_pipeline_frame( )
-					numeric_options = [
-							col for col in all_options
-							if pd.api.types.is_numeric_dtype( df_column_input[ col ] )
-					]
-					categorical_options = [
-							col for col in all_options if col not in numeric_options
-					]
+					numeric_options = [ col for col in all_options if
+						pd.api.types.is_numeric_dtype( df_column_input[ col ] ) ]
+					categorical_options = [ col for col in all_options if
+						col not in numeric_options ]
 					
 					prune_classification_multiselect(
-						'classification_column_transformer_numeric_columns',
-						numeric_options
-					)
-					numeric_columns = st.multiselect( 'Numeric Columns',
-						options=numeric_options,
+						'classification_column_transformer_numeric_columns', numeric_options )
+					numeric_columns = st.multiselect( 'Numeric Columns', options=numeric_options,
 						key='classification_column_transformer_numeric_columns' )
 					
 					prune_classification_multiselect(
 						'classification_column_transformer_categorical_columns',
-						categorical_options
-					)
+						categorical_options )
 					categorical_columns = st.multiselect( 'Categorical Columns',
 						options=categorical_options,
 						key='classification_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
-						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
-						          'MaxAbsScaler', 'Binarizer', 'None' ],
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler', 'MaxAbsScaler',
+							'Binarizer', 'None' ],
 						key='classification_column_transformer_numeric_transform' )
 					
 					categorical_transform = st.selectbox( 'Categorical Transformer',
@@ -4937,9 +4756,8 @@ elif mode == 'Classification Models':
 					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
 						key='classification_column_transformer_remainder' )
 					
-					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0,
-						max_value=1.0, value=0.3,
-						key='classification_column_transformer_sparse_threshold' )
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
+						value=0.3, key='classification_column_transformer_sparse_threshold' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -4974,31 +4792,25 @@ elif mode == 'Classification Models':
 								else:
 									categorical_model = OrdinalEncoder( ).model
 								
-								transformers.append( ('categorical', categorical_model,
-								                      categorical_columns) )
+								transformers.append(
+									('categorical', categorical_model, categorical_columns) )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
-									remainder=remainder,
-									sparse_threshold=float( sparse_threshold ),
-									n_jobs=None,
-									transformer_weights=None,
-									verbose=False )
+									remainder=remainder, sparse_threshold=float(
+										sparse_threshold ),
+									n_jobs=None, transformer_weights=None, verbose=False )
 								result = transformer.train_transform( df_input )
 								df_output = normalize_result_frame( result=result,
-									index=df_input.index,
-									prefix='column_transformer',
+									index=df_input.index, prefix='column_transformer',
 									columns=None )
-								commit_classification_processed_frame(
-									df_input,
-									df_output,
-									numeric_columns + categorical_columns,
-									False
-								)
+								commit_classification_processed_frame( df_input, df_output,
+									numeric_columns + categorical_columns, False )
 								st.success( 'ColumnTransformer applied.' )
 								st.rerun( )
 							else:
-								st.warning( 'Select at least one transformer and matching column.' )
+								st.warning( 'Select at least one transformer and matching '
+								            'column.' )
 					
 					with a2:
 						if st.button( label='Reset', icon='🔁',
@@ -5008,7 +4820,8 @@ elif mode == 'Classification Models':
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
 			
-			with st.expander( label='Feature Extration', icon='⛏️', key='classification_extractors' ):
+			with st.expander( label='Feature Extration', icon='⛏️',
+					key='classification_extractors' ):
 				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
@@ -5020,11 +4833,11 @@ elif mode == 'Classification Models':
 					text_cols = st.multiselect( 'Text Columns', options=options,
 						key='classification_tfidf_vectorizer_cols' )
 					
-					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
-						value=1, key='classification_tfidf_vectorizer_ngram_max' )
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='classification_tfidf_vectorizer_ngram_max' )
 					
-					max_features = st.number_input( 'Max Features', min_value=0, value=0,
-						step=1, key='classification_tfidf_vectorizer_max_features' )
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='classification_tfidf_vectorizer_max_features' )
 					
 					use_idf = st.checkbox( 'Use IDF', value=True,
 						key='classification_tfidf_vectorizer_use_idf' )
@@ -5037,14 +4850,12 @@ elif mode == 'Classification Models':
 							df_input = get_classification_pipeline_frame( )
 							text_cols = get_valid_classification_columns( text_cols, df_input )
 							if require_classification_columns( text_cols, 'TF-IDF Vectorizer' ):
-								transformer = TfidfVectorizer(
-									ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0
-									else int( max_features ),
-									use_idf=bool( use_idf )
-								)
+								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ), use_idf=bool( use_idf ) )
 								df_output = apply_text_vectorizer( df_input, text_cols,
-									transformer, 'tfidf_vectorizer' )
+									transformer,
+									'tfidf_vectorizer' )
 								commit_classification_processed_frame( df_input, df_output,
 									text_cols, False )
 								st.success( 'TFIDF Vectorizer Applied.' )
@@ -5068,11 +4879,11 @@ elif mode == 'Classification Models':
 					text_cols = st.multiselect( 'Text Columns', options=options,
 						key='classification_count_vectorizer_cols' )
 					
-					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
-						value=1, key='classification_count_vectorizer_ngram_max' )
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='classification_count_vectorizer_ngram_max' )
 					
-					max_features = st.number_input( 'Max Features', min_value=0, value=0,
-						step=1, key='classification_count_vectorizer_max_features' )
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='classification_count_vectorizer_max_features' )
 					
 					binary = st.checkbox( 'Binary Counts', value=False,
 						key='classification_count_vectorizer_binary' )
@@ -5085,14 +4896,12 @@ elif mode == 'Classification Models':
 							df_input = get_classification_pipeline_frame( )
 							text_cols = get_valid_classification_columns( text_cols, df_input )
 							if require_classification_columns( text_cols, 'Count Vectorizer' ):
-								transformer = CountVectorizer(
-									ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0
-									else int( max_features ),
-									binary=bool( binary )
-								)
+								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ), binary=bool( binary ) )
 								df_output = apply_text_vectorizer( df_input, text_cols,
-									transformer, 'count_vectorizer' )
+									transformer,
+									'count_vectorizer' )
 								commit_classification_processed_frame( df_input, df_output,
 									text_cols, False )
 								st.success( 'Count Vectorizer Applied.' )
@@ -5116,11 +4925,11 @@ elif mode == 'Classification Models':
 					text_cols = st.multiselect( 'Text Columns', options=options,
 						key='classification_hash_vectorizer_cols' )
 					
-					n_features = st.number_input( 'Number of Features', min_value=8,
-						value=1024, step=8, key='classification_hash_vectorizer_n_features' )
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='classification_hash_vectorizer_n_features' )
 					
-					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
-						value=1, key='classification_hash_vectorizer_ngram_max' )
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='classification_hash_vectorizer_ngram_max' )
 					
 					binary = st.checkbox( 'Binary', value=False,
 						key='classification_hash_vectorizer_binary' )
@@ -5137,11 +4946,11 @@ elif mode == 'Classification Models':
 							text_cols = get_valid_classification_columns( text_cols, df_input )
 							if require_classification_columns( text_cols, 'Hash Vectorizer' ):
 								transformer = HashVectorizer( num=int( n_features ),
-									ngram_range=(1, int( ngram_max )),
-									binary=bool( binary ),
+									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
 									alternate_sign=bool( alternate_sign ) )
 								df_output = apply_text_vectorizer( df_input, text_cols,
-									transformer, 'hash_vectorizer' )
+									transformer,
+									'hash_vectorizer' )
 								commit_classification_processed_frame( df_input, df_output,
 									text_cols, False )
 								st.success( 'HashVectorizer Applied.' )
@@ -5181,13 +4990,13 @@ elif mode == 'Classification Models':
 								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							dict_cols = get_valid_classification_columns( dict_cols, df_input )
-							if require_classification_columns( dict_cols, 'Dictionary Vectorizer' ):
+							if require_classification_columns( dict_cols, 'Dictionary '
+							                                              'Vectorizer' ):
 								transformer = DictVectorizer( dtype=np.float64,
 									separator=separator,
-									sparse=bool( sparse ),
-									sort=bool( sort ) )
-								df_output = apply_dict_transform( df_input, dict_cols,
-									transformer, 'dict_vectorizer' )
+									sparse=bool( sparse ), sort=bool( sort ) )
+								df_output = apply_dict_transform( df_input, dict_cols, transformer,
+									'dict_vectorizer' )
 								commit_classification_processed_frame( df_input, df_output,
 									dict_cols, False )
 								st.success( 'DictVectorizer applied.' )
@@ -5211,8 +5020,8 @@ elif mode == 'Classification Models':
 					hash_cols = st.multiselect( 'Columns', options=options,
 						key='classification_feature_hasher_cols' )
 					
-					n_features = st.number_input( 'Number of Features', min_value=8,
-						value=1024, step=8, key='classification_feature_hasher_n_features' )
+					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
+						step=8, key='classification_feature_hasher_n_features' )
 					
 					alternate_sign = st.checkbox( 'Alternate Sign', value=True,
 						key='classification_feature_hasher_alternate_sign' )
@@ -5226,11 +5035,10 @@ elif mode == 'Classification Models':
 							hash_cols = get_valid_classification_columns( hash_cols, df_input )
 							if require_classification_columns( hash_cols, 'Feature Hasher' ):
 								transformer = FeatureHasher( n_features=int( n_features ),
-									input_type='dict',
-									dtype=np.float64,
+									input_type='dict', dtype=np.float64,
 									alternate_sign=bool( alternate_sign ) )
-								df_output = apply_dict_transform( df_input, hash_cols,
-									transformer, 'feature_hasher' )
+								df_output = apply_dict_transform( df_input, hash_cols, transformer,
+									'feature_hasher' )
 								commit_classification_processed_frame( df_input, df_output,
 									hash_cols, False )
 								st.success( 'FeatureHasher applied.' )
@@ -5244,7 +5052,8 @@ elif mode == 'Classification Models':
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
 			
-			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='classification_selectors' ):
+			with st.expander( label='Dimensionality Reduction', icon='🎚️',
+					key='classification_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
@@ -5256,8 +5065,8 @@ elif mode == 'Classification Models':
 					select_cols = st.multiselect( 'Columns', options=options,
 						key='classification_variance_threshold_cols' )
 					
-					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
-						step=0.01, key='classification_variance_threshold_value' )
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0, step=0.01,
+						key='classification_variance_threshold_value' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -5273,8 +5082,8 @@ elif mode == 'Classification Models':
 										select_cols ).to_numpy( ) )
 								df_output = replace_columns( df_input, select_cols, result,
 									'variance_threshold' )
-								preserve_name = np.asarray( result ).ndim == 2 \
-								                and np.asarray( result ).shape[ 1 ] == len(
+								preserve_name = np.asarray( result ).ndim == 2 and \
+								                np.asarray( result ).shape[ 1 ] == len(
 									select_cols )
 								commit_classification_processed_frame( df_input, df_output,
 									select_cols, preserve_name )
@@ -5302,52 +5111,44 @@ elif mode == 'Classification Models':
 					y_cols = st.multiselect( 'Target Columns', options=options,
 						key='classification_cca_y_cols' )
 					
-					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='classification_cca_components' )
+					n_components = st.number_input( 'Components', min_value=1, value=2, step=1,
+						key='classification_cca_components' )
 					
 					scale = st.checkbox( 'Scale', value=True, key='classification_cca_scale' )
 					
-					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
-						step=1, key='classification_cca_max_iter' )
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500, step=1,
+						key='classification_cca_max_iter' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='classification_cca_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='classification_cca_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							X_cols = get_valid_classification_columns( X_cols, df_input )
 							y_cols = get_valid_classification_columns( y_cols, df_input )
-							if require_classification_columns( X_cols, 'CCA predictors' ) \
-									and require_classification_columns( y_cols, 'CCA targets' ):
-								selector = CCA( num=int( n_components ),
-									scale=bool( scale ),
+							if require_classification_columns( X_cols,
+									'CCA predictors' ) and require_classification_columns( y_cols,
+								'CCA targets' ):
+								selector = CCA( num=int( n_components ), scale=bool( scale ),
 									size=int( max_iter ) )
 								result = selector.train_transform(
 									get_numeric_classification_subset( df_input,
 										X_cols ).to_numpy( ),
 									get_numeric_classification_subset( df_input,
-										y_cols ).to_numpy( )
-								)
+										y_cols ).to_numpy( ) )
 								df_result = normalize_result_frame( result=result,
-									index=df_input.index,
-									prefix='cca',
-									columns=None )
+									index=df_input.index, prefix='cca', columns=None )
 								df_output = pd.concat(
-									[
-											df_input.drop( columns=X_cols + y_cols,
-												errors='ignore' ),
-											df_result
-									],
-									axis=1
-								)
+									[ df_input.drop( columns=X_cols + y_cols, errors='ignore' ),
+										df_result ], axis=1 )
 								commit_classification_processed_frame( df_input, df_output,
 									X_cols + y_cols, False )
 								st.success( 'CCA Applied.' )
 								st.rerun( )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='classification_cca_reset', use_container_width=True ):
+						if st.button( label='Reset', icon='🔁', key='classification_cca_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -5361,8 +5162,8 @@ elif mode == 'Classification Models':
 					select_cols = st.multiselect( 'Columns', options=options,
 						key='classification_pca_cols' )
 					
-					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='classification_pca_components' )
+					n_components = st.number_input( 'Components', min_value=1, value=2, step=1,
+						key='classification_pca_components' )
 					
 					solver = st.selectbox( 'SVD Solver',
 						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
@@ -5370,8 +5171,8 @@ elif mode == 'Classification Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='classification_pca_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='classification_pca_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							select_cols = get_valid_classification_columns( select_cols, df_input )
 							if require_classification_columns( select_cols, 'PCA' ):
@@ -5386,8 +5187,8 @@ elif mode == 'Classification Models':
 								st.rerun( )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='classification_pca_reset', use_container_width=True ):
+						if st.button( label='Reset', icon='🔁', key='classification_pca_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -5397,8 +5198,7 @@ elif mode == 'Classification Models':
 						help=cfg.SELECT_BEST )
 					
 					options = get_classification_columns( numeric_only=True )
-					prune_classification_multiselect( 'classification_selectbest_x_cols',
-						options )
+					prune_classification_multiselect( 'classification_selectbest_x_cols', options )
 					X_cols = st.multiselect( 'Feature Columns', options=options,
 						key='classification_selectbest_x_cols' )
 					
@@ -5409,8 +5209,8 @@ elif mode == 'Classification Models':
 						key='classification_selectbest_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
-						options=[ 'chi2', 'f_classif', 'f_regression',
-						          'mutual_info_classif', 'mutual_info_regression' ],
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+							'mutual_info_regression' ],
 						key='classification_selectbest_score_name' )
 					
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
@@ -5419,8 +5219,7 @@ elif mode == 'Classification Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='classification_selectbest_apply',
-								use_container_width=True ):
+								key='classification_selectbest_apply', use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							X_cols = get_valid_classification_columns( X_cols, df_input )
 							if require_classification_columns( X_cols, 'Select Best' ):
@@ -5431,8 +5230,7 @@ elif mode == 'Classification Models':
 									result = selector.train_transform(
 										get_numeric_classification_subset( df_input,
 											X_cols ).to_numpy( ),
-										df_input[ target_col ].to_numpy( )
-									)
+										df_input[ target_col ].to_numpy( ) )
 									df_output = replace_columns( df_input, X_cols, result,
 										'select_best' )
 									commit_classification_processed_frame( df_input, df_output,
@@ -5467,12 +5265,12 @@ elif mode == 'Classification Models':
 						key='classification_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
-						options=[ 'chi2', 'f_classif', 'f_regression',
-						          'mutual_info_classif', 'mutual_info_regression' ],
+						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
+							'mutual_info_regression' ],
 						key='classification_selectpercent_score_name' )
 					
-					percentile = st.slider( 'Percentile', min_value=1, max_value=100,
-						value=10, key='classification_selectpercent_percentile' )
+					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
+						key='classification_selectpercent_percentile' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -5489,8 +5287,7 @@ elif mode == 'Classification Models':
 									result = selector.train_transform(
 										get_numeric_classification_subset( df_input,
 											X_cols ).to_numpy( ),
-										df_input[ target_col ].to_numpy( )
-									)
+										df_input[ target_col ].to_numpy( ) )
 									df_output = replace_columns( df_input, X_cols, result,
 										'select_percent' )
 									commit_classification_processed_frame( df_input, df_output,
@@ -5519,25 +5316,23 @@ elif mode == 'Classification Models':
 						key='classification_sbs_x_cols' )
 					
 					all_options = get_classification_columns( )
-					prune_classification_selectbox( 'classification_sbs_target_col',
-						all_options )
+					prune_classification_selectbox( 'classification_sbs_target_col', all_options )
 					target_col = st.selectbox( 'Target Column', options=all_options,
 						key='classification_sbs_target_col' )
 					
-					k_features = st.number_input( 'Features To Retain', min_value=1,
-						value=1, step=1, key='classification_sbs_k_features' )
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='classification_sbs_k_features' )
 					
-					test_size = st.slider( 'Validation Split', min_value=0.10,
-						max_value=0.50, value=0.25, step=0.05,
-						key='classification_sbs_test_size' )
+					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
+						value=0.25, step=0.05, key='classification_sbs_test_size' )
 					
-					random_state = st.number_input( 'Random State', min_value=0,
-						value=1, step=1, key='classification_sbs_random_state' )
+					random_state = st.number_input( 'Random State', min_value=0, value=1, step=1,
+						key='classification_sbs_random_state' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='classification_sbs_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='classification_sbs_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							X_cols = get_valid_classification_columns( X_cols, df_input )
 							if require_classification_columns( X_cols, 'SBS' ):
@@ -5546,8 +5341,8 @@ elif mode == 'Classification Models':
 										k_features=int( min( k_features, len( X_cols ) ) ),
 										test_size=float( test_size ),
 										random_state=int( random_state ) )
-									X_input = get_numeric_classification_subset(
-										df_input, X_cols ).to_numpy( )
+									X_input = get_numeric_classification_subset( df_input,
+										X_cols ).to_numpy( )
 									y_input = df_input[ target_col ].to_numpy( )
 									selector.train( X_input, y_input )
 									result = selector.transform( X_input )
@@ -5560,8 +5355,8 @@ elif mode == 'Classification Models':
 									st.warning( 'Select an available target column for SBS.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='classification_sbs_reset', use_container_width=True ):
+						if st.button( label='Reset', icon='🔁', key='classification_sbs_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -5576,21 +5371,20 @@ elif mode == 'Classification Models':
 						key='classification_rfe_x_cols' )
 					
 					all_options = get_classification_columns( )
-					prune_classification_selectbox( 'classification_rfe_target_col',
-						all_options )
+					prune_classification_selectbox( 'classification_rfe_target_col', all_options )
 					target_col = st.selectbox( 'Target Column', options=all_options,
 						key='classification_rfe_target_col' )
 					
-					k_features = st.number_input( 'Features To Retain',
-						min_value=1, value=1, step=1, key='classification_rfe_k_features' )
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='classification_rfe_k_features' )
 					
-					verbose = st.number_input( 'Verbose', min_value=0, value=0,
-						step=1, key='classification_rfe_verbose' )
+					verbose = st.number_input( 'Verbose', min_value=0, value=0, step=1,
+						key='classification_rfe_verbose' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='classification_rfe_apply', use_container_width=True ):
+						if st.button( label='Apply', icon='✔️', key='classification_rfe_apply',
+								use_container_width=True ):
 							df_input = get_classification_pipeline_frame( )
 							X_cols = get_valid_classification_columns( X_cols, df_input )
 							if require_classification_columns( X_cols, 'RFE' ):
@@ -5598,8 +5392,8 @@ elif mode == 'Classification Models':
 									selector = RFE(
 										k_features=int( min( k_features, len( X_cols ) ) ),
 										verbose=int( verbose ) )
-									X_input = get_numeric_classification_subset(
-										df_input, X_cols ).to_numpy( )
+									X_input = get_numeric_classification_subset( df_input,
+										X_cols ).to_numpy( )
 									y_input = df_input[ target_col ].to_numpy( )
 									selector.train( X_input, y_input )
 									result = selector.transform( X_input )
@@ -5612,8 +5406,8 @@ elif mode == 'Classification Models':
 									st.warning( 'Select an available target column for RFE.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='classification_rfe_reset', use_container_width=True ):
+						if st.button( label='Reset', icon='🔁', key='classification_rfe_reset',
+								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
 							st.rerun( )
@@ -5626,28 +5420,30 @@ elif mode == 'Classification Models':
 			st.stop( )
 		
 		st.markdown( '##### Processed Data' )
-		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption(
+			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='classification_processed_data' )
-			
+		
 		# ------------------------------------------------------------------
 		# MODEL TRAINING
 		# ------------------------------------------------------------------
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Training', help=cfg.CLASSIFICATION_MODELS )
 		
-		active_features = [ ftr for ftr in st.session_state.get( 'features', [ ] )
-		                    if ftr in df_processed.columns ]
+		active_features = [ ftr for ftr in st.session_state.get( 'features', [ ] ) if
+			ftr in df_processed.columns ]
 		
-		active_targets = [ tgt for tgt in st.session_state.get( 'targets', [ ] )
-		                   if tgt in df_processed.columns ]
+		active_targets = [ tgt for tgt in st.session_state.get( 'targets', [ ] ) if
+			tgt in df_processed.columns ]
 		
 		st.session_state[ 'active_features' ] = active_features
 		st.session_state[ 'active_targets' ] = active_targets
 		
 		if not active_features:
-			st.warning( '⚠️ Classification training requires at least one processed feature column.' )
+			st.warning(
+				'⚠️ Classification training requires at least one processed feature column.' )
 			st.stop( )
-
+		
 		if len( active_targets ) != 1:
 			st.warning( '⚠️ Classification models requires exactly one processed target column.' )
 			st.stop( )
@@ -5663,7 +5459,7 @@ elif mode == 'Classification Models':
 		
 		if X_data.isna( ).any( ).any( ):
 			st.warning( '⚠️ One or more feature columns are still non-numeric after preprocessing.'
-				'Apply the appropriate encoder/transformer before training.' )
+			            'Apply the appropriate encoder/transformer before training.' )
 			st.stop( )
 		
 		# Create training matrix and target vector
@@ -5693,7 +5489,8 @@ elif mode == 'Classification Models':
 			
 			if unique_count > 20 and unique_ratio > 0.20:
 				st.warning( '⚠️ The processed target appears continuous. '
-					'Use a label encoder/binarizer for classification targets, not a scaler.' )
+				            'Use a label encoder/binarizer for classification targets, '
+				            'not a scaler.' )
 				
 				st.stop( )
 		
@@ -5704,7 +5501,7 @@ elif mode == 'Classification Models':
 		
 		df_classification = df_model.copy( )
 		st.session_state[ 'df_classification' ] = df_classification.copy( )
-	
+		
 		# ------------------------------------------------------------------
 		# Classification Models
 		# ------------------------------------------------------------------
@@ -5714,15 +5511,13 @@ elif mode == 'Classification Models':
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.PERCEPTRON_CLASSIFIER )
 				
-				perceptron_defaults = {
-						'classification_perceptron_alpha': 0.001000,
-						'classification_perceptron_eta': 1.000000,
-						'classification_perceptron_iters': 1000,
-						'classification_perceptron_shuffle': False,
-						'classification_perceptron_penalty': None,
-						'classification_perceptron_test_size': 20,
-						'classification_perceptron_random_state': 1
-				}
+				perceptron_defaults = { 'classification_perceptron_alpha': 0.001000,
+					'classification_perceptron_eta': 1.000000,
+					'classification_perceptron_iters': 1000,
+					'classification_perceptron_shuffle': False,
+					'classification_perceptron_penalty': None,
+					'classification_perceptron_test_size': 20,
+					'classification_perceptron_random_state': 1 }
 				
 				def reset_perceptron_state( ) -> None:
 					"""
@@ -5753,6 +5548,7 @@ elif mode == 'Classification Models':
 					st.session_state[ 'y_test' ] = None
 					st.session_state[ 'df_scores' ] = pd.DataFrame( )
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+				
 				for key, value in perceptron_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
@@ -5766,12 +5562,11 @@ elif mode == 'Classification Models':
 					
 					perceptron_eta = st.number_input( 'Eta', min_value=0.000001,
 						value=float( st.session_state[ 'classification_perceptron_eta' ] ),
-						step=0.100000, format='%.6f',
-						key='classification_perceptron_eta' )
+						step=0.100000, format='%.6f', key='classification_perceptron_eta' )
 					
 					perceptron_iters = st.number_input( 'Iterations', min_value=1,
-						value=int( st.session_state[ 'classification_perceptron_iters' ] ),
-						step=1, key='classification_perceptron_iters' )
+						value=int( st.session_state[ 'classification_perceptron_iters' ] ), step=1,
+						key='classification_perceptron_iters' )
 				
 				with per_c2:
 					st.markdown( '###### 🚦 Regularization / Split' )
@@ -5797,8 +5592,9 @@ elif mode == 'Classification Models':
 						value=int( st.session_state[ 'classification_perceptron_random_state' ] ),
 						step=1, key='classification_perceptron_random_state' )
 					
-					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-					            f'Classes: {len( class_counts ):,}' )
+					st.caption(
+						f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
@@ -5808,14 +5604,14 @@ elif mode == 'Classification Models':
 						key='classification_perceptron_train', use_container_width=True )
 				
 				with per_btn_2:
-					st.button( '🔁 Reset Perceptron',
-						key='classification_perceptron_reset', use_container_width=True,
-						on_click=reset_perceptron_state )
+					st.button( '🔁 Reset Perceptron', key='classification_perceptron_reset',
+						use_container_width=True, on_click=reset_perceptron_state )
 				
 				if train_perceptron:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Perceptron requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Perceptron requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -5844,8 +5640,8 @@ elif mode == 'Classification Models':
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -5857,10 +5653,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -5877,20 +5671,18 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Perceptron training failed: {ex}' )
-						
+			
 			with st.expander( 'Ordinary Least Squares', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.LEAST_SQUARES_CLASSIFIER )
 				
-				least_squares_defaults = {
-						'classification_least_squares_alpha': 0.000100,
-						'classification_least_squares_eta': 0.010000,
-						'classification_least_squares_iters': 1000,
-						'classification_least_squares_shuffle': False,
-						'classification_least_squares_penalty': 'l2',
-						'classification_least_squares_test_size': 20,
-						'classification_least_squares_random_state': 42
-				}
+				least_squares_defaults = { 'classification_least_squares_alpha': 0.000100,
+					'classification_least_squares_eta': 0.010000,
+					'classification_least_squares_iters': 1000,
+					'classification_least_squares_shuffle': False,
+					'classification_least_squares_penalty': 'l2',
+					'classification_least_squares_test_size': 20,
+					'classification_least_squares_random_state': 42 }
 				
 				def reset_least_squares_state( ) -> None:
 					"""
@@ -5981,9 +5773,8 @@ elif mode == 'Classification Models':
 						key='classification_leastsquares_train', use_container_width=True )
 				
 				with ls_btn_2:
-					st.button( '🔁 Reset Least Squares',
-						key='classification_leastsquares_reset', use_container_width=True,
-						on_click=reset_least_squares_state )
+					st.button( '🔁 Reset Least Squares', key='classification_leastsquares_reset',
+						use_container_width=True, on_click=reset_least_squares_state )
 				
 				if train_least_squares:
 					try:
@@ -6005,13 +5796,11 @@ elif mode == 'Classification Models':
 						start_time = time.perf_counter( )
 						
 						model = classification_model.LeastSquares(
-							alpha=float( least_squares_alpha ),
-							eta=float( least_squares_eta ),
-							iters=int( least_squares_iters ),
-							shuffle=bool( least_squares_shuffle ),
+							alpha=float( least_squares_alpha ), eta=float( least_squares_eta ),
+							iters=int( least_squares_iters ), shuffle=bool(
+								least_squares_shuffle ),
 							penalty=least_squares_penalty,
-							random=int( least_squares_random_state )
-						)
+							random=int( least_squares_random_state ) )
 						
 						X_train, X_test, y_train, y_test = model.split_data( X, y,
 							size=float( least_squares_test_size ),
@@ -6022,11 +5811,11 @@ elif mode == 'Classification Models':
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -6035,10 +5824,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -6055,20 +5842,17 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Least Squares training failed: {ex}' )
-					
+			
 			with st.expander( 'Logistic Regression', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.LOGISTIC_REGRESSION )
 				
-				logistic_defaults = {
-						'classification_logistic_c': 1.000000,
-						'classification_logistic_penalty': 'l2',
-						'classification_logistic_iters': 1000,
-						'classification_logistic_multiclass': 'multinomial',
-						'classification_logistic_solver': 'lbfgs',
-						'classification_logistic_test_size': 20,
-						'classification_logistic_random_state': 42
-				}
+				logistic_defaults = { 'classification_logistic_c': 1.000000,
+					'classification_logistic_penalty': 'l2', 'classification_logistic_iters': 1000,
+					'classification_logistic_multiclass': 'multinomial',
+					'classification_logistic_solver': 'lbfgs',
+					'classification_logistic_test_size': 20,
+					'classification_logistic_random_state': 42 }
 				
 				for key, value in logistic_defaults.items( ):
 					if key not in st.session_state:
@@ -6084,13 +5868,13 @@ elif mode == 'Classification Models':
 					logistic_penalty = st.selectbox( 'Penalty',
 						options=[ 'l2', 'l1', 'elasticnet', 'none', None ],
 						index=[ 'l2', 'l1', 'elasticnet', 'none', None ].index(
-							st.session_state[ 'classification_logistic_penalty' ]
-						), format_func=lambda v: 'None' if v is None else str( v ),
+							st.session_state[ 'classification_logistic_penalty' ] ),
+						format_func=lambda v: 'None' if v is None else str( v ),
 						key='classification_logistic_penalty' )
 					
 					logistic_iters = st.number_input( 'Iterations', min_value=1,
-						value=int( st.session_state[ 'classification_logistic_iters' ] ),
-						step=1, key='classification_logistic_iters' )
+						value=int( st.session_state[ 'classification_logistic_iters' ] ), step=1,
+						key='classification_logistic_iters' )
 				
 				with log_c2:
 					st.markdown( '###### Strategy / Solver' )
@@ -6101,14 +5885,14 @@ elif mode == 'Classification Models':
 						key='classification_logistic_multiclass' )
 					
 					logistic_solver = st.selectbox( 'Solver',
-						options=[ 'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga' ],
+						options=[ 'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag',
+							'saga' ],
 						index=[ 'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag',
-						        'saga' ].index(
-							st.session_state[ 'classification_logistic_solver' ] ),
+							'saga' ].index( st.session_state[ 'classification_logistic_solver' ] ),
 						key='classification_logistic_solver' )
 					
-					logistic_test_size = st.slider( 'Test Set Size (%)',
-						min_value=10, max_value=30,
+					logistic_test_size = st.slider( 'Test Set Size (%)', min_value=10,
+						max_value=30,
 						value=int( st.session_state[ 'classification_logistic_test_size' ] ),
 						step=1, key='classification_logistic_test_size' ) / 100.0
 				
@@ -6119,8 +5903,8 @@ elif mode == 'Classification Models':
 						step=1, key='classification_logistic_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Classes: {len( class_counts ):,}' )
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
@@ -6173,10 +5957,8 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
 							int( len( X_test ) ) )
 						
-						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': y_test, 'Predicted': y_prediction } )
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model.copy( )
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
@@ -6188,18 +5970,14 @@ elif mode == 'Classification Models':
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
 					except Exception as ex:
 						st.error( f'Logistic Regression training failed: {ex}' )
-						
+			
 			with st.expander( 'Ridge Classification', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.RIDGE_CLASSIFIER )
 				
-				ridge_defaults = {
-						'classification_ridge_alpha': 1.000000,
-						'classification_ridge_solver': 'auto',
-						'classification_ridge_iters': 1000,
-						'classification_ridge_test_size': 20,
-						'classification_ridge_random_state': 42
-				}
+				ridge_defaults = { 'classification_ridge_alpha': 1.000000,
+					'classification_ridge_solver': 'auto', 'classification_ridge_iters': 1000,
+					'classification_ridge_test_size': 20, 'classification_ridge_random_state': 42 }
 				
 				def reset_ridge_state( ) -> None:
 					"""
@@ -6240,27 +6018,24 @@ elif mode == 'Classification Models':
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					ridge_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_ridge_alpha' ] ),
-						step=0.100000, format='%.6f',
-						key='classification_ridge_alpha' )
+						step=0.100000, format='%.6f', key='classification_ridge_alpha' )
 					
 					ridge_iters = st.number_input( 'Iterations', min_value=1,
-						value=int( st.session_state[ 'classification_ridge_iters' ] ),
-						step=1, key='classification_ridge_iters' )
+						value=int( st.session_state[ 'classification_ridge_iters' ] ), step=1,
+						key='classification_ridge_iters' )
 				
 				with ridge_c2:
 					st.markdown( '###### Solver / Split' )
 					ridge_solver = st.selectbox( 'Solver',
-						options=[ 'auto', 'svd', 'cholesky', 'lsqr',
-						          'sparse_cg', 'sag', 'saga', 'lbfgs' ],
-						index=[ 'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg',
-						        'sag', 'saga', 'lbfgs' ].index(
-							st.session_state[ 'classification_ridge_solver' ] ),
+						options=[ 'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga',
+							'lbfgs' ],
+						index=[ 'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga',
+							'lbfgs' ].index( st.session_state[ 'classification_ridge_solver' ] ),
 						key='classification_ridge_solver' )
 					
-					ridge_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_ridge_test_size' ] ),
-						step=1, key='classification_ridge_test_size' ) / 100.0
+					ridge_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_ridge_test_size' ] ), step=1,
+						key='classification_ridge_test_size' ) / 100.0
 				
 				with ridge_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
@@ -6279,8 +6054,8 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				ridge_btn_1, ridge_btn_2 = st.columns( 2 )
 				with ridge_btn_1:
-					train_ridge = st.button( '🚂 Train Ridge',
-						key='classification_ridge_train', use_container_width=True )
+					train_ridge = st.button( '🚂 Train Ridge', key='classification_ridge_train',
+						use_container_width=True )
 				
 				with ridge_btn_2:
 					st.button( '🔁 Reset Ridge', key='classification_ridge_reset',
@@ -6290,7 +6065,8 @@ elif mode == 'Classification Models':
 					try:
 						if X is None or y is None:
 							st.warning(
-								'⚠️ Ridge Classification requires prepared feature and target arrays.' )
+								'⚠️ Ridge Classification requires prepared feature and target '
+								'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -6307,30 +6083,23 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.Ridge(
-							alpha=float( ridge_alpha ),
-							solver=str( ridge_solver ),
-							iters=int( ridge_iters ),
-							rando=int( ridge_random_state )
-						)
+						model = classification_model.Ridge( alpha=float( ridge_alpha ),
+							solver=str( ridge_solver ), iters=int( ridge_iters ),
+							rando=int( ridge_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( ridge_test_size ),
-							random=int( ridge_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( ridge_test_size ), random=int( ridge_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -6339,10 +6108,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -6359,19 +6126,15 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Ridge training failed: {ex}' )
-						
+			
 			with st.expander( 'Lasso Classification', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.LASSO_CLASSIFIER )
 				
-				lasso_defaults = {
-						'classification_lasso_alpha': 1.000000,
-						'classification_lasso_iters': 500,
-						'classification_lasso_threshold': 0.500000,
-						'classification_lasso_selection': 'random',
-						'classification_lasso_test_size': 20,
-						'classification_lasso_random_state': 42
-				}
+				lasso_defaults = { 'classification_lasso_alpha': 1.000000,
+					'classification_lasso_iters': 500, 'classification_lasso_threshold': 0.500000,
+					'classification_lasso_selection': 'random',
+					'classification_lasso_test_size': 20, 'classification_lasso_random_state': 42 }
 				
 				def reset_lasso_state( ) -> None:
 					"""
@@ -6412,31 +6175,27 @@ elif mode == 'Classification Models':
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					lasso_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_lasso_alpha' ] ),
-						step=0.100000, format='%.6f',
-						key='classification_lasso_alpha' )
+						step=0.100000, format='%.6f', key='classification_lasso_alpha' )
 					
 					lasso_iters = st.number_input( 'Iterations', min_value=1,
-						value=int( st.session_state[ 'classification_lasso_iters' ] ),
-						step=1, key='classification_lasso_iters' )
+						value=int( st.session_state[ 'classification_lasso_iters' ] ), step=1,
+						key='classification_lasso_iters' )
 					
 					lasso_threshold = st.number_input( 'Threshold', min_value=0.000000,
 						max_value=1.000000,
 						value=float( st.session_state[ 'classification_lasso_threshold' ] ),
-						step=0.050000, format='%.6f',
-						key='classification_lasso_threshold' )
+						step=0.050000, format='%.6f', key='classification_lasso_threshold' )
 				
 				with lasso_c2:
 					st.markdown( '###### ↔️ Selection / Split' )
-					lasso_selection = st.selectbox( 'Selection',
-						options=[ 'cyclic', 'random' ],
+					lasso_selection = st.selectbox( 'Selection', options=[ 'cyclic', 'random' ],
 						index=[ 'cyclic', 'random' ].index(
 							st.session_state[ 'classification_lasso_selection' ] ),
 						key='classification_lasso_selection' )
 					
-					lasso_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_lasso_test_size' ] ),
-						step=1, key='classification_lasso_test_size' ) / 100.0
+					lasso_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_lasso_test_size' ] ), step=1,
+						key='classification_lasso_test_size' ) / 100.0
 				
 				with lasso_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
@@ -6455,8 +6214,8 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				lasso_btn_1, lasso_btn_2 = st.columns( 2 )
 				with lasso_btn_1:
-					train_lasso = st.button( '🚂 Train Lasso',
-						key='classification_lasso_train', use_container_width=True )
+					train_lasso = st.button( '🚂 Train Lasso', key='classification_lasso_train',
+						use_container_width=True )
 				
 				with lasso_btn_2:
 					st.button( '🔁 Reset Lasso', key='classification_lasso_reset',
@@ -6466,7 +6225,8 @@ elif mode == 'Classification Models':
 					try:
 						if X is None or y is None:
 							st.warning(
-								'⚠️ Lasso Classification requires prepared feature and target arrays.' )
+								'⚠️ Lasso Classification requires prepared feature and target '
+								'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -6483,31 +6243,23 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.Lasso(
-							alpha=float( lasso_alpha ),
-							iters=int( lasso_iters ),
-							rando=int( lasso_random_state ),
-							threshold=float( lasso_threshold ),
-							selection=str( lasso_selection )
-						)
+						model = classification_model.Lasso( alpha=float( lasso_alpha ),
+							iters=int( lasso_iters ), rando=int( lasso_random_state ),
+							threshold=float( lasso_threshold ), selection=str( lasso_selection ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( lasso_test_size ),
-							random=int( lasso_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( lasso_test_size ), random=int( lasso_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.score( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -6516,10 +6268,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -6536,24 +6286,21 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Lasso training failed: {ex}' )
-						
+			
 			with st.expander( 'Gradient Descent', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.GRADIENT_DESCENT_CLASSIFIER )
 				
-				gradient_defaults = {
-						'classification_gradient_loss': 'hinge',
-						'classification_gradient_penalty': 'l2',
-						'classification_gradient_alpha': 0.000100,
-						'classification_gradient_iters': 1000,
-						'classification_gradient_shuffle': True,
-						'classification_gradient_eta': 0.010000,
-						'classification_gradient_learning': 'optimal',
-						'classification_gradient_power': 0.500000,
-						'classification_gradient_epsilon': 0.100000,
-						'classification_gradient_test_size': 20,
-						'classification_gradient_random_state': 42
-				}
+				gradient_defaults = { 'classification_gradient_loss': 'hinge',
+					'classification_gradient_penalty': 'l2',
+					'classification_gradient_alpha': 0.000100,
+					'classification_gradient_iters': 1000, 'classification_gradient_shuffle': True,
+					'classification_gradient_eta': 0.010000,
+					'classification_gradient_learning': 'optimal',
+					'classification_gradient_power': 0.500000,
+					'classification_gradient_epsilon': 0.100000,
+					'classification_gradient_test_size': 20,
+					'classification_gradient_random_state': 42 }
 				
 				def reset_gradient_state( ) -> None:
 					"""
@@ -6594,11 +6341,11 @@ elif mode == 'Classification Models':
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					gradient_loss = st.selectbox( 'Loss',
 						options=[ 'hinge', 'log_loss', 'modified_huber', 'squared_hinge',
-						          'perceptron', 'squared_error', 'huber', 'epsilon_insensitive',
-						          'squared_epsilon_insensitive' ],
+							'perceptron', 'squared_error', 'huber', 'epsilon_insensitive',
+							'squared_epsilon_insensitive' ],
 						index=[ 'hinge', 'log_loss', 'modified_huber', 'squared_hinge',
-						        'perceptron', 'squared_error', 'huber', 'epsilon_insensitive',
-						        'squared_epsilon_insensitive' ].index(
+							'perceptron', 'squared_error', 'huber', 'epsilon_insensitive',
+							'squared_epsilon_insensitive' ].index(
 							st.session_state[ 'classification_gradient_loss' ] ),
 						key='classification_gradient_loss' )
 					
@@ -6611,12 +6358,11 @@ elif mode == 'Classification Models':
 					
 					gradient_alpha = st.number_input( 'Alpha', min_value=0.000001,
 						value=float( st.session_state[ 'classification_gradient_alpha' ] ),
-						step=0.000100, format='%.6f',
-						key='classification_gradient_alpha' )
+						step=0.000100, format='%.6f', key='classification_gradient_alpha' )
 					
 					gradient_iters = st.number_input( 'Iterations', min_value=1,
-						value=int( st.session_state[ 'classification_gradient_iters' ] ),
-						step=1, key='classification_gradient_iters' )
+						value=int( st.session_state[ 'classification_gradient_iters' ] ), step=1,
+						key='classification_gradient_iters' )
 				
 				with gd_c2:
 					st.markdown( '###### Learning / Split' )
@@ -6626,8 +6372,7 @@ elif mode == 'Classification Models':
 					
 					gradient_eta = st.number_input( 'Eta', min_value=0.000001,
 						value=float( st.session_state[ 'classification_gradient_eta' ] ),
-						step=0.010000, format='%.6f',
-						key='classification_gradient_eta' )
+						step=0.010000, format='%.6f', key='classification_gradient_eta' )
 					
 					gradient_learning = st.selectbox( 'Learning Rate Schedule',
 						options=[ 'constant', 'optimal', 'invscaling', 'adaptive' ],
@@ -6637,13 +6382,11 @@ elif mode == 'Classification Models':
 					
 					gradient_power = st.number_input( 'Power T', min_value=0.000000,
 						value=float( st.session_state[ 'classification_gradient_power' ] ),
-						step=0.100000, format='%.6f',
-						key='classification_gradient_power' )
+						step=0.100000, format='%.6f', key='classification_gradient_power' )
 					
 					gradient_epsilon = st.number_input( 'Epsilon', min_value=0.000000,
 						value=float( st.session_state[ 'classification_gradient_epsilon' ] ),
-						step=0.010000, format='%.6f',
-						key='classification_gradient_epsilon' )
+						step=0.010000, format='%.6f', key='classification_gradient_epsilon' )
 				
 				with gd_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
@@ -6671,15 +6414,15 @@ elif mode == 'Classification Models':
 						key='classification_gradient_train', use_container_width=True )
 				
 				with gd_btn_2:
-					st.button( '🔁 Reset Gradient Descent',
-						key='classification_gradient_reset', use_container_width=True,
-						on_click=reset_gradient_state )
+					st.button( '🔁 Reset Gradient Descent', key='classification_gradient_reset',
+						use_container_width=True, on_click=reset_gradient_state )
 				
 				if train_gradient:
 					try:
 						if X is None or y is None:
 							st.warning(
-								'⚠️ Gradient Descent requires prepared feature and target arrays.' )
+								'⚠️ Gradient Descent requires prepared feature and target '
+								'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -6696,36 +6439,26 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.GradientDescent(
-							loss=str( gradient_loss ),
-							penalty=gradient_penalty,
-							alpha=float( gradient_alpha ),
-							iters=int( gradient_iters ),
-							shuffle=bool( gradient_shuffle ),
-							eta=float( gradient_eta ),
-							learning=str( gradient_learning ),
-							power=float( gradient_power ),
-							epsilon=float( gradient_epsilon ),
-							rando=int( gradient_random_state )
-						)
+						model = classification_model.GradientDescent( loss=str( gradient_loss ),
+							penalty=gradient_penalty, alpha=float( gradient_alpha ),
+							iters=int( gradient_iters ), shuffle=bool( gradient_shuffle ),
+							eta=float( gradient_eta ), learning=str( gradient_learning ),
+							power=float( gradient_power ), epsilon=float( gradient_epsilon ),
+							rando=int( gradient_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( gradient_test_size ),
-							random=int( gradient_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( gradient_test_size ), random=int( gradient_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.score( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -6734,10 +6467,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -6756,23 +6487,19 @@ elif mode == 'Classification Models':
 						st.error( f'Gradient Descent training failed: {ex}' )
 		
 		with st.expander( 'Instance Models', expanded=True ):
-		
+			
 			with st.expander( 'Nearest Neighbor', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left',
-						help=cfg.NEAREST_NEIGHBOR_CLASSFIER )
-					
-					nearest_defaults = {
-							'classification_nearest_num': 5,
-							'classification_nearest_algorithm': 'auto',
-							'classification_nearest_power': 2,
-							'classification_nearest_metric': 'minkowski',
-							'classification_nearest_leafs': 30,
-							'classification_nearest_test_size': 20,
-							'classification_nearest_random_state': 42
-					}
-					
-					def reset_nearest_state( ) -> None:
-						"""
+				st.caption( 'Description', width='stretch', text_alignment='left',
+					help=cfg.NEAREST_NEIGHBOR_CLASSFIER )
+				
+				nearest_defaults = { 'classification_nearest_num': 5,
+					'classification_nearest_algorithm': 'auto', 'classification_nearest_power': 2,
+					'classification_nearest_metric': 'minkowski',
+					'classification_nearest_leafs': 30, 'classification_nearest_test_size': 20,
+					'classification_nearest_random_state': 42 }
+				
+				def reset_nearest_state( ) -> None:
+					"""
 						
 							Purpose:
 							--------
@@ -6788,214 +6515,177 @@ elif mode == 'Classification Models':
 							None
 						
 						"""
-						for reset_key, reset_value in nearest_defaults.items( ):
-							st.session_state[ reset_key ] = reset_value
-						
-						st.session_state[ 'elapsed_seconds' ] = 0.0
-						st.session_state[ 'model' ] = None
-						st.session_state[ 'y_prediction' ] = None
-						st.session_state[ 'X_train' ] = None
-						st.session_state[ 'X_test' ] = None
-						st.session_state[ 'y_train' ] = None
-						st.session_state[ 'y_test' ] = None
-						st.session_state[ 'df_scores' ] = pd.DataFrame( )
-						st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+					for reset_key, reset_value in nearest_defaults.items( ):
+						st.session_state[ reset_key ] = reset_value
 					
-					for key, value in nearest_defaults.items( ):
-						if key not in st.session_state:
-							st.session_state[ key ] = value
+					st.session_state[ 'elapsed_seconds' ] = 0.0
+					st.session_state[ 'model' ] = None
+					st.session_state[ 'y_prediction' ] = None
+					st.session_state[ 'X_train' ] = None
+					st.session_state[ 'X_test' ] = None
+					st.session_state[ 'y_train' ] = None
+					st.session_state[ 'y_test' ] = None
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
+				
+				for key, value in nearest_defaults.items( ):
+					if key not in st.session_state:
+						st.session_state[ key ] = value
+				
+				nn_c1, nn_c2, nn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
+				with nn_c1:
+					st.markdown( '###### 🎚️ Hyper Parameters' )
+					nearest_num = st.number_input( 'Neighbors', min_value=1,
+						value=int( st.session_state[ 'classification_nearest_num' ] ), step=1,
+						key='classification_nearest_num' )
 					
-					nn_c1, nn_c2, nn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
-					with nn_c1:
-						st.markdown( '###### 🎚️ Hyper Parameters' )
-						nearest_num = st.number_input( 'Neighbors', min_value=1,
-							value=int( st.session_state[ 'classification_nearest_num' ] ),
-							step=1, key='classification_nearest_num' )
-						
-						nearest_power = st.number_input( 'Power', min_value=1,
-							value=int( st.session_state[ 'classification_nearest_power' ] ),
-							step=1, key='classification_nearest_power' )
-						
-						nearest_leafs = st.number_input( 'Leaf Size', min_value=1,
-							value=int( st.session_state[ 'classification_nearest_leafs' ] ),
-							step=1, key='classification_nearest_leafs' )
+					nearest_power = st.number_input( 'Power', min_value=1,
+						value=int( st.session_state[ 'classification_nearest_power' ] ), step=1,
+						key='classification_nearest_power' )
 					
-					with nn_c2:
-						st.markdown( '###### Distance / Search' )
-						nearest_algorithm = st.selectbox( 'Algorithm',
-							options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
-							index=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ].index(
-								st.session_state[ 'classification_nearest_algorithm' ] ),
-							key='classification_nearest_algorithm' )
-						
-						nearest_metric = st.selectbox( 'Metric',
-							options=[
-									'minkowski',
-									'euclidean',
-									'manhattan',
-									'chebyshev',
-									'hamming',
-									'canberra',
-									'braycurtis',
-									'cityblock',
-									'cosine',
-									'l1',
-									'l2',
-									'nan_euclidean',
-									'mahalanobis',
-									'seuclidean'
-							],
-							index=[
-									'minkowski',
-									'euclidean',
-									'manhattan',
-									'chebyshev',
-									'hamming',
-									'canberra',
-									'braycurtis',
-									'cityblock',
-									'cosine',
-									'l1',
-									'l2',
-									'nan_euclidean',
-									'mahalanobis',
-									'seuclidean'
-							].index( st.session_state[ 'classification_nearest_metric' ] ),
-							key='classification_nearest_metric' )
-						
-						nearest_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-							max_value=30,
-							value=int( st.session_state[ 'classification_nearest_test_size' ] ),
-							step=1, key='classification_nearest_test_size' ) / 100.0
+					nearest_leafs = st.number_input( 'Leaf Size', min_value=1,
+						value=int( st.session_state[ 'classification_nearest_leafs' ] ), step=1,
+						key='classification_nearest_leafs' )
+				
+				with nn_c2:
+					st.markdown( '###### Distance / Search' )
+					nearest_algorithm = st.selectbox( 'Algorithm',
+						options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
+						index=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ].index(
+							st.session_state[ 'classification_nearest_algorithm' ] ),
+						key='classification_nearest_algorithm' )
 					
-					with nn_c3:
-						st.markdown( '###### 🏃 Run Configuration' )
-						nearest_random_state = st.number_input( 'Random State', min_value=0,
-							value=int( st.session_state[ 'classification_nearest_random_state' ] ),
-							step=1, key='classification_nearest_random_state' )
-						
-						st.caption( f'Rows: {len( df_model ):,} | '
-						            f'Features: {len( active_features ):,} | '
-						            f'Classes: {len( class_counts ):,}' )
-						
-						st.caption( f'Target: {target_name}' )
+					nearest_metric = st.selectbox( 'Metric',
+						options=[ 'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'hamming',
+							'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
+							'nan_euclidean', 'mahalanobis', 'seuclidean' ],
+						index=[ 'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'hamming',
+							'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
+							'nan_euclidean', 'mahalanobis', 'seuclidean' ].index(
+							st.session_state[ 'classification_nearest_metric' ] ),
+						key='classification_nearest_metric' )
 					
-					# ------------------------------------------------------------------
-					# Model Training
-					# ------------------------------------------------------------------
-					nn_btn_1, nn_btn_2 = st.columns( 2, border=True )
-					with nn_btn_1:
-						train_nearest = st.button( '🚂 Train Nearest Neighbor',
-							key='classification_nearest_train', use_container_width=True )
+					nearest_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_nearest_test_size' ] ),
+						step=1,
+						key='classification_nearest_test_size' ) / 100.0
+				
+				with nn_c3:
+					st.markdown( '###### 🏃 Run Configuration' )
+					nearest_random_state = st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'classification_nearest_random_state' ] ),
+						step=1, key='classification_nearest_random_state' )
 					
-					with nn_btn_2:
-						st.button( '🔁 Reset Nearest Neighbor',
-							key='classification_nearest_reset', use_container_width=True,
-							on_click=reset_nearest_state )
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Classes: {len( class_counts ):,}' )
 					
-					if train_nearest:
-						try:
-							if X is None or y is None:
-								st.warning( '⚠️ Nearest Neighbor requires prepared feature and target arrays.' )
-								st.stop( )
-							
-							if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
-								st.warning( '⚠️ Nearest Neighbor requires at least one numeric feature.' )
-								st.stop( )
-							
-							y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
-							
-							if len( np.unique( y ) ) < 2:
-								st.warning( '⚠️ Nearest Neighbor requires at least two target classes.' )
-								st.stop( )
-							
-							if int( nearest_num ) > len( X ):
-								st.warning( '⚠️ Neighbors cannot exceed the number of available samples.' )
-								st.stop( )
-							
-							if str( nearest_metric ) in [ 'mahalanobis', 'seuclidean' ]:
-								st.warning(
-									'⚠️ The selected metric requires additional metric parameters. '
-									'Use minkowski, euclidean, manhattan, cityblock, l1, l2, '
-									'cosine, chebyshev, hamming, canberra, braycurtis, or '
-									'nan_euclidean for this UI path.'
-								)
-								st.stop( )
-							
-							start_time = time.perf_counter( )
-							
-							model = classification_model.NearestNeighbor(
-								num=int( nearest_num ),
-								algorithm=str( nearest_algorithm ),
-								power=int( nearest_power ),
-								metric=str( nearest_metric ),
-								leafs=int( nearest_leafs )
-							)
-							
-							X_train, X_test, y_train, y_test = model.split_data(
-								X,
-								y,
-								size=float( nearest_test_size ),
-								random=int( nearest_random_state )
-							)
-							
-							if int( nearest_num ) > len( X_train ):
-								st.warning(
-									'⚠️ Neighbors cannot exceed the number of training samples '
-									'after the train/test split.'
-								)
-								st.stop( )
-							
-							model.train( X_train, y_train )
-							y_prediction = model.project( X_test )
-							elapsed_seconds = float( time.perf_counter( ) - start_time )
-							
-							df_scores = model.analyze( X_test, y_test )
-							df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-								else pd.DataFrame( )
-							
-							df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
-								round( elapsed_seconds, 4 ) )
-							
-							df_scores.insert( len( df_scores.columns ), 'Training Rows',
-								int( len( X_train ) ) )
-							
-							df_scores.insert( len( df_scores.columns ), 'Testing Rows',
-								int( len( X_test ) ) )
-							
-							y_prediction = np.asarray( y_prediction )
-							df_predictions = pd.DataFrame( {
-									'Actual': np.asarray( y_test ),
-									'Predicted': y_prediction
-							} )
-							
-							st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
-							st.session_state[ 'model' ] = model
-							st.session_state[ 'y_prediction' ] = y_prediction.copy( )
-							st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
-							st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
-							st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
-							st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
-							st.session_state[ 'df_model' ] = df_model.copy( )
-							st.session_state[ 'df_scores' ] = df_scores.copy( )
-							st.session_state[ 'df_predictions' ] = df_predictions.copy( )
-							
-							st.success( 'Nearest Neighbor training completed.' )
+					st.caption( f'Target: {target_name}' )
+				
+				# ------------------------------------------------------------------
+				# Model Training
+				# ------------------------------------------------------------------
+				nn_btn_1, nn_btn_2 = st.columns( 2, border=True )
+				with nn_btn_1:
+					train_nearest = st.button( '🚂 Train Nearest Neighbor',
+						key='classification_nearest_train', use_container_width=True )
+				
+				with nn_btn_2:
+					st.button( '🔁 Reset Nearest Neighbor', key='classification_nearest_reset',
+						use_container_width=True, on_click=reset_nearest_state )
+				
+				if train_nearest:
+					try:
+						if X is None or y is None:
+							st.warning(
+								'⚠️ Nearest Neighbor requires prepared feature and target '
+								'arrays.' )
+							st.stop( )
 						
-						except Exception as ex:
-							st.error( f'Nearest Neighbor training failed: {ex}' )
+						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
+							st.warning(
+								'⚠️ Nearest Neighbor requires at least one numeric feature.' )
+							st.stop( )
 						
+						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
+						
+						if len( np.unique( y ) ) < 2:
+							st.warning(
+								'⚠️ Nearest Neighbor requires at least two target classes.' )
+							st.stop( )
+						
+						if int( nearest_num ) > len( X ):
+							st.warning(
+								'⚠️ Neighbors cannot exceed the number of available samples.' )
+							st.stop( )
+						
+						if str( nearest_metric ) in [ 'mahalanobis', 'seuclidean' ]:
+							st.warning(
+								'⚠️ The selected metric requires additional metric parameters. '
+								'Use minkowski, euclidean, manhattan, cityblock, l1, l2, '
+								'cosine, chebyshev, hamming, canberra, braycurtis, or '
+								'nan_euclidean for this UI path.' )
+							st.stop( )
+						
+						start_time = time.perf_counter( )
+						
+						model = classification_model.NearestNeighbor( num=int( nearest_num ),
+							algorithm=str( nearest_algorithm ), power=int( nearest_power ),
+							metric=str( nearest_metric ), leafs=int( nearest_leafs ) )
+						
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( nearest_test_size ), random=int( nearest_random_state ) )
+						
+						if int( nearest_num ) > len( X_train ):
+							st.warning( '⚠️ Neighbors cannot exceed the number of training '
+							            'samples '
+							            'after the train/test split.' )
+							st.stop( )
+						
+						model.train( X_train, y_train )
+						y_prediction = model.project( X_test )
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
+						
+						df_scores = model.analyze( X_test, y_test )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
+						
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Training Rows',
+							int( len( X_train ) ) )
+						
+						df_scores.insert( len( df_scores.columns ), 'Testing Rows',
+							int( len( X_test ) ) )
+						
+						y_prediction = np.asarray( y_prediction )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
+						
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'model' ] = model
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'df_model' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
+						
+						st.success( 'Nearest Neighbor training completed.' )
+					
+					except Exception as ex:
+						st.error( f'Nearest Neighbor training failed: {ex}' )
+			
 			with st.expander( 'Support Vector Machine', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.SUPPORT_VECTOR_CLASSIFIER )
 				
-				svm_defaults = {
-						'classification_svm_c': 1.000000,
-						'classification_svm_kernel': 'rbf',
-						'classification_svm_degree': 3,
-						'classification_svm_test_size': 20,
-						'classification_svm_random_state': 42
-				}
+				svm_defaults = { 'classification_svm_c': 1.000000,
+					'classification_svm_kernel': 'rbf', 'classification_svm_degree': 3,
+					'classification_svm_test_size': 20, 'classification_svm_random_state': 42 }
 				
 				def reset_svm_state( ) -> None:
 					"""
@@ -7035,27 +6725,29 @@ elif mode == 'Classification Models':
 				with svm_c1:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					svm_c = st.number_input( 'C', min_value=0.000001,
-						value=float( st.session_state[ 'classification_svm_c' ] ),
-						step=0.100000, format='%.6f', key='classification_svm_c' )
+						value=float( st.session_state[ 'classification_svm_c' ] ), step=0.100000,
+						format='%.6f', key='classification_svm_c' )
 					
 					svm_kernel = st.selectbox( 'Kernel',
 						options=[ 'linear', 'poly', 'rbf', 'sigmoid' ],
 						index=[ 'linear', 'poly', 'rbf', 'sigmoid' ].index(
-							st.session_state[ 'classification_svm_kernel' ] )
-						if st.session_state[ 'classification_svm_kernel' ]
-						   in [ 'linear', 'poly', 'rbf', 'sigmoid' ] else 2,
+							st.session_state[ 'classification_svm_kernel' ] ) if st.session_state[
+								                                                     'classification_svm_kernel' ] in [
+								                                                     'linear',
+								                                                     'poly', 'rbf',
+								                                                     'sigmoid' ]
+						else 2,
 						key='classification_svm_kernel' )
 					
 					svm_degree = st.number_input( 'Degree', min_value=1,
-						value=int( st.session_state[ 'classification_svm_degree' ] ),
-						step=1, key='classification_svm_degree' )
+						value=int( st.session_state[ 'classification_svm_degree' ] ), step=1,
+						key='classification_svm_degree' )
 				
 				with svm_c2:
 					st.markdown( '###### ↔️ Split' )
-					svm_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_svm_test_size' ] ),
-						step=1, key='classification_svm_test_size' ) / 100.0
+					svm_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_svm_test_size' ] ), step=1,
+						key='classification_svm_test_size' ) / 100.0
 					
 					if svm_kernel != 'poly':
 						st.caption( 'Degree is only used when kernel = poly.' )
@@ -7063,8 +6755,8 @@ elif mode == 'Classification Models':
 				with svm_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					svm_random_state = st.number_input( 'Random State', min_value=0,
-						value=int( st.session_state[ 'classification_svm_random_state' ] ),
-						step=1, key='classification_svm_random_state' )
+						value=int( st.session_state[ 'classification_svm_random_state' ] ), step=1,
+						key='classification_svm_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
 					            f'Features: {len( active_features ):,} | '
@@ -7078,23 +6770,25 @@ elif mode == 'Classification Models':
 				svm_btn_1, svm_btn_2 = st.columns( 2 )
 				with svm_btn_1:
 					train_svm = st.button( '🚂 Train Support Vector',
-						key='classification_svm_train', use_container_width=True )
+						key='classification_svm_train',
+						use_container_width=True )
 				
 				with svm_btn_2:
-					st.button( '🔁 Reset Support Vector',
-						key='classification_svm_reset', use_container_width=True,
-						on_click=reset_svm_state )
+					st.button( '🔁 Reset Support Vector', key='classification_svm_reset',
+						use_container_width=True, on_click=reset_svm_state )
 				
 				if train_svm:
 					try:
 						if X is None or y is None:
 							st.warning(
-								'⚠️ Support Vector Machine requires prepared feature and target arrays.' )
+								'⚠️ Support Vector Machine requires prepared feature and target '
+								'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
 							st.warning(
-								'⚠️ Support Vector Machine requires at least one numeric feature.' )
+								'⚠️ Support Vector Machine requires at least one numeric '
+								'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
@@ -7107,33 +6801,25 @@ elif mode == 'Classification Models':
 						if str( svm_kernel ) == 'precomputed':
 							st.warning(
 								'⚠️ The precomputed kernel requires a square kernel matrix and is '
-								'not supported by this Classification UI path.'
-							)
+								'not supported by this Classification UI path.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.SupportVector(
-							C=float( svm_c ),
-							kernel=str( svm_kernel ),
-							degree=int( svm_degree ),
-							random=int( svm_random_state )
-						)
+						model = classification_model.SupportVector( C=float( svm_c ),
+							kernel=str( svm_kernel ), degree=int( svm_degree ),
+							random=int( svm_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( svm_test_size ),
-							random=int( svm_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( svm_test_size ), random=int( svm_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
 						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
 							round( elapsed_seconds, 4 ) )
@@ -7145,10 +6831,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -7172,15 +6856,10 @@ elif mode == 'Classification Models':
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.DESICION_TREE_CLASSIFIER )
 				
-				tree_defaults = {
-						'classification_tree_criterion': 'gini',
-						'classification_tree_splitter': 'best',
-						'classification_tree_depth': 0,
-						'classification_tree_min_split': 2,
-						'classification_tree_min_leaf': 1,
-						'classification_tree_test_size': 20,
-						'classification_tree_random_state': 42
-				}
+				tree_defaults = { 'classification_tree_criterion': 'gini',
+					'classification_tree_splitter': 'best', 'classification_tree_depth': 0,
+					'classification_tree_min_split': 2, 'classification_tree_min_leaf': 1,
+					'classification_tree_test_size': 20, 'classification_tree_random_state': 42 }
 				
 				def reset_tree_state( ) -> None:
 					"""
@@ -7220,8 +6899,7 @@ elif mode == 'Classification Models':
 				tree_c1, tree_c2, tree_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with tree_c1:
 					st.markdown( '###### 🎚️ Hyper-Parameters' )
-					tree_criterion = st.selectbox(
-						'Criterion',
+					tree_criterion = st.selectbox( 'Criterion',
 						options=[ 'gini', 'entropy', 'log_loss' ],
 						index=[ 'gini', 'entropy', 'log_loss' ].index(
 							st.session_state[ 'classification_tree_criterion' ] ),
@@ -7233,32 +6911,33 @@ elif mode == 'Classification Models':
 						key='classification_tree_splitter' )
 					
 					tree_depth = st.number_input( 'Max Depth (0 = None)', min_value=0,
-						value=int( st.session_state[ 'classification_tree_depth' ] ),
-						step=1, key='classification_tree_depth' )
+						value=int( st.session_state[ 'classification_tree_depth' ] ), step=1,
+						key='classification_tree_depth' )
 				
 				with tree_c2:
 					st.markdown( '###### Node Constraints' )
 					tree_min_split = st.number_input( 'Min Samples Split', min_value=2,
-						value=int( st.session_state[ 'classification_tree_min_split' ] ),
-						step=1, key='classification_tree_min_split' )
+						value=int( st.session_state[ 'classification_tree_min_split' ] ), step=1,
+						key='classification_tree_min_split' )
 					
 					tree_min_leaf = st.number_input( 'Min Samples Leaf', min_value=1,
-						value=int( st.session_state[ 'classification_tree_min_leaf' ] ),
-						step=1, key='classification_tree_min_leaf' )
+						value=int( st.session_state[ 'classification_tree_min_leaf' ] ), step=1,
+						key='classification_tree_min_leaf' )
 					
-					tree_test_size = st.slider( 'Test Set Size (%)',
-						min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_tree_test_size' ] ),
-						step=1, key='classification_tree_test_size' ) / 100.0
+					tree_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_tree_test_size' ] ), step=1,
+						key='classification_tree_test_size' ) / 100.0
 				
 				with tree_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					tree_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_tree_random_state' ] ),
-						step=1, key='classification_tree_random_state' )
+						step=1,
+						key='classification_tree_random_state' )
 					
-					st.caption( f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-					            f'Classes: {len( class_counts ):,}' )
+					st.caption(
+						f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
+						f'Classes: {len( class_counts ):,}' )
 					
 					st.caption( f'Target: {target_name}' )
 				
@@ -7271,14 +6950,14 @@ elif mode == 'Classification Models':
 						key='classification_tree_train', use_container_width=True )
 				
 				with tree_btn_2:
-					st.button( '🔁 Reset Decision Tree',
-						key='classification_tree_reset', use_container_width=True,
-						on_click=reset_tree_state )
+					st.button( '🔁 Reset Decision Tree', key='classification_tree_reset',
+						use_container_width=True, on_click=reset_tree_state )
 				
 				if train_tree:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Decision Tree requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Decision Tree requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -7292,22 +6971,17 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						if int( tree_min_leaf ) > int( tree_min_split ):
-							st.warning(
-								'⚠️ Min Samples Leaf should not exceed Min Samples Split '
-								'for this UI path.'
-							)
+							st.warning( '⚠️ Min Samples Leaf should not exceed Min Samples Split '
+							            'for this UI path.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.DecisionTree(
-							criterion=str( tree_criterion ),
+						model = classification_model.DecisionTree( criterion=str( tree_criterion ),
 							splitter=str( tree_splitter ),
 							depth=None if int( tree_depth ) == 0 else int( tree_depth ),
-							min_split=int( tree_min_split ),
-							min_leaf=int( tree_min_leaf ),
-							random=int( tree_random_state )
-						)
+							min_split=int( tree_min_split ), min_leaf=int( tree_min_leaf ),
+							random=int( tree_random_state ) )
 						
 						X_train, X_test, y_train, y_test = model.split_data( X, y,
 							size=float( tree_test_size ), random=int( tree_random_state ) )
@@ -7317,11 +6991,11 @@ elif mode == 'Classification Models':
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7330,10 +7004,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -7350,20 +7022,16 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Decision Tree training failed: {ex}' )
-						
+			
 			with st.expander( 'Random Forest', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.RANDOM_FOREST_CLASSIFIER )
 				
-				forest_defaults = {
-						'classification_forest_estimators': 100,
-						'classification_forest_criterion': 'gini',
-						'classification_forest_depth': 0,
-						'classification_forest_min_split': 2,
-						'classification_forest_min_leaf': 1,
-						'classification_forest_test_size': 20,
-						'classification_forest_random_state': 42
-				}
+				forest_defaults = { 'classification_forest_estimators': 100,
+					'classification_forest_criterion': 'gini', 'classification_forest_depth': 0,
+					'classification_forest_min_split': 2, 'classification_forest_min_leaf': 1,
+					'classification_forest_test_size': 20,
+					'classification_forest_random_state': 42 }
 				
 				def reset_forest_state( ) -> None:
 					"""
@@ -7404,7 +7072,8 @@ elif mode == 'Classification Models':
 					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					forest_estimators = st.number_input( 'Estimators', min_value=1,
 						value=int( st.session_state[ 'classification_forest_estimators' ] ),
-						step=1, key='classification_forest_estimators' )
+						step=1,
+						key='classification_forest_estimators' )
 					
 					forest_criterion = st.selectbox( 'Criterion',
 						options=[ 'gini', 'entropy', 'log_loss' ],
@@ -7413,23 +7082,22 @@ elif mode == 'Classification Models':
 						key='classification_forest_criterion' )
 					
 					forest_depth = st.number_input( 'Max Depth (0 = None)', min_value=0,
-						value=int( st.session_state[ 'classification_forest_depth' ] ),
-						step=1, key='classification_forest_depth' )
+						value=int( st.session_state[ 'classification_forest_depth' ] ), step=1,
+						key='classification_forest_depth' )
 				
 				with forest_c2:
 					st.markdown( '###### Node Constraints' )
 					forest_min_split = st.number_input( 'Min Samples Split', min_value=2,
-						value=int( st.session_state[ 'classification_forest_min_split' ] ),
-						step=1, key='classification_forest_min_split' )
+						value=int( st.session_state[ 'classification_forest_min_split' ] ), step=1,
+						key='classification_forest_min_split' )
 					
 					forest_min_leaf = st.number_input( 'Min Samples Leaf', min_value=1,
-						value=int( st.session_state[ 'classification_forest_min_leaf' ] ),
-						step=1, key='classification_forest_min_leaf' )
+						value=int( st.session_state[ 'classification_forest_min_leaf' ] ), step=1,
+						key='classification_forest_min_leaf' )
 					
-					forest_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_forest_test_size' ] ),
-						step=1, key='classification_forest_test_size' ) / 100.0
+					forest_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_forest_test_size' ] ), step=1,
+						key='classification_forest_test_size' ) / 100.0
 				
 				with forest_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
@@ -7452,14 +7120,14 @@ elif mode == 'Classification Models':
 						key='classification_forest_train', use_container_width=True )
 				
 				with forest_btn_2:
-					st.button( '🔁 Reset Random Forest',
-						key='classification_forest_reset', use_container_width=True,
-						on_click=reset_forest_state )
+					st.button( '🔁 Reset Random Forest', key='classification_forest_reset',
+						use_container_width=True, on_click=reset_forest_state )
 				
 				if train_forest:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Random Forest requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Random Forest requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -7473,10 +7141,8 @@ elif mode == 'Classification Models':
 							st.stop( )
 						
 						if int( forest_min_leaf ) > int( forest_min_split ):
-							st.warning(
-								'⚠️ Min Samples Leaf should not exceed Min Samples Split '
-								'for this UI path.'
-							)
+							st.warning( '⚠️ Min Samples Leaf should not exceed Min Samples Split '
+							            'for this UI path.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
@@ -7485,28 +7151,22 @@ elif mode == 'Classification Models':
 							n_estimators=int( forest_estimators ),
 							criterion=str( forest_criterion ),
 							depth=None if int( forest_depth ) == 0 else int( forest_depth ),
-							min_split=int( forest_min_split ),
-							min_leaf=int( forest_min_leaf ),
-							random=int( forest_random_state )
-						)
+							min_split=int( forest_min_split ), min_leaf=int( forest_min_leaf ),
+							random=int( forest_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( forest_test_size ),
-							random=int( forest_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( forest_test_size ), random=int( forest_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7515,10 +7175,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -7543,14 +7201,10 @@ elif mode == 'Classification Models':
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.GRADIENT_BOOST_CLASSIFIER )
 				
-				gb_defaults = {
-						'classification_gb_estimators': 100,
-						'classification_gb_rate': 0.100000,
-						'classification_gb_depth': 3,
-						'classification_gb_criterion': 'friedman_mse',
-						'classification_gb_test_size': 20,
-						'classification_gb_random_state': 42
-				}
+				gb_defaults = { 'classification_gb_estimators': 100,
+					'classification_gb_rate': 0.100000, 'classification_gb_depth': 3,
+					'classification_gb_criterion': 'friedman_mse',
+					'classification_gb_test_size': 20, 'classification_gb_random_state': 42 }
 				
 				def reset_gb_state( ) -> None:
 					"""
@@ -7591,16 +7245,16 @@ elif mode == 'Classification Models':
 				with gb_c1:
 					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					gb_estimators = st.number_input( 'Estimators', min_value=1,
-						value=int( st.session_state[ 'classification_gb_estimators' ] ),
-						step=1, key='classification_gb_estimators' )
+						value=int( st.session_state[ 'classification_gb_estimators' ] ), step=1,
+						key='classification_gb_estimators' )
 					
 					gb_rate = st.number_input( 'Learning Rate', min_value=0.000001,
-						value=float( st.session_state[ 'classification_gb_rate' ] ),
-						step=0.010000, format='%.6f', key='classification_gb_rate' )
+						value=float( st.session_state[ 'classification_gb_rate' ] ), step=0.010000,
+						format='%.6f', key='classification_gb_rate' )
 					
 					gb_depth = st.number_input( 'Max Depth', min_value=1,
-						value=int( st.session_state[ 'classification_gb_depth' ] ),
-						step=1, key='classification_gb_depth' )
+						value=int( st.session_state[ 'classification_gb_depth' ] ), step=1,
+						key='classification_gb_depth' )
 				
 				with gb_c2:
 					st.markdown( '###### Criterion / Split' )
@@ -7610,16 +7264,15 @@ elif mode == 'Classification Models':
 							st.session_state[ 'classification_gb_criterion' ] ),
 						key='classification_gb_criterion' )
 					
-					gb_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_gb_test_size' ] ),
-						step=1, key='classification_gb_test_size' ) / 100.0
+					gb_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_gb_test_size' ] ), step=1,
+						key='classification_gb_test_size' ) / 100.0
 				
 				with gb_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					gb_random_state = st.number_input( 'Random State', min_value=0,
-						value=int( st.session_state[ 'classification_gb_random_state' ] ),
-						step=1, key='classification_gb_random_state' )
+						value=int( st.session_state[ 'classification_gb_random_state' ] ), step=1,
+						key='classification_gb_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
 					            f'Features: {len( active_features ):,} | '
@@ -7632,22 +7285,23 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				gb_btn_1, gb_btn_2 = st.columns( 2 )
 				with gb_btn_1:
-					train_gb = st.button( '🚂 Train Gradient Boost',
-						key='classification_gb_train', use_container_width=True )
+					train_gb = st.button( '🚂 Train Gradient Boost', key='classification_gb_train',
+						use_container_width=True )
 				
 				with gb_btn_2:
-					st.button( '🔁 Reset Gradient Boost',
-						key='classification_gb_reset', use_container_width=True,
-						on_click=reset_gb_state )
+					st.button( '🔁 Reset Gradient Boost', key='classification_gb_reset',
+						use_container_width=True, on_click=reset_gb_state )
 				
 				if train_gb:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Gradient Boost requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Gradient Boost requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
-							st.warning( '⚠️ Gradient Boost requires at least one numeric feature.' )
+							st.warning( '⚠️ Gradient Boost requires at least one numeric '
+							            'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
@@ -7658,31 +7312,24 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.GradientBoost(
-							estimators=int( gb_estimators ),
-							rate=float( gb_rate ),
-							depth=int( gb_depth ),
-							criterion=str( gb_criterion ),
-							random=int( gb_random_state )
-						)
+						model = classification_model.GradientBoost( estimators=int(
+							gb_estimators ),
+							rate=float( gb_rate ), depth=int( gb_depth ),
+							criterion=str( gb_criterion ), random=int( gb_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( gb_test_size ),
-							random=int( gb_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( gb_test_size ), random=int( gb_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7691,10 +7338,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -7712,18 +7357,14 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Gradient Boost training failed: {ex}' )
-						
+			
 			with st.expander( 'Adaptive Boost', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.ADAPTIVE_BOOST_CLASSIFIER )
 				
-				ab_defaults = {
-						'classification_ab_estimators': 50,
-						'classification_ab_rate': 1.000000,
-						'classification_ab_algorithm': 'SAMME',
-						'classification_ab_test_size': 20,
-						'classification_ab_random_state': 42
-				}
+				ab_defaults = { 'classification_ab_estimators': 50,
+					'classification_ab_rate': 1.000000, 'classification_ab_algorithm': 'SAMME',
+					'classification_ab_test_size': 20, 'classification_ab_random_state': 42 }
 				
 				def reset_ab_state( ) -> None:
 					"""
@@ -7764,28 +7405,27 @@ elif mode == 'Classification Models':
 				with ab_c1:
 					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					ab_estimators = st.number_input( 'Estimators', min_value=1,
-						value=int( st.session_state[ 'classification_ab_estimators' ] ),
-						step=1, key='classification_ab_estimators' )
+						value=int( st.session_state[ 'classification_ab_estimators' ] ), step=1,
+						key='classification_ab_estimators' )
 					
 					ab_rate = st.number_input( 'Learning Rate', min_value=0.000001,
-						value=float( st.session_state[ 'classification_ab_rate' ] ),
-						step=0.010000, format='%.6f', key='classification_ab_rate' )
+						value=float( st.session_state[ 'classification_ab_rate' ] ), step=0.010000,
+						format='%.6f', key='classification_ab_rate' )
 				
 				with ab_c2:
 					st.markdown( '###### ♟️ Algorithm / Split' )
-					ab_algorithm = st.selectbox( 'Algorithm', options=[ 'SAMME' ],
-						index=0, key='classification_ab_algorithm' )
+					ab_algorithm = st.selectbox( 'Algorithm', options=[ 'SAMME' ], index=0,
+						key='classification_ab_algorithm' )
 					
-					ab_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_ab_test_size' ] ),
-						step=1, key='classification_ab_test_size' ) / 100.0
+					ab_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_ab_test_size' ] ), step=1,
+						key='classification_ab_test_size' ) / 100.0
 				
 				with ab_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					ab_random_state = st.number_input( 'Random State', min_value=0,
-						value=int( st.session_state[ 'classification_ab_random_state' ] ),
-						step=1, key='classification_ab_random_state' )
+						value=int( st.session_state[ 'classification_ab_random_state' ] ), step=1,
+						key='classification_ab_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
 					            f'Features: {len( active_features ):,} | '
@@ -7798,22 +7438,23 @@ elif mode == 'Classification Models':
 				# ------------------------------------------------------------------
 				ab_btn_1, ab_btn_2 = st.columns( 2 )
 				with ab_btn_1:
-					train_ab = st.button( '🚂 Train Adaptive Boost',
-						key='classification_ab_train', use_container_width=True )
+					train_ab = st.button( '🚂 Train Adaptive Boost', key='classification_ab_train',
+						use_container_width=True )
 				
 				with ab_btn_2:
-					st.button( '🔁 Reset Adaptive Boost',
-						key='classification_ab_reset', use_container_width=True,
-						on_click=reset_ab_state )
+					st.button( '🔁 Reset Adaptive Boost', key='classification_ab_reset',
+						use_container_width=True, on_click=reset_ab_state )
 				
 				if train_ab:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Adaptive Boost requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Adaptive Boost requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
-							st.warning( '⚠️ Adaptive Boost requires at least one numeric feature.' )
+							st.warning( '⚠️ Adaptive Boost requires at least one numeric '
+							            'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
@@ -7824,31 +7465,23 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.AdaptiveBoost(
-							base=None,
-							estimators=int( ab_estimators ),
-							rate=float( ab_rate ),
-							algorithm=str( ab_algorithm ),
-							random=int( ab_random_state )
-						)
+						model = classification_model.AdaptiveBoost( base=None,
+							estimators=int( ab_estimators ), rate=float( ab_rate ),
+							algorithm=str( ab_algorithm ), random=int( ab_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( ab_test_size ),
-							random=int( ab_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( ab_test_size ), random=int( ab_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -7857,10 +7490,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -7878,16 +7509,13 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Adaptive Boost training failed: {ex}' )
-						
+			
 			with st.expander( 'Bagging Model', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.BAGGING_CLASSIFIER )
 				
-				bag_defaults = {
-						'classification_bag_estimators': 50,
-						'classification_bag_test_size': 20,
-						'classification_bag_random_state': 42
-				}
+				bag_defaults = { 'classification_bag_estimators': 50,
+					'classification_bag_test_size': 20, 'classification_bag_random_state': 42 }
 				
 				def reset_bag_state( ) -> None:
 					"""
@@ -7927,20 +7555,20 @@ elif mode == 'Classification Models':
 				with bag_c1:
 					st.markdown( '###### 🎚️ Hyper-Parameters' )
 					bag_estimators = st.number_input( 'Estimators', min_value=1,
-						value=int( st.session_state[ 'classification_bag_estimators' ] ),
-						step=1, key='classification_bag_estimators' )
+						value=int( st.session_state[ 'classification_bag_estimators' ] ), step=1,
+						key='classification_bag_estimators' )
 				
 				with bag_c2:
 					st.markdown( '###### ↔️ Split' )
 					bag_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_bag_test_size' ] ),
-						step=1, key='classification_bag_test_size' ) / 100.0
+						value=int( st.session_state[ 'classification_bag_test_size' ] ), step=1,
+						key='classification_bag_test_size' ) / 100.0
 				
 				with bag_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					bag_random_state = st.number_input( 'Random State', min_value=0,
-						value=int( st.session_state[ 'classification_bag_random_state' ] ),
-						step=1, key='classification_bag_random_state' )
+						value=int( st.session_state[ 'classification_bag_random_state' ] ), step=1,
+						key='classification_bag_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
 					            f'Features: {len( active_features ):,} | '
@@ -7954,17 +7582,18 @@ elif mode == 'Classification Models':
 				bag_btn_1, bag_btn_2 = st.columns( 2 )
 				with bag_btn_1:
 					train_bag = st.button( '🚂 Train Bagging Model',
-						key='classification_bag_train', use_container_width=True )
+						key='classification_bag_train',
+						use_container_width=True )
 				
 				with bag_btn_2:
-					st.button( '🔁 Reset Bagging Model',
-						key='classification_bag_reset', use_container_width=True,
-						on_click=reset_bag_state )
+					st.button( '🔁 Reset Bagging Model', key='classification_bag_reset',
+						use_container_width=True, on_click=reset_bag_state )
 				
 				if train_bag:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Bagging Model requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Bagging Model requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -7979,28 +7608,23 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.BaggingModel(
-							estimators=int( bag_estimators ),
-							random=int( bag_random_state )
-						)
+						model = classification_model.BaggingModel( estimators=int(
+							bag_estimators ),
+							random=int( bag_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( bag_test_size ),
-							random=int( bag_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( bag_test_size ), random=int( bag_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8009,10 +7633,8 @@ elif mode == 'Classification Models':
 							int( len( X_test ) ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -8030,21 +7652,18 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Bagging Model training failed: {ex}' )
-						
+			
 			with st.expander( 'Voting Model', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.VOTING_CLASSFIER )
 				
-				vote_defaults = {
-						'classification_vote_mode': 'hard',
-						'classification_vote_include_logistic': True,
-						'classification_vote_include_tree': True,
-						'classification_vote_include_knn': True,
-						'classification_vote_include_forest': False,
-						'classification_vote_include_nb': False,
-						'classification_vote_test_size': 20,
-						'classification_vote_random_state': 42
-				}
+				vote_defaults = { 'classification_vote_mode': 'hard',
+					'classification_vote_include_logistic': True,
+					'classification_vote_include_tree': True,
+					'classification_vote_include_knn': True,
+					'classification_vote_include_forest': False,
+					'classification_vote_include_nb': False, 'classification_vote_test_size': 20,
+					'classification_vote_random_state': 42 }
 				
 				def reset_vote_state( ) -> None:
 					"""
@@ -8115,14 +7734,14 @@ elif mode == 'Classification Models':
 				
 				with vote_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
-					vote_test_size = st.slider( 'Test Set Size (%)', min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'classification_vote_test_size' ] ),
-						step=1, key='classification_vote_test_size' ) / 100.0
+					vote_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'classification_vote_test_size' ] ), step=1,
+						key='classification_vote_test_size' ) / 100.0
 					
 					vote_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_vote_random_state' ] ),
-						step=1, key='classification_vote_random_state' )
+						step=1,
+						key='classification_vote_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
 					            f'Features: {len( active_features ):,} | '
@@ -8136,17 +7755,18 @@ elif mode == 'Classification Models':
 				vote_btn_1, vote_btn_2 = st.columns( 2 )
 				with vote_btn_1:
 					train_vote = st.button( '🚂 Train Voting Model',
-						key='classification_vote_train', use_container_width=True )
+						key='classification_vote_train',
+						use_container_width=True )
 				
 				with vote_btn_2:
-					st.button( '🔁 Reset Voting Model',
-						key='classification_vote_reset', use_container_width=True,
-						on_click=reset_vote_state )
+					st.button( '🔁 Reset Voting Model', key='classification_vote_reset',
+						use_container_width=True, on_click=reset_vote_state )
 				
 				if train_vote:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Voting Model requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Voting Model requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
@@ -8162,29 +7782,22 @@ elif mode == 'Classification Models':
 						estimators = [ ]
 						
 						if vote_include_logistic:
-							estimators.append( (
-									'logistic',
-									LogisticRegression( max_iter=1000,
-										random_state=int( vote_random_state ) )
-							) )
+							estimators.append( ('logistic', LogisticRegression( max_iter=1000,
+								random_state=int( vote_random_state ) )) )
 						
 						if vote_include_tree:
-							estimators.append( (
-									'tree',
-									DecisionTreeClassifier( random_state=int( vote_random_state ) )
-							) )
+							estimators.append( ('tree',
+								DecisionTreeClassifier( random_state=int( vote_random_state ) )) )
 						
 						if vote_include_knn:
-							estimators.append( ( 'knn', KNeighborsClassifier( ) ) )
+							estimators.append( ('knn', KNeighborsClassifier( )) )
 						
 						if vote_include_forest:
-							estimators.append( (
-									'forest',
-									RandomForestClassifier( random_state=int( vote_random_state ) )
-							) )
+							estimators.append( ('forest',
+								RandomForestClassifier( random_state=int( vote_random_state ) )) )
 						
 						if vote_include_nb:
-							estimators.append( ( 'naive_bayes', GaussianNB( ) ) )
+							estimators.append( ('naive_bayes', GaussianNB( )) )
 						
 						if len( estimators ) < 2:
 							st.warning( '⚠️ Voting Model requires at least two base estimators.' )
@@ -8192,28 +7805,22 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.VotingModel(
-							estimators=estimators,
-							vote=str( vote_mode )
-						)
+						model = classification_model.VotingModel( estimators=estimators,
+							vote=str( vote_mode ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( vote_test_size ),
-							random=int( vote_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( vote_test_size ), random=int( vote_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.score( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8224,14 +7831,11 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Estimator Count',
 							int( len( estimators ) ) )
 						
-						df_scores.insert( len( df_scores.columns ), 'Vote Mode',
-							str( vote_mode ) )
+						df_scores.insert( len( df_scores.columns ), 'Vote Mode', str( vote_mode ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -8249,21 +7853,18 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Voting Model training failed: {ex}' )
-						
+			
 			with st.expander( 'Stacking Model', expanded=False ):
 				st.caption( 'Description', width='stretch', text_alignment='left',
 					help=cfg.STACKING_CLASSIFIER )
 				
-				stack_defaults = {
-						'classification_stack_include_logistic': True,
-						'classification_stack_include_tree': True,
-						'classification_stack_include_knn': True,
-						'classification_stack_include_forest': False,
-						'classification_stack_include_nb': False,
-						'classification_stack_final': 'logistic',
-						'classification_stack_test_size': 20,
-						'classification_stack_random_state': 42
-				}
+				stack_defaults = { 'classification_stack_include_logistic': True,
+					'classification_stack_include_tree': True,
+					'classification_stack_include_knn': True,
+					'classification_stack_include_forest': False,
+					'classification_stack_include_nb': False,
+					'classification_stack_final': 'logistic', 'classification_stack_test_size': 20,
+					'classification_stack_random_state': 42 }
 				
 				def reset_stack_state( ) -> None:
 					"""
@@ -8335,8 +7936,8 @@ elif mode == 'Classification Models':
 				with stack_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					stack_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_stack_test_size' ] ),
-						step=1, key='classification_stack_test_size' ) / 100.0
+						value=int( st.session_state[ 'classification_stack_test_size' ] ), step=1,
+						key='classification_stack_test_size' ) / 100.0
 					
 					stack_random_state = st.number_input( 'Random State', min_value=0,
 						value=int( st.session_state[ 'classification_stack_random_state' ] ),
@@ -8357,18 +7958,19 @@ elif mode == 'Classification Models':
 						key='classification_stack_train', use_container_width=True )
 				
 				with stack_btn_2:
-					st.button( '🔁 Reset Stacking Model',
-						key='classification_stack_reset', use_container_width=True,
-						on_click=reset_stack_state )
+					st.button( '🔁 Reset Stacking Model', key='classification_stack_reset',
+						use_container_width=True, on_click=reset_stack_state )
 				
 				if train_stack:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Stacking Model requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Stacking Model requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
-							st.warning( '⚠️ Stacking Model requires at least one numeric feature.' )
+							st.warning( '⚠️ Stacking Model requires at least one numeric '
+							            'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
@@ -8380,32 +7982,26 @@ elif mode == 'Classification Models':
 						estimators = [ ]
 						
 						if stack_include_logistic:
-							estimators.append( (
-									'logistic',
-									LogisticRegression( max_iter=1000,
-										random_state=int( stack_random_state ) )
-							) )
+							estimators.append( ('logistic', LogisticRegression( max_iter=1000,
+								random_state=int( stack_random_state ) )) )
 						
 						if stack_include_tree:
-							estimators.append( (
-									'tree',
-									DecisionTreeClassifier( random_state=int( stack_random_state ) )
-							) )
+							estimators.append( ('tree',
+								DecisionTreeClassifier( random_state=int( stack_random_state ) )) )
 						
 						if stack_include_knn:
-							estimators.append( ( 'knn', KNeighborsClassifier( ) ) )
+							estimators.append( ('knn', KNeighborsClassifier( )) )
 						
 						if stack_include_forest:
-							estimators.append( (
-									'forest',
-									RandomForestClassifier( random_state=int( stack_random_state ) )
-							) )
+							estimators.append( ('forest',
+								RandomForestClassifier( random_state=int( stack_random_state ) )) )
 						
 						if stack_include_nb:
-							estimators.append( ( 'naive_bayes', GaussianNB( ) ) )
+							estimators.append( ('naive_bayes', GaussianNB( )) )
 						
 						if len( estimators ) < 2:
-							st.warning( '⚠️ Stacking Model requires at least two base estimators.' )
+							st.warning( '⚠️ Stacking Model requires at least two base '
+							            'estimators.' )
 							st.stop( )
 						
 						if stack_final == 'logistic':
@@ -8417,28 +8013,22 @@ elif mode == 'Classification Models':
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.StackingModel(
-							est=estimators,
-							final=final_estimator
-						)
+						model = classification_model.StackingModel( est=estimators,
+							final=final_estimator )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( stack_test_size ),
-							random=int( stack_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( stack_test_size ), random=int( stack_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.score( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8453,10 +8043,8 @@ elif mode == 'Classification Models':
 							str( stack_final ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -8474,20 +8062,15 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Stacking Model training failed: {ex}' )
-					
+		
 		with st.expander( 'Neural Models', expanded=True ):
 			
 			with st.expander( 'Multi-Layer Perceptron', expanded=False ):
-				mlp_defaults = {
-						'classification_mlp_hidden_1': 100,
-						'classification_mlp_hidden_2': 0,
-						'classification_mlp_activation': 'logistic',
-						'classification_mlp_solver': 'lbfgs',
-						'classification_mlp_alpha': 0.000100,
-						'classification_mlp_learning': 'constant',
-						'classification_mlp_test_size': 20,
-						'classification_mlp_random_state': 42
-				}
+				mlp_defaults = { 'classification_mlp_hidden_1': 100,
+					'classification_mlp_hidden_2': 0, 'classification_mlp_activation': 'logistic',
+					'classification_mlp_solver': 'lbfgs', 'classification_mlp_alpha': 0.000100,
+					'classification_mlp_learning': 'constant', 'classification_mlp_test_size': 20,
+					'classification_mlp_random_state': 42 }
 				
 				def reset_mlp_state( ) -> None:
 					"""
@@ -8528,12 +8111,12 @@ elif mode == 'Classification Models':
 				with mlp_c1:
 					st.markdown( '###### 🛡️ Network Structure' )
 					mlp_hidden_1 = st.number_input( 'Hidden Layer 1', min_value=1,
-						value=int( st.session_state[ 'classification_mlp_hidden_1' ] ),
-						step=1, key='classification_mlp_hidden_1' )
+						value=int( st.session_state[ 'classification_mlp_hidden_1' ] ), step=1,
+						key='classification_mlp_hidden_1' )
 					
 					mlp_hidden_2 = st.number_input( 'Hidden Layer 2 (0 = none)', min_value=0,
-						value=int( st.session_state[ 'classification_mlp_hidden_2' ] ),
-						step=1, key='classification_mlp_hidden_2' )
+						value=int( st.session_state[ 'classification_mlp_hidden_2' ] ), step=1,
+						key='classification_mlp_hidden_2' )
 					
 					mlp_activation = st.selectbox( 'Activation',
 						options=[ 'identity', 'logistic', 'tanh', 'relu' ],
@@ -8559,14 +8142,14 @@ elif mode == 'Classification Models':
 						key='classification_mlp_learning' )
 					
 					mlp_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
-						value=int( st.session_state[ 'classification_mlp_test_size' ] ),
-						step=1, key='classification_mlp_test_size' ) / 100.0
+						value=int( st.session_state[ 'classification_mlp_test_size' ] ), step=1,
+						key='classification_mlp_test_size' ) / 100.0
 				
 				with mlp_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					mlp_random_state = st.number_input( 'Random State', min_value=0,
-						value=int( st.session_state[ 'classification_mlp_random_state' ] ),
-						step=1, key='classification_mlp_random_state' )
+						value=int( st.session_state[ 'classification_mlp_random_state' ] ), step=1,
+						key='classification_mlp_random_state' )
 					
 					st.caption( f'Rows: {len( df_model ):,} | '
 					            f'Features: {len( active_features ):,} | '
@@ -8583,65 +8166,55 @@ elif mode == 'Classification Models':
 						key='classification_mlp_train', use_container_width=True )
 				
 				with mlp_btn_2:
-					st.button( '🔁 Reset Multi-Layer Perceptron',
-						key='classification_mlp_reset', use_container_width=True,
-						on_click=reset_mlp_state )
+					st.button( '🔁 Reset Multi-Layer Perceptron', key='classification_mlp_reset',
+						use_container_width=True, on_click=reset_mlp_state )
 				
 				if train_mlp:
 					try:
 						if X is None or y is None:
 							st.warning(
-								'⚠️ Multi-Layer Perceptron requires prepared feature and target arrays.'
-							)
+								'⚠️ Multi-Layer Perceptron requires prepared feature and target '
+								'arrays.' )
 							st.stop( )
 						
 						if np.asarray( X ).ndim != 2 or np.asarray( X ).shape[ 1 ] < 1:
 							st.warning(
-								'⚠️ Multi-Layer Perceptron requires at least one numeric feature.'
-							)
+								'⚠️ Multi-Layer Perceptron requires at least one numeric '
+								'feature.' )
 							st.stop( )
 						
 						y = np.ravel( y ) if np.asarray( y ).ndim != 1 else y
 						
 						if len( np.unique( y ) ) < 2:
 							st.warning(
-								'⚠️ Multi-Layer Perceptron requires at least two target classes.'
-							)
+								'⚠️ Multi-Layer Perceptron requires at least two target classes.' )
 							st.stop( )
 						
 						if int( mlp_hidden_2 ) > 0:
-							hidden_layers = ( int( mlp_hidden_1 ), int( mlp_hidden_2 ) )
+							hidden_layers = (int( mlp_hidden_1 ), int( mlp_hidden_2 ))
 						else:
-							hidden_layers = ( int( mlp_hidden_1 ), )
+							hidden_layers = (int( mlp_hidden_1 ),)
 						
 						start_time = time.perf_counter( )
 						
-						model = classification_model.MultiLayerPerceptron(
-							hidden=hidden_layers,
-							activation=str( mlp_activation ),
-							solver=str( mlp_solver ),
-							alpha=float( mlp_alpha ),
-							learning=str( mlp_learning ),
-							rando=int( mlp_random_state )
-						)
+						model = classification_model.MultiLayerPerceptron( hidden=hidden_layers,
+							activation=str( mlp_activation ), solver=str( mlp_solver ),
+							alpha=float( mlp_alpha ), learning=str( mlp_learning ),
+							rando=int( mlp_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( mlp_test_size ),
-							random=int( mlp_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( mlp_test_size ), random=int( mlp_random_state ) )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.score( X_test, y_test )
-						df_scores = df_scores.copy( ) if isinstance( df_scores, pd.DataFrame ) \
-							else pd.DataFrame( )
+						df_scores = df_scores.copy( ) if isinstance( df_scores,
+							pd.DataFrame ) else pd.DataFrame( )
 						
-						df_scores.insert( len( df_scores.columns ),
-							'Processing Time (Seconds)', round( elapsed_seconds, 4 ) )
+						df_scores.insert( len( df_scores.columns ), 'Processing Time (Seconds)',
+							round( elapsed_seconds, 4 ) )
 						
 						df_scores.insert( len( df_scores.columns ), 'Training Rows',
 							int( len( X_train ) ) )
@@ -8655,14 +8228,11 @@ elif mode == 'Classification Models':
 						df_scores.insert( len( df_scores.columns ), 'Activation',
 							str( mlp_activation ) )
 						
-						df_scores.insert( len( df_scores.columns ), 'Solver',
-							str( mlp_solver ) )
+						df_scores.insert( len( df_scores.columns ), 'Solver', str( mlp_solver ) )
 						
 						y_prediction = np.asarray( y_prediction )
-						df_predictions = pd.DataFrame( {
-								'Actual': np.asarray( y_test ),
-								'Predicted': y_prediction
-						} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': np.asarray( y_test ), 'Predicted': y_prediction } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -8680,7 +8250,7 @@ elif mode == 'Classification Models':
 					
 					except Exception as ex:
 						st.error( f'Multi-Layer Perceptron training failed: {ex}' )
-				
+		
 		if st.session_state.get( 'model', None ) is None:
 			st.stop( )
 		
@@ -8701,22 +8271,17 @@ elif mode == 'Classification Models':
 		df_predictions = st.session_state.get( 'df_predictions', pd.DataFrame( ) )
 		elapsed_seconds = float( st.session_state.get( 'elapsed_seconds', 0.0 ) )
 		
-		has_metric_frame = (
-				isinstance( df_scores, pd.DataFrame )
-				and not df_scores.empty
-				and 'Accuracy Score' in df_scores.columns
-				and 'Mis-Classifications' in df_scores.columns
-		)
+		has_metric_frame = (isinstance( df_scores,
+			pd.DataFrame ) and not df_scores.empty and 'Accuracy Score' in df_scores.columns and
+		                    'Mis-Classifications' in df_scores.columns)
 		
-		has_prediction_frame = ( isinstance( df_predictions, pd.DataFrame )
-				and not df_predictions.empty
-				and 'Actual' in df_predictions.columns
-				and 'Predicted' in df_predictions.columns )
+		has_prediction_frame = (isinstance( df_predictions,
+			pd.DataFrame ) and not df_predictions.empty and 'Actual' in df_predictions.columns and
+		                        'Predicted' in df_predictions.columns)
 		
-		has_visual_context = ( model is not None
-				and X_test is not None
-				and y_test is not None
-				and y_prediction is not None )
+		has_visual_context = (
+					model is not None and X_test is not None and y_test is not None and
+					y_prediction is not None)
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Model Performance' )
@@ -8783,10 +8348,8 @@ elif mode == 'Classification Models':
 			try:
 				actual_counts = pd.Series( y_test ).value_counts( ).sort_index( )
 				pred_counts = pd.Series( y_prediction ).value_counts( ).sort_index( )
-				df_counts = pd.DataFrame( {
-						'Actual': actual_counts,
-						'Predicted': pred_counts
-				} ).fillna( 0 )
+				df_counts = pd.DataFrame(
+					{ 'Actual': actual_counts, 'Predicted': pred_counts } ).fillna( 0 )
 				
 				fig_counts, ax_counts = plt.subplots( figsize=(6, 4) )
 				df_counts.plot( kind='bar', ax=ax_counts )
@@ -8811,15 +8374,13 @@ elif mode == 'Classification Models':
 		
 		if has_visual_context:
 			try:
-				df_evaluation = pd.DataFrame( {
-						'Actual': y_test,
-						'Predicted': y_prediction
-				} )
+				df_evaluation = pd.DataFrame( { 'Actual': y_test, 'Predicted': y_prediction } )
 				
-				df_evaluation[ 'Correct' ] = ( df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
+				df_evaluation[ 'Correct' ] = (
+							df_evaluation[ 'Actual' ] == df_evaluation[ 'Predicted' ]).astype( int )
 				
-				df_class_acc = df_evaluation.groupby( 'Actual',
-					dropna=False )[ 'Correct' ].mean( ).sort_index( )
+				df_class_acc = df_evaluation.groupby( 'Actual', dropna=False )[
+					'Correct' ].mean( ).sort_index( )
 				
 				fig_acc, ax_acc = plt.subplots( figsize=(6, 4) )
 				ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
@@ -8846,8 +8407,7 @@ elif mode == 'Classification Models':
 		if has_visual_context and hasattr( model, 'predict_probability' ):
 			try:
 				proba = model.predict_probability( X_test )
-				if (isinstance( proba, np.ndarray ) and proba.ndim == 2
-						and proba.shape[ 1 ] > 1):
+				if (isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1):
 					max_conf = np.max( proba, axis=1 )
 					fig_conf, ax_conf = plt.subplots( figsize=(6, 4) )
 					ax_conf.hist( max_conf, bins=20 )
@@ -8941,16 +8501,17 @@ elif mode == 'Regression Models':
 		df_original = df_dataset.copy( )
 		st.session_state[ 'df_original' ] = df_original.copy( )
 		
-		numeric_columns = [ column for column in df_original.columns
-				if pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
+		numeric_columns = [ column for column in df_original.columns if
+			pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
 		
-		categorical_columns = [ column for column in df_original.columns
-				if column not in numeric_columns ]
+		categorical_columns = [ column for column in df_original.columns if
+			column not in numeric_columns ]
 		
 		st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
 		st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
 		if len( df_original.columns ) < 2:
-			st.warning( '⚠️ Regression requires at least one feature column and one target column.' )
+			st.warning(
+				'⚠️ Regression requires at least one feature column and one target column.' )
 			st.stop( )
 		
 		if not numeric_columns:
@@ -8962,9 +8523,9 @@ elif mode == 'Regression Models':
 		# ======================================================================================
 		st.markdown( '##### Feature Selection' )
 		st.caption( f'Samples: {len( df_original ):,} | '
-			f'Features: {len( df_original.columns ):,}' )
+		            f'Features: {len( df_original.columns ):,}' )
 		
-		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )		
+		col_c1, col_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with col_c1:
 			features = st.multiselect( 'Select Features', options=df_original.columns.tolist( ),
 				key='regression_features' )
@@ -8972,12 +8533,14 @@ elif mode == 'Regression Models':
 		with col_c2:
 			target_options = [ column for column in numeric_columns if column not in features ]
 			if target_options:
-				target = st.selectbox( 'Select Target', options=target_options, key='regression_target' )
+				target = st.selectbox( 'Select Target', options=target_options,
+					key='regression_target' )
 			else:
 				target = None
-				st.info( 'At least one numeric column must remain available as the regression target.' )
+				st.info(
+					'At least one numeric column must remain available as the regression target.' )
 		
-		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )		
+		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='regression_create_dataset',
 					use_container_width=True ):
@@ -8994,10 +8557,11 @@ elif mode == 'Regression Models':
 					st.stop( )
 				
 				selected_all = features.copy( )
-				selected_all.append( target )				
+				selected_all.append( target )
 				df_working = df_original[ selected_all ].copy( )
 				if df_working.empty:
-					st.warning( '⚠️ The selected feature and target columns contain no observations.' )
+					st.warning(
+						'⚠️ The selected feature and target columns contain no observations.' )
 					st.stop( )
 				
 				st.session_state[ 'features' ] = features.copy( )
@@ -9033,18 +8597,19 @@ elif mode == 'Regression Models':
 				st.success( 'Regression working data reset.' )
 				st.rerun( )
 		
-		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )		
+		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
 		if not has_loaded_dataset( df_working ):
-			i = 'Select regression features and one numeric target, then create the working dataset.'
+			i = ('Select regression features and one numeric target, then create the working '
+			     'dataset.')
 			st.info( i )
 			st.stop( )
 		
-		features = [ column for column in st.session_state.get( 'features', [ ] )
-				if column in df_working.columns ]
+		features = [ column for column in st.session_state.get( 'features', [ ] ) if
+			column in df_working.columns ]
 		
-		targets = [ column for column in st.session_state.get( 'targets', [ ] )
-				if column in df_working.columns ]
+		targets = [ column for column in st.session_state.get( 'targets', [ ] ) if
+			column in df_working.columns ]
 		
 		if not features:
 			st.warning( '⚠️ The working dataset does not contain any selected feature columns.' )
@@ -9054,14 +8619,14 @@ elif mode == 'Regression Models':
 			st.warning( '⚠️ Regression requires exactly one numeric target column.' )
 			st.stop( )
 		
-		target_name = targets[ 0 ]		
+		target_name = targets[ 0 ]
 		if not pd.api.types.is_numeric_dtype( df_working[ target_name ] ):
 			st.warning( '⚠️ The selected regression target must be numeric.' )
 			st.stop( )
 		
 		st.markdown( '##### Working Data' )
 		st.caption( f'Samples: {len( df_working ):,} | '
-			f'Features: {len( features ):,} | Target: {target_name}' )
+		            f'Features: {len( features ):,} | Target: {target_name}' )
 		
 		st.data_editor( df_working, key='regression_working_data', use_container_width=True )
 		
@@ -9073,7 +8638,6 @@ elif mode == 'Regression Models':
 		feature_c1, feature_c2 = st.columns( [ 0.50, 0.50 ], border=True )
 		with feature_c1:
 			with st.expander( label='Data Scaling', icon='⚖️', key='regression_scalers' ):
-				
 				with st.expander( 'Standard Scaler', expanded=False ):
 					st.caption( 'Scaler Description', width='stretch', text_alignment='left',
 						help=cfg.STANDARD_SCALER )
@@ -9174,15 +8738,14 @@ elif mode == 'Regression Models':
 					scale_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_normal_scaler_cols' )
 					
-					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
-						index=1, key='regression_normal_scaler_norm' )
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ], index=1,
+						key='regression_normal_scaler_norm' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_normal_scaler_apply',
-								use_container_width=True ):
+								key='regression_normal_scaler_apply', use_container_width=True ):
 							if scale_cols:
 								scaler = NormalScaler( norm=norm )
 								df_processed = df_working.copy( )
@@ -9215,8 +8778,7 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_maxabs_scaler_apply',
-								use_container_width=True ):
+								key='regression_maxabs_scaler_apply', use_container_width=True ):
 							if scale_cols:
 								scaler = MaxAbsScaler( )
 								df_processed = df_working.copy( )
@@ -9238,7 +8800,6 @@ elif mode == 'Regression Models':
 							st.rerun( )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='regression_imputers' ):
-				
 				with st.expander( 'Mean Imputer', expanded=False ):
 					st.caption( 'Imputer Description', width='stretch', text_alignment='left',
 						help=cfg.MEAN_IMPUTER )
@@ -9263,8 +8824,8 @@ elif mode == 'Regression Models':
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'mean_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'mean_imputer' )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -9287,23 +8848,22 @@ elif mode == 'Regression Models':
 					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_nearest_imputer_cols' )
 					
-					neighbors = st.number_input( 'Neighbors', min_value=1,
-						value=5, step=1, key='regression_nearest_imputer_neighbors' )
+					neighbors = st.number_input( 'Neighbors', min_value=1, value=5, step=1,
+						key='regression_nearest_imputer_neighbors' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_nearest_imputer_apply',
-								use_container_width=True ):
+								key='regression_nearest_imputer_apply', use_container_width=True ):
 							if impute_cols:
 								imputer = NearestImputer( neighbors=int( neighbors ) )
 								df_processed = df_working.copy( )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'nearest_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'nearest_imputer' )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -9312,8 +8872,7 @@ elif mode == 'Regression Models':
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='regression_nearest_imputer_reset',
-								use_container_width=True ):
+								key='regression_nearest_imputer_reset', use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
@@ -9326,11 +8885,11 @@ elif mode == 'Regression Models':
 					impute_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_iterative_imputer_cols' )
 					
-					max_iter = st.number_input( 'Max Iterations', min_value=1,
-						value=10, step=1, key='regression_iterative_imputer_max_iter' )
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=10, step=1,
+						key='regression_iterative_imputer_max_iter' )
 					
-					random_state = st.number_input( 'Random State', min_value=0,
-						value=0, step=1, key='regression_iterative_imputer_random_state' )
+					random_state = st.number_input( 'Random State', min_value=0, value=0, step=1,
+						key='regression_iterative_imputer_random_state' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -9344,8 +8903,8 @@ elif mode == 'Regression Models':
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'iterative_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'iterative_imputer' )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -9385,12 +8944,11 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply SimpleImputer', icon='✔️',
-								key='regression_simpleimputer_apply',
-								use_container_width=True ):
+								key='regression_simpleimputer_apply', use_container_width=True ):
 							if impute_cols:
 								if strategy in [ 'mean', 'median' ]:
-									df_input = df_processed[ impute_cols ].apply(
-										pd.to_numeric, errors='coerce' )
+									df_input = df_processed[ impute_cols ].apply( pd.to_numeric,
+										errors='coerce' )
 									fill_object: object = 0.0
 								elif strategy == 'constant':
 									df_input = df_processed[ impute_cols ].copy( )
@@ -9404,8 +8962,8 @@ elif mode == 'Regression Models':
 									keep_empty_features=keep_empty_features )
 								
 								result = imputer.train_transform( df_input.to_numpy( ) )
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'simple_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'simple_imputer' )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -9414,15 +8972,13 @@ elif mode == 'Regression Models':
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='regression_simple_imputer_reset',
-								use_container_width=True ):
+								key='regression_simple_imputer_reset', use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='regression_encoders' ):
-				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
 					st.caption( 'Encoder Description', width='stretch', text_alignment='left',
 						help=cfg.ONEHOT_ENCODER )
@@ -9434,8 +8990,7 @@ elif mode == 'Regression Models':
 						key='regression_onehot_sparse' )
 					
 					unknown = st.selectbox( 'Unknown Category Handling',
-						options=[ 'ignore', 'error' ], index=0,
-						key='regression_onehot_unknown' )
+						options=[ 'ignore', 'error' ], index=0, key='regression_onehot_unknown' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -9447,8 +9002,8 @@ elif mode == 'Regression Models':
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, encode_cols,
-									result, 'onehot' )
+								df_processed = replace_columns( df_processed, encode_cols, result,
+									'onehot' )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -9505,8 +9060,7 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_label_encoder_apply',
-								use_container_width=True ):
+								key='regression_label_encoder_apply', use_container_width=True ):
 							if target_col:
 								encoder = LabelEncoder( )
 								result = encoder.train_transform(
@@ -9544,8 +9098,7 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_target_encoder_apply',
-								use_container_width=True ):
+								key='regression_target_encoder_apply', use_container_width=True ):
 							if encode_cols and target_col:
 								df_processed = df_working.copy( )
 								encoder = TargetEncoder( )
@@ -9563,8 +9116,7 @@ elif mode == 'Regression Models':
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='regression_target_encoder_reset',
-								use_container_width=True ):
+								key='regression_target_encoder_reset', use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
@@ -9577,8 +9129,8 @@ elif mode == 'Regression Models':
 					poly_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_polynomial_cols' )
 					
-					degree = st.slider( 'Degree', min_value=2, max_value=4,
-						value=2, key='regression_polynomial_degree' )
+					degree = st.slider( 'Degree', min_value=2, max_value=4, value=2,
+						key='regression_polynomial_degree' )
 					
 					interaction = st.checkbox( 'Interaction Only', value=True,
 						key='regression_polynomial_interaction' )
@@ -9586,8 +9138,7 @@ elif mode == 'Regression Models':
 					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='regression_polynomial_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_polynomial_apply',
 								use_container_width=True ):
 							if poly_cols:
 								df_processed = df_working.copy( )
@@ -9606,8 +9157,7 @@ elif mode == 'Regression Models':
 					
 					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='regression_polynomial_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_polynomial_reset',
 								use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
@@ -9615,10 +9165,8 @@ elif mode == 'Regression Models':
 							st.rerun( )
 		
 		with feature_c2:
-			
 			with st.expander( label='Data Transformation', icon='⚡',
 					key='regression_transformers' ):
-				
 				with st.expander( 'Binarizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.BINARIZER )
@@ -9679,7 +9227,6 @@ elif mode == 'Regression Models':
 					with a1:
 						if st.button( 'Apply LabelBinarizer', key='regression_lblbinarizer_apply',
 								use_container_width=True ):
-							
 							if target_col:
 								df_processed = df_working.copy( )
 								transformer = LabelBinarizer( pos_label=int( pos_label ),
@@ -9698,9 +9245,9 @@ elif mode == 'Regression Models':
 					
 					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='regression_lblbinarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='regression_lblbinarizer_reset',
 								use_container_width=True ):
-							
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
@@ -9756,11 +9303,10 @@ elif mode == 'Regression Models':
 						help=cfg.TDIDF_TRANSFORMER )
 					
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=df_working.columns,
-						key='regression_tfidf_transformer_cols' )
+						options=df_working.columns, key='regression_tfidf_transformer_cols' )
 					
-					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
-						index=1, key='regression_tfidf_transformer_norm' )
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ], index=1,
+						key='regression_tfidf_transformer_norm' )
 					
 					use_idf = st.checkbox( 'Use IDF', value=True,
 						key='regression_tfidf_transformer_use_idf' )
@@ -9784,8 +9330,8 @@ elif mode == 'Regression Models':
 									sublinear_tf=bool( sublinear_tf ) )
 								
 								result = transformer.train_transform(
-									df_processed[ text_count_cols ].apply(
-										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+									df_processed[ text_count_cols ].apply( pd.to_numeric,
+										errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
 								
 								df_processed = replace_columns( df_processed, text_count_cols,
 									result, 'tfidf_transformer' )
@@ -9808,7 +9354,8 @@ elif mode == 'Regression Models':
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.COLUMN_TRANSFORMER )
 					
-					numeric_columns = st.multiselect( 'Numeric Columns', options=df_working.columns,
+					numeric_columns = st.multiselect( 'Numeric Columns',
+						options=df_working.columns,
 						key='regression_column_transformer_numeric_columns' )
 					
 					categorical_columns = st.multiselect( 'Categorical Columns',
@@ -9816,8 +9363,8 @@ elif mode == 'Regression Models':
 						key='regression_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
-						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
-						          'MaxAbsScaler', 'Binarizer', 'None' ],
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler', 'MaxAbsScaler',
+							'Binarizer', 'None' ],
 						key='regression_column_transformer_numeric_transform' )
 					
 					categorical_transform = st.selectbox( 'Categorical Transformer',
@@ -9827,9 +9374,8 @@ elif mode == 'Regression Models':
 					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
 						key='regression_column_transformer_remainder' )
 					
-					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0,
-						max_value=1.0, value=0.3,
-						key='regression_column_transformer_sparse_threshold' )
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
+						value=0.3, key='regression_column_transformer_sparse_threshold' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -9861,12 +9407,13 @@ elif mode == 'Regression Models':
 								else:
 									categorical_model = OrdinalEncoder( ).model
 								
-								transformers.append( ('categorical', categorical_model,
-								                      categorical_columns) )
+								transformers.append(
+									('categorical', categorical_model, categorical_columns) )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
-									remainder=remainder, sparse_threshold=float( sparse_threshold ),
+									remainder=remainder, sparse_threshold=float(
+										sparse_threshold ),
 									n_jobs=None, transformer_weights=None, verbose=False )
 								
 								result = transformer.train_transform( df_processed )
@@ -9888,9 +9435,7 @@ elif mode == 'Regression Models':
 							st.success( 'Reset Processed Data.' )
 							st.rerun( )
 			
-			with st.expander( label='Feature Extration', icon='⛏️',
-					key='regression_extractors' ):
-				
+			with st.expander( label='Feature Extration', icon='⛏️', key='regression_extractors' ):
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
 					st.caption( 'Transformer Description', width='stretch', text_alignment='left',
 						help=cfg.TDIDF_VECTORIZER )
@@ -9917,8 +9462,7 @@ elif mode == 'Regression Models':
 								df_processed = df_working.copy( )
 								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
 									max_features=None if int( max_features ) == 0 else int(
-										max_features ),
-									use_idf=bool( use_idf ) )
+										max_features ), use_idf=bool( use_idf ) )
 								
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'tfidf_vectorizer' )
@@ -9947,8 +9491,8 @@ elif mode == 'Regression Models':
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
 						key='regression_count_vectorizer_ngram_max' )
 					
-					max_features = st.number_input( 'Max Features', min_value=0, value=0,
-						step=1, key='regression_count_vectorizer_max_features' )
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='regression_count_vectorizer_max_features' )
 					
 					binary = st.checkbox( 'Binary Counts', value=False,
 						key='regression_count_vectorizer_binary' )
@@ -9963,8 +9507,7 @@ elif mode == 'Regression Models':
 								df_processed = df_working.copy( )
 								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
 									max_features=None if int( max_features ) == 0 else int(
-										max_features ),
-									binary=bool( binary ) )
+										max_features ), binary=bool( binary ) )
 								
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'count_vectorizer' )
@@ -9993,8 +9536,8 @@ elif mode == 'Regression Models':
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
 						step=8, key='regression_hash_vectorizer_n_features' )
 					
-					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
-						value=1, key='regression_hash_vectorizer_ngram_max' )
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='regression_hash_vectorizer_ngram_max' )
 					
 					binary = st.checkbox( 'Binary', value=False,
 						key='regression_hash_vectorizer_binary' )
@@ -10006,15 +9549,14 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_hash_vectorizer_apply',
-								use_container_width=True ):
+								key='regression_hash_vectorizer_apply', use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
 								transformer = HashVectorizer( num=int( n_features ),
 									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
 									alternate_sign=bool( alternate_sign ) )
-								df_processed = apply_text_vectorizer( df_processed,
-									text_cols, transformer, 'hash_vectorizer' )
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'hash_vectorizer' )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -10023,8 +9565,7 @@ elif mode == 'Regression Models':
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='regression_hash_vectorizer_reset',
-								use_container_width=True ):
+								key='regression_hash_vectorizer_reset', use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
@@ -10050,11 +9591,11 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_dict_vectorizer_apply',
-								use_container_width=True ):
+								key='regression_dict_vectorizer_apply', use_container_width=True ):
 							if dict_cols:
 								df_processed = df_working.copy( )
-								transformer = DictVectorizer( dtype=np.float64, separator=separator,
+								transformer = DictVectorizer( dtype=np.float64,
+									separator=separator,
 									sparse=bool( sparse ), sort=bool( sort ) )
 								
 								df_processed = apply_dict_transform( df_processed, dict_cols,
@@ -10067,8 +9608,7 @@ elif mode == 'Regression Models':
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='regression_dict_vectorizer_reset',
-								use_container_width=True ):
+								key='regression_dict_vectorizer_reset', use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
@@ -10091,8 +9631,7 @@ elif mode == 'Regression Models':
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( label='Apply', icon='✔️',
-								key='regression_feature_hasher_apply',
-								use_container_width=True ):
+								key='regression_feature_hasher_apply', use_container_width=True ):
 							if hash_cols:
 								df_processed = df_working.copy( )
 								transformer = FeatureHasher( n_features=int( n_features ),
@@ -10109,8 +9648,7 @@ elif mode == 'Regression Models':
 					# Reset Button
 					with a2:
 						if st.button( label='Reset', icon='🔁',
-								key='regression_feature_hasher_reset',
-								use_container_width=True ):
+								key='regression_feature_hasher_reset', use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
 							st.success( 'Reset Processed Data.' )
@@ -10118,7 +9656,6 @@ elif mode == 'Regression Models':
 			
 			with st.expander( label='Dimensionality Reduction', icon='🎚️',
 					key='regression_selectors' ):
-				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					st.caption( 'Reducer Description', width='stretch', text_alignment='left',
 						help=cfg.VARIANCE_THRESHOLD )
@@ -10126,8 +9663,8 @@ elif mode == 'Regression Models':
 					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_variance_threshold_cols' )
 					
-					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
-						step=0.01, key='regression_variance_threshold_value' )
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0, step=0.01,
+						key='regression_variance_threshold_value' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -10168,14 +9705,13 @@ elif mode == 'Regression Models':
 					y_cols = st.multiselect( 'Target Columns', options=df_working.columns,
 						key='regression_cca_y_cols' )
 					
-					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='regression_cca_components' )
+					n_components = st.number_input( 'Components', min_value=1, value=2, step=1,
+						key='regression_cca_components' )
 					
-					scale = st.checkbox( 'Scale', value=True,
-						key='regression_cca_scale' )
+					scale = st.checkbox( 'Scale', value=True, key='regression_cca_scale' )
 					
-					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
-						step=1, key='regression_cca_max_iter' )
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500, step=1,
+						key='regression_cca_max_iter' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -10195,8 +9731,9 @@ elif mode == 'Regression Models':
 									index=df_processed.index, prefix='cca', columns=None )
 								
 								df_processed = pd.concat(
-									[ df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
-									  df_result ], axis=1 )
+									[ df_processed.drop( columns=X_cols + y_cols,
+										errors='ignore' ),
+										df_result ], axis=1 )
 								
 								st.session_state[ 'df_processed' ] = df_processed.copy( )
 								commit_frame( df_processed )
@@ -10218,8 +9755,8 @@ elif mode == 'Regression Models':
 					select_cols = st.multiselect( 'Columns', options=df_working.columns,
 						key='regression_pca_cols' )
 					
-					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='regression_pca_components' )
+					n_components = st.number_input( 'Components', min_value=1, value=2, step=1,
+						key='regression_pca_components' )
 					
 					solver = st.selectbox( 'SVD Solver',
 						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
@@ -10264,8 +9801,7 @@ elif mode == 'Regression Models':
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-						          'mutual_info_regression' ],
-						key='regression_selectbest_score_name' )
+							'mutual_info_regression' ], key='regression_selectbest_score_name' )
 					
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
 						key='regression_selectbest_k' )
@@ -10273,8 +9809,7 @@ elif mode == 'Regression Models':
 					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️',
-								key='regression_selectbest_apply',
+						if st.button( label='Apply', icon='✔️', key='regression_selectbest_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
@@ -10282,8 +9817,8 @@ elif mode == 'Regression Models':
 									score_func=score_function_from_name( score_name ),
 									num=int( k_best ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
@@ -10295,8 +9830,7 @@ elif mode == 'Regression Models':
 					
 					# Reset Button
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='regression_selectbest_reset',
+						if st.button( label='Reset', icon='🔁', key='regression_selectbest_reset',
 								use_container_width=True ):
 							df_processed = None
 							st.session_state[ 'df_processed' ] = None
@@ -10315,8 +9849,7 @@ elif mode == 'Regression Models':
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-						          'mutual_info_regression' ],
-						key='regression_selectpercent_score_name' )
+							'mutual_info_regression' ], key='regression_selectpercent_score_name' )
 					
 					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
 						key='regression_selectpercent_percentile' )
@@ -10324,8 +9857,7 @@ elif mode == 'Regression Models':
 					# Apply Button
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply SelectPercent',
-								key='regression_selectpercent_apply',
+						if st.button( 'Apply SelectPercent', key='regression_selectpercent_apply',
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
@@ -10333,8 +9865,8 @@ elif mode == 'Regression Models':
 									score_func=score_function_from_name( score_name ),
 									pct=int( percentile ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
@@ -10361,8 +9893,8 @@ elif mode == 'Regression Models':
 					X_cols = st.multiselect( 'Feature Columns', options=df_working.columns,
 						key='regression_sbs_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column',
-						options=df_working.columns, key='regression_sbs_target_col' )
+					target_col = st.selectbox( 'Target Column', options=df_working.columns,
+						key='regression_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
 						step=1, key='regression_sbs_k_features' )
@@ -10370,8 +9902,8 @@ elif mode == 'Regression Models':
 					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
 						value=0.25, step=0.05, key='regression_sbs_test_size' )
 					
-					random_state = st.number_input( 'Random State', min_value=0, value=1,
-						step=1, key='regression_sbs_random_state' )
+					random_state = st.number_input( 'Random State', min_value=0, value=1, step=1,
+						key='regression_sbs_random_state' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -10381,10 +9913,11 @@ elif mode == 'Regression Models':
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
 								selector = SBS( classifier=None, k_features=int( k_features ),
-									test_size=float( test_size ), random_state=int( random_state ) )
+									test_size=float( test_size ), random_state=int( random_state
+									) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
@@ -10414,11 +9947,11 @@ elif mode == 'Regression Models':
 					target_col = st.selectbox( 'Target Column', options=df_working.columns,
 						key='regression_rfe_target_col' )
 					
-					k_features = st.number_input( 'Features To Retain',
-						min_value=1, value=1, step=1, key='regression_rfe_k_features' )
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='regression_rfe_k_features' )
 					
-					verbose = st.number_input( 'Verbose', min_value=0, value=0,
-						step=1, key='regression_rfe_verbose' )
+					verbose = st.number_input( 'Verbose', min_value=0, value=0, step=1,
+						key='regression_rfe_verbose' )
 					
 					# Apply Button
 					a1, a2 = st.columns( 2 )
@@ -10429,8 +9962,8 @@ elif mode == 'Regression Models':
 								df_processed = df_working.copy( )
 								selector = RFE( k_features=int( k_features ),
 									verbose=int( verbose ) )
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
@@ -10455,7 +9988,8 @@ elif mode == 'Regression Models':
 			st.stop( )
 		
 		st.markdown( '##### Processed Data' )
-		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption(
+			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='regression_processed_data' )
 		
 		# ------------------------------------------------------------------
@@ -10478,17 +10012,17 @@ elif mode == 'Regression Models':
 		
 		target_name = active_targets[ 0 ]
 		missing_columns = [ c for c in active_features + [ target_name ] if
-		                    c not in df_processed.columns ]
+			c not in df_processed.columns ]
 		if missing_columns:
 			st.warning(
 				f'⚠️ The processed dataframe is missing required columns: {missing_columns}. '
 				f'Apply preprocessing again or reset the working dataset.' )
 			st.stop( )
-			
+		
 		active_features = list( st.session_state.get( 'df_features', pd.DataFrame( ) ).columns )
-		active_targets = list( st.session_state.get( 'df_targets', pd.DataFrame( ) ).columns )		
+		active_targets = list( st.session_state.get( 'df_targets', pd.DataFrame( ) ).columns )
 		st.session_state[ 'active_features' ] = active_features.copy( )
-		st.session_state[ 'active_targets' ] = active_targets.copy( )		
+		st.session_state[ 'active_targets' ] = active_targets.copy( )
 		if not active_features:
 			st.warning( '⚠️ Regression training requires at least one processed feature column.' )
 			st.stop( )
@@ -10497,21 +10031,22 @@ elif mode == 'Regression Models':
 			st.warning( '⚠️ Regression training requires exactly one processed target column.' )
 			st.stop( )
 		
-		target_name = active_targets[ 0 ]		
+		target_name = active_targets[ 0 ]
 		if target_name in active_features:
 			st.warning( '⚠️ The regression target cannot also be used as a feature.' )
 			st.stop( )
 		
 		required_columns = active_features + [ target_name ]
-		missing_columns = [ column for column in required_columns if column not in df_processed.columns ]
+		missing_columns = [ column for column in required_columns if
+			column not in df_processed.columns ]
 		
 		if missing_columns:
 			st.warning( f'⚠️ The processed dataframe is missing required columns: '
-				f'{missing_columns}. Apply preprocessing again or reset the '
-				f'working dataset.' )
+			            f'{missing_columns}. Apply preprocessing again or reset the '
+			            f'working dataset.' )
 			st.stop( )
 		
-		df_model = df_processed[ required_columns ].copy( )		
+		df_model = df_processed[ required_columns ].copy( )
 		for column in required_columns:
 			df_model[ column ] = pd.to_numeric( df_model[ column ], errors='coerce' )
 		
@@ -10519,7 +10054,8 @@ elif mode == 'Regression Models':
 		df_model = df_model.dropna( subset=required_columns ).copy( )
 		
 		if df_model.empty:
-			st.warning( '⚠️ No complete numeric observations remain after model-input validation.' )
+			st.warning( '⚠️ No complete numeric observations remain after model-input '
+			            'validation.' )
 			st.stop( )
 		
 		if len( df_model ) < 2:
@@ -10527,7 +10063,7 @@ elif mode == 'Regression Models':
 			st.stop( )
 		
 		X_data = df_model[ active_features ].copy( )
-		y_series = df_model[ target_name ].copy( )		
+		y_series = df_model[ target_name ].copy( )
 		if X_data.empty or len( X_data.columns ) == 0:
 			st.warning( '⚠️ Regression training requires at least one numeric feature.' )
 			st.stop( )
@@ -10566,7 +10102,7 @@ elif mode == 'Regression Models':
 			st.warning( '⚠️ The regression target contains non-finite values.' )
 			st.stop( )
 		
-		df_regression = df_model.copy( )		
+		df_regression = df_model.copy( )
 		st.session_state[ 'df_model' ] = df_model.copy( )
 		st.session_state[ 'df_regression' ] = df_regression.copy( )
 		st.session_state[ 'X_data' ] = X_data.copy( )
@@ -10581,7 +10117,6 @@ elif mode == 'Regression Models':
 		# REGRESSION MODELS
 		# ------------------------------------------------------------------
 		with st.expander( 'Linear Models', expanded=False ):
-			
 			with st.expander( 'Ordinary Least Squares', expanded=False ):
 				ols_defaults = { 'regression_ols_test_size': 0.20,
 					'regression_ols_random_state': 42, 'regression_ols_fit_intercept': True,
@@ -11357,7 +10892,8 @@ elif mode == 'Regression Models':
 				if train_elastic:
 					try:
 						if X is None or y is None:
-							st.warning( '⚠️ Elastic Net requires prepared feature and target arrays.' )
+							st.warning(
+								'⚠️ Elastic Net requires prepared feature and target arrays.' )
 							st.stop( )
 						
 						X_elastic = np.asarray( X, dtype=float )
@@ -11381,7 +10917,8 @@ elif mode == 'Regression Models':
 							st.stop( )
 						
 						if not np.isfinite( X_elastic ).all( ):
-							st.warning( '⚠️ The Elastic Net feature matrix contains non-finite values.' )
+							st.warning(
+								'⚠️ The Elastic Net feature matrix contains non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_elastic ).all( ):
@@ -11419,11 +10956,16 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_elastic_copy_x' ] = bool( elastic_copy_x )
 						st.session_state[ 'regression_elastic_max_iter' ] = int( elastic_max_iter )
 						st.session_state[ 'regression_elastic_tol' ] = float( elastic_tol )
-						st.session_state[ 'regression_elastic_warm_start' ] = bool( elastic_warm_start )
-						st.session_state[ 'regression_elastic_positive' ] = bool( elastic_positive )
-						st.session_state[ 'regression_elastic_random_state' ] = int( elastic_random_state )
-						st.session_state[ 'regression_elastic_selection' ] = str( elastic_selection )
-						st.session_state[ 'regression_elastic_test_size' ] = float( elastic_test_size )
+						st.session_state[ 'regression_elastic_warm_start' ] = bool(
+							elastic_warm_start )
+						st.session_state[ 'regression_elastic_positive' ] = bool(
+							elastic_positive )
+						st.session_state[ 'regression_elastic_random_state' ] = int(
+							elastic_random_state )
+						st.session_state[ 'regression_elastic_selection' ] = str(
+							elastic_selection )
+						st.session_state[ 'regression_elastic_test_size' ] = float(
+							elastic_test_size )
 						start_time = time.perf_counter( )
 						model = regression_model.ElasticNet( alpha=float( elastic_alpha ),
 							ratio=float( elastic_ratio ), fit=bool( elastic_fit_intercept ),
@@ -11494,70 +11036,65 @@ elif mode == 'Regression Models':
 						st.success( 'Elastic Net training completed.' )
 					except Exception as ex:
 						st.error( f'Elastic Net training failed: {ex}' )
-					
+			
 			with st.expander( 'Bayesian Ridge', expanded=False ):
-				bayes_defaults = {
-						'regression_bayes_max_iter': 300,
-						'regression_bayes_shape_alpha': 0.000001,
-						'regression_bayes_scale_alpha': 0.000001,
-						'regression_bayes_shape_lambda': 0.000001,
-						'regression_bayes_scale_lambda': 0.000001,
-						'regression_bayes_tol': 0.001000,
-						'regression_bayes_alpha_init': 0.0,
-						'regression_bayes_lambda_init': 0.0,
-						'regression_bayes_compute_score': False,
-						'regression_bayes_fit_intercept': True,
-						'regression_bayes_copy_x': True,
-						'regression_bayes_verbose': False,
-						'regression_bayes_test_size': 0.20,
-						'regression_bayes_random_state': 42
-				}
+				bayes_defaults = { 'regression_bayes_max_iter': 300,
+					'regression_bayes_shape_alpha': 0.000001,
+					'regression_bayes_scale_alpha': 0.000001,
+					'regression_bayes_shape_lambda': 0.000001,
+					'regression_bayes_scale_lambda': 0.000001, 'regression_bayes_tol': 0.001000,
+					'regression_bayes_alpha_init': 0.0, 'regression_bayes_lambda_init': 0.0,
+					'regression_bayes_compute_score': False, 'regression_bayes_fit_intercept':
+						True,
+					'regression_bayes_copy_x': True, 'regression_bayes_verbose': False,
+					'regression_bayes_test_size': 0.20, 'regression_bayes_random_state': 42 }
 				
 				for key, value in bayes_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
 				
-				st.caption( 'Bayesian linear regression with automatic regularization estimation.' )
+				st.caption( 'Bayesian linear regression with automatic regularization '
+				            'estimation.' )
 				
 				bayes_c1, bayes_c2, bayes_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with bayes_c1:
 					st.markdown( '###### Prior / Precision Parameters' )
 					
 					bayes_shape_alpha = float( st.number_input( 'Alpha Shape', min_value=0.0,
-							value=float( st.session_state[ 'regression_bayes_shape_alpha' ] ),
-							step=0.000001, format='%.6f',
-							key='regression_bayes_shape_alpha_input' ) )
+						value=float( st.session_state[ 'regression_bayes_shape_alpha' ] ),
+						step=0.000001, format='%.6f', key='regression_bayes_shape_alpha_input' ) )
 					
 					bayes_scale_alpha = float( st.number_input( 'Alpha Scale', min_value=0.0,
-							value=float( st.session_state[ 'regression_bayes_scale_alpha' ] ),
-							step=0.000001, format='%.6f', key='regression_bayes_scale_alpha_input' ) )
+						value=float( st.session_state[ 'regression_bayes_scale_alpha' ] ),
+						step=0.000001, format='%.6f', key='regression_bayes_scale_alpha_input' ) )
 					
 					bayes_shape_lambda = float( st.number_input( 'Lambda Shape', min_value=0.0,
-							value=float( st.session_state[ 'regression_bayes_shape_lambda' ] ),
-							step=0.000001, format='%.6f',
-							key='regression_bayes_shape_lambda_input' ) )
+						value=float( st.session_state[ 'regression_bayes_shape_lambda' ] ),
+						step=0.000001, format='%.6f', key='regression_bayes_shape_lambda_input' ) )
 					
 					bayes_scale_lambda = float( st.number_input( 'Lambda Scale', min_value=0.0,
-							value=float( st.session_state[ 'regression_bayes_scale_lambda' ] ),
-							step=0.000001, format='%.6f', key='regression_bayes_scale_lambda_input' ) )
+						value=float( st.session_state[ 'regression_bayes_scale_lambda' ] ),
+						step=0.000001, format='%.6f', key='regression_bayes_scale_lambda_input' ) )
 				
 				with bayes_c2:
 					st.markdown( '###### 🎚️ Hyper Parameters' )
 					
-					bayes_max_iter = int( st.number_input( 'Max Iterations',
-							min_value=1, value=int( st.session_state[ 'regression_bayes_max_iter' ] ),
-							step=1, key='regression_bayes_max_iter_input' ) )
+					bayes_max_iter = int( st.number_input( 'Max Iterations', min_value=1,
+						value=int( st.session_state[ 'regression_bayes_max_iter' ] ), step=1,
+						key='regression_bayes_max_iter_input' ) )
 					
 					bayes_tol = float( st.number_input( 'Tolerance', min_value=0.0,
-							value=float( st.session_state[ 'regression_bayes_tol' ] ),
-							step=0.000100, format='%.6f', key='regression_bayes_tol_input' ) )
+						value=float( st.session_state[ 'regression_bayes_tol' ] ), step=0.000100,
+						format='%.6f', key='regression_bayes_tol_input' ) )
 					
-					bayes_alpha_init_raw = float( st.number_input( 'Alpha Init (0 = None)', min_value=0.0,
+					bayes_alpha_init_raw = float(
+						st.number_input( 'Alpha Init (0 = None)', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_alpha_init' ] ),
-							step=0.000100, format='%.6f', key='regression_bayes_alpha_init_input' ) )
+							step=0.000100, format='%.6f',
+							key='regression_bayes_alpha_init_input' ) )
 					
-					bayes_lambda_init_raw = float( st.number_input( 'Lambda Init (0 = None)',
-							min_value=0.0,
+					bayes_lambda_init_raw = float(
+						st.number_input( 'Lambda Init (0 = None)', min_value=0.0,
 							value=float( st.session_state[ 'regression_bayes_lambda_init' ] ),
 							step=0.000100, format='%.6f',
 							key='regression_bayes_lambda_init_input' ) )
@@ -11572,31 +11109,34 @@ elif mode == 'Regression Models':
 					
 					bayes_copy_x = st.checkbox( 'Copy X',
 						value=bool( st.session_state[ 'regression_bayes_copy_x' ] ),
-						key='regression_bayes_copy_x_check')
+						key='regression_bayes_copy_x_check' )
 					
 					bayes_verbose = st.checkbox( 'Verbose',
 						value=bool( st.session_state[ 'regression_bayes_verbose' ] ),
-						key='regression_bayes_verbose_check')
+						key='regression_bayes_verbose_check' )
 				
 				with bayes_c3:
 					st.markdown( '###### Data Split' )
 					
-					bayes_test_size = st.slider('Test Set Size (%)',min_value=10,max_value=40,
+					bayes_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
 						value=int( st.session_state[ 'regression_bayes_test_size' ] * 100 ),
-						step=5,key='regression_bayes_test_size_slider') / 100.0
+						step=5,
+						key='regression_bayes_test_size_slider' ) / 100.0
 					
-					bayes_random_state = int(st.number_input('Random State',min_value=0,
-							value=int( st.session_state[ 'regression_bayes_random_state' ] ),
-							step=1,key='regression_bayes_random_state_input'))
+					bayes_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_bayes_random_state' ] ), step=1,
+						key='regression_bayes_random_state_input' ) )
 				
 				bayes_btn_1, bayes_btn_2 = st.columns( 2 )
 				with bayes_btn_1:
-					train_bayes = st.button('🚂 Train Bayesian Ridge',key='regression_bayes_train',
-						use_container_width=True)
+					train_bayes = st.button( '🚂 Train Bayesian Ridge',
+						key='regression_bayes_train',
+						use_container_width=True )
 				
 				with bayes_btn_2:
-					reset_bayes = st.button('🔄 Reset Bayesian Ridge',key='regression_bayes_reset',
-						use_container_width=True)
+					reset_bayes = st.button( '🔄 Reset Bayesian Ridge',
+						key='regression_bayes_reset',
+						use_container_width=True )
 				
 				if reset_bayes:
 					for key, value in bayes_defaults.items( ):
@@ -11612,28 +11152,38 @@ elif mode == 'Regression Models':
 				if train_bayes:
 					try:
 						st.session_state[ 'regression_bayes_max_iter' ] = int( bayes_max_iter )
-						st.session_state[ 'regression_bayes_shape_alpha' ] = float(bayes_shape_alpha)
-						st.session_state[ 'regression_bayes_scale_alpha' ] = float(bayes_scale_alpha)
-						st.session_state[ 'regression_bayes_shape_lambda' ] = float(bayes_shape_lambda)
-						st.session_state[ 'regression_bayes_scale_lambda' ] = float(bayes_scale_lambda)
+						st.session_state[ 'regression_bayes_shape_alpha' ] = float(
+							bayes_shape_alpha )
+						st.session_state[ 'regression_bayes_scale_alpha' ] = float(
+							bayes_scale_alpha )
+						st.session_state[ 'regression_bayes_shape_lambda' ] = float(
+							bayes_shape_lambda )
+						st.session_state[ 'regression_bayes_scale_lambda' ] = float(
+							bayes_scale_lambda )
 						st.session_state[ 'regression_bayes_tol' ] = float( bayes_tol )
-						st.session_state[ 'regression_bayes_alpha_init' ] = float(bayes_alpha_init_raw)
-						st.session_state[ 'regression_bayes_lambda_init' ] = float(bayes_lambda_init_raw)
-						st.session_state[ 'regression_bayes_compute_score' ] = bool(bayes_compute_score)
-						st.session_state[ 'regression_bayes_fit_intercept' ] = bool(bayes_fit_intercept)
+						st.session_state[ 'regression_bayes_alpha_init' ] = float(
+							bayes_alpha_init_raw )
+						st.session_state[ 'regression_bayes_lambda_init' ] = float(
+							bayes_lambda_init_raw )
+						st.session_state[ 'regression_bayes_compute_score' ] = bool(
+							bayes_compute_score )
+						st.session_state[ 'regression_bayes_fit_intercept' ] = bool(
+							bayes_fit_intercept )
 						st.session_state[ 'regression_bayes_copy_x' ] = bool( bayes_copy_x )
 						st.session_state[ 'regression_bayes_verbose' ] = bool( bayes_verbose )
-						st.session_state[ 'regression_bayes_test_size' ] = float(bayes_test_size)
-						st.session_state[ 'regression_bayes_random_state' ] = int(bayes_random_state)
+						st.session_state[ 'regression_bayes_test_size' ] = float( bayes_test_size )
+						st.session_state[ 'regression_bayes_random_state' ] = int(
+							bayes_random_state )
 						df_training = df_model.copy( )
-						X = df_training[ active_features ].apply(
-							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+						X = df_training[ active_features ].apply( pd.to_numeric,
+							errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
-						y = pd.to_numeric(
-							df_training[ target_name ], errors='coerce' ).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+						y = pd.to_numeric( df_training[ target_name ], errors='coerce' ).fillna(
+							0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( np.unique( y ) ) < 2:
-							st.warning( '⚠️ The target must contain at least two distinct values.' )
+							st.warning( '⚠️ The target must contain at least two distinct '
+							            'values.' )
 							st.stop( )
 						
 						bayes_alpha_init = None if bayes_alpha_init_raw == 0.0 else float(
@@ -11645,10 +11195,12 @@ elif mode == 'Regression Models':
 						start_time = time.perf_counter( )
 						
 						model = regression_model.BayesianRidge( max=int( bayes_max_iter ),
-							shape_alpha=float( bayes_shape_alpha ), scale_alpha=float( bayes_scale_alpha ),
-							shape_lambda=float( bayes_shape_lambda ), scale_lambda=float( bayes_scale_lambda ),
-							tol=float( bayes_tol ), alpha_init=bayes_alpha_init,
-							lambda_init=bayes_lambda_init, compute_score=bool( bayes_compute_score ),
+							shape_alpha=float( bayes_shape_alpha ),
+							scale_alpha=float( bayes_scale_alpha ),
+							shape_lambda=float( bayes_shape_lambda ),
+							scale_lambda=float( bayes_scale_lambda ), tol=float( bayes_tol ),
+							alpha_init=bayes_alpha_init, lambda_init=bayes_lambda_init,
+							compute_score=bool( bayes_compute_score ),
 							fit=bool( bayes_fit_intercept ), copy=bool( bayes_copy_x ),
 							verbose=bool( bayes_verbose ) )
 						
@@ -11669,31 +11221,18 @@ elif mode == 'Regression Models':
 								df_scores.columns = [ 'Metric', 'Value' ]
 							
 							df_extra = pd.DataFrame( {
-										'Metric': [
-												'Processing Time (Seconds)',
-												'Training Rows',
-												'Testing Rows',
-												'Max Iterations'
-										],
-										'Value': [
-												round( elapsed_seconds, 4 ),
-												int( len( X_train ) ),
-												int( len( X_test ) ),
-												int( bayes_max_iter )
-										]
-								} )
+								'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+									'Testing Rows', 'Max Iterations' ],
+								'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+									int( len( X_test ) ), int( bayes_max_iter ) ] } )
 							
 							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
 						
-						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': y_test, 'Predicted': y_prediction } )
 						
-						df_coefficients = pd.DataFrame( {
-									'Feature': active_features,
-									'Coefficient': np.asarray( model.model.coef_ ).reshape( -1 )
-							} )
+						df_coefficients = pd.DataFrame( { 'Feature': active_features,
+							'Coefficient': np.asarray( model.model.coef_ ).reshape( -1 ) } )
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model.copy( )
@@ -11746,7 +11285,7 @@ elif mode == 'Regression Models':
 						key='regression_sgd_loss_select' )
 					
 					sgd_penalty_options = [ None, 'l2', 'l1', 'elasticnet' ]
-					sgd_penalty_value = st.session_state.get( 'regression_sgd_penalty', 'l2' )					
+					sgd_penalty_value = st.session_state.get( 'regression_sgd_penalty', 'l2' )
 					if sgd_penalty_value not in sgd_penalty_options:
 						sgd_penalty_value = 'l2'
 					
@@ -11808,14 +11347,15 @@ elif mode == 'Regression Models':
 						key='regression_sgd_fit_intercept_check' )
 				
 				with sgd_c3:
-					st.markdown( '###### 🏃 Run Configuration' )					
+					st.markdown( '###### 🏃 Run Configuration' )
 					sgd_early_stopping = st.checkbox( 'Early Stopping',
 						value=bool( st.session_state[ 'regression_sgd_early_stopping' ] ),
 						key='regression_sgd_early_stopping_check' )
 					
 					sgd_validation_fraction = float(
 						st.slider( 'Validation Fraction', min_value=0.05, max_value=0.40,
-							value=float( st.session_state[ 'regression_sgd_validation_fraction'] ),
+							value=float( st.session_state[ 'regression_sgd_validation_fraction'
+							] ),
 							step=0.05, key='regression_sgd_validation_fraction_slider' ) )
 					
 					sgd_n_iter_no_change = int( st.number_input( 'N Iter No Change', min_value=1,
@@ -11845,7 +11385,8 @@ elif mode == 'Regression Models':
 					if sgd_penalty != 'elasticnet':
 						st.caption( 'L1 Ratio is only used when Penalty = elasticnet.' )
 					
-					epsilon_losses = [ 'huber', 'epsilon_insensitive','squared_epsilon_insensitive' ]
+					epsilon_losses = [ 'huber', 'epsilon_insensitive',
+						'squared_epsilon_insensitive' ]
 					
 					if sgd_loss not in epsilon_losses:
 						st.caption( 'Epsilon is only used by Huber and '
@@ -11888,7 +11429,7 @@ elif mode == 'Regression Models':
 							st.stop( )
 						
 						X_sgd = np.asarray( X, dtype=float )
-						y_sgd = np.asarray( y, dtype=float ).reshape( -1 )						
+						y_sgd = np.asarray( y, dtype=float ).reshape( -1 )
 						if X_sgd.ndim != 2 or X_sgd.shape[ 1 ] < 1:
 							st.warning( '⚠️ Stochastic Gradient Descent requires at least '
 							            'one numeric feature.' )
@@ -11984,7 +11525,7 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_sgd_warm_start' ] = bool( sgd_warm_start )
 						st.session_state[ 'regression_sgd_average' ] = bool( sgd_average )
 						st.session_state[ 'regression_sgd_test_size' ] = float( sgd_test_size )
-						st.session_state[ 'regression_sgd_random_state' ] = int( sgd_random_state )						
+						st.session_state[ 'regression_sgd_random_state' ] = int( sgd_random_state )
 						start_time = time.perf_counter( )
 						
 						model = regression_model.GradientDescent( loss=str( sgd_loss ),
@@ -12013,8 +11554,8 @@ elif mode == 'Regression Models':
 							st.stop( )
 						
 						model.train( X_train, y_train )
-						y_prediction = model.project( X_test )						
-						elapsed_seconds = float( time.perf_counter( ) - start_time )						
+						y_prediction = model.project( X_test )
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
@@ -12035,13 +11576,13 @@ elif mode == 'Regression Models':
 								str( sgd_learning_rate ), int( sgd_iters ), float( sgd_alpha ) ]
 						} )
 						
-						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )						
-						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )						
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						df_predictions = pd.DataFrame(
 							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
 								'Predicted': y_prediction } )
 						
-						coefficient_values = np.asarray( model.weights, dtype=float ).reshape( -1 )						
+						coefficient_values = np.asarray( model.weights, dtype=float ).reshape( -1 )
 						if len( coefficient_values ) == len( active_features ):
 							coefficient_names = active_features.copy( )
 						else:
@@ -12071,19 +11612,13 @@ elif mode == 'Regression Models':
 						st.error( f'Stochastic Gradient Descent training failed: {ex}' )
 		
 		with st.expander( 'Instance Models', expanded=False ):
-			
 			with st.expander( 'k-Nearest Neighbors', expanded=False ):
-				knn_defaults = {
-						'regression_knn_neighbors': 5,
-						'regression_knn_weights': 'uniform',
-						'regression_knn_algorithm': 'auto',
-						'regression_knn_leaf_size': 30,
-						'regression_knn_power': 2.0,
-						'regression_knn_metric': 'minkowski',
-						'regression_knn_jobs': 1,
-						'regression_knn_test_size': 0.20,
-						'regression_knn_random_state': 42
-				}
+				knn_defaults = { 'regression_knn_neighbors': 5, 'regression_knn_weights':
+					'uniform',
+					'regression_knn_algorithm': 'auto', 'regression_knn_leaf_size': 30,
+					'regression_knn_power': 2.0, 'regression_knn_metric': 'minkowski',
+					'regression_knn_jobs': 1, 'regression_knn_test_size': 0.20,
+					'regression_knn_random_state': 42 }
 				
 				for key, value in knn_defaults.items( ):
 					if key not in st.session_state:
@@ -12091,192 +11626,93 @@ elif mode == 'Regression Models':
 				
 				st.caption( 'Instance-based regression using nearby observations.' )
 				
-				knn_c1, knn_c2, knn_c3 = st.columns(
-					[ 0.34, 0.33, 0.33 ],
-					border=True
-				)
+				knn_c1, knn_c2, knn_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				
 				with knn_c1:
 					st.markdown( '###### Neighbor Parameters' )
 					
-					knn_neighbors = int(
-						st.number_input(
-							'Neighbors',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_knn_neighbors' ]
-							),
-							step=1,
-							key='regression_knn_neighbors_input'
-						)
-					)
+					knn_neighbors = int( st.number_input( 'Neighbors', min_value=1,
+						value=int( st.session_state[ 'regression_knn_neighbors' ] ), step=1,
+						key='regression_knn_neighbors_input' ) )
 					
-					knn_weights_options = [
-							'uniform',
-							'distance'
-					]
+					knn_weights_options = [ 'uniform', 'distance' ]
 					
-					knn_weights_value = st.session_state.get(
-						'regression_knn_weights',
-						'uniform'
-					)
+					knn_weights_value = st.session_state.get( 'regression_knn_weights', 'uniform' )
 					
 					if knn_weights_value not in knn_weights_options:
 						knn_weights_value = 'uniform'
 					
-					knn_weights = st.selectbox(
-						'Weights',
-						options=knn_weights_options,
+					knn_weights = st.selectbox( 'Weights', options=knn_weights_options,
 						index=knn_weights_options.index( knn_weights_value ),
-						key='regression_knn_weights_select'
-					)
+						key='regression_knn_weights_select' )
 					
-					knn_power = float(
-						st.number_input(
-							'Power',
-							min_value=1.0,
-							value=float(
-								st.session_state[ 'regression_knn_power' ]
-							),
-							step=1.0,
-							format='%.1f',
-							key='regression_knn_power_input'
-						)
-					)
+					knn_power = float( st.number_input( 'Power', min_value=1.0,
+						value=float( st.session_state[ 'regression_knn_power' ] ), step=1.0,
+						format='%.1f', key='regression_knn_power_input' ) )
 					
-					knn_leaf_size = int(
-						st.number_input(
-							'Leaf Size',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_knn_leaf_size' ]
-							),
-							step=1,
-							key='regression_knn_leaf_size_input'
-						)
-					)
+					knn_leaf_size = int( st.number_input( 'Leaf Size', min_value=1,
+						value=int( st.session_state[ 'regression_knn_leaf_size' ] ), step=1,
+						key='regression_knn_leaf_size_input' ) )
 				
 				with knn_c2:
 					st.markdown( '###### Distance / Search' )
 					
-					knn_algorithm_options = [
-							'auto',
-							'ball_tree',
-							'kd_tree',
-							'brute'
-					]
+					knn_algorithm_options = [ 'auto', 'ball_tree', 'kd_tree', 'brute' ]
 					
-					knn_algorithm_value = st.session_state.get(
-						'regression_knn_algorithm',
-						'auto'
-					)
+					knn_algorithm_value = st.session_state.get( 'regression_knn_algorithm',
+						'auto' )
 					
 					if knn_algorithm_value not in knn_algorithm_options:
 						knn_algorithm_value = 'auto'
 					
-					knn_algorithm = st.selectbox(
-						'Algorithm',
-						options=knn_algorithm_options,
+					knn_algorithm = st.selectbox( 'Algorithm', options=knn_algorithm_options,
 						index=knn_algorithm_options.index( knn_algorithm_value ),
-						key='regression_knn_algorithm_select'
-					)
+						key='regression_knn_algorithm_select' )
 					
-					knn_metric_options = [
-							'minkowski',
-							'euclidean',
-							'manhattan',
-							'chebyshev',
-							'canberra',
-							'braycurtis',
-							'cityblock',
-							'cosine',
-							'l1',
-							'l2',
-							'nan_euclidean',
-							'hamming'
-					]
+					knn_metric_options = [ 'minkowski', 'euclidean', 'manhattan', 'chebyshev',
+						'canberra', 'braycurtis', 'cityblock', 'cosine', 'l1', 'l2',
+						'nan_euclidean', 'hamming' ]
 					
-					knn_metric_value = st.session_state.get(
-						'regression_knn_metric',
-						'minkowski'
-					)
+					knn_metric_value = st.session_state.get( 'regression_knn_metric', 'minkowski' )
 					
 					if knn_metric_value not in knn_metric_options:
 						knn_metric_value = 'minkowski'
 					
-					knn_metric = st.selectbox(
-						'Metric',
-						options=knn_metric_options,
+					knn_metric = st.selectbox( 'Metric', options=knn_metric_options,
 						index=knn_metric_options.index( knn_metric_value ),
-						key='regression_knn_metric_select'
-					)
+						key='regression_knn_metric_select' )
 					
-					knn_jobs = int(
-						st.number_input(
-							'Parallel Jobs',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_knn_jobs' ]
-							),
-							step=1,
-							key='regression_knn_jobs_input'
-						)
-					)
+					knn_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
+						value=int( st.session_state[ 'regression_knn_jobs' ] ), step=1,
+						key='regression_knn_jobs_input' ) )
 					
 					if knn_metric != 'minkowski':
-						st.caption(
-							'Power is primarily used with the Minkowski metric.'
-						)
+						st.caption( 'Power is primarily used with the Minkowski metric.' )
 				
 				with knn_c3:
 					st.markdown( '###### Data Split' )
 					
-					knn_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int(
-							st.session_state[ 'regression_knn_test_size' ] * 100
-						),
-						step=5,
-						key='regression_knn_test_size_slider'
-					) / 100.0
+					knn_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_knn_test_size' ] * 100 ), step=5,
+						key='regression_knn_test_size_slider' ) / 100.0
 					
-					knn_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int(
-								st.session_state[
-									'regression_knn_random_state'
-								]
-							),
-							step=1,
-							key='regression_knn_random_state_input'
-						)
-					)
+					knn_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_knn_random_state' ] ), step=1,
+						key='regression_knn_random_state_input' ) )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Target: {target_name}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Target: {target_name}' )
 				
 				knn_btn_1, knn_btn_2 = st.columns( 2 )
 				
 				with knn_btn_1:
-					train_knn = st.button(
-						'🚂 Train k-Nearest Neighbors',
-						key='regression_knn_train',
-						use_container_width=True
-					)
+					train_knn = st.button( '🚂 Train k-Nearest Neighbors',
+						key='regression_knn_train', use_container_width=True )
 				
 				with knn_btn_2:
-					reset_knn = st.button(
-						'🔄 Reset k-Nearest Neighbors',
-						key='regression_knn_reset',
-						use_container_width=True
-					)
+					reset_knn = st.button( '🔄 Reset k-Nearest Neighbors',
+						key='regression_knn_reset', use_container_width=True )
 				
 				if reset_knn:
 					for key, value in knn_defaults.items( ):
@@ -12299,299 +11735,153 @@ elif mode == 'Regression Models':
 				if train_knn:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ k-Nearest Neighbors requires prepared '
-								'feature and target arrays.'
-							)
+							st.warning( '⚠️ k-Nearest Neighbors requires prepared '
+							            'feature and target arrays.' )
 							st.stop( )
 						
-						X_knn = np.asarray(
-							X,
-							dtype=float
-						)
+						X_knn = np.asarray( X, dtype=float )
 						
-						y_knn = np.asarray(
-							y,
-							dtype=float
-						).reshape( -1 )
+						y_knn = np.asarray( y, dtype=float ).reshape( -1 )
 						
 						if X_knn.ndim != 2 or X_knn.shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ k-Nearest Neighbors requires at least one '
-								'numeric feature.'
-							)
+							st.warning( '⚠️ k-Nearest Neighbors requires at least one '
+							            'numeric feature.' )
 							st.stop( )
 						
 						if y_knn.ndim != 1:
-							st.warning(
-								'⚠️ The k-Nearest Neighbors target must be '
-								'one-dimensional.'
-							)
+							st.warning( '⚠️ The k-Nearest Neighbors target must be '
+							            'one-dimensional.' )
 							st.stop( )
 						
 						if len( X_knn ) != len( y_knn ):
-							st.warning(
-								'⚠️ Feature and target row counts do not match.'
-							)
+							st.warning( '⚠️ Feature and target row counts do not match.' )
 							st.stop( )
 						
 						if len( X_knn ) < 2:
-							st.warning(
-								'⚠️ k-Nearest Neighbors requires at least two '
-								'observations.'
-							)
+							st.warning( '⚠️ k-Nearest Neighbors requires at least two '
+							            'observations.' )
 							st.stop( )
 						
 						if not np.isfinite( X_knn ).all( ):
-							st.warning(
-								'⚠️ The k-Nearest Neighbors feature matrix '
-								'contains non-finite values.'
-							)
+							st.warning( '⚠️ The k-Nearest Neighbors feature matrix '
+							            'contains non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_knn ).all( ):
-							st.warning(
-								'⚠️ The k-Nearest Neighbors target contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The k-Nearest Neighbors target contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if len( np.unique( y_knn ) ) < 2:
-							st.warning(
-								'⚠️ The regression target must contain at '
-								'least two distinct values.'
-							)
+							st.warning( '⚠️ The regression target must contain at '
+							            'least two distinct values.' )
 							st.stop( )
 						
 						if knn_neighbors < 1:
-							st.warning(
-								'⚠️ The number of neighbors must be greater '
-								'than zero.'
-							)
+							st.warning( '⚠️ The number of neighbors must be greater '
+							            'than zero.' )
 							st.stop( )
 						
 						if knn_leaf_size < 1:
-							st.warning(
-								'⚠️ Leaf Size must be greater than zero.'
-							)
+							st.warning( '⚠️ Leaf Size must be greater than zero.' )
 							st.stop( )
 						
 						if knn_power < 1.0:
-							st.warning(
-								'⚠️ Minkowski Power must be at least 1.0.'
-							)
+							st.warning( '⚠️ Minkowski Power must be at least 1.0.' )
 							st.stop( )
 						
 						if knn_jobs < 1:
-							st.warning(
-								'⚠️ Parallel Jobs must be greater than zero.'
-							)
+							st.warning( '⚠️ Parallel Jobs must be greater than zero.' )
 							st.stop( )
 						
-						st.session_state[
-							'regression_knn_neighbors'
-						] = int( knn_neighbors )
-						st.session_state[
-							'regression_knn_weights'
-						] = str( knn_weights )
-						st.session_state[
-							'regression_knn_algorithm'
-						] = str( knn_algorithm )
-						st.session_state[
-							'regression_knn_leaf_size'
-						] = int( knn_leaf_size )
-						st.session_state[
-							'regression_knn_power'
-						] = float( knn_power )
-						st.session_state[
-							'regression_knn_metric'
-						] = str( knn_metric )
-						st.session_state[
-							'regression_knn_jobs'
-						] = int( knn_jobs )
-						st.session_state[
-							'regression_knn_test_size'
-						] = float( knn_test_size )
-						st.session_state[
-							'regression_knn_random_state'
-						] = int( knn_random_state )
+						st.session_state[ 'regression_knn_neighbors' ] = int( knn_neighbors )
+						st.session_state[ 'regression_knn_weights' ] = str( knn_weights )
+						st.session_state[ 'regression_knn_algorithm' ] = str( knn_algorithm )
+						st.session_state[ 'regression_knn_leaf_size' ] = int( knn_leaf_size )
+						st.session_state[ 'regression_knn_power' ] = float( knn_power )
+						st.session_state[ 'regression_knn_metric' ] = str( knn_metric )
+						st.session_state[ 'regression_knn_jobs' ] = int( knn_jobs )
+						st.session_state[ 'regression_knn_test_size' ] = float( knn_test_size )
+						st.session_state[ 'regression_knn_random_state' ] = int( knn_random_state )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.NearestNeighbor(
-							num=int( knn_neighbors ),
-							weight=str( knn_weights ),
-							algo=str( knn_algorithm ),
-							leaf=int( knn_leaf_size ),
-							power=float( knn_power ),
-							metric=str( knn_metric ),
-							metric_params=None,
-							jobs=int( knn_jobs )
-						)
+						model = regression_model.NearestNeighbor( num=int( knn_neighbors ),
+							weight=str( knn_weights ), algo=str( knn_algorithm ),
+							leaf=int( knn_leaf_size ), power=float( knn_power ),
+							metric=str( knn_metric ), metric_params=None, jobs=int( knn_jobs ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X_knn,
-							y_knn,
-							size=float( knn_test_size ),
-							random=int( knn_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_knn, y_knn,
+							size=float( knn_test_size ), random=int( knn_random_state ) )
 						
 						if len( X_train ) < 1 or len( X_test ) < 1:
-							st.warning(
-								'⚠️ The selected test size does not produce '
-								'valid training and testing partitions.'
-							)
+							st.warning( '⚠️ The selected test size does not produce '
+							            'valid training and testing partitions.' )
 							st.stop( )
 						
 						if knn_neighbors > len( X_train ):
-							st.warning(
-								'⚠️ Neighbors cannot exceed the number of '
-								'training observations.'
-							)
+							st.warning( '⚠️ Neighbors cannot exceed the number of '
+							            'training observations.' )
 							st.stop( )
 						
-						model.train(
-							X_train,
-							y_train
-						)
+						model.train( X_train, y_train )
 						
-						y_prediction = model.project(
-							X_test
-						)
+						y_prediction = model.project( X_test )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
-						df_scores = model.analyze(
-							X_test,
-							y_test
-						)
+						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						else:
 							df_scores = df_scores.copy( )
 						
-						if (
-								'Metric' not in df_scores.columns
-								or 'Value' not in df_scores.columns
-						):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_metadata = pd.DataFrame(
-							{
-									'Metric': [
-											'Processing Time (Seconds)',
-											'Training Rows',
-											'Testing Rows',
-											'Neighbors',
-											'Weights',
-											'Algorithm',
-											'Metric',
-											'Power'
-									],
-									'Value': [
-											round( elapsed_seconds, 4 ),
-											int( len( X_train ) ),
-											int( len( X_test ) ),
-											int( knn_neighbors ),
-											str( knn_weights ),
-											str( knn_algorithm ),
-											str( knn_metric ),
-											float( knn_power )
-									]
-							}
-						)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Neighbors', 'Weights', 'Algorithm', 'Metric',
+								'Power' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), int( knn_neighbors ), str( knn_weights ),
+								str( knn_algorithm ), str( knn_metric ), float( knn_power ) ] } )
 						
-						df_scores = pd.concat(
-							[
-									df_scores,
-									df_metadata
-							],
-							ignore_index=True
-						)
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
 						
-						y_prediction = np.asarray(
-							y_prediction,
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_knn_elapsed_seconds'
-						] = elapsed_seconds
-						st.session_state[
-							'elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_knn_elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
-						st.session_state[
-							'X_train'
-						] = np.asarray( X_train ).copy( )
-						st.session_state[
-							'X_test'
-						] = np.asarray( X_test ).copy( )
-						st.session_state[
-							'y_train'
-						] = np.asarray( y_train ).copy( )
-						st.session_state[
-							'y_test'
-						] = np.asarray( y_test ).copy( )
-						st.session_state[
-							'y_prediction'
-						] = y_prediction.copy( )
-						st.session_state[
-							'df_regression'
-						] = df_model.copy( )
-						st.session_state[
-							'df_scores'
-						] = df_scores.copy( )
-						st.session_state[
-							'df_regression_scores'
-						] = df_scores.copy( )
-						st.session_state[
-							'df_predictions'
-						] = df_predictions.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'df_regression' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.success(
-							'k-Nearest Neighbors training completed.'
-						)
+						st.success( 'k-Nearest Neighbors training completed.' )
 					
 					except Exception as ex:
-						st.error(
-							f'k-Nearest Neighbors training failed: {ex}'
-						)
+						st.error( f'k-Nearest Neighbors training failed: {ex}' )
 			
 			with st.expander( 'Support Vector Machine', expanded=False ):
-				svr_defaults = {
-						'regression_svr_kernel': 'rbf',
-						'regression_svr_degree': 3,
-						'regression_svr_gamma_mode': 'scale',
-						'regression_svr_gamma_value': 0.1,
-						'regression_svr_coef0': 0.0,
-						'regression_svr_tol': 0.001,
-						'regression_svr_c': 1.0,
-						'regression_svr_epsilon': 0.1,
-						'regression_svr_shrinking': True,
-						'regression_svr_cache_size': 200.0,
-						'regression_svr_verbose': False,
-						'regression_svr_max_iter': -1,
-						'regression_svr_test_size': 0.20,
-						'regression_svr_random_state': 42
-				}
+				svr_defaults = { 'regression_svr_kernel': 'rbf', 'regression_svr_degree': 3,
+					'regression_svr_gamma_mode': 'scale', 'regression_svr_gamma_value': 0.1,
+					'regression_svr_coef0': 0.0, 'regression_svr_tol': 0.001,
+					'regression_svr_c': 1.0, 'regression_svr_epsilon': 0.1,
+					'regression_svr_shrinking': True, 'regression_svr_cache_size': 200.0,
+					'regression_svr_verbose': False, 'regression_svr_max_iter': -1,
+					'regression_svr_test_size': 0.20, 'regression_svr_random_state': 42 }
 				
 				for key, value in svr_defaults.items( ):
 					if key not in st.session_state:
@@ -12599,255 +11889,111 @@ elif mode == 'Regression Models':
 				
 				st.caption( 'Support Vector Regression for continuous targets.' )
 				
-				svr_c1, svr_c2, svr_c3 = st.columns(
-					[ 0.34, 0.33, 0.33 ],
-					border=True
-				)
+				svr_c1, svr_c2, svr_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				
 				with svr_c1:
 					st.markdown( '###### Kernel Parameters' )
 					
-					svr_kernel_options = [
-							'linear',
-							'poly',
-							'rbf',
-							'sigmoid'
-					]
+					svr_kernel_options = [ 'linear', 'poly', 'rbf', 'sigmoid' ]
 					
-					svr_kernel_value = st.session_state.get(
-						'regression_svr_kernel',
-						'rbf'
-					)
+					svr_kernel_value = st.session_state.get( 'regression_svr_kernel', 'rbf' )
 					
 					if svr_kernel_value not in svr_kernel_options:
 						svr_kernel_value = 'rbf'
 					
-					svr_kernel = st.selectbox(
-						'Kernel',
-						options=svr_kernel_options,
+					svr_kernel = st.selectbox( 'Kernel', options=svr_kernel_options,
 						index=svr_kernel_options.index( svr_kernel_value ),
-						key='regression_svr_kernel_select'
-					)
+						key='regression_svr_kernel_select' )
 					
-					svr_degree = int(
-						st.number_input(
-							'Degree',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_svr_degree' ]
-							),
-							step=1,
-							key='regression_svr_degree_input'
-						)
-					)
+					svr_degree = int( st.number_input( 'Degree', min_value=1,
+						value=int( st.session_state[ 'regression_svr_degree' ] ), step=1,
+						key='regression_svr_degree_input' ) )
 					
-					svr_gamma_options = [
-							'scale',
-							'auto',
-							'custom'
-					]
+					svr_gamma_options = [ 'scale', 'auto', 'custom' ]
 					
-					svr_gamma_mode_value = st.session_state.get(
-						'regression_svr_gamma_mode',
-						'scale'
-					)
+					svr_gamma_mode_value = st.session_state.get( 'regression_svr_gamma_mode',
+						'scale' )
 					
 					if svr_gamma_mode_value not in svr_gamma_options:
 						svr_gamma_mode_value = 'scale'
 					
-					svr_gamma_mode = st.selectbox(
-						'Gamma',
-						options=svr_gamma_options,
+					svr_gamma_mode = st.selectbox( 'Gamma', options=svr_gamma_options,
 						index=svr_gamma_options.index( svr_gamma_mode_value ),
-						key='regression_svr_gamma_mode_select'
-					)
+						key='regression_svr_gamma_mode_select' )
 					
-					svr_gamma_value = float(
-						st.number_input(
-							'Gamma Value',
-							min_value=0.000001,
-							value=float(
-								st.session_state[
-									'regression_svr_gamma_value'
-								]
-							),
-							step=0.010000,
-							format='%.6f',
-							key='regression_svr_gamma_value_input'
-						)
-					)
+					svr_gamma_value = float( st.number_input( 'Gamma Value', min_value=0.000001,
+						value=float( st.session_state[ 'regression_svr_gamma_value' ] ),
+						step=0.010000, format='%.6f', key='regression_svr_gamma_value_input' ) )
 					
-					svr_coef0 = float(
-						st.number_input(
-							'Coef0',
-							value=float(
-								st.session_state[ 'regression_svr_coef0' ]
-							),
-							step=0.100000,
-							format='%.6f',
-							key='regression_svr_coef0_input'
-						)
-					)
+					svr_coef0 = float( st.number_input( 'Coef0',
+						value=float( st.session_state[ 'regression_svr_coef0' ] ), step=0.100000,
+						format='%.6f', key='regression_svr_coef0_input' ) )
 				
 				with svr_c2:
 					st.markdown( '###### Regularization / Solver' )
 					
-					svr_c = float(
-						st.number_input(
-							'C',
-							min_value=0.000001,
-							value=float(
-								st.session_state[ 'regression_svr_c' ]
-							),
-							step=0.100000,
-							format='%.6f',
-							key='regression_svr_c_input'
-						)
-					)
+					svr_c = float( st.number_input( 'C', min_value=0.000001,
+						value=float( st.session_state[ 'regression_svr_c' ] ), step=0.100000,
+						format='%.6f', key='regression_svr_c_input' ) )
 					
-					svr_epsilon = float(
-						st.number_input(
-							'Epsilon',
-							min_value=0.0,
-							value=float(
-								st.session_state[
-									'regression_svr_epsilon'
-								]
-							),
-							step=0.010000,
-							format='%.6f',
-							key='regression_svr_epsilon_input'
-						)
-					)
+					svr_epsilon = float( st.number_input( 'Epsilon', min_value=0.0,
+						value=float( st.session_state[ 'regression_svr_epsilon' ] ), step=0.010000,
+						format='%.6f', key='regression_svr_epsilon_input' ) )
 					
-					svr_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
-							value=float(
-								st.session_state[ 'regression_svr_tol' ]
-							),
-							step=0.000100,
-							format='%.6f',
-							key='regression_svr_tol_input'
-						)
-					)
+					svr_tol = float( st.number_input( 'Tolerance', min_value=0.0,
+						value=float( st.session_state[ 'regression_svr_tol' ] ), step=0.000100,
+						format='%.6f', key='regression_svr_tol_input' ) )
 					
-					svr_shrinking = st.checkbox(
-						'Shrinking Heuristic',
-						value=bool(
-							st.session_state[
-								'regression_svr_shrinking'
-							]
-						),
-						key='regression_svr_shrinking_check'
-					)
+					svr_shrinking = st.checkbox( 'Shrinking Heuristic',
+						value=bool( st.session_state[ 'regression_svr_shrinking' ] ),
+						key='regression_svr_shrinking_check' )
 					
-					svr_cache_size = float(
-						st.number_input(
-							'Cache Size (MB)',
-							min_value=1.0,
-							value=float(
-								st.session_state[
-									'regression_svr_cache_size'
-								]
-							),
-							step=10.0,
-							format='%.1f',
-							key='regression_svr_cache_size_input'
-						)
-					)
+					svr_cache_size = float( st.number_input( 'Cache Size (MB)', min_value=1.0,
+						value=float( st.session_state[ 'regression_svr_cache_size' ] ), step=10.0,
+						format='%.1f', key='regression_svr_cache_size_input' ) )
 					
-					svr_verbose = st.checkbox(
-						'Verbose',
-						value=bool(
-							st.session_state[
-								'regression_svr_verbose'
-							]
-						),
-						key='regression_svr_verbose_check'
-					)
+					svr_verbose = st.checkbox( 'Verbose',
+						value=bool( st.session_state[ 'regression_svr_verbose' ] ),
+						key='regression_svr_verbose_check' )
 					
 					svr_max_iter = int(
-						st.number_input(
-							'Max Iterations (-1 = No Limit)',
-							min_value=-1,
-							value=int(
-								st.session_state[
-									'regression_svr_max_iter'
-								]
-							),
-							step=1,
-							key='regression_svr_max_iter_input'
-						)
-					)
+						st.number_input( 'Max Iterations (-1 = No Limit)', min_value=-1,
+							value=int( st.session_state[ 'regression_svr_max_iter' ] ), step=1,
+							key='regression_svr_max_iter_input' ) )
 				
 				with svr_c3:
 					st.markdown( '###### Data Split' )
 					
-					svr_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int(
-							st.session_state[
-								'regression_svr_test_size'
-							] * 100
-						),
-						step=5,
-						key='regression_svr_test_size_slider'
-					) / 100.0
+					svr_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_svr_test_size' ] * 100 ), step=5,
+						key='regression_svr_test_size_slider' ) / 100.0
 					
-					svr_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int(
-								st.session_state[
-									'regression_svr_random_state'
-								]
-							),
-							step=1,
-							key='regression_svr_random_state_input'
-						)
-					)
+					svr_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_svr_random_state' ] ), step=1,
+						key='regression_svr_random_state_input' ) )
 					
 					if svr_kernel != 'poly':
-						st.caption(
-							'Degree is only used when Kernel = poly.'
-						)
+						st.caption( 'Degree is only used when Kernel = poly.' )
 					
 					if svr_kernel not in [ 'poly', 'sigmoid' ]:
-						st.caption(
-							'Coef0 is mainly used by poly and sigmoid kernels.'
-						)
+						st.caption( 'Coef0 is mainly used by poly and sigmoid kernels.' )
 					
 					if svr_gamma_mode != 'custom':
-						st.caption(
-							'Gamma Value is only used when Gamma = custom.'
-						)
+						st.caption( 'Gamma Value is only used when Gamma = custom.' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Target: {target_name}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Target: {target_name}' )
 				
 				svr_btn_1, svr_btn_2 = st.columns( 2 )
 				
 				with svr_btn_1:
-					train_svr = st.button(
-						'🚂 Train Support Vector',
-						key='regression_svr_train',
-						use_container_width=True
-					)
+					train_svr = st.button( '🚂 Train Support Vector', key='regression_svr_train',
+						use_container_width=True )
 				
 				with svr_btn_2:
-					reset_svr = st.button(
-						'🔄 Reset Support Vector',
-						key='regression_svr_reset',
-						use_container_width=True
-					)
+					reset_svr = st.button( '🔄 Reset Support Vector', key='regression_svr_reset',
+						use_container_width=True )
 				
 				if reset_svr:
 					for key, value in svr_defaults.items( ):
@@ -12870,699 +12016,375 @@ elif mode == 'Regression Models':
 				if train_svr:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Support Vector Regression requires prepared '
-								'feature and target arrays.'
-							)
+							st.warning( '⚠️ Support Vector Regression requires prepared '
+							            'feature and target arrays.' )
 							st.stop( )
 						
 						X_svr = np.asarray( X, dtype=float )
 						y_svr = np.asarray( y, dtype=float ).reshape( -1 )
 						
 						if X_svr.ndim != 2 or X_svr.shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Support Vector Regression requires at least '
-								'one numeric feature.'
-							)
+							st.warning( '⚠️ Support Vector Regression requires at least '
+							            'one numeric feature.' )
 							st.stop( )
 						
 						if y_svr.ndim != 1:
-							st.warning(
-								'⚠️ The Support Vector Regression target must be '
-								'one-dimensional.'
-							)
+							st.warning( '⚠️ The Support Vector Regression target must be '
+							            'one-dimensional.' )
 							st.stop( )
 						
 						if len( X_svr ) != len( y_svr ):
-							st.warning(
-								'⚠️ Feature and target row counts do not match.'
-							)
+							st.warning( '⚠️ Feature and target row counts do not match.' )
 							st.stop( )
 						
 						if len( X_svr ) < 2:
-							st.warning(
-								'⚠️ Support Vector Regression requires at least '
-								'two observations.'
-							)
+							st.warning( '⚠️ Support Vector Regression requires at least '
+							            'two observations.' )
 							st.stop( )
 						
 						if not np.isfinite( X_svr ).all( ):
-							st.warning(
-								'⚠️ The Support Vector Regression feature matrix '
-								'contains non-finite values.'
-							)
+							st.warning( '⚠️ The Support Vector Regression feature matrix '
+							            'contains non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_svr ).all( ):
-							st.warning(
-								'⚠️ The Support Vector Regression target contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Support Vector Regression target contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if len( np.unique( y_svr ) ) < 2:
-							st.warning(
-								'⚠️ The regression target must contain at least '
-								'two distinct values.'
-							)
+							st.warning( '⚠️ The regression target must contain at least '
+							            'two distinct values.' )
 							st.stop( )
 						
 						if svr_c <= 0.0:
-							st.warning(
-								'⚠️ Support Vector C must be greater than zero.'
-							)
+							st.warning( '⚠️ Support Vector C must be greater than zero.' )
 							st.stop( )
 						
 						if svr_epsilon < 0.0:
-							st.warning(
-								'⚠️ Support Vector epsilon cannot be negative.'
-							)
+							st.warning( '⚠️ Support Vector epsilon cannot be negative.' )
 							st.stop( )
 						
 						if svr_tol < 0.0:
-							st.warning(
-								'⚠️ Support Vector tolerance cannot be negative.'
-							)
+							st.warning( '⚠️ Support Vector tolerance cannot be negative.' )
 							st.stop( )
 						
 						if svr_cache_size <= 0.0:
-							st.warning(
-								'⚠️ Support Vector cache size must be greater '
-								'than zero.'
-							)
+							st.warning( '⚠️ Support Vector cache size must be greater '
+							            'than zero.' )
 							st.stop( )
 						
 						if svr_max_iter == 0 or svr_max_iter < -1:
-							st.warning(
-								'⚠️ Max Iterations must be -1 or greater than zero.'
-							)
+							st.warning( '⚠️ Max Iterations must be -1 or greater than zero.' )
 							st.stop( )
 						
 						if svr_gamma_mode == 'custom' and svr_gamma_value <= 0.0:
-							st.warning(
-								'⚠️ Custom gamma must be greater than zero.'
-							)
+							st.warning( '⚠️ Custom gamma must be greater than zero.' )
 							st.stop( )
 						
 						effective_gamma = (
-								float( svr_gamma_value )
-								if svr_gamma_mode == 'custom'
-								else str( svr_gamma_mode )
-						)
+							float( svr_gamma_value ) if svr_gamma_mode == 'custom' else str(
+								svr_gamma_mode ))
 						
-						st.session_state[
-							'regression_svr_kernel'
-						] = str( svr_kernel )
-						st.session_state[
-							'regression_svr_degree'
-						] = int( svr_degree )
-						st.session_state[
-							'regression_svr_gamma_mode'
-						] = str( svr_gamma_mode )
-						st.session_state[
-							'regression_svr_gamma_value'
-						] = float( svr_gamma_value )
-						st.session_state[
-							'regression_svr_coef0'
-						] = float( svr_coef0 )
-						st.session_state[
-							'regression_svr_tol'
-						] = float( svr_tol )
-						st.session_state[
-							'regression_svr_c'
-						] = float( svr_c )
-						st.session_state[
-							'regression_svr_epsilon'
-						] = float( svr_epsilon )
-						st.session_state[
-							'regression_svr_shrinking'
-						] = bool( svr_shrinking )
-						st.session_state[
-							'regression_svr_cache_size'
-						] = float( svr_cache_size )
-						st.session_state[
-							'regression_svr_verbose'
-						] = bool( svr_verbose )
-						st.session_state[
-							'regression_svr_max_iter'
-						] = int( svr_max_iter )
-						st.session_state[
-							'regression_svr_test_size'
-						] = float( svr_test_size )
-						st.session_state[
-							'regression_svr_random_state'
-						] = int( svr_random_state )
+						st.session_state[ 'regression_svr_kernel' ] = str( svr_kernel )
+						st.session_state[ 'regression_svr_degree' ] = int( svr_degree )
+						st.session_state[ 'regression_svr_gamma_mode' ] = str( svr_gamma_mode )
+						st.session_state[ 'regression_svr_gamma_value' ] = float( svr_gamma_value )
+						st.session_state[ 'regression_svr_coef0' ] = float( svr_coef0 )
+						st.session_state[ 'regression_svr_tol' ] = float( svr_tol )
+						st.session_state[ 'regression_svr_c' ] = float( svr_c )
+						st.session_state[ 'regression_svr_epsilon' ] = float( svr_epsilon )
+						st.session_state[ 'regression_svr_shrinking' ] = bool( svr_shrinking )
+						st.session_state[ 'regression_svr_cache_size' ] = float( svr_cache_size )
+						st.session_state[ 'regression_svr_verbose' ] = bool( svr_verbose )
+						st.session_state[ 'regression_svr_max_iter' ] = int( svr_max_iter )
+						st.session_state[ 'regression_svr_test_size' ] = float( svr_test_size )
+						st.session_state[ 'regression_svr_random_state' ] = int( svr_random_state )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.SupportVector(
-							kernel=str( svr_kernel ),
-							degree=int( svr_degree ),
-							gamma=effective_gamma,
-							coef0=float( svr_coef0 ),
-							tol=float( svr_tol ),
-							penalty=float( svr_c ),
-							epsilon=float( svr_epsilon ),
-							shrinking=bool( svr_shrinking ),
-							cache=float( svr_cache_size ),
-							verbose=bool( svr_verbose ),
-							iters=int( svr_max_iter )
-						)
+						model = regression_model.SupportVector( kernel=str( svr_kernel ),
+							degree=int( svr_degree ), gamma=effective_gamma,
+							coef0=float( svr_coef0 ), tol=float( svr_tol ), penalty=float( svr_c ),
+							epsilon=float( svr_epsilon ), shrinking=bool( svr_shrinking ),
+							cache=float( svr_cache_size ), verbose=bool( svr_verbose ),
+							iters=int( svr_max_iter ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X_svr,
-							y_svr,
-							size=float( svr_test_size ),
-							random=int( svr_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_svr, y_svr,
+							size=float( svr_test_size ), random=int( svr_random_state ) )
 						
 						if len( X_train ) < 1 or len( X_test ) < 1:
-							st.warning(
-								'⚠️ The selected test size does not produce '
-								'valid training and testing partitions.'
-							)
+							st.warning( '⚠️ The selected test size does not produce '
+							            'valid training and testing partitions.' )
 							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						else:
 							df_scores = df_scores.copy( )
 						
-						if (
-								'Metric' not in df_scores.columns
-								or 'Value' not in df_scores.columns
-						):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_metadata = pd.DataFrame(
-							{
-									'Metric': [
-											'Processing Time (Seconds)',
-											'Training Rows',
-											'Testing Rows',
-											'Kernel',
-											'C',
-											'Epsilon',
-											'Gamma',
-											'Maximum Iterations'
-									],
-									'Value': [
-											round( elapsed_seconds, 4 ),
-											int( len( X_train ) ),
-											int( len( X_test ) ),
-											str( svr_kernel ),
-											float( svr_c ),
-											float( svr_epsilon ),
-											effective_gamma,
-											int( svr_max_iter )
-									]
-							}
-						)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Kernel', 'C', 'Epsilon', 'Gamma',
+								'Maximum Iterations' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), str( svr_kernel ), float( svr_c ),
+								float( svr_epsilon ), effective_gamma, int( svr_max_iter ) ] } )
 						
-						df_scores = pd.concat(
-							[
-									df_scores,
-									df_metadata
-							],
-							ignore_index=True
-						)
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
 						
-						y_prediction = np.asarray(
-							y_prediction,
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_svr_elapsed_seconds'
-						] = elapsed_seconds
-						st.session_state[
-							'elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_svr_elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
-						st.session_state[
-							'X_train'
-						] = np.asarray( X_train ).copy( )
-						st.session_state[
-							'X_test'
-						] = np.asarray( X_test ).copy( )
-						st.session_state[
-							'y_train'
-						] = np.asarray( y_train ).copy( )
-						st.session_state[
-							'y_test'
-						] = np.asarray( y_test ).copy( )
-						st.session_state[
-							'y_prediction'
-						] = y_prediction.copy( )
-						st.session_state[
-							'df_regression'
-						] = df_model.copy( )
-						st.session_state[
-							'df_scores'
-						] = df_scores.copy( )
-						st.session_state[
-							'df_regression_scores'
-						] = df_scores.copy( )
-						st.session_state[
-							'df_predictions'
-						] = df_predictions.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'df_regression' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.success(
-							'Support Vector Regression training completed.'
-						)
+						st.success( 'Support Vector Regression training completed.' )
 					
 					except Exception as ex:
-						st.error(
-							f'Support Vector Regression training failed: {ex}'
-						)
+						st.error( f'Support Vector Regression training failed: {ex}' )
 		
-		with st.expander( 'Tree Models', expanded=False):
-			
+		with st.expander( 'Tree Models', expanded=False ):
 			with st.expander( 'Extra Trees Regressor', expanded=False ):
-				extra_defaults = {
-						'regression_extra_estimators': 100,
-						'regression_extra_criterion': 'squared_error',
-						'regression_extra_max_depth_mode': 'none',
-						'regression_extra_max_depth_value': 10,
-						'regression_extra_max_features_mode': 'all',
-						'regression_extra_max_features_value': 1.0,
-						'regression_extra_bootstrap': False,
-						'regression_extra_oob_score': False,
-						'regression_extra_warm_start': False,
-						'regression_extra_jobs': 1,
-						'regression_extra_verbose': 0,
-						'regression_extra_test_size': 0.20,
-						'regression_extra_random_state': 42
-				}
+				extra_defaults = { 'regression_extra_estimators': 100,
+					'regression_extra_criterion': 'squared_error',
+					'regression_extra_max_depth_mode': 'none',
+					'regression_extra_max_depth_value': 10,
+					'regression_extra_max_features_mode': 'all',
+					'regression_extra_max_features_value': 1.0, 'regression_extra_bootstrap':
+						False,
+					'regression_extra_oob_score': False, 'regression_extra_warm_start': False,
+					'regression_extra_jobs': 1, 'regression_extra_verbose': 0,
+					'regression_extra_test_size': 0.20, 'regression_extra_random_state': 42 }
 				
 				for key, value in extra_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
 				
-				st.caption(
-					'Highly randomized tree ensemble for continuous targets.'
-				)
+				st.caption( 'Highly randomized tree ensemble for continuous targets.' )
 				
-				extra_c1, extra_c2, extra_c3 = st.columns(
-					[ 0.34, 0.33, 0.33 ],
-					border=True
-				)
+				extra_c1, extra_c2, extra_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				
 				with extra_c1:
 					st.markdown( '###### Forest Parameters' )
 					
-					extra_estimators = int(
-						st.number_input(
-							'Estimators',
-							min_value=1,
-							value=int(
-								st.session_state[
-									'regression_extra_estimators'
-								]
-							),
-							step=1,
-							key='regression_extra_estimators_input'
-						)
-					)
+					extra_estimators = int( st.number_input( 'Estimators', min_value=1,
+						value=int( st.session_state[ 'regression_extra_estimators' ] ), step=1,
+						key='regression_extra_estimators_input' ) )
 					
-					extra_criterion_options = [
-							'squared_error',
-							'absolute_error',
-							'friedman_mse',
-							'poisson'
-					]
+					extra_criterion_options = [ 'squared_error', 'absolute_error', 'friedman_mse',
+						'poisson' ]
 					
-					extra_criterion_value = st.session_state.get(
-						'regression_extra_criterion',
-						'squared_error'
-					)
+					extra_criterion_value = st.session_state.get( 'regression_extra_criterion',
+						'squared_error' )
 					
 					if extra_criterion_value not in extra_criterion_options:
 						extra_criterion_value = 'squared_error'
 					
-					extra_criterion = st.selectbox(
-						'Criterion',
-						options=extra_criterion_options,
-						index=extra_criterion_options.index(
-							extra_criterion_value
-						),
-						key='regression_extra_criterion_select'
-					)
+					extra_criterion = st.selectbox( 'Criterion', options=extra_criterion_options,
+						index=extra_criterion_options.index( extra_criterion_value ),
+						key='regression_extra_criterion_select' )
 					
-					extra_depth_options = [
-							'none',
-							'custom'
-					]
+					extra_depth_options = [ 'none', 'custom' ]
 					
-					extra_depth_value = st.session_state.get(
-						'regression_extra_max_depth_mode',
-						'none'
-					)
+					extra_depth_value = st.session_state.get( 'regression_extra_max_depth_mode',
+						'none' )
 					
 					if extra_depth_value not in extra_depth_options:
 						extra_depth_value = 'none'
 					
-					extra_max_depth_mode = st.selectbox(
-						'Max Depth',
-						options=extra_depth_options,
-						index=extra_depth_options.index(
-							extra_depth_value
-						),
-						key='regression_extra_max_depth_mode_select'
-					)
+					extra_max_depth_mode = st.selectbox( 'Max Depth', options=extra_depth_options,
+						index=extra_depth_options.index( extra_depth_value ),
+						key='regression_extra_max_depth_mode_select' )
 					
-					extra_max_depth_value = int(
-						st.number_input(
-							'Max Depth Value',
-							min_value=1,
-							value=int(
-								st.session_state[
-									'regression_extra_max_depth_value'
-								]
-							),
-							step=1,
-							key='regression_extra_max_depth_value_input'
-						)
-					)
+					extra_max_depth_value = int( st.number_input( 'Max Depth Value', min_value=1,
+						value=int( st.session_state[ 'regression_extra_max_depth_value' ] ),
+						step=1,
+						key='regression_extra_max_depth_value_input' ) )
 				
 				with extra_c2:
 					st.markdown( '###### Feature / Run Settings' )
 					
-					extra_feature_options = [
-							'all',
-							'sqrt',
-							'log2',
-							'fraction'
-					]
+					extra_feature_options = [ 'all', 'sqrt', 'log2', 'fraction' ]
 					
 					extra_feature_value = st.session_state.get(
-						'regression_extra_max_features_mode',
-						'all'
-					)
+						'regression_extra_max_features_mode', 'all' )
 					
 					if extra_feature_value not in extra_feature_options:
 						extra_feature_value = 'all'
 					
-					extra_max_features_mode = st.selectbox(
-						'Max Features',
+					extra_max_features_mode = st.selectbox( 'Max Features',
 						options=extra_feature_options,
-						index=extra_feature_options.index(
-							extra_feature_value
-						),
-						key='regression_extra_max_features_mode_select'
-					)
+						index=extra_feature_options.index( extra_feature_value ),
+						key='regression_extra_max_features_mode_select' )
 					
 					extra_max_features_value = float(
-						st.slider(
-							'Max Features Fraction',
-							min_value=0.10,
-							max_value=1.00,
+						st.slider( 'Max Features Fraction', min_value=0.10, max_value=1.00,
 							value=float(
-								st.session_state[
-									'regression_extra_max_features_value'
-								]
-							),
-							step=0.05,
-							key='regression_extra_max_features_value_slider'
-						)
-					)
+								st.session_state[ 'regression_extra_max_features_value' ] ),
+							step=0.05, key='regression_extra_max_features_value_slider' ) )
 					
-					extra_bootstrap = st.checkbox(
-						'Bootstrap Samples',
-						value=bool(
-							st.session_state[
-								'regression_extra_bootstrap'
-							]
-						),
-						key='regression_extra_bootstrap_check'
-					)
+					extra_bootstrap = st.checkbox( 'Bootstrap Samples',
+						value=bool( st.session_state[ 'regression_extra_bootstrap' ] ),
+						key='regression_extra_bootstrap_check' )
 					
-					extra_oob_score = st.checkbox(
-						'Out-of-Bag Score',
-						value=bool(
-							st.session_state[
-								'regression_extra_oob_score'
-							]
-						),
-						key='regression_extra_oob_score_check'
-					)
+					extra_oob_score = st.checkbox( 'Out-of-Bag Score',
+						value=bool( st.session_state[ 'regression_extra_oob_score' ] ),
+						key='regression_extra_oob_score_check' )
 					
-					extra_warm_start = st.checkbox(
-						'Warm Start',
-						value=bool(
-							st.session_state[
-								'regression_extra_warm_start'
-							]
-						),
-						key='regression_extra_warm_start_check'
-					)
+					extra_warm_start = st.checkbox( 'Warm Start',
+						value=bool( st.session_state[ 'regression_extra_warm_start' ] ),
+						key='regression_extra_warm_start_check' )
 					
-					extra_jobs = int(
-						st.number_input(
-							'Parallel Jobs',
-							min_value=1,
-							value=int(
-								st.session_state[
-									'regression_extra_jobs'
-								]
-							),
-							step=1,
-							key='regression_extra_jobs_input'
-						)
-					)
+					extra_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
+						value=int( st.session_state[ 'regression_extra_jobs' ] ), step=1,
+						key='regression_extra_jobs_input' ) )
 					
-					extra_verbose = int(
-						st.number_input(
-							'Verbose',
-							min_value=0,
-							value=int(
-								st.session_state[
-									'regression_extra_verbose'
-								]
-							),
-							step=1,
-							key='regression_extra_verbose_input'
-						)
-					)
+					extra_verbose = int( st.number_input( 'Verbose', min_value=0,
+						value=int( st.session_state[ 'regression_extra_verbose' ] ), step=1,
+						key='regression_extra_verbose_input' ) )
 				
 				with extra_c3:
 					st.markdown( '###### Data Split' )
 					
-					extra_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int(
-							st.session_state[
-								'regression_extra_test_size'
-							] * 100
-						),
+					extra_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_extra_test_size' ] * 100 ),
 						step=5,
-						key='regression_extra_test_size_slider'
-					) / 100.0
+						key='regression_extra_test_size_slider' ) / 100.0
 					
-					extra_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int(
-								st.session_state[
-									'regression_extra_random_state'
-								]
-							),
-							step=1,
-							key='regression_extra_random_state_input'
-						)
-					)
+					extra_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_extra_random_state' ] ), step=1,
+						key='regression_extra_random_state_input' ) )
 					
 					if extra_oob_score and not extra_bootstrap:
-						st.info(
-							'Out-of-bag scoring requires Bootstrap Samples.'
-						)
+						st.info( 'Out-of-bag scoring requires Bootstrap Samples.' )
 					
 					if extra_max_features_mode != 'fraction':
-						st.caption(
-							'Max Features Fraction is only used when '
-							'Max Features = fraction.'
-						)
+						st.caption( 'Max Features Fraction is only used when '
+						            'Max Features = fraction.' )
 					
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Target: {target_name}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Target: {target_name}' )
 				
 				extra_btn_1, extra_btn_2 = st.columns( 2 )
 				
 				with extra_btn_1:
-					train_extra = st.button(
-						'🚂 Train Extra Trees Regressor',
-						key='regression_extra_train',
-						use_container_width=True
-					)
+					train_extra = st.button( '🚂 Train Extra Trees Regressor',
+						key='regression_extra_train', use_container_width=True )
 				
 				with extra_btn_2:
-					reset_extra = st.button(
-						'🔄 Reset Extra Trees Regressor',
-						key='regression_extra_reset',
-						use_container_width=True
-					)
+					reset_extra = st.button( '🔄 Reset Extra Trees Regressor',
+						key='regression_extra_reset', use_container_width=True )
 				
 				if reset_extra:
 					for key, value in extra_defaults.items( ):
 						st.session_state[ key ] = value
 					
 					st.session_state[ 'elapsed_seconds' ] = 0.0
-					st.session_state[
-						'regression_extra_elapsed_seconds'
-					] = 0.0
+					st.session_state[ 'regression_extra_elapsed_seconds' ] = 0.0
 					st.session_state[ 'model' ] = None
 					st.session_state[ 'X_train' ] = None
 					st.session_state[ 'X_test' ] = None
 					st.session_state[ 'y_train' ] = None
 					st.session_state[ 'y_test' ] = None
 					st.session_state[ 'y_prediction' ] = None
-					st.session_state[
-						'df_regression'
-					] = df_model.copy( )
-					st.session_state[
-						'df_scores'
-					] = pd.DataFrame( )
-					st.session_state[
-						'df_regression_scores'
-					] = pd.DataFrame( )
-					st.session_state[
-						'df_predictions'
-					] = pd.DataFrame( )
+					st.session_state[ 'df_regression' ] = df_model.copy( )
+					st.session_state[ 'df_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
+					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 					st.rerun( )
 				
 				if train_extra:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Extra Trees Regressor requires prepared '
-								'feature and target arrays.'
-							)
+							st.warning( '⚠️ Extra Trees Regressor requires prepared '
+							            'feature and target arrays.' )
 							st.stop( )
 						
-						X_extra = np.asarray(
-							X,
-							dtype=float
-						)
+						X_extra = np.asarray( X, dtype=float )
 						
-						y_extra = np.asarray(
-							y,
-							dtype=float
-						).reshape( -1 )
+						y_extra = np.asarray( y, dtype=float ).reshape( -1 )
 						
 						if X_extra.ndim != 2 or X_extra.shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Extra Trees Regressor requires at least '
-								'one numeric feature.'
-							)
+							st.warning( '⚠️ Extra Trees Regressor requires at least '
+							            'one numeric feature.' )
 							st.stop( )
 						
 						if y_extra.ndim != 1:
-							st.warning(
-								'⚠️ The Extra Trees target must be '
-								'one-dimensional.'
-							)
+							st.warning( '⚠️ The Extra Trees target must be '
+							            'one-dimensional.' )
 							st.stop( )
 						
 						if len( X_extra ) != len( y_extra ):
-							st.warning(
-								'⚠️ Feature and target row counts do not match.'
-							)
+							st.warning( '⚠️ Feature and target row counts do not match.' )
 							st.stop( )
 						
 						if len( X_extra ) < 2:
-							st.warning(
-								'⚠️ Extra Trees Regressor requires at least '
-								'two observations.'
-							)
+							st.warning( '⚠️ Extra Trees Regressor requires at least '
+							            'two observations.' )
 							st.stop( )
 						
 						if not np.isfinite( X_extra ).all( ):
-							st.warning(
-								'⚠️ The Extra Trees feature matrix contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Extra Trees feature matrix contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_extra ).all( ):
-							st.warning(
-								'⚠️ The Extra Trees target contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Extra Trees target contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if len( np.unique( y_extra ) ) < 2:
-							st.warning(
-								'⚠️ The regression target must contain at '
-								'least two distinct values.'
-							)
+							st.warning( '⚠️ The regression target must contain at '
+							            'least two distinct values.' )
 							st.stop( )
 						
 						if extra_estimators < 1:
-							st.warning(
-								'⚠️ Estimators must be greater than zero.'
-							)
+							st.warning( '⚠️ Estimators must be greater than zero.' )
 							st.stop( )
 						
 						if extra_jobs < 1:
-							st.warning(
-								'⚠️ Parallel Jobs must be greater than zero.'
-							)
+							st.warning( '⚠️ Parallel Jobs must be greater than zero.' )
 							st.stop( )
 						
-						if (
-								extra_max_features_value <= 0.0
-								or extra_max_features_value > 1.0
-						):
-							st.warning(
-								'⚠️ Max Features Fraction must be greater '
-								'than zero and no greater than one.'
-							)
+						if (extra_max_features_value <= 0.0 or extra_max_features_value > 1.0):
+							st.warning( '⚠️ Max Features Fraction must be greater '
+							            'than zero and no greater than one.' )
 							st.stop( )
 						
-						if extra_criterion == 'poisson' and np.any(
-								y_extra < 0.0
-						):
-							st.warning(
-								'⚠️ Poisson criterion requires a '
-								'non-negative target.'
-							)
+						if extra_criterion == 'poisson' and np.any( y_extra < 0.0 ):
+							st.warning( '⚠️ Poisson criterion requires a '
+							            'non-negative target.' )
 							st.stop( )
 						
 						if extra_max_depth_mode == 'none':
 							effective_depth = None
 						else:
-							effective_depth = int(
-								extra_max_depth_value
-							)
+							effective_depth = int( extra_max_depth_value )
 						
 						if extra_max_features_mode == 'all':
 							effective_features = 1.0
@@ -13571,261 +12393,121 @@ elif mode == 'Regression Models':
 						elif extra_max_features_mode == 'log2':
 							effective_features = 'log2'
 						else:
-							effective_features = float(
-								extra_max_features_value
-							)
+							effective_features = float( extra_max_features_value )
 						
-						effective_oob = (
-								bool( extra_oob_score )
-								and bool( extra_bootstrap )
-						)
+						effective_oob = (bool( extra_oob_score ) and bool( extra_bootstrap ))
 						
-						st.session_state[
-							'regression_extra_estimators'
-						] = int( extra_estimators )
-						st.session_state[
-							'regression_extra_criterion'
-						] = str( extra_criterion )
-						st.session_state[
-							'regression_extra_max_depth_mode'
-						] = str( extra_max_depth_mode )
-						st.session_state[
-							'regression_extra_max_depth_value'
-						] = int( extra_max_depth_value )
-						st.session_state[
-							'regression_extra_max_features_mode'
-						] = str( extra_max_features_mode )
-						st.session_state[
-							'regression_extra_max_features_value'
-						] = float( extra_max_features_value )
-						st.session_state[
-							'regression_extra_bootstrap'
-						] = bool( extra_bootstrap )
-						st.session_state[
-							'regression_extra_oob_score'
-						] = bool( extra_oob_score )
-						st.session_state[
-							'regression_extra_warm_start'
-						] = bool( extra_warm_start )
-						st.session_state[
-							'regression_extra_jobs'
-						] = int( extra_jobs )
-						st.session_state[
-							'regression_extra_verbose'
-						] = int( extra_verbose )
-						st.session_state[
-							'regression_extra_test_size'
-						] = float( extra_test_size )
-						st.session_state[
-							'regression_extra_random_state'
-						] = int( extra_random_state )
+						st.session_state[ 'regression_extra_estimators' ] = int( extra_estimators )
+						st.session_state[ 'regression_extra_criterion' ] = str( extra_criterion )
+						st.session_state[ 'regression_extra_max_depth_mode' ] = str(
+							extra_max_depth_mode )
+						st.session_state[ 'regression_extra_max_depth_value' ] = int(
+							extra_max_depth_value )
+						st.session_state[ 'regression_extra_max_features_mode' ] = str(
+							extra_max_features_mode )
+						st.session_state[ 'regression_extra_max_features_value' ] = float(
+							extra_max_features_value )
+						st.session_state[ 'regression_extra_bootstrap' ] = bool( extra_bootstrap )
+						st.session_state[ 'regression_extra_oob_score' ] = bool( extra_oob_score )
+						st.session_state[ 'regression_extra_warm_start' ] = bool(
+							extra_warm_start )
+						st.session_state[ 'regression_extra_jobs' ] = int( extra_jobs )
+						st.session_state[ 'regression_extra_verbose' ] = int( extra_verbose )
+						st.session_state[ 'regression_extra_test_size' ] = float( extra_test_size )
+						st.session_state[ 'regression_extra_random_state' ] = int(
+							extra_random_state )
 						
 						start_time = time.perf_counter( )
 						
 						model = regression_model.ExtraTreesModel(
-							estimators=int( extra_estimators ),
-							criterion=str( extra_criterion ),
-							depth=effective_depth,
-							features=effective_features,
-							bootstrap=bool( extra_bootstrap ),
-							oob_score=bool( effective_oob ),
-							jobs=int( extra_jobs ),
-							rando=int( extra_random_state ),
-							verbose=int( extra_verbose ),
-							warm=bool( extra_warm_start )
-						)
+							estimators=int( extra_estimators ), criterion=str( extra_criterion ),
+							depth=effective_depth, features=effective_features,
+							bootstrap=bool( extra_bootstrap ), oob_score=bool( effective_oob ),
+							jobs=int( extra_jobs ), rando=int( extra_random_state ),
+							verbose=int( extra_verbose ), warm=bool( extra_warm_start ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X_extra,
-							y_extra,
-							size=float( extra_test_size ),
-							random=int( extra_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_extra, y_extra,
+							size=float( extra_test_size ), random=int( extra_random_state ) )
 						
 						if len( X_train ) < 1 or len( X_test ) < 1:
-							st.warning(
-								'⚠️ The selected test size does not produce '
-								'valid training and testing partitions.'
-							)
+							st.warning( '⚠️ The selected test size does not produce '
+							            'valid training and testing partitions.' )
 							st.stop( )
 						
-						model.train(
-							X_train,
-							y_train
-						)
+						model.train( X_train, y_train )
 						
-						y_prediction = model.project(
-							X_test
-						)
+						y_prediction = model.project( X_test )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
-						df_scores = model.analyze(
-							X_test,
-							y_test
-						)
+						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						else:
 							df_scores = df_scores.copy( )
 						
-						if (
-								'Metric' not in df_scores.columns
-								or 'Value' not in df_scores.columns
-						):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_metadata = pd.DataFrame(
-							{
-									'Metric': [
-											'Processing Time (Seconds)',
-											'Training Rows',
-											'Testing Rows',
-											'Estimators',
-											'Criterion',
-											'Max Depth',
-											'Max Features',
-											'Bootstrap'
-									],
-									'Value': [
-											round( elapsed_seconds, 4 ),
-											int( len( X_train ) ),
-											int( len( X_test ) ),
-											int( extra_estimators ),
-											str( extra_criterion ),
-											(
-													'None'
-													if effective_depth is None
-													else int( effective_depth )
-											),
-											str( effective_features ),
-											bool( extra_bootstrap )
-									]
-							}
-						)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Estimators', 'Criterion', 'Max Depth',
+								'Max Features', 'Bootstrap' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), int( extra_estimators ),
+								str( extra_criterion ),
+								('None' if effective_depth is None else int( effective_depth )),
+								str( effective_features ), bool( extra_bootstrap ) ] } )
 						
-						if (
-								effective_oob
-								and hasattr( model.model, 'oob_score_' )
-						):
-							df_oob = pd.DataFrame(
-								{
-										'Metric': [ 'OOB Score' ],
-										'Value': [
-												float(
-													model.model.oob_score_
-												)
-										]
-								}
-							)
+						if (effective_oob and hasattr( model.model, 'oob_score_' )):
+							df_oob = pd.DataFrame( { 'Metric': [ 'OOB Score' ],
+								'Value': [ float( model.model.oob_score_ ) ] } )
 							
-							df_metadata = pd.concat(
-								[
-										df_metadata,
-										df_oob
-								],
-								ignore_index=True
-							)
+							df_metadata = pd.concat( [ df_metadata, df_oob ], ignore_index=True )
 						
-						df_scores = pd.concat(
-							[
-									df_scores,
-									df_metadata
-							],
-							ignore_index=True
-						)
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
 						
-						y_prediction = np.asarray(
-							y_prediction,
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_extra_elapsed_seconds'
-						] = elapsed_seconds
-						st.session_state[
-							'elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_extra_elapsed_seconds' ] = elapsed_seconds
+						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
-						st.session_state[
-							'X_train'
-						] = np.asarray( X_train ).copy( )
-						st.session_state[
-							'X_test'
-						] = np.asarray( X_test ).copy( )
-						st.session_state[
-							'y_train'
-						] = np.asarray( y_train ).copy( )
-						st.session_state[
-							'y_test'
-						] = np.asarray( y_test ).copy( )
-						st.session_state[
-							'y_prediction'
-						] = y_prediction.copy( )
-						st.session_state[
-							'df_regression'
-						] = df_model.copy( )
-						st.session_state[
-							'df_scores'
-						] = df_scores.copy( )
-						st.session_state[
-							'df_regression_scores'
-						] = df_scores.copy( )
-						st.session_state[
-							'df_predictions'
-						] = df_predictions.copy( )
+						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
+						st.session_state[ 'X_test' ] = np.asarray( X_test ).copy( )
+						st.session_state[ 'y_train' ] = np.asarray( y_train ).copy( )
+						st.session_state[ 'y_test' ] = np.asarray( y_test ).copy( )
+						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
+						st.session_state[ 'df_regression' ] = df_model.copy( )
+						st.session_state[ 'df_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
+						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
-						st.success(
-							'Extra Trees Regressor training completed.'
-						)
+						st.success( 'Extra Trees Regressor training completed.' )
 					
 					except Exception as ex:
-						st.error(
-							f'Extra Trees Regressor training failed: {ex}'
-						)
-					
+						st.error( f'Extra Trees Regressor training failed: {ex}' )
+			
 			with st.expander( 'Random Forest', expanded=False ):
-				rf_defaults = {
-						'regression_rf_estimators': 100,
-						'regression_rf_criterion': 'squared_error',
-						'regression_rf_max_depth_mode': 'none',
-						'regression_rf_max_depth_value': 10,
-						'regression_rf_min_samples_split': 2,
-						'regression_rf_min_samples_leaf': 1,
-						'regression_rf_min_weight_fraction_leaf': 0.0,
-						'regression_rf_max_features_mode': 'all',
-						'regression_rf_max_features_value': 1.0,
-						'regression_rf_max_leaf_nodes_mode': 'none',
-						'regression_rf_max_leaf_nodes_value': 31,
-						'regression_rf_min_impurity_decrease': 0.0,
-						'regression_rf_bootstrap': True,
-						'regression_rf_oob_score': False,
-						'regression_rf_jobs': 1,
-						'regression_rf_verbose': 0,
-						'regression_rf_warm_start': False,
-						'regression_rf_ccp_alpha': 0.0,
-						'regression_rf_max_samples_mode': 'all',
-						'regression_rf_max_samples_value': 1.0,
-						'regression_rf_test_size': 0.20,
-						'regression_rf_random_state': 42
-				}
+				rf_defaults = { 'regression_rf_estimators': 100,
+					'regression_rf_criterion': 'squared_error',
+					'regression_rf_max_depth_mode': 'none', 'regression_rf_max_depth_value': 10,
+					'regression_rf_min_samples_split': 2, 'regression_rf_min_samples_leaf': 1,
+					'regression_rf_min_weight_fraction_leaf': 0.0,
+					'regression_rf_max_features_mode': 'all',
+					'regression_rf_max_features_value': 1.0,
+					'regression_rf_max_leaf_nodes_mode': 'none',
+					'regression_rf_max_leaf_nodes_value': 31,
+					'regression_rf_min_impurity_decrease': 0.0, 'regression_rf_bootstrap': True,
+					'regression_rf_oob_score': False, 'regression_rf_jobs': 1,
+					'regression_rf_verbose': 0, 'regression_rf_warm_start': False,
+					'regression_rf_ccp_alpha': 0.0, 'regression_rf_max_samples_mode': 'all',
+					'regression_rf_max_samples_value': 1.0, 'regression_rf_test_size': 0.20,
+					'regression_rf_random_state': 42 }
 				
 				for key, value in rf_defaults.items( ):
 					if key not in st.session_state:
@@ -13833,341 +12515,176 @@ elif mode == 'Regression Models':
 				
 				st.caption( 'Bootstrap random forest for continuous targets.' )
 				
-				rf_c1, rf_c2, rf_c3 = st.columns(
-					[ 0.34, 0.33, 0.33 ],
-					border=True
-				)
+				rf_c1, rf_c2, rf_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				
 				with rf_c1:
 					st.markdown( '###### Forest Parameters' )
 					
-					rf_estimators = int(
-						st.number_input(
-							'Estimators',
-							min_value=1,
-							value=int( st.session_state[ 'regression_rf_estimators' ] ),
-							step=1,
-							key='regression_rf_estimators_input'
-						)
-					)
+					rf_estimators = int( st.number_input( 'Estimators', min_value=1,
+						value=int( st.session_state[ 'regression_rf_estimators' ] ), step=1,
+						key='regression_rf_estimators_input' ) )
 					
-					rf_criterion_options = [
-							'squared_error',
-							'absolute_error',
-							'friedman_mse',
-							'poisson'
-					]
+					rf_criterion_options = [ 'squared_error', 'absolute_error', 'friedman_mse',
+						'poisson' ]
 					
-					rf_criterion_value = st.session_state.get(
-						'regression_rf_criterion',
-						'squared_error'
-					)
+					rf_criterion_value = st.session_state.get( 'regression_rf_criterion',
+						'squared_error' )
 					
 					if rf_criterion_value not in rf_criterion_options:
 						rf_criterion_value = 'squared_error'
 					
-					rf_criterion = st.selectbox(
-						'Criterion',
-						options=rf_criterion_options,
+					rf_criterion = st.selectbox( 'Criterion', options=rf_criterion_options,
 						index=rf_criterion_options.index( rf_criterion_value ),
-						key='regression_rf_criterion_select'
-					)
+						key='regression_rf_criterion_select' )
 					
-					rf_depth_options = [
-							'none',
-							'custom'
-					]
+					rf_depth_options = [ 'none', 'custom' ]
 					
-					rf_depth_value = st.session_state.get(
-						'regression_rf_max_depth_mode',
-						'none'
-					)
+					rf_depth_value = st.session_state.get( 'regression_rf_max_depth_mode', 'none' )
 					
 					if rf_depth_value not in rf_depth_options:
 						rf_depth_value = 'none'
 					
-					rf_max_depth_mode = st.selectbox(
-						'Max Depth',
-						options=rf_depth_options,
+					rf_max_depth_mode = st.selectbox( 'Max Depth', options=rf_depth_options,
 						index=rf_depth_options.index( rf_depth_value ),
-						key='regression_rf_max_depth_mode_select'
-					)
+						key='regression_rf_max_depth_mode_select' )
 					
-					rf_max_depth_value = int(
-						st.number_input(
-							'Max Depth Value',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_rf_max_depth_value' ]
-							),
-							step=1,
-							key='regression_rf_max_depth_value_input'
-						)
-					)
+					rf_max_depth_value = int( st.number_input( 'Max Depth Value', min_value=1,
+						value=int( st.session_state[ 'regression_rf_max_depth_value' ] ), step=1,
+						key='regression_rf_max_depth_value_input' ) )
 					
-					rf_min_samples_split = int(
-						st.number_input(
-							'Min Samples Split',
-							min_value=2,
-							value=int(
-								st.session_state[ 'regression_rf_min_samples_split' ]
-							),
-							step=1,
-							key='regression_rf_min_samples_split_input'
-						)
-					)
+					rf_min_samples_split = int( st.number_input( 'Min Samples Split', min_value=2,
+						value=int( st.session_state[ 'regression_rf_min_samples_split' ] ), step=1,
+						key='regression_rf_min_samples_split_input' ) )
 					
-					rf_min_samples_leaf = int(
-						st.number_input(
-							'Min Samples Leaf',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_rf_min_samples_leaf' ]
-							),
-							step=1,
-							key='regression_rf_min_samples_leaf_input'
-						)
-					)
+					rf_min_samples_leaf = int( st.number_input( 'Min Samples Leaf', min_value=1,
+						value=int( st.session_state[ 'regression_rf_min_samples_leaf' ] ), step=1,
+						key='regression_rf_min_samples_leaf_input' ) )
 				
 				with rf_c2:
 					st.markdown( '###### Node / Feature Controls' )
 					
 					rf_min_weight_fraction_leaf = float(
-						st.number_input(
-							'Min Weight Fraction Leaf',
-							min_value=0.0,
-							max_value=0.5,
+						st.number_input( 'Min Weight Fraction Leaf', min_value=0.0, max_value=0.5,
 							value=float(
-								st.session_state[
-									'regression_rf_min_weight_fraction_leaf'
-								]
-							),
-							step=0.010000,
-							format='%.6f',
-							key='regression_rf_min_weight_fraction_leaf_input'
-						)
-					)
+								st.session_state[ 'regression_rf_min_weight_fraction_leaf' ] ),
+							step=0.010000, format='%.6f',
+							key='regression_rf_min_weight_fraction_leaf_input' ) )
 					
-					rf_feature_options = [
-							'all',
-							'sqrt',
-							'log2',
-							'fraction'
-					]
+					rf_feature_options = [ 'all', 'sqrt', 'log2', 'fraction' ]
 					
-					rf_feature_value = st.session_state.get(
-						'regression_rf_max_features_mode',
-						'all'
-					)
+					rf_feature_value = st.session_state.get( 'regression_rf_max_features_mode',
+						'all' )
 					
 					if rf_feature_value not in rf_feature_options:
 						rf_feature_value = 'all'
 					
-					rf_max_features_mode = st.selectbox(
-						'Max Features',
+					rf_max_features_mode = st.selectbox( 'Max Features',
 						options=rf_feature_options,
 						index=rf_feature_options.index( rf_feature_value ),
-						key='regression_rf_max_features_mode_select'
-					)
+						key='regression_rf_max_features_mode_select' )
 					
 					rf_max_features_value = float(
-						st.slider(
-							'Max Features Fraction',
-							min_value=0.10,
-							max_value=1.00,
-							value=float(
-								st.session_state[ 'regression_rf_max_features_value' ]
-							),
-							step=0.05,
-							key='regression_rf_max_features_value_slider'
-						)
-					)
+						st.slider( 'Max Features Fraction', min_value=0.10, max_value=1.00,
+							value=float( st.session_state[ 'regression_rf_max_features_value' ] ),
+							step=0.05, key='regression_rf_max_features_value_slider' ) )
 					
-					rf_leaf_node_options = [
-							'none',
-							'custom'
-					]
+					rf_leaf_node_options = [ 'none', 'custom' ]
 					
-					rf_leaf_node_value = st.session_state.get(
-						'regression_rf_max_leaf_nodes_mode',
-						'none'
-					)
+					rf_leaf_node_value = st.session_state.get( 'regression_rf_max_leaf_nodes_mode',
+						'none' )
 					
 					if rf_leaf_node_value not in rf_leaf_node_options:
 						rf_leaf_node_value = 'none'
 					
-					rf_max_leaf_nodes_mode = st.selectbox(
-						'Max Leaf Nodes',
+					rf_max_leaf_nodes_mode = st.selectbox( 'Max Leaf Nodes',
 						options=rf_leaf_node_options,
 						index=rf_leaf_node_options.index( rf_leaf_node_value ),
-						key='regression_rf_max_leaf_nodes_mode_select'
-					)
+						key='regression_rf_max_leaf_nodes_mode_select' )
 					
 					rf_max_leaf_nodes_value = int(
-						st.number_input(
-							'Max Leaf Nodes Value',
-							min_value=2,
-							value=int(
-								st.session_state[ 'regression_rf_max_leaf_nodes_value' ]
-							),
-							step=1,
-							key='regression_rf_max_leaf_nodes_value_input'
-						)
-					)
+						st.number_input( 'Max Leaf Nodes Value', min_value=2,
+							value=int( st.session_state[ 'regression_rf_max_leaf_nodes_value' ] ),
+							step=1, key='regression_rf_max_leaf_nodes_value_input' ) )
 					
 					rf_min_impurity_decrease = float(
-						st.number_input(
-							'Min Impurity Decrease',
-							min_value=0.0,
-							value=float(
-								st.session_state[
-									'regression_rf_min_impurity_decrease'
-								]
-							),
-							step=0.000100,
-							format='%.6f',
-							key='regression_rf_min_impurity_decrease_input'
-						)
-					)
+						st.number_input( 'Min Impurity Decrease', min_value=0.0, value=float(
+							st.session_state[ 'regression_rf_min_impurity_decrease' ] ),
+							step=0.000100, format='%.6f',
+							key='regression_rf_min_impurity_decrease_input' ) )
 				
 				with rf_c3:
 					st.markdown( '###### Sampling / Run Configuration' )
 					
-					rf_bootstrap = st.checkbox(
-						'Bootstrap Samples',
+					rf_bootstrap = st.checkbox( 'Bootstrap Samples',
 						value=bool( st.session_state[ 'regression_rf_bootstrap' ] ),
-						key='regression_rf_bootstrap_check'
-					)
+						key='regression_rf_bootstrap_check' )
 					
-					rf_oob_score = st.checkbox(
-						'Out-of-Bag Score',
+					rf_oob_score = st.checkbox( 'Out-of-Bag Score',
 						value=bool( st.session_state[ 'regression_rf_oob_score' ] ),
-						key='regression_rf_oob_score_check'
-					)
+						key='regression_rf_oob_score_check' )
 					
-					rf_jobs = int(
-						st.number_input(
-							'Parallel Jobs',
-							min_value=1,
-							value=int( st.session_state[ 'regression_rf_jobs' ] ),
-							step=1,
-							key='regression_rf_jobs_input'
-						)
-					)
+					rf_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
+						value=int( st.session_state[ 'regression_rf_jobs' ] ), step=1,
+						key='regression_rf_jobs_input' ) )
 					
-					rf_verbose = int(
-						st.number_input(
-							'Verbose',
-							min_value=0,
-							value=int( st.session_state[ 'regression_rf_verbose' ] ),
-							step=1,
-							key='regression_rf_verbose_input'
-						)
-					)
+					rf_verbose = int( st.number_input( 'Verbose', min_value=0,
+						value=int( st.session_state[ 'regression_rf_verbose' ] ), step=1,
+						key='regression_rf_verbose_input' ) )
 					
-					rf_warm_start = st.checkbox(
-						'Warm Start',
+					rf_warm_start = st.checkbox( 'Warm Start',
 						value=bool( st.session_state[ 'regression_rf_warm_start' ] ),
-						key='regression_rf_warm_start_check'
-					)
+						key='regression_rf_warm_start_check' )
 					
-					rf_ccp_alpha = float(
-						st.number_input(
-							'CCP Alpha',
-							min_value=0.0,
-							value=float( st.session_state[ 'regression_rf_ccp_alpha' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_rf_ccp_alpha_input'
-						)
-					)
+					rf_ccp_alpha = float( st.number_input( 'CCP Alpha', min_value=0.0,
+						value=float( st.session_state[ 'regression_rf_ccp_alpha' ] ),
+						step=0.000100,
+						format='%.6f', key='regression_rf_ccp_alpha_input' ) )
 					
-					rf_sample_options = [
-							'all',
-							'fraction'
-					]
+					rf_sample_options = [ 'all', 'fraction' ]
 					
-					rf_sample_value = st.session_state.get(
-						'regression_rf_max_samples_mode',
-						'all'
-					)
+					rf_sample_value = st.session_state.get( 'regression_rf_max_samples_mode',
+						'all' )
 					
 					if rf_sample_value not in rf_sample_options:
 						rf_sample_value = 'all'
 					
-					rf_max_samples_mode = st.selectbox(
-						'Max Samples',
-						options=rf_sample_options,
+					rf_max_samples_mode = st.selectbox( 'Max Samples', options=rf_sample_options,
 						index=rf_sample_options.index( rf_sample_value ),
-						key='regression_rf_max_samples_mode_select'
-					)
+						key='regression_rf_max_samples_mode_select' )
 					
 					rf_max_samples_value = float(
-						st.slider(
-							'Max Samples Fraction',
-							min_value=0.10,
-							max_value=1.00,
-							value=float(
-								st.session_state[ 'regression_rf_max_samples_value' ]
-							),
-							step=0.05,
-							key='regression_rf_max_samples_value_slider'
-						)
-					)
+						st.slider( 'Max Samples Fraction', min_value=0.10, max_value=1.00,
+							value=float( st.session_state[ 'regression_rf_max_samples_value' ] ),
+							step=0.05, key='regression_rf_max_samples_value_slider' ) )
 					
-					rf_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int(
-							st.session_state[ 'regression_rf_test_size' ] * 100
-						),
-						step=5,
-						key='regression_rf_test_size_slider'
-					) / 100.0
+					rf_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_rf_test_size' ] * 100 ), step=5,
+						key='regression_rf_test_size_slider' ) / 100.0
 					
-					rf_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int(
-								st.session_state[ 'regression_rf_random_state' ]
-							),
-							step=1,
-							key='regression_rf_random_state_input'
-						)
-					)
+					rf_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_rf_random_state' ] ), step=1,
+						key='regression_rf_random_state_input' ) )
 					
 					if rf_oob_score and not rf_bootstrap:
 						st.info( 'Out-of-bag scoring requires Bootstrap Samples.' )
 					
 					if rf_max_features_mode != 'fraction':
-						st.caption(
-							'Max Features Fraction is only used when '
-							'Max Features = fraction.'
-						)
+						st.caption( 'Max Features Fraction is only used when '
+						            'Max Features = fraction.' )
 					
 					if rf_max_samples_mode != 'fraction':
-						st.caption(
-							'Max Samples Fraction is only used when '
-							'Max Samples = fraction.'
-						)
+						st.caption( 'Max Samples Fraction is only used when '
+						            'Max Samples = fraction.' )
 				
 				rf_btn_1, rf_btn_2 = st.columns( 2 )
 				
 				with rf_btn_1:
-					train_rf = st.button(
-						'🚂 Train Random Forest',
-						key='regression_rf_train',
-						use_container_width=True
-					)
+					train_rf = st.button( '🚂 Train Random Forest', key='regression_rf_train',
+						use_container_width=True )
 				
 				with rf_btn_2:
-					reset_rf = st.button(
-						'🔄 Reset Random Forest',
-						key='regression_rf_reset',
-						use_container_width=True
-					)
+					reset_rf = st.button( '🔄 Reset Random Forest', key='regression_rf_reset',
+						use_container_width=True )
 				
 				if reset_rf:
 					for key, value in rf_defaults.items( ):
@@ -14190,63 +12707,45 @@ elif mode == 'Regression Models':
 				if train_rf:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Random Forest requires prepared feature and '
-								'target arrays.'
-							)
+							st.warning( '⚠️ Random Forest requires prepared feature and '
+							            'target arrays.' )
 							st.stop( )
 						
 						X_rf = np.asarray( X, dtype=float )
 						y_rf = np.asarray( y, dtype=float ).reshape( -1 )
 						
 						if X_rf.ndim != 2 or X_rf.shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Random Forest requires at least one numeric feature.'
-							)
+							st.warning( '⚠️ Random Forest requires at least one numeric feature.' )
 							st.stop( )
 						
 						if len( X_rf ) != len( y_rf ):
-							st.warning(
-								'⚠️ Feature and target row counts do not match.'
-							)
+							st.warning( '⚠️ Feature and target row counts do not match.' )
 							st.stop( )
 						
 						if len( X_rf ) < 2:
-							st.warning(
-								'⚠️ Random Forest requires at least two observations.'
-							)
+							st.warning( '⚠️ Random Forest requires at least two observations.' )
 							st.stop( )
 						
 						if not np.isfinite( X_rf ).all( ):
-							st.warning(
-								'⚠️ The Random Forest feature matrix contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Random Forest feature matrix contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_rf ).all( ):
-							st.warning(
-								'⚠️ The Random Forest target contains non-finite values.'
-							)
+							st.warning( '⚠️ The Random Forest target contains non-finite values.' )
 							st.stop( )
 						
 						if len( np.unique( y_rf ) ) < 2:
-							st.warning(
-								'⚠️ The target must contain at least two distinct values.'
-							)
+							st.warning( '⚠️ The target must contain at least two distinct '
+							            'values.' )
 							st.stop( )
 						
 						if rf_criterion == 'poisson' and np.any( y_rf < 0.0 ):
-							st.warning(
-								'⚠️ Poisson criterion requires a non-negative target.'
-							)
+							st.warning( '⚠️ Poisson criterion requires a non-negative target.' )
 							st.stop( )
 						
 						effective_depth = (
-								None
-								if rf_max_depth_mode == 'none'
-								else int( rf_max_depth_value )
-						)
+							None if rf_max_depth_mode == 'none' else int( rf_max_depth_value ))
 						
 						if rf_max_features_mode == 'all':
 							effective_features = 1.0
@@ -14257,17 +12756,12 @@ elif mode == 'Regression Models':
 						else:
 							effective_features = float( rf_max_features_value )
 						
-						effective_leaf_nodes = (
-								None
-								if rf_max_leaf_nodes_mode == 'none'
-								else int( rf_max_leaf_nodes_value )
-						)
+						effective_leaf_nodes = (None if rf_max_leaf_nodes_mode == 'none' else int(
+							rf_max_leaf_nodes_value ))
 						
 						effective_samples = (
-								None
-								if rf_max_samples_mode == 'all'
-								else float( rf_max_samples_value )
-						)
+							None if rf_max_samples_mode == 'all' else float(
+								rf_max_samples_value ))
 						
 						effective_oob = bool( rf_oob_score ) and bool( rf_bootstrap )
 						
@@ -14277,35 +12771,25 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_rf_estimators' ] = int( rf_estimators )
 						st.session_state[ 'regression_rf_criterion' ] = str( rf_criterion )
 						st.session_state[ 'regression_rf_max_depth_mode' ] = str(
-							rf_max_depth_mode
-						)
+							rf_max_depth_mode )
 						st.session_state[ 'regression_rf_max_depth_value' ] = int(
-							rf_max_depth_value
-						)
+							rf_max_depth_value )
 						st.session_state[ 'regression_rf_min_samples_split' ] = int(
-							rf_min_samples_split
-						)
+							rf_min_samples_split )
 						st.session_state[ 'regression_rf_min_samples_leaf' ] = int(
-							rf_min_samples_leaf
-						)
+							rf_min_samples_leaf )
 						st.session_state[ 'regression_rf_min_weight_fraction_leaf' ] = float(
-							rf_min_weight_fraction_leaf
-						)
+							rf_min_weight_fraction_leaf )
 						st.session_state[ 'regression_rf_max_features_mode' ] = str(
-							rf_max_features_mode
-						)
+							rf_max_features_mode )
 						st.session_state[ 'regression_rf_max_features_value' ] = float(
-							rf_max_features_value
-						)
+							rf_max_features_value )
 						st.session_state[ 'regression_rf_max_leaf_nodes_mode' ] = str(
-							rf_max_leaf_nodes_mode
-						)
+							rf_max_leaf_nodes_mode )
 						st.session_state[ 'regression_rf_max_leaf_nodes_value' ] = int(
-							rf_max_leaf_nodes_value
-						)
+							rf_max_leaf_nodes_value )
 						st.session_state[ 'regression_rf_min_impurity_decrease' ] = float(
-							rf_min_impurity_decrease
-						)
+							rf_min_impurity_decrease )
 						st.session_state[ 'regression_rf_bootstrap' ] = bool( rf_bootstrap )
 						st.session_state[ 'regression_rf_oob_score' ] = bool( rf_oob_score )
 						st.session_state[ 'regression_rf_jobs' ] = int( rf_jobs )
@@ -14313,142 +12797,73 @@ elif mode == 'Regression Models':
 						st.session_state[ 'regression_rf_warm_start' ] = bool( rf_warm_start )
 						st.session_state[ 'regression_rf_ccp_alpha' ] = float( rf_ccp_alpha )
 						st.session_state[ 'regression_rf_max_samples_mode' ] = str(
-							rf_max_samples_mode
-						)
+							rf_max_samples_mode )
 						st.session_state[ 'regression_rf_max_samples_value' ] = float(
-							rf_max_samples_value
-						)
+							rf_max_samples_value )
 						st.session_state[ 'regression_rf_test_size' ] = float( rf_test_size )
-						st.session_state[ 'regression_rf_random_state' ] = int(
-							rf_random_state
-						)
+						st.session_state[ 'regression_rf_random_state' ] = int( rf_random_state )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.RandomForest(
-							estimators=int( rf_estimators ),
-							criterion=str( rf_criterion ),
-							depth=effective_depth,
-							split=int( rf_min_samples_split ),
-							leaf=int( rf_min_samples_leaf ),
+						model = regression_model.RandomForest( estimators=int( rf_estimators ),
+							criterion=str( rf_criterion ), depth=effective_depth,
+							split=int( rf_min_samples_split ), leaf=int( rf_min_samples_leaf ),
 							weight_fraction=float( rf_min_weight_fraction_leaf ),
-							features=effective_features,
-							leaf_nodes=effective_leaf_nodes,
+							features=effective_features, leaf_nodes=effective_leaf_nodes,
 							impurity=float( rf_min_impurity_decrease ),
-							bootstrap=bool( rf_bootstrap ),
-							oob_score=bool( effective_oob ),
-							jobs=int( rf_jobs ),
-							rando=int( rf_random_state ),
-							verbose=int( rf_verbose ),
-							warm=bool( rf_warm_start ),
-							ccp_alpha=float( rf_ccp_alpha ),
-							samples=effective_samples,
-							monotonic=None
-						)
+							bootstrap=bool( rf_bootstrap ), oob_score=bool( effective_oob ),
+							jobs=int( rf_jobs ), rando=int( rf_random_state ),
+							verbose=int( rf_verbose ), warm=bool( rf_warm_start ),
+							ccp_alpha=float( rf_ccp_alpha ), samples=effective_samples,
+							monotonic=None )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X_rf,
-							y_rf,
-							size=float( rf_test_size ),
-							random=int( rf_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_rf, y_rf,
+							size=float( rf_test_size ), random=int( rf_random_state ) )
 						
 						if len( X_train ) < 1 or len( X_test ) < 1:
-							st.warning(
-								'⚠️ The selected test size does not produce valid '
-								'training and testing partitions.'
-							)
+							st.warning( '⚠️ The selected test size does not produce valid '
+							            'training and testing partitions.' )
 							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						else:
 							df_scores = df_scores.copy( )
 						
-						if (
-								'Metric' not in df_scores.columns
-								or 'Value' not in df_scores.columns
-						):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_metadata = pd.DataFrame(
-							{
-									'Metric': [
-											'Processing Time (Seconds)',
-											'Training Rows',
-											'Testing Rows',
-											'Estimators',
-											'Criterion',
-											'Max Depth',
-											'Max Features',
-											'Bootstrap'
-									],
-									'Value': [
-											round( elapsed_seconds, 4 ),
-											int( len( X_train ) ),
-											int( len( X_test ) ),
-											int( rf_estimators ),
-											str( rf_criterion ),
-											(
-													'None'
-													if effective_depth is None
-													else int( effective_depth )
-											),
-											str( effective_features ),
-											bool( rf_bootstrap )
-									]
-							}
-						)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Estimators', 'Criterion', 'Max Depth',
+								'Max Features', 'Bootstrap' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), int( rf_estimators ), str( rf_criterion ),
+								('None' if effective_depth is None else int( effective_depth )),
+								str( effective_features ), bool( rf_bootstrap ) ] } )
 						
 						if effective_oob and hasattr( model.model, 'oob_score_' ):
-							df_oob = pd.DataFrame(
-								{
-										'Metric': [ 'OOB Score' ],
-										'Value': [ float( model.model.oob_score_ ) ]
-								}
-							)
+							df_oob = pd.DataFrame( { 'Metric': [ 'OOB Score' ],
+								'Value': [ float( model.model.oob_score_ ) ] } )
 							
-							df_metadata = pd.concat(
-								[ df_metadata, df_oob ],
-								ignore_index=True
-							)
+							df_metadata = pd.concat( [ df_metadata, df_oob ], ignore_index=True )
 						
-						df_scores = pd.concat(
-							[ df_scores, df_metadata ],
-							ignore_index=True
-						)
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
 						
-						y_prediction = np.asarray(
-							y_prediction,
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_rf_elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_rf_elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
 						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
@@ -14458,9 +12873,7 @@ elif mode == 'Regression Models':
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
 						st.session_state[ 'df_regression' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
-						st.session_state[
-							'df_regression_scores'
-						] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
 						st.success( 'Random Forest training completed.' )
@@ -14469,15 +12882,10 @@ elif mode == 'Regression Models':
 						st.error( f'Random Forest training failed: {ex}' )
 		
 		with st.expander( 'Ensemble Models', expanded=False ):
-			
 			with st.expander( 'Adaptive Boosting', expanded=False ):
-				ada_defaults = {
-						'regression_ada_estimators': 50,
-						'regression_ada_learning_rate': 1.0,
-						'regression_ada_loss': 'linear',
-						'regression_ada_test_size': 0.20,
-						'regression_ada_random_state': 42
-				}
+				ada_defaults = { 'regression_ada_estimators': 50,
+					'regression_ada_learning_rate': 1.0, 'regression_ada_loss': 'linear',
+					'regression_ada_test_size': 0.20, 'regression_ada_random_state': 42 }
 				
 				for key, value in ada_defaults.items( ):
 					if key not in st.session_state:
@@ -14485,103 +12893,59 @@ elif mode == 'Regression Models':
 				
 				st.caption( 'AdaBoost ensemble for continuous targets.' )
 				
-				ada_c1, ada_c2, ada_c3 = st.columns(
-					[ 0.34, 0.33, 0.33 ],
-					border=True
-				)
+				ada_c1, ada_c2, ada_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				
 				with ada_c1:
 					st.markdown( '###### Ensemble Parameters' )
 					
-					ada_estimators = int(
-						st.number_input(
-							'Estimators',
-							min_value=1,
-							value=int( st.session_state[ 'regression_ada_estimators' ] ),
-							step=1,
-							key='regression_ada_estimators_input'
-						)
-					)
+					ada_estimators = int( st.number_input( 'Estimators', min_value=1,
+						value=int( st.session_state[ 'regression_ada_estimators' ] ), step=1,
+						key='regression_ada_estimators_input' ) )
 					
-					ada_learning_rate = float(
-						st.number_input(
-							'Learning Rate',
-							min_value=0.000001,
-							value=float(
-								st.session_state[ 'regression_ada_learning_rate' ]
-							),
-							step=0.100000,
-							format='%.6f',
-							key='regression_ada_learning_rate_input'
-						)
-					)
+					ada_learning_rate = float( st.number_input( 'Learning Rate',
+						min_value=0.000001,
+						value=float( st.session_state[ 'regression_ada_learning_rate' ] ),
+						step=0.100000, format='%.6f', key='regression_ada_learning_rate_input' ) )
 					
-					ada_loss_options = [
-							'linear',
-							'square',
-							'exponential'
-					]
+					ada_loss_options = [ 'linear', 'square', 'exponential' ]
 					
-					ada_loss_value = st.session_state.get(
-						'regression_ada_loss',
-						'linear'
-					)
+					ada_loss_value = st.session_state.get( 'regression_ada_loss', 'linear' )
 					
 					if ada_loss_value not in ada_loss_options:
 						ada_loss_value = 'linear'
 					
-					ada_loss = st.selectbox(
-						'Loss',
-						options=ada_loss_options,
+					ada_loss = st.selectbox( 'Loss', options=ada_loss_options,
 						index=ada_loss_options.index( ada_loss_value ),
-						key='regression_ada_loss_select'
-					)
+						key='regression_ada_loss_select' )
 				
 				with ada_c2:
 					st.markdown( '###### Data Split' )
 					
-					ada_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int( st.session_state[ 'regression_ada_test_size' ] * 100 ),
-						step=5,
-						key='regression_ada_test_size_slider'
-					) / 100.0
+					ada_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_ada_test_size' ] * 100 ), step=5,
+						key='regression_ada_test_size_slider' ) / 100.0
 					
-					ada_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int( st.session_state[ 'regression_ada_random_state' ] ),
-							step=1,
-							key='regression_ada_random_state_input'
-						)
-					)
+					ada_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_ada_random_state' ] ), step=1,
+						key='regression_ada_random_state_input' ) )
 				
 				with ada_c3:
 					st.markdown( '###### Context' )
-					st.caption(
-						f'Rows: {len( df_model ):,} | '
-						f'Features: {len( active_features ):,} | '
-						f'Target: {target_name}'
-					)
+					st.caption( f'Rows: {len( df_model ):,} | '
+					            f'Features: {len( active_features ):,} | '
+					            f'Target: {target_name}' )
 				
 				ada_btn_1, ada_btn_2 = st.columns( 2 )
 				
 				with ada_btn_1:
-					train_ada = st.button(
-						'🚂 Train Adaptive Boosting',
+					train_ada = st.button( '🚂 Train Adaptive Boosting',
 						key='regression_ada_train',
-						use_container_width=True
-					)
+						use_container_width=True )
 				
 				with ada_btn_2:
-					reset_ada = st.button(
-						'🔄 Reset Adaptive Boosting',
+					reset_ada = st.button( '🔄 Reset Adaptive Boosting',
 						key='regression_ada_reset',
-						use_container_width=True
-					)
+						use_container_width=True )
 				
 				if reset_ada:
 					for key, value in ada_defaults.items( ):
@@ -14604,61 +12968,45 @@ elif mode == 'Regression Models':
 				if train_ada:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Adaptive Boosting requires prepared feature '
-								'and target arrays.'
-							)
+							st.warning( '⚠️ Adaptive Boosting requires prepared feature '
+							            'and target arrays.' )
 							st.stop( )
 						
 						X_ada = np.asarray( X, dtype=float )
 						y_ada = np.asarray( y, dtype=float ).reshape( -1 )
 						
 						if X_ada.ndim != 2 or X_ada.shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Adaptive Boosting requires at least one '
-								'numeric feature.'
-							)
+							st.warning( '⚠️ Adaptive Boosting requires at least one '
+							            'numeric feature.' )
 							st.stop( )
 						
 						if y_ada.ndim != 1:
-							st.warning(
-								'⚠️ The Adaptive Boosting target must be '
-								'one-dimensional.'
-							)
+							st.warning( '⚠️ The Adaptive Boosting target must be '
+							            'one-dimensional.' )
 							st.stop( )
 						
 						if len( X_ada ) != len( y_ada ):
-							st.warning(
-								'⚠️ Feature and target row counts do not match.'
-							)
+							st.warning( '⚠️ Feature and target row counts do not match.' )
 							st.stop( )
 						
 						if len( X_ada ) < 2:
-							st.warning(
-								'⚠️ Adaptive Boosting requires at least two '
-								'observations.'
-							)
+							st.warning( '⚠️ Adaptive Boosting requires at least two '
+							            'observations.' )
 							st.stop( )
 						
 						if not np.isfinite( X_ada ).all( ):
-							st.warning(
-								'⚠️ The Adaptive Boosting feature matrix contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Adaptive Boosting feature matrix contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_ada ).all( ):
-							st.warning(
-								'⚠️ The Adaptive Boosting target contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Adaptive Boosting target contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if len( np.unique( y_ada ) ) < 2:
-							st.warning(
-								'⚠️ The regression target must contain at least '
-								'two distinct values.'
-							)
+							st.warning( '⚠️ The regression target must contain at least '
+							            'two distinct values.' )
 							st.stop( )
 						
 						if ada_estimators < 1:
@@ -14669,111 +13017,58 @@ elif mode == 'Regression Models':
 							st.warning( '⚠️ Learning Rate must be greater than zero.' )
 							st.stop( )
 						
-						st.session_state[ 'regression_ada_estimators' ] = int(
-							ada_estimators
-						)
+						st.session_state[ 'regression_ada_estimators' ] = int( ada_estimators )
 						st.session_state[ 'regression_ada_learning_rate' ] = float(
-							ada_learning_rate
-						)
+							ada_learning_rate )
 						st.session_state[ 'regression_ada_loss' ] = str( ada_loss )
-						st.session_state[ 'regression_ada_test_size' ] = float(
-							ada_test_size
-						)
-						st.session_state[ 'regression_ada_random_state' ] = int(
-							ada_random_state
-						)
+						st.session_state[ 'regression_ada_test_size' ] = float( ada_test_size )
+						st.session_state[ 'regression_ada_random_state' ] = int( ada_random_state )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.AdaptiveBoost(
-							estimators=int( ada_estimators ),
-							rate=float( ada_learning_rate ),
-							loss=str( ada_loss ),
-							rando=int( ada_random_state )
-						)
+						model = regression_model.AdaptiveBoost( estimators=int( ada_estimators ),
+							rate=float( ada_learning_rate ), loss=str( ada_loss ),
+							rando=int( ada_random_state ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X_ada,
-							y_ada,
-							size=float( ada_test_size ),
-							random=int( ada_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_ada, y_ada,
+							size=float( ada_test_size ), random=int( ada_random_state ) )
 						
 						if len( X_train ) < 1 or len( X_test ) < 1:
-							st.warning(
-								'⚠️ The selected test size does not produce valid '
-								'training and testing partitions.'
-							)
+							st.warning( '⚠️ The selected test size does not produce valid '
+							            'training and testing partitions.' )
 							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						else:
 							df_scores = df_scores.copy( )
 						
-						if (
-								'Metric' not in df_scores.columns
-								or 'Value' not in df_scores.columns
-						):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_metadata = pd.DataFrame(
-							{
-									'Metric': [
-											'Processing Time (Seconds)',
-											'Training Rows',
-											'Testing Rows',
-											'Estimators',
-											'Learning Rate',
-											'Loss'
-									],
-									'Value': [
-											round( elapsed_seconds, 4 ),
-											int( len( X_train ) ),
-											int( len( X_test ) ),
-											int( ada_estimators ),
-											float( ada_learning_rate ),
-											str( ada_loss )
-									]
-							}
-						)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Estimators', 'Learning Rate', 'Loss' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), int( ada_estimators ),
+								float( ada_learning_rate ), str( ada_loss ) ] } )
 						
-						df_scores = pd.concat(
-							[ df_scores, df_metadata ],
-							ignore_index=True
-						)
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
 						
-						y_prediction = np.asarray(
-							y_prediction,
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_ada_elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_ada_elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
 						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
@@ -14783,44 +13078,31 @@ elif mode == 'Regression Models':
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
 						st.session_state[ 'df_regression' ] = df_model.copy( )
 						st.session_state[ 'df_scores' ] = df_scores.copy( )
-						st.session_state[
-							'df_regression_scores'
-						] = df_scores.copy( )
+						st.session_state[ 'df_regression_scores' ] = df_scores.copy( )
 						st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 						
 						st.success( 'Adaptive Boosting training completed.' )
 					
 					except Exception as ex:
 						st.error( f'Adaptive Boosting training failed: {ex}' )
-					
+			
 			with st.expander( 'Gradient Boosting', expanded=False ):
-				gb_defaults = {
-						'regression_gb_loss': 'squared_error',
-						'regression_gb_learning_rate': 0.100000,
-						'regression_gb_estimators': 100,
-						'regression_gb_subsample': 1.0,
-						'regression_gb_criterion': 'friedman_mse',
-						'regression_gb_min_samples_split': 2,
-						'regression_gb_min_samples_leaf': 1,
-						'regression_gb_min_weight_fraction_leaf': 0.0,
-						'regression_gb_max_depth_mode': 'custom',
-						'regression_gb_max_depth_value': 3,
-						'regression_gb_min_impurity_decrease': 0.0,
-						'regression_gb_max_features_mode': 'none',
-						'regression_gb_max_features_value': 1.0,
-						'regression_gb_alpha': 0.9,
-						'regression_gb_verbose': 0,
-						'regression_gb_max_leaf_nodes_mode': 'none',
-						'regression_gb_max_leaf_nodes_value': 31,
-						'regression_gb_warm_start': False,
-						'regression_gb_validation_fraction': 0.1,
-						'regression_gb_n_iter_no_change_mode': 'none',
-						'regression_gb_n_iter_no_change_value': 5,
-						'regression_gb_tol': 0.000100,
-						'regression_gb_ccp_alpha': 0.0,
-						'regression_gb_test_size': 0.20,
-						'regression_gb_random_state': 42
-				}
+				gb_defaults = { 'regression_gb_loss': 'squared_error',
+					'regression_gb_learning_rate': 0.100000, 'regression_gb_estimators': 100,
+					'regression_gb_subsample': 1.0, 'regression_gb_criterion': 'friedman_mse',
+					'regression_gb_min_samples_split': 2, 'regression_gb_min_samples_leaf': 1,
+					'regression_gb_min_weight_fraction_leaf': 0.0,
+					'regression_gb_max_depth_mode': 'custom', 'regression_gb_max_depth_value': 3,
+					'regression_gb_min_impurity_decrease': 0.0,
+					'regression_gb_max_features_mode': 'none',
+					'regression_gb_max_features_value': 1.0, 'regression_gb_alpha': 0.9,
+					'regression_gb_verbose': 0, 'regression_gb_max_leaf_nodes_mode': 'none',
+					'regression_gb_max_leaf_nodes_value': 31, 'regression_gb_warm_start': False,
+					'regression_gb_validation_fraction': 0.1,
+					'regression_gb_n_iter_no_change_mode': 'none',
+					'regression_gb_n_iter_no_change_value': 5, 'regression_gb_tol': 0.000100,
+					'regression_gb_ccp_alpha': 0.0, 'regression_gb_test_size': 0.20,
+					'regression_gb_random_state': 42 }
 				
 				for key, value in gb_defaults.items( ):
 					if key not in st.session_state:
@@ -14828,385 +13110,194 @@ elif mode == 'Regression Models':
 				
 				st.caption( 'Sequential tree boosting for continuous targets.' )
 				
-				gb_c1, gb_c2, gb_c3 = st.columns(
-					[ 0.34, 0.33, 0.33 ],
-					border=True
-				)
+				gb_c1, gb_c2, gb_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				
 				with gb_c1:
 					st.markdown( '###### Boosting Parameters' )
 					
-					gb_loss_options = [
-							'squared_error',
-							'absolute_error',
-							'huber',
-							'quantile'
-					]
+					gb_loss_options = [ 'squared_error', 'absolute_error', 'huber', 'quantile' ]
 					
-					gb_loss_value = st.session_state.get(
-						'regression_gb_loss',
-						'squared_error'
-					)
+					gb_loss_value = st.session_state.get( 'regression_gb_loss', 'squared_error' )
 					
 					if gb_loss_value not in gb_loss_options:
 						gb_loss_value = 'squared_error'
 					
-					gb_loss = st.selectbox(
-						'Loss',
-						options=gb_loss_options,
+					gb_loss = st.selectbox( 'Loss', options=gb_loss_options,
 						index=gb_loss_options.index( gb_loss_value ),
-						key='regression_gb_loss_select'
-					)
+						key='regression_gb_loss_select' )
 					
-					gb_learning_rate = float(
-						st.number_input(
-							'Learning Rate',
-							min_value=0.000001,
-							value=float( st.session_state[ 'regression_gb_learning_rate' ] ),
-							step=0.010000,
-							format='%.6f',
-							key='regression_gb_learning_rate_input'
-						)
-					)
+					gb_learning_rate = float( st.number_input( 'Learning Rate', min_value=0.000001,
+						value=float( st.session_state[ 'regression_gb_learning_rate' ] ),
+						step=0.010000, format='%.6f', key='regression_gb_learning_rate_input' ) )
 					
-					gb_estimators = int(
-						st.number_input(
-							'Estimators',
-							min_value=1,
-							value=int( st.session_state[ 'regression_gb_estimators' ] ),
-							step=1,
-							key='regression_gb_estimators_input'
-						)
-					)
+					gb_estimators = int( st.number_input( 'Estimators', min_value=1,
+						value=int( st.session_state[ 'regression_gb_estimators' ] ), step=1,
+						key='regression_gb_estimators_input' ) )
 					
-					gb_subsample = float(
-						st.slider(
-							'Subsample',
-							min_value=0.10,
-							max_value=1.00,
-							value=float( st.session_state[ 'regression_gb_subsample' ] ),
-							step=0.05,
-							key='regression_gb_subsample_slider'
-						)
-					)
+					gb_subsample = float( st.slider( 'Subsample', min_value=0.10, max_value=1.00,
+						value=float( st.session_state[ 'regression_gb_subsample' ] ), step=0.05,
+						key='regression_gb_subsample_slider' ) )
 					
-					gb_alpha = float(
-						st.slider(
-							'Alpha',
-							min_value=0.01,
-							max_value=0.99,
-							value=float( st.session_state[ 'regression_gb_alpha' ] ),
-							step=0.01,
-							key='regression_gb_alpha_slider'
-						)
-					)
+					gb_alpha = float( st.slider( 'Alpha', min_value=0.01, max_value=0.99,
+						value=float( st.session_state[ 'regression_gb_alpha' ] ), step=0.01,
+						key='regression_gb_alpha_slider' ) )
 				
 				with gb_c2:
 					st.markdown( '###### Tree Parameters' )
 					
-					gb_criterion_options = [
-							'friedman_mse',
-							'squared_error'
-					]
+					gb_criterion_options = [ 'friedman_mse', 'squared_error' ]
 					
-					gb_criterion_value = st.session_state.get(
-						'regression_gb_criterion',
-						'friedman_mse'
-					)
+					gb_criterion_value = st.session_state.get( 'regression_gb_criterion',
+						'friedman_mse' )
 					
 					if gb_criterion_value not in gb_criterion_options:
 						gb_criterion_value = 'friedman_mse'
 					
-					gb_criterion = st.selectbox(
-						'Criterion',
-						options=gb_criterion_options,
+					gb_criterion = st.selectbox( 'Criterion', options=gb_criterion_options,
 						index=gb_criterion_options.index( gb_criterion_value ),
-						key='regression_gb_criterion_select'
-					)
+						key='regression_gb_criterion_select' )
 					
-					gb_min_samples_split = int(
-						st.number_input(
-							'Min Samples Split',
-							min_value=2,
-							value=int(
-								st.session_state[ 'regression_gb_min_samples_split' ]
-							),
-							step=1,
-							key='regression_gb_min_samples_split_input'
-						)
-					)
+					gb_min_samples_split = int( st.number_input( 'Min Samples Split', min_value=2,
+						value=int( st.session_state[ 'regression_gb_min_samples_split' ] ), step=1,
+						key='regression_gb_min_samples_split_input' ) )
 					
-					gb_min_samples_leaf = int(
-						st.number_input(
-							'Min Samples Leaf',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_gb_min_samples_leaf' ]
-							),
-							step=1,
-							key='regression_gb_min_samples_leaf_input'
-						)
-					)
+					gb_min_samples_leaf = int( st.number_input( 'Min Samples Leaf', min_value=1,
+						value=int( st.session_state[ 'regression_gb_min_samples_leaf' ] ), step=1,
+						key='regression_gb_min_samples_leaf_input' ) )
 					
 					gb_min_weight_fraction_leaf = float(
-						st.number_input(
-							'Min Weight Fraction Leaf',
-							min_value=0.0,
-							max_value=0.5,
+						st.number_input( 'Min Weight Fraction Leaf', min_value=0.0, max_value=0.5,
 							value=float(
-								st.session_state[
-									'regression_gb_min_weight_fraction_leaf'
-								]
-							),
-							step=0.010000,
-							format='%.6f',
-							key='regression_gb_min_weight_fraction_leaf_input'
-						)
-					)
+								st.session_state[ 'regression_gb_min_weight_fraction_leaf' ] ),
+							step=0.010000, format='%.6f',
+							key='regression_gb_min_weight_fraction_leaf_input' ) )
 					
-					gb_depth_options = [
-							'none',
-							'custom'
-					]
+					gb_depth_options = [ 'none', 'custom' ]
 					
-					gb_depth_value = st.session_state.get(
-						'regression_gb_max_depth_mode',
-						'custom'
-					)
+					gb_depth_value = st.session_state.get( 'regression_gb_max_depth_mode',
+						'custom' )
 					
 					if gb_depth_value not in gb_depth_options:
 						gb_depth_value = 'custom'
 					
-					gb_max_depth_mode = st.selectbox(
-						'Max Depth',
-						options=gb_depth_options,
+					gb_max_depth_mode = st.selectbox( 'Max Depth', options=gb_depth_options,
 						index=gb_depth_options.index( gb_depth_value ),
-						key='regression_gb_max_depth_mode_select'
-					)
+						key='regression_gb_max_depth_mode_select' )
 					
-					gb_max_depth_value = int(
-						st.number_input(
-							'Max Depth Value',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_gb_max_depth_value' ]
-							),
-							step=1,
-							key='regression_gb_max_depth_value_input'
-						)
-					)
+					gb_max_depth_value = int( st.number_input( 'Max Depth Value', min_value=1,
+						value=int( st.session_state[ 'regression_gb_max_depth_value' ] ), step=1,
+						key='regression_gb_max_depth_value_input' ) )
 					
 					gb_min_impurity_decrease = float(
-						st.number_input(
-							'Min Impurity Decrease',
-							min_value=0.0,
-							value=float(
-								st.session_state[
-									'regression_gb_min_impurity_decrease'
-								]
-							),
-							step=0.000100,
-							format='%.6f',
-							key='regression_gb_min_impurity_decrease_input'
-						)
-					)
+						st.number_input( 'Min Impurity Decrease', min_value=0.0, value=float(
+							st.session_state[ 'regression_gb_min_impurity_decrease' ] ),
+							step=0.000100, format='%.6f',
+							key='regression_gb_min_impurity_decrease_input' ) )
 				
 				with gb_c3:
 					st.markdown( '###### Feature / Run Controls' )
 					
-					gb_feature_options = [
-							'none',
-							'sqrt',
-							'log2',
-							'fraction'
-					]
+					gb_feature_options = [ 'none', 'sqrt', 'log2', 'fraction' ]
 					
-					gb_feature_value = st.session_state.get(
-						'regression_gb_max_features_mode',
-						'none'
-					)
+					gb_feature_value = st.session_state.get( 'regression_gb_max_features_mode',
+						'none' )
 					
 					if gb_feature_value not in gb_feature_options:
 						gb_feature_value = 'none'
 					
-					gb_max_features_mode = st.selectbox(
-						'Max Features',
+					gb_max_features_mode = st.selectbox( 'Max Features',
 						options=gb_feature_options,
 						index=gb_feature_options.index( gb_feature_value ),
-						key='regression_gb_max_features_mode_select'
-					)
+						key='regression_gb_max_features_mode_select' )
 					
 					gb_max_features_value = float(
-						st.slider(
-							'Max Features Fraction',
-							min_value=0.10,
-							max_value=1.00,
-							value=float(
-								st.session_state[ 'regression_gb_max_features_value' ]
-							),
-							step=0.05,
-							key='regression_gb_max_features_value_slider'
-						)
-					)
+						st.slider( 'Max Features Fraction', min_value=0.10, max_value=1.00,
+							value=float( st.session_state[ 'regression_gb_max_features_value' ] ),
+							step=0.05, key='regression_gb_max_features_value_slider' ) )
 					
-					gb_leaf_node_options = [
-							'none',
-							'custom'
-					]
+					gb_leaf_node_options = [ 'none', 'custom' ]
 					
-					gb_leaf_node_value = st.session_state.get(
-						'regression_gb_max_leaf_nodes_mode',
-						'none'
-					)
+					gb_leaf_node_value = st.session_state.get( 'regression_gb_max_leaf_nodes_mode',
+						'none' )
 					
 					if gb_leaf_node_value not in gb_leaf_node_options:
 						gb_leaf_node_value = 'none'
 					
-					gb_max_leaf_nodes_mode = st.selectbox(
-						'Max Leaf Nodes',
+					gb_max_leaf_nodes_mode = st.selectbox( 'Max Leaf Nodes',
 						options=gb_leaf_node_options,
 						index=gb_leaf_node_options.index( gb_leaf_node_value ),
-						key='regression_gb_max_leaf_nodes_mode_select'
-					)
+						key='regression_gb_max_leaf_nodes_mode_select' )
 					
 					gb_max_leaf_nodes_value = int(
-						st.number_input(
-							'Max Leaf Nodes Value',
-							min_value=2,
-							value=int(
-								st.session_state[ 'regression_gb_max_leaf_nodes_value' ]
-							),
-							step=1,
-							key='regression_gb_max_leaf_nodes_value_input'
-						)
-					)
+						st.number_input( 'Max Leaf Nodes Value', min_value=2,
+							value=int( st.session_state[ 'regression_gb_max_leaf_nodes_value' ] ),
+							step=1, key='regression_gb_max_leaf_nodes_value_input' ) )
 					
-					gb_warm_start = st.checkbox(
-						'Warm Start',
+					gb_warm_start = st.checkbox( 'Warm Start',
 						value=bool( st.session_state[ 'regression_gb_warm_start' ] ),
-						key='regression_gb_warm_start_check'
-					)
+						key='regression_gb_warm_start_check' )
 					
 					gb_validation_fraction = float(
-						st.slider(
-							'Validation Fraction',
-							min_value=0.05,
-							max_value=0.40,
-							value=float(
-								st.session_state[ 'regression_gb_validation_fraction' ]
-							),
-							step=0.05,
-							key='regression_gb_validation_fraction_slider'
-						)
-					)
+						st.slider( 'Validation Fraction', min_value=0.05, max_value=0.40,
+							value=float( st.session_state[ 'regression_gb_validation_fraction' ] ),
+							step=0.05, key='regression_gb_validation_fraction_slider' ) )
 					
-					gb_no_change_options = [
-							'none',
-							'custom'
-					]
+					gb_no_change_options = [ 'none', 'custom' ]
 					
 					gb_no_change_value = st.session_state.get(
-						'regression_gb_n_iter_no_change_mode',
-						'none'
-					)
+						'regression_gb_n_iter_no_change_mode', 'none' )
 					
 					if gb_no_change_value not in gb_no_change_options:
 						gb_no_change_value = 'none'
 					
-					gb_n_iter_no_change_mode = st.selectbox(
-						'N Iter No Change',
+					gb_n_iter_no_change_mode = st.selectbox( 'N Iter No Change',
 						options=gb_no_change_options,
 						index=gb_no_change_options.index( gb_no_change_value ),
-						key='regression_gb_n_iter_no_change_mode_select'
-					)
+						key='regression_gb_n_iter_no_change_mode_select' )
 					
 					gb_n_iter_no_change_value = int(
-						st.number_input(
-							'N Iter No Change Value',
-							min_value=1,
-							value=int(
-								st.session_state[ 'regression_gb_n_iter_no_change_value' ]
-							),
-							step=1,
-							key='regression_gb_n_iter_no_change_value_input'
-						)
-					)
+						st.number_input( 'N Iter No Change Value', min_value=1,
+							value=int( st.session_state[ 'regression_gb_n_iter_no_change_value'
+							] ),
+							step=1, key='regression_gb_n_iter_no_change_value_input' ) )
 					
-					gb_tol = float(
-						st.number_input(
-							'Tolerance',
-							min_value=0.0,
-							value=float( st.session_state[ 'regression_gb_tol' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_gb_tol_input'
-						)
-					)
+					gb_tol = float( st.number_input( 'Tolerance', min_value=0.0,
+						value=float( st.session_state[ 'regression_gb_tol' ] ), step=0.000100,
+						format='%.6f', key='regression_gb_tol_input' ) )
 					
-					gb_ccp_alpha = float(
-						st.number_input(
-							'CCP Alpha',
-							min_value=0.0,
-							value=float( st.session_state[ 'regression_gb_ccp_alpha' ] ),
-							step=0.000100,
-							format='%.6f',
-							key='regression_gb_ccp_alpha_input'
-						)
-					)
+					gb_ccp_alpha = float( st.number_input( 'CCP Alpha', min_value=0.0,
+						value=float( st.session_state[ 'regression_gb_ccp_alpha' ] ),
+						step=0.000100,
+						format='%.6f', key='regression_gb_ccp_alpha_input' ) )
 					
-					gb_verbose = int(
-						st.number_input(
-							'Verbose',
-							min_value=0,
-							value=int( st.session_state[ 'regression_gb_verbose' ] ),
-							step=1,
-							key='regression_gb_verbose_input'
-						)
-					)
+					gb_verbose = int( st.number_input( 'Verbose', min_value=0,
+						value=int( st.session_state[ 'regression_gb_verbose' ] ), step=1,
+						key='regression_gb_verbose_input' ) )
 					
-					gb_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=40,
-						value=int( st.session_state[ 'regression_gb_test_size' ] * 100 ),
-						step=5,
-						key='regression_gb_test_size_slider'
-					) / 100.0
+					gb_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=40,
+						value=int( st.session_state[ 'regression_gb_test_size' ] * 100 ), step=5,
+						key='regression_gb_test_size_slider' ) / 100.0
 					
-					gb_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int( st.session_state[ 'regression_gb_random_state' ] ),
-							step=1,
-							key='regression_gb_random_state_input'
-						)
-					)
+					gb_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_gb_random_state' ] ), step=1,
+						key='regression_gb_random_state_input' ) )
 					
 					if gb_loss not in [ 'huber', 'quantile' ]:
 						st.caption( 'Alpha is only used by huber and quantile losses.' )
 					
 					if gb_max_features_mode != 'fraction':
-						st.caption(
-							'Max Features Fraction is only used when '
-							'Max Features = fraction.'
-						)
+						st.caption( 'Max Features Fraction is only used when '
+						            'Max Features = fraction.' )
 				
 				gb_btn_1, gb_btn_2 = st.columns( 2 )
 				
 				with gb_btn_1:
-					train_gb = st.button(
-						'🚂 Train Gradient Boosting',
-						key='regression_gb_train',
-						use_container_width=True
-					)
+					train_gb = st.button( '🚂 Train Gradient Boosting', key='regression_gb_train',
+						use_container_width=True )
 				
 				with gb_btn_2:
-					reset_gb = st.button(
-						'🔄 Reset Gradient Boosting',
-						key='regression_gb_reset',
-						use_container_width=True
-					)
+					reset_gb = st.button( '🔄 Reset Gradient Boosting', key='regression_gb_reset',
+						use_container_width=True )
 				
 				if reset_gb:
 					for key, value in gb_defaults.items( ):
@@ -15229,61 +13320,45 @@ elif mode == 'Regression Models':
 				if train_gb:
 					try:
 						if X is None or y is None:
-							st.warning(
-								'⚠️ Gradient Boosting requires prepared feature '
-								'and target arrays.'
-							)
+							st.warning( '⚠️ Gradient Boosting requires prepared feature '
+							            'and target arrays.' )
 							st.stop( )
 						
 						X_gb = np.asarray( X, dtype=float )
 						y_gb = np.asarray( y, dtype=float ).reshape( -1 )
 						
 						if X_gb.ndim != 2 or X_gb.shape[ 1 ] < 1:
-							st.warning(
-								'⚠️ Gradient Boosting requires at least one '
-								'numeric feature.'
-							)
+							st.warning( '⚠️ Gradient Boosting requires at least one '
+							            'numeric feature.' )
 							st.stop( )
 						
 						if y_gb.ndim != 1:
-							st.warning(
-								'⚠️ The Gradient Boosting target must be '
-								'one-dimensional.'
-							)
+							st.warning( '⚠️ The Gradient Boosting target must be '
+							            'one-dimensional.' )
 							st.stop( )
 						
 						if len( X_gb ) != len( y_gb ):
-							st.warning(
-								'⚠️ Feature and target row counts do not match.'
-							)
+							st.warning( '⚠️ Feature and target row counts do not match.' )
 							st.stop( )
 						
 						if len( X_gb ) < 2:
-							st.warning(
-								'⚠️ Gradient Boosting requires at least two '
-								'observations.'
-							)
+							st.warning( '⚠️ Gradient Boosting requires at least two '
+							            'observations.' )
 							st.stop( )
 						
 						if not np.isfinite( X_gb ).all( ):
-							st.warning(
-								'⚠️ The Gradient Boosting feature matrix contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Gradient Boosting feature matrix contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if not np.isfinite( y_gb ).all( ):
-							st.warning(
-								'⚠️ The Gradient Boosting target contains '
-								'non-finite values.'
-							)
+							st.warning( '⚠️ The Gradient Boosting target contains '
+							            'non-finite values.' )
 							st.stop( )
 						
 						if len( np.unique( y_gb ) ) < 2:
-							st.warning(
-								'⚠️ The regression target must contain at least '
-								'two distinct values.'
-							)
+							st.warning( '⚠️ The regression target must contain at least '
+							            'two distinct values.' )
 							st.stop( )
 						
 						if gb_learning_rate <= 0.0:
@@ -15295,10 +13370,8 @@ elif mode == 'Regression Models':
 							st.stop( )
 						
 						if gb_subsample <= 0.0 or gb_subsample > 1.0:
-							st.warning(
-								'⚠️ Subsample must be greater than zero and '
-								'no greater than one.'
-							)
+							st.warning( '⚠️ Subsample must be greater than zero and '
+							            'no greater than one.' )
 							st.stop( )
 						
 						if gb_tol < 0.0:
@@ -15306,10 +13379,7 @@ elif mode == 'Regression Models':
 							st.stop( )
 						
 						effective_depth = (
-								None
-								if gb_max_depth_mode == 'none'
-								else int( gb_max_depth_value )
-						)
+							None if gb_max_depth_mode == 'none' else int( gb_max_depth_value ))
 						
 						if gb_max_features_mode == 'none':
 							effective_features = None
@@ -15320,195 +13390,113 @@ elif mode == 'Regression Models':
 						else:
 							effective_features = float( gb_max_features_value )
 						
-						effective_leaf_nodes = (
-								None
-								if gb_max_leaf_nodes_mode == 'none'
-								else int( gb_max_leaf_nodes_value )
-						)
+						effective_leaf_nodes = (None if gb_max_leaf_nodes_mode == 'none' else int(
+							gb_max_leaf_nodes_value ))
 						
-						effective_no_change = (
-								None
-								if gb_n_iter_no_change_mode == 'none'
-								else int( gb_n_iter_no_change_value )
-						)
+						effective_no_change = (None if gb_n_iter_no_change_mode == 'none' else int(
+							gb_n_iter_no_change_value ))
 						
 						st.session_state[ 'regression_gb_loss' ] = str( gb_loss )
 						st.session_state[ 'regression_gb_learning_rate' ] = float(
-							gb_learning_rate
-						)
+							gb_learning_rate )
 						st.session_state[ 'regression_gb_estimators' ] = int( gb_estimators )
 						st.session_state[ 'regression_gb_subsample' ] = float( gb_subsample )
 						st.session_state[ 'regression_gb_criterion' ] = str( gb_criterion )
 						st.session_state[ 'regression_gb_min_samples_split' ] = int(
-							gb_min_samples_split
-						)
+							gb_min_samples_split )
 						st.session_state[ 'regression_gb_min_samples_leaf' ] = int(
-							gb_min_samples_leaf
-						)
-						st.session_state[
-							'regression_gb_min_weight_fraction_leaf'
-						] = float( gb_min_weight_fraction_leaf )
+							gb_min_samples_leaf )
+						st.session_state[ 'regression_gb_min_weight_fraction_leaf' ] = float(
+							gb_min_weight_fraction_leaf )
 						st.session_state[ 'regression_gb_max_depth_mode' ] = str(
-							gb_max_depth_mode
-						)
+							gb_max_depth_mode )
 						st.session_state[ 'regression_gb_max_depth_value' ] = int(
-							gb_max_depth_value
-						)
-						st.session_state[
-							'regression_gb_min_impurity_decrease'
-						] = float( gb_min_impurity_decrease )
+							gb_max_depth_value )
+						st.session_state[ 'regression_gb_min_impurity_decrease' ] = float(
+							gb_min_impurity_decrease )
 						st.session_state[ 'regression_gb_max_features_mode' ] = str(
-							gb_max_features_mode
-						)
+							gb_max_features_mode )
 						st.session_state[ 'regression_gb_max_features_value' ] = float(
-							gb_max_features_value
-						)
+							gb_max_features_value )
 						st.session_state[ 'regression_gb_alpha' ] = float( gb_alpha )
 						st.session_state[ 'regression_gb_verbose' ] = int( gb_verbose )
 						st.session_state[ 'regression_gb_max_leaf_nodes_mode' ] = str(
-							gb_max_leaf_nodes_mode
-						)
+							gb_max_leaf_nodes_mode )
 						st.session_state[ 'regression_gb_max_leaf_nodes_value' ] = int(
-							gb_max_leaf_nodes_value
-						)
-						st.session_state[ 'regression_gb_warm_start' ] = bool(
-							gb_warm_start
-						)
+							gb_max_leaf_nodes_value )
+						st.session_state[ 'regression_gb_warm_start' ] = bool( gb_warm_start )
 						st.session_state[ 'regression_gb_validation_fraction' ] = float(
-							gb_validation_fraction
-						)
-						st.session_state[
-							'regression_gb_n_iter_no_change_mode'
-						] = str( gb_n_iter_no_change_mode )
-						st.session_state[
-							'regression_gb_n_iter_no_change_value'
-						] = int( gb_n_iter_no_change_value )
+							gb_validation_fraction )
+						st.session_state[ 'regression_gb_n_iter_no_change_mode' ] = str(
+							gb_n_iter_no_change_mode )
+						st.session_state[ 'regression_gb_n_iter_no_change_value' ] = int(
+							gb_n_iter_no_change_value )
 						st.session_state[ 'regression_gb_tol' ] = float( gb_tol )
 						st.session_state[ 'regression_gb_ccp_alpha' ] = float( gb_ccp_alpha )
 						st.session_state[ 'regression_gb_test_size' ] = float( gb_test_size )
-						st.session_state[ 'regression_gb_random_state' ] = int(
-							gb_random_state
-						)
+						st.session_state[ 'regression_gb_random_state' ] = int( gb_random_state )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.GradientBoost(
-							loss=str( gb_loss ),
-							rate=float( gb_learning_rate ),
-							estimators=int( gb_estimators ),
-							subsample=float( gb_subsample ),
-							criterion=str( gb_criterion ),
-							split=int( gb_min_samples_split ),
-							leaf=int( gb_min_samples_leaf ),
+						model = regression_model.GradientBoost( loss=str( gb_loss ),
+							rate=float( gb_learning_rate ), estimators=int( gb_estimators ),
+							subsample=float( gb_subsample ), criterion=str( gb_criterion ),
+							split=int( gb_min_samples_split ), leaf=int( gb_min_samples_leaf ),
 							weight_fraction=float( gb_min_weight_fraction_leaf ),
-							depth=effective_depth,
-							impurity=float( gb_min_impurity_decrease ),
-							init=None,
-							rando=int( gb_random_state ),
-							features=effective_features,
-							alpha=float( gb_alpha ),
-							verbose=int( gb_verbose ),
-							leaf_nodes=effective_leaf_nodes,
-							warm=bool( gb_warm_start ),
+							depth=effective_depth, impurity=float( gb_min_impurity_decrease ),
+							init=None, rando=int( gb_random_state ), features=effective_features,
+							alpha=float( gb_alpha ), verbose=int( gb_verbose ),
+							leaf_nodes=effective_leaf_nodes, warm=bool( gb_warm_start ),
 							validation_fraction=float( gb_validation_fraction ),
-							no_change=effective_no_change,
-							tol=float( gb_tol ),
-							ccp_alpha=float( gb_ccp_alpha )
-						)
+							no_change=effective_no_change, tol=float( gb_tol ),
+							ccp_alpha=float( gb_ccp_alpha ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X_gb,
-							y_gb,
-							size=float( gb_test_size ),
-							random=int( gb_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X_gb, y_gb,
+							size=float( gb_test_size ), random=int( gb_random_state ) )
 						
 						if len( X_train ) < 1 or len( X_test ) < 1:
-							st.warning(
-								'⚠️ The selected test size does not produce valid '
-								'training and testing partitions.'
-							)
+							st.warning( '⚠️ The selected test size does not produce valid '
+							            'training and testing partitions.' )
 							st.stop( )
 						
 						if effective_no_change is not None and len( X_train ) < 10:
-							st.warning(
-								'⚠️ Early stopping requires a larger training set. '
-								'Disable N Iter No Change or use more observations.'
-							)
+							st.warning( '⚠️ Early stopping requires a larger training set. '
+							            'Disable N Iter No Change or use more observations.' )
 							st.stop( )
 						
 						model.train( X_train, y_train )
 						y_prediction = model.project( X_test )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
 						
 						if not isinstance( df_scores, pd.DataFrame ):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						else:
 							df_scores = df_scores.copy( )
 						
-						if (
-								'Metric' not in df_scores.columns
-								or 'Value' not in df_scores.columns
-						):
-							df_scores = pd.DataFrame(
-								columns=[ 'Metric', 'Value' ]
-							)
+						if ('Metric' not in df_scores.columns or 'Value' not in df_scores.columns):
+							df_scores = pd.DataFrame( columns=[ 'Metric', 'Value' ] )
 						
-						df_metadata = pd.DataFrame(
-							{
-									'Metric': [
-											'Processing Time (Seconds)',
-											'Training Rows',
-											'Testing Rows',
-											'Estimators',
-											'Learning Rate',
-											'Loss',
-											'Subsample',
-											'Criterion'
-									],
-									'Value': [
-											round( elapsed_seconds, 4 ),
-											int( len( X_train ) ),
-											int( len( X_test ) ),
-											int( gb_estimators ),
-											float( gb_learning_rate ),
-											str( gb_loss ),
-											float( gb_subsample ),
-											str( gb_criterion )
-									]
-							}
-						)
+						df_metadata = pd.DataFrame( {
+							'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+								'Testing Rows', 'Estimators', 'Learning Rate', 'Loss', 'Subsample',
+								'Criterion' ],
+							'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+								int( len( X_test ) ), int( gb_estimators ),
+								float( gb_learning_rate ), str( gb_loss ), float( gb_subsample ),
+								str( gb_criterion ) ] } )
 						
-						df_scores = pd.concat(
-							[ df_scores, df_metadata ],
-							ignore_index=True
-						)
+						df_scores = pd.concat( [ df_scores, df_metadata ], ignore_index=True )
 						
-						y_prediction = np.asarray(
-							y_prediction,
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( y_prediction, dtype=float ).reshape( -1 )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_gb_elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_gb_elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
 						st.session_state[ 'X_train' ] = np.asarray( X_train ).copy( )
@@ -15525,22 +13513,15 @@ elif mode == 'Regression Models':
 					
 					except Exception as ex:
 						st.error( f'Gradient Boosting training failed: {ex}' )
-					
+			
 			with st.expander( 'Voting Regressor', expanded=False ):
-				vote_defaults = {
-						'regression_vote_include_ols': True,
-						'regression_vote_include_ridge': True,
-						'regression_vote_include_knn': True,
-						'regression_vote_use_weights': False,
-						'regression_vote_weight_ols': 1.0,
-						'regression_vote_weight_ridge': 1.0,
-						'regression_vote_weight_knn': 1.0,
-						'regression_vote_jobs': 1,
-						'regression_vote_verbose': False,
-						'regression_vote_test_percent': 20,
-						'regression_vote_test_size': 0.20,
-						'regression_vote_random_state': 42
-				}
+				vote_defaults = { 'regression_vote_include_ols': True,
+					'regression_vote_include_ridge': True, 'regression_vote_include_knn': True,
+					'regression_vote_use_weights': False, 'regression_vote_weight_ols': 1.0,
+					'regression_vote_weight_ridge': 1.0, 'regression_vote_weight_knn': 1.0,
+					'regression_vote_jobs': 1, 'regression_vote_verbose': False,
+					'regression_vote_test_percent': 20, 'regression_vote_test_size': 0.20,
+					'regression_vote_random_state': 42 }
 				
 				for key, value in vote_defaults.items( ):
 					if key not in st.session_state:
@@ -15550,7 +13531,8 @@ elif mode == 'Regression Models':
 					"""Reset Voting Regressor state.
 
 						Purpose:
-							Restores Voting Regressor controls and output dataframes to their default
+							Restores Voting Regressor controls and output dataframes to their
+							default
 							state without modifying dataset, feature, or target selections.
 
 						Returns:
@@ -15564,140 +13546,83 @@ elif mode == 'Regression Models':
 					st.session_state[ 'df_predictions' ] = pd.DataFrame( )
 					st.session_state[ 'regression_vote_elapsed_seconds' ] = None
 				
-				st.caption( 'Average predictions from multiple regressors fit on the full dataset.' )
+				st.caption(
+					'Average predictions from multiple regressors fit on the full dataset.' )
 				
 				vote_c1, vote_c2, vote_c3 = st.columns( [ 0.34, 0.33, 0.33 ], border=True )
 				with vote_c1:
 					st.markdown( '###### Base Estimators' )
 					
-					vote_include_ols = st.checkbox(
-						'Ordinary Least Squares',
-						key='regression_vote_include_ols'
-					)
+					vote_include_ols = st.checkbox( 'Ordinary Least Squares',
+						key='regression_vote_include_ols' )
 					
-					vote_include_ridge = st.checkbox(
-						'Ridge Regression',
-						key='regression_vote_include_ridge'
-					)
+					vote_include_ridge = st.checkbox( 'Ridge Regression',
+						key='regression_vote_include_ridge' )
 					
-					vote_include_knn = st.checkbox(
-						'k-Nearest Neighbors',
-						key='regression_vote_include_knn'
-					)
+					vote_include_knn = st.checkbox( 'k-Nearest Neighbors',
+						key='regression_vote_include_knn' )
 					
 					st.caption( 'Select at least two base estimators.' )
 				
 				with vote_c2:
 					st.markdown( '###### Weighting' )
 					
-					vote_use_weights = st.checkbox(
-						'Use Custom Weights',
-						key='regression_vote_use_weights'
-					)
+					vote_use_weights = st.checkbox( 'Use Custom Weights',
+						key='regression_vote_use_weights' )
 					
 					vote_weight_ols = float(
-						st.number_input(
-							'OLS Weight',
-							min_value=0.0,
-							step=0.10,
-							format='%.2f',
-							key='regression_vote_weight_ols'
-						)
-					)
+						st.number_input( 'OLS Weight', min_value=0.0, step=0.10, format='%.2f',
+							key='regression_vote_weight_ols' ) )
 					
 					vote_weight_ridge = float(
-						st.number_input(
-							'Ridge Weight',
-							min_value=0.0,
-							step=0.10,
-							format='%.2f',
-							key='regression_vote_weight_ridge'
-						)
-					)
+						st.number_input( 'Ridge Weight', min_value=0.0, step=0.10, format='%.2f',
+							key='regression_vote_weight_ridge' ) )
 					
 					vote_weight_knn = float(
-						st.number_input(
-							'kNN Weight',
-							min_value=0.0,
-							step=0.10,
-							format='%.2f',
-							key='regression_vote_weight_knn'
-						)
-					)
+						st.number_input( 'kNN Weight', min_value=0.0, step=0.10, format='%.2f',
+							key='regression_vote_weight_knn' ) )
 					
 					st.caption( 'Weights are only applied when custom weighting is enabled.' )
 				
 				with vote_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					
-					vote_jobs = int(
-						st.number_input(
-							'Parallel Jobs',
-							min_value=1,
-							step=1,
-							key='regression_vote_jobs'
-						)
-					)
+					vote_jobs = int( st.number_input( 'Parallel Jobs', min_value=1, step=1,
+						key='regression_vote_jobs' ) )
 					
-					vote_verbose = st.checkbox(
-						'Verbose',
-						key='regression_vote_verbose'
-					)
+					vote_verbose = st.checkbox( 'Verbose', key='regression_vote_verbose' )
 					
 					vote_test_percent = int(
-						st.slider(
-							'Test Set Size (%)',
-							min_value=10,
-							max_value=30,
-							step=1,
-							key='regression_vote_test_percent'
-						)
-					)
+						st.slider( 'Test Set Size (%)', min_value=10, max_value=30, step=1,
+							key='regression_vote_test_percent' ) )
 					vote_test_size = float( vote_test_percent / 100.0 )
 					
-					vote_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							step=1,
-							key='regression_vote_random_state'
-						)
-					)
+					vote_random_state = int( st.number_input( 'Random State', min_value=0, step=1,
+						key='regression_vote_random_state' ) )
 					
 					st.caption(
 						f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-						f'Target: {target_name}'
-					)
+						f'Target: {target_name}' )
 				
 				vote_btn_1, vote_btn_2 = st.columns( 2 )
 				with vote_btn_1:
-					train_vote = st.button(
-						'🚂 Train Voting Regressor',
+					train_vote = st.button( '🚂 Train Voting Regressor',
 						key='regression_vote_train',
-						use_container_width=True
-					)
+						use_container_width=True )
 				
 				with vote_btn_2:
-					st.button(
-						'🔄 Reset Voting Regressor',
-						key='regression_vote_reset',
-						use_container_width=True,
-						on_click=reset_voting_regressor
-					)
+					st.button( '🔄 Reset Voting Regressor', key='regression_vote_reset',
+						use_container_width=True, on_click=reset_voting_regressor )
 				
 				if train_vote:
 					try:
 						df_training = df_model.copy( )
 						
-						X = df_training[ active_features ].apply(
-							pd.to_numeric,
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( )
+						X = df_training[ active_features ].apply( pd.to_numeric,
+							errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
-						y = pd.to_numeric(
-							df_training[ target_name ],
-							errors='coerce'
-						).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+						y = pd.to_numeric( df_training[ target_name ], errors='coerce' ).fillna(
+							0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( X ) < 3:
 							st.warning( '⚠️ Voting Regressor requires at least three rows.' )
@@ -15705,14 +13630,12 @@ elif mode == 'Regression Models':
 						
 						if len( np.unique( y ) ) < 2:
 							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+								'⚠️ The selected numeric target must contain at least two distinct '
+								'values.' )
 							st.stop( )
 						
-						estimated_training_rows = max(
-							1,
-							int( np.floor( len( X ) * (1.0 - vote_test_size) ) )
-						)
+						estimated_training_rows = max( 1,
+							int( np.floor( len( X ) * (1.0 - vote_test_size) ) ) )
 						vote_neighbors = min( 5, estimated_training_rows )
 						
 						estimators = [ ]
@@ -15720,73 +13643,44 @@ elif mode == 'Regression Models':
 						
 						if vote_include_ols:
 							estimators.append(
-								(
-										'least_squares',
-										regression_model.skl.LinearRegression( )
-								)
-							)
+								('least_squares', regression_model.skl.LinearRegression( )) )
 							weights.append( float( vote_weight_ols ) )
 						
 						if vote_include_ridge:
-							estimators.append(
-								(
-										'ridge',
-										regression_model.skl.Ridge(
-											random_state=int( vote_random_state )
-										)
-								)
-							)
+							estimators.append( ('ridge', regression_model.skl.Ridge(
+								random_state=int( vote_random_state ) )) )
 							weights.append( float( vote_weight_ridge ) )
 						
 						if vote_include_knn:
-							estimators.append(
-								(
-										'nearest_neighbor',
-										regression_model.skn.KNeighborsRegressor(
-											n_neighbors=vote_neighbors
-										)
-								)
-							)
+							estimators.append( ('nearest_neighbor',
+								regression_model.skn.KNeighborsRegressor(
+									n_neighbors=vote_neighbors )) )
 							weights.append( float( vote_weight_knn ) )
 						
 						if len( estimators ) < 2:
 							st.warning(
-								'⚠️ Voting Regressor requires at least two base estimators.'
-							)
+								'⚠️ Voting Regressor requires at least two base estimators.' )
 							st.stop( )
 						
-						if vote_use_weights and all(
-								weight == 0.0 for weight in weights ):
-							st.warning(
-								'⚠️ At least one voting weight must be greater than zero.'
-							)
+						if vote_use_weights and all( weight == 0.0 for weight in weights ):
+							st.warning( '⚠️ At least one voting weight must be greater than '
+							            'zero.' )
 							st.stop( )
 						
 						start_time = time.perf_counter( )
 						
-						model = regression_model.VotingModel(
-							est=estimators,
-							weights=weights if vote_use_weights else None,
-							jobs=int( vote_jobs ),
-							verbose=bool( vote_verbose )
-						)
+						model = regression_model.VotingModel( est=estimators,
+							weights=weights if vote_use_weights else None, jobs=int( vote_jobs ),
+							verbose=bool( vote_verbose ) )
 						
-						X_train, X_test, y_train, y_test = model.split_data(
-							X,
-							y,
-							size=float( vote_test_size ),
-							random=int( vote_random_state )
-						)
+						X_train, X_test, y_train, y_test = model.split_data( X, y,
+							size=float( vote_test_size ), random=int( vote_random_state ) )
 						
 						model.train( X_train, y_train )
-						y_prediction = np.asarray(
-							model.project( X_test ),
-							dtype=float
-						).reshape( -1 )
+						y_prediction = np.asarray( model.project( X_test ), dtype=float ).reshape(
+							-1 )
 						
-						elapsed_seconds = float(
-							time.perf_counter( ) - start_time
-						)
+						elapsed_seconds = float( time.perf_counter( ) - start_time )
 						
 						df_scores = model.analyze( X_test, y_test )
 						
@@ -15796,47 +13690,22 @@ elif mode == 'Regression Models':
 							df_scores = df_scores.copy( )
 						
 						if not df_scores.empty:
-							df_extra = pd.DataFrame(
-								{
-										'Metric': [
-												'Processing Time (Seconds)',
-												'Training Rows',
-												'Testing Rows',
-												'Estimator Count',
-												'Weighted Voting'
-										],
-										'Value': [
-												round( elapsed_seconds, 4 ),
-												int( len( X_train ) ),
-												int( len( X_test ) ),
-												int( len( estimators ) ),
-												bool( vote_use_weights )
-										]
-								}
-							)
+							df_extra = pd.DataFrame( {
+								'Metric': [ 'Processing Time (Seconds)', 'Training Rows',
+									'Testing Rows', 'Estimator Count', 'Weighted Voting' ],
+								'Value': [ round( elapsed_seconds, 4 ), int( len( X_train ) ),
+									int( len( X_test ) ), int( len( estimators ) ),
+									bool( vote_use_weights ) ] } )
 							
-							df_scores = pd.concat(
-								[ df_scores, df_extra ],
-								ignore_index=True
-							)
+							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
 						
 						df_predictions = pd.DataFrame(
-							{
-									'Actual': np.asarray(
-										y_test,
-										dtype=float
-									).reshape( -1 ),
-									'Predicted': y_prediction
-							}
-						)
+							{ 'Actual': np.asarray( y_test, dtype=float ).reshape( -1 ),
+								'Predicted': y_prediction } )
 						
-						st.session_state[
-							'regression_vote_test_size'
-						] = vote_test_size
+						st.session_state[ 'regression_vote_test_size' ] = vote_test_size
 						
-						st.session_state[
-							'regression_vote_elapsed_seconds'
-						] = elapsed_seconds
+						st.session_state[ 'regression_vote_elapsed_seconds' ] = elapsed_seconds
 						
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
@@ -15854,22 +13723,16 @@ elif mode == 'Regression Models':
 						st.success( 'Voting Regressor training completed.' )
 					except Exception as ex:
 						st.error( f'Voting Regressor training failed: {ex}' )
-					
-			with st.expander( 'Stacking Regressor', expanded=False ):
-				stack_defaults = {
-						'regression_stack_include_ols': True,
-						'regression_stack_include_ridge': True,
-						'regression_stack_include_knn': True,
-						'regression_stack_final_estimator': 'ridge',
-						'regression_stack_cv_mode': 'default',
-						'regression_stack_cv_value': 5,
-						'regression_stack_jobs': 1,
-						'regression_stack_passthrough': False,
-						'regression_stack_verbose': 0,
-						'regression_stack_test_size': 20,
-						'regression_stack_random_state': 42
-				}
 			
+			with st.expander( 'Stacking Regressor', expanded=False ):
+				stack_defaults = { 'regression_stack_include_ols': True,
+					'regression_stack_include_ridge': True, 'regression_stack_include_knn': True,
+					'regression_stack_final_estimator': 'ridge',
+					'regression_stack_cv_mode': 'default', 'regression_stack_cv_value': 5,
+					'regression_stack_jobs': 1, 'regression_stack_passthrough': False,
+					'regression_stack_verbose': 0, 'regression_stack_test_size': 20,
+					'regression_stack_random_state': 42 }
+				
 				for key, value in stack_defaults.items( ):
 					if key not in st.session_state:
 						st.session_state[ key ] = value
@@ -15896,92 +13759,57 @@ elif mode == 'Regression Models':
 				with stack_c2:
 					st.markdown( '###### Meta-Estimator' )
 					
-					stack_final_estimator = st.selectbox(
-						'Final Estimator',
+					stack_final_estimator = st.selectbox( 'Final Estimator',
 						options=[ 'linear_regression', 'ridge', 'knn' ],
 						index=[ 'linear_regression', 'ridge', 'knn' ].index(
-							st.session_state[ 'regression_stack_final_estimator' ]
-						),
-						key='regression_stack_final_estimator'
-					)
+							st.session_state[ 'regression_stack_final_estimator' ] ),
+						key='regression_stack_final_estimator' )
 					
-					stack_cv_mode = st.selectbox(
-						'Cross-Validation',
-						options=[ 'default', 'custom' ],
-						index=[ 'default', 'custom' ].index(
-							st.session_state[ 'regression_stack_cv_mode' ]
-						),
-						key='regression_stack_cv_mode'
-					)
+					stack_cv_mode = st.selectbox( 'Cross-Validation',
+						options=[ 'default', 'custom' ], index=[ 'default', 'custom' ].index(
+							st.session_state[ 'regression_stack_cv_mode' ] ),
+						key='regression_stack_cv_mode' )
 					
-					stack_cv_value = int(
-						st.number_input(
-							'CV Folds',
-							min_value=2,
-							value=int( st.session_state[ 'regression_stack_cv_value' ] ),
-							step=1,
-							key='regression_stack_cv_value'
-						)
-					)
+					stack_cv_value = int( st.number_input( 'CV Folds', min_value=2,
+						value=int( st.session_state[ 'regression_stack_cv_value' ] ), step=1,
+						key='regression_stack_cv_value' ) )
 					
-					stack_passthrough = st.checkbox(
-						'Passthrough Original Features',
+					stack_passthrough = st.checkbox( 'Passthrough Original Features',
 						value=bool( st.session_state[ 'regression_stack_passthrough' ] ),
-						key='regression_stack_passthrough'
-					)
+						key='regression_stack_passthrough' )
 				
 				with stack_c3:
 					st.markdown( '###### 🏃 Run Configuration' )
 					
-					stack_jobs = int(
-						st.number_input( 'Parallel Jobs', min_value=1,
-							value=int( st.session_state[ 'regression_stack_jobs' ] ),
-							step=1, key='regression_stack_jobs' ) )
+					stack_jobs = int( st.number_input( 'Parallel Jobs', min_value=1,
+						value=int( st.session_state[ 'regression_stack_jobs' ] ), step=1,
+						key='regression_stack_jobs' ) )
 					
-					stack_verbose = int(
-						st.number_input( 'Verbose', min_value=0,
-							value=int( st.session_state[ 'regression_stack_verbose' ] ),
-							step=1, key='regression_stack_verbose' ) )
+					stack_verbose = int( st.number_input( 'Verbose', min_value=0,
+						value=int( st.session_state[ 'regression_stack_verbose' ] ), step=1,
+						key='regression_stack_verbose' ) )
 					
-					stack_test_size = st.slider(
-						'Test Set Size (%)',
-						min_value=10,
-						max_value=30,
-						value=int( st.session_state[ 'regression_stack_test_size' ] ),
-						step=1,
-						key='regression_stack_test_size'
-					) / 100.0
+					stack_test_size = st.slider( 'Test Set Size (%)', min_value=10, max_value=30,
+						value=int( st.session_state[ 'regression_stack_test_size' ] ), step=1,
+						key='regression_stack_test_size' ) / 100.0
 					
-					stack_random_state = int(
-						st.number_input(
-							'Random State',
-							min_value=0,
-							value=int( st.session_state[ 'regression_stack_random_state' ] ),
-							step=1,
-							key='regression_stack_random_state'
-						)
-					)
+					stack_random_state = int( st.number_input( 'Random State', min_value=0,
+						value=int( st.session_state[ 'regression_stack_random_state' ] ), step=1,
+						key='regression_stack_random_state' ) )
 					
 					st.caption(
 						f'Rows: {len( df_model ):,} | Features: {len( active_features ):,} | '
-						f'Target: {target_name}'
-					)
+						f'Target: {target_name}' )
 				
 				stack_btn_1, stack_btn_2 = st.columns( 2 )
 				
 				with stack_btn_1:
-					train_stack = st.button(
-						'🚂 Train Stacking Regressor',
-						key='regression_stack_train',
-						use_container_width=True
-					)
+					train_stack = st.button( '🚂 Train Stacking Regressor',
+						key='regression_stack_train', use_container_width=True )
 				
 				with stack_btn_2:
-					reset_stack = st.button(
-						'🔄 Reset Stacking Regressor',
-						key='regression_stack_reset',
-						use_container_width=True
-					)
+					reset_stack = st.button( '🔄 Reset Stacking Regressor',
+						key='regression_stack_reset', use_container_width=True )
 				
 				if reset_stack:
 					for key, value in stack_defaults.items( ):
@@ -15997,62 +13825,47 @@ elif mode == 'Regression Models':
 					try:
 						df_training = df_model.copy( )
 						
-						X = df_training[ active_features ].apply(
-							pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+						X = df_training[ active_features ].apply( pd.to_numeric,
+							errors='coerce' ).fillna( 0.0 ).to_numpy( )
 						
-						y = pd.to_numeric( df_training[ target_name ],
-							errors='coerce' ).fillna( 0.0 ).to_numpy( ).reshape( -1 )
+						y = pd.to_numeric( df_training[ target_name ], errors='coerce' ).fillna(
+							0.0 ).to_numpy( ).reshape( -1 )
 						
 						if len( np.unique( y ) ) < 2:
 							st.warning(
-								'⚠️ The selected numeric target must contain at least two distinct values.'
-							)
+								'⚠️ The selected numeric target must contain at least two distinct'
+								' values.' )
 							st.stop( )
 						
 						estimators = [ ]
 						
 						if stack_include_ols:
 							estimators.append(
-								(
-										'least_squares',
-										regression_model.skl.LinearRegression( )
-								)
-							)
+								('least_squares', regression_model.skl.LinearRegression( )) )
 						
 						if stack_include_ridge:
-							estimators.append(
-								(
-										'ridge',
-										regression_model.skl.Ridge(
-											random_state=int( stack_random_state )
-										)
-								)
-							)
+							estimators.append( ('ridge', regression_model.skl.Ridge(
+								random_state=int( stack_random_state ) )) )
 						
 						if stack_include_knn:
 							estimators.append(
-								(
-										'nearest_neighbor',
-										regression_model.skn.KNeighborsRegressor( )
-								)
-							)
+								('nearest_neighbor', regression_model.skn.KNeighborsRegressor( )) )
 						
 						if len( estimators ) < 2:
 							st.warning(
-								'⚠️ Stacking Regressor requires at least two base estimators.'
-							)
+								'⚠️ Stacking Regressor requires at least two base estimators.' )
 							st.stop( )
 						
 						if stack_final_estimator == 'linear_regression':
 							final_estimator = regression_model.skl.LinearRegression( )
 						elif stack_final_estimator == 'ridge':
 							final_estimator = regression_model.skl.Ridge(
-								random_state=int( stack_random_state )
-							)
+								random_state=int( stack_random_state ) )
 						else:
 							final_estimator = regression_model.skn.KNeighborsRegressor( )
 						
-						effective_cv = None if stack_cv_mode == 'default' else int( stack_cv_value )
+						effective_cv = None if stack_cv_mode == 'default' else int(
+							stack_cv_value )
 						
 						start_time = time.perf_counter( )
 						
@@ -16078,32 +13891,18 @@ elif mode == 'Regression Models':
 								df_scores.columns = [ 'Metric', 'Value' ]
 							
 							df_extra = pd.DataFrame( {
-										'Metric': [
-												'Training Score',
-												'Testing Score',
-												'Processing Time (Seconds)',
-												'Training Rows',
-												'Testing Rows',
-												'Estimator Count',
-												'Passthrough'
-										],
-										'Value': [
-												float( model.training_score ),
-												float( model.testing_score ),
-												round( elapsed_seconds, 4 ),
-												int( len( X_train ) ),
-												int( len( X_test ) ),
-												int( len( estimators ) ),
-												bool( stack_passthrough )
-										]
-								} )
+								'Metric': [ 'Training Score', 'Testing Score',
+									'Processing Time (Seconds)', 'Training Rows', 'Testing Rows',
+									'Estimator Count', 'Passthrough' ],
+								'Value': [ float( model.training_score ),
+									float( model.testing_score ), round( elapsed_seconds, 4 ),
+									int( len( X_train ) ), int( len( X_test ) ),
+									int( len( estimators ) ), bool( stack_passthrough ) ] } )
 							
 							df_scores = pd.concat( [ df_scores, df_extra ], ignore_index=True )
 						
-						df_predictions = pd.DataFrame( {
-									'Actual': y_test,
-									'Predicted': y_prediction
-							} )
+						df_predictions = pd.DataFrame(
+							{ 'Actual': y_test, 'Predicted': y_prediction } )
 						st.session_state[ 'elapsed_seconds' ] = elapsed_seconds
 						st.session_state[ 'model' ] = model
 						st.session_state[ 'y_prediction' ] = y_prediction.copy( )
@@ -16130,11 +13929,8 @@ elif mode == 'Regression Models':
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Predictions' )
 		y_prediction = model.project( X_test )
-		df_predictions = pd.DataFrame( {
-				'Observed': y_test,
-				'Predicted': y_prediction,
-				'Residual': y_test - y_prediction
-		} )
+		df_predictions = pd.DataFrame(
+			{ 'Observed': y_test, 'Predicted': y_prediction, 'Residual': y_test - y_prediction } )
 		
 		st.session_state[ 'y_prediction' ] = y_prediction.copy( )
 		st.session_state[ 'df_predictions' ] = df_predictions.copy( )
@@ -16150,28 +13946,20 @@ elif mode == 'Regression Models':
 		
 		if hasattr( model, 'features' ):
 			try:
-				detail_rows.append( {
-						'Property': 'Features',
-						'Value': model.features
-				} )
+				detail_rows.append( { 'Property': 'Features', 'Value': model.features } )
 			except Exception:
 				pass
 		
 		if hasattr( model, 'training_score' ):
 			try:
-				detail_rows.append( {
-						'Property': 'Training Score',
-						'Value': model.training_score
-				} )
+				detail_rows.append(
+					{ 'Property': 'Training Score', 'Value': model.training_score } )
 			except Exception:
 				pass
 		
 		if hasattr( model, 'testing_score' ):
 			try:
-				detail_rows.append( {
-						'Property': 'Testing Score',
-						'Value': model.testing_score
-				} )
+				detail_rows.append( { 'Property': 'Testing Score', 'Value': model.testing_score } )
 			except Exception:
 				pass
 		
@@ -16179,10 +13967,8 @@ elif mode == 'Regression Models':
 			try:
 				weights = model.weights
 				if weights is not None:
-					df_weights = pd.DataFrame( {
-							'Feature': features,
-							'Weight': np.asarray( weights ).reshape( -1 )
-					} )
+					df_weights = pd.DataFrame(
+						{ 'Feature': features, 'Weight': np.asarray( weights ).reshape( -1 ) } )
 					st.caption( 'Coefficients' )
 					st.data_editor( df_weights, use_container_width=True )
 			except Exception:
@@ -16192,10 +13978,7 @@ elif mode == 'Regression Models':
 			try:
 				intercept = model.intercept
 				if intercept is not None:
-					detail_rows.append( {
-							'Property': 'Intercept',
-							'Value': intercept
-					} )
+					detail_rows.append( { 'Property': 'Intercept', 'Value': intercept } )
 			except Exception:
 				pass
 		
@@ -16215,22 +13998,13 @@ elif mode == 'Regression Models':
 		st.pyplot( plt.gcf( ) )
 		plt.close( 'all' )
 
-
 # ============================================
 # CLUSTERING MODELS MODE
 # ============================================
 elif mode == 'Clustering Models':
-	df_original = st.session_state.get( 'df_dataset', None )
 	df_dataset = st.session_state.get( 'df_dataset', None )
-	df_working = st.session_state.get( 'df_working', None )
-	df_processed = st.session_state.get( 'df_processed', None )
-	df_cluster = st.session_state.get( 'df_cluster', None )
-	numeric_columns = st.session_state.get( 'numeric_columns', [ ] )
-	categorical_columns = st.session_state.get( 'categorical_columns', [ ] )
-	features = st.session_state.get( 'features', [ ] )
-	targets = st.session_state.get( 'targets', [ ] )
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with center:
+	with ((center)):
 		st.subheader( cfg.MODE[ 'Clustering Models' ] )
 		st.divider( )
 		
@@ -16239,20 +14013,46 @@ elif mode == 'Clustering Models':
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
+		numeric_columns = [ column for column in df_original.columns if
+			pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
+		categorical_columns = [ column for column in df_original.columns if
+			column not in numeric_columns ]
+		
+		if not numeric_columns:
+			st.warning( '⚠️ Clustering requires at least one numeric feature.' )
+			st.stop( )
+		
+		cluster_source_signature = (tuple( df_original.columns.tolist( ) ),
+			tuple( str( dtype ) for dtype in df_original.dtypes.tolist( ) ),
+			int( len( df_original ) ),
+			int( pd.util.hash_pandas_object( df_original, index=True ).sum( ) ))
+		prior_cluster_source_signature = st.session_state.get( 'clustering_source_signature',
+			None )
+		
+		if prior_cluster_source_signature != cluster_source_signature:
+			cluster_state_keys = [ key for key in list( st.session_state.keys( ) ) if
+				key.startswith( 'cluster_' ) or key in [ 'clusters_working_data', 'df_cluster',
+					'df_cluster_results', 'df_cluster_counts', 'df_cluster_metrics',
+					'df_cluster_centroids', 'df_cluster_details', 'df_cluster_ordering',
+					'cluster_plot_features', 'cluster_signature' ] ]
+			clear_keys( cluster_state_keys )
+			st.session_state[ 'df_working' ] = df_original.copy( )
+			st.session_state[ 'df_processed' ] = df_original.copy( )
+			st.session_state[ 'features' ] = [ ]
+			st.session_state[ 'targets' ] = [ ]
+			st.session_state[ 'active_features' ] = [ ]
+			st.session_state[ 'active_targets' ] = [ ]
+		
+		st.session_state[ 'clustering_source_signature' ] = cluster_source_signature
 		st.session_state[ 'df_original' ] = df_original.copy( )
-		
-		numeric_columns = [ c for c in df_original.columns
-		                    if pd.api.types.is_numeric_dtype( df_original[ c ] ) ]
-		
-		categorical_columns = [ c for c in df_original.columns
-		                        if c not in numeric_columns ]
-		
 		st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
 		st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
 		
-		if not numeric_columns:
-			st.warning( '⚠️ Clustering requires numeric features' )
-			st.stop( )
+		df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
+		df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
+		df_cluster = st.session_state.get( 'df_cluster', pd.DataFrame( ) )
+		features = st.session_state.get( 'features', [ ] )
+		targets = st.session_state.get( 'targets', [ ] )
 		
 		if df_working is None or df_working.empty:
 			df_working = df_original.copy( )
@@ -16306,12 +14106,10 @@ elif mode == 'Clustering Models':
 				df_original = df_dataset.copy( )
 				df_working = df_original.copy( )
 				df_processed = df_working.copy( )
-				
 				st.session_state[ 'features' ] = [ ]
 				st.session_state[ 'targets' ] = [ ]
 				st.session_state[ 'df_working' ] = df_working.copy( )
 				st.session_state[ 'df_processed' ] = df_processed.copy( )
-				
 				commit_frame( df_working )
 				st.success( 'Reset to Original' )
 		
@@ -16319,7 +14117,7 @@ elif mode == 'Clustering Models':
 		st.markdown( '##### Working Data' )
 		st.caption( f'Samples: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
 		
-		st.data_editor( df_working, key='clusters_working_data' )
+		st.data_editor( df_working, key='clusters_working_data', disabled=True )
 		
 		# ------------------------------------------------------------------
 		# Training Features
@@ -16339,13 +14137,15 @@ elif mode == 'Clustering Models':
 			with st.expander( label='Data Scaling', icon='⚖️', key='cluster_scalers' ):
 				
 				with st.expander( 'Standard Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.STANDARD_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.STANDARD_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=targets,
 						key='cluster_standard_scaler_cols' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_standard_scaler_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_standard_scaler_apply',
 								use_container_width=True ):
 							if scale_cols:
 								scaler = StandardScaler( )
@@ -16356,15 +14156,18 @@ elif mode == 'Clustering Models':
 								st.success( 'Standard Scaler applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_standard_scaler_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_standard_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Min-Max Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MINMAX_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.MINMAX_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_minmax_scaler_cols' )
 					
@@ -16384,12 +14187,14 @@ elif mode == 'Clustering Models':
 						if st.button( 'Reset', key='cluster_minmax_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Robust Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ROBUST_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.ROBUST_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_robust_scaler_cols' )
 					
@@ -16409,17 +14214,19 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_robust_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Normal Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.NORMAL_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.NORMAL_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_normal_scaler_cols' )
 					
-					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ],
-						index=1, key='cluster_normal_scaler_norm' )
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', 'max' ], index=1,
+						key='cluster_normal_scaler_norm' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -16438,12 +14245,14 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_normal_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Max-Absolute Scaler', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MAXABS_SCALER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.MAXABS_SCALER )
 					scale_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_maxabs_scaler_cols' )
 					
@@ -16463,14 +14272,16 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_maxabs_scaler_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Imputation', icon='🧹', key='cluster_imputers' ):
 				
 				with st.expander( 'Mean Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.MEAN_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.MEAN_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_mean_imputer_cols' )
 					
@@ -16482,11 +14293,12 @@ elif mode == 'Clustering Models':
 						if st.button( label='Apply', icon='✔️', key='cluster_mean_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
-								imputer = MeanImputer( strategy='mean', add_indicator=add_indicator )
+								imputer = MeanImputer( strategy='mean',
+									add_indicator=add_indicator )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'mean_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'mean_imputer' )
 								
 								commit_frame( df_processed )
 								st.success( 'MeanImputer applied.' )
@@ -16495,7 +14307,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_mean_imputer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -16505,69 +14318,73 @@ elif mode == 'Clustering Models':
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_nearest_imputer_cols' )
 					
-					neighbors = st.number_input( 'Neighbors', min_value=1,
-						value=5, step=1, key='cluster_nearest_imputer_neighbors' )
+					neighbors = st.number_input( 'Neighbors', min_value=1, value=5, step=1,
+						key='cluster_nearest_imputer_neighbors' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_nearest_imputer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_nearest_imputer_apply',
 								use_container_width=True ):
 							if impute_cols:
 								imputer = NearestImputer( neighbors=int( neighbors ) )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'nearest_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'nearest_imputer' )
 								
 								commit_frame( df_processed )
 								st.success( 'Nearest Imputer applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_nearest_imputer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_nearest_imputer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Iterative Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ITERATIVE_IMPUTER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.ITERATIVE_IMPUTER )
 					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_iterative_imputer_cols' )
 					
-					max_iter = st.number_input( 'Max Iterations', min_value=1,
-						value=10, step=1, key='cluster_iterative_imputer_max_iter' )
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=10, step=1,
+						key='cluster_iterative_imputer_max_iter' )
 					
-					random_state = st.number_input( 'Random State', min_value=0,
-						value=0, step=1, key='cluster_iterative_imputer_random_state' )
+					random_state = st.number_input( 'Random State', min_value=0, value=0, step=1,
+						key='cluster_iterative_imputer_random_state' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Iterative Imputer',
-								key='cluster_iterative_imputer_apply',
-								use_container_width=True ):
+								key='cluster_iterative_imputer_apply', use_container_width=True ):
 							if impute_cols:
 								imputer = IterativeImputer( max_iter=int( max_iter ),
 									random_state=int( random_state ) )
 								result = imputer.train_transform(
 									df_processed[ impute_cols ].to_numpy( ) )
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'iterative_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'iterative_imputer' )
 								commit_frame( df_processed )
 								st.success( 'Iterative Imputer applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_iterative_imputer_reset',
-								use_container_width=True ):
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_iterative_imputer_reset', use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Simple Imputer', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.SIMPLE_IMPUTER )
-					impute_cols = st.multiselect( 'Columns',
-						options=numeric_columns,
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.SIMPLE_IMPUTER )
+					impute_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_simple_imputer_cols' )
 					
 					strategy = st.selectbox( 'Strategy',
@@ -16589,8 +14406,8 @@ elif mode == 'Clustering Models':
 								use_container_width=True ):
 							if impute_cols:
 								if strategy in [ 'mean', 'median' ]:
-									df_input = df_processed[ impute_cols ].apply(
-										pd.to_numeric, errors='coerce' )
+									df_input = df_processed[ impute_cols ].apply( pd.to_numeric,
+										errors='coerce' )
 									fill_object: object = 0.0
 								elif strategy == 'constant':
 									df_input = df_processed[ impute_cols ].copy( )
@@ -16604,8 +14421,8 @@ elif mode == 'Clustering Models':
 									keep_empty_features=keep_empty_features )
 								
 								result = imputer.train_transform( df_input.to_numpy( ) )
-								df_processed = replace_columns( df_processed, impute_cols,
-									result, 'simple_imputer' )
+								df_processed = replace_columns( df_processed, impute_cols, result,
+									'simple_imputer' )
 								
 								commit_frame( df_processed )
 								st.success( 'Simple Imputer Applied' )
@@ -16614,14 +14431,16 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_simple_imputer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Data Encoding', icon='🔣', key='cluster_encoders' ):
 				
 				with st.expander( 'One-Hot Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ONEHOT_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.ONEHOT_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=features,
 						key='cluster_onehot_cols' )
 					
@@ -16629,8 +14448,7 @@ elif mode == 'Clustering Models':
 						key='cluster_onehot_sparse' )
 					
 					unknown = st.selectbox( 'Unknown Category Handling',
-						options=[ 'ignore', 'error' ], index=0,
-						key='cluster_onehot_unknown' )
+						options=[ 'ignore', 'error' ], index=0, key='cluster_onehot_unknown' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -16641,8 +14459,8 @@ elif mode == 'Clustering Models':
 								result = encoder.train_transform(
 									df_processed[ encode_cols ].astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, encode_cols,
-									result, 'onehot' )
+								df_processed = replace_columns( df_processed, encode_cols, result,
+									'onehot' )
 								commit_frame( df_processed )
 								st.success( 'OneHotEncoder applied.' )
 					
@@ -16650,12 +14468,14 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_onehot_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Ordinal Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.ORDINAL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.ORDINAL_ENCODER )
 					encode_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='cluster_ordinal_cols' )
 					
@@ -16675,12 +14495,14 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_ordinal_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.LABEL_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.LABEL_ENCODER )
 					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='cluster_label_encoder_col' )
 					
@@ -16701,12 +14523,14 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_label_encoder_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Target Encoder', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.TARGET_ENCODER )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.TARGET_ENCODER )
 					encode_cols = st.multiselect( 'Categorical Feature Columns',
 						options=categorical_columns, key='cluster_target_encoder_cols' )
 					
@@ -16734,17 +14558,19 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_target_encoder_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Polynomial Features', expanded=False ):
-					st.caption( 'Description', width='stretch', text_alignment='left', help=cfg.POLYNOMIAL_FEATURES )
+					st.caption( 'Description', width='stretch', text_alignment='left',
+						help=cfg.POLYNOMIAL_FEATURES )
 					poly_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_polynomial_cols' )
 					
-					degree = st.slider( 'Degree', min_value=2, max_value=4,
-						value=2, key='cluster_polynomial_degree' )
+					degree = st.slider( 'Degree', min_value=2, max_value=4, value=2,
+						key='cluster_polynomial_degree' )
 					
 					interaction = st.checkbox( 'Interaction Only', value=True,
 						key='cluster_polynomial_interaction' )
@@ -16772,7 +14598,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_polynomial_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 		
@@ -16790,13 +14617,11 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply Binarizer',
-								key='cluster_binarizer_apply',
+						if st.button( 'Apply Binarizer', key='cluster_binarizer_apply',
 								use_container_width=True ):
 							if transform_cols:
 								df_processed = df_working.copy( )
-								transformer = Binarizer(
-									threshold=float( threshold ),
+								transformer = Binarizer( threshold=float( threshold ),
 									copy=bool( copy ) )
 								result = transformer.train_transform(
 									df_processed[ transform_cols ].to_numpy( ) )
@@ -16809,13 +14634,13 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_binarizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='cluster_label_binarizer_col' )
 					
 					pos_label = st.number_input( 'Positive Label', value=1, step=1,
@@ -16829,34 +14654,34 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply LabelBinarizer',
-								key='cluster_label_binarizer_apply',
+						if st.button( 'Apply LabelBinarizer', key='cluster_label_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
 								transformer = LabelBinarizer( pos_label=int( pos_label ),
-									neg_label=int( neg_label ), sparse_output=bool( sparse_output ) )
+									neg_label=int( neg_label ),
+									sparse_output=bool( sparse_output ) )
 								
 								result = transformer.train_transform(
 									df_processed[ target_col ].astype( str ).to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, [
-										target_col ], result,
-									'label_binarizer' )
+								df_processed = replace_columns( df_processed, [ target_col ],
+									result, 'label_binarizer' )
 								commit_frame( df_processed )
 								st.success( 'Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_label_binarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_label_binarizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Multi-Label Binarizer', expanded=False ):
-					target_col = st.selectbox( 'Column',
-						options=categorical_columns,
+					target_col = st.selectbox( 'Column', options=categorical_columns,
 						key='cluster_multilabel_binarizer_col' )
 					
 					delimiter = st.text_input( 'Delimiter', value=',',
@@ -16867,7 +14692,8 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_multilabel_binarizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_multilabel_binarizer_apply',
 								use_container_width=True ):
 							if target_col:
 								df_processed = df_working.copy( )
@@ -16885,20 +14711,21 @@ elif mode == 'Clustering Models':
 								st.success( 'Multi-Label Binarizer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_multilabel_binarizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_multilabel_binarizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'TF-IDF Transformer', expanded=False ):
 					text_count_cols = st.multiselect( 'Count Matrix Columns',
-						options=numeric_columns,
-						key='cluster_tfidf_transformer_cols' )
+						options=numeric_columns, key='cluster_tfidf_transformer_cols' )
 					
-					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ],
-						index=1, key='cluster_tfidf_transformer_norm' )
+					norm = st.selectbox( 'Norm', options=[ 'l1', 'l2', None ], index=1,
+						key='cluster_tfidf_transformer_norm' )
 					
 					use_idf = st.checkbox( 'Use IDF', value=True,
 						key='cluster_tfidf_transformer_use_idf' )
@@ -16911,16 +14738,17 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_tfidf_transformer_apply',
-								use_container_width=True ):
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_tfidf_transformer_apply', use_container_width=True ):
 							if text_count_cols:
 								df_processed = df_working.copy( )
 								transformer = TfidfTransformer( norm=norm, use_idf=bool( use_idf ),
-									smooth_idf=bool( smooth_idf ), sublinear_tf=bool( sublinear_tf ) )
+									smooth_idf=bool( smooth_idf ),
+									sublinear_tf=bool( sublinear_tf ) )
 								
 								result = transformer.train_transform(
-									df_processed[ text_count_cols ].apply(
-										pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
+									df_processed[ text_count_cols ].apply( pd.to_numeric,
+										errors='coerce' ).fillna( 0.0 ).to_numpy( ) )
 								
 								df_processed = replace_columns( df_processed, text_count_cols,
 									result, 'tfidf_transformer' )
@@ -16929,10 +14757,11 @@ elif mode == 'Clustering Models':
 								st.success( 'TFIDF Transformer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_tfidf_transformer_reset',
-								use_container_width=True ):
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_tfidf_transformer_reset', use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -16945,8 +14774,8 @@ elif mode == 'Clustering Models':
 						key='cluster_column_transformer_categorical_columns' )
 					
 					numeric_transform = st.selectbox( 'Numeric Transformer',
-						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler',
-						          'MaxAbsScaler', 'Binarizer', 'None' ],
+						options=[ 'StandardScaler', 'MinMaxScaler', 'RobustScaler', 'MaxAbsScaler',
+							'Binarizer', 'None' ],
 						key='cluster_column_transformer_numeric_transform' )
 					
 					categorical_transform = st.selectbox( 'Categorical Transformer',
@@ -16956,15 +14785,13 @@ elif mode == 'Clustering Models':
 					remainder = st.selectbox( 'Remainder', options=[ 'drop', 'passthrough' ],
 						key='cluster_column_transformer_remainder' )
 					
-					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0,
-						max_value=1.0, value=0.3,
-						key='cluster_column_transformer_sparse_threshold' )
+					sparse_threshold = st.slider( 'Sparse Threshold', min_value=0.0, max_value=1.0,
+						value=0.3, key='cluster_column_transformer_sparse_threshold' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
 						if st.button( 'Apply Column Transformer',
-								key='cluster_column_transformer_apply',
-								use_container_width=True ):
+								key='cluster_column_transformer_apply', use_container_width=True ):
 							df_processed = df_working.copy( )
 							transformers = [ ]
 							
@@ -16989,12 +14816,13 @@ elif mode == 'Clustering Models':
 								else:
 									categorical_model = OrdinalEncoder( ).model
 								
-								transformers.append( ('categorical', categorical_model,
-								                      categorical_columns) )
+								transformers.append(
+									('categorical', categorical_model, categorical_columns) )
 							
 							if transformers:
 								transformer = ColumnTransformer( transformers=transformers,
-									remainder=remainder, sparse_threshold=float( sparse_threshold ),
+									remainder=remainder, sparse_threshold=float(
+										sparse_threshold ),
 									n_jobs=None, transformer_weights=None, verbose=False )
 								
 								result = transformer.train_transform( df_processed )
@@ -17006,18 +14834,18 @@ elif mode == 'Clustering Models':
 								st.success( 'ColumnTransformer applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_column_transformer_reset',
-								use_container_width=True ):
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_column_transformer_reset', use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 			
 			with st.expander( label='Feature Extration', icon='⛏️', key='cluster_extractors' ):
 				
 				with st.expander( 'TF-IDF Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=categorical_columns,
+					text_cols = st.multiselect( 'Text Columns', options=categorical_columns,
 						key='cluster_tfidf_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
@@ -17031,13 +14859,13 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_tfidf_vectorizer_apply',
-								use_container_width=True ):
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_tfidf_vectorizer_apply', use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
 								transformer = TfidfVectorizer( ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0 else int( max_features ),
-									use_idf=bool( use_idf ) )
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ), use_idf=bool( use_idf ) )
 								
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'tfidf_vectorizer' )
@@ -17046,36 +14874,37 @@ elif mode == 'Clustering Models':
 								st.success( 'TFIDF Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_tfidf_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_tfidf_vectorizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Count Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=categorical_columns,
+					text_cols = st.multiselect( 'Text Columns', options=categorical_columns,
 						key='cluster_count_vectorizer_cols' )
 					
 					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
 						key='cluster_count_vectorizer_ngram_max' )
 					
-					max_features = st.number_input( 'Max Features', min_value=0, value=0,
-						step=1, key='cluster_count_vectorizer_max_features' )
+					max_features = st.number_input( 'Max Features', min_value=0, value=0, step=1,
+						key='cluster_count_vectorizer_max_features' )
 					
 					binary = st.checkbox( 'Binary Counts', value=False,
 						key='cluster_count_vectorizer_binary' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_count_vectorizer_apply',
-								use_container_width=True ):
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_count_vectorizer_apply', use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
 								transformer = CountVectorizer( ngram_range=(1, int( ngram_max )),
-									max_features=None if int( max_features ) == 0 else int( max_features ),
-									binary=bool( binary ) )
+									max_features=None if int( max_features ) == 0 else int(
+										max_features ), binary=bool( binary ) )
 								
 								df_processed = apply_text_vectorizer( df_processed, text_cols,
 									transformer, 'count_vectorizer' )
@@ -17084,23 +14913,24 @@ elif mode == 'Clustering Models':
 								st.success( 'Count Vectorizer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_count_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_count_vectorizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Hash Vectorizer', expanded=False ):
-					text_cols = st.multiselect( 'Text Columns',
-						options=categorical_columns,
+					text_cols = st.multiselect( 'Text Columns', options=categorical_columns,
 						key='cluster_hash_vectorizer_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
 						step=8, key='cluster_hash_vectorizer_n_features' )
 					
-					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3,
-						value=1, key='cluster_hash_vectorizer_ngram_max' )
+					ngram_max = st.slider( 'Max N-Gram', min_value=1, max_value=3, value=1,
+						key='cluster_hash_vectorizer_ngram_max' )
 					
 					binary = st.checkbox( 'Binary', value=False,
 						key='cluster_hash_vectorizer_binary' )
@@ -17110,29 +14940,31 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_hash_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_hash_vectorizer_apply',
 								use_container_width=True ):
 							if text_cols:
 								df_processed = df_working.copy( )
 								transformer = HashVectorizer( num=int( n_features ),
 									ngram_range=(1, int( ngram_max )), binary=bool( binary ),
 									alternate_sign=bool( alternate_sign ) )
-								df_processed = apply_text_vectorizer( df_processed,
-									text_cols, transformer, 'hash_vectorizer' )
+								df_processed = apply_text_vectorizer( df_processed, text_cols,
+									transformer, 'hash_vectorizer' )
 								commit_frame( df_processed )
 								st.success( 'HashVectorizer Applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_hash_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_hash_vectorizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Dictionary Vectorizer', expanded=False ):
-					dict_cols = st.multiselect( 'Columns',
-						options=categorical_columns,
+					dict_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='cluster_dict_vectorizer_cols' )
 					
 					separator = st.text_input( 'Separator', value='=',
@@ -17146,11 +14978,13 @@ elif mode == 'Clustering Models':
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_dict_vectorizer_apply',
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_dict_vectorizer_apply',
 								use_container_width=True ):
 							if dict_cols:
 								df_processed = df_working.copy( )
-								transformer = DictVectorizer( dtype=np.float64, separator=separator,
+								transformer = DictVectorizer( dtype=np.float64,
+									separator=separator,
 									sparse=bool( sparse ), sort=bool( sort ) )
 								
 								df_processed = apply_dict_transform( df_processed, dict_cols,
@@ -17160,16 +14994,17 @@ elif mode == 'Clustering Models':
 								st.success( 'DictVectorizer applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_dict_vectorizer_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_dict_vectorizer_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
 				with st.expander( 'Feature Hasher', expanded=False ):
-					hash_cols = st.multiselect( 'Columns',
-						options=categorical_columns,
+					hash_cols = st.multiselect( 'Columns', options=categorical_columns,
 						key='cluster_feature_hasher_cols' )
 					
 					n_features = st.number_input( 'Number of Features', min_value=8, value=1024,
@@ -17197,23 +15032,25 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_feature_hasher_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 			
-			with st.expander( label='Dimensionality Reduction', icon='🎚️', key='cluster_selectors' ):
+			with st.expander( label='Dimensionality Reduction', icon='🎚️',
+					key='cluster_selectors' ):
 				
 				with st.expander( 'Variance Threshold', expanded=False ):
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_variance_threshold_cols' )
 					
-					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0,
-						step=0.01, key='cluster_variance_threshold_value' )
+					threshold = st.number_input( 'Threshold', min_value=0.0, value=0.0, step=0.01,
+						key='cluster_variance_threshold_value' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( label='Apply', icon='✔️', key='cluster_variance_threshold_apply',
-								use_container_width=True ):
+						if st.button( label='Apply', icon='✔️',
+								key='cluster_variance_threshold_apply', use_container_width=True ):
 							if select_cols:
 								df_processed = df_working.copy( )
 								selector = VarianceThreshold( thresh=float( threshold ) )
@@ -17227,10 +15064,11 @@ elif mode == 'Clustering Models':
 								st.success( 'VarianceThreshold applied.' )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='cluster_variance_threshold_reset',
-								use_container_width=True ):
+						if st.button( label='Reset', icon='🔁',
+								key='cluster_variance_threshold_reset', use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -17241,14 +15079,13 @@ elif mode == 'Clustering Models':
 					y_cols = st.multiselect( 'Target Columns', options=numeric_columns,
 						key='cluster_cca_y_cols' )
 					
-					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='cluster_cca_components' )
+					n_components = st.number_input( 'Components', min_value=1, value=2, step=1,
+						key='cluster_cca_components' )
 					
-					scale = st.checkbox( 'Scale', value=True,
-						key='cluster_cca_scale' )
+					scale = st.checkbox( 'Scale', value=True, key='cluster_cca_scale' )
 					
-					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500,
-						step=1, key='cluster_cca_max_iter' )
+					max_iter = st.number_input( 'Max Iterations', min_value=1, value=500, step=1,
+						key='cluster_cca_max_iter' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -17267,8 +15104,9 @@ elif mode == 'Clustering Models':
 									index=df_processed.index, prefix='cca', columns=None )
 								
 								df_processed = pd.concat(
-									[ df_processed.drop( columns=X_cols + y_cols, errors='ignore' ),
-									  df_result ], axis=1 )
+									[ df_processed.drop( columns=X_cols + y_cols,
+										errors='ignore' ),
+										df_result ], axis=1 )
 								
 								commit_frame( df_processed )
 								st.success( 'CCA Applied.' )
@@ -17277,7 +15115,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_cca_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -17285,8 +15124,8 @@ elif mode == 'Clustering Models':
 					select_cols = st.multiselect( 'Columns', options=numeric_columns,
 						key='cluster_pca_cols' )
 					
-					n_components = st.number_input( 'Components', min_value=1, value=2,
-						step=1, key='cluster_pca_components' )
+					n_components = st.number_input( 'Components', min_value=1, value=2, step=1,
+						key='cluster_pca_components' )
 					
 					solver = st.selectbox( 'SVD Solver',
 						options=[ 'auto', 'full', 'randomized', 'covariance_eigh', 'arpack' ],
@@ -17303,7 +15142,8 @@ elif mode == 'Clustering Models':
 								result = selector.train_transform(
 									df_processed[ select_cols ].to_numpy( ) )
 								
-								df_processed = replace_columns( df_processed, select_cols, result, 'pca' )
+								df_processed = replace_columns( df_processed, select_cols, result,
+									'pca' )
 								commit_frame( df_processed )
 								st.success( 'PCA applied.' )
 					
@@ -17311,7 +15151,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_pca_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -17324,8 +15165,7 @@ elif mode == 'Clustering Models':
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-						          'mutual_info_regression' ],
-						key='cluster_selectbest_score_name' )
+							'mutual_info_regression' ], key='cluster_selectbest_score_name' )
 					
 					k_best = st.number_input( 'K', min_value=1, value=5, step=1,
 						key='cluster_selectbest_k' )
@@ -17340,12 +15180,13 @@ elif mode == 'Clustering Models':
 									score_func=score_function_from_name( score_name ),
 									num=int( k_best ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_best' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'select_best' )
 								commit_frame( df_processed )
 								st.success( 'Select Best Applied.' )
 					
@@ -17353,7 +15194,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_selectbest_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -17361,34 +15203,33 @@ elif mode == 'Clustering Models':
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
 						key='cluster_selectpercent_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column',
-						options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
 						key='cluster_selectpercent_target_col' )
 					
 					score_name = st.selectbox( 'Score Function',
 						options=[ 'chi2', 'f_classif', 'f_regression', 'mutual_info_classif',
-						          'mutual_info_regression' ],
-						key='cluster_selectpercent_score_name' )
+							'mutual_info_regression' ], key='cluster_selectpercent_score_name' )
 					
 					percentile = st.slider( 'Percentile', min_value=1, max_value=100, value=10,
 						key='cluster_selectpercent_percentile' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
-						if st.button( 'Apply SelectPercent',
-								key='cluster_selectpercent_apply', use_container_width=True ):
+						if st.button( 'Apply SelectPercent', key='cluster_selectpercent_apply',
+								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
 								selector = SelectPercent(
 									score_func=score_function_from_name( score_name ),
 									pct=int( percentile ) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								result = selector.train_transform( X_input, y_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'select_percent' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'select_percent' )
 								commit_frame( df_processed )
 								st.success( 'SelectPercent applied.' )
 					
@@ -17396,7 +15237,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_selectpercent_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -17404,8 +15246,7 @@ elif mode == 'Clustering Models':
 					X_cols = st.multiselect( 'Feature Columns', options=numeric_columns,
 						key='cluster_sbs_x_cols' )
 					
-					target_col = st.selectbox( 'Target Column',
-						options=categorical_columns,
+					target_col = st.selectbox( 'Target Column', options=categorical_columns,
 						key='cluster_sbs_target_col' )
 					
 					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
@@ -17414,8 +15255,8 @@ elif mode == 'Clustering Models':
 					test_size = st.slider( 'Validation Split', min_value=0.10, max_value=0.50,
 						value=0.25, step=0.05, key='cluster_sbs_test_size' )
 					
-					random_state = st.number_input( 'Random State', min_value=0, value=1,
-						step=1, key='cluster_sbs_random_state' )
+					random_state = st.number_input( 'Random State', min_value=0, value=1, step=1,
+						key='cluster_sbs_random_state' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -17424,15 +15265,17 @@ elif mode == 'Clustering Models':
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
 								selector = SBS( classifier=None, k_features=int( k_features ),
-									test_size=float( test_size ), random_state=int( random_state ) )
+									test_size=float( test_size ), random_state=int( random_state
+									) )
 								
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'sbs' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'sbs' )
 								
 								commit_frame( df_processed )
 								st.success( 'SBS applied.' )
@@ -17441,7 +15284,8 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_sbs_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 				
@@ -17452,11 +15296,11 @@ elif mode == 'Clustering Models':
 					target_col = st.selectbox( 'Target Column', options=categorical_columns,
 						key='cluster_rfe_target_col' )
 					
-					k_features = st.number_input( 'Features To Retain',
-						min_value=1, value=1, step=1, key='cluster_rfe_k_features' )
+					k_features = st.number_input( 'Features To Retain', min_value=1, value=1,
+						step=1, key='cluster_rfe_k_features' )
 					
-					verbose = st.number_input( 'Verbose', min_value=0, value=0,
-						step=1, key='cluster_rfe_verbose' )
+					verbose = st.number_input( 'Verbose', min_value=0, value=0, step=1,
+						key='cluster_rfe_verbose' )
 					
 					a1, a2 = st.columns( 2 )
 					with a1:
@@ -17464,14 +15308,16 @@ elif mode == 'Clustering Models':
 								use_container_width=True ):
 							if X_cols and target_col:
 								df_processed = df_working.copy( )
-								selector = RFE( k_features=int( k_features ), verbose=int( verbose ) )
-								X_input = df_processed[ X_cols ].apply(
-									pd.to_numeric, errors='coerce' ).fillna( 0.0 ).to_numpy( )
+								selector = RFE( k_features=int( k_features ),
+									verbose=int( verbose ) )
+								X_input = df_processed[ X_cols ].apply( pd.to_numeric,
+									errors='coerce' ).fillna( 0.0 ).to_numpy( )
 								
 								y_input = df_processed[ target_col ].to_numpy( )
 								selector.train( X_input, y_input )
 								result = selector.transform( X_input )
-								df_processed = replace_columns( df_processed, X_cols, result, 'rfe' )
+								df_processed = replace_columns( df_processed, X_cols, result,
+									'rfe' )
 								commit_frame( df_processed )
 								st.success( 'RFE applied.' )
 					
@@ -17479,32 +15325,29 @@ elif mode == 'Clustering Models':
 						if st.button( label='Reset', icon='🔁', key='cluster_rfe_reset',
 								use_container_width=True ):
 							st.session_state[ 'df_processed' ] = df_working.copy( )
-							df_processed = st.session_state.get( 'df_processed', df_working.copy( ) )
+							df_processed = st.session_state.get( 'df_processed',
+								df_working.copy( ) )
 							commit_frame( df_processed )
 							st.success( 'Reset to Working.' )
 		
 		st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 		st.markdown( '##### Processed Data' )
-		st.caption( f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
+		st.caption(
+			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
 		st.data_editor( df_processed, key='cluster_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL INPUT
 		# ------------------------------------------------------------------
-		active_features = [
-				feature
-				for feature in st.session_state.get( 'features', [ ] )
-				if feature in df_processed.columns
-				and pd.api.types.is_numeric_dtype( df_processed[ feature ] )
-		]
+		active_features = [ feature for feature in st.session_state.get( 'features', [ ] ) if
+			feature in df_processed.columns and pd.api.types.is_numeric_dtype(
+				df_processed[ feature ] ) ]
 		
 		if not active_features:
-			active_features = [
-					column
-					for column in df_processed.columns
-					if pd.api.types.is_numeric_dtype( df_processed[ column ] )
-					and column not in st.session_state.get( 'targets', [ ] )
-			]
+			active_features = [ column for column in df_processed.columns if
+				pd.api.types.is_numeric_dtype(
+					df_processed[ column ] ) and column not in st.session_state.get( 'targets',
+					[ ] ) ]
 		
 		if not active_features:
 			st.warning( '⚠️ Clustering requires at least one processed numeric feature column.' )
@@ -17514,20 +15357,14 @@ elif mode == 'Clustering Models':
 		df_cluster_input = df_processed[ feature_columns ].copy( )
 		
 		for column in feature_columns:
-			df_cluster_input[ column ] = pd.to_numeric(
-				df_cluster_input[ column ],
-				errors='coerce'
-			)
+			df_cluster_input[ column ] = pd.to_numeric( df_cluster_input[ column ],
+				errors='coerce' )
 		
-		df_cluster_input = df_cluster_input.replace(
-			[ np.inf, -np.inf ],
-			np.nan
-		)
+		df_cluster_input = df_cluster_input.replace( [ np.inf, -np.inf ], np.nan )
 		
 		if df_cluster_input.isna( ).any( ).any( ):
 			st.warning(
-				'⚠️ One or more clustering feature columns contain invalid numeric values.'
-			)
+				'⚠️ One or more clustering feature columns contain invalid numeric values.' )
 			st.stop( )
 		
 		if len( df_cluster_input ) < 2:
@@ -17535,6 +15372,8 @@ elif mode == 'Clustering Models':
 			st.stop( )
 		
 		X = df_cluster_input.to_numpy( dtype=float )
+		cluster_data_signature = int(
+			pd.util.hash_pandas_object( df_cluster_input, index=True ).sum( ) )
 		st.session_state[ 'active_features' ] = active_features.copy( )
 		st.session_state[ 'X_data' ] = df_cluster_input.copy( )
 		
@@ -17573,13 +15412,18 @@ elif mode == 'Clustering Models':
 		if 'cluster_kmeans_algorithm' not in st.session_state:
 			st.session_state[ 'cluster_kmeans_algorithm' ] = 'lloyd'
 		
+		cluster_max_clusters = max( 2, len( df_cluster_input ) - 1 )
+		st.session_state[ 'cluster_kmeans_n_clusters' ] = min(
+			max( 2, int( st.session_state[ 'cluster_kmeans_n_clusters' ] ) ),
+			cluster_max_clusters )
+		
 		with st.expander( 'K-Means', expanded=True ):
 			st.caption( 'Prototype-based clustering using centroid minimization.' )
 			
 			km_c1, km_c2, km_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			with km_c1:
-				n_clusters = st.number_input( 'Number of Clusters (K)', min_value=2, step=1,
-					key='cluster_kmeans_n_clusters' )
+				n_clusters = st.number_input( 'Number of Clusters (K)', min_value=2,
+					max_value=cluster_max_clusters, step=1, key='cluster_kmeans_n_clusters' )
 				
 				init = st.selectbox( 'Initialization', options=[ 'k-means++', 'random' ],
 					key='cluster_kmeans_init' )
@@ -17615,29 +15459,21 @@ elif mode == 'Clustering Models':
 				
 				copy_x = st.checkbox( 'Copy Input Data', key='cluster_kmeans_copy_x' )
 			
-			model = KMeans( clusters=int( n_clusters ), init=init, n_init=n_init,
-				tol=float( tol ), rando=int( random_state ), max_iter=int( max_iter ),
-				verbose=int( verbose ), copy_x=bool( copy_x ), algorithm=algorithm )
+			model = KMeans( clusters=int( n_clusters ), init=init, n_init=n_init, tol=float( tol ),
+				rando=int( random_state ), max_iter=int( max_iter ), verbose=int( verbose ),
+				copy_x=bool( copy_x ), algorithm=algorithm )
 			
-			model_parameters = {
-					'Model': 'K-Means',
-					'n_clusters': int( n_clusters ),
-					'init': init,
-					'n_init': n_init,
-					'max_iter': int( max_iter ),
-					'tol': float( tol ),
-					'random_state': int( random_state ),
-					'verbose': int( verbose ),
-					'copy_x': bool( copy_x ),
-					'algorithm': algorithm
-			}
+			model_parameters = { 'Model': 'K-Means', 'n_clusters': int( n_clusters ), 'init': init,
+				'n_init': n_init, 'max_iter': int( max_iter ), 'tol': float( tol ),
+				'random_state': int( random_state ), 'verbose': int( verbose ),
+				'copy_x': bool( copy_x ), 'algorithm': algorithm }
 			
 			km_b1, km_b2 = st.columns( 2 )
 			with km_b1:
 				if st.button( 'Run K-Means', icon='🏃', key='cluster_kmeans_run',
 						use_container_width=True ):
-					cluster_signature = ( tuple( active_features ), 'K-Means',
-							tuple( (k, str( v )) for k, v in model_parameters.items( ) ) )
+					cluster_kmeans_signature = ((tuple( active_features ), cluster_data_signature),
+						'K-Means', tuple( (k, str( v )) for k, v in model_parameters.items( ) ))
 					
 					try:
 						start_time = time.time( )
@@ -17648,12 +15484,9 @@ elif mode == 'Clustering Models':
 						df_results[ 'Cluster' ] = labels
 						
 						df_counts = (
-								df_results[ 'Cluster' ]
-								.value_counts( dropna=False )
-								.rename_axis( 'Cluster' )
-								.reset_index( name='Count' )
-								.sort_values( by='Cluster' )
-								.reset_index( drop=True ) )
+							df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+								'Cluster' ).reset_index( name='Count' ).sort_values(
+								by='Cluster' ).reset_index( drop=True ))
 						
 						try:
 							df_metrics = model.score( X )
@@ -17663,16 +15496,14 @@ elif mode == 'Clustering Models':
 							df_metrics = pd.DataFrame( )
 						
 						if df_metrics is None or df_metrics.empty:
-							df_metrics = pd.DataFrame(
-								[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ]
-							)
+							df_metrics = pd.DataFrame( [ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 						else:
 							df_metrics = df_metrics.copy( )
 							df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 						
 						detail_rows = [ ]
 						for prop in [ 'features', 'inertia', 'iterations', 'metric', 'algorithm',
-								'n_clusters', 'n_init', 'max_iter', 'tolerance', 'random_state' ]:
+							'n_clusters', 'n_init', 'max_iter', 'tolerance', 'random_state' ]:
 							if hasattr( model, prop ):
 								try:
 									value = getattr( model, prop )
@@ -17682,66 +15513,53 @@ elif mode == 'Clustering Models':
 								except Exception:
 									pass
 						
-						df_details = ( pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( ) )
+						df_details = (
+							pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( ))
 						df_centroids = pd.DataFrame( )
 						if hasattr( model, 'centroids_' ):
 							try:
 								centroids = model.centroids_
 								if centroids is not None:
-									df_centroids = pd.DataFrame(
-										centroids,
-										columns=feature_columns
-									)
-									df_centroids.insert(
-										0,
-										'Cluster',
-										range( len( df_centroids ) )
-									)
+									df_centroids = pd.DataFrame( centroids,
+										columns=feature_columns )
+									df_centroids.insert( 0, 'Cluster',
+										range( len( df_centroids ) ) )
 							except Exception:
 								df_centroids = pd.DataFrame( )
 						
-						st.session_state[ 'df_cluster_results' ] = df_results
-						st.session_state[ 'df_cluster_counts' ] = df_counts
-						st.session_state[ 'df_cluster_metrics' ] = df_metrics
-						st.session_state[ 'df_cluster_centroids' ] = df_centroids
-						st.session_state[ 'df_cluster_details' ] = df_details
-						st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
-						st.session_state[ 'cluster_signature' ] = cluster_signature
+						st.session_state[ 'df_cluster_kmeans_results' ] = df_results
+						st.session_state[ 'df_cluster_kmeans_counts' ] = df_counts
+						st.session_state[ 'df_cluster_kmeans_metrics' ] = df_metrics
+						st.session_state[ 'df_cluster_kmeans_centroids' ] = df_centroids
+						st.session_state[ 'df_cluster_kmeans_details' ] = df_details
+						st.session_state[ 'cluster_kmeans_plot_features' ] = feature_columns.copy( )
+						st.session_state[ 'cluster_kmeans_signature' ] = cluster_kmeans_signature
 						
 						st.success( 'K-Means clustering complete.' )
 					
 					except Exception as ex:
-						st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-						st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-						st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-						st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-						st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-						st.session_state[ 'cluster_plot_features' ] = [ ]
-						st.session_state[ 'cluster_signature' ] = None
+						st.session_state[ 'df_cluster_kmeans_results' ] = pd.DataFrame( )
+						st.session_state[ 'df_cluster_kmeans_counts' ] = pd.DataFrame( )
+						st.session_state[ 'df_cluster_kmeans_metrics' ] = pd.DataFrame( )
+						st.session_state[ 'df_cluster_kmeans_centroids' ] = pd.DataFrame( )
+						st.session_state[ 'df_cluster_kmeans_details' ] = pd.DataFrame( )
+						st.session_state[ 'cluster_kmeans_plot_features' ] = [ ]
+						st.session_state[ 'cluster_kmeans_signature' ] = None
 						st.error( f'K-Means clustering failed: {ex}' )
 			
+			kmeans_reset_keys = [ 'cluster_kmeans_n_clusters', 'cluster_kmeans_init',
+				'cluster_kmeans_n_init_mode', 'cluster_kmeans_n_init_value',
+				'cluster_kmeans_n_init_display', 'cluster_kmeans_max_iter', 'cluster_kmeans_tol',
+				'cluster_kmeans_random_state', 'cluster_kmeans_verbose', 'cluster_kmeans_copy_x',
+				'cluster_kmeans_algorithm', 'df_cluster_kmeans_results',
+				'df_cluster_kmeans_counts',
+				'df_cluster_kmeans_metrics', 'df_cluster_kmeans_centroids',
+				'df_cluster_kmeans_details', 'cluster_kmeans_plot_features',
+				'cluster_kmeans_signature' ]
+			
 			with km_b2:
-				if st.button( 'Reset K-Means', icon='🔁', key='cluster_kmeans_reset',
-						use_container_width=True ):
-					
-					st.session_state[ 'cluster_kmeans_n_clusters' ] = 3
-					st.session_state[ 'cluster_kmeans_init' ] = 'k-means++'
-					st.session_state[ 'cluster_kmeans_n_init_mode' ] = 'auto'
-					st.session_state[ 'cluster_kmeans_n_init_value' ] = 10
-					st.session_state[ 'cluster_kmeans_max_iter' ] = 300
-					st.session_state[ 'cluster_kmeans_tol' ] = 0.0001
-					st.session_state[ 'cluster_kmeans_random_state' ] = 42
-					st.session_state[ 'cluster_kmeans_verbose' ] = 0
-					st.session_state[ 'cluster_kmeans_copy_x' ] = True
-					st.session_state[ 'cluster_kmeans_algorithm' ] = 'lloyd'
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
-					st.rerun( )
+				st.button( 'Reset K-Means', icon='🔁', key='cluster_kmeans_reset',
+					use_container_width=True, on_click=clear_keys, args=(kmeans_reset_keys,) )
 			
 			# ------------------------------------------------------------------
 			# CLUSTER SUMMARY
@@ -17772,24 +15590,15 @@ elif mode == 'Clustering Models':
 				if len( feature_columns ) == 2:
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
 					ax.set_title( 'Cluster Assignments' )
-					
 					if df_centroids is not None and not df_centroids.empty:
 						try:
-							ax.scatter(
-								df_centroids[ feature_columns[ 0 ] ],
-								df_centroids[ feature_columns[ 1 ] ],
-								marker='x',
-								s=100
-							)
+							ax.scatter( df_centroids[ feature_columns[ 0 ] ],
+								df_centroids[ feature_columns[ 1 ] ], marker='x', s=100 )
 						except Exception:
 							pass
 					
@@ -17807,7 +15616,7 @@ elif mode == 'Clustering Models':
 				st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 				st.markdown( '##### Cluster Centroids' )
 				st.data_editor( df_centroids, use_container_width=True )
-
+		
 		if 'cluster_dbscan_eps' not in st.session_state:
 			st.session_state[ 'cluster_dbscan_eps' ] = 0.5
 		
@@ -17831,149 +15640,66 @@ elif mode == 'Clustering Models':
 		
 		with st.expander( 'DBSCAN', expanded=False ):
 			st.caption(
-				'Density-based clustering that identifies dense regions and isolates noise.'
-			)
+				'Density-based clustering that identifies dense regions and isolates noise.' )
 			
-			db_c1, db_c2, db_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			db_c1, db_c2, db_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with db_c1:
-				epsilon = st.number_input(
-					'Neighborhood Radius',
-					min_value=0.0001,
-					step=0.1,
-					format='%.4f',
-					key='cluster_dbscan_eps'
-				)
+				epsilon = st.number_input( 'Neighborhood Radius', min_value=0.0001, step=0.1,
+					format='%.4f', key='cluster_dbscan_eps' )
 				
-				min_samples = st.number_input(
-					'Minimum Samples',
-					min_value=1,
-					step=1,
-					key='cluster_dbscan_min_samples'
-				)
+				min_samples = st.number_input( 'Minimum Samples', min_value=1, step=1,
+					key='cluster_dbscan_min_samples' )
 			
 			with db_c2:
-				metric = st.selectbox(
-					'Distance Metric',
-					options=[
-							'euclidean',
-							'manhattan',
-							'chebyshev',
-							'minkowski',
-							'cosine'
-					],
-					key='cluster_dbscan_metric'
-				)
+				metric = st.selectbox( 'Distance Metric',
+					options=[ 'euclidean', 'manhattan', 'chebyshev', 'minkowski', 'cosine' ],
+					key='cluster_dbscan_metric' )
 				
-				algorithm = st.selectbox(
-					'Neighbor Algorithm',
-					options=[
-							'auto',
-							'ball_tree',
-							'kd_tree',
-							'brute'
-					],
-					key='cluster_dbscan_algorithm'
-				)
+				algorithm = st.selectbox( 'Neighbor Algorithm',
+					options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
+					key='cluster_dbscan_algorithm' )
 			
 			with db_c3:
-				leaf_size = st.number_input(
-					'Leaf Size',
-					min_value=1,
-					step=1,
-					key='cluster_dbscan_leaf_size'
-				)
+				leaf_size = st.number_input( 'Leaf Size', min_value=1, step=1,
+					key='cluster_dbscan_leaf_size' )
 				
-				p_value = st.number_input(
-					'Minkowski Power',
-					min_value=1.0,
-					step=1.0,
-					format='%.1f',
-					key='cluster_dbscan_p'
-				)
+				p_value = st.number_input( 'Minkowski Power', min_value=1.0, step=1.0,
+					format='%.1f', key='cluster_dbscan_p' )
 				
-				n_jobs = st.number_input(
-					'Parallel Jobs',
-					min_value=-1,
-					step=1,
-					key='cluster_dbscan_n_jobs'
-				)
+				n_jobs = st.number_input( 'Parallel Jobs', min_value=-1, step=1,
+					key='cluster_dbscan_n_jobs' )
 			
 			db_b1, db_b2 = st.columns( 2 )
 			
 			with db_b1:
-				run_dbscan = st.button(
-					'Run DBSCAN',
-					icon='🏃',
-					key='cluster_dbscan_run',
-					use_container_width=True
-				)
+				run_dbscan = st.button( 'Run DBSCAN', icon='🏃', key='cluster_dbscan_run',
+					use_container_width=True )
+			
+			dbscan_reset_keys = [ 'cluster_dbscan_eps', 'cluster_dbscan_min_samples',
+				'cluster_dbscan_metric', 'cluster_dbscan_algorithm', 'cluster_dbscan_leaf_size',
+				'cluster_dbscan_p', 'cluster_dbscan_n_jobs', 'df_cluster_dbscan_results',
+				'df_cluster_dbscan_counts', 'df_cluster_dbscan_metrics',
+				'df_cluster_dbscan_centroids', 'df_cluster_dbscan_details',
+				'cluster_dbscan_plot_features', 'cluster_dbscan_signature' ]
 			
 			with db_b2:
-				reset_dbscan = st.button(
-					'Reset DBSCAN',
-					icon='🔁',
-					key='cluster_dbscan_reset',
-					use_container_width=True
-				)
-			
-			if reset_dbscan:
-				clear_keys(
-					[
-							'cluster_dbscan_eps',
-							'cluster_dbscan_min_samples',
-							'cluster_dbscan_metric',
-							'cluster_dbscan_algorithm',
-							'cluster_dbscan_leaf_size',
-							'cluster_dbscan_p',
-							'cluster_dbscan_n_jobs'
-					]
-				)
-				
-				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-				st.session_state[ 'cluster_plot_features' ] = [ ]
-				st.session_state[ 'cluster_signature' ] = None
-				st.rerun( )
+				st.button( 'Reset DBSCAN', icon='🔁', key='cluster_dbscan_reset',
+					use_container_width=True, on_click=clear_keys, args=(dbscan_reset_keys,) )
 			
 			if run_dbscan:
-				model_parameters = {
-						'Model': 'DBSCAN',
-						'eps': float( epsilon ),
-						'min_samples': int( min_samples ),
-						'metric': metric,
-						'algorithm': algorithm,
-						'leaf_size': int( leaf_size ),
-						'p': float( p_value ),
-						'n_jobs': int( n_jobs )
-				}
+				model_parameters = { 'Model': 'DBSCAN', 'eps': float( epsilon ),
+					'min_samples': int( min_samples ), 'metric': metric, 'algorithm': algorithm,
+					'leaf_size': int( leaf_size ), 'p': float( p_value ), 'n_jobs': int( n_jobs ) }
 				
-				cluster_signature = (
-						tuple( active_features ),
-						'DBSCAN',
-						tuple(
-							(k, str( value ))
-							for k, value in model_parameters.items( )
-						)
-				)
+				cluster_dbscan_signature = ((tuple( active_features ), cluster_data_signature),
+					'DBSCAN', tuple( (k, str( value )) for k, value in model_parameters.items( ) ))
 				
 				try:
-					model = DBSCAN(
-						eps=float( epsilon ),
-						samples=int( min_samples ),
+					model = DBSCAN( eps=float( epsilon ), samples=int( min_samples ),
 						metric=metric,
-						metric_params=None,
-						algorithm=algorithm,
-						leaf_size=int( leaf_size ),
-						p=float( p_value ),
-						n_jobs=int( n_jobs )
-					)
+						metric_params=None, algorithm=algorithm, leaf_size=int( leaf_size ),
+						p=float( p_value ), n_jobs=int( n_jobs ) )
 					
 					start_time = time.time( )
 					labels = model.project( X )
@@ -17982,14 +15708,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
@@ -18001,125 +15722,61 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					unique_labels = np.unique( labels )
 					cluster_labels = unique_labels[ unique_labels != -1 ]
 					noise_count = int( np.sum( labels == -1 ) )
 					
-					detail_rows = [
-							{
-									'Property': 'features',
-									'Value': int( model.features )
-							},
-							{
-									'Property': 'clusters',
-									'Value': int( len( cluster_labels ) )
-							},
-							{
-									'Property': 'noise_samples',
-									'Value': noise_count
-							},
-							{
-									'Property': 'core_samples',
-									'Value': int( len( model.core_samples ) )
-							},
-							{
-									'Property': 'epsilon',
-									'Value': float( model.epsilon )
-							},
-							{
-									'Property': 'min_samples',
-									'Value': int( model.min_samples )
-							},
-							{
-									'Property': 'metric',
-									'Value': model.metric
-							},
-							{
-									'Property': 'algorithm',
-									'Value': model.algorithm
-							},
-							{
-									'Property': 'leaf_size',
-									'Value': int( model.leaf_size )
-							},
-							{
-									'Property': 'p',
-									'Value': model.p
-							},
-							{
-									'Property': 'n_jobs',
-									'Value': model.n_jobs
-							}
-					]
+					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
+						{ 'Property': 'clusters', 'Value': int( len( cluster_labels ) ) },
+						{ 'Property': 'noise_samples', 'Value': noise_count },
+						{ 'Property': 'core_samples', 'Value': int( len( model.core_samples ) ) },
+						{ 'Property': 'epsilon', 'Value': float( model.epsilon ) },
+						{ 'Property': 'min_samples', 'Value': int( model.min_samples ) },
+						{ 'Property': 'metric', 'Value': model.metric },
+						{ 'Property': 'algorithm', 'Value': model.algorithm },
+						{ 'Property': 'leaf_size', 'Value': int( model.leaf_size ) },
+						{ 'Property': 'p', 'Value': model.p },
+						{ 'Property': 'n_jobs', 'Value': model.n_jobs } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					df_centroids = pd.DataFrame( )
 					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
-					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
-					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
+					st.session_state[ 'df_cluster_dbscan_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_dbscan_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_dbscan_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_dbscan_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_dbscan_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_dbscan_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_dbscan_signature' ] = cluster_dbscan_signature
 					
 					st.success( 'DBSCAN clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
+					st.session_state[ 'df_cluster_dbscan_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_dbscan_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_dbscan_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_dbscan_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_dbscan_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_dbscan_plot_features' ] = [ ]
+					st.session_state[ 'cluster_dbscan_signature' ] = None
 					st.error( f'DBSCAN clustering failed: {ex}' )
 			
-			dbscan_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			dbscan_signature = st.session_state.get( 'cluster_dbscan_signature', None )
 			
-			if (
-					isinstance( dbscan_signature, tuple )
-					and len( dbscan_signature ) > 1
-					and dbscan_signature[ 1 ] == 'DBSCAN'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
+			if (isinstance( dbscan_signature, tuple ) and len( dbscan_signature ) > 1 and
+					dbscan_signature[ 1 ] == 'DBSCAN'):
+				df_results = st.session_state.get( 'df_cluster_dbscan_results', pd.DataFrame( ) )
 				
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
+				df_counts = st.session_state.get( 'df_cluster_dbscan_counts', pd.DataFrame( ) )
 				
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
+				df_metrics = st.session_state.get( 'df_cluster_dbscan_metrics', pd.DataFrame( ) )
 				
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+				df_details = st.session_state.get( 'df_cluster_dbscan_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -18133,28 +15790,17 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor(
-					df_counts,
-					use_container_width=True
-				)
+				st.data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor(
-						df_metrics,
-						use_container_width=True
-					)
+					st.data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True
-					)
+					st.data_editor( df_details, use_container_width=True )
 			else:
-				st.info(
-					'Run DBSCAN to view cluster counts, noise counts, and metrics.'
-				)
+				st.info( 'Run DBSCAN to view cluster counts, noise counts, and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -18167,12 +15813,8 @@ elif mode == 'Clustering Models':
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
 					
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
@@ -18184,7 +15826,7 @@ elif mode == 'Clustering Models':
 					st.info( 'Visualization limited to two features.' )
 			else:
 				st.info( 'Run DBSCAN to view the scatter plot.' )
-
+		
 		if 'cluster_agglomerative_n_clusters' not in st.session_state:
 			st.session_state[ 'cluster_agglomerative_n_clusters' ] = 2
 		
@@ -18206,196 +15848,106 @@ elif mode == 'Clustering Models':
 		if 'cluster_agglomerative_compute_distances' not in st.session_state:
 			st.session_state[ 'cluster_agglomerative_compute_distances' ] = False
 		
+		cluster_max_clusters = max( 2, len( df_cluster_input ) - 1 )
+		if 'cluster_agglomerative_n_clusters' in st.session_state:
+			st.session_state[ 'cluster_agglomerative_n_clusters' ] = min(
+				max( 2, int( st.session_state[ 'cluster_agglomerative_n_clusters' ] ) ),
+				cluster_max_clusters )
+		
 		with st.expander( 'Agglomerative Clustering', expanded=False ):
 			st.caption(
-				'Hierarchical bottom-up clustering that successively merges related observations.'
-			)
+				'Hierarchical bottom-up clustering that successively merges related '
+				'observations.' )
 			
-			ag_c1, ag_c2, ag_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			ag_c1, ag_c2, ag_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with ag_c1:
-				agglomerative_clusters = int(
-					st.number_input(
-						'Number of Clusters',
-						min_value=2,
-						max_value=max( 2, len( df_cluster_input ) - 1 ),
-						step=1,
-						key='cluster_agglomerative_n_clusters'
-					)
-				)
+				agglomerative_clusters = int( st.number_input( 'Number of Clusters', min_value=2,
+					max_value=max( 2, len( df_cluster_input ) - 1 ), step=1,
+					key='cluster_agglomerative_n_clusters' ) )
 				
-				agglomerative_linkage = st.selectbox(
-					'Linkage',
-					options=[
-							'ward',
-							'complete',
-							'average',
-							'single'
-					],
-					key='cluster_agglomerative_linkage'
-				)
+				agglomerative_linkage = st.selectbox( 'Linkage',
+					options=[ 'ward', 'complete', 'average', 'single' ],
+					key='cluster_agglomerative_linkage' )
 			
 			with ag_c2:
-				agglomerative_metric = st.selectbox(
-					'Distance Metric',
-					options=[
-							'euclidean',
-							'manhattan',
-							'cosine',
-							'l1',
-							'l2'
-					],
-					key='cluster_agglomerative_metric'
-				)
+				agglomerative_metric = st.selectbox( 'Distance Metric',
+					options=[ 'euclidean', 'manhattan', 'cosine', 'l1', 'l2' ],
+					key='cluster_agglomerative_metric' )
 				
-				agglomerative_compute_full_tree = st.selectbox(
-					'Compute Full Tree',
-					options=[
-							'auto',
-							True,
-							False
-					],
-					key='cluster_agglomerative_compute_full_tree'
-				)
+				agglomerative_compute_full_tree = st.selectbox( 'Compute Full Tree',
+					options=[ 'auto', True, False ],
+					key='cluster_agglomerative_compute_full_tree' )
 			
 			with ag_c3:
-				agglomerative_use_distance_threshold = st.checkbox(
-					'Use Distance Threshold',
-					key='cluster_agglomerative_use_distance_threshold'
-				)
+				agglomerative_use_distance_threshold = st.checkbox( 'Use Distance Threshold',
+					key='cluster_agglomerative_use_distance_threshold' )
 				
 				agglomerative_distance_threshold = float(
-					st.number_input(
-						'Distance Threshold',
-						min_value=0.0,
-						step=0.1,
-						format='%.4f',
+					st.number_input( 'Distance Threshold', min_value=0.0, step=0.1, format='%.4f',
 						disabled=not agglomerative_use_distance_threshold,
-						key='cluster_agglomerative_distance_threshold'
-					)
-				)
+						key='cluster_agglomerative_distance_threshold' ) )
 				
-				agglomerative_compute_distances = st.checkbox(
-					'Compute Merge Distances',
-					key='cluster_agglomerative_compute_distances'
-				)
+				agglomerative_compute_distances = st.checkbox( 'Compute Merge Distances',
+					key='cluster_agglomerative_compute_distances' )
 			
 			ag_b1, ag_b2 = st.columns( 2 )
 			
 			with ag_b1:
-				run_agglomerative = st.button(
-					'Run Agglomerative Clustering',
-					icon='🏃',
-					key='cluster_agglomerative_run',
-					use_container_width=True
-				)
+				run_agglomerative = st.button( 'Run Agglomerative Clustering', icon='🏃',
+					key='cluster_agglomerative_run', use_container_width=True )
+			
+			agglomerative_reset_keys = [ 'cluster_agglomerative_n_clusters',
+				'cluster_agglomerative_metric', 'cluster_agglomerative_linkage',
+				'cluster_agglomerative_compute_full_tree',
+				'cluster_agglomerative_use_distance_threshold',
+				'cluster_agglomerative_distance_threshold',
+				'cluster_agglomerative_compute_distances', 'df_cluster_agglomerative_results',
+				'df_cluster_agglomerative_counts', 'df_cluster_agglomerative_metrics',
+				'df_cluster_agglomerative_centroids', 'df_cluster_agglomerative_details',
+				'cluster_agglomerative_plot_features', 'cluster_agglomerative_signature' ]
 			
 			with ag_b2:
-				reset_agglomerative = st.button(
-					'Reset Agglomerative Clustering',
-					icon='🔁',
-					key='cluster_agglomerative_reset',
-					use_container_width=True
-				)
-			
-			if reset_agglomerative:
-				st.session_state[ 'cluster_agglomerative_n_clusters' ] = 2
-				st.session_state[ 'cluster_agglomerative_metric' ] = 'euclidean'
-				st.session_state[ 'cluster_agglomerative_linkage' ] = 'ward'
-				st.session_state[ 'cluster_agglomerative_compute_full_tree' ] = 'auto'
-				st.session_state[
-					'cluster_agglomerative_use_distance_threshold'
-				] = False
-				st.session_state[
-					'cluster_agglomerative_distance_threshold'
-				] = 0.0
-				st.session_state[
-					'cluster_agglomerative_compute_distances'
-				] = False
-				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-				st.session_state[ 'cluster_plot_features' ] = [ ]
-				st.session_state[ 'cluster_signature' ] = None
-				st.rerun( )
+				st.button( 'Reset Agglomerative Clustering', icon='🔁',
+					key='cluster_agglomerative_reset', use_container_width=True,
+					on_click=clear_keys, args=(agglomerative_reset_keys,) )
 			
 			if run_agglomerative:
 				try:
-					if (
-							agglomerative_linkage == 'ward'
-							and agglomerative_metric != 'euclidean'
-					):
-						st.warning(
-							'⚠️ Ward linkage requires the Euclidean distance metric.'
-						)
+					if (agglomerative_linkage == 'ward' and agglomerative_metric != 'euclidean'):
+						st.warning( '⚠️ Ward linkage requires the Euclidean distance metric.' )
 						st.stop( )
 					
 					if (
-							agglomerative_use_distance_threshold
-							and agglomerative_distance_threshold <= 0.0
-					):
+							agglomerative_use_distance_threshold and
+							agglomerative_distance_threshold <= 0.0):
 						st.warning(
-							'⚠️ Distance Threshold must be greater than zero when enabled.'
-						)
+							'⚠️ Distance Threshold must be greater than zero when enabled.' )
 						st.stop( )
 					
-					distance_threshold = (
-							float( agglomerative_distance_threshold )
-							if agglomerative_use_distance_threshold
-							else None
-					)
+					distance_threshold = (float(
+						agglomerative_distance_threshold ) if agglomerative_use_distance_threshold
+					                      else None)
 					
-					model_parameters = {
-							'Model': 'Agglomerative',
-							'n_clusters': (
-									None
-									if distance_threshold is not None
-									else int( agglomerative_clusters )
-							),
-							'metric': agglomerative_metric,
-							'linkage': agglomerative_linkage,
-							'compute_full_tree': agglomerative_compute_full_tree,
-							'distance_threshold': distance_threshold,
-							'compute_distances': bool(
-								agglomerative_compute_distances
-							)
-					}
+					model_parameters = { 'Model': 'Agglomerative', 'n_clusters': (
+						None if distance_threshold is not None else int( agglomerative_clusters )),
+						'metric': agglomerative_metric, 'linkage': agglomerative_linkage,
+						'compute_full_tree': agglomerative_compute_full_tree,
+						'distance_threshold': distance_threshold,
+						'compute_distances': bool( agglomerative_compute_distances ) }
 					
-					cluster_signature = (
-							tuple( active_features ),
-							'Agglomerative',
-							tuple(
-								(
-										key,
-										str( value )
-								)
-								for key, value in model_parameters.items( )
-							)
-					)
+					cluster_agglomerative_signature = (
+						(tuple( active_features ), cluster_data_signature), 'Agglomerative',
+						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = Agglomerative(
-						clusters=int( agglomerative_clusters ),
-						affinity=agglomerative_metric,
-						linkage=agglomerative_linkage,
-						metric=agglomerative_metric,
-						memory=None,
-						connectivity=None,
+					model = Agglomerative( clusters=int( agglomerative_clusters ),
+						affinity=agglomerative_metric, linkage=agglomerative_linkage,
+						metric=agglomerative_metric, memory=None, connectivity=None,
 						compute_full_tree=agglomerative_compute_full_tree,
 						distance_threshold=distance_threshold,
-						compute_distances=bool(
-							agglomerative_compute_distances
-						),
-						n_clusters=(
-								None
-								if distance_threshold is not None
-								else int( agglomerative_clusters )
-						)
-					)
+						compute_distances=bool( agglomerative_compute_distances ), n_clusters=(
+							None if distance_threshold is not None else int(
+								agglomerative_clusters )) )
 					
 					start_time = time.time( )
 					labels = model.project( X )
@@ -18404,14 +15956,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
@@ -18423,128 +15970,69 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					detail_rows = [ ]
 					
-					for property_name in [
-							'features',
-							'leaves',
-							'connected_components',
-							'n_clusters',
-							'metric',
-							'linkage',
-							'compute_full_tree',
-							'distance_threshold',
-							'compute_distances'
-					]:
+					for property_name in [ 'features', 'leaves', 'connected_components',
+						'n_clusters', 'metric', 'linkage', 'compute_full_tree',
+						'distance_threshold', 'compute_distances' ]:
 						if hasattr( model, property_name ):
 							try:
-								property_value = getattr(
-									model,
-									property_name
-								)
+								property_value = getattr( model, property_name )
 								
-								if (
-										property_value is not None
-										and not isinstance(
-											property_value,
-											(
-													np.ndarray,
-													pd.DataFrame
-											)
-										)
-								):
+								if (property_value is not None and not isinstance( property_value,
+									(np.ndarray, pd.DataFrame) )):
 									detail_rows.append(
-										{
-												'Property': property_name,
-												'Value': property_value
-										}
-									)
+										{ 'Property': property_name, 'Value': property_value } )
 							except Exception:
 								pass
 					
-					df_details = (
-							pd.DataFrame( detail_rows )
-							if detail_rows
-							else pd.DataFrame( )
-					)
+					df_details = (pd.DataFrame( detail_rows ) if detail_rows else pd.DataFrame( ))
 					
 					df_centroids = pd.DataFrame( )
 					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_agglomerative_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_agglomerative_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_agglomerative_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_agglomerative_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_agglomerative_details' ] = df_details.copy( )
 					st.session_state[
-						'df_cluster_centroids'
-					] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
+						'cluster_agglomerative_plot_features' ] = feature_columns.copy( )
 					st.session_state[
-						'cluster_plot_features'
-					] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
+						'cluster_agglomerative_signature' ] = cluster_agglomerative_signature
 					
-					st.success(
-						'Agglomerative clustering complete.'
-					)
+					st.success( 'Agglomerative clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[
-						'df_cluster_centroids'
-					] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
-					st.error(
-						f'Agglomerative clustering failed: {ex}'
-					)
+					st.session_state[ 'df_cluster_agglomerative_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_agglomerative_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_agglomerative_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_agglomerative_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_agglomerative_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_agglomerative_plot_features' ] = [ ]
+					st.session_state[ 'cluster_agglomerative_signature' ] = None
+					st.error( f'Agglomerative clustering failed: {ex}' )
 			
-			agglomerative_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			agglomerative_signature = st.session_state.get( 'cluster_agglomerative_signature',
+				None )
 			
-			if (
-					isinstance( agglomerative_signature, tuple )
-					and len( agglomerative_signature ) > 1
-					and agglomerative_signature[ 1 ] == 'Agglomerative'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
+			if (isinstance( agglomerative_signature, tuple ) and len(
+				agglomerative_signature ) > 1 and agglomerative_signature[ 1 ] == 'Agglomerative'):
+				df_results = st.session_state.get( 'df_cluster_agglomerative_results',
+					pd.DataFrame( ) )
 				
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
+				df_counts = st.session_state.get( 'df_cluster_agglomerative_counts',
+					pd.DataFrame( ) )
 				
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
+				df_metrics = st.session_state.get( 'df_cluster_agglomerative_metrics',
+					pd.DataFrame( ) )
 				
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+				df_details = st.session_state.get( 'df_cluster_agglomerative_details',
+					pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -18558,28 +16046,17 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor(
-					df_counts,
-					use_container_width=True
-				)
+				st.data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor(
-						df_metrics,
-						use_container_width=True
-					)
+					st.data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True
-					)
+					st.data_editor( df_details, use_container_width=True )
 			else:
-				st.info(
-					'Run Agglomerative Clustering to view cluster counts and metrics.'
-				)
+				st.info( 'Run Agglomerative Clustering to view cluster counts and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -18592,28 +16069,20 @@ elif mode == 'Clustering Models':
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
 					
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title(
-						'Agglomerative Cluster Assignments'
-					)
+					ax.set_title( 'Agglomerative Cluster Assignments' )
 					
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
-				st.info(
-					'Run Agglomerative Clustering to view the scatter plot.'
-				)
-				
+				st.info( 'Run Agglomerative Clustering to view the scatter plot.' )
+		
 		if 'cluster_spectral_n_clusters' not in st.session_state:
 			st.session_state[ 'cluster_spectral_n_clusters' ] = 2
 		
@@ -18656,286 +16125,140 @@ elif mode == 'Clustering Models':
 		if 'cluster_spectral_random_state' not in st.session_state:
 			st.session_state[ 'cluster_spectral_random_state' ] = 42
 		
+		cluster_max_clusters = max( 2, len( df_cluster_input ) - 1 )
+		if 'cluster_spectral_n_clusters' in st.session_state:
+			st.session_state[ 'cluster_spectral_n_clusters' ] = min(
+				max( 2, int( st.session_state[ 'cluster_spectral_n_clusters' ] ) ),
+				cluster_max_clusters )
+		
 		with st.expander( 'Spectral Clustering', expanded=False ):
-			st.caption(
-				'Graph-based clustering for identifying nonlinear cluster structures.'
-			)
+			st.caption( 'Graph-based clustering for identifying nonlinear cluster structures.' )
 			
-			sp_c1, sp_c2, sp_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			sp_c1, sp_c2, sp_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with sp_c1:
-				spectral_clusters = int(
-					st.number_input(
-						'Number of Clusters',
-						min_value=2,
-						max_value=max( 2, len( df_cluster_input ) - 1 ),
-						step=1,
-						key='cluster_spectral_n_clusters'
-					)
-				)
+				spectral_clusters = int( st.number_input( 'Number of Clusters', min_value=2,
+					max_value=max( 2, len( df_cluster_input ) - 1 ), step=1,
+					key='cluster_spectral_n_clusters' ) )
 				
-				spectral_affinity = st.selectbox(
-					'Affinity',
-					options=[
-							'rbf',
-							'nearest_neighbors',
-							'polynomial',
-							'sigmoid',
-							'cosine'
-					],
-					key='cluster_spectral_affinity'
-				)
+				spectral_affinity = st.selectbox( 'Affinity',
+					options=[ 'rbf', 'nearest_neighbors', 'polynomial', 'sigmoid', 'cosine' ],
+					key='cluster_spectral_affinity' )
 				
 				spectral_gamma = float(
-					st.number_input(
-						'Gamma',
-						min_value=0.0001,
-						step=0.1,
-						format='%.4f',
-						key='cluster_spectral_gamma'
-					)
-				)
+					st.number_input( 'Gamma', min_value=0.0001, step=0.1, format='%.4f',
+						key='cluster_spectral_gamma' ) )
 				
-				spectral_neighbors = int(
-					st.number_input(
-						'Nearest Neighbors',
-						min_value=1,
-						max_value=max( 1, len( df_cluster_input ) - 1 ),
-						step=1,
-						key='cluster_spectral_n_neighbors'
-					)
-				)
+				spectral_neighbors = int( st.number_input( 'Nearest Neighbors', min_value=1,
+					max_value=max( 1, len( df_cluster_input ) - 1 ), step=1,
+					key='cluster_spectral_n_neighbors' ) )
 			
 			with sp_c2:
-				spectral_eigen_solver_display = st.selectbox(
-					'Eigen Solver',
-					options=[
-							'None',
-							'arpack',
-							'lobpcg'
-					],
-					key='cluster_spectral_eigen_solver'
-				)
+				spectral_eigen_solver_display = st.selectbox( 'Eigen Solver',
+					options=[ 'None', 'arpack', 'lobpcg' ], key='cluster_spectral_eigen_solver' )
 				
 				spectral_components = int(
-					st.number_input(
-						'Embedding Components (0 = Default)',
-						min_value=0,
-						max_value=max( 1, len( df_cluster_input ) - 1 ),
-						step=1,
-						key='cluster_spectral_n_components'
-					)
-				)
+					st.number_input( 'Embedding Components (0 = Default)', min_value=0,
+						max_value=max( 1, len( df_cluster_input ) - 1 ), step=1,
+						key='cluster_spectral_n_components' ) )
 				
 				spectral_n_init = int(
-					st.number_input(
-						'K-Means Initializations',
-						min_value=1,
-						step=1,
-						key='cluster_spectral_n_init'
-					)
-				)
+					st.number_input( 'K-Means Initializations', min_value=1, step=1,
+						key='cluster_spectral_n_init' ) )
 				
-				spectral_eigen_tolerance = st.selectbox(
-					'Eigen Tolerance',
-					options=[
-							'auto',
-							0.0,
-							0.0001,
-							0.001,
-							0.01
-					],
-					key='cluster_spectral_eigen_tolerance'
-				)
+				spectral_eigen_tolerance = st.selectbox( 'Eigen Tolerance',
+					options=[ 'auto', 0.0, 0.0001, 0.001, 0.01 ],
+					key='cluster_spectral_eigen_tolerance' )
 			
 			with sp_c3:
-				spectral_assign_labels = st.selectbox(
-					'Label Assignment',
-					options=[
-							'kmeans',
-							'discretize',
-							'cluster_qr'
-					],
-					key='cluster_spectral_assign_labels'
-				)
+				spectral_assign_labels = st.selectbox( 'Label Assignment',
+					options=[ 'kmeans', 'discretize', 'cluster_qr' ],
+					key='cluster_spectral_assign_labels' )
 				
 				spectral_degree = float(
-					st.number_input(
-						'Polynomial Degree',
-						min_value=1.0,
-						step=1.0,
-						format='%.1f',
-						key='cluster_spectral_degree'
-					)
-				)
+					st.number_input( 'Polynomial Degree', min_value=1.0, step=1.0, format='%.1f',
+						key='cluster_spectral_degree' ) )
 				
 				spectral_coef0 = float(
-					st.number_input(
-						'Kernel Coefficient',
-						step=0.1,
-						format='%.4f',
-						key='cluster_spectral_coef0'
-					)
-				)
+					st.number_input( 'Kernel Coefficient', step=0.1, format='%.4f',
+						key='cluster_spectral_coef0' ) )
 				
-				spectral_jobs = int(
-					st.number_input(
-						'Parallel Jobs',
-						min_value=-1,
-						step=1,
-						key='cluster_spectral_n_jobs'
-					)
-				)
+				spectral_jobs = int( st.number_input( 'Parallel Jobs', min_value=-1, step=1,
+					key='cluster_spectral_n_jobs' ) )
 				
-				spectral_verbose = st.checkbox(
-					'Verbose',
-					key='cluster_spectral_verbose'
-				)
+				spectral_verbose = st.checkbox( 'Verbose', key='cluster_spectral_verbose' )
 				
-				spectral_random_state = int(
-					st.number_input(
-						'Random State',
-						min_value=0,
-						step=1,
-						key='cluster_spectral_random_state'
-					)
-				)
+				spectral_random_state = int( st.number_input( 'Random State', min_value=0, step=1,
+					key='cluster_spectral_random_state' ) )
 			
 			sp_b1, sp_b2 = st.columns( 2 )
 			
 			with sp_b1:
-				run_spectral = st.button(
-					'Run Spectral Clustering',
-					icon='🏃',
-					key='cluster_spectral_run',
-					use_container_width=True
-				)
+				run_spectral = st.button( 'Run Spectral Clustering', icon='🏃',
+					key='cluster_spectral_run', use_container_width=True )
+			
+			spectral_reset_keys = [ 'cluster_spectral_n_clusters', 'cluster_spectral_affinity',
+				'cluster_spectral_gamma', 'cluster_spectral_n_neighbors',
+				'cluster_spectral_eigen_solver', 'cluster_spectral_n_components',
+				'cluster_spectral_n_init', 'cluster_spectral_eigen_tolerance',
+				'cluster_spectral_assign_labels', 'cluster_spectral_degree',
+				'cluster_spectral_coef0', 'cluster_spectral_n_jobs', 'cluster_spectral_verbose',
+				'cluster_spectral_random_state', 'df_cluster_spectral_results',
+				'df_cluster_spectral_counts', 'df_cluster_spectral_metrics',
+				'df_cluster_spectral_centroids', 'df_cluster_spectral_details',
+				'cluster_spectral_plot_features', 'cluster_spectral_signature' ]
 			
 			with sp_b2:
-				reset_spectral = st.button(
-					'Reset Spectral Clustering',
-					icon='🔁',
-					key='cluster_spectral_reset',
-					use_container_width=True
-				)
-			
-			if reset_spectral:
-				clear_keys(
-					[
-							'cluster_spectral_n_clusters',
-							'cluster_spectral_affinity',
-							'cluster_spectral_gamma',
-							'cluster_spectral_n_neighbors',
-							'cluster_spectral_eigen_solver',
-							'cluster_spectral_n_components',
-							'cluster_spectral_n_init',
-							'cluster_spectral_eigen_tolerance',
-							'cluster_spectral_assign_labels',
-							'cluster_spectral_degree',
-							'cluster_spectral_coef0',
-							'cluster_spectral_n_jobs',
-							'cluster_spectral_verbose',
-							'cluster_spectral_random_state'
-					]
-				)
-				
-				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-				st.session_state[ 'cluster_plot_features' ] = [ ]
-				st.session_state[ 'cluster_signature' ] = None
-				st.rerun( )
+				st.button( 'Reset Spectral Clustering', icon='🔁', key='cluster_spectral_reset',
+					use_container_width=True, on_click=clear_keys, args=(spectral_reset_keys,) )
 			
 			if run_spectral:
 				try:
 					if spectral_clusters >= len( df_cluster_input ):
 						st.warning(
-							'⚠️ Number of Clusters must be less than the number of samples.'
-						)
+							'⚠️ Number of Clusters must be less than the number of samples.' )
 						st.stop( )
 					
-					if (
-							spectral_affinity == 'nearest_neighbors'
-							and spectral_neighbors >= len( df_cluster_input )
-					):
+					if (spectral_affinity == 'nearest_neighbors' and spectral_neighbors >= len(
+						df_cluster_input )):
 						st.warning(
-							'⚠️ Nearest Neighbors must be less than the number of samples.'
-						)
+							'⚠️ Nearest Neighbors must be less than the number of samples.' )
 						st.stop( )
 					
-					if (
-							spectral_components > 0
-							and spectral_components >= len( df_cluster_input )
-					):
+					if (spectral_components > 0 and spectral_components >= len( df_cluster_input
+					)):
 						st.warning(
-							'⚠️ Embedding Components must be less than the number of samples.'
-						)
+							'⚠️ Embedding Components must be less than the number of samples.' )
 						st.stop( )
 					
 					spectral_eigen_solver = (
-							None
-							if spectral_eigen_solver_display == 'None'
-							else spectral_eigen_solver_display
-					)
+						None if spectral_eigen_solver_display == 'None' else
+						spectral_eigen_solver_display)
 					
 					spectral_n_components = (
-							None
-							if spectral_components == 0
-							else spectral_components
-					)
+						None if spectral_components == 0 else spectral_components)
 					
-					model_parameters = {
-							'Model': 'Spectral',
-							'n_clusters': spectral_clusters,
-							'affinity': spectral_affinity,
-							'gamma': spectral_gamma,
-							'n_neighbors': spectral_neighbors,
-							'eigen_solver': spectral_eigen_solver,
-							'n_components': spectral_n_components,
-							'n_init': spectral_n_init,
-							'eigen_tol': spectral_eigen_tolerance,
-							'assign_labels': spectral_assign_labels,
-							'degree': spectral_degree,
-							'coef0': spectral_coef0,
-							'n_jobs': spectral_jobs,
-							'verbose': spectral_verbose,
-							'random_state': spectral_random_state
-					}
+					model_parameters = { 'Model': 'Spectral', 'n_clusters': spectral_clusters,
+						'affinity': spectral_affinity, 'gamma': spectral_gamma,
+						'n_neighbors': spectral_neighbors, 'eigen_solver': spectral_eigen_solver,
+						'n_components': spectral_n_components, 'n_init': spectral_n_init,
+						'eigen_tol': spectral_eigen_tolerance,
+						'assign_labels': spectral_assign_labels, 'degree': spectral_degree,
+						'coef0': spectral_coef0, 'n_jobs': spectral_jobs,
+						'verbose': spectral_verbose, 'random_state': spectral_random_state }
 					
-					cluster_signature = (
-							tuple( active_features ),
-							'Spectral',
-							tuple(
-								(
-										key,
-										str( value )
-								)
-								for key, value in model_parameters.items( )
-							)
-					)
+					cluster_spectral_signature = (
+						(tuple( active_features ), cluster_data_signature), 'Spectral',
+						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = Spectral(
-						clusters=spectral_clusters,
-						random_state=spectral_random_state,
-						n_init=spectral_n_init,
-						gama=spectral_gamma,
-						distance=spectral_affinity,
-						neighbors=spectral_neighbors,
-						tolerance=spectral_eigen_tolerance,
-						assign=spectral_assign_labels,
-						eigen_solver=spectral_eigen_solver,
-						n_components=spectral_n_components,
-						degree=spectral_degree,
-						coef0=spectral_coef0,
-						kernel_params=None,
-						n_jobs=spectral_jobs,
-						verbose=spectral_verbose
-					)
+					model = Spectral( clusters=spectral_clusters,
+						random_state=spectral_random_state, n_init=spectral_n_init,
+						gama=spectral_gamma, distance=spectral_affinity,
+						neighbors=spectral_neighbors, tolerance=spectral_eigen_tolerance,
+						assign=spectral_assign_labels, eigen_solver=spectral_eigen_solver,
+						n_components=spectral_n_components, degree=spectral_degree,
+						coef0=spectral_coef0, kernel_params=None, n_jobs=spectral_jobs,
+						verbose=spectral_verbose )
 					
 					start_time = time.time( )
 					labels = model.project( X )
@@ -18944,14 +16267,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
@@ -18963,145 +16281,61 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
-					detail_rows = [
-							{
-									'Property': 'features',
-									'Value': int( model.features )
-							},
-							{
-									'Property': 'n_clusters',
-									'Value': int( model.n_clusters )
-							},
-							{
-									'Property': 'affinity',
-									'Value': model.affinity
-							},
-							{
-									'Property': 'gamma',
-									'Value': float( model.gamma )
-							},
-							{
-									'Property': 'n_neighbors',
-									'Value': int( model.n_neighbors )
-							},
-							{
-									'Property': 'eigen_solver',
-									'Value': model.eigen_solver
-							},
-							{
-									'Property': 'n_components',
-									'Value': model.n_components
-							},
-							{
-									'Property': 'n_init',
-									'Value': int( model.n_init )
-							},
-							{
-									'Property': 'eigen_tolerance',
-									'Value': model.eigen_tolerance
-							},
-							{
-									'Property': 'assign_labels',
-									'Value': model.assign_labels
-							},
-							{
-									'Property': 'degree',
-									'Value': model.degree
-							},
-							{
-									'Property': 'coef0',
-									'Value': model.coef0
-							},
-							{
-									'Property': 'n_jobs',
-									'Value': model.n_jobs
-							},
-							{
-									'Property': 'verbose',
-									'Value': model.verbose
-							},
-							{
-									'Property': 'random_state',
-									'Value': model.random_state
-							}
-					]
+					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
+						{ 'Property': 'n_clusters', 'Value': int( model.n_clusters ) },
+						{ 'Property': 'affinity', 'Value': model.affinity },
+						{ 'Property': 'gamma', 'Value': float( model.gamma ) },
+						{ 'Property': 'n_neighbors', 'Value': int( model.n_neighbors ) },
+						{ 'Property': 'eigen_solver', 'Value': model.eigen_solver },
+						{ 'Property': 'n_components', 'Value': model.n_components },
+						{ 'Property': 'n_init', 'Value': int( model.n_init ) },
+						{ 'Property': 'eigen_tolerance', 'Value': model.eigen_tolerance },
+						{ 'Property': 'assign_labels', 'Value': model.assign_labels },
+						{ 'Property': 'degree', 'Value': model.degree },
+						{ 'Property': 'coef0', 'Value': model.coef0 },
+						{ 'Property': 'n_jobs', 'Value': model.n_jobs },
+						{ 'Property': 'verbose', 'Value': model.verbose },
+						{ 'Property': 'random_state', 'Value': model.random_state } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					df_centroids = pd.DataFrame( )
 					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
-					st.session_state[
-						'df_cluster_centroids'
-					] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
-					st.session_state[
-						'cluster_plot_features'
-					] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
+					st.session_state[ 'df_cluster_spectral_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_spectral_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_spectral_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_spectral_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_spectral_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_spectral_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_spectral_signature' ] = cluster_spectral_signature
 					
 					st.success( 'Spectral clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[
-						'df_cluster_centroids'
-					] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
-					st.error(
-						f'Spectral clustering failed: {ex}'
-					)
+					st.session_state[ 'df_cluster_spectral_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_spectral_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_spectral_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_spectral_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_spectral_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_spectral_plot_features' ] = [ ]
+					st.session_state[ 'cluster_spectral_signature' ] = None
+					st.error( f'Spectral clustering failed: {ex}' )
 			
-			spectral_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			spectral_signature = st.session_state.get( 'cluster_spectral_signature', None )
 			
-			if (
-					isinstance( spectral_signature, tuple )
-					and len( spectral_signature ) > 1
-					and spectral_signature[ 1 ] == 'Spectral'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
+			if (isinstance( spectral_signature, tuple ) and len( spectral_signature ) > 1 and
+					spectral_signature[ 1 ] == 'Spectral'):
+				df_results = st.session_state.get( 'df_cluster_spectral_results', pd.DataFrame( ) )
 				
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
+				df_counts = st.session_state.get( 'df_cluster_spectral_counts', pd.DataFrame( ) )
 				
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
+				df_metrics = st.session_state.get( 'df_cluster_spectral_metrics', pd.DataFrame( ) )
 				
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+				df_details = st.session_state.get( 'df_cluster_spectral_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -19115,28 +16349,17 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor(
-					df_counts,
-					use_container_width=True
-				)
+				st.data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor(
-						df_metrics,
-						use_container_width=True
-					)
+					st.data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True
-					)
+					st.data_editor( df_details, use_container_width=True )
 			else:
-				st.info(
-					'Run Spectral Clustering to view cluster counts and metrics.'
-				)
+				st.info( 'Run Spectral Clustering to view cluster counts and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -19149,12 +16372,8 @@ elif mode == 'Clustering Models':
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
 					
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
@@ -19165,9 +16384,7 @@ elif mode == 'Clustering Models':
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
-				st.info(
-					'Run Spectral Clustering to view the scatter plot.'
-				)
+				st.info( 'Run Spectral Clustering to view the scatter plot.' )
 		
 		if 'cluster_optics_min_samples' not in st.session_state:
 			st.session_state[ 'cluster_optics_min_samples' ] = 5
@@ -19207,260 +16424,122 @@ elif mode == 'Clustering Models':
 		
 		with st.expander( 'OPTICS Clustering', expanded=False ):
 			st.caption(
-				'Density-based clustering across varying neighborhood radii with explicit noise detection.'
-			)
+				'Density-based clustering across varying neighborhood radii with explicit noise '
+				'detection.' )
 			
-			op_c1, op_c2, op_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			op_c1, op_c2, op_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with op_c1:
-				optics_min_samples = int(
-					st.number_input(
-						'Minimum Samples',
-						min_value=2,
-						max_value=max( 2, len( df_cluster_input ) ),
-						step=1,
-						key='cluster_optics_min_samples'
-					)
-				)
+				optics_min_samples = int( st.number_input( 'Minimum Samples', min_value=2,
+					max_value=max( 2, len( df_cluster_input ) ), step=1,
+					key='cluster_optics_min_samples' ) )
 				
 				optics_max_eps_input = float(
-					st.number_input(
-						'Maximum Epsilon (0 = Unlimited)',
-						min_value=0.0,
-						step=0.1,
-						format='%.4f',
-						key='cluster_optics_max_eps'
-					)
-				)
+					st.number_input( 'Maximum Epsilon (0 = Unlimited)', min_value=0.0, step=0.1,
+						format='%.4f', key='cluster_optics_max_eps' ) )
 				
-				optics_metric = st.selectbox(
-					'Distance Metric',
-					options=[
-							'minkowski',
-							'euclidean',
-							'manhattan',
-							'chebyshev',
-							'cosine'
-					],
-					key='cluster_optics_metric'
-				)
+				optics_metric = st.selectbox( 'Distance Metric',
+					options=[ 'minkowski', 'euclidean', 'manhattan', 'chebyshev', 'cosine' ],
+					key='cluster_optics_metric' )
 				
 				optics_p = float(
-					st.number_input(
-						'Minkowski Power',
-						min_value=1.0,
-						step=1.0,
-						format='%.1f',
-						key='cluster_optics_p'
-					)
-				)
+					st.number_input( 'Minkowski Power', min_value=1.0, step=1.0, format='%.1f',
+						key='cluster_optics_p' ) )
 			
 			with op_c2:
-				optics_cluster_method = st.selectbox(
-					'Cluster Extraction Method',
-					options=[
-							'xi',
-							'dbscan'
-					],
-					key='cluster_optics_cluster_method'
-				)
+				optics_cluster_method = st.selectbox( 'Cluster Extraction Method',
+					options=[ 'xi', 'dbscan' ], key='cluster_optics_cluster_method' )
 				
 				optics_eps = float(
-					st.number_input(
-						'DBSCAN Epsilon',
-						min_value=0.0001,
-						step=0.1,
-						format='%.4f',
-						disabled=optics_cluster_method != 'dbscan',
-						key='cluster_optics_eps'
-					)
-				)
+					st.number_input( 'DBSCAN Epsilon', min_value=0.0001, step=0.1, format='%.4f',
+						disabled=optics_cluster_method != 'dbscan', key='cluster_optics_eps' ) )
 				
 				optics_xi = float(
-					st.number_input(
-						'Xi',
-						min_value=0.0001,
-						max_value=1.0,
-						step=0.01,
-						format='%.4f',
-						disabled=optics_cluster_method != 'xi',
-						key='cluster_optics_xi'
-					)
-				)
+					st.number_input( 'Xi', min_value=0.0001, max_value=1.0, step=0.01,
+						format='%.4f', disabled=optics_cluster_method != 'xi',
+						key='cluster_optics_xi' ) )
 				
-				optics_predecessor_correction = st.checkbox(
-					'Predecessor Correction',
+				optics_predecessor_correction = st.checkbox( 'Predecessor Correction',
 					disabled=optics_cluster_method != 'xi',
-					key='cluster_optics_predecessor_correction'
-				)
+					key='cluster_optics_predecessor_correction' )
 			
 			with op_c3:
 				optics_min_cluster_size_input = int(
-					st.number_input(
-						'Minimum Cluster Size (0 = Default)',
-						min_value=0,
-						max_value=max( 1, len( df_cluster_input ) ),
-						step=1,
-						key='cluster_optics_min_cluster_size'
-					)
-				)
+					st.number_input( 'Minimum Cluster Size (0 = Default)', min_value=0,
+						max_value=max( 1, len( df_cluster_input ) ), step=1,
+						key='cluster_optics_min_cluster_size' ) )
 				
-				optics_algorithm = st.selectbox(
-					'Neighbor Algorithm',
-					options=[
-							'auto',
-							'ball_tree',
-							'kd_tree',
-							'brute'
-					],
-					key='cluster_optics_algorithm'
-				)
+				optics_algorithm = st.selectbox( 'Neighbor Algorithm',
+					options=[ 'auto', 'ball_tree', 'kd_tree', 'brute' ],
+					key='cluster_optics_algorithm' )
 				
-				optics_leaf_size = int(
-					st.number_input(
-						'Leaf Size',
-						min_value=1,
-						step=1,
-						key='cluster_optics_leaf_size'
-					)
-				)
+				optics_leaf_size = int( st.number_input( 'Leaf Size', min_value=1, step=1,
+					key='cluster_optics_leaf_size' ) )
 				
-				optics_n_jobs = int(
-					st.number_input(
-						'Parallel Jobs',
-						min_value=-1,
-						step=1,
-						key='cluster_optics_n_jobs'
-					)
-				)
+				optics_n_jobs = int( st.number_input( 'Parallel Jobs', min_value=-1, step=1,
+					key='cluster_optics_n_jobs' ) )
 			
 			op_b1, op_b2 = st.columns( 2 )
 			
 			with op_b1:
-				run_optics = st.button(
-					'Run OPTICS Clustering',
-					icon='🏃',
+				run_optics = st.button( 'Run OPTICS Clustering', icon='🏃',
 					key='cluster_optics_run',
-					use_container_width=True
-				)
+					use_container_width=True )
+			
+			optics_reset_keys = [ 'cluster_optics_min_samples', 'cluster_optics_max_eps',
+				'cluster_optics_metric', 'cluster_optics_p', 'cluster_optics_cluster_method',
+				'cluster_optics_eps', 'cluster_optics_xi', 'cluster_optics_predecessor_correction',
+				'cluster_optics_min_cluster_size', 'cluster_optics_algorithm',
+				'cluster_optics_leaf_size', 'cluster_optics_n_jobs', 'df_cluster_optics_results',
+				'df_cluster_optics_counts', 'df_cluster_optics_metrics',
+				'df_cluster_optics_centroids', 'df_cluster_optics_details',
+				'df_cluster_optics_ordering', 'cluster_optics_plot_features',
+				'cluster_optics_signature' ]
 			
 			with op_b2:
-				reset_optics = st.button(
-					'Reset OPTICS Clustering',
-					icon='🔁',
-					key='cluster_optics_reset',
-					use_container_width=True
-				)
-			
-			if reset_optics:
-				clear_keys(
-					[
-							'cluster_optics_min_samples',
-							'cluster_optics_max_eps',
-							'cluster_optics_metric',
-							'cluster_optics_p',
-							'cluster_optics_cluster_method',
-							'cluster_optics_eps',
-							'cluster_optics_xi',
-							'cluster_optics_predecessor_correction',
-							'cluster_optics_min_cluster_size',
-							'cluster_optics_algorithm',
-							'cluster_optics_leaf_size',
-							'cluster_optics_n_jobs'
-					]
-				)
-				
-				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-				st.session_state[ 'cluster_plot_features' ] = [ ]
-				st.session_state[ 'cluster_signature' ] = None
-				st.rerun( )
+				st.button( 'Reset OPTICS Clustering', icon='🔁', key='cluster_optics_reset',
+					use_container_width=True, on_click=clear_keys, args=(optics_reset_keys,) )
 			
 			if run_optics:
 				try:
 					if optics_min_samples > len( df_cluster_input ):
-						st.warning(
-							'⚠️ Minimum Samples cannot exceed the number of samples.'
-						)
+						st.warning( '⚠️ Minimum Samples cannot exceed the number of samples.' )
 						st.stop( )
 					
-					if (
-							optics_min_cluster_size_input > 0
-							and optics_min_cluster_size_input > len( df_cluster_input )
-					):
-						st.warning(
-							'⚠️ Minimum Cluster Size cannot exceed the number of samples.'
-						)
+					if (optics_min_cluster_size_input > 0 and optics_min_cluster_size_input > len(
+						df_cluster_input )):
+						st.warning( '⚠️ Minimum Cluster Size cannot exceed the number of '
+						            'samples.' )
 						st.stop( )
 					
 					optics_max_eps = (
-							np.inf
-							if optics_max_eps_input == 0.0
-							else optics_max_eps_input
-					)
+						np.inf if optics_max_eps_input == 0.0 else optics_max_eps_input)
 					
 					optics_min_cluster_size = (
-							None
-							if optics_min_cluster_size_input == 0
-							else optics_min_cluster_size_input
-					)
+						None if optics_min_cluster_size_input == 0 else
+						optics_min_cluster_size_input)
 					
 					optics_effective_eps = (
-							optics_eps
-							if optics_cluster_method == 'dbscan'
-							else None
-					)
+						optics_eps if optics_cluster_method == 'dbscan' else None)
 					
-					model_parameters = {
-							'Model': 'OPTICS',
-							'min_samples': optics_min_samples,
-							'max_eps': optics_max_eps,
-							'metric': optics_metric,
-							'p': optics_p,
-							'cluster_method': optics_cluster_method,
-							'eps': optics_effective_eps,
-							'xi': optics_xi,
-							'predecessor_correction': optics_predecessor_correction,
-							'min_cluster_size': optics_min_cluster_size,
-							'algorithm': optics_algorithm,
-							'leaf_size': optics_leaf_size,
-							'n_jobs': optics_n_jobs
-					}
+					model_parameters = { 'Model': 'OPTICS', 'min_samples': optics_min_samples,
+						'max_eps': optics_max_eps, 'metric': optics_metric, 'p': optics_p,
+						'cluster_method': optics_cluster_method, 'eps': optics_effective_eps,
+						'xi': optics_xi, 'predecessor_correction': optics_predecessor_correction,
+						'min_cluster_size': optics_min_cluster_size, 'algorithm': optics_algorithm,
+						'leaf_size': optics_leaf_size, 'n_jobs': optics_n_jobs }
 					
-					cluster_signature = (
-							tuple( active_features ),
-							'OPTICS',
-							tuple(
-								(
-										key,
-										str( value )
-								)
-								for key, value in model_parameters.items( )
-							)
-					)
+					cluster_optics_signature = ((tuple( active_features ), cluster_data_signature),
+						'OPTICS',
+						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = OPTICS(
-						samples=optics_min_samples,
-						max_eps=optics_max_eps,
-						metric=optics_metric,
-						algorithm=optics_algorithm,
-						leaf_size=optics_leaf_size,
-						eps=optics_effective_eps,
+					model = OPTICS( samples=optics_min_samples, max_eps=optics_max_eps,
+						metric=optics_metric, algorithm=optics_algorithm,
+						leaf_size=optics_leaf_size, eps=optics_effective_eps,
 						predecessor_correction=optics_predecessor_correction,
-						min_cluster_size=optics_min_cluster_size,
-						p=optics_p,
-						metric_params=None,
-						cluster_method=optics_cluster_method,
-						xi=optics_xi,
-						memory=None,
-						n_jobs=optics_n_jobs
-					)
+						min_cluster_size=optics_min_cluster_size, p=optics_p, metric_params=None,
+						cluster_method=optics_cluster_method, xi=optics_xi, memory=None,
+						n_jobs=optics_n_jobs )
 					
 					start_time = time.time( )
 					labels = model.project( X )
@@ -19469,14 +16548,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					df_metrics = model.score( X )
 					
@@ -19485,159 +16559,77 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					unique_labels = np.unique( labels )
 					cluster_labels = unique_labels[ unique_labels != -1 ]
 					noise_count = int( np.sum( labels == -1 ) )
 					
-					detail_rows = [
-							{
-									'Property': 'features',
-									'Value': int( model.features )
-							},
-							{
-									'Property': 'clusters',
-									'Value': int( len( cluster_labels ) )
-							},
-							{
-									'Property': 'noise_samples',
-									'Value': noise_count
-							},
-							{
-									'Property': 'min_samples',
-									'Value': model.min_samples
-							},
-							{
-									'Property': 'max_eps',
-									'Value': model.max_eps
-							},
-							{
-									'Property': 'metric',
-									'Value': model.metric
-							},
-							{
-									'Property': 'p',
-									'Value': model.p
-							},
-							{
-									'Property': 'cluster_method',
-									'Value': model.cluster_method
-							},
-							{
-									'Property': 'eps',
-									'Value': model.eps
-							},
-							{
-									'Property': 'xi',
-									'Value': model.xi
-							},
-							{
-									'Property': 'predecessor_correction',
-									'Value': model.predecessor_correction
-							},
-							{
-									'Property': 'min_cluster_size',
-									'Value': model.min_cluster_size
-							},
-							{
-									'Property': 'algorithm',
-									'Value': model.algorithm
-							},
-							{
-									'Property': 'leaf_size',
-									'Value': model.leaf_size
-							},
-							{
-									'Property': 'n_jobs',
-									'Value': model.n_jobs
-							}
-					]
+					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
+						{ 'Property': 'clusters', 'Value': int( len( cluster_labels ) ) },
+						{ 'Property': 'noise_samples', 'Value': noise_count },
+						{ 'Property': 'min_samples', 'Value': model.min_samples },
+						{ 'Property': 'max_eps', 'Value': model.max_eps },
+						{ 'Property': 'metric', 'Value': model.metric },
+						{ 'Property': 'p', 'Value': model.p },
+						{ 'Property': 'cluster_method', 'Value': model.cluster_method },
+						{ 'Property': 'eps', 'Value': model.eps },
+						{ 'Property': 'xi', 'Value': model.xi },
+						{ 'Property': 'predecessor_correction',
+							'Value': model.predecessor_correction },
+						{ 'Property': 'min_cluster_size', 'Value': model.min_cluster_size },
+						{ 'Property': 'algorithm', 'Value': model.algorithm },
+						{ 'Property': 'leaf_size', 'Value': model.leaf_size },
+						{ 'Property': 'n_jobs', 'Value': model.n_jobs } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					
 					df_ordering = pd.DataFrame(
-						{
-								'Sample': np.arange( len( model.ordering ) ),
-								'Ordering': model.ordering,
-								'Reachability': model.reachability,
-								'Core Distance': model.core_distances,
-								'Predecessor': model.predecessor
-						}
-					)
+						{ 'Sample': np.arange( len( model.ordering ) ), 'Ordering': model.ordering,
+							'Reachability': model.reachability,
+							'Core Distance': model.core_distances,
+							'Predecessor': model.predecessor } )
 					
 					df_centroids = pd.DataFrame( )
 					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
-					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
-					st.session_state[ 'df_cluster_ordering' ] = df_ordering.copy( )
-					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
+					st.session_state[ 'df_cluster_optics_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_optics_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_optics_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_optics_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_optics_details' ] = df_details.copy( )
+					st.session_state[ 'df_cluster_optics_ordering' ] = df_ordering.copy( )
+					st.session_state[ 'cluster_optics_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_optics_signature' ] = cluster_optics_signature
 					
 					st.success( 'OPTICS clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_ordering' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
+					st.session_state[ 'df_cluster_optics_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_optics_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_optics_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_optics_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_optics_details' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_optics_ordering' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_optics_plot_features' ] = [ ]
+					st.session_state[ 'cluster_optics_signature' ] = None
 					st.error( f'OPTICS clustering failed: {ex}' )
 			
-			optics_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			optics_signature = st.session_state.get( 'cluster_optics_signature', None )
 			
-			if (
-					isinstance( optics_signature, tuple )
-					and len( optics_signature ) > 1
-					and optics_signature[ 1 ] == 'OPTICS'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
+			if (isinstance( optics_signature, tuple ) and len( optics_signature ) > 1 and
+					optics_signature[ 1 ] == 'OPTICS'):
+				df_results = st.session_state.get( 'df_cluster_optics_results', pd.DataFrame( ) )
 				
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
+				df_counts = st.session_state.get( 'df_cluster_optics_counts', pd.DataFrame( ) )
 				
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
+				df_metrics = st.session_state.get( 'df_cluster_optics_metrics', pd.DataFrame( ) )
 				
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+				df_details = st.session_state.get( 'df_cluster_optics_details', pd.DataFrame( ) )
 				
-				df_ordering = st.session_state.get(
-					'df_cluster_ordering',
-					pd.DataFrame( )
-				)
+				df_ordering = st.session_state.get( 'df_cluster_optics_ordering', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -19652,35 +16644,22 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor(
-					df_counts,
-					use_container_width=True
-				)
+				st.data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor(
-						df_metrics,
-						use_container_width=True
-					)
+					st.data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True
-					)
+					st.data_editor( df_details, use_container_width=True )
 				
 				if not df_ordering.empty:
 					st.caption( 'Reachability and Ordering' )
-					st.data_editor(
-						df_ordering,
-						use_container_width=True
-					)
+					st.data_editor( df_ordering, use_container_width=True )
 			else:
 				st.info(
-					'Run OPTICS Clustering to view cluster counts, noise counts, and metrics.'
-				)
+					'Run OPTICS Clustering to view cluster counts, noise counts, and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -19693,12 +16672,8 @@ elif mode == 'Clustering Models':
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
 					
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
@@ -19709,9 +16684,7 @@ elif mode == 'Clustering Models':
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
-				st.info(
-					'Run OPTICS Clustering to view the scatter plot.'
-				)		
+				st.info( 'Run OPTICS Clustering to view the scatter plot.' )
 		
 		if 'cluster_mean_shift_bandwidth' not in st.session_state:
 			st.session_state[ 'cluster_mean_shift_bandwidth' ] = 0.0
@@ -19733,144 +16706,74 @@ elif mode == 'Clustering Models':
 		
 		with st.expander( 'Mean Shift Clustering', expanded=False ):
 			st.caption(
-				'Centroid-based clustering that discovers cluster centers from the density of the data.'
-			)
+				'Centroid-based clustering that discovers cluster centers from the density of the '
+				'data.' )
 			
-			ms_c1, ms_c2, ms_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			ms_c1, ms_c2, ms_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with ms_c1:
 				mean_shift_bandwidth_input = float(
-					st.number_input(
-						'Bandwidth (0 = Automatic)',
-						min_value=0.0,
-						step=0.1,
-						format='%.4f',
-						key='cluster_mean_shift_bandwidth'
-					)
-				)
+					st.number_input( 'Bandwidth (0 = Automatic)', min_value=0.0, step=0.1,
+						format='%.4f', key='cluster_mean_shift_bandwidth' ) )
 				
-				mean_shift_bin_seeding = st.checkbox(
-					'Use Bin Seeding',
-					key='cluster_mean_shift_bin_seeding'
-				)
+				mean_shift_bin_seeding = st.checkbox( 'Use Bin Seeding',
+					key='cluster_mean_shift_bin_seeding' )
 			
 			with ms_c2:
 				mean_shift_min_bin_freq = int(
-					st.number_input(
-						'Minimum Bin Frequency',
-						min_value=1,
-						step=1,
-						key='cluster_mean_shift_min_bin_freq'
-					)
-				)
+					st.number_input( 'Minimum Bin Frequency', min_value=1, step=1,
+						key='cluster_mean_shift_min_bin_freq' ) )
 				
-				mean_shift_cluster_all = st.checkbox(
-					'Assign All Samples',
-					key='cluster_mean_shift_cluster_all'
-				)
+				mean_shift_cluster_all = st.checkbox( 'Assign All Samples',
+					key='cluster_mean_shift_cluster_all' )
 			
 			with ms_c3:
-				mean_shift_n_jobs = int(
-					st.number_input(
-						'Parallel Jobs',
-						min_value=-1,
-						step=1,
-						key='cluster_mean_shift_n_jobs'
-					)
-				)
+				mean_shift_n_jobs = int( st.number_input( 'Parallel Jobs', min_value=-1, step=1,
+					key='cluster_mean_shift_n_jobs' ) )
 				
 				mean_shift_max_iter = int(
-					st.number_input(
-						'Maximum Iterations',
-						min_value=1,
-						step=1,
-						key='cluster_mean_shift_max_iter'
-					)
-				)
+					st.number_input( 'Maximum Iterations', min_value=1, step=1,
+						key='cluster_mean_shift_max_iter' ) )
 			
 			ms_b1, ms_b2 = st.columns( 2 )
 			
 			with ms_b1:
-				run_mean_shift = st.button(
-					'Run Mean Shift Clustering',
-					icon='🏃',
-					key='cluster_mean_shift_run',
-					use_container_width=True
-				)
+				run_mean_shift = st.button( 'Run Mean Shift Clustering', icon='🏃',
+					key='cluster_mean_shift_run', use_container_width=True )
+			
+			mean_shift_reset_keys = [ 'cluster_mean_shift_bandwidth',
+				'cluster_mean_shift_bin_seeding', 'cluster_mean_shift_min_bin_freq',
+				'cluster_mean_shift_cluster_all', 'cluster_mean_shift_n_jobs',
+				'cluster_mean_shift_max_iter', 'df_cluster_mean_shift_results',
+				'df_cluster_mean_shift_counts', 'df_cluster_mean_shift_metrics',
+				'df_cluster_mean_shift_centroids', 'df_cluster_mean_shift_details',
+				'cluster_mean_shift_plot_features', 'cluster_mean_shift_signature' ]
 			
 			with ms_b2:
-				reset_mean_shift = st.button(
-					'Reset Mean Shift Clustering',
-					icon='🔁',
+				st.button( 'Reset Mean Shift Clustering', icon='🔁',
 					key='cluster_mean_shift_reset',
-					use_container_width=True
-				)
-			
-			if reset_mean_shift:
-				clear_keys(
-					[
-							'cluster_mean_shift_bandwidth',
-							'cluster_mean_shift_bin_seeding',
-							'cluster_mean_shift_min_bin_freq',
-							'cluster_mean_shift_cluster_all',
-							'cluster_mean_shift_n_jobs',
-							'cluster_mean_shift_max_iter'
-					]
-				)
-				
-				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-				st.session_state[ 'cluster_plot_features' ] = [ ]
-				st.session_state[ 'cluster_signature' ] = None
-				st.rerun( )
+					use_container_width=True, on_click=clear_keys, args=(mean_shift_reset_keys,) )
 			
 			if run_mean_shift:
 				try:
 					mean_shift_bandwidth = (
-							None
-							if mean_shift_bandwidth_input == 0.0
-							else mean_shift_bandwidth_input
-					)
+						None if mean_shift_bandwidth_input == 0.0 else mean_shift_bandwidth_input)
 					
-					model_parameters = {
-							'Model': 'MeanShift',
-							'bandwidth': mean_shift_bandwidth,
-							'bin_seeding': mean_shift_bin_seeding,
-							'min_bin_freq': mean_shift_min_bin_freq,
-							'cluster_all': mean_shift_cluster_all,
-							'n_jobs': mean_shift_n_jobs,
-							'max_iter': mean_shift_max_iter
-					}
+					model_parameters = { 'Model': 'MeanShift', 'bandwidth': mean_shift_bandwidth,
+						'bin_seeding': mean_shift_bin_seeding,
+						'min_bin_freq': mean_shift_min_bin_freq,
+						'cluster_all': mean_shift_cluster_all, 'n_jobs': mean_shift_n_jobs,
+						'max_iter': mean_shift_max_iter }
 					
-					cluster_signature = (
-							tuple( active_features ),
-							'MeanShift',
-							tuple(
-								(
-										key,
-										str( value )
-								)
-								for key, value in model_parameters.items( )
-							)
-					)
+					cluster_mean_shift_signature = (
+						(tuple( active_features ), cluster_data_signature), 'MeanShift',
+						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = MeanShift(
-						min_bin=mean_shift_min_bin_freq,
-						group_all=mean_shift_cluster_all,
-						bandwidth=mean_shift_bandwidth,
-						seeds=None,
-						bin_seeding=mean_shift_bin_seeding,
-						n_jobs=mean_shift_n_jobs,
-						max_iter=mean_shift_max_iter,
-						min_bin_freq=mean_shift_min_bin_freq,
-						cluster_all=mean_shift_cluster_all
-					)
+					model = MeanShift( min_bin=mean_shift_min_bin_freq,
+						group_all=mean_shift_cluster_all, bandwidth=mean_shift_bandwidth,
+						seeds=None, bin_seeding=mean_shift_bin_seeding, n_jobs=mean_shift_n_jobs,
+						max_iter=mean_shift_max_iter, min_bin_freq=mean_shift_min_bin_freq,
+						cluster_all=mean_shift_cluster_all )
 					
 					start_time = time.time( )
 					labels = model.project( X )
@@ -19879,14 +16782,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					df_metrics = model.score( X )
 					
@@ -19895,138 +16793,64 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
-					centroids = np.asarray(
-						model.centroids_
-					)
+					centroids = np.asarray( model.centroids_ )
 					
-					df_centroids = pd.DataFrame(
-						centroids,
-						columns=feature_columns
-					)
+					df_centroids = pd.DataFrame( centroids, columns=feature_columns )
 					
-					df_centroids.insert(
-						0,
-						'Cluster',
-						np.arange( len( df_centroids ) )
-					)
+					df_centroids.insert( 0, 'Cluster', np.arange( len( df_centroids ) ) )
 					
-					detail_rows = [
-							{
-									'Property': 'features',
-									'Value': int( model.features )
-							},
-							{
-									'Property': 'clusters',
-									'Value': int( len( centroids ) )
-							},
-							{
-									'Property': 'bandwidth',
-									'Value': model.bandwidth
-							},
-							{
-									'Property': 'bin_seeding',
-									'Value': model.bin_seeding
-							},
-							{
-									'Property': 'min_bin_freq',
-									'Value': model.min_bin_freq
-							},
-							{
-									'Property': 'cluster_all',
-									'Value': model.cluster_all
-							},
-							{
-									'Property': 'n_jobs',
-									'Value': model.n_jobs
-							},
-							{
-									'Property': 'max_iter',
-									'Value': model.max_iter
-							},
-							{
-									'Property': 'iterations',
-									'Value': model.iterations
-							}
-					]
+					detail_rows = [ { 'Property': 'features', 'Value': int( model.features ) },
+						{ 'Property': 'clusters', 'Value': int( len( centroids ) ) },
+						{ 'Property': 'bandwidth', 'Value': model.bandwidth },
+						{ 'Property': 'bin_seeding', 'Value': model.bin_seeding },
+						{ 'Property': 'min_bin_freq', 'Value': model.min_bin_freq },
+						{ 'Property': 'cluster_all', 'Value': model.cluster_all },
+						{ 'Property': 'n_jobs', 'Value': model.n_jobs },
+						{ 'Property': 'max_iter', 'Value': model.max_iter },
+						{ 'Property': 'iterations', 'Value': model.iterations } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
-					st.session_state[
-						'df_cluster_centroids'
-					] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
-					st.session_state[
-						'cluster_plot_features'
-					] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
-					
+					st.session_state[ 'df_cluster_mean_shift_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_mean_shift_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_mean_shift_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_mean_shift_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_mean_shift_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_mean_shift_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_mean_shift_signature' ] = cluster_mean_shift_signature
 					st.success( 'Mean Shift clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
-					st.error(
-						f'Mean Shift clustering failed: {ex}'
-					)
+					st.session_state[ 'df_cluster_mean_shift_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_mean_shift_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_mean_shift_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_mean_shift_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_mean_shift_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_mean_shift_plot_features' ] = [ ]
+					st.session_state[ 'cluster_mean_shift_signature' ] = None
+					st.error( f'Mean Shift clustering failed: {ex}' )
 			
-			mean_shift_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			mean_shift_signature = st.session_state.get( 'cluster_mean_shift_signature', None )
 			
-			if (
-					isinstance( mean_shift_signature, tuple )
-					and len( mean_shift_signature ) > 1
-					and mean_shift_signature[ 1 ] == 'MeanShift'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
+			if (isinstance( mean_shift_signature, tuple ) and len( mean_shift_signature ) > 1 and
+					mean_shift_signature[ 1 ] == 'MeanShift'):
+				df_results = st.session_state.get( 'df_cluster_mean_shift_results',
+					pd.DataFrame( ) )
 				
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
+				df_counts = st.session_state.get( 'df_cluster_mean_shift_counts', pd.DataFrame( ) )
 				
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
+				df_metrics = st.session_state.get( 'df_cluster_mean_shift_metrics',
+					pd.DataFrame( ) )
 				
-				df_centroids = st.session_state.get(
-					'df_cluster_centroids',
-					pd.DataFrame( )
-				)
+				df_centroids = st.session_state.get( 'df_cluster_mean_shift_centroids',
+					pd.DataFrame( ) )
 				
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+				df_details = st.session_state.get( 'df_cluster_mean_shift_details',
+					pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -20041,35 +16865,22 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor(
-					df_counts,
-					use_container_width=True
-				)
+				st.data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor(
-						df_metrics,
-						use_container_width=True
-					)
+					st.data_editor( df_metrics, use_container_width=True )
 				
 				if not df_centroids.empty:
 					st.caption( 'Cluster Centroids' )
-					st.data_editor(
-						df_centroids,
-						use_container_width=True
-					)
+					st.data_editor( df_centroids, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True
-					)
+					st.data_editor( df_details, use_container_width=True )
 			else:
 				st.info(
-					'Run Mean Shift Clustering to view cluster counts, centroids, and metrics.'
-				)
+					'Run Mean Shift Clustering to view cluster counts, centroids, and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -20082,23 +16893,13 @@ elif mode == 'Clustering Models':
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
 					
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					if not df_centroids.empty:
-						ax.scatter(
-							df_centroids[ feature_columns[ 0 ] ],
-							df_centroids[ feature_columns[ 1 ] ],
-							marker='X',
-							s=180,
-							edgecolors='black',
-							linewidths=1.0,
-							label='Centroids'
-						)
+						ax.scatter( df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ], marker='X', s=180,
+							edgecolors='black', linewidths=1.0, label='Centroids' )
 						
 						ax.legend( )
 					
@@ -20111,84 +16912,58 @@ elif mode == 'Clustering Models':
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
-				st.info(
-					'Run Mean Shift Clustering to view the scatter plot.'
-				)
+				st.info( 'Run Mean Shift Clustering to view the scatter plot.' )
 		
 		with st.expander( 'Affinity Propagation Clustering', expanded=False ):
-			affinity_defaults = {
-					'cluster_affinity_damping': 0.5,
-					'cluster_affinity_max_iter': 200,
-					'cluster_affinity_convergence_iter': 15,
-					'cluster_affinity_use_preference': False,
-					'cluster_affinity_preference': 0.0,
-					'cluster_affinity_copy': True,
-					'cluster_affinity_verbose': False,
-					'cluster_affinity_random_state': 42
-			}
+			affinity_defaults = { 'cluster_affinity_damping': 0.5, 'cluster_affinity_max_iter':
+				200,
+				'cluster_affinity_convergence_iter': 15, 'cluster_affinity_use_preference': False,
+				'cluster_affinity_preference': 0.0, 'cluster_affinity_copy': True,
+				'cluster_affinity_verbose': False, 'cluster_affinity_random_state': 42 }
 			
 			for key, value in affinity_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
 			st.caption(
-				'Exemplar-based clustering that determines cluster representatives from pairwise similarities.'
-			)
+				'Exemplar-based clustering that determines cluster representatives from pairwise '
+				'similarities.' )
 			
 			ap_c1, ap_c2, ap_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			with ap_c1:
 				affinity_damping = float(
-					st.number_input( 'Damping', min_value=0.5, max_value=0.9999,
-						step=0.01, format='%.4f', key='cluster_affinity_damping' )
-				)
+					st.number_input( 'Damping', min_value=0.5, max_value=0.9999, step=0.01,
+						format='%.4f', key='cluster_affinity_damping' ) )
 				
-				affinity_max_iter = int(
-					st.number_input( 'Maximum Iterations', min_value=1, step=1,
-						key='cluster_affinity_max_iter' )
-				)
+				affinity_max_iter = int( st.number_input( 'Maximum Iterations', min_value=1,
+					step=1,
+					key='cluster_affinity_max_iter' ) )
 			
 			with ap_c2:
 				affinity_convergence_iter = int(
 					st.number_input( 'Convergence Iterations', min_value=1, step=1,
-						key='cluster_affinity_convergence_iter' )
-				)
+						key='cluster_affinity_convergence_iter' ) )
 				
-				affinity_copy = st.checkbox(
-					'Copy Input Data',
-					key='cluster_affinity_copy'
-				)
+				affinity_copy = st.checkbox( 'Copy Input Data', key='cluster_affinity_copy' )
 			
 			with ap_c3:
-				affinity_use_preference = st.checkbox(
-					'Use Custom Preference',
-					key='cluster_affinity_use_preference'
-				)
+				affinity_use_preference = st.checkbox( 'Use Custom Preference',
+					key='cluster_affinity_use_preference' )
 				
 				affinity_preference_input = float(
 					st.number_input( 'Preference', step=0.1, format='%.4f',
-						disabled=not affinity_use_preference,
-						key='cluster_affinity_preference' )
-				)
+						disabled=not affinity_use_preference, key='cluster_affinity_preference' ) )
 				
-				affinity_verbose = st.checkbox(
-					'Verbose',
-					key='cluster_affinity_verbose'
-				)
+				affinity_verbose = st.checkbox( 'Verbose', key='cluster_affinity_verbose' )
 				
-				affinity_random_state = int(
-					st.number_input( 'Random State', min_value=0, step=1,
-						key='cluster_affinity_random_state' )
-				)
+				affinity_random_state = int( st.number_input( 'Random State', min_value=0, step=1,
+					key='cluster_affinity_random_state' ) )
 			
 			affinity_reset_keys = list( affinity_defaults.keys( ) ) + [
-					'df_cluster_results',
-					'df_cluster_counts',
-					'df_cluster_metrics',
-					'df_cluster_centroids',
-					'df_cluster_details',
-					'cluster_plot_features',
-					'cluster_signature'
-			]
+				'df_cluster_affinity_results', 'df_cluster_affinity_counts',
+				'df_cluster_affinity_metrics', 'df_cluster_affinity_centroids',
+				'df_cluster_affinity_details', 'cluster_affinity_plot_features',
+				'cluster_affinity_signature' ]
 			
 			ap_b1, ap_b2 = st.columns( 2 )
 			with ap_b1:
@@ -20196,55 +16971,33 @@ elif mode == 'Clustering Models':
 					key='cluster_affinity_run', use_container_width=True )
 			
 			with ap_b2:
-				st.button( 'Reset Affinity Propagation', icon='🔁',
-					key='cluster_affinity_reset', use_container_width=True,
-					on_click=clear_keys, args=( affinity_reset_keys, ) )
+				st.button( 'Reset Affinity Propagation', icon='🔁', key='cluster_affinity_reset',
+					use_container_width=True, on_click=clear_keys, args=(affinity_reset_keys,) )
 			
 			if run_affinity:
 				try:
 					if affinity_convergence_iter > affinity_max_iter:
-						st.warning(
-							'⚠️ Convergence Iterations cannot exceed Maximum Iterations.'
-						)
+						st.warning( '⚠️ Convergence Iterations cannot exceed Maximum Iterations.' )
 						st.stop( )
 					
 					affinity_preference = (
-							affinity_preference_input
-							if affinity_use_preference
-							else None
-					)
+						affinity_preference_input if affinity_use_preference else None)
 					
-					model_parameters = {
-							'Model': 'AffinityPropagation',
-							'damping': affinity_damping,
-							'max_iter': affinity_max_iter,
-							'convergence_iter': affinity_convergence_iter,
-							'preference': affinity_preference,
-							'affinity': 'euclidean',
-							'copy': affinity_copy,
-							'verbose': affinity_verbose,
-							'random_state': affinity_random_state
-					}
+					model_parameters = { 'Model': 'AffinityPropagation',
+						'damping': affinity_damping, 'max_iter': affinity_max_iter,
+						'convergence_iter': affinity_convergence_iter,
+						'preference': affinity_preference, 'affinity': 'euclidean',
+						'copy': affinity_copy, 'verbose': affinity_verbose,
+						'random_state': affinity_random_state }
 					
-					cluster_signature = (
-							tuple( active_features ),
-							'AffinityPropagation',
-							tuple(
-								( key, str( value ) )
-								for key, value in model_parameters.items( )
-							)
-					)
+					cluster_affinity_signature = (
+						(tuple( active_features ), cluster_data_signature), 'AffinityPropagation',
+						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = AffinityPropagation(
-						damping=affinity_damping,
-						max_iter=affinity_max_iter,
-						convergence_iter=affinity_convergence_iter,
-						preference=affinity_preference,
-						affinity='euclidean',
-						copy=affinity_copy,
-						verbose=affinity_verbose,
-						random_state=affinity_random_state
-					)
+					model = AffinityPropagation( damping=affinity_damping,
+						max_iter=affinity_max_iter, convergence_iter=affinity_convergence_iter,
+						preference=affinity_preference, affinity='euclidean', copy=affinity_copy,
+						verbose=affinity_verbose, random_state=affinity_random_state )
 					
 					start_time = time.time( )
 					labels = model.project( X )
@@ -20253,14 +17006,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
@@ -20271,132 +17019,59 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
 					centroids = np.asarray( model.centroids_ )
-					df_centroids = pd.DataFrame(
-						centroids,
-						columns=feature_columns
-					)
-					df_centroids.insert(
-						0,
-						'Cluster',
-						range( len( df_centroids ) )
-					)
+					df_centroids = pd.DataFrame( centroids, columns=feature_columns )
+					df_centroids.insert( 0, 'Cluster', range( len( df_centroids ) ) )
 					
-					detail_rows = [
-							{
-									'Property': 'features',
-									'Value': model.features
-							},
-							{
-									'Property': 'clusters',
-									'Value': len( df_centroids )
-							},
-							{
-									'Property': 'iterations',
-									'Value': model.iterations
-							},
-							{
-									'Property': 'damping',
-									'Value': model.damping
-							},
-							{
-									'Property': 'max_iter',
-									'Value': model.max_iter
-							},
-							{
-									'Property': 'convergence_iter',
-									'Value': model.convergence_iter
-							},
-							{
-									'Property': 'preference',
-									'Value': model.preference
-							},
-							{
-									'Property': 'affinity',
-									'Value': model.affinity
-							},
-							{
-									'Property': 'copy',
-									'Value': model.copy
-							},
-							{
-									'Property': 'verbose',
-									'Value': model.verbose
-							},
-							{
-									'Property': 'random_state',
-									'Value': model.random_state
-							}
-					]
+					detail_rows = [ { 'Property': 'features', 'Value': model.features },
+						{ 'Property': 'clusters', 'Value': len( df_centroids ) },
+						{ 'Property': 'iterations', 'Value': model.iterations },
+						{ 'Property': 'damping', 'Value': model.damping },
+						{ 'Property': 'max_iter', 'Value': model.max_iter },
+						{ 'Property': 'convergence_iter', 'Value': model.convergence_iter },
+						{ 'Property': 'preference', 'Value': model.preference },
+						{ 'Property': 'affinity', 'Value': model.affinity },
+						{ 'Property': 'copy', 'Value': model.copy },
+						{ 'Property': 'verbose', 'Value': model.verbose },
+						{ 'Property': 'random_state', 'Value': model.random_state } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
-					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
-					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
+					st.session_state[ 'df_cluster_affinity_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_affinity_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_affinity_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_affinity_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_affinity_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_affinity_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_affinity_signature' ] = cluster_affinity_signature
 					
 					st.success( 'Affinity Propagation clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
+					st.session_state[ 'df_cluster_affinity_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_affinity_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_affinity_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_affinity_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_affinity_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_affinity_plot_features' ] = [ ]
+					st.session_state[ 'cluster_affinity_signature' ] = None
 					st.error( f'Affinity Propagation clustering failed: {ex}' )
 			
-			affinity_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			affinity_signature = st.session_state.get( 'cluster_affinity_signature', None )
 			
-			if (
-					isinstance( affinity_signature, tuple )
-					and len( affinity_signature ) > 1
-					and affinity_signature[ 1 ] == 'AffinityPropagation'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
-				df_centroids = st.session_state.get(
-					'df_cluster_centroids',
-					pd.DataFrame( )
-				)
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+			if (isinstance( affinity_signature, tuple ) and len( affinity_signature ) > 1 and
+					affinity_signature[ 1 ] == 'AffinityPropagation'):
+				df_results = st.session_state.get( 'df_cluster_affinity_results', pd.DataFrame( ) )
+				df_counts = st.session_state.get( 'df_cluster_affinity_counts', pd.DataFrame( ) )
+				df_metrics = st.session_state.get( 'df_cluster_affinity_metrics', pd.DataFrame( ) )
+				df_centroids = st.session_state.get( 'df_cluster_affinity_centroids',
+					pd.DataFrame( ) )
+				df_details = st.session_state.get( 'df_cluster_affinity_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -20426,8 +17101,7 @@ elif mode == 'Clustering Models':
 					st.data_editor( df_details, use_container_width=True )
 			else:
 				st.info(
-					'Run Affinity Propagation to view cluster counts, exemplars, and metrics.'
-				)
+					'Run Affinity Propagation to view cluster counts, exemplars, and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -20439,182 +17113,104 @@ elif mode == 'Clustering Models':
 				if len( feature_columns ) == 2:
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					if not df_centroids.empty:
-						ax.scatter(
-							df_centroids[ feature_columns[ 0 ] ],
-							df_centroids[ feature_columns[ 1 ] ],
-							marker='X',
-							s=180,
-							edgecolors='black',
-							linewidths=1.0,
-							label='Exemplars'
-						)
+						ax.scatter( df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ], marker='X', s=180,
+							edgecolors='black', linewidths=1.0, label='Exemplars' )
 						ax.legend( )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
 					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title(
-						'Affinity Propagation Cluster Assignments'
-					)
+					ax.set_title( 'Affinity Propagation Cluster Assignments' )
 					st.pyplot( fig )
 					plt.close( fig )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
-				st.info(
-					'Run Affinity Propagation to view the scatter plot.'
-				)
+				st.info( 'Run Affinity Propagation to view the scatter plot.' )
+		
+		cluster_max_clusters = max( 2, len( df_cluster_input ) - 1 )
+		if 'cluster_birch_n_clusters' in st.session_state:
+			st.session_state[ 'cluster_birch_n_clusters' ] = min(
+				max( 2, int( st.session_state[ 'cluster_birch_n_clusters' ] ) ),
+				cluster_max_clusters )
 		
 		with st.expander( 'Birch Clustering', expanded=False ):
-			birch_defaults = {
-					'cluster_birch_threshold': 0.5,
-					'cluster_birch_branching_factor': 50,
-					'cluster_birch_use_global_clusters': True,
-					'cluster_birch_n_clusters': 3,
-					'cluster_birch_compute_labels': True
-			}
+			birch_defaults = { 'cluster_birch_threshold': 0.5, 'cluster_birch_branching_factor':
+				50,
+				'cluster_birch_use_global_clusters': True, 'cluster_birch_n_clusters': 3,
+				'cluster_birch_compute_labels': True }
 			
 			for key, value in birch_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Scalable hierarchical clustering using a clustering-feature tree.'
-			)
+			st.caption( 'Scalable hierarchical clustering using a clustering-feature tree.' )
 			
-			br_c1, br_c2, br_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			br_c1, br_c2, br_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with br_c1:
 				birch_threshold = float(
-					st.number_input(
-						'Threshold',
-						min_value=0.0001,
-						step=0.1,
-						format='%.4f',
-						key='cluster_birch_threshold'
-					)
-				)
+					st.number_input( 'Threshold', min_value=0.0001, step=0.1, format='%.4f',
+						key='cluster_birch_threshold' ) )
 			
 			with br_c2:
 				birch_branching_factor = int(
-					st.number_input(
-						'Branching Factor',
-						min_value=2,
-						step=1,
-						key='cluster_birch_branching_factor'
-					)
-				)
+					st.number_input( 'Branching Factor', min_value=2, step=1,
+						key='cluster_birch_branching_factor' ) )
 				
-				birch_compute_labels = st.checkbox(
-					'Compute Labels',
-					key='cluster_birch_compute_labels'
-				)
+				birch_compute_labels = st.checkbox( 'Compute Labels',
+					key='cluster_birch_compute_labels' )
 			
 			with br_c3:
-				birch_use_global_clusters = st.checkbox(
-					'Apply Global Clustering',
-					key='cluster_birch_use_global_clusters'
-				)
+				birch_use_global_clusters = st.checkbox( 'Apply Global Clustering',
+					key='cluster_birch_use_global_clusters' )
 				
-				birch_n_clusters = int(
-					st.number_input(
-						'Number of Clusters',
-						min_value=2,
-						max_value=max( 2, len( df_cluster_input ) - 1 ),
-						step=1,
-						disabled=not birch_use_global_clusters,
-						key='cluster_birch_n_clusters'
-					)
-				)
+				birch_n_clusters = int( st.number_input( 'Number of Clusters', min_value=2,
+					max_value=max( 2, len( df_cluster_input ) - 1 ), step=1,
+					disabled=not birch_use_global_clusters, key='cluster_birch_n_clusters' ) )
 			
 			br_b1, br_b2 = st.columns( 2 )
 			
 			with br_b1:
-				run_birch = st.button(
-					'Run Birch Clustering',
-					icon='🏃',
-					key='cluster_birch_run',
-					use_container_width=True
-				)
+				run_birch = st.button( 'Run Birch Clustering', icon='🏃', key='cluster_birch_run',
+					use_container_width=True )
+			
+			birch_reset_keys = [ 'cluster_birch_threshold', 'cluster_birch_branching_factor',
+				'cluster_birch_use_global_clusters', 'cluster_birch_n_clusters',
+				'cluster_birch_compute_labels', 'df_cluster_birch_results',
+				'df_cluster_birch_counts', 'df_cluster_birch_metrics',
+				'df_cluster_birch_centroids',
+				'df_cluster_birch_details', 'cluster_birch_plot_features',
+				'cluster_birch_signature' ]
 			
 			with br_b2:
-				reset_birch = st.button(
-					'Reset Birch Clustering',
-					icon='🔁',
-					key='cluster_birch_reset',
-					use_container_width=True
-				)
-			
-			if reset_birch:
-				clear_keys(
-					[
-							'cluster_birch_threshold',
-							'cluster_birch_branching_factor',
-							'cluster_birch_use_global_clusters',
-							'cluster_birch_n_clusters',
-							'cluster_birch_compute_labels'
-					]
-				)
-				
-				st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-				st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-				st.session_state[ 'cluster_plot_features' ] = [ ]
-				st.session_state[ 'cluster_signature' ] = None
-				st.rerun( )
+				st.button( 'Reset Birch Clustering', icon='🔁', key='cluster_birch_reset',
+					use_container_width=True, on_click=clear_keys, args=(birch_reset_keys,) )
 			
 			if run_birch:
 				try:
-					if (
-							birch_use_global_clusters
-							and birch_n_clusters >= len( df_cluster_input )
-					):
+					if (birch_use_global_clusters and birch_n_clusters >= len( df_cluster_input )):
 						st.warning(
-							'⚠️ Number of Clusters must be less than the number of samples.'
-						)
+							'⚠️ Number of Clusters must be less than the number of samples.' )
 						st.stop( )
 					
-					effective_clusters = (
-							birch_n_clusters
-							if birch_use_global_clusters
-							else None
-					)
+					effective_clusters = (birch_n_clusters if birch_use_global_clusters else None)
 					
-					model_parameters = {
-							'Model': 'Birch',
-							'threshold': birch_threshold,
-							'branching_factor': birch_branching_factor,
-							'n_clusters': effective_clusters,
-							'compute_labels': birch_compute_labels
-					}
+					model_parameters = { 'Model': 'Birch', 'threshold': birch_threshold,
+						'branching_factor': birch_branching_factor,
+						'n_clusters': effective_clusters, 'compute_labels': birch_compute_labels }
 					
-					cluster_signature = (
-							tuple( active_features ),
-							'Birch',
-							tuple(
-								( key, str( value ) )
-								for key, value in model_parameters.items( )
-							)
-					)
+					cluster_birch_signature = ((tuple( active_features ), cluster_data_signature),
+						'Birch',
+						tuple( (key, str( value )) for key, value in model_parameters.items( ) ))
 					
-					model = Birch(
-						threshold=birch_threshold,
-						branching_factor=birch_branching_factor,
-						n_clusters=effective_clusters,
-						compute_labels=birch_compute_labels
-					)
+					model = Birch( threshold=birch_threshold,
+						branching_factor=birch_branching_factor, n_clusters=effective_clusters,
+						compute_labels=birch_compute_labels )
 					
 					start_time = time.time( )
 					
@@ -20629,14 +17225,9 @@ elif mode == 'Clustering Models':
 					df_results = df_cluster_input.copy( )
 					df_results[ 'Cluster' ] = labels
 					
-					df_counts = (
-							df_results[ 'Cluster' ]
-							.value_counts( dropna=False )
-							.rename_axis( 'Cluster' )
-							.reset_index( name='Count' )
-							.sort_values( by='Cluster' )
-							.reset_index( drop=True )
-					)
+					df_counts = (df_results[ 'Cluster' ].value_counts( dropna=False ).rename_axis(
+						'Cluster' ).reset_index( name='Count' ).sort_values(
+						by='Cluster' ).reset_index( drop=True ))
 					
 					try:
 						df_metrics = model.score( X )
@@ -20647,134 +17238,66 @@ elif mode == 'Clustering Models':
 					
 					if df_metrics.empty:
 						df_metrics = pd.DataFrame(
-							[
-									{
-											'Processing Time (sec)': round(
-												elapsed_seconds,
-												4
-											)
-									}
-							]
-						)
+							[ { 'Processing Time (sec)': round( elapsed_seconds, 4 ) } ] )
 					else:
 						df_metrics = df_metrics.copy( )
-						df_metrics[ 'Processing Time (sec)' ] = round(
-							elapsed_seconds,
-							4
-						)
+						df_metrics[ 'Processing Time (sec)' ] = round( elapsed_seconds, 4 )
 					
-					subcluster_centers = np.asarray(
-						model.subcluster_centers
-					)
+					subcluster_centers = np.asarray( model.subcluster_centers )
 					
-					df_centroids = pd.DataFrame(
-						subcluster_centers,
-						columns=feature_columns
-					)
+					df_centroids = pd.DataFrame( subcluster_centers, columns=feature_columns )
 					
-					df_centroids.insert(
-						0,
-						'Subcluster',
-						range( len( df_centroids ) )
-					)
+					df_centroids.insert( 0, 'Subcluster', range( len( df_centroids ) ) )
 					
 					try:
-						subcluster_labels = np.asarray(
-							model.subcluster_labels
-						).reshape( -1 )
+						subcluster_labels = np.asarray( model.subcluster_labels ).reshape( -1 )
 						
 						if len( subcluster_labels ) == len( df_centroids ):
-							df_centroids.insert(
-								1,
-								'Cluster',
-								subcluster_labels
-							)
+							df_centroids.insert( 1, 'Cluster', subcluster_labels )
 					except Exception:
 						pass
 					
-					detail_rows = [
-							{
-									'Property': 'features',
-									'Value': model.features
-							},
-							{
-									'Property': 'clusters',
-									'Value': len( np.unique( labels ) )
-							},
-							{
-									'Property': 'subclusters',
-									'Value': len( df_centroids )
-							},
-							{
-									'Property': 'threshold',
-									'Value': model.threshold
-							},
-							{
-									'Property': 'branching_factor',
-									'Value': model.branching_factor
-							},
-							{
-									'Property': 'n_clusters',
-									'Value': model.n_clusters
-							},
-							{
-									'Property': 'compute_labels',
-									'Value': model.compute_labels
-							}
-					]
+					detail_rows = [ { 'Property': 'features', 'Value': model.features },
+						{ 'Property': 'clusters', 'Value': len( np.unique( labels ) ) },
+						{ 'Property': 'subclusters', 'Value': len( df_centroids ) },
+						{ 'Property': 'threshold', 'Value': model.threshold },
+						{ 'Property': 'branching_factor', 'Value': model.branching_factor },
+						{ 'Property': 'n_clusters', 'Value': model.n_clusters },
+						{ 'Property': 'compute_labels', 'Value': model.compute_labels } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					
 					st.session_state[ 'model' ] = model
-					st.session_state[ 'df_cluster_results' ] = df_results.copy( )
-					st.session_state[ 'df_cluster_counts' ] = df_counts.copy( )
-					st.session_state[ 'df_cluster_metrics' ] = df_metrics.copy( )
-					st.session_state[ 'df_cluster_centroids' ] = df_centroids.copy( )
-					st.session_state[ 'df_cluster_details' ] = df_details.copy( )
-					st.session_state[ 'cluster_plot_features' ] = feature_columns.copy( )
-					st.session_state[ 'cluster_signature' ] = cluster_signature
+					st.session_state[ 'df_cluster_birch_results' ] = df_results.copy( )
+					st.session_state[ 'df_cluster_birch_counts' ] = df_counts.copy( )
+					st.session_state[ 'df_cluster_birch_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'df_cluster_birch_centroids' ] = df_centroids.copy( )
+					st.session_state[ 'df_cluster_birch_details' ] = df_details.copy( )
+					st.session_state[ 'cluster_birch_plot_features' ] = feature_columns.copy( )
+					st.session_state[ 'cluster_birch_signature' ] = cluster_birch_signature
 					
 					st.success( 'Birch clustering complete.' )
 				except Exception as ex:
-					st.session_state[ 'df_cluster_results' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_counts' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_metrics' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_centroids' ] = pd.DataFrame( )
-					st.session_state[ 'df_cluster_details' ] = pd.DataFrame( )
-					st.session_state[ 'cluster_plot_features' ] = [ ]
-					st.session_state[ 'cluster_signature' ] = None
+					st.session_state[ 'df_cluster_birch_results' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_birch_counts' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_birch_metrics' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_birch_centroids' ] = pd.DataFrame( )
+					st.session_state[ 'df_cluster_birch_details' ] = pd.DataFrame( )
+					st.session_state[ 'cluster_birch_plot_features' ] = [ ]
+					st.session_state[ 'cluster_birch_signature' ] = None
 					st.error( f'Birch clustering failed: {ex}' )
 			
-			birch_signature = st.session_state.get(
-				'cluster_signature',
-				None
-			)
+			birch_signature = st.session_state.get( 'cluster_birch_signature', None )
 			
-			if (
-					isinstance( birch_signature, tuple )
-					and len( birch_signature ) > 1
-					and birch_signature[ 1 ] == 'Birch'
-			):
-				df_results = st.session_state.get(
-					'df_cluster_results',
-					pd.DataFrame( )
-				)
-				df_counts = st.session_state.get(
-					'df_cluster_counts',
-					pd.DataFrame( )
-				)
-				df_metrics = st.session_state.get(
-					'df_cluster_metrics',
-					pd.DataFrame( )
-				)
-				df_centroids = st.session_state.get(
-					'df_cluster_centroids',
-					pd.DataFrame( )
-				)
-				df_details = st.session_state.get(
-					'df_cluster_details',
-					pd.DataFrame( )
-				)
+			if (isinstance( birch_signature, tuple ) and len( birch_signature ) > 1 and
+					birch_signature[ 1 ] == 'Birch'):
+				df_results = st.session_state.get( 'df_cluster_birch_results', pd.DataFrame( ) )
+				df_counts = st.session_state.get( 'df_cluster_birch_counts', pd.DataFrame( ) )
+				df_metrics = st.session_state.get( 'df_cluster_birch_metrics', pd.DataFrame( ) )
+				df_centroids = st.session_state.get( 'df_cluster_birch_centroids', pd.DataFrame(
+				
+				) )
+				df_details = st.session_state.get( 'df_cluster_birch_details', pd.DataFrame( ) )
 			else:
 				df_results = pd.DataFrame( )
 				df_counts = pd.DataFrame( )
@@ -20803,9 +17326,7 @@ elif mode == 'Clustering Models':
 					st.caption( 'Model Details' )
 					st.data_editor( df_details, use_container_width=True )
 			else:
-				st.info(
-					'Run Birch Clustering to view cluster counts, subclusters, and metrics.'
-				)
+				st.info( 'Run Birch Clustering to view cluster counts, subclusters, and metrics.' )
 			
 			# ------------------------------------------------------------------
 			# VISUALIZATION
@@ -20817,23 +17338,13 @@ elif mode == 'Clustering Models':
 				if len( feature_columns ) == 2:
 					plt.close( 'all' )
 					fig, ax = plt.subplots( )
-					ax.scatter(
-						df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ],
-						c=df_results[ 'Cluster' ],
-						alpha=0.7
-					)
+					ax.scatter( df_results[ feature_columns[ 0 ] ],
+						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
 					
 					if not df_centroids.empty:
-						ax.scatter(
-							df_centroids[ feature_columns[ 0 ] ],
-							df_centroids[ feature_columns[ 1 ] ],
-							marker='X',
-							s=140,
-							edgecolors='black',
-							linewidths=1.0,
-							label='Subcluster Centers'
-						)
+						ax.scatter( df_centroids[ feature_columns[ 0 ] ],
+							df_centroids[ feature_columns[ 1 ] ], marker='X', s=140,
+							edgecolors='black', linewidths=1.0, label='Subcluster Centers' )
 						ax.legend( )
 					
 					ax.set_xlabel( feature_columns[ 0 ] )
@@ -20844,16 +17355,14 @@ elif mode == 'Clustering Models':
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
-				st.info(
-					'Run Birch Clustering to view the scatter plot.'
-				)
-				
+				st.info( 'Run Birch Clustering to view the scatter plot.' )
+
 # ============================================
 # TIME SERIES MODE
 # ============================================
 elif mode == 'Time-Series Models':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with center:
+	with (center):
 		st.subheader( cfg.MODE[ 'Time-Series Models' ] )
 		st.divider( )
 		
@@ -20867,21 +17376,13 @@ elif mode == 'Time-Series Models':
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		numeric_columns = [
-				column
-				for column in numeric_columns
-				if column in df_dataset.columns
-		]
+		numeric_columns = [ column for column in numeric_columns if column in df_dataset.columns ]
 		
 		if not numeric_columns:
-			st.warning(
-				'⚠️ No numeric columns available for time-series analysis.'
-			)
+			st.warning( '⚠️ No numeric columns available for time-series analysis.' )
 			st.stop( )
 		
-		timeseries_defaults = {
-				'timeseries_col_box': numeric_columns[ 0 ]
-		}
+		timeseries_defaults = { 'timeseries_col_box': numeric_columns[ 0 ] }
 		
 		for key, value in timeseries_defaults.items( ):
 			if key not in st.session_state:
@@ -20892,133 +17393,81 @@ elif mode == 'Time-Series Models':
 		
 		st.markdown( '##### Time-Series Selection' )
 		
-		series_col = st.selectbox(
-			'Select Numeric Time-Series Column',
-			numeric_columns,
-			key='timeseries_col_box'
-		)
+		series_col = st.selectbox( 'Select Numeric Time-Series Column', numeric_columns,
+			key='timeseries_col_box' )
 		
-		series_values = pd.to_numeric(
-			df_dataset[ series_col ],
-			errors='coerce'
-		)
+		series_values = pd.to_numeric( df_dataset[ series_col ], errors='coerce' )
 		
-		series_values = series_values.replace(
-			[ np.inf, -np.inf ],
-			np.nan
-		).dropna( )
+		series_values = series_values.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
 		
 		series = series_values.to_numpy( dtype=float )
 		
 		if series.ndim != 1:
 			st.warning(
-				'⚠️ The selected column could not be converted to a one-dimensional series.'
-			)
+				'⚠️ The selected column could not be converted to a one-dimensional series.' )
 			st.stop( )
 		
 		if len( series ) < 10:
-			st.warning(
-				'⚠️ Selected series must contain at least 10 valid observations.'
-			)
+			st.warning( '⚠️ Selected series must contain at least 10 valid observations.' )
 			st.stop( )
 		
 		st.session_state[ 'timeseries_column' ] = series_col
 		st.session_state[ 'timeseries_series' ] = series.copy( )
 		
 		df_timeseries_summary = pd.DataFrame(
-			[
-					{
-							'Series': series_col,
-							'Observations': len( series ),
-							'Minimum': float( np.min( series ) ),
-							'Maximum': float( np.max( series ) ),
-							'Mean': float( np.mean( series ) ),
-							'Standard Deviation': float( np.std( series ) )
-					}
-			]
-		)
+			[ { 'Series': series_col, 'Observations': len( series ),
+				'Minimum': float( np.min( series ) ), 'Maximum': float( np.max( series ) ),
+				'Mean': float( np.mean( series ) ),
+				'Standard Deviation': float( np.std( series ) ) } ] )
 		
-		st.data_editor(
-			df_timeseries_summary,
-			use_container_width=True,
-			hide_index=True,
-			disabled=True
-		)
+		st.data_editor( df_timeseries_summary, use_container_width=True, hide_index=True,
+			disabled=True )
 		
 		# ------------------------------------------------------------------
 		# LAGGED LINEAR REGRESSION
 		# ------------------------------------------------------------------
 		with st.expander( 'Lagged Linear Regression', expanded=False ):
-			lag_linear_defaults = {
-					'timeseries_lag_linear_lag': 5,
-					'timeseries_lag_linear_horizon': 5
-			}
+			lag_linear_defaults = { 'timeseries_lag_linear_lag': 5,
+				'timeseries_lag_linear_horizon': 5 }
 			
 			for key, value in lag_linear_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
 			st.caption(
-				'Linear autoregressive forecasting using lagged observations as predictors.'
-			)
+				'Linear autoregressive forecasting using lagged observations as predictors.' )
 			
 			ll_c1, ll_c2 = st.columns( 2, border=True )
 			
 			with ll_c1:
-				lag_linear_order = int(
-					st.number_input(
-						'Lag Order',
-						min_value=1,
-						max_value=max( 1, len( series ) - 1 ),
-						step=1,
-						key='timeseries_lag_linear_lag'
-					)
-				)
+				lag_linear_order = int( st.number_input( 'Lag Order', min_value=1,
+					max_value=max( 1, len( series ) - 1 ), step=1,
+					key='timeseries_lag_linear_lag' ) )
 			
 			with ll_c2:
-				lag_linear_horizon = int(
-					st.number_input(
-						'Forecast Horizon',
-						min_value=1,
-						step=1,
-						key='timeseries_lag_linear_horizon'
-					)
-				)
+				lag_linear_horizon = int( st.number_input( 'Forecast Horizon', min_value=1, step=1,
+					key='timeseries_lag_linear_horizon' ) )
 			
 			lag_linear_reset_keys = list( lag_linear_defaults.keys( ) ) + [
-					'timeseries_lag_linear_model',
-					'timeseries_lag_linear_forecast',
-					'timeseries_lag_linear_metrics',
-					'timeseries_lag_linear_results',
-					'timeseries_lag_linear_signature'
-			]
+				'timeseries_lag_linear_model', 'timeseries_lag_linear_forecast',
+				'timeseries_lag_linear_metrics', 'timeseries_lag_linear_results',
+				'timeseries_lag_linear_signature' ]
 			
 			ll_b1, ll_b2 = st.columns( 2 )
 			
 			with ll_b1:
-				run_lag_linear = st.button(
-					'Run Lagged Linear Regression',
-					icon='🏃',
-					key='timeseries_lag_linear_run',
-					use_container_width=True
-				)
+				run_lag_linear = st.button( 'Run Lagged Linear Regression', icon='🏃',
+					key='timeseries_lag_linear_run', use_container_width=True )
 			
 			with ll_b2:
-				st.button(
-					'Reset Lagged Linear Regression',
-					icon='🔁',
-					key='timeseries_lag_linear_reset',
-					use_container_width=True,
-					on_click=clear_keys,
-					args=( lag_linear_reset_keys, )
-				)
+				st.button( 'Reset Lagged Linear Regression', icon='🔁',
+					key='timeseries_lag_linear_reset', use_container_width=True,
+					on_click=clear_keys, args=(lag_linear_reset_keys,) )
 			
 			if run_lag_linear:
 				try:
 					if lag_linear_order >= len( series ):
-						st.warning(
-							'⚠️ Lag Order must be less than the number of observations.'
-						)
+						st.warning( '⚠️ Lag Order must be less than the number of observations.' )
 						st.stop( )
 					
 					model = LaggingSeries( lag=lag_linear_order )
@@ -21030,124 +17479,49 @@ elif mode == 'Time-Series Models':
 					elapsed_seconds = time.time( ) - start_time
 					
 					df_metrics = pd.DataFrame(
-						[
-								{
-										'Metric': metric,
-										'Value': float( value )
-								}
-								for metric, value in metrics.items( )
-						]
-					)
+						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
+							metrics.items( ) ] )
 					
-					df_metrics = pd.concat(
-						[
-								df_metrics,
-								pd.DataFrame(
-									[
-											{
-													'Metric': 'Processing Time (sec)',
-													'Value': round(
-														elapsed_seconds,
-														4
-													)
-											}
-									]
-								)
-						],
-						ignore_index=True
-					)
+					df_metrics = pd.concat( [ df_metrics, pd.DataFrame(
+						[ { 'Metric': 'Processing Time (sec)',
+							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
-					forecast_index = np.arange(
-						len( series ),
-						len( series ) + len( forecast )
-					)
+					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 					
-					df_results = pd.DataFrame(
-						{
-								'Period': forecast_index,
-								'Forecast': np.asarray(
-									forecast,
-									dtype=float
-								)
-						}
-					)
+					df_results = pd.DataFrame( { 'Period': forecast_index,
+						'Forecast': np.asarray( forecast, dtype=float ) } )
 					
-					lag_linear_signature = (
-							series_col,
-							len( series ),
-							lag_linear_order,
-							lag_linear_horizon
-					)
+					lag_linear_signature = (series_col, len( series ), lag_linear_order,
+						lag_linear_horizon)
 					
-					st.session_state[
-						'timeseries_lag_linear_model'
-					] = model
-					st.session_state[
-						'timeseries_lag_linear_forecast'
-					] = np.asarray( forecast, dtype=float )
-					st.session_state[
-						'timeseries_lag_linear_metrics'
-					] = df_metrics.copy( )
-					st.session_state[
-						'timeseries_lag_linear_results'
-					] = df_results.copy( )
-					st.session_state[
-						'timeseries_lag_linear_signature'
-					] = lag_linear_signature
+					st.session_state[ 'timeseries_lag_linear_model' ] = model
+					st.session_state[ 'timeseries_lag_linear_forecast' ] = np.asarray( forecast,
+						dtype=float )
+					st.session_state[ 'timeseries_lag_linear_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'timeseries_lag_linear_results' ] = df_results.copy( )
+					st.session_state[ 'timeseries_lag_linear_signature' ] = lag_linear_signature
 					
-					st.success(
-						'Lagged Linear Regression forecasting complete.'
-					)
+					st.success( 'Lagged Linear Regression forecasting complete.' )
 				except Exception as ex:
-					st.session_state.pop(
-						'timeseries_lag_linear_model',
-						None
-					)
-					st.session_state.pop(
-						'timeseries_lag_linear_forecast',
-						None
-					)
-					st.session_state.pop(
-						'timeseries_lag_linear_metrics',
-						None
-					)
-					st.session_state.pop(
-						'timeseries_lag_linear_results',
-						None
-					)
-					st.session_state.pop(
-						'timeseries_lag_linear_signature',
-						None
-					)
-					st.error(
-						f'Lagged Linear Regression failed: {ex}'
-					)
+					st.session_state.pop( 'timeseries_lag_linear_model', None )
+					st.session_state.pop( 'timeseries_lag_linear_forecast', None )
+					st.session_state.pop( 'timeseries_lag_linear_metrics', None )
+					st.session_state.pop( 'timeseries_lag_linear_results', None )
+					st.session_state.pop( 'timeseries_lag_linear_signature', None )
+					st.error( f'Lagged Linear Regression failed: {ex}' )
 			
-			lag_linear_signature = st.session_state.get(
-				'timeseries_lag_linear_signature',
-				None
-			)
+			lag_linear_signature = st.session_state.get( 'timeseries_lag_linear_signature', None )
 			
-			current_lag_linear_signature = (
-					series_col,
-					len( series ),
-					lag_linear_order,
-					lag_linear_horizon
-			)
+			current_lag_linear_signature = (series_col, len( series ), lag_linear_order,
+				lag_linear_horizon)
 			
 			if lag_linear_signature == current_lag_linear_signature:
-				df_metrics = st.session_state.get(
-					'timeseries_lag_linear_metrics',
-					pd.DataFrame( )
-				)
-				df_results = st.session_state.get(
-					'timeseries_lag_linear_results',
-					pd.DataFrame( )
-				)
-				forecast = st.session_state.get(
-					'timeseries_lag_linear_forecast',
-					np.array( [ ], dtype=float )
-				)
+				df_metrics = st.session_state.get( 'timeseries_lag_linear_metrics',
+					pd.DataFrame( ) )
+				df_results = st.session_state.get( 'timeseries_lag_linear_results',
+					pd.DataFrame( ) )
+				forecast = st.session_state.get( 'timeseries_lag_linear_forecast',
+					np.array( [ ], dtype=float ) )
 			else:
 				df_metrics = pd.DataFrame( )
 				df_results = pd.DataFrame( )
@@ -21160,16 +17534,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor(
-					df_metrics,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
-				st.info(
-					'Run Lagged Linear Regression to view model metrics.'
-				)
+				st.info( 'Run Lagged Linear Regression to view model metrics.' )
 			
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
@@ -21178,16 +17546,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor(
-					df_results,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_results, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
-				st.info(
-					'Run Lagged Linear Regression to view forecast values.'
-				)
+				st.info( 'Run Lagged Linear Regression to view forecast values.' )
 			
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
@@ -21200,315 +17562,147 @@ elif mode == 'Time-Series Models':
 				fig, ax = plt.subplots( )
 				
 				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange(
-					len( series ),
-					len( series ) + len( forecast )
-				)
+				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 				
-				ax.plot(
-					observed_index,
-					series,
-					label='Observed'
-				)
-				ax.plot(
-					forecast_index,
-					forecast,
-					label='Forecast',
-					linestyle='--'
-				)
+				ax.plot( observed_index, series, label='Observed' )
+				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
-				ax.set_title(
-					'Lagged Linear Regression Forecast'
-				)
+				ax.set_title( 'Lagged Linear Regression Forecast' )
 				ax.legend( )
 				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
-				st.info(
-					'Run Lagged Linear Regression to view the forecast plot.'
-				)
+				st.info( 'Run Lagged Linear Regression to view the forecast plot.' )
 		
 		# ------------------------------------------------------------------
 		# LAGGED BOOSTING REGRESSION
 		# ------------------------------------------------------------------
 		with st.expander( 'Lagged Boosting Regression', expanded=False ):
-			lag_boost_defaults = {
-					'timeseries_lag_boost_lag': 12,
-					'timeseries_lag_boost_loss': 'squared_error',
-					'timeseries_lag_boost_quantile': 0.5,
-					'timeseries_lag_boost_rate': 0.1,
-					'timeseries_lag_boost_iters': 100,
-					'timeseries_lag_boost_leaf_nodes': 31,
-					'timeseries_lag_boost_use_depth': False,
-					'timeseries_lag_boost_depth': 3,
-					'timeseries_lag_boost_leaf': 20,
-					'timeseries_lag_boost_regularization': 0.0,
-					'timeseries_lag_boost_features': 1.0,
-					'timeseries_lag_boost_bins': 255,
-					'timeseries_lag_boost_warm': False,
-					'timeseries_lag_boost_stopping': 'auto',
-					'timeseries_lag_boost_scoring': 'loss',
-					'timeseries_lag_boost_validation': 0.1,
-					'timeseries_lag_boost_no_change': 10,
-					'timeseries_lag_boost_tolerance': 0.0000001,
-					'timeseries_lag_boost_verbose': 0,
-					'timeseries_lag_boost_random_state': 42,
-					'timeseries_lag_boost_horizon': 5
-			}
+			lag_boost_defaults = { 'timeseries_lag_boost_lag': 12,
+				'timeseries_lag_boost_loss': 'squared_error', 'timeseries_lag_boost_quantile': 0.5,
+				'timeseries_lag_boost_rate': 0.1, 'timeseries_lag_boost_iters': 100,
+				'timeseries_lag_boost_leaf_nodes': 31, 'timeseries_lag_boost_use_depth': False,
+				'timeseries_lag_boost_depth': 3, 'timeseries_lag_boost_leaf': 20,
+				'timeseries_lag_boost_regularization': 0.0, 'timeseries_lag_boost_features': 1.0,
+				'timeseries_lag_boost_bins': 255, 'timeseries_lag_boost_warm': False,
+				'timeseries_lag_boost_stopping': 'auto', 'timeseries_lag_boost_scoring': 'loss',
+				'timeseries_lag_boost_validation': 0.1, 'timeseries_lag_boost_no_change': 10,
+				'timeseries_lag_boost_tolerance': 0.0000001, 'timeseries_lag_boost_verbose': 0,
+				'timeseries_lag_boost_random_state': 42, 'timeseries_lag_boost_horizon': 5 }
 			
 			for key, value in lag_boost_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
 			st.caption(
-				'Nonlinear autoregressive forecasting using histogram gradient boosting over lagged observations.'
-			)
+				'Nonlinear autoregressive forecasting using histogram gradient boosting over '
+				'lagged observations.' )
 			
-			lb_c1, lb_c2, lb_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			lb_c1, lb_c2, lb_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with lb_c1:
-				lag_boost_order = int(
-					st.number_input(
-						'Lag Order',
-						min_value=1,
-						max_value=max( 1, len( series ) - 1 ),
-						step=1,
-						key='timeseries_lag_boost_lag'
-					)
-				)
+				lag_boost_order = int( st.number_input( 'Lag Order', min_value=1,
+					max_value=max( 1, len( series ) - 1 ), step=1,
+					key='timeseries_lag_boost_lag' ) )
 				
-				lag_boost_loss = st.selectbox(
-					'Loss',
-					options=[
-							'squared_error',
-							'absolute_error',
-							'gamma',
-							'poisson',
-							'quantile'
-					],
-					key='timeseries_lag_boost_loss'
-				)
+				lag_boost_loss = st.selectbox( 'Loss',
+					options=[ 'squared_error', 'absolute_error', 'gamma', 'poisson', 'quantile' ],
+					key='timeseries_lag_boost_loss' )
 				
 				lag_boost_quantile = float(
-					st.number_input(
-						'Quantile',
-						min_value=0.0001,
-						max_value=0.9999,
-						step=0.05,
-						format='%.4f',
-						disabled=lag_boost_loss != 'quantile',
-						key='timeseries_lag_boost_quantile'
-					)
-				)
+					st.number_input( 'Quantile', min_value=0.0001, max_value=0.9999, step=0.05,
+						format='%.4f', disabled=lag_boost_loss != 'quantile',
+						key='timeseries_lag_boost_quantile' ) )
 				
 				lag_boost_rate = float(
-					st.number_input(
-						'Learning Rate',
-						min_value=0.0001,
-						step=0.01,
-						format='%.4f',
-						key='timeseries_lag_boost_rate'
-					)
-				)
+					st.number_input( 'Learning Rate', min_value=0.0001, step=0.01, format='%.4f',
+						key='timeseries_lag_boost_rate' ) )
 				
-				lag_boost_iters = int(
-					st.number_input(
-						'Maximum Iterations',
-						min_value=1,
-						step=1,
-						key='timeseries_lag_boost_iters'
-					)
-				)
+				lag_boost_iters = int( st.number_input( 'Maximum Iterations', min_value=1, step=1,
+					key='timeseries_lag_boost_iters' ) )
 				
 				lag_boost_leaf_nodes = int(
-					st.number_input(
-						'Maximum Leaf Nodes',
-						min_value=2,
-						step=1,
-						key='timeseries_lag_boost_leaf_nodes'
-					)
-				)
+					st.number_input( 'Maximum Leaf Nodes', min_value=2, step=1,
+						key='timeseries_lag_boost_leaf_nodes' ) )
 				
-				lag_boost_horizon = int(
-					st.number_input(
-						'Forecast Horizon',
-						min_value=1,
-						step=1,
-						key='timeseries_lag_boost_horizon'
-					)
-				)
+				lag_boost_horizon = int( st.number_input( 'Forecast Horizon', min_value=1, step=1,
+					key='timeseries_lag_boost_horizon' ) )
 			
 			with lb_c2:
-				lag_boost_use_depth = st.checkbox(
-					'Limit Tree Depth',
-					key='timeseries_lag_boost_use_depth'
-				)
+				lag_boost_use_depth = st.checkbox( 'Limit Tree Depth',
+					key='timeseries_lag_boost_use_depth' )
 				
-				lag_boost_depth_input = int(
-					st.number_input(
-						'Maximum Depth',
-						min_value=1,
-						step=1,
-						disabled=not lag_boost_use_depth,
-						key='timeseries_lag_boost_depth'
-					)
-				)
+				lag_boost_depth_input = int( st.number_input( 'Maximum Depth', min_value=1, step=1,
+					disabled=not lag_boost_use_depth, key='timeseries_lag_boost_depth' ) )
 				
 				lag_boost_leaf = int(
-					st.number_input(
-						'Minimum Samples per Leaf',
-						min_value=1,
-						step=1,
-						key='timeseries_lag_boost_leaf'
-					)
-				)
+					st.number_input( 'Minimum Samples per Leaf', min_value=1, step=1,
+						key='timeseries_lag_boost_leaf' ) )
 				
 				lag_boost_regularization = float(
-					st.number_input(
-						'L2 Regularization',
-						min_value=0.0,
-						step=0.1,
-						format='%.4f',
-						key='timeseries_lag_boost_regularization'
-					)
-				)
+					st.number_input( 'L2 Regularization', min_value=0.0, step=0.1, format='%.4f',
+						key='timeseries_lag_boost_regularization' ) )
 				
 				lag_boost_features = float(
-					st.number_input(
-						'Maximum Features',
-						min_value=0.0001,
-						max_value=1.0,
+					st.number_input( 'Maximum Features', min_value=0.0001, max_value=1.0,
 						step=0.05,
-						format='%.4f',
-						key='timeseries_lag_boost_features'
-					)
-				)
+						format='%.4f', key='timeseries_lag_boost_features' ) )
 				
 				lag_boost_bins = int(
-					st.number_input(
-						'Maximum Bins',
-						min_value=2,
-						max_value=255,
-						step=1,
-						key='timeseries_lag_boost_bins'
-					)
-				)
+					st.number_input( 'Maximum Bins', min_value=2, max_value=255, step=1,
+						key='timeseries_lag_boost_bins' ) )
 				
-				lag_boost_warm = st.checkbox(
-					'Warm Start',
-					key='timeseries_lag_boost_warm'
-				)
+				lag_boost_warm = st.checkbox( 'Warm Start', key='timeseries_lag_boost_warm' )
 			
 			with lb_c3:
-				lag_boost_stopping = st.selectbox(
-					'Early Stopping',
-					options=[
-							'auto',
-							True,
-							False
-					],
-					key='timeseries_lag_boost_stopping'
-				)
+				lag_boost_stopping = st.selectbox( 'Early Stopping',
+					options=[ 'auto', True, False ], key='timeseries_lag_boost_stopping' )
 				
-				lag_boost_scoring = st.selectbox(
-					'Early-Stopping Scoring',
-					options=[
-							'loss',
-							'r2',
-							'neg_mean_absolute_error',
-							'neg_mean_squared_error'
-					],
-					key='timeseries_lag_boost_scoring'
-				)
+				lag_boost_scoring = st.selectbox( 'Early-Stopping Scoring',
+					options=[ 'loss', 'r2', 'neg_mean_absolute_error', 'neg_mean_squared_error' ],
+					key='timeseries_lag_boost_scoring' )
 				
 				lag_boost_validation = float(
-					st.number_input(
-						'Validation Fraction',
-						min_value=0.01,
-						max_value=0.99,
-						step=0.01,
-						format='%.4f',
-						key='timeseries_lag_boost_validation'
-					)
-				)
+					st.number_input( 'Validation Fraction', min_value=0.01, max_value=0.99,
+						step=0.01, format='%.4f', key='timeseries_lag_boost_validation' ) )
 				
 				lag_boost_no_change = int(
-					st.number_input(
-						'Iterations Without Improvement',
-						min_value=1,
-						step=1,
-						key='timeseries_lag_boost_no_change'
-					)
-				)
+					st.number_input( 'Iterations Without Improvement', min_value=1, step=1,
+						key='timeseries_lag_boost_no_change' ) )
 				
 				lag_boost_tolerance = float(
-					st.number_input(
-						'Tolerance',
-						min_value=0.0,
-						step=0.0000001,
-						format='%.8f',
-						key='timeseries_lag_boost_tolerance'
-					)
-				)
+					st.number_input( 'Tolerance', min_value=0.0, step=0.0000001, format='%.8f',
+						key='timeseries_lag_boost_tolerance' ) )
 				
-				lag_boost_verbose = int(
-					st.number_input(
-						'Verbosity',
-						min_value=0,
-						step=1,
-						key='timeseries_lag_boost_verbose'
-					)
-				)
+				lag_boost_verbose = int( st.number_input( 'Verbosity', min_value=0, step=1,
+					key='timeseries_lag_boost_verbose' ) )
 				
-				lag_boost_random_state = int(
-					st.number_input(
-						'Random State',
-						min_value=0,
-						step=1,
-						key='timeseries_lag_boost_random_state'
-					)
-				)
+				lag_boost_random_state = int( st.number_input( 'Random State', min_value=0, step=1,
+					key='timeseries_lag_boost_random_state' ) )
 			
 			lag_boost_reset_keys = list( lag_boost_defaults.keys( ) ) + [
-					'timeseries_lag_boost_model',
-					'timeseries_lag_boost_forecast',
-					'timeseries_lag_boost_metrics',
-					'timeseries_lag_boost_results',
-					'timeseries_lag_boost_details',
-					'timeseries_lag_boost_signature'
-			]
+				'timeseries_lag_boost_model', 'timeseries_lag_boost_forecast',
+				'timeseries_lag_boost_metrics', 'timeseries_lag_boost_results',
+				'timeseries_lag_boost_details', 'timeseries_lag_boost_signature' ]
 			
 			lb_b1, lb_b2 = st.columns( 2 )
 			
 			with lb_b1:
-				run_lag_boost = st.button(
-					'Run Lagged Boosting Regression',
-					icon='🏃',
-					key='timeseries_lag_boost_run',
-					use_container_width=True
-				)
+				run_lag_boost = st.button( 'Run Lagged Boosting Regression', icon='🏃',
+					key='timeseries_lag_boost_run', use_container_width=True )
 			
 			with lb_b2:
-				st.button(
-					'Reset Lagged Boosting Regression',
-					icon='🔁',
-					key='timeseries_lag_boost_reset',
-					use_container_width=True,
+				st.button( 'Reset Lagged Boosting Regression', icon='🔁',
+					key='timeseries_lag_boost_reset', use_container_width=True,
 					on_click=clear_keys,
-					args=( lag_boost_reset_keys, )
-				)
+					args=(lag_boost_reset_keys,) )
 			
 			if run_lag_boost:
 				try:
 					if lag_boost_order >= len( series ):
-						st.warning(
-							'⚠️ Lag Order must be less than the number of observations.'
-						)
+						st.warning( '⚠️ Lag Order must be less than the number of observations.' )
 						st.stop( )
 					
 					if lag_boost_loss == 'quantile':
@@ -21518,48 +17712,27 @@ elif mode == 'Time-Series Models':
 					
 					if lag_boost_loss in [ 'gamma', 'poisson' ] and np.any( series <= 0 ):
 						st.warning(
-							'⚠️ Gamma and Poisson loss require strictly positive observations.'
-						)
+							'⚠️ Gamma and Poisson loss require strictly positive observations.' )
 						st.stop( )
 					
-					if (
-							lag_boost_stopping is not False
-							and lag_boost_validation * ( len( series ) - lag_boost_order ) < 1
-					):
+					if (lag_boost_stopping is not False and lag_boost_validation * (
+							len( series ) - lag_boost_order) < 1):
 						st.warning(
-							'⚠️ Validation Fraction is too small for the available lagged observations.'
-						)
+							'⚠️ Validation Fraction is too small for the available lagged '
+							'observations.' )
 						st.stop( )
 					
-					max_depth = (
-							lag_boost_depth_input
-							if lag_boost_use_depth
-							else None
-					)
+					max_depth = (lag_boost_depth_input if lag_boost_use_depth else None)
 					
-					model = LagBoostingSeries(
-						lag=lag_boost_order,
-						loss=lag_boost_loss,
-						quantile=quantile,
-						rate=lag_boost_rate,
-						iters=lag_boost_iters,
-						leaf_nodes=lag_boost_leaf_nodes,
-						depth=max_depth,
-						leaf=lag_boost_leaf,
-						regularization=lag_boost_regularization,
-						features=lag_boost_features,
-						bins=lag_boost_bins,
-						monotonic=None,
-						interaction=None,
-						warm=lag_boost_warm,
-						stopping=lag_boost_stopping,
-						scoring=lag_boost_scoring,
-						validation=lag_boost_validation,
-						no_change=lag_boost_no_change,
-						tol=lag_boost_tolerance,
-						verbose=lag_boost_verbose,
-						rando=lag_boost_random_state
-					)
+					model = LagBoostingSeries( lag=lag_boost_order, loss=lag_boost_loss,
+						quantile=quantile, rate=lag_boost_rate, iters=lag_boost_iters,
+						leaf_nodes=lag_boost_leaf_nodes, depth=max_depth, leaf=lag_boost_leaf,
+						regularization=lag_boost_regularization, features=lag_boost_features,
+						bins=lag_boost_bins, monotonic=None, interaction=None, warm=lag_boost_warm,
+						stopping=lag_boost_stopping, scoring=lag_boost_scoring,
+						validation=lag_boost_validation, no_change=lag_boost_no_change,
+						tol=lag_boost_tolerance, verbose=lag_boost_verbose,
+						rando=lag_boost_random_state )
 					
 					start_time = time.time( )
 					model.train( series )
@@ -21568,248 +17741,91 @@ elif mode == 'Time-Series Models':
 					elapsed_seconds = time.time( ) - start_time
 					
 					df_metrics = pd.DataFrame(
-						[
-								{
-										'Metric': metric,
-										'Value': float( value )
-								}
-								for metric, value in metrics.items( )
-						]
-					)
+						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
+							metrics.items( ) ] )
 					
-					df_metrics = pd.concat(
-						[
-								df_metrics,
-								pd.DataFrame(
-									[
-											{
-													'Metric': 'Processing Time (sec)',
-													'Value': round(
-														elapsed_seconds,
-														4
-													)
-											}
-									]
-								)
-						],
-						ignore_index=True
-					)
+					df_metrics = pd.concat( [ df_metrics, pd.DataFrame(
+						[ { 'Metric': 'Processing Time (sec)',
+							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
-					forecast = np.asarray(
-						forecast,
-						dtype=float
-					).reshape( -1 )
+					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
 					
-					forecast_index = np.arange(
-						len( series ),
-						len( series ) + len( forecast )
-					)
+					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 					
-					df_results = pd.DataFrame(
-						{
-								'Period': forecast_index,
-								'Forecast': forecast
-						}
-					)
+					df_results = pd.DataFrame( { 'Period': forecast_index, 'Forecast': forecast } )
 					
-					detail_rows = [
-							{
-									'Property': 'Lag Order',
-									'Value': model.lag
-							},
-							{
-									'Property': 'Loss',
-									'Value': model.loss
-							},
-							{
-									'Property': 'Quantile',
-									'Value': model.quantile
-							},
-							{
-									'Property': 'Learning Rate',
-									'Value': model.learning_rate
-							},
-							{
-									'Property': 'Maximum Iterations',
-									'Value': model.max_iter
-							},
-							{
-									'Property': 'Maximum Leaf Nodes',
-									'Value': model.max_leaf_nodes
-							},
-							{
-									'Property': 'Maximum Depth',
-									'Value': model.max_depth
-							},
-							{
-									'Property': 'Minimum Samples per Leaf',
-									'Value': model.min_samples_leaf
-							},
-							{
-									'Property': 'L2 Regularization',
-									'Value': model.l2_regularization
-							},
-							{
-									'Property': 'Maximum Features',
-									'Value': model.max_features
-							},
-							{
-									'Property': 'Maximum Bins',
-									'Value': model.max_bins
-							},
-							{
-									'Property': 'Warm Start',
-									'Value': model.warm_start
-							},
-							{
-									'Property': 'Early Stopping',
-									'Value': model.early_stopping
-							},
-							{
-									'Property': 'Scoring',
-									'Value': model.scoring
-							},
-							{
-									'Property': 'Validation Fraction',
-									'Value': model.validation_fraction
-							},
-							{
-									'Property': 'Iterations Without Improvement',
-									'Value': model.n_iter_no_change
-							},
-							{
-									'Property': 'Tolerance',
-									'Value': model.tol
-							},
-							{
-									'Property': 'Random State',
-									'Value': model.random_state
-							}
-					]
+					detail_rows = [ { 'Property': 'Lag Order', 'Value': model.lag },
+						{ 'Property': 'Loss', 'Value': model.loss },
+						{ 'Property': 'Quantile', 'Value': model.quantile },
+						{ 'Property': 'Learning Rate', 'Value': model.learning_rate },
+						{ 'Property': 'Maximum Iterations', 'Value': model.max_iter },
+						{ 'Property': 'Maximum Leaf Nodes', 'Value': model.max_leaf_nodes },
+						{ 'Property': 'Maximum Depth', 'Value': model.max_depth },
+						{ 'Property': 'Minimum Samples per Leaf', 'Value':
+							model.min_samples_leaf },
+						{ 'Property': 'L2 Regularization', 'Value': model.l2_regularization },
+						{ 'Property': 'Maximum Features', 'Value': model.max_features },
+						{ 'Property': 'Maximum Bins', 'Value': model.max_bins },
+						{ 'Property': 'Warm Start', 'Value': model.warm_start },
+						{ 'Property': 'Early Stopping', 'Value': model.early_stopping },
+						{ 'Property': 'Scoring', 'Value': model.scoring },
+						{ 'Property': 'Validation Fraction', 'Value': model.validation_fraction },
+						{ 'Property': 'Iterations Without Improvement',
+							'Value': model.n_iter_no_change },
+						{ 'Property': 'Tolerance', 'Value': model.tol },
+						{ 'Property': 'Random State', 'Value': model.random_state } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					
-					lag_boost_signature = (
-							series_col,
-							len( series ),
-							lag_boost_order,
-							lag_boost_loss,
-							quantile,
-							lag_boost_rate,
-							lag_boost_iters,
-							lag_boost_leaf_nodes,
-							max_depth,
-							lag_boost_leaf,
-							lag_boost_regularization,
-							lag_boost_features,
-							lag_boost_bins,
-							lag_boost_warm,
-							lag_boost_stopping,
-							lag_boost_scoring,
-							lag_boost_validation,
-							lag_boost_no_change,
-							lag_boost_tolerance,
-							lag_boost_verbose,
-							lag_boost_random_state,
-							lag_boost_horizon
-					)
+					lag_boost_signature = (series_col, len( series ), lag_boost_order,
+						lag_boost_loss, quantile, lag_boost_rate, lag_boost_iters,
+						lag_boost_leaf_nodes, max_depth, lag_boost_leaf, lag_boost_regularization,
+						lag_boost_features, lag_boost_bins, lag_boost_warm, lag_boost_stopping,
+						lag_boost_scoring, lag_boost_validation, lag_boost_no_change,
+						lag_boost_tolerance, lag_boost_verbose, lag_boost_random_state,
+						lag_boost_horizon)
 					
-					st.session_state[
-						'timeseries_lag_boost_model'
-					] = model
-					st.session_state[
-						'timeseries_lag_boost_forecast'
-					] = forecast.copy( )
-					st.session_state[
-						'timeseries_lag_boost_metrics'
-					] = df_metrics.copy( )
-					st.session_state[
-						'timeseries_lag_boost_results'
-					] = df_results.copy( )
-					st.session_state[
-						'timeseries_lag_boost_details'
-					] = df_details.copy( )
-					st.session_state[
-						'timeseries_lag_boost_signature'
-					] = lag_boost_signature
+					st.session_state[ 'timeseries_lag_boost_model' ] = model
+					st.session_state[ 'timeseries_lag_boost_forecast' ] = forecast.copy( )
+					st.session_state[ 'timeseries_lag_boost_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'timeseries_lag_boost_results' ] = df_results.copy( )
+					st.session_state[ 'timeseries_lag_boost_details' ] = df_details.copy( )
+					st.session_state[ 'timeseries_lag_boost_signature' ] = lag_boost_signature
 					
-					st.success(
-						'Lagged Boosting Regression forecasting complete.'
-					)
+					st.success( 'Lagged Boosting Regression forecasting complete.' )
 				except Exception as ex:
-					for key in [
-							'timeseries_lag_boost_model',
-							'timeseries_lag_boost_forecast',
-							'timeseries_lag_boost_metrics',
-							'timeseries_lag_boost_results',
-							'timeseries_lag_boost_details',
-							'timeseries_lag_boost_signature'
-					]:
+					for key in [ 'timeseries_lag_boost_model', 'timeseries_lag_boost_forecast',
+						'timeseries_lag_boost_metrics', 'timeseries_lag_boost_results',
+						'timeseries_lag_boost_details', 'timeseries_lag_boost_signature' ]:
 						st.session_state.pop( key, None )
 					
-					st.error(
-						f'Lagged Boosting Regression failed: {ex}'
-					)
+					st.error( f'Lagged Boosting Regression failed: {ex}' )
 			
-			current_quantile = (
-					lag_boost_quantile
-					if lag_boost_loss == 'quantile'
-					else None
-			)
+			current_quantile = (lag_boost_quantile if lag_boost_loss == 'quantile' else None)
 			
-			current_max_depth = (
-					lag_boost_depth_input
-					if lag_boost_use_depth
-					else None
-			)
+			current_max_depth = (lag_boost_depth_input if lag_boost_use_depth else None)
 			
-			current_lag_boost_signature = (
-					series_col,
-					len( series ),
-					lag_boost_order,
-					lag_boost_loss,
-					current_quantile,
-					lag_boost_rate,
-					lag_boost_iters,
-					lag_boost_leaf_nodes,
-					current_max_depth,
-					lag_boost_leaf,
-					lag_boost_regularization,
-					lag_boost_features,
-					lag_boost_bins,
-					lag_boost_warm,
-					lag_boost_stopping,
-					lag_boost_scoring,
-					lag_boost_validation,
-					lag_boost_no_change,
-					lag_boost_tolerance,
-					lag_boost_verbose,
-					lag_boost_random_state,
-					lag_boost_horizon
-			)
+			current_lag_boost_signature = (series_col, len( series ), lag_boost_order,
+				lag_boost_loss, current_quantile, lag_boost_rate, lag_boost_iters,
+				lag_boost_leaf_nodes, current_max_depth, lag_boost_leaf, lag_boost_regularization,
+				lag_boost_features, lag_boost_bins, lag_boost_warm, lag_boost_stopping,
+				lag_boost_scoring, lag_boost_validation, lag_boost_no_change, lag_boost_tolerance,
+				lag_boost_verbose, lag_boost_random_state, lag_boost_horizon)
 			
-			lag_boost_signature = st.session_state.get(
-				'timeseries_lag_boost_signature',
-				None
-			)
+			lag_boost_signature = st.session_state.get( 'timeseries_lag_boost_signature', None )
 			
 			if lag_boost_signature == current_lag_boost_signature:
-				df_metrics = st.session_state.get(
-					'timeseries_lag_boost_metrics',
-					pd.DataFrame( )
-				)
-				df_results = st.session_state.get(
-					'timeseries_lag_boost_results',
-					pd.DataFrame( )
-				)
-				df_details = st.session_state.get(
-					'timeseries_lag_boost_details',
-					pd.DataFrame( )
-				)
-				forecast = st.session_state.get(
-					'timeseries_lag_boost_forecast',
-					np.array( [ ], dtype=float )
-				)
+				df_metrics = st.session_state.get( 'timeseries_lag_boost_metrics', pd.DataFrame(
+				
+				) )
+				df_results = st.session_state.get( 'timeseries_lag_boost_results', pd.DataFrame(
+				
+				) )
+				df_details = st.session_state.get( 'timeseries_lag_boost_details', pd.DataFrame(
+				
+				) )
+				forecast = st.session_state.get( 'timeseries_lag_boost_forecast',
+					np.array( [ ], dtype=float ) )
 			else:
 				df_metrics = pd.DataFrame( )
 				df_results = pd.DataFrame( )
@@ -21823,25 +17839,15 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor(
-					df_metrics,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True,
-						hide_index=True,
-						disabled=True
-					)
+					st.data_editor( df_details, use_container_width=True, hide_index=True,
+						disabled=True )
 			else:
-				st.info(
-					'Run Lagged Boosting Regression to view model metrics.'
-				)
+				st.info( 'Run Lagged Boosting Regression to view model metrics.' )
 			
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
@@ -21850,16 +17856,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor(
-					df_results,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_results, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
-				st.info(
-					'Run Lagged Boosting Regression to view forecast values.'
-				)
+				st.info( 'Run Lagged Boosting Regression to view forecast values.' )
 			
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
@@ -21872,353 +17872,169 @@ elif mode == 'Time-Series Models':
 				fig, ax = plt.subplots( )
 				
 				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange(
-					len( series ),
-					len( series ) + len( forecast )
-				)
+				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 				
-				ax.plot(
-					observed_index,
-					series,
-					label='Observed'
-				)
-				ax.plot(
-					forecast_index,
-					forecast,
-					label='Forecast',
-					linestyle='--'
-				)
+				ax.plot( observed_index, series, label='Observed' )
+				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
-				ax.set_title(
-					'Lagged Boosting Regression Forecast'
-				)
+				ax.set_title( 'Lagged Boosting Regression Forecast' )
 				ax.legend( )
 				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
-				st.info(
-					'Run Lagged Boosting Regression to view the forecast plot.'
-				)
+				st.info( 'Run Lagged Boosting Regression to view the forecast plot.' )
 		
 		# ------------------------------------------------------------------
 		# LAGGED QUANTILE REGRESSION
 		# ------------------------------------------------------------------
 		with st.expander( 'Lagged Quantile Regression', expanded=False ):
-			lag_quantile_defaults = {
-					'timeseries_lag_quantile_lag': 12,
-					'timeseries_lag_quantile_quantile': 0.5,
-					'timeseries_lag_quantile_alpha': 1.0,
-					'timeseries_lag_quantile_fit': True,
-					'timeseries_lag_quantile_solver': 'highs',
-					'timeseries_lag_quantile_horizon': 5
-			}
+			lag_quantile_defaults = { 'timeseries_lag_quantile_lag': 12,
+				'timeseries_lag_quantile_quantile': 0.5, 'timeseries_lag_quantile_alpha': 1.0,
+				'timeseries_lag_quantile_fit': True, 'timeseries_lag_quantile_solver': 'highs',
+				'timeseries_lag_quantile_horizon': 5 }
 			
 			for key, value in lag_quantile_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
 			st.caption(
-				'Conditional quantile forecasting using linear regression over lagged observations.'
-			)
+				'Conditional quantile forecasting using linear regression over lagged '
+				'observations.' )
 			
-			lq_c1, lq_c2, lq_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			lq_c1, lq_c2, lq_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with lq_c1:
-				lag_quantile_order = int(
-					st.number_input(
-						'Lag Order',
-						min_value=1,
-						max_value=max( 1, len( series ) - 1 ),
-						step=1,
-						key='timeseries_lag_quantile_lag'
-					)
-				)
+				lag_quantile_order = int( st.number_input( 'Lag Order', min_value=1,
+					max_value=max( 1, len( series ) - 1 ), step=1,
+					key='timeseries_lag_quantile_lag' ) )
 				
 				lag_quantile_value = float(
-					st.number_input(
-						'Conditional Quantile',
-						min_value=0.0001,
-						max_value=0.9999,
-						step=0.05,
-						format='%.4f',
-						key='timeseries_lag_quantile_quantile'
-					)
-				)
+					st.number_input( 'Conditional Quantile', min_value=0.0001, max_value=0.9999,
+						step=0.05, format='%.4f', key='timeseries_lag_quantile_quantile' ) )
 			
 			with lq_c2:
 				lag_quantile_alpha = float(
-					st.number_input(
-						'L1 Regularization',
-						min_value=0.0,
-						step=0.1,
-						format='%.4f',
-						key='timeseries_lag_quantile_alpha'
-					)
-				)
+					st.number_input( 'L1 Regularization', min_value=0.0, step=0.1, format='%.4f',
+						key='timeseries_lag_quantile_alpha' ) )
 				
-				lag_quantile_fit = st.checkbox(
-					'Fit Intercept',
-					key='timeseries_lag_quantile_fit'
-				)
+				lag_quantile_fit = st.checkbox( 'Fit Intercept',
+					key='timeseries_lag_quantile_fit' )
 			
 			with lq_c3:
-				lag_quantile_solver = st.selectbox(
-					'Solver',
-					options=[
-							'highs',
-							'highs-ds',
-							'highs-ipm',
-							'interior-point',
-							'revised simplex'
-					],
-					key='timeseries_lag_quantile_solver'
-				)
+				lag_quantile_solver = st.selectbox( 'Solver',
+					options=[ 'highs', 'highs-ds', 'highs-ipm', 'interior-point',
+						'revised simplex' ], key='timeseries_lag_quantile_solver' )
 				
 				lag_quantile_horizon = int(
-					st.number_input(
-						'Forecast Horizon',
-						min_value=1,
-						step=1,
-						key='timeseries_lag_quantile_horizon'
-					)
-				)
+					st.number_input( 'Forecast Horizon', min_value=1, step=1,
+						key='timeseries_lag_quantile_horizon' ) )
 			
-			lag_quantile_reset_keys = list(
-				lag_quantile_defaults.keys( )
-			) + [
-					'timeseries_lag_quantile_model',
-					'timeseries_lag_quantile_forecast',
-					'timeseries_lag_quantile_metrics',
-					'timeseries_lag_quantile_results',
-					'timeseries_lag_quantile_details',
-					'timeseries_lag_quantile_signature'
-			]
+			lag_quantile_reset_keys = list( lag_quantile_defaults.keys( ) ) + [
+				'timeseries_lag_quantile_model', 'timeseries_lag_quantile_forecast',
+				'timeseries_lag_quantile_metrics', 'timeseries_lag_quantile_results',
+				'timeseries_lag_quantile_details', 'timeseries_lag_quantile_signature' ]
 			
 			lq_b1, lq_b2 = st.columns( 2 )
 			
 			with lq_b1:
-				run_lag_quantile = st.button(
-					'Run Lagged Quantile Regression',
-					icon='🏃',
-					key='timeseries_lag_quantile_run',
-					use_container_width=True
-				)
+				run_lag_quantile = st.button( 'Run Lagged Quantile Regression', icon='🏃',
+					key='timeseries_lag_quantile_run', use_container_width=True )
 			
 			with lq_b2:
-				st.button(
-					'Reset Lagged Quantile Regression',
-					icon='🔁',
-					key='timeseries_lag_quantile_reset',
-					use_container_width=True,
-					on_click=clear_keys,
-					args=( lag_quantile_reset_keys, )
-				)
+				st.button( 'Reset Lagged Quantile Regression', icon='🔁',
+					key='timeseries_lag_quantile_reset', use_container_width=True,
+					on_click=clear_keys, args=(lag_quantile_reset_keys,) )
 			
 			if run_lag_quantile:
 				try:
 					if lag_quantile_order >= len( series ):
-						st.warning(
-							'⚠️ Lag Order must be less than the number of observations.'
-						)
+						st.warning( '⚠️ Lag Order must be less than the number of observations.' )
 						st.stop( )
 					
 					if not 0.0 < lag_quantile_value < 1.0:
-						st.warning(
-							'⚠️ Conditional Quantile must be strictly between 0 and 1.'
-						)
+						st.warning( '⚠️ Conditional Quantile must be strictly between 0 and 1.' )
 						st.stop( )
 					
 					if lag_quantile_alpha < 0.0:
-						st.warning(
-							'⚠️ L1 Regularization cannot be negative.'
-						)
+						st.warning( '⚠️ L1 Regularization cannot be negative.' )
 						st.stop( )
 					
-					model = LagQuantileSeries(
-						lag=lag_quantile_order,
-						quantile=lag_quantile_value,
-						alpha=lag_quantile_alpha,
-						fit=lag_quantile_fit,
-						solver=lag_quantile_solver,
-						solver_options=None
-					)
+					model = LagQuantileSeries( lag=lag_quantile_order, quantile=lag_quantile_value,
+						alpha=lag_quantile_alpha, fit=lag_quantile_fit, solver=lag_quantile_solver,
+						solver_options=None )
 					
 					start_time = time.time( )
 					model.train( series )
 					metrics = model.analyze( )
-					forecast = model.project(
-						n_steps=lag_quantile_horizon
-					)
+					forecast = model.project( n_steps=lag_quantile_horizon )
 					elapsed_seconds = time.time( ) - start_time
 					
 					if metrics is None:
 						metrics = { }
 					
 					df_metrics = pd.DataFrame(
-						[
-								{
-										'Metric': metric,
-										'Value': float( value )
-								}
-								for metric, value in metrics.items( )
-						]
-					)
+						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
+							metrics.items( ) ] )
 					
-					df_metrics = pd.concat(
-						[
-								df_metrics,
-								pd.DataFrame(
-									[
-											{
-													'Metric': 'Processing Time (sec)',
-													'Value': round(
-														elapsed_seconds,
-														4
-													)
-											}
-									]
-								)
-						],
-						ignore_index=True
-					)
+					df_metrics = pd.concat( [ df_metrics, pd.DataFrame(
+						[ { 'Metric': 'Processing Time (sec)',
+							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
-					forecast = np.asarray(
-						forecast,
-						dtype=float
-					).reshape( -1 )
+					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
 					
-					forecast_index = np.arange(
-						len( series ),
-						len( series ) + len( forecast )
-					)
+					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 					
-					df_results = pd.DataFrame(
-						{
-								'Period': forecast_index,
-								'Quantile': lag_quantile_value,
-								'Forecast': forecast
-						}
-					)
+					df_results = pd.DataFrame( { 'Period': forecast_index, 'Quantile': lag_quantile_value,
+							'Forecast': forecast } )
 					
-					detail_rows = [
-							{
-									'Property': 'Lag Order',
-									'Value': model.lag
-							},
-							{
-									'Property': 'Conditional Quantile',
-									'Value': model.quantile
-							},
-							{
-									'Property': 'L1 Regularization',
-									'Value': model.alpha
-							},
-							{
-									'Property': 'Fit Intercept',
-									'Value': model.fit_intercept
-							},
-							{
-									'Property': 'Solver',
-									'Value': model.solver
-							},
-							{
-									'Property': 'Training Samples',
-									'Value': len( model.training_values )
-							},
-							{
-									'Property': 'Forecast Horizon',
-									'Value': lag_quantile_horizon
-							}
-					]
+					detail_rows = [ { 'Property': 'Lag Order', 'Value': model.lag },
+						{ 'Property': 'Conditional Quantile', 'Value': model.quantile },
+						{ 'Property': 'L1 Regularization', 'Value': model.alpha },
+						{ 'Property': 'Fit Intercept', 'Value': model.fit_intercept },
+						{ 'Property': 'Solver', 'Value': model.solver },
+						{ 'Property': 'Training Samples', 'Value': len( model.training_values ) },
+						{ 'Property': 'Forecast Horizon', 'Value': lag_quantile_horizon } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					
-					lag_quantile_signature = (
-							series_col,
-							len( series ),
-							lag_quantile_order,
-							lag_quantile_value,
-							lag_quantile_alpha,
-							lag_quantile_fit,
-							lag_quantile_solver,
-							lag_quantile_horizon
-					)
+					lag_quantile_signature = (series_col, len( series ), lag_quantile_order,
+						lag_quantile_value, lag_quantile_alpha, lag_quantile_fit,
+						lag_quantile_solver, lag_quantile_horizon)
 					
-					st.session_state[
-						'timeseries_lag_quantile_model'
-					] = model
-					st.session_state[
-						'timeseries_lag_quantile_forecast'
-					] = forecast.copy( )
-					st.session_state[
-						'timeseries_lag_quantile_metrics'
-					] = df_metrics.copy( )
-					st.session_state[
-						'timeseries_lag_quantile_results'
-					] = df_results.copy( )
-					st.session_state[
-						'timeseries_lag_quantile_details'
-					] = df_details.copy( )
-					st.session_state[
-						'timeseries_lag_quantile_signature'
-					] = lag_quantile_signature
-					
-					st.success(
-						'Lagged Quantile Regression forecasting complete.'
-					)
+					st.session_state[ 'timeseries_lag_quantile_model' ] = model
+					st.session_state[ 'timeseries_lag_quantile_forecast' ] = forecast.copy( )
+					st.session_state[ 'timeseries_lag_quantile_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'timeseries_lag_quantile_results' ] = df_results.copy( )
+					st.session_state[ 'timeseries_lag_quantile_details' ] = df_details.copy( )
+					st.session_state[ 'timeseries_lag_quantile_signature' ] = lag_quantile_signature
+					st.success( 'Lagged Quantile Regression forecasting complete.' )
 				except Exception as ex:
-					for key in [
-							'timeseries_lag_quantile_model',
-							'timeseries_lag_quantile_forecast',
-							'timeseries_lag_quantile_metrics',
-							'timeseries_lag_quantile_results',
-							'timeseries_lag_quantile_details',
-							'timeseries_lag_quantile_signature'
-					]:
+					for key in [ 'timeseries_lag_quantile_model',
+						'timeseries_lag_quantile_forecast', 'timeseries_lag_quantile_metrics',
+						'timeseries_lag_quantile_results', 'timeseries_lag_quantile_details',
+						'timeseries_lag_quantile_signature' ]:
 						st.session_state.pop( key, None )
 					
-					st.error(
-						f'Lagged Quantile Regression failed: {ex}'
-					)
+					st.error( f'Lagged Quantile Regression failed: {ex}' )
 			
-			current_lag_quantile_signature = (
-					series_col,
-					len( series ),
-					lag_quantile_order,
-					lag_quantile_value,
-					lag_quantile_alpha,
-					lag_quantile_fit,
-					lag_quantile_solver,
-					lag_quantile_horizon
-			)
+			current_lag_quantile_signature = (series_col, len( series ), lag_quantile_order,
+				lag_quantile_value, lag_quantile_alpha, lag_quantile_fit, lag_quantile_solver,
+				lag_quantile_horizon)
 			
-			lag_quantile_signature = st.session_state.get(
-				'timeseries_lag_quantile_signature',
-				None
-			)
+			lag_quantile_signature = st.session_state.get( 'timeseries_lag_quantile_signature',
+				None )
 			
 			if lag_quantile_signature == current_lag_quantile_signature:
-				df_metrics = st.session_state.get(
-					'timeseries_lag_quantile_metrics',
-					pd.DataFrame( )
-				)
-				df_results = st.session_state.get(
-					'timeseries_lag_quantile_results',
-					pd.DataFrame( )
-				)
-				df_details = st.session_state.get(
-					'timeseries_lag_quantile_details',
-					pd.DataFrame( )
-				)
-				forecast = st.session_state.get(
-					'timeseries_lag_quantile_forecast',
-					np.array( [ ], dtype=float )
-				)
+				df_metrics = st.session_state.get( 'timeseries_lag_quantile_metrics',
+					pd.DataFrame( ) )
+				df_results = st.session_state.get( 'timeseries_lag_quantile_results',
+					pd.DataFrame( ) )
+				df_details = st.session_state.get( 'timeseries_lag_quantile_details',
+					pd.DataFrame( ) )
+				forecast = st.session_state.get( 'timeseries_lag_quantile_forecast',
+					np.array( [ ], dtype=float ) )
 			else:
 				df_metrics = pd.DataFrame( )
 				df_results = pd.DataFrame( )
@@ -22232,25 +18048,15 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor(
-					df_metrics,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True,
-						hide_index=True,
-						disabled=True
-					)
+					st.data_editor( df_details, use_container_width=True, hide_index=True,
+						disabled=True )
 			else:
-				st.info(
-					'Run Lagged Quantile Regression to view model metrics.'
-				)
+				st.info( 'Run Lagged Quantile Regression to view model metrics.' )
 			
 			# ------------------------------------------------------------------
 			# FORECAST RESULTS
@@ -22259,16 +18065,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor(
-					df_results,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_results, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
-				st.info(
-					'Run Lagged Quantile Regression to view forecast values.'
-				)
+				st.info( 'Run Lagged Quantile Regression to view forecast values.' )
 			
 			# ------------------------------------------------------------------
 			# FORECAST VISUALIZATION
@@ -22281,125 +18081,66 @@ elif mode == 'Time-Series Models':
 				fig, ax = plt.subplots( )
 				
 				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange(
-					len( series ),
-					len( series ) + len( forecast )
-				)
+				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 				
-				ax.plot(
-					observed_index,
-					series,
-					label='Observed'
-				)
-				ax.plot(
-					forecast_index,
-					forecast,
-					label=f'Quantile {lag_quantile_value:.2f}',
-					linestyle='--'
-				)
+				ax.plot( observed_index, series, label='Observed' )
+				ax.plot( forecast_index, forecast, label=f'Quantile {lag_quantile_value:.2f}',
+					linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
-				ax.set_title(
-					'Lagged Quantile Regression Forecast'
-				)
+				ax.set_title( 'Lagged Quantile Regression Forecast' )
 				ax.legend( )
 				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
-				st.info(
-					'Run Lagged Quantile Regression to view the forecast plot.'
-				)
-				
+				st.info( 'Run Lagged Quantile Regression to view the forecast plot.' )
+		
 		# ------------------------------------------------------------------
 		# ARIMA
 		# ------------------------------------------------------------------
 		with st.expander( 'ARIMA', expanded=False ):
-			arima_defaults = {
-					'timeseries_arima_p': 1,
-					'timeseries_arima_d': 0,
-					'timeseries_arima_q': 0,
-					'timeseries_arima_horizon': 5
-			}
+			arima_defaults = { 'timeseries_arima_p': 1, 'timeseries_arima_d': 0,
+				'timeseries_arima_q': 0, 'timeseries_arima_horizon': 5 }
 			
 			for key, value in arima_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Nonseasonal autoregressive integrated moving-average forecasting.'
-			)
+			st.caption( 'Nonseasonal autoregressive integrated moving-average forecasting.' )
 			
 			ar_c1, ar_c2, ar_c3, ar_c4 = st.columns( 4, border=True )
 			
 			with ar_c1:
-				arima_p = int(
-					st.number_input(
-						'Autoregressive Order (p)',
-						min_value=0,
-						step=1,
-						key='timeseries_arima_p'
-					)
-				)
+				arima_p = int( st.number_input( 'Autoregressive Order (p)', min_value=0, step=1,
+					key='timeseries_arima_p' ) )
 			
 			with ar_c2:
-				arima_d = int(
-					st.number_input(
-						'Differencing Order (d)',
-						min_value=0,
-						step=1,
-						key='timeseries_arima_d'
-					)
-				)
+				arima_d = int( st.number_input( 'Differencing Order (d)', min_value=0, step=1,
+					key='timeseries_arima_d' ) )
 			
 			with ar_c3:
-				arima_q = int(
-					st.number_input(
-						'Moving-Average Order (q)',
-						min_value=0,
-						step=1,
-						key='timeseries_arima_q'
-					)
-				)
+				arima_q = int( st.number_input( 'Moving-Average Order (q)', min_value=0, step=1,
+					key='timeseries_arima_q' ) )
 			
 			with ar_c4:
-				arima_horizon = int(
-					st.number_input(
-						'Forecast Horizon',
-						min_value=1,
-						step=1,
-						key='timeseries_arima_horizon'
-					)
-				)
+				arima_horizon = int( st.number_input( 'Forecast Horizon', min_value=1, step=1,
+					key='timeseries_arima_horizon' ) )
 			
-			arima_reset_keys = list( arima_defaults.keys( ) ) + [
-					'timeseries_arima_model',
-					'timeseries_arima_forecast',
-					'timeseries_arima_metrics',
-					'timeseries_arima_results',
-					'timeseries_arima_details',
-					'timeseries_arima_signature'
-			]
+			arima_reset_keys = list( arima_defaults.keys( ) ) + [ 'timeseries_arima_model',
+				'timeseries_arima_forecast', 'timeseries_arima_metrics',
+				'timeseries_arima_results', 'timeseries_arima_details',
+				'timeseries_arima_signature' ]
 			
 			ar_b1, ar_b2 = st.columns( 2 )
 			
 			with ar_b1:
-				run_arima = st.button(
-					'Run ARIMA',
-					icon='🏃',
-					key='timeseries_arima_run',
-					use_container_width=True
-				)
+				run_arima = st.button( 'Run ARIMA', icon='🏃', key='timeseries_arima_run',
+					use_container_width=True )
 			
 			with ar_b2:
-				st.button(
-					'Reset ARIMA',
-					icon='🔁',
-					key='timeseries_arima_reset',
-					use_container_width=True,
-					on_click=clear_keys,
-					args=( arima_reset_keys, )
-				)
+				st.button( 'Reset ARIMA', icon='🔁', key='timeseries_arima_reset',
+					use_container_width=True, on_click=clear_keys, args=(arima_reset_keys,) )
 			
 			if run_arima:
 				try:
@@ -22407,21 +18148,15 @@ elif mode == 'Time-Series Models':
 					
 					if len( series ) <= minimum_observations:
 						st.warning(
-							'⚠️ The selected series does not contain enough observations for the ARIMA order.'
-						)
+							'⚠️ The selected series does not contain enough observations for the '
+							'ARIMA order.' )
 						st.stop( )
 					
 					if arima_p == 0 and arima_d == 0 and arima_q == 0:
-						st.warning(
-							'⚠️ At least one ARIMA order must be greater than zero.'
-						)
+						st.warning( '⚠️ At least one ARIMA order must be greater than zero.' )
 						st.stop( )
 					
-					arima_order = (
-							arima_p,
-							arima_d,
-							arima_q
-					)
+					arima_order = (arima_p, arima_d, arima_q)
 					
 					model = ARIMA( order=arima_order )
 					
@@ -22435,158 +18170,57 @@ elif mode == 'Time-Series Models':
 						metrics = { }
 					
 					df_metrics = pd.DataFrame(
-						[
-								{
-										'Metric': metric,
-										'Value': float( value )
-								}
-								for metric, value in metrics.items( )
-						]
-					)
+						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
+							metrics.items( ) ] )
 					
-					df_metrics = pd.concat(
-						[
-								df_metrics,
-								pd.DataFrame(
-									[
-											{
-													'Metric': 'Processing Time (sec)',
-													'Value': round(
-														elapsed_seconds,
-														4
-													)
-											}
-									]
-								)
-						],
-						ignore_index=True
-					)
+					df_metrics = pd.concat( [ df_metrics, pd.DataFrame(
+						[ { 'Metric': 'Processing Time (sec)',
+							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
-					forecast = np.asarray(
-						forecast,
-						dtype=float
-					).reshape( -1 )
+					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
 					
-					forecast_index = np.arange(
-						len( series ),
-						len( series ) + len( forecast )
-					)
+					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 					
-					df_results = pd.DataFrame(
-						{
-								'Period': forecast_index,
-								'Forecast': forecast
-						}
-					)
+					df_results = pd.DataFrame( { 'Period': forecast_index, 'Forecast': forecast } )
 					
-					detail_rows = [
-							{
-									'Property': 'Order',
-									'Value': str( model.order )
-							},
-							{
-									'Property': 'Autoregressive Order',
-									'Value': arima_p
-							},
-							{
-									'Property': 'Differencing Order',
-									'Value': arima_d
-							},
-							{
-									'Property': 'Moving-Average Order',
-									'Value': arima_q
-							},
-							{
-									'Property': 'Training Observations',
-									'Value': len( model.train_data )
-							},
-							{
-									'Property': 'Forecast Horizon',
-									'Value': arima_horizon
-							},
-							{
-									'Property': 'AIC',
-									'Value': float( model.results.aic )
-							},
-							{
-									'Property': 'BIC',
-									'Value': float( model.results.bic )
-							}
-					]
+					detail_rows = [ { 'Property': 'Order', 'Value': str( model.order ) },
+						{ 'Property': 'Autoregressive Order', 'Value': arima_p },
+						{ 'Property': 'Differencing Order', 'Value': arima_d },
+						{ 'Property': 'Moving-Average Order', 'Value': arima_q },
+						{ 'Property': 'Training Observations', 'Value': len( model.train_data ) },
+						{ 'Property': 'Forecast Horizon', 'Value': arima_horizon },
+						{ 'Property': 'AIC', 'Value': float( model.results.aic ) },
+						{ 'Property': 'BIC', 'Value': float( model.results.bic ) } ]
 					
 					df_details = pd.DataFrame( detail_rows )
-					
-					arima_signature = (
-							series_col,
-							len( series ),
-							arima_p,
-							arima_d,
-							arima_q,
-							arima_horizon
-					)
+					arima_signature = (series_col, len( series ), arima_p, arima_d, arima_q,
+						arima_horizon)
 					
 					st.session_state[ 'timeseries_arima_model' ] = model
-					st.session_state[
-						'timeseries_arima_forecast'
-					] = forecast.copy( )
-					st.session_state[
-						'timeseries_arima_metrics'
-					] = df_metrics.copy( )
-					st.session_state[
-						'timeseries_arima_results'
-					] = df_results.copy( )
-					st.session_state[
-						'timeseries_arima_details'
-					] = df_details.copy( )
-					st.session_state[
-						'timeseries_arima_signature'
-					] = arima_signature
-					
+					st.session_state[ 'timeseries_arima_forecast' ] = forecast.copy( )
+					st.session_state[ 'timeseries_arima_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'timeseries_arima_results' ] = df_results.copy( )
+					st.session_state[ 'timeseries_arima_details' ] = df_details.copy( )
+					st.session_state[ 'timeseries_arima_signature' ] = arima_signature
 					st.success( 'ARIMA forecasting complete.' )
 				except Exception as ex:
-					for key in [
-							'timeseries_arima_model',
-							'timeseries_arima_forecast',
-							'timeseries_arima_metrics',
-							'timeseries_arima_results',
-							'timeseries_arima_details',
-							'timeseries_arima_signature'
-					]:
+					for key in [ 'timeseries_arima_model', 'timeseries_arima_forecast',
+						'timeseries_arima_metrics', 'timeseries_arima_results',
+						'timeseries_arima_details', 'timeseries_arima_signature' ]:
 						st.session_state.pop( key, None )
 					
 					st.error( f'ARIMA forecasting failed: {ex}' )
 			
-			current_arima_signature = (
-					series_col,
-					len( series ),
-					arima_p,
-					arima_d,
-					arima_q,
-					arima_horizon
-			)
+			current_arima_signature = (series_col, len( series ), arima_p, arima_d, arima_q,
+				arima_horizon)
 			
-			arima_signature = st.session_state.get(
-				'timeseries_arima_signature',
-				None
-			)
-			
+			arima_signature = st.session_state.get( 'timeseries_arima_signature', None )
 			if arima_signature == current_arima_signature:
-				df_metrics = st.session_state.get(
-					'timeseries_arima_metrics',
-					pd.DataFrame( )
-				)
-				df_results = st.session_state.get(
-					'timeseries_arima_results',
-					pd.DataFrame( )
-				)
-				df_details = st.session_state.get(
-					'timeseries_arima_details',
-					pd.DataFrame( )
-				)
-				forecast = st.session_state.get(
-					'timeseries_arima_forecast',
-					np.array( [ ], dtype=float )
-				)
+				df_metrics = st.session_state.get( 'timeseries_arima_metrics', pd.DataFrame( ) )
+				df_results = st.session_state.get( 'timeseries_arima_results', pd.DataFrame( ) )
+				df_details = st.session_state.get( 'timeseries_arima_details', pd.DataFrame( ) )
+				forecast = st.session_state.get( 'timeseries_arima_forecast',
+					np.array( [ ], dtype=float ) )
 			else:
 				df_metrics = pd.DataFrame( )
 				df_results = pd.DataFrame( )
@@ -22600,21 +18234,13 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor(
-					df_metrics,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True,
-						hide_index=True,
-						disabled=True
-					)
+					st.data_editor( df_details, use_container_width=True, hide_index=True,
+						disabled=True )
 			else:
 				st.info( 'Run ARIMA to view model metrics.' )
 			
@@ -22623,14 +18249,9 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( '##### Forecast Results' )
-			
 			if not df_results.empty:
-				st.data_editor(
-					df_results,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_results, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
 				st.info( 'Run ARIMA to view forecast values.' )
 			
@@ -22639,438 +18260,201 @@ elif mode == 'Time-Series Models':
 			# ------------------------------------------------------------------
 			st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 			st.markdown( '##### Observed vs Forecast' )
-			
 			if len( forecast ) > 0:
 				plt.close( 'all' )
 				fig, ax = plt.subplots( )
-				
 				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange(
-					len( series ),
-					len( series ) + len( forecast )
-				)
-				
-				ax.plot(
-					observed_index,
-					series,
-					label='Observed'
-				)
-				ax.plot(
-					forecast_index,
-					forecast,
-					label='Forecast',
-					linestyle='--'
-				)
+				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
+				ax.plot( observed_index, series, label='Observed' )
+				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
-				ax.set_title(
-					f'ARIMA{( arima_p, arima_d, arima_q )} Forecast'
-				)
+				ax.set_title( f'ARIMA{(arima_p, arima_d, arima_q)} Forecast' )
 				ax.legend( )
-				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
-				st.info(
-					'Run ARIMA to view the forecast plot.'
-				)
+				st.info( 'Run ARIMA to view the forecast plot.' )
 		
 		# ------------------------------------------------------------------
 		# SARIMA
 		# ------------------------------------------------------------------
 		with st.expander( 'SARIMA', expanded=False ):
-			sarima_defaults = {
-					'timeseries_sarima_p': 1,
-					'timeseries_sarima_d': 0,
-					'timeseries_sarima_q': 0,
-					'timeseries_sarima_seasonal_p': 0,
-					'timeseries_sarima_seasonal_d': 0,
-					'timeseries_sarima_seasonal_q': 0,
-					'timeseries_sarima_seasonal_period': 0,
-					'timeseries_sarima_horizon': 5
-			}
+			sarima_defaults = { 'timeseries_sarima_p': 1, 'timeseries_sarima_d': 0,
+				'timeseries_sarima_q': 0, 'timeseries_sarima_seasonal_p': 0,
+				'timeseries_sarima_seasonal_d': 0, 'timeseries_sarima_seasonal_q': 0,
+				'timeseries_sarima_seasonal_period': 0, 'timeseries_sarima_horizon': 5 }
 			
 			for key, value in sarima_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
-			st.caption(
-				'Seasonal autoregressive integrated moving-average forecasting.'
-			)
+			st.caption( 'Seasonal autoregressive integrated moving-average forecasting.' )
 			
-			sa_c1, sa_c2, sa_c3, sa_c4 = st.columns(
-				4,
-				border=True
-			)
+			sa_c1, sa_c2, sa_c3, sa_c4 = st.columns( 4, border=True )
 			
 			with sa_c1:
-				sarima_p = int(
-					st.number_input(
-						'Autoregressive Order (p)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_p'
-					)
-				)
+				sarima_p = int( st.number_input( 'Autoregressive Order (p)', min_value=0, step=1,
+					key='timeseries_sarima_p' ) )
 				
-				sarima_seasonal_p = int(
-					st.number_input(
-						'Seasonal Autoregressive Order (P)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_seasonal_p'
-					)
-				)
+				sarima_seasonal_p = int( st.number_input( 'Seasonal Autoregressive Order (P)',
+					min_value=0, step=1, key='timeseries_sarima_seasonal_p' ) )
 			
 			with sa_c2:
-				sarima_d = int(
-					st.number_input(
-						'Differencing Order (d)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_d'
-					)
-				)
+				sarima_d = int( st.number_input( 'Differencing Order (d)', min_value=0, step=1,
+					key='timeseries_sarima_d' ) )
 				
-				sarima_seasonal_d = int(
-					st.number_input(
-						'Seasonal Differencing Order (D)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_seasonal_d'
-					)
-				)
+				sarima_seasonal_d = int( st.number_input( 'Seasonal Differencing Order (D)',
+					min_value=0, step=1, key='timeseries_sarima_seasonal_d' ) )
 			
 			with sa_c3:
-				sarima_q = int(
-					st.number_input(
-						'Moving-Average Order (q)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_q'
-					)
-				)
+				sarima_q = int( st.number_input( 'Moving-Average Order (q)', min_value=0, step=1,
+					key='timeseries_sarima_q' ) )
 				
 				sarima_seasonal_q = int(
-					st.number_input(
-						'Seasonal Moving-Average Order (Q)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_seasonal_q'
-					)
-				)
+					st.number_input( 'Seasonal Moving-Average Order (Q)', min_value=0, step=1,
+						key='timeseries_sarima_seasonal_q' ) )
 			
 			with sa_c4:
 				sarima_seasonal_period = int(
-					st.number_input(
-						'Seasonal Period (s)',
-						min_value=0,
-						step=1,
-						key='timeseries_sarima_seasonal_period'
-					)
-				)
+					st.number_input( 'Seasonal Period (s)', min_value=0, step=1,
+						key='timeseries_sarima_seasonal_period' ) )
 				
-				sarima_horizon = int(
-					st.number_input(
-						'Forecast Horizon',
-						min_value=1,
-						step=1,
-						key='timeseries_sarima_horizon'
-					)
-				)
+				sarima_horizon = int( st.number_input( 'Forecast Horizon', min_value=1, step=1,
+					key='timeseries_sarima_horizon' ) )
 			
-			sarima_reset_keys = list( sarima_defaults.keys( ) ) + [
-					'timeseries_sarima_model',
-					'timeseries_sarima_forecast',
-					'timeseries_sarima_metrics',
-					'timeseries_sarima_results',
-					'timeseries_sarima_details',
-					'timeseries_sarima_signature'
-			]
+			sarima_reset_keys = list( sarima_defaults.keys( ) ) + [ 'timeseries_sarima_model',
+				'timeseries_sarima_forecast', 'timeseries_sarima_metrics',
+				'timeseries_sarima_results', 'timeseries_sarima_details',
+				'timeseries_sarima_signature' ]
 			
 			sa_b1, sa_b2 = st.columns( 2 )
 			
 			with sa_b1:
-				run_sarima = st.button(
-					'Run SARIMA',
-					icon='🏃',
-					key='timeseries_sarima_run',
-					use_container_width=True
-				)
+				run_sarima = st.button( 'Run SARIMA', icon='🏃', key='timeseries_sarima_run',
+					use_container_width=True )
 			
 			with sa_b2:
-				st.button(
-					'Reset SARIMA',
-					icon='🔁',
-					key='timeseries_sarima_reset',
-					use_container_width=True,
-					on_click=clear_keys,
-					args=( sarima_reset_keys, )
-				)
+				st.button( 'Reset SARIMA', icon='🔁', key='timeseries_sarima_reset',
+					use_container_width=True, on_click=clear_keys, args=(sarima_reset_keys,) )
 			
 			if run_sarima:
 				try:
-					nonseasonal_order = (
-							sarima_p,
-							sarima_d,
-							sarima_q
-					)
+					nonseasonal_order = (sarima_p, sarima_d, sarima_q)
 					
-					seasonal_terms = (
-							sarima_seasonal_p,
-							sarima_seasonal_d,
-							sarima_seasonal_q
-					)
+					seasonal_terms = (sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q)
 					
-					uses_seasonality = any(
-						value > 0
-						for value in seasonal_terms
-					)
+					uses_seasonality = any( value > 0 for value in seasonal_terms )
 					
-					if (
-							all( value == 0 for value in nonseasonal_order )
-							and not uses_seasonality
-					):
+					if (all( value == 0 for value in nonseasonal_order ) and not uses_seasonality):
 						st.warning(
-							'⚠️ At least one nonseasonal or seasonal order must be greater than zero.'
-						)
+							'⚠️ At least one nonseasonal or seasonal order must be greater than '
+							'zero.' )
 						st.stop( )
 					
 					if uses_seasonality and sarima_seasonal_period < 2:
 						st.warning(
-							'⚠️ Seasonal Period must be at least 2 when seasonal orders are used.'
-						)
+							'⚠️ Seasonal Period must be at least 2 when seasonal orders are '
+							'used.' )
 						st.stop( )
 					
-					if (
-							not uses_seasonality
-							and sarima_seasonal_period not in [ 0, 1 ]
-					):
+					if (not uses_seasonality and sarima_seasonal_period not in [ 0, 1 ]):
 						st.warning(
-							'⚠️ Set Seasonal Period to 0 when no seasonal orders are used.'
-						)
+							'⚠️ Set Seasonal Period to 0 when no seasonal orders are used.' )
 						st.stop( )
 					
-					effective_seasonal_period = (
-							sarima_seasonal_period
-							if uses_seasonality
-							else 0
-					)
+					effective_seasonal_period = (sarima_seasonal_period if uses_seasonality else 0)
 					
-					seasonal_order = (
-							sarima_seasonal_p,
-							sarima_seasonal_d,
-							sarima_seasonal_q,
-							effective_seasonal_period
-					)
+					seasonal_order = (sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q,
+						effective_seasonal_period)
 					
-					minimum_observations = max(
-						sarima_p + sarima_d + sarima_q,
-						sarima_seasonal_p
-						+ sarima_seasonal_d
-						+ sarima_seasonal_q,
-						1
-					)
+					minimum_observations = max( sarima_p + sarima_d + sarima_q,
+						sarima_seasonal_p + sarima_seasonal_d + sarima_seasonal_q, 1 )
 					
 					if len( series ) <= minimum_observations:
 						st.warning(
-							'⚠️ The selected series does not contain enough observations for the SARIMA orders.'
-						)
+							'⚠️ The selected series does not contain enough observations for the '
+							'SARIMA orders.' )
 						st.stop( )
 					
-					if (
-							uses_seasonality
-							and len( series ) <= effective_seasonal_period
-					):
+					if (uses_seasonality and len( series ) <= effective_seasonal_period):
 						st.warning(
-							'⚠️ The selected series must contain more observations than the Seasonal Period.'
-						)
+							'⚠️ The selected series must contain more observations than the '
+							'Seasonal Period.' )
 						st.stop( )
 					
-					model = SARIMA(
-						order=nonseasonal_order,
-						seasonal=seasonal_order
-					)
+					model = SARIMA( order=nonseasonal_order, seasonal=seasonal_order )
 					
 					start_time = time.time( )
 					model.train( series )
 					metrics = model.analyze( )
-					forecast = model.project(
-						n_steps=sarima_horizon
-					)
+					forecast = model.project( n_steps=sarima_horizon )
 					elapsed_seconds = time.time( ) - start_time
 					
 					if metrics is None:
 						metrics = { }
 					
 					df_metrics = pd.DataFrame(
-						[
-								{
-										'Metric': metric,
-										'Value': float( value )
-								}
-								for metric, value in metrics.items( )
-						]
-					)
+						[ { 'Metric': metric, 'Value': float( value ) } for metric, value in
+							metrics.items( ) ] )
 					
-					df_metrics = pd.concat(
-						[
-								df_metrics,
-								pd.DataFrame(
-									[
-											{
-													'Metric': 'Processing Time (sec)',
-													'Value': round(
-														elapsed_seconds,
-														4
-													)
-											}
-									]
-								)
-						],
-						ignore_index=True
-					)
+					df_metrics = pd.concat( [ df_metrics, pd.DataFrame(
+						[ { 'Metric': 'Processing Time (sec)',
+							'Value': round( elapsed_seconds, 4 ) } ] ) ], ignore_index=True )
 					
-					forecast = np.asarray(
-						forecast,
-						dtype=float
-					).reshape( -1 )
+					forecast = np.asarray( forecast, dtype=float ).reshape( -1 )
 					
-					forecast_index = np.arange(
-						len( series ),
-						len( series ) + len( forecast )
-					)
+					forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 					
-					df_results = pd.DataFrame(
-						{
-								'Period': forecast_index,
-								'Forecast': forecast
-						}
-					)
+					df_results = pd.DataFrame( { 'Period': forecast_index, 'Forecast': forecast } )
 					
-					detail_rows = [
-							{
-									'Property': 'Order',
-									'Value': str( model.order )
-							},
-							{
-									'Property': 'Seasonal Order',
-									'Value': str( model.seasonal_order )
-							},
-							{
-									'Property': 'Training Observations',
-									'Value': len( model.training_data )
-							},
-							{
-									'Property': 'Forecast Horizon',
-									'Value': sarima_horizon
-							},
-							{
-									'Property': 'AIC',
-									'Value': float( model.results.aic )
-							},
-							{
-									'Property': 'BIC',
-									'Value': float( model.results.bic )
-							}
-					]
+					detail_rows = [ { 'Property': 'Order', 'Value': str( model.order ) },
+						{ 'Property': 'Seasonal Order', 'Value': str( model.seasonal_order ) },
+						{ 'Property': 'Training Observations',
+							'Value': len( model.training_data ) },
+						{ 'Property': 'Forecast Horizon', 'Value': sarima_horizon },
+						{ 'Property': 'AIC', 'Value': float( model.results.aic ) },
+						{ 'Property': 'BIC', 'Value': float( model.results.bic ) } ]
 					
 					df_details = pd.DataFrame( detail_rows )
 					
-					sarima_signature = (
-							series_col,
-							len( series ),
-							sarima_p,
-							sarima_d,
-							sarima_q,
-							sarima_seasonal_p,
-							sarima_seasonal_d,
-							sarima_seasonal_q,
-							effective_seasonal_period,
-							sarima_horizon
-					)
+					sarima_signature = (series_col, len( series ), sarima_p, sarima_d, sarima_q,
+						sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q,
+						effective_seasonal_period, sarima_horizon)
 					
 					st.session_state[ 'timeseries_sarima_model' ] = model
-					st.session_state[
-						'timeseries_sarima_forecast'
-					] = forecast.copy( )
-					st.session_state[
-						'timeseries_sarima_metrics'
-					] = df_metrics.copy( )
-					st.session_state[
-						'timeseries_sarima_results'
-					] = df_results.copy( )
-					st.session_state[
-						'timeseries_sarima_details'
-					] = df_details.copy( )
-					st.session_state[
-						'timeseries_sarima_signature'
-					] = sarima_signature
+					st.session_state[ 'timeseries_sarima_forecast' ] = forecast.copy( )
+					st.session_state[ 'timeseries_sarima_metrics' ] = df_metrics.copy( )
+					st.session_state[ 'timeseries_sarima_results' ] = df_results.copy( )
+					st.session_state[ 'timeseries_sarima_details' ] = df_details.copy( )
+					st.session_state[ 'timeseries_sarima_signature' ] = sarima_signature
 					
 					st.success( 'SARIMA forecasting complete.' )
 				except Exception as ex:
-					for key in [
-							'timeseries_sarima_model',
-							'timeseries_sarima_forecast',
-							'timeseries_sarima_metrics',
-							'timeseries_sarima_results',
-							'timeseries_sarima_details',
-							'timeseries_sarima_signature'
-					]:
+					for key in [ 'timeseries_sarima_model', 'timeseries_sarima_forecast',
+						'timeseries_sarima_metrics', 'timeseries_sarima_results',
+						'timeseries_sarima_details', 'timeseries_sarima_signature' ]:
 						st.session_state.pop( key, None )
 					
 					st.error( f'SARIMA forecasting failed: {ex}' )
 			
 			current_uses_seasonality = any(
-				value > 0
-				for value in (
-						sarima_seasonal_p,
-						sarima_seasonal_d,
-						sarima_seasonal_q
-				)
-			)
+				value > 0 for value in (sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q) )
 			
-			current_seasonal_period = (
-					sarima_seasonal_period
-					if current_uses_seasonality
-					else 0
-			)
+			current_seasonal_period = (sarima_seasonal_period if current_uses_seasonality else 0)
 			
-			current_sarima_signature = (
-					series_col,
-					len( series ),
-					sarima_p,
-					sarima_d,
-					sarima_q,
-					sarima_seasonal_p,
-					sarima_seasonal_d,
-					sarima_seasonal_q,
-					current_seasonal_period,
-					sarima_horizon
-			)
+			current_sarima_signature = (series_col, len( series ), sarima_p, sarima_d, sarima_q,
+				sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period,
+				sarima_horizon)
 			
-			sarima_signature = st.session_state.get(
-				'timeseries_sarima_signature',
-				None
-			)
+			sarima_signature = st.session_state.get( 'timeseries_sarima_signature', None )
 			
 			if sarima_signature == current_sarima_signature:
-				df_metrics = st.session_state.get(
-					'timeseries_sarima_metrics',
-					pd.DataFrame( )
-				)
-				df_results = st.session_state.get(
-					'timeseries_sarima_results',
-					pd.DataFrame( )
-				)
-				df_details = st.session_state.get(
-					'timeseries_sarima_details',
-					pd.DataFrame( )
-				)
-				forecast = st.session_state.get(
-					'timeseries_sarima_forecast',
-					np.array( [ ], dtype=float )
-				)
+				df_metrics = st.session_state.get( 'timeseries_sarima_metrics', pd.DataFrame( ) )
+				df_results = st.session_state.get( 'timeseries_sarima_results', pd.DataFrame( ) )
+				df_details = st.session_state.get( 'timeseries_sarima_details', pd.DataFrame( ) )
+				forecast = st.session_state.get( 'timeseries_sarima_forecast',
+					np.array( [ ], dtype=float ) )
 			else:
 				df_metrics = pd.DataFrame( )
 				df_results = pd.DataFrame( )
@@ -23084,21 +18468,13 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor(
-					df_metrics,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor(
-						df_details,
-						use_container_width=True,
-						hide_index=True,
-						disabled=True
-					)
+					st.data_editor( df_details, use_container_width=True, hide_index=True,
+						disabled=True )
 			else:
 				st.info( 'Run SARIMA to view model metrics.' )
 			
@@ -23109,12 +18485,8 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor(
-					df_results,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_results, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
 				st.info( 'Run SARIMA to view forecast values.' )
 			
@@ -23129,190 +18501,107 @@ elif mode == 'Time-Series Models':
 				fig, ax = plt.subplots( )
 				
 				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange(
-					len( series ),
-					len( series ) + len( forecast )
-				)
+				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
 				
-				ax.plot(
-					observed_index,
-					series,
-					label='Observed'
-				)
-				ax.plot(
-					forecast_index,
-					forecast,
-					label='Forecast',
-					linestyle='--'
-				)
+				ax.plot( observed_index, series, label='Observed' )
+				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
 				ax.set_xlabel( 'Period' )
 				ax.set_ylabel( series_col )
-				ax.set_title(
-					f'SARIMA{( sarima_p, sarima_d, sarima_q )}'
-					f'{( sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period )} Forecast'
-				)
+				ax.set_title( f'SARIMA{(sarima_p, sarima_d, sarima_q)}'
+				              f'{(sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period)} Forecast' )
 				ax.legend( )
 				
 				st.pyplot( fig )
 				plt.close( fig )
 			else:
-				st.info(
-					'Run SARIMA to view the forecast plot.'
-				)
+				st.info( 'Run SARIMA to view the forecast plot.' )
 		
 		# ------------------------------------------------------------------
 		# TIME-SERIES CROSS-VALIDATION
 		# ------------------------------------------------------------------
 		with st.expander( 'Time-Series Cross-Validation', expanded=False ):
-			splitter_defaults = {
-					'timeseries_splitter_splits': 5,
-					'timeseries_splitter_use_train_size': False,
-					'timeseries_splitter_train_size': 20,
-					'timeseries_splitter_use_test_size': False,
-					'timeseries_splitter_test_size': 5,
-					'timeseries_splitter_gap': 0
-			}
+			splitter_defaults = { 'timeseries_splitter_splits': 5,
+				'timeseries_splitter_use_train_size': False, 'timeseries_splitter_train_size': 20,
+				'timeseries_splitter_use_test_size': False, 'timeseries_splitter_test_size': 5,
+				'timeseries_splitter_gap': 0 }
 			
 			for key, value in splitter_defaults.items( ):
 				if key not in st.session_state:
 					st.session_state[ key ] = value
 			
 			st.caption(
-				'Chronological train-and-test windows for evaluating time-series models without random shuffling.'
-			)
+				'Chronological train-and-test windows for evaluating time-series models without '
+				'random shuffling.' )
 			
-			cv_c1, cv_c2, cv_c3 = st.columns(
-				[ 0.33, 0.33, 0.34 ],
-				border=True
-			)
+			cv_c1, cv_c2, cv_c3 = st.columns( [ 0.33, 0.33, 0.34 ], border=True )
 			
 			with cv_c1:
-				splitter_splits = int(
-					st.number_input(
-						'Number of Splits',
-						min_value=2,
-						max_value=max( 2, len( series ) - 1 ),
-						step=1,
-						key='timeseries_splitter_splits'
-					)
-				)
+				splitter_splits = int( st.number_input( 'Number of Splits', min_value=2,
+					max_value=max( 2, len( series ) - 1 ), step=1,
+					key='timeseries_splitter_splits' ) )
 				
-				splitter_gap = int(
-					st.number_input(
-						'Temporal Gap',
-						min_value=0,
-						max_value=max( 0, len( series ) - 2 ),
-						step=1,
-						key='timeseries_splitter_gap'
-					)
-				)
+				splitter_gap = int( st.number_input( 'Temporal Gap', min_value=0,
+					max_value=max( 0, len( series ) - 2 ), step=1, key='timeseries_splitter_gap'
+				) )
 			
 			with cv_c2:
-				splitter_use_train_size = st.checkbox(
-					'Limit Training Window',
-					key='timeseries_splitter_use_train_size'
-				)
+				splitter_use_train_size = st.checkbox( 'Limit Training Window',
+					key='timeseries_splitter_use_train_size' )
 				
 				splitter_train_size_input = int(
-					st.number_input(
-						'Maximum Training Size',
-						min_value=1,
-						max_value=max( 1, len( series ) - 1 ),
-						step=1,
+					st.number_input( 'Maximum Training Size', min_value=1,
+						max_value=max( 1, len( series ) - 1 ), step=1,
 						disabled=not splitter_use_train_size,
-						key='timeseries_splitter_train_size'
-					)
-				)
+						key='timeseries_splitter_train_size' ) )
 			
 			with cv_c3:
-				splitter_use_test_size = st.checkbox(
-					'Use Fixed Test Size',
-					key='timeseries_splitter_use_test_size'
-				)
+				splitter_use_test_size = st.checkbox( 'Use Fixed Test Size',
+					key='timeseries_splitter_use_test_size' )
 				
-				splitter_test_size_input = int(
-					st.number_input(
-						'Test Size',
-						min_value=1,
-						max_value=max( 1, len( series ) - 1 ),
-						step=1,
-						disabled=not splitter_use_test_size,
-						key='timeseries_splitter_test_size'
-					)
-				)
+				splitter_test_size_input = int( st.number_input( 'Test Size', min_value=1,
+					max_value=max( 1, len( series ) - 1 ), step=1,
+					disabled=not splitter_use_test_size, key='timeseries_splitter_test_size' ) )
 			
 			splitter_reset_keys = list( splitter_defaults.keys( ) ) + [
-					'timeseries_splitter_model',
-					'timeseries_splitter_results',
-					'timeseries_splitter_summary',
-					'timeseries_splitter_figure',
-					'timeseries_splitter_signature'
-			]
+				'timeseries_splitter_model',
+				'timeseries_splitter_results', 'timeseries_splitter_summary',
+				'timeseries_splitter_figure', 'timeseries_splitter_signature' ]
 			
 			cv_b1, cv_b2 = st.columns( 2 )
 			
 			with cv_b1:
-				run_splitter = st.button(
-					'Generate Time-Series Splits',
-					icon='🏃',
-					key='timeseries_splitter_run',
-					use_container_width=True
-				)
+				run_splitter = st.button( 'Generate Time-Series Splits', icon='🏃',
+					key='timeseries_splitter_run', use_container_width=True )
 			
 			with cv_b2:
-				st.button(
-					'Reset Time-Series Splits',
-					icon='🔁',
-					key='timeseries_splitter_reset',
-					use_container_width=True,
-					on_click=clear_keys,
-					args=( splitter_reset_keys, )
-				)
+				st.button( 'Reset Time-Series Splits', icon='🔁', key='timeseries_splitter_reset',
+					use_container_width=True, on_click=clear_keys, args=(splitter_reset_keys,) )
 			
 			if run_splitter:
 				try:
 					max_train_size = (
-							splitter_train_size_input
-							if splitter_use_train_size
-							else None
-					)
+						splitter_train_size_input if splitter_use_train_size else None)
 					
-					test_size = (
-							splitter_test_size_input
-							if splitter_use_test_size
-							else None
-					)
+					test_size = (splitter_test_size_input if splitter_use_test_size else None)
 					
 					computed_test_size = (
-							len( series ) // ( splitter_splits + 1 )
-							if test_size is None
-							else test_size
-					)
+						len( series ) // (splitter_splits + 1) if test_size is None else test_size)
 					
-					required_observations = (
-							splitter_splits
-							* computed_test_size
-							+ splitter_gap
-					)
+					required_observations = (splitter_splits * computed_test_size + splitter_gap)
 					
 					if computed_test_size < 1:
 						st.warning(
-							'⚠️ The selected configuration produces an invalid test-window size.'
-						)
+							'⚠️ The selected configuration produces an invalid test-window size.' )
 						st.stop( )
 					
 					if required_observations >= len( series ):
 						st.warning(
-							'⚠️ The selected series does not contain enough observations for the requested splits, test size, and gap.'
-						)
+							'⚠️ The selected series does not contain enough observations for the '
+							'requested splits, test size, and gap.' )
 						st.stop( )
 					
-					splitter = TimeSeriesSpliter(
-						splits=splitter_splits,
-						max_train_size=max_train_size,
-						test_size=test_size,
-						gap=splitter_gap
-					)
+					splitter = TimeSeriesSpliter( splits=splitter_splits,
+						max_train_size=max_train_size, test_size=test_size, gap=splitter_gap )
 					
 					start_time = time.time( )
 					split_pairs = splitter.get_splits( series )
@@ -23320,18 +18609,13 @@ elif mode == 'Time-Series Models':
 					elapsed_seconds = time.time( ) - start_time
 					
 					if not split_pairs:
-						st.warning(
-							'⚠️ No time-series splits were generated.'
-						)
+						st.warning( '⚠️ No time-series splits were generated.' )
 						st.stop( )
 					
 					result_rows = [ ]
 					summary_rows = [ ]
 					
-					for split_number, split_pair in enumerate(
-							split_pairs,
-							start=1
-					):
+					for split_number, split_pair in enumerate( split_pairs, start=1 ):
 						train_index, test_index = split_pair
 						
 						train_start = int( train_index[ 0 ] )
@@ -23339,163 +18623,68 @@ elif mode == 'Time-Series Models':
 						test_start = int( test_index[ 0 ] )
 						test_end = int( test_index[ -1 ] )
 						
-						summary_rows.append(
-							{
-									'Split': split_number,
-									'Train Start': train_start,
-									'Train End': train_end,
-									'Train Size': len( train_index ),
-									'Test Start': test_start,
-									'Test End': test_end,
-									'Test Size': len( test_index ),
-									'Gap': splitter_gap
-							}
-						)
+						summary_rows.append( { 'Split': split_number, 'Train Start': train_start,
+							'Train End': train_end, 'Train Size': len( train_index ),
+							'Test Start': test_start, 'Test End': test_end,
+							'Test Size': len( test_index ), 'Gap': splitter_gap } )
 						
 						for index in train_index:
-							result_rows.append(
-								{
-										'Split': split_number,
-										'Period': int( index ),
-										'Value': float( series[ index ] ),
-										'Partition': 'Train'
-								}
-							)
+							result_rows.append( { 'Split': split_number, 'Period': int( index ),
+								'Value': float( series[ index ] ), 'Partition': 'Train' } )
 						
 						for index in test_index:
-							result_rows.append(
-								{
-										'Split': split_number,
-										'Period': int( index ),
-										'Value': float( series[ index ] ),
-										'Partition': 'Test'
-								}
-							)
+							result_rows.append( { 'Split': split_number, 'Period': int( index ),
+								'Value': float( series[ index ] ), 'Partition': 'Test' } )
 					
 					df_split_results = pd.DataFrame( result_rows )
 					df_split_summary = pd.DataFrame( summary_rows )
 					
-					df_processing = pd.DataFrame(
-						[
-								{
-										'Property': 'Configured Splits',
-										'Value': splitter.get_n_splits( series )
-								},
-								{
-										'Property': 'Generated Splits',
-										'Value': len( split_pairs )
-								},
-								{
-										'Property': 'Maximum Training Size',
-										'Value': max_train_size
-								},
-								{
-										'Property': 'Test Size',
-										'Value': computed_test_size
-								},
-								{
-										'Property': 'Temporal Gap',
-										'Value': splitter_gap
-								},
-								{
-										'Property': 'Processing Time (sec)',
-										'Value': round(
-											elapsed_seconds,
-											4
-										)
-								}
-						]
-					)
+					df_processing = pd.DataFrame( [ { 'Property': 'Configured Splits',
+						'Value': splitter.get_n_splits( series ) },
+						{ 'Property': 'Generated Splits', 'Value': len( split_pairs ) },
+						{ 'Property': 'Maximum Training Size', 'Value': max_train_size },
+						{ 'Property': 'Test Size', 'Value': computed_test_size },
+						{ 'Property': 'Temporal Gap', 'Value': splitter_gap },
+						{ 'Property': 'Processing Time (sec)',
+							'Value': round( elapsed_seconds, 4 ) } ] )
 					
-					splitter_signature = (
-							series_col,
-							len( series ),
-							splitter_splits,
-							max_train_size,
-							test_size,
-							splitter_gap
-					)
+					splitter_signature = (series_col, len( series ), splitter_splits,
+						max_train_size, test_size, splitter_gap)
 					
-					st.session_state[
-						'timeseries_splitter_model'
-					] = splitter
-					st.session_state[
-						'timeseries_splitter_results'
-					] = df_split_results.copy( )
-					st.session_state[
-						'timeseries_splitter_summary'
-					] = df_split_summary.copy( )
-					st.session_state[
-						'timeseries_splitter_details'
-					] = df_processing.copy( )
-					st.session_state[
-						'timeseries_splitter_figure'
-					] = figure
-					st.session_state[
-						'timeseries_splitter_signature'
-					] = splitter_signature
+					st.session_state[ 'timeseries_splitter_model' ] = splitter
+					st.session_state[ 'timeseries_splitter_results' ] = df_split_results.copy( )
+					st.session_state[ 'timeseries_splitter_summary' ] = df_split_summary.copy( )
+					st.session_state[ 'timeseries_splitter_details' ] = df_processing.copy( )
+					st.session_state[ 'timeseries_splitter_figure' ] = figure
+					st.session_state[ 'timeseries_splitter_signature' ] = splitter_signature
 					
-					st.success(
-						'Time-series cross-validation splits generated.'
-					)
+					st.success( 'Time-series cross-validation splits generated.' )
 				except Exception as ex:
-					for key in [
-							'timeseries_splitter_model',
-							'timeseries_splitter_results',
-							'timeseries_splitter_summary',
-							'timeseries_splitter_details',
-							'timeseries_splitter_figure',
-							'timeseries_splitter_signature'
-					]:
+					for key in [ 'timeseries_splitter_model', 'timeseries_splitter_results',
+						'timeseries_splitter_summary', 'timeseries_splitter_details',
+						'timeseries_splitter_figure', 'timeseries_splitter_signature' ]:
 						st.session_state.pop( key, None )
 					
-					st.error(
-						f'Time-Series Cross-Validation failed: {ex}'
-					)
+					st.error( f'Time-Series Cross-Validation failed: {ex}' )
 			
 			current_max_train_size = (
-					splitter_train_size_input
-					if splitter_use_train_size
-					else None
-			)
+				splitter_train_size_input if splitter_use_train_size else None)
 			
-			current_test_size = (
-					splitter_test_size_input
-					if splitter_use_test_size
-					else None
-			)
+			current_test_size = (splitter_test_size_input if splitter_use_test_size else None)
 			
-			current_splitter_signature = (
-					series_col,
-					len( series ),
-					splitter_splits,
-					current_max_train_size,
-					current_test_size,
-					splitter_gap
-			)
+			current_splitter_signature = (series_col, len( series ), splitter_splits,
+				current_max_train_size, current_test_size, splitter_gap)
 			
-			splitter_signature = st.session_state.get(
-				'timeseries_splitter_signature',
-				None
-			)
+			splitter_signature = st.session_state.get( 'timeseries_splitter_signature', None )
 			
 			if splitter_signature == current_splitter_signature:
-				df_split_results = st.session_state.get(
-					'timeseries_splitter_results',
-					pd.DataFrame( )
-				)
-				df_split_summary = st.session_state.get(
-					'timeseries_splitter_summary',
-					pd.DataFrame( )
-				)
-				df_split_details = st.session_state.get(
-					'timeseries_splitter_details',
-					pd.DataFrame( )
-				)
-				split_figure = st.session_state.get(
-					'timeseries_splitter_figure',
-					None
-				)
+				df_split_results = st.session_state.get( 'timeseries_splitter_results',
+					pd.DataFrame( ) )
+				df_split_summary = st.session_state.get( 'timeseries_splitter_summary',
+					pd.DataFrame( ) )
+				df_split_details = st.session_state.get( 'timeseries_splitter_details',
+					pd.DataFrame( ) )
+				split_figure = st.session_state.get( 'timeseries_splitter_figure', None )
 			else:
 				df_split_results = pd.DataFrame( )
 				df_split_summary = pd.DataFrame( )
@@ -23509,25 +18698,15 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Split Summary' )
 			
 			if not df_split_summary.empty:
-				st.data_editor(
-					df_split_summary,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_split_summary, use_container_width=True, hide_index=True,
+					disabled=True )
 				
 				if not df_split_details.empty:
 					st.caption( 'Splitter Details' )
-					st.data_editor(
-						df_split_details,
-						use_container_width=True,
-						hide_index=True,
-						disabled=True
-					)
+					st.data_editor( df_split_details, use_container_width=True, hide_index=True,
+						disabled=True )
 			else:
-				st.info(
-					'Generate time-series splits to view the train-and-test windows.'
-				)
+				st.info( 'Generate time-series splits to view the train-and-test windows.' )
 			
 			# ------------------------------------------------------------------
 			# SPLIT ASSIGNMENTS
@@ -23536,16 +18715,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Split Assignments' )
 			
 			if not df_split_results.empty:
-				st.data_editor(
-					df_split_results,
-					use_container_width=True,
-					hide_index=True,
-					disabled=True
-				)
+				st.data_editor( df_split_results, use_container_width=True, hide_index=True,
+					disabled=True )
 			else:
-				st.info(
-					'Generate time-series splits to view individual period assignments.'
-				)
+				st.info( 'Generate time-series splits to view individual period assignments.' )
 			
 			# ------------------------------------------------------------------
 			# SPLIT VISUALIZATION
@@ -23556,9 +18729,7 @@ elif mode == 'Time-Series Models':
 			if split_figure is not None:
 				st.pyplot( split_figure )
 			else:
-				st.info(
-					'Generate time-series splits to view the validation windows.'
-				)
+				st.info( 'Generate time-series splits to view the validation windows.' )
 				
 # ============================================
 # DATA MANAGEMENT MODE
