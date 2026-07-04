@@ -191,7 +191,7 @@ LOG_PATH: str = get_text( 'LOG_PATH', str( LOG_DIR / 'Exceptions.db' ) )
 LOG_FILE: str = get_text( 'LOG_FILE', 'Exceptions' )
 LOGO = r'resources/img/mathy_logo.png'
 FAVICON = r'resources/favicon.ico'
-BLUE_DIVIDER = "<div style='height:1.5px;align:left;background:#0078FC;margin:20px 0px 30px 0px;'></div>"
+BLUE_DIVIDER = "<div style='height:1.5px;align:left;background:#0078FC;margin:0px 30px 30px 0px;'></div>"
 DEFAULT_DATA = r'stores/excel/Combined Schedules.xlsx'
 DB_PATH = r'stores/sqlite/Data.db'
 LLM_PATH = ''
