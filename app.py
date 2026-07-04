@@ -457,7 +457,7 @@ def reset_regression_mode_state( ) -> None:
 # Utilities
 # ============================================
 def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ int, int ] = (6, 4),
-	grid: bool = True, ref_line: float | None = None, legend: bool = True ):
+	grid: bool=True, ref_line: float | None=None, legend: bool=True ):
 	"""
 	    Purpose:
 	        Create a standardized matplotlib figure for inferential plots.
@@ -498,7 +498,7 @@ def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ i
 	return fig, ax
 
 def blue_divider( ) -> None:
-	blue_divider( )
+	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 
 def log_step( msg: str ) -> None:
 	st.session_state.pipeline_log.append( msg )
@@ -615,53 +615,6 @@ def analysis_fillna_mean( df: pd.DataFrame ) -> pd.DataFrame:
 
 def default_pick( items: List[ str ], k: int=2 ) -> List[ str ]:
 	return items[ : min( k, len( items ) ) ] if items else [ ]
-
-def create_visualization( df: pd.DataFrame ):
-	st.subheader( 'Visualization Engine' )
-	
-	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-	categorical_columns = df.select_dtypes( include=[ 'object' ] ).columns.tolist( )
-	
-	chart = st.selectbox( 'Chart Type',
-		[ 'Histogram', 'Bar', 'Line', 'Scatter', 'Box', 'Pie', 'Correlation' ] )
-	
-	if chart == 'Histogram' and numeric_cols:
-		col = st.selectbox( 'Column', numeric_cols )
-		fig = px.histogram( df, x=col )
-		st.plotly_chart( fig, use_container_width=True )
-	
-	elif chart == 'Bar':
-		x = st.selectbox( 'X', df.columns )
-		y = st.selectbox( 'Y', numeric_cols )
-		fig = px.bar( df, x=x, y=y )
-		st.plotly_chart( fig, use_container_width=True )
-	
-	elif chart == 'Line':
-		x = st.selectbox( 'X', df.columns )
-		y = st.selectbox( 'Y', numeric_cols )
-		fig = px.line( df, x=x, y=y )
-		st.plotly_chart( fig, use_container_width=True )
-	
-	elif chart == 'Scatter':
-		x = st.selectbox( 'X', numeric_cols )
-		y = st.selectbox( 'Y', numeric_cols )
-		fig = px.scatter( df, x=x, y=y )
-		st.plotly_chart( fig, use_container_width=True )
-	
-	elif chart == 'Box':
-		col = st.selectbox( 'Column', numeric_cols )
-		fig = px.box( df, y=col )
-		st.plotly_chart( fig, use_container_width=True )
-	
-	elif chart == 'Pie':
-		col = st.selectbox( 'Category Column', categorical_columns )
-		fig = px.pie( df, names=col )
-		st.plotly_chart( fig, use_container_width=True )
-	
-	elif chart == 'Correlation' and len( numeric_cols ) > 1:
-		corr = df[ numeric_cols ].corr( )
-		fig = px.imshow( corr, text_auto=True )
-		st.plotly_chart( fig, use_container_width=True )
 
 def style_subheaders( ) -> None:
 	"""
@@ -17190,7 +17143,7 @@ elif mode == 'Clustering Models':
 # ============================================
 elif mode == 'Time-Series Models':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
-	with (((center))):
+	with center:
 		st.subheader( cfg.MODE[ 'Time-Series Models' ] )
 		st.divider( )
 		
@@ -17248,8 +17201,7 @@ elif mode == 'Time-Series Models':
 		
 		series = series_values.to_numpy( dtype=float )
 		if series.ndim != 1:
-			st.warning(
-				'⚠️ The selected column could not be converted to a one-dimensional series.' )
+			st.warning( '⚠️ The selected column could not be converted to a one-dimensional series.' )
 			st.stop( )
 		
 		if len( series ) < 10:
@@ -17284,7 +17236,6 @@ elif mode == 'Time-Series Models':
 				int( st.session_state[ 'timeseries_lag_linear_lag' ] ), maximum_lag )
 			
 			st.caption( 'Linear autoregressive forecasting using lagged observations as predictors.' )
-			
 			ll_c1, ll_c2 = st.columns( 2, border=True )
 			with ll_c1:
 				lag_linear_order = int( st.number_input( 'Lag Order', min_value=1,
@@ -18510,19 +18461,15 @@ elif mode == 'Time-Series Models':
 # DATA MANAGEMENT MODE
 # ============================================
 elif mode == 'Data Management':
-	st.subheader( cfg.MODE[ 'Database' ] )
+	st.subheader( cfg.MODE[ 'Data Management' ] )
 	left, center, right = st.columns( [ 0.05, 0.90, 0.05 ] )
 	with center:
-		tabs = st.tabs(
-			[ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter', 'Aggregate', 'Visualize', 'Admin',
-				'SQL' ] )
+		tabs = st.tabs( [ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter', 'Aggregate',
+			'Visualize', 'Admin', 'SQL' ] )
 		
 		tables = list_tables( )
 		if not tables:
 			st.info( 'No tables available.' )
-		else:
-			table = st.selectbox( 'Table', tables, key='table_selectbox' )
-			df_full = read_table( table )
 		
 		# ------------------------------------------------------------------------------
 		# UPLOAD TAB
