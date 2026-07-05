@@ -199,7 +199,7 @@ DEFAULT_CTX = 4096
 CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Processing', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
           'Feature Engineering', 'Classifications', 'Regressions', 'Clustering', 'Time-Series', 'Database' ]
-REPO_URL = r'https://github.com/is-leeroy-jenkins/Mathy'
+REPO_URL = r'https://is-leeroy-jenkins.github.io/Mathy/'
 
 MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Descriptive Statistics': '🔍 Descriptive Statistics',
@@ -209,7 +209,7 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Regression Models': '📉 Regression Analysis',
        'Clustering Models': '🕸️ Clustering Models',
        'Time-Series Models': '⏱️ Time-Series Models',
-       'Data Management': '💻 SQLite Database'  }
+       'Data Management': '💻 Data Management'  }
 
 # ------------- DEFINITIONS ---------------------
 
