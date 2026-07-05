@@ -2003,7 +2003,7 @@ with st.sidebar:
                                                ORDER BY name;
 				                               """, connection )
 				
-				table_options = df_tables[ 'name' ].tolist( )[ :3 ]
+				table_options = df_tables[ 'name' ].tolist( )[ : ]
 				if table_options:
 					selected_table = st.selectbox( label='Select Database Table',
 						options=table_options, key='database_table_selectbox' )
@@ -18462,7 +18462,7 @@ elif mode == 'Time-Series Models':
 # ============================================
 elif mode == 'Data Management':
 	st.subheader( cfg.MODE[ 'Data Management' ] )
-	left, center, right = st.columns( [ 0.05, 0.90, 0.05 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		tabs = st.tabs( [ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter', 'Aggregate',
 			'Visualize', 'Admin', 'SQL' ] )
@@ -18475,6 +18475,7 @@ elif mode == 'Data Management':
 		# UPLOAD TAB
 		# ------------------------------------------------------------------------------
 		with tabs[ 0 ]:
+			st.header( '' )
 			upl_c1, upl_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 			with upl_c1:
 				uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
@@ -18529,9 +18530,14 @@ elif mode == 'Data Management':
 		with tabs[ 1 ]:
 			tables = list_tables( )
 			if tables:
-				table = st.selectbox( 'Table', tables, key='table_name' )
+				st.text( '' )
+				browse_left, browse_center, browse_right = st.columns( 3 )
+				with browse_left:
+					table = st.selectbox( 'Select Table:', tables, key='table_name' )
+				
+				blue_divider( )
 				df = read_table( table )
-				st.dataframe( df, use_container_width=True )
+				st.data_editor( df, use_container_width=True )
 			else:
 				st.info( 'No tables available.' )
 		
@@ -18543,33 +18549,46 @@ elif mode == 'Data Management':
 			if not tables:
 				st.info( 'No tables available.' )
 			else:
-				table = st.selectbox( 'Select Table', tables, key='crud_table' )
+				st.text( '' )
+				st.markdown( '##### Data Table' )
+				crud_left, crud_mid, crud_right = st.columns( 3 )
+				with crud_left:
+					table = st.selectbox( 'Select', tables, key='crud_table' )
 				df = read_table( table )
 				schema = create_schema( table )
 				
-				# Build type map
+				# ------------------------------------------------------------------
+				# Build Type Map
+				# ------------------------------------------------------------------
 				type_map = { col[ 1 ]: col[ 2 ].upper( ) for col in schema if col[ 1 ] != 'rowid' }
 				
 				# ------------------------------------------------------------------
 				# INSERT
 				# ------------------------------------------------------------------
+				blue_divider( )
 				st.markdown( '##### Insert Row' )
 				insert_data = { }
-				for column, col_type in type_map.items( ):
-					if 'INT' in col_type:
-						insert_data[ column ] = st.number_input( column, step=1,
-							key=f'ins_{column}' )
+				insert_columns = st.columns( 4 )
+				
+				for index, (column, col_type) in enumerate( type_map.items( ) ):
+					target_column = insert_columns[ index % 4 ]
 					
-					elif 'REAL' in col_type:
-						insert_data[ column ] = st.number_input( column, format='%.6f',
-							key=f'ins_{column}' )
-					
-					elif 'BOOL' in col_type:
-						insert_data[ column ] = 1 if st.checkbox( column,
-							key=f'ins_{column}' ) else 0
-					
-					else:
-						insert_data[ column ] = st.text_input( column, key=f'ins_{column}' )
+					with target_column:
+						if 'INT' in col_type:
+							insert_data[ column ] = st.number_input( column, step=1,
+								key=f'ins_{column}' )
+						
+						elif 'REAL' in col_type:
+							insert_data[ column ] = st.number_input( column, format='%.6f',
+								key=f'ins_{column}' )
+						
+						elif 'BOOL' in col_type:
+							insert_data[ column ] = 1 if st.checkbox( column,
+								key=f'ins_{column}' ) else 0
+						
+						else:
+							insert_data[ column ] = st.text_input( column,
+								key=f'ins_{column}' )
 				
 				if st.button( 'Insert Row' ):
 					cols = list( insert_data.keys( ) )
@@ -18586,25 +18605,34 @@ elif mode == 'Data Management':
 				# ------------------------------------------------------------------
 				# UPDATE
 				# ------------------------------------------------------------------
+				blue_divider( )
 				st.markdown( '##### Update Row' )
 				rowid = st.number_input( 'Row ID', min_value=1, step=1 )
 				update_data = { }
-				for column, col_type in type_map.items( ):
-					if 'INT' in col_type:
-						val = st.number_input( column, step=1, key=f'upd_{column}' )
-						update_data[ column ] = val
+				update_columns = st.columns( 4 )
+				
+				for index, (column, col_type) in enumerate( type_map.items( ) ):
+					target_column = update_columns[ index % 4 ]
 					
-					elif 'REAL' in col_type:
-						val = st.number_input( column, format='%.6f', key=f'upd_{column}' )
-						update_data[ column ] = val
-					
-					elif 'BOOL' in col_type:
-						val = 1 if st.checkbox( column, key=f'upd_{column}' ) else 0
-						update_data[ column ] = val
-					
-					else:
-						val = st.text_input( column, key=f"upd_{column}" )
-						update_data[ column ] = val
+					with target_column:
+						if 'INT' in col_type:
+							val = st.number_input( column, step=1,
+								key=f'upd_{column}' )
+							update_data[ column ] = val
+						
+						elif 'REAL' in col_type:
+							val = st.number_input( column, format='%.6f',
+								key=f'upd_{column}' )
+							update_data[ column ] = val
+						
+						elif 'BOOL' in col_type:
+							val = 1 if st.checkbox( column,
+								key=f'upd_{column}' ) else 0
+							update_data[ column ] = val
+						
+						else:
+							val = st.text_input( column, key=f'upd_{column}' )
+							update_data[ column ] = val
 				
 				if st.button( 'Update Row' ):
 					set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
@@ -18620,8 +18648,12 @@ elif mode == 'Data Management':
 				# ------------------------------------------------------------------
 				# DELETE
 				# ------------------------------------------------------------------
+				blue_divider( )
 				st.markdown( '##### Delete Row' )
-				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
+				delete_left, delete_mid, delete_right = st.columns( 3 )
+				with delete_left:
+					delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
+					
 				if st.button( 'Delete Row' ):
 					with create_connection( ) as conn:
 						conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
@@ -18634,11 +18666,20 @@ elif mode == 'Data Management':
 		# EXPLORE
 		# ------------------------------------------------------------------------------
 		with tabs[ 3 ]:
+			st.text( '' )
 			tables = list_tables( )
 			if tables:
-				table = st.selectbox( 'Table', tables, key='explore_table' )
-				page_size = st.slider( 'Rows per page', 10, 500, 50 )
-				page = st.number_input( 'Page', min_value=1, step=1 )
+				explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )			
+				with explore_c1:
+					table = st.selectbox( 'Table', tables, key='explore_table' )
+				
+				with explore_c2:
+					page = st.number_input( 'Page', min_value=1, step=1 )
+				
+				with explore_c3:
+					page_size = st.slider( 'Rows per page', 10, 500, 50 )
+				
+				blue_divider( )
 				offset = (page - 1) * page_size
 				df_page = read_table( table, page_size, offset )
 				st.dataframe( df_page, use_container_width=True )
@@ -18647,15 +18688,22 @@ elif mode == 'Data Management':
 		# FILTER
 		# ------------------------------------------------------------------------------
 		with tabs[ 4 ]:
+			st.text( '' )
 			tables = list_tables( )
 			if tables:
-				table = st.selectbox( 'Table', tables, key='filter_table' )
-				df = read_table( table )
-				column = st.selectbox( 'Column', df.columns, key='filter_column_box' )
-				value = st.text_input( 'Contains' )
-				if value:
-					df = df[ df[ column ].astype( str ).str.contains( value ) ]
-				st.dataframe( df, use_container_width=True )
+				filter_c1, filter_c2, filter_c3 = st.columns( 3, border=True )
+				with filter_c1:
+					table = st.selectbox( 'Table', tables, key='filter_table' )
+					df = read_table( table )
+				with filter_c2:
+					column = st.selectbox( 'Filter Column', df.columns, key='filter_column_box' )
+				with filter_c3:
+					value = st.text_input( 'Column Criteria' )
+					if value:
+						df = df[ df[ column ].astype( str ).str.contains( value ) ]
+						
+				blue_divider( )
+				st.data_editor( df, use_container_width=True, key='filter_frame' )
 		
 		# ------------------------------------------------------------------------------
 		# AGGREGATE
@@ -18698,7 +18746,7 @@ elif mode == 'Data Management':
 			if tables:
 				table = st.selectbox( 'Table', tables, key='admin_table' )
 			
-			st.divider( )
+			blue_divider( )
 			st.markdown( '##### Data Profiling' )
 			tables = list_tables( )
 			if tables:
@@ -18726,7 +18774,6 @@ elif mode == 'Data Management':
 					            'This action cannot be undone.' )
 					
 					col1, col2 = st.columns( 2 )
-					
 					if col1.button( 'Confirm Drop', key='admin_confirm_drop' ):
 						try:
 							drop_table( table )
@@ -18748,7 +18795,7 @@ elif mode == 'Data Management':
 					create_index( table, col )
 					st.success( 'Index created.' )
 			
-			st.divider( )
+			blue_divider( )
 			
 			st.markdown( '##### Create Custom Table' )
 			new_table_name = st.text_input( 'Table Name' )
@@ -18777,7 +18824,7 @@ elif mode == 'Data Management':
 				except Exception as e:
 					st.error( f'Error: {e}' )
 			
-			st.divider( )
+			blue_divider( )
 			st.markdown( '##### Schema Viewer' )
 			
 			tables = list_tables( )
@@ -18807,7 +18854,7 @@ elif mode == 'Data Management':
 				else:
 					st.info( "No indexes defined." )
 			
-			st.divider( )
+			blue_divider( )
 			st.subheader( "ALTER TABLE Operations" )
 			
 			tables = list_tables( )
