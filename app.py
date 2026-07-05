@@ -125,6 +125,9 @@ from forecasting import (LaggingSeries, LagQuantileSeries, LagBoostingSeries, AR
 if 'df_original' not in st.session_state or st.session_state[ 'df_original' ] is None:
 	st.session_state[ 'df_original' ] = pd.DataFrame( )
 
+if 'df_profile' not in st.session_state or st.session_state[ 'df_profile' ] is None:
+	st.session_state[ 'df_profile' ] = pd.DataFrame( )
+	
 if 'df_features' not in st.session_state:
 	st.session_state[ 'df_features' ] = pd.DataFrame( )
 
@@ -18537,7 +18540,7 @@ elif mode == 'Data Management':
 				
 				blue_divider( )
 				df = read_table( table )
-				st.data_editor( df, use_container_width=True )
+				st.data_editor( df, use_container_width=True, height=400 )
 			else:
 				st.info( 'No tables available.' )
 		
@@ -18682,7 +18685,7 @@ elif mode == 'Data Management':
 				blue_divider( )
 				offset = (page - 1) * page_size
 				df_page = read_table( table, page_size, offset )
-				st.dataframe( df_page, use_container_width=True )
+				st.data_editor( df_page, use_container_width=True )
 		
 		# ------------------------------------------------------------------------------
 		# FILTER
@@ -18698,7 +18701,7 @@ elif mode == 'Data Management':
 				with filter_c2:
 					column = st.selectbox( 'Filter Column', df.columns, key='filter_column_box' )
 				with filter_c3:
-					value = st.text_input( 'Column Criteria' )
+					value = st.text_input( 'Column Criteria (Contains)' )
 					if value:
 						df = df[ df[ column ].astype( str ).str.contains( value ) ]
 						
@@ -18710,18 +18713,25 @@ elif mode == 'Data Management':
 		# ------------------------------------------------------------------------------
 		with tabs[ 5 ]:
 			tables = list_tables( )
+			st.text( '' )
+			st.session_state.get( 'aggregation', None )
 			if tables:
-				table = st.selectbox( 'Table', tables, key='agg_table' )
-				df = read_table( table )
-				numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-				if numeric_columns:
-					col = st.selectbox( 'Column', numeric_columns, key='col_box' )
-					agg = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box' )
-					if agg == 'SUM':
+				agg_c1, agg_c2, agg_c3, agg_c4 = st.columns( 4, border=True )
+				with agg_c1:
+					table = st.selectbox( 'Table', tables, key='agg_table' )
+					df = read_table( table )
+				with agg_c2:
+					numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+					if numeric_columns:
+						col = st.selectbox( 'Column', numeric_columns, key='col_box' )
+				with agg_c3:
+					aggregation = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box' )
+				with agg_c4:
+					if aggregation == 'SUM':
 						st.metric( 'Result', df[ col ].sum( ) )
-					elif agg == 'AVG':
+					elif aggregation == 'AVG':
 						st.metric( 'Result', df[ col ].mean( ) )
-					elif agg == 'COUNT':
+					elif aggregation == 'COUNT':
 						st.metric( 'Result', df[ col ].count( ) )
 		
 		# ------------------------------------------------------------------------------
@@ -18742,19 +18752,21 @@ elif mode == 'Data Management':
 		# ADMIN
 		# ------------------------------------------------------------------------------
 		with tabs[ 7 ]:
-			tables = list_tables( )
-			if tables:
-				table = st.selectbox( 'Table', tables, key='admin_table' )
-			
-			blue_divider( )
+			st.text( '' )
+			df_profile = st.session_state.get( 'df_profile' )
 			st.markdown( '##### Data Profiling' )
 			tables = list_tables( )
 			if tables:
-				table = st.selectbox( 'Select Table', tables, key='profile_table' )
-				if st.button( 'Generate Profile' ):
-					profile_df = create_profile_table( table )
-					st.dataframe( profile_df, use_container_width=True )
+				adm_c1, adm_c2, adm_c3 = st.columns( 3 )
+				with adm_c1:
+					table = st.selectbox( 'Select Table', tables, key='profile_table' )
+					
+				if st.button( label='Generate Profile', icon='⚡' ):
+					df_profile = create_profile_table( table )
 			
+				st.data_editor( df_profile, use_container_width=True )
+			
+			blue_divider( )
 			st.markdown( '##### Drop Table' )
 			tables = list_tables( )
 			if tables:
@@ -18765,7 +18777,7 @@ elif mode == 'Data Management':
 					st.session_state.dm_confirm_drop = False
 				
 				# Step 1: Initial Drop click
-				if st.button( 'Drop Table', key='admin_drop_button' ):
+				if st.button( label='Drop Table', key='admin_drop_button', icon='❌' ):
 					st.session_state.dm_confirm_drop = True
 				
 				# Step 2: Confirmation UI
@@ -18791,19 +18803,19 @@ elif mode == 'Data Management':
 				df = read_table( table )
 				col = st.selectbox( 'Create Index On', df.columns, key='index_box' )
 				
-				if st.button( 'Create Index' ):
+				if st.button( label='Create Index', icon='➕' ):
 					create_index( table, col )
 					st.success( 'Index created.' )
 			
 			blue_divider( )
 			
-			st.markdown( '##### Create Custom Table' )
+			st.markdown( '##### Create Table' )
 			new_table_name = st.text_input( 'Table Name' )
 			column_count = st.number_input( 'Number of Columns', min_value=1, max_value=20,
 				value=1 )
 			columns = [ ]
 			for i in range( column_count ):
-				st.markdown( f'### Column {i + 1}' )
+				st.markdown( f'##### Column {i + 1}' )
 				col_name = st.text_input( 'Column Name', key=f'col_name_{i}' )
 				col_type = st.selectbox( 'Column Type', [ 'INTEGER', 'REAL', 'TEXT' ],
 					key=f'col_type_{i}' )
@@ -18815,7 +18827,7 @@ elif mode == 'Data Management':
 				columns.append( { 'name': col_name, 'type': col_type, 'not_null': not_null,
 					'primary_key': primary_key, 'auto_increment': auto_inc } )
 			
-			if st.button( 'Create Table' ):
+			if st.button( label='Create Table', icon='➕' ):
 				try:
 					create_custom_table( new_table_name, columns )
 					st.success( 'Table created successfully.' )
@@ -18835,7 +18847,7 @@ elif mode == 'Data Management':
 					columns=[ 'cid', 'name', 'type', 'notnull', 'default', 'pk' ] )
 				
 				st.markdown( "##### Columns" )
-				st.dataframe( schema_df, use_container_width=True )
+				st.data_editor( schema_df, use_container_width=True, key='schema_editor' )
 				
 				# Row count
 				with create_connection( ) as conn:
@@ -18850,12 +18862,12 @@ elif mode == 'Data Management':
 						columns=[ 'seq', 'name', 'unique', 'origin', 'partial' ] )
 					
 					st.markdown( "##### Indexes" )
-					st.dataframe( idx_df, use_container_width=True )
+					st.data_editor( idx_df, use_container_width=True, key='index_editor' )
 				else:
 					st.info( "No indexes defined." )
 			
 			blue_divider( )
-			st.subheader( "ALTER TABLE Operations" )
+			st.markdown( "##### ALTER TABLE" )
 			
 			tables = list_tables( )
 			if tables:
