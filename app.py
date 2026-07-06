@@ -265,7 +265,6 @@ def throw_if( name: str, value: object ) -> None:
 	if isinstance( value, str ) and not value.strip( ):
 		raise ValueError( f'Argument "{name}" cannot be empty.' )
 
-
 def init_state( ) -> None:
 	"""Initialize core application session state.
 
@@ -284,9 +283,7 @@ def init_state( ) -> None:
 		if k not in st.session_state:
 			st.session_state[ k ] = v
 
-
 init_state( )
-
 
 def has_loaded_dataset( df_frame: object ) -> bool:
 	"""Determine whether an object contains a usable loaded dataset.
@@ -306,7 +303,6 @@ def has_loaded_dataset( df_frame: object ) -> bool:
 	return (isinstance( df_frame, pd.DataFrame ) and not df_frame.empty and len(
 		df_frame.columns ) > 0)
 
-
 def get_loaded_dataset( ) -> pd.DataFrame | None:
 	"""Return a defensive copy of the currently loaded dataset.
 
@@ -322,7 +318,6 @@ def get_loaded_dataset( ) -> pd.DataFrame | None:
 		return None
 	
 	return df_frame.copy( )
-
 
 def store_loaded_dataset( df_dataset: pd.DataFrame, df_original: pd.DataFrame = None ) -> None:
 	"""Persist a validated dataset and its original baseline in session state.
@@ -349,7 +344,6 @@ def store_loaded_dataset( df_dataset: pd.DataFrame, df_original: pd.DataFrame = 
 	st.session_state[ 'df_original' ] = df_base.copy( )
 	st.session_state[ 'df_dataset' ] = df_source.copy( )
 
-
 def clear_keys( keys: List[ str ] ) -> None:
 	"""Remove specified keys from Streamlit session state.
 
@@ -366,7 +360,6 @@ def clear_keys( keys: List[ str ] ) -> None:
 	for key in keys:
 		if key in st.session_state:
 			del st.session_state[ key ]
-
 
 def reset_classification_mode_state( ) -> None:
 	"""Reset state owned by the classification workflow.
@@ -411,7 +404,6 @@ def reset_classification_mode_state( ) -> None:
 	st.session_state[ 'model' ] = None
 	st.session_state[ 'elapsed_seconds' ] = 0.0
 	st.session_state[ 'target_count' ] = 0.0
-
 
 def reset_regression_mode_state( ) -> None:
 	"""Reset state owned by the regression workflow.
@@ -718,7 +710,6 @@ def get_numeric_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""
 	return [ c for c in df_frame.columns if pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
 
-
 def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""Return non-numeric columns from a dataframe.
 
@@ -733,7 +724,6 @@ def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	    list[str]: Names of columns containing non-numeric data.
 	"""
 	return [ c for c in df_frame.columns if not pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
-
 
 def get_working_frame( ) -> pd.DataFrame:
 	"""Return the active dataframe used by Data Plumbing workflows.
@@ -751,7 +741,6 @@ def get_working_frame( ) -> pd.DataFrame:
 		return st.session_state[ 'df_original' ].copy( )
 	return df_working.copy( )
 
-
 def get_feature_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""Return active feature columns that remain available.
 
@@ -767,7 +756,6 @@ def get_feature_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""
 	return [ c for c in st.session_state.get( 'features', [ ] ) if c in df_frame.columns ]
 
-
 def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""Return active target columns that remain available.
 
@@ -782,7 +770,6 @@ def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	    list[str]: Active target columns that exist in ``df_frame``.
 	"""
 	return [ c for c in st.session_state.get( 'targets', [ ] ) if c in df_frame.columns ]
-
 
 def commit_frame( df_frame: pd.DataFrame ) -> None:
 	"""Commit active feature and target frames to session state.
@@ -811,7 +798,6 @@ def commit_frame( df_frame: pd.DataFrame ) -> None:
 	else:
 		st.session_state[ 'df_targets' ] = pd.DataFrame( index=df_frame.index )
 
-
 def working_to_original( ) -> None:
 	"""Reset the working dataframe to the original loaded dataset.
 
@@ -826,7 +812,6 @@ def working_to_original( ) -> None:
 	st.session_state[ 'df_working' ] = df_reset.copy( )
 	commit_frame( df_reset )
 
-
 def processed_to_working( ) -> None:
 	"""Promote the working dataframe to the processed-data state.
 
@@ -840,7 +825,6 @@ def processed_to_working( ) -> None:
 	df_reset = st.session_state[ 'df_working' ].copy( )
 	st.session_state[ 'df_processed' ] = df_reset.copy( )
 	commit_frame( df_reset )
-
 
 def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	columns: list[ str ] ) -> pd.DataFrame:
@@ -876,8 +860,7 @@ def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	if hasattr( result, 'toarray' ):
 		result = result.toarray( )
 	
-	arr = np.asarray( result )
-	
+	arr = np.asarray( result )	
 	if arr.ndim == 1:
 		col_name = columns[ 0 ] if columns and len( columns ) == 1 else prefix
 		return pd.DataFrame( arr, index=index, columns=[ col_name ] )
@@ -887,7 +870,6 @@ def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	
 	generated = [ f'{prefix}_{i + 1}' for i in range( arr.shape[ 1 ] ) ]
 	return pd.DataFrame( arr, index=index, columns=generated )
-
 
 def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ], result: object,
 	prefix: str ) -> pd.DataFrame:
@@ -912,7 +894,6 @@ def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ], result: 
 	df_updated = df_frame.drop( columns=column_names, errors='ignore' )
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
-
 
 def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ], vectorizer: object,
 	prefix: str ) -> pd.DataFrame:
@@ -943,7 +924,6 @@ def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ], ve
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
-
 def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ], transformer: object,
 	prefix: str ) -> pd.DataFrame:
 	"""Apply a dictionary-based transformer to selected columns.
@@ -971,7 +951,6 @@ def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ], tra
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
-
 def parse_multilabel_series( series: pd.Series, delimiter: str ) -> np.ndarray:
 	"""Parse delimited text values into multilabel collections.
 
@@ -990,7 +969,6 @@ def parse_multilabel_series( series: pd.Series, delimiter: str ) -> np.ndarray:
 	values = series.fillna( '' ).astype( str ).apply(
 		lambda s: [ item.strip( ) for item in s.split( delimiter ) if item.strip( ) ] )
 	return values.to_numpy( )
-
 
 def score_function_from_name( name: str ) -> object:
 	"""Resolve a feature-selection score function by display name.
@@ -1016,19 +994,15 @@ def score_function_from_name( name: str ) -> object:
 # ----------  Database Utilities ----------
 
 def initialize_database( ) -> None:
-	"""
-		Purpose:
-		--------
-		Ensure required SQLite tables exist and that the Prompts table contains the
-		columns required by the prompt utilities and Prompt Engineering mode.
+	"""Initialize the application SQLite database.
 
-		Parameters:
-		-----------
-		None
+	Purpose:
+	    Creates the configured SQLite storage directory, ensures the chat-history, embeddings, and
+	    prompts tables exist, verifies that the prompts table contains the required caption column,
+	    and commits all schema changes.
 
-		Returns:
-		--------
-		None
+	Returns:
+	    None: This function creates or updates SQLite schema objects and does not return a value.
 	"""
 	Path( 'stores/sqlite' ).mkdir( parents=True, exist_ok=True )
 	with sqlite3.connect( cfg.DB_PATH ) as conn:
@@ -1098,40 +1072,122 @@ def initialize_database( ) -> None:
 		
 		conn.commit( )
 
+def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
+	"""Infer analytical roles for dataframe columns.
+
+	Purpose:
+	    Classifies each dataframe column as datetime, identifier, ordinal, numeric, or
+	    categorical by evaluating its pandas data type, name-based identifier hints,
+	    distinct-value count, distinct-value ratio, and datetime-conversion success rate.
+
+	Args:
+	    df (pd.DataFrame): Dataframe whose columns are classified for profiling and
+	        downstream analytical workflows.
+
+	Returns:
+	    Dict[str, str]: Mapping of column names to inferred analytical role names.
+	"""
+	schema: dict[ str, str ] = { }
+	n_rows = len( df )
+	
+	for col in df.columns:
+		s = df[ col ]
+		name = col.lower( )
+		nunique = s.nunique( dropna=True )
+		unique_ratio = nunique / max( 1, n_rows )
+		
+		# ------------------------------------------------------------------
+		# 1) Datetime: ONLY for object/string columns
+		# ------------------------------------------------------------------
+		if s.dtype == 'object':
+			try:
+				parsed_dt = pd.to_datetime( s, errors='coerce' )
+				if parsed_dt.notna( ).sum( ) / max( 1, n_rows ) > 0.9:
+					schema[ col ] = 'datetime'
+					continue
+			except Exception:
+				pass
+		
+		# ------------------------------------------------------------------
+		# 2) Numeric detection: ints AND floats
+		# ------------------------------------------------------------------
+		if pd.api.types.is_numeric_dtype( s ):
+			# Identifier heuristics for numeric codes/keys
+			if ('id' in name) or ('code' in name) or ('key' in name) or (
+					unique_ratio > 0.8):
+				schema[ col ] = 'identifier'
+				continue
+			if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
+				schema[ col ] = 'ordinal'
+				continue
+			schema[ col ] = 'numeric'
+			continue
+		
+		# ------------------------------------------------------------------
+		# 3) Categorical fallback
+		# ------------------------------------------------------------------
+		schema[ col ] = 'categorical'
+	
+	return schema
+
 def create_connection( ) -> sqlite3.Connection:
+	"""Create a connection to the configured SQLite database.
+
+	Purpose:
+	    Opens a new SQLite connection using the database path defined by the application
+	    configuration.
+
+	Returns:
+	    sqlite3.Connection: Open SQLite database connection.
+	"""
 	return sqlite3.connect( cfg.DB_PATH )
 
 def list_tables( ) -> List[ str ]:
+	"""Return SQLite table names from the configured database.
+
+	Purpose:
+	    Queries the SQLite schema catalog and returns table names in ascending lexical order for
+	    database browsing, schema management, and user-interface selection controls.
+
+	Returns:
+	    List[str]: Ordered SQLite table names.
+	"""
 	with create_connection( ) as conn:
 		_query = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
 		rows = conn.execute( _query ).fetchall( )
 		return [ r[ 0 ] for r in rows ]
 
 def create_schema( table: str ) -> List[ Tuple ]:
+	"""Return schema metadata for a SQLite table.
+
+	Purpose:
+	    Executes SQLite table-information introspection for the supplied table and returns the
+	    resulting column metadata used by schema-aware database workflows.
+
+	Args:
+	    table (str): Table whose schema metadata is requested.
+
+	Returns:
+	    List[Tuple]: SQLite ``PRAGMA table_info`` rows describing the table columns.
+	"""
 	with create_connection( ) as conn:
 		return conn.execute( f'PRAGMA table_info("{table}");' ).fetchall( )
 
 def read_table( table: str, limit: int=None, offset: int=0 ) -> pd.DataFrame:
-	"""
-	
-		Purpose:
-		--------
-		Read a SQLite table into a pandas DataFrame using a normalized scalar-only path.
-	
-		Parameters:
-		-----------
-		table : str
-			Table name.
-		limit : int=None
-			Optional row limit.
-		offset : int=0
-			Optional row offset.
-	
-		Returns:
-		--------
-		pd.DataFrame
-			DataFrame of plain Python scalar values.
-	
+	"""Read a SQLite table into a normalized dataframe.
+
+	Purpose:
+	    Executes a table query with optional row limiting, preserves duplicate result-column names
+	    by generating unique suffixes, converts non-scalar values into display-safe scalar
+	    representations, and returns the normalized rows as a pandas dataframe.
+
+	Args:
+	    table (str): SQLite table read into dataframe form.
+	    limit (int): Optional maximum number of rows returned.
+	    offset (int): Number of rows skipped when ``limit`` is applied.
+
+	Returns:
+	    pd.DataFrame: Table rows containing plain Python scalar or string values.
 	"""
 	if not table:
 		return pd.DataFrame( )
@@ -1160,6 +1216,19 @@ def read_table( table: str, limit: int=None, offset: int=0 ) -> pd.DataFrame:
 			columns.append( f'{name}_{seen[ name ]}' )
 	
 	def _scalarize( value: Any ) -> Any:
+		"""Convert a database value into a display-safe scalar.
+
+		Purpose:
+		    Preserves null and primitive scalar values, decodes byte values when possible, converts
+		    collections and model objects to strings, and provides a final string representation for
+		    unsupported database-returned objects.
+
+		Args:
+		    value (Any): Database value normalized for dataframe storage and Streamlit display.
+
+		Returns:
+		    Any: Primitive scalar, decoded text, hexadecimal text, or string representation.
+		"""
 		if value is None or isinstance( value, (str, int, float, bool) ):
 			return value
 		
@@ -1190,22 +1259,18 @@ def read_table( table: str, limit: int=None, offset: int=0 ) -> pd.DataFrame:
 	return pd.DataFrame( normalized_rows, columns=columns )
 
 def render_table( df: pd.DataFrame ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Render a DataFrame safely in Streamlit. Use the normal interactive dataframe
-		first, and fall back to HTML rendering if Streamlit/PyArrow serialization fails.
-	
-		Parameters:
-		-----------
-		df : pd.DataFrame
-			The DataFrame to render.
-	
-		Returns:
-		--------
-		None
-	
+	"""Render a dataframe safely in Streamlit.
+
+	Purpose:
+	    Displays the supplied dataframe in an interactive Streamlit data editor and falls back to
+	    escaped HTML table output when Streamlit or PyArrow serialization cannot represent one or
+	    more values.
+
+	Args:
+	    df (pd.DataFrame): Dataframe rendered in the application interface.
+
+	Returns:
+	    None: This function renders Streamlit output and does not return a value.
 	"""
 	if df is None:
 		st.info( 'No data available.' )
@@ -1227,6 +1292,18 @@ def render_table( df: pd.DataFrame ) -> None:
 	st.markdown( fallback_df.to_html( index=False, escape=True ), unsafe_allow_html=True )
 
 def make_display_safe( df: pd.DataFrame ) -> pd.DataFrame:
+	"""Convert dataframe values into display-safe text.
+
+	Purpose:
+	    Creates an independent dataframe copy, replaces null object values with empty strings, and
+	    converts all remaining values to text for reliable rendering or export.
+
+	Args:
+	    df (pd.DataFrame): Dataframe normalized for display.
+
+	Returns:
+	    pd.DataFrame: Copy containing empty strings for null values and strings for all other values.
+	"""
 	display_df = df.copy( )
 	
 	for col in display_df.columns:
@@ -1235,15 +1312,17 @@ def make_display_safe( df: pd.DataFrame ) -> pd.DataFrame:
 	return display_df
 
 def drop_table( table: str ) -> None:
-	"""
-		Purpose:
-		--------
-		Safely drop a table if it exists.
-	
-		Parameters:
-		-----------
-		table : str
-			Table name.
+	"""Drop a SQLite table when it exists.
+
+	Purpose:
+	    Removes the specified table from the configured SQLite database using a guarded
+	    ``DROP TABLE IF EXISTS`` statement and commits the schema change.
+
+	Args:
+	    table (str): Table removed from the database.
+
+	Returns:
+	    None: This function modifies the SQLite schema and does not return a value.
 	"""
 	if not table:
 		return
@@ -1253,24 +1332,21 @@ def drop_table( table: str ) -> None:
 		conn.commit( )
 
 def create_index( table: str, column: str ) -> None:
-	"""
-		Purpose:
-		--------
-		Create a safe SQLite index on a specified table column.
-	
-		Handles:
-			- Spaces in column names
-			- Special characters
-			- Reserved words
-			- Duplicate index names
-			- Validation against actual table schema
-	
-		Parameters:
-		-----------
-		table : str
-			Table name.
-		column : str
-			Column name to index.
+	"""Create an index for a validated SQLite table column.
+
+	Purpose:
+	    Verifies that the supplied table and column exist, generates a sanitized index identifier,
+	    creates the index when it is not already present, and commits the schema change.
+
+	Args:
+	    table (str): Existing SQLite table receiving the index.
+	    column (str): Existing table column included in the index.
+
+	Returns:
+	    None: This function creates a SQLite index and does not return a value.
+
+	Raises:
+	    ValueError: Raised when the table or column does not exist.
 	"""
 	if not table or not column:
 		return
@@ -1306,6 +1382,19 @@ def create_index( table: str, column: str ) -> None:
 		conn.commit( )
 
 def apply_filters( df: pd.DataFrame ) -> pd.DataFrame:
+	"""Filter a dataframe from user-selected conditions.
+
+	Purpose:
+	    Renders Streamlit controls for selecting a dataframe column, comparison operator, and filter
+	    value, then applies the selected condition to the dataframe when a value is supplied.
+
+	Args:
+	    df (pd.DataFrame): Dataframe filtered by the selected user-interface condition.
+
+	Returns:
+	    pd.DataFrame: Filtered dataframe when a filter value is supplied; otherwise the original
+	    dataframe.
+	"""
 	st.subheader( 'Advanced Filters' )
 	conditions = [ ]
 	col1, col2, col3 = st.columns( 3 )
@@ -1331,6 +1420,19 @@ def apply_filters( df: pd.DataFrame ) -> pd.DataFrame:
 	return df
 
 def create_aggregation( df: pd.DataFrame ):
+	"""Render an interactive dataframe aggregation result.
+
+	Purpose:
+	    Identifies numeric dataframe columns, renders controls for selecting a column and aggregation
+	    operation, calculates the requested count, sum, average, minimum, maximum, or median, and
+	    displays the result as a Streamlit metric.
+
+	Args:
+	    df (pd.DataFrame): Dataframe containing numeric values available for aggregation.
+
+	Returns:
+	    None: This function renders Streamlit controls and an aggregation metric.
+	"""
 	st.subheader( 'Aggregation Engine' )
 	
 	numeric_cols = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
@@ -1358,22 +1460,19 @@ def create_aggregation( df: pd.DataFrame ):
 	st.metric( 'Result', result )
 
 def create_visualization( df: pd.DataFrame ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Render data visualizations without passing pandas objects directly into
-		Plotly/Narwhals.
-		
-		Parameters:
-		-----------
-		df : pd.DataFrame
-			The input DataFrame.
-		
-		Returns:
-		--------
-		None
-		
+	"""Render an interactive Plotly visualization.
+
+	Purpose:
+	    Prepares dataframe values for Plotly rendering, identifies columns containing usable numeric
+	    values, presents supported chart selections, validates each chart's column requirements, and
+	    renders histogram, bar, line, scatter, box, pie, or correlation visualizations without
+	    passing pandas objects directly into Plotly traces.
+
+	Args:
+	    df (pd.DataFrame): Dataframe containing values available for visualization.
+
+	Returns:
+	    None: This function renders Streamlit controls, informational messages, and Plotly figures.
 	"""
 	st.subheader( 'Visualization Engine' )
 	
@@ -1393,8 +1492,7 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		if series_num.notna( ).any( ):
 			numeric_cols.append( col )
 	
-	categorical_columns: List[ str ] = [ col for col in df_plot.columns if col not in
-	                                                                       numeric_cols ]
+	categorical_columns: List[ str ] = [ col for col in df_plot.columns if col not in numeric_cols ]
 	
 	chart = st.selectbox( 'Chart Type',
 		[ 'Histogram', 'Bar', 'Line', 'Scatter', 'Box', 'Pie', 'Correlation' ] )
@@ -1500,6 +1598,20 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		st.plotly_chart( fig, use_container_width=True )
 
 def convert_dataframe( table_name: str, df: pd.DataFrame ):
+	"""Create a SQLite table from a dataframe schema.
+
+	Purpose:
+	    Maps each dataframe column type to a SQLite storage type, replaces spaces in column names
+	    with underscores, builds a table-creation statement, and creates the table when it does not
+	    already exist.
+
+	Args:
+	    table_name (str): Name assigned to the SQLite table.
+	    df (pd.DataFrame): Dataframe whose columns define the SQLite table schema.
+
+	Returns:
+	    None: This function creates a SQLite table and does not return a value.
+	"""
 	columns = [ ]
 	for col in df.columns:
 		sql_type = get_sqlite_type( df[ col ].dtype )
@@ -1513,6 +1625,20 @@ def convert_dataframe( table_name: str, df: pd.DataFrame ):
 		conn.commit( )
 
 def insert_data( table_name: str, df: pd.DataFrame ):
+	"""Insert dataframe rows into a SQLite table.
+
+	Purpose:
+	    Copies the supplied dataframe, normalizes column names by replacing spaces with underscores,
+	    builds a positional parameter statement, inserts all dataframe rows into the specified
+	    table, and commits the transaction.
+
+	Args:
+	    table_name (str): Existing SQLite table receiving the dataframe rows.
+	    df (pd.DataFrame): Dataframe containing rows inserted into the table.
+
+	Returns:
+	    None: This function inserts records into SQLite and does not return a value.
+	"""
 	df = df.copy( )
 	df.columns = [ c.replace( ' ', '_' ) for c in df.columns ]
 	
@@ -1524,20 +1650,18 @@ def insert_data( table_name: str, df: pd.DataFrame ):
 		conn.commit( )
 
 def get_sqlite_type( dtype ) -> str:
-	"""
-		Purpose:
-		--------
-		Map a pandas dtype to an appropriate SQLite column type.
-	
-		Parameters:
-		-----------
-		dtype : pandas dtype
-			The dtype of a pandas Series.
-	
-		Returns:
-		--------
-		str
-			SQLite column type.
+	"""Map a pandas data type to a SQLite storage class.
+
+	Purpose:
+	    Converts a pandas or NumPy dtype representation into the SQLite storage class used when
+	    generating table schemas. Integer and Boolean values map to ``INTEGER``, floating-point
+	    values map to ``REAL``, and datetime, categorical, and unsupported values map to ``TEXT``.
+
+	Args:
+	    dtype (object): Pandas or NumPy data type evaluated for SQLite storage.
+
+	Returns:
+	    str: SQLite storage class associated with the supplied data type.
 	"""
 	dtype_str = str( dtype ).lower( )
 	
@@ -1577,26 +1701,24 @@ def get_sqlite_type( dtype ) -> str:
 	return 'TEXT'
 
 def create_custom_table( table_name: str, columns: list ) -> None:
-	"""
-		Purpose:
-		--------
-		Create a custom SQLite table from column definitions.
-	
-		Parameters:
-		-----------
-		table_name : str
-			Name of table.
-	
-		columns : list of dict
-			[
-				{
-					"name": str,
-					"type": str,
-					"not_null": bool,
-					"primary_key": bool,
-					"auto_increment": bool
-				}
-			]
+	"""Create a SQLite table from explicit column definitions.
+
+	Purpose:
+	    Validates the table and column identifiers, builds SQLite column definitions from the
+	    supplied metadata, applies primary-key, autoincrement, and not-null constraints, creates
+	    the table when it does not already exist, and commits the schema change.
+
+	Args:
+	    table_name (str): Valid SQLite table identifier.
+	    columns (list): Column-definition dictionaries containing ``name``, ``type``,
+	        ``not_null``, ``primary_key``, and ``auto_increment`` values.
+
+	Returns:
+	    None: This function creates a SQLite table and does not return a value.
+
+	Raises:
+	    ValueError: Raised when the table name is missing or when a table or column identifier is
+	        invalid.
 	"""
 	if not table_name:
 		raise ValueError( 'Table name required.' )
@@ -1633,22 +1755,19 @@ def create_custom_table( table_name: str, columns: list ) -> None:
 		conn.commit( )
 
 def is_safe_query( query: str ) -> bool:
-	"""
-	
-		Purpose:
-		--------
-		Determine whether a SQL query is read-only and safe to execute.
-	
-		Allows:
-			SELECT
-			WITH (CTE returning SELECT)
-			EXPLAIN SELECT
-			PRAGMA (read-only)
-	
-		Blocks:
-			INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, ATTACH,
-			DETACH, VACUUM, REPLACE, TRIGGER, and multiple statements.
-			
+	"""Determine whether a SQL statement is read-only.
+
+	Purpose:
+	    Normalizes and inspects a SQL statement, rejects multiple statements and write-oriented
+	    keywords, and permits statements beginning with ``SELECT``, ``WITH``, ``EXPLAIN``, or
+	    ``PRAGMA``.
+
+	Args:
+	    query (str): SQL text evaluated for read-only execution.
+
+	Returns:
+	    bool: ``True`` when the statement satisfies the configured read-only checks; otherwise
+	    ``False``.
 	"""
 	if not query or not isinstance( query, str ):
 		return False
@@ -1688,16 +1807,21 @@ def is_safe_query( query: str ) -> bool:
 	return True
 
 def create_identifier( name: str ) -> str:
-	"""
-	
-		Purpose:
-		--------
-		Sanitize a string into a safe SQLite identifier.
-	
-		- Replaces invalid characters with underscores
-		- Ensures it starts with a letter or underscore
-		- Prevents empty names
-		
+	"""Convert text into a valid SQLite identifier.
+
+	Purpose:
+	    Replaces unsupported identifier characters with underscores, prefixes values that do not
+	    begin with a letter or underscore, and rejects missing or unusable input.
+
+	Args:
+	    name (str): Source text converted into a SQLite-safe identifier.
+
+	Returns:
+	    str: Sanitized identifier containing letters, digits, and underscores.
+
+	Raises:
+	    ValueError: Raised when ``name`` is missing, is not a string, or cannot produce a usable
+	        identifier.
 	"""
 	if not name or not isinstance( name, str ):
 		raise ValueError( 'Invalid Identifier.' )
@@ -1712,11 +1836,40 @@ def create_identifier( name: str ) -> str:
 	return safe
 
 def get_indexes( table: str ):
+	"""Return index metadata for a SQLite table.
+
+	Purpose:
+	    Executes SQLite index-list introspection for the specified table and returns the index
+	    metadata rows used by schema-management and user-interface workflows.
+
+	Args:
+	    table (str): SQLite table whose indexes are requested.
+
+	Returns:
+	    list: SQLite ``PRAGMA index_list`` result rows.
+	"""
 	with create_connection( ) as conn:
 		rows = conn.execute( f'PRAGMA index_list("{table}");' ).fetchall( )
 		return rows
 
 def add_column( table: str, column: str, col_type: str ):
+	"""Add a column to an existing SQLite table.
+
+	Purpose:
+	    Sanitizes the requested column identifier, normalizes the supplied SQLite data type, adds
+	    the column to the specified table, and commits the schema change.
+
+	Args:
+	    table (str): Existing SQLite table receiving the new column.
+	    column (str): Column name sanitized before execution.
+	    col_type (str): SQLite column type normalized to uppercase.
+
+	Returns:
+	    None: This function alters the SQLite table and does not return a value.
+
+	Raises:
+	    ValueError: Raised by ``create_identifier`` when the column name is invalid.
+	"""
 	column = create_identifier( column )
 	col_type = col_type.upper( )
 	
@@ -1725,29 +1878,25 @@ def add_column( table: str, column: str, col_type: str ):
 		conn.commit( )
 
 def rename_column( table_name: str, old_name: str, new_name: str ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Rename a column within an existing SQLite table. Attempts native ALTER TABLE rename
-		first; if it fails, falls back to a schema-safe rebuild preserving column order, data,
-		and indexes.
+	"""Rename a column in an existing SQLite table.
 
-		Parameters:
-		-----------
-		table_name : str
-			Table containing the column.
+	Purpose:
+	    Attempts to rename the selected column with SQLite's native ``ALTER TABLE`` operation.
+	    When native renaming fails, rebuilds the table from schema metadata, preserves column
+	    order and stored records, maps the renamed column into the rebuilt schema, and recreates
+	    existing indexes with the updated column reference.
 
-		old_name : str
-			Existing column name.
+	Args:
+	    table_name (str): Existing SQLite table containing the column.
+	    old_name (str): Current column name.
+	    new_name (str): Replacement column name.
 
-		new_name : str
-			New column name.
+	Returns:
+	    None: This function modifies the SQLite schema and does not return a value.
 
-		Returns:
-		--------
-		None
-		
+	Raises:
+	    ValueError: Raised when the table definition is unavailable or the source column does not
+	        exist.
 	"""
 	if not table_name or not old_name or not new_name:
 		return
@@ -1834,6 +1983,19 @@ def rename_column( table_name: str, old_name: str, new_name: str ) -> None:
 		conn.commit( )
 
 def create_profile_table( table: str ):
+	"""Create a column-level profile for a SQLite table.
+
+	Purpose:
+	    Reads the specified SQLite table into a dataframe and calculates each column's pandas data
+	    type, null percentage, distinct-value percentage, and numeric minimum, maximum, and mean
+	    values when applicable.
+
+	Args:
+	    table (str): SQLite table profiled through the configured database connection.
+
+	Returns:
+	    pd.DataFrame: Dataframe containing one profile record for each source column.
+	"""
 	df = read_table( table )
 	profile_rows = [ ]
 	total_rows = len( df )
@@ -1859,6 +2021,24 @@ def create_profile_table( table: str ):
 	return pd.DataFrame( profile_rows )
 
 def drop_column( table: str, column: str ):
+	"""Remove a column from a SQLite table by rebuilding its schema.
+
+	Purpose:
+	    Reads the source table definition, removes the selected column definition, creates a
+	    temporary replacement table, copies all remaining column values, replaces the source table,
+	    and recreates indexes that do not reference the removed column.
+
+	Args:
+	    table (str): Existing SQLite table containing the column.
+	    column (str): Column removed from the table schema.
+
+	Returns:
+	    None: This function modifies the SQLite schema and does not return a value.
+
+	Raises:
+	    ValueError: Raised when required names are missing, the table definition is unavailable,
+	        the table definition is malformed, or the selected column does not exist.
+	"""
 	if not table or not column:
 		raise ValueError( 'Table and column required.' )
 	
@@ -1940,26 +2120,22 @@ def drop_column( table: str, column: str ):
 		conn.commit( )
 
 def rename_table( old_name: str, new_name: str ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Rename an existing SQLite table. Attempts native ALTER TABLE rename first; if it fails,
-		falls back to a schema-safe rebuild using the original CREATE TABLE statement and
-		preserves indexes.
+	"""Rename an existing SQLite table.
 
-		Parameters:
-		-----------
-		old_name : str
-			Existing table name.
+	Purpose:
+	    Attempts to rename the table with SQLite's native ``ALTER TABLE`` operation. When native
+	    renaming fails, rebuilds the table from its original creation statement, copies all column
+	    values, replaces the source table, and recreates existing indexes against the new table name.
 
-		new_name : str
-			New table name.
+	Args:
+	    old_name (str): Current SQLite table name.
+	    new_name (str): Replacement SQLite table name.
 
-		Returns:
-		--------
-		None
-		
+	Returns:
+	    None: This function modifies the SQLite schema and does not return a value.
+
+	Raises:
+	    ValueError: Raised when the source table definition is unavailable or malformed.
 	"""
 	if not old_name or not new_name:
 		return
@@ -2032,76 +2208,71 @@ with st.sidebar:
 	st.subheader( 'Data Source' )
 	
 	with st.expander( 'Select Source', expanded=False ):
-		source = st.selectbox( label='Select Source',
-			options=[ 'Default Data', 'Database Data', 'Custom Data' ], key='source_selectbox' )
-	
-	uploaded = st.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx', 'xls', 'csv' ],
-		key='source_uploader' )
-	
-	loaded_df: pd.DataFrame | None = None
-	loaded_original: pd.DataFrame | None = None
-	
-	if source == 'Default Data':
-		loaded_df = pd.read_excel( cfg.DEFAULT_DATA )
-		loaded_original = loaded_df.copy( )
-		log_step( 'Loaded Default Dataset' )
-	
-	elif source == 'Database Data':
-		try:
-			with sqlite3.connect( cfg.DB_PATH ) as connection:
-				df_tables = pd.read_sql_query( """
-                                               SELECT name
-                                               FROM sqlite_master
-                                               WHERE type = 'table'
-                                                 AND name NOT LIKE 'sqlite_%'
-                                               ORDER BY name;
-				                               """, connection )
-				
-				table_options = df_tables[ 'name' ].tolist( )[ : ]
-				if table_options:
-					selected_table = st.selectbox( label='Select Database Table',
-						options=table_options, key='database_table_selectbox' )
+		src = [ 'Default Data', 'Database Data', 'Custom Data' ]
+		source = st.selectbox( label='Select Source', options=src, key='source_selectbox' )
+		df_loaded: pd.DataFrame | None = None
+		loaded_original: pd.DataFrame | None = None
+		if source == 'Default Data':
+			df_loaded = pd.read_excel( cfg.DEFAULT_DATA )
+			loaded_original = df_loaded.copy( )
+			log_step( 'Loaded Default Dataset' )
+		
+		elif source == 'Database Data':
+			try:
+				with sqlite3.connect( cfg.DB_PATH ) as connection:
+					df_tables = pd.read_sql_query( """
+	                                               SELECT name
+	                                               FROM sqlite_master
+	                                               WHERE type = 'table'
+	                                                 AND name NOT LIKE 'sqlite_%'
+	                                               ORDER BY name;
+					                               """, connection )
 					
-					if selected_table:
-						loaded_df = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
-							connection )
-						loaded_original = loaded_df.copy( )
-						log_step( f'Loaded Database Table: {selected_table}' )
+					table_options = df_tables[ 'name' ].tolist( )[ : ]
+					if table_options:
+						selected_table = st.selectbox( label='Select Database Table',
+							options=table_options, key='database_table_selectbox' )
+						
+						if selected_table:
+							df_loaded = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
+								connection )
+							loaded_original = df_loaded.copy( )
+							log_step( f'Loaded Database Table: {selected_table}' )
+					else:
+						st.warning( 'No tables were found in the database.' )
+			except Exception as ex:
+				st.error( f'Error loading database data: {ex}' )
+		
+		elif source == 'Custom Data':
+			uploaded = st.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx', 'xls', 'csv' ],
+				key='source_uploader' )
+			if uploaded is not None:
+				if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
+					df_loaded = pd.read_excel( uploaded )
 				else:
-					st.warning( 'No tables were found in the database.' )
-		except Exception as ex:
-			st.error( f'Error loading database data: {ex}' )
-	
-	elif source == 'Custom Data':
-		if uploaded is not None:
-			if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
-				loaded_df = pd.read_excel( uploaded )
+					df_loaded = pd.read_csv( uploaded )
+				
+				loaded_original = df_loaded.copy( )
+				log_step( f'Loaded uploaded file: {uploaded.name}' )
 			else:
-				loaded_df = pd.read_csv( uploaded )
-			
-			loaded_original = loaded_df.copy( )
-			log_step( f'Loaded uploaded file: {uploaded.name}' )
-		else:
-			st.info( 'Upload a spreadsheet to load data.' )
-	
-	if has_loaded_dataset( loaded_df ):
-		store_loaded_dataset( loaded_df, loaded_original )
+				st.info( 'Upload a spreadsheet to load data.' )
+		
+		if has_loaded_dataset( df_loaded ):
+			store_loaded_dataset( df_loaded, loaded_original )
 	
 	def get_visualization_modes( df_frame: pd.DataFrame | None ) -> list[ str ]:
-		"""
-			Purpose:
-			--------
-			Identify visualization modes supported by the schema and contents of the
-			currently loaded dataframe.
+		"""Return visualization modes supported by the loaded dataframe.
 
-			Parameters:
-			-----------
-			df_frame ( pd.DataFrame | None ): Currently loaded dataframe.
+		Purpose:
+		    Examines the loaded dataframe for numeric, datetime, categorical, and missing-value
+		    content, then returns the visualization modes whose data requirements are satisfied.
 
-			Returns:
-			--------
-			list[ str ]:
-				Visualization modes supported by the available data.
+		Args:
+		    df_frame (pd.DataFrame | None): Currently loaded dataframe evaluated for visualization
+		        compatibility.
+
+		Returns:
+		    list[str]: Visualization modes supported by the available dataframe schema and values.
 		"""
 		if df_frame is None or df_frame.empty:
 			return [ ]
@@ -2138,22 +2309,18 @@ with st.sidebar:
 			visualization_modes.append( 'Missing Data Visualization' )
 		
 		return visualization_modes
-	
-	
+		
 	def handle_ml_mode_change( ) -> None:
-		"""
-			Purpose:
-			--------
-			Activate the selected machine-learning mode, clear inactive selections,
-			and reset mode-specific processing state when required.
+		"""Activate the selected machine-learning mode.
 
-			Parameters:
-			-----------
-			None
+		Purpose:
+		    Reads the selected machine-learning mode from Streamlit session state, clears inactive
+		    data-management and visualization selections, updates the active application mode, and
+		    resets classification or regression state when those workflows are selected.
 
-			Returns:
-			--------
-			None
+		Returns:
+		    None: This function updates mode-selection and model-workflow values in Streamlit
+		    session state.
 		"""
 		selected_mode = st.session_state.get( 'ml_mode_radio', None )
 		
@@ -2169,21 +2336,15 @@ with st.sidebar:
 		elif selected_mode == 'Regression Models':
 			reset_regression_mode_state( )
 	
-	
 	def handle_db_mode_change( ) -> None:
-		"""
-			Purpose:
-			--------
-			Activate the selected data-management mode and clear inactive mode
-			selections.
+		"""Activate the selected data-management mode.
 
-			Parameters:
-			-----------
-			None
+		Purpose:
+		    Reads the selected data-management mode from Streamlit session state, clears inactive
+		    machine-learning and visualization selections, and updates the active application mode.
 
-			Returns:
-			--------
-			None
+		Returns:
+		    None: This function updates mode-selection values in Streamlit session state.
 		"""
 		selected_mode = st.session_state.get( 'db_mode_radio', None )
 		
@@ -2194,21 +2355,16 @@ with st.sidebar:
 		st.session_state[ 'visualization_mode_radio' ] = None
 		st.session_state[ 'active_mode' ] = selected_mode
 	
-	
 	def handle_visualization_mode_change( ) -> None:
-		"""
-			Purpose:
-			--------
-			Activate the selected visualization mode and clear inactive mode
-			selections.
+		"""Activate the selected visualization mode.
 
-			Parameters:
-			-----------
-			None
+		Purpose:
+		    Reads the selected visualization mode from Streamlit session state, clears inactive
+		    machine-learning and data-management selections, and updates the active application
+		    mode.
 
-			Returns:
-			--------
-			None
+		Returns:
+		    None: This function updates mode-selection values in Streamlit session state.
 		"""
 		selected_mode = st.session_state.get( 'visualization_mode_radio', None )
 		
@@ -2218,12 +2374,10 @@ with st.sidebar:
 		st.session_state[ 'ml_mode_radio' ] = None
 		st.session_state[ 'db_mode_radio' ] = None
 		st.session_state[ 'active_mode' ] = selected_mode
-	
-	
+		
 	# ------- Available Modes
 	ml_modes = list( cfg.ML_MODE )
-	db_modes = list( cfg.DB_MODE )
-	
+	db_modes = list( cfg.DB_MODE )	
 	df_loaded = st.session_state.get( 'df_dataset', None )
 	visualization_modes = get_visualization_modes( df_loaded )
 	
@@ -2258,25 +2412,27 @@ with st.sidebar:
 	
 	# ------- Machine Learning Selection Mode
 	st.sidebar.divider( )
-	with st.expander( 'Machine Learning', expanded=True ):
+	st.subheader( 'Machine Learning' )
+	with st.expander( 'Select Model', expanded=True ):
 		st.radio( label='Select', options=ml_modes, index=None,
 			key='ml_mode_radio', on_change=handle_ml_mode_change )
 	
 	# ------- Data Management Selection Mode
 	st.sidebar.divider( )
-	with st.expander( 'Data Management', expanded=True ):
-		st.radio( label='Select', options=db_modes, index=None,
-			key='db_mode_radio', on_change=handle_db_mode_change )
+	st.subheader( 'Data Management' )
+	with st.expander( 'Select Mode', expanded=True ):
+		st.radio( label='Select', options=db_modes, index=None, key='db_mode_radio', 
+			on_change=handle_db_mode_change )
 	
 	# ------- Data Visualization Selection Mode
 	st.sidebar.divider( )
-	with st.expander( 'Data Visualization', expanded=True ):
+	st.subheader( 'Data Visualization' )
+	with st.expander( 'Select Method', expanded=True ):
 		if not visualization_modes:
 			st.info( 'Load a dataset to enable visualization modes.' )
 		else:
 			st.radio( label='Select', options=visualization_modes, index=None,
-				key='visualization_mode_radio',
-				on_change=handle_visualization_mode_change )
+				key='visualization_mode_radio', on_change=handle_visualization_mode_change )
 	
 	# ------- Active Application Mode
 	mode = st.session_state[ 'active_mode' ]
@@ -2298,54 +2454,6 @@ if mode == 'Data Profile':
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
-		
-		# -------------------------------------------------------------------------------------
-		# SCHEMA INFERENCE
-		# -------------------------------------------------------------------------------------
-		def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
-			schema: dict[ str, str ] = { }
-			n_rows = len( df )
-			
-			for col in df.columns:
-				s = df[ col ]
-				name = col.lower( )
-				nunique = s.nunique( dropna=True )
-				unique_ratio = nunique / max( 1, n_rows )
-				
-				# ------------------------------------------------------------------
-				# 1) Datetime: ONLY for object/string columns
-				# ------------------------------------------------------------------
-				if s.dtype == 'object':
-					try:
-						parsed_dt = pd.to_datetime( s, errors='coerce' )
-						if parsed_dt.notna( ).sum( ) / max( 1, n_rows ) > 0.9:
-							schema[ col ] = 'datetime'
-							continue
-					except Exception:
-						pass
-				
-				# ------------------------------------------------------------------
-				# 2) Numeric detection: ints AND floats
-				# ------------------------------------------------------------------
-				if pd.api.types.is_numeric_dtype( s ):
-					# Identifier heuristics for numeric codes/keys
-					if ('id' in name) or ('code' in name) or ('key' in name) or (
-							unique_ratio > 0.8):
-						schema[ col ] = 'identifier'
-						continue
-					if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
-						schema[ col ] = 'ordinal'
-						continue
-					schema[ col ] = 'numeric'
-					continue
-				
-				# ------------------------------------------------------------------
-				# 3) Categorical fallback
-				# ------------------------------------------------------------------
-				schema[ col ] = 'categorical'
-			
-			return schema
-		
 		schema = infer_schema( df_dataset )
 		st.session_state.column_schema = schema
 		numeric_columns = [ c for c, t in schema.items( ) if t == 'numeric' ]
@@ -3794,59 +3902,50 @@ elif mode == 'Classification Models':
 		st.markdown( '##### Feature-Engineering' )
 		
 		def has_classification_frame( df_frame: object ) -> bool:
-			"""
+			"""Determine whether an object contains usable classification data.
 
-				Purpose:
-				--------
-				Determine whether the supplied object is a usable classification dataframe.
+			Purpose:
+			    Validates that the supplied object is a non-empty pandas dataframe containing at
+			    least one column before it is used by the classification preprocessing pipeline.
 
-				Parameters:
-				-----------
-				df_frame ( object ): Candidate dataframe object.
+			Args:
+			    df_frame (object): Candidate object evaluated as a classification dataframe.
 
-				Returns:
-				--------
-				bool: True when the object is a non-empty dataframe with one or more
-				columns.
-
+			Returns:
+			    bool: ``True`` when the object is a non-empty dataframe with at least one column;
+			    otherwise ``False``.
 			"""
 			return (isinstance( df_frame, pd.DataFrame ) and not df_frame.empty and len(
 				df_frame.columns ) > 0)
-		
+				
 		def get_classification_source_signature( df_frame: pd.DataFrame ) -> tuple:
-			"""
+			"""Create a signature for a classification working dataframe.
 
-				Purpose:
-				--------
-				Create a stable signature for the user-selected classification working frame.
+			Purpose:
+			    Builds a stable comparison tuple from the dataframe column order, row count, and
+			    first ten index values so the preprocessing workflow can detect changes to its
+			    source dataset.
 
-				Parameters:
-				-----------
-				df_frame ( pd.DataFrame ): Current classification working dataframe.
+			Args:
+			    df_frame (pd.DataFrame): Current classification working dataframe.
 
-				Returns:
-				--------
-				tuple: Source signature used to detect changed working datasets.
-
+			Returns:
+			    tuple: Source signature containing columns, row count, and sampled index values.
 			"""
 			index_sample = tuple( str( value ) for value in df_frame.index[ :10 ].tolist( ) )
 			return (tuple( df_frame.columns.tolist( ) ), int( len( df_frame ) ), index_sample)
 		
 		def clear_classification_processed_state( ) -> None:
-			"""
+			"""Clear classification preprocessing outputs.
 
-				Purpose:
-				--------
-				Clear only classification processing outputs without modifying df_working.
+			Purpose:
+			    Resets processed dataframes, active column selections, model inputs, train-test
+			    partitions, predictions, model references, scores, and elapsed-time values without
+			    modifying the classification working dataframe.
 
-				Parameters:
-				-----------
-				None
-
-				Returns:
-				--------
-				None
-
+			Returns:
+			    None: This function resets classification preprocessing values in Streamlit session
+			    state.
 			"""
 			st.session_state[ 'df_processed' ] = pd.DataFrame( )
 			st.session_state[ 'df_features' ] = pd.DataFrame( )
@@ -3865,46 +3964,38 @@ elif mode == 'Classification Models':
 			st.session_state[ 'y_prediction' ] = None
 			st.session_state[ 'model' ] = None
 			st.session_state[ 'elapsed_seconds' ] = 0.0
-		
+			
 		def get_classification_pipeline_frame( ) -> pd.DataFrame:
-			"""
+			"""Return the active classification preprocessing dataframe.
 
-				Purpose:
-				--------
-				Return the current input frame for a classification preprocessing operation.
+			Purpose:
+			    Returns an independent copy of the processed dataframe when valid processed data
+			    exists. Otherwise, returns a copy of the current classification working dataframe.
 
-				Parameters:
-				-----------
-				None
-
-				Returns:
-				--------
-				pd.DataFrame: df_processed when it exists; otherwise df_working.
-
+			Returns:
+			    pd.DataFrame: Active dataframe used as input to the next preprocessing operation.
 			"""
 			df_current = st.session_state.get( 'df_processed', pd.DataFrame( ) )
 			if has_classification_frame( df_current ):
 				return df_current.copy( )
 			
 			return st.session_state[ 'df_working' ].copy( )
-		
+			
 		def get_classification_columns( numeric_only: bool = False,
 			categorical_only: bool = False ) -> list[ str ]:
-			"""
+			"""Return selectable classification preprocessing columns.
 
-				Purpose:
-				--------
-				Return selectable preprocessing columns from the active pipeline frame.
+			Purpose:
+			    Retrieves column names from the active classification pipeline dataframe and
+			    optionally restricts the result to numeric or non-numeric columns.
 
-				Parameters:
-				-----------
-				numeric_only ( bool ): Return only numeric columns when True.
-				categorical_only ( bool ): Return only non-numeric columns when True.
+			Args:
+			    numeric_only (bool): Flag indicating whether only numeric columns are returned.
+			    categorical_only (bool): Flag indicating whether only non-numeric columns are
+			        returned.
 
-				Returns:
-				--------
-				list[ str ]: Column names available for the requested operation.
-
+			Returns:
+			    list[str]: Column names available for the requested preprocessing operation.
 			"""
 			df_input = get_classification_pipeline_frame( )
 			if numeric_only:
@@ -3916,135 +4007,122 @@ elif mode == 'Classification Models':
 					not pd.api.types.is_numeric_dtype( df_input[ col ] ) ]
 			
 			return df_input.columns.tolist( )
-		
+			
 		def prune_classification_multiselect( key: str, options: list[ str ] ) -> None:
-			"""
+			"""Remove invalid values from a classification multiselect state key.
 
-				Purpose:
-				--------
-				Remove stale multiselect values before the widget is instantiated.
+			Purpose:
+			    Filters an existing list-valued Streamlit session-state entry so it contains only
+			    values that remain available in the current widget options before the multiselect
+			    control is instantiated.
 
-				Parameters:
-				-----------
-				key ( str ): Streamlit session-state key.
-				options ( list[ str ] ): Current legal column choices.
+			Args:
+			    key (str): Streamlit session-state key associated with the multiselect widget.
+			    options (list[str]): Current valid values accepted by the widget.
 
-				Returns:
-				--------
-				None
-
+			Returns:
+			    None: This function updates the specified session-state value in place.
 			"""
 			if key in st.session_state and isinstance( st.session_state[ key ], list ):
 				st.session_state[ key ] = [ value for value in st.session_state[ key ] if
 					value in options ]
 		
 		def prune_classification_selectbox( key: str, options: list[ str ] ) -> None:
-			"""
+			"""Remove an invalid classification selectbox state value.
 
-				Purpose:
-				--------
-				Remove a stale selectbox value before the widget is instantiated.
+			Purpose:
+			    Deletes an existing Streamlit session-state entry when its selected value is no
+			    longer present in the current selectbox options, allowing the widget to initialize
+			    with a valid selection.
 
-				Parameters:
-				-----------
-				key ( str ): Streamlit session-state key.
-				options ( list[ str ] ): Current legal column choices.
+			Args:
+			    key (str): Streamlit session-state key associated with the selectbox widget.
+			    options (list[str]): Current valid values accepted by the widget.
 
-				Returns:
-				--------
-				None
-
+			Returns:
+			    None: This function may remove the specified session-state key.
 			"""
 			if key in st.session_state and st.session_state[ key ] not in options:
 				del st.session_state[ key ]
 		
 		def get_valid_classification_columns( column_names: list[ str ],
 			df_frame: pd.DataFrame ) -> list[ str ]:
-			"""
+			"""Return selected columns that remain available.
 
-				Purpose:
-				--------
-				Filter selected column names to columns that still exist in the input frame.
+			Purpose:
+			    Filters a requested column collection against the current classification dataframe
+			    so downstream preprocessing operations receive only existing columns.
 
-				Parameters:
-				-----------
-				column_names ( list[ str ] ): Selected column names.
-				df_frame ( pd.DataFrame ): Current input dataframe.
+			Args:
+			    column_names (list[str]): Selected column names evaluated for availability.
+			    df_frame (pd.DataFrame): Current classification dataframe.
 
-				Returns:
-				--------
-				list[ str ]: Valid selected column names.
-
+			Returns:
+			    list[str]: Selected column names that exist in ``df_frame``.
 			"""
 			if not column_names:
 				return [ ]
 			
 			return [ col for col in column_names if col in df_frame.columns ]
-		
+			
 		def get_numeric_classification_subset( df_frame: pd.DataFrame,
 			column_names: list[ str ] ) -> pd.DataFrame:
-			"""
+			"""Return a numeric classification dataframe subset.
 
-				Purpose:
-				--------
-				Return a numeric dataframe subset for estimators requiring numeric input.
+			Purpose:
+			    Selects the requested columns, coerces their values to numeric representations,
+			    converts invalid values to missing values, and replaces resulting missing values
+			    with zero for estimators that require fully numeric input.
 
-				Parameters:
-				-----------
-				df_frame ( pd.DataFrame ): Input dataframe.
-				column_names ( list[ str ] ): Columns to coerce to numeric values.
+			Args:
+			    df_frame (pd.DataFrame): Classification dataframe containing the selected columns.
+			    column_names (list[str]): Columns included in the numeric subset.
 
-				Returns:
-				--------
-				pd.DataFrame: Numeric subset with invalid values converted and filled.
-
+			Returns:
+			    pd.DataFrame: Numeric dataframe containing the requested columns with invalid and
+			    missing values replaced by zero.
 			"""
 			return df_frame[ column_names ].apply( pd.to_numeric, errors='coerce' ).fillna( 0.0 )
 		
 		def require_classification_columns( column_names: list[ str ], label: str ) -> bool:
-			"""
+			"""Validate that a classification operation has selected columns.
 
-				Purpose:
-				--------
-				Display a warning when an operation has no valid selected columns.
+			Purpose:
+			    Confirms that one or more valid columns are available for a preprocessing operation
+			    and renders a Streamlit warning containing the operation label when no columns are
+			    selected.
 
-				Parameters:
-				-----------
-				column_names ( list[ str ] ): Selected column names.
-				label ( str ): Operation label.
+			Args:
+			    column_names (list[str]): Selected column names evaluated for presence.
+			    label (str): Operation label included in the warning message.
 
-				Returns:
-				--------
-				bool: True when one or more columns are selected.
-
+			Returns:
+			    bool: ``True`` when at least one column is selected; otherwise ``False``.
 			"""
 			if not column_names:
 				st.warning( f'Select at least one available column for {label}.' )
 				return False
 			
 			return True
-		
-		def update_classification_pipeline_contract( df_before: pd.DataFrame,
-			df_after: pd.DataFrame, source_columns: list[ str ],
-			preserve_source_names: bool ) -> None:
-			"""
+			
+		def update_classification_pipeline_contract( df_before: pd.DataFrame, df_after: pd.DataFrame,
+			source_columns: list[ str ], preserve_source_names: bool ) -> None:
+			"""Update classification feature and target column contracts.
 
-				Purpose:
-				--------
-				Update active feature and target column contracts after preprocessing.
+			Purpose:
+			    Reconciles active feature and target selections after a preprocessing operation.
+			    Existing names are retained when transformations preserve source columns; otherwise,
+			    consumed source columns are replaced with newly generated output columns.
 
-				Parameters:
-				-----------
-				df_before ( pd.DataFrame ): Dataframe before transformation.
-				df_after ( pd.DataFrame ): Dataframe after transformation.
-				source_columns ( list[ str ] ): Source columns consumed by the operation.
-				preserve_source_names ( bool ): True when transformed columns retain their
-				source names.
+			Args:
+			    df_before (pd.DataFrame): Classification dataframe before transformation.
+			    df_after (pd.DataFrame): Classification dataframe after transformation.
+			    source_columns (list[str]): Source columns consumed by the transformation.
+			    preserve_source_names (bool): Flag indicating whether transformed columns retain
+			        their original names.
 
-				Returns:
-				--------
-				None
-
+			Returns:
+			    None: This function updates feature and target selections in Streamlit session state.
 			"""
 			source_columns = source_columns or [ ]
 			features_current = st.session_state.get( 'features', [ ] )
@@ -4085,28 +4163,26 @@ elif mode == 'Classification Models':
 			
 			st.session_state[ 'features' ] = features_next
 			st.session_state[ 'targets' ] = targets_next
-		
+			
 		def commit_classification_processed_frame( df_before: pd.DataFrame, df_after: pd.DataFrame,
 			source_columns: list[ str ] | None = None, preserve_source_names: bool = True ) -> None:
-			"""
+			"""Commit a classification preprocessing result.
 
-				Purpose:
-				--------
-				Commit the current classification processed dataframe without changing
-				df_working.
+			Purpose:
+			    Updates feature and target column contracts for the completed transformation,
+			    stores an independent copy of the resulting dataframe as ``df_processed``, and
+			    rebuilds the active feature and target dataframes without modifying ``df_working``.
 
-				Parameters:
-				-----------
-				df_before ( pd.DataFrame ): Dataframe before transformation.
-				df_after ( pd.DataFrame ): Dataframe after transformation.
-				source_columns ( list[ str ] | None ): Source columns transformed.
-				preserve_source_names ( bool ): True when transformed columns retain their
-				source names.
+			Args:
+			    df_before (pd.DataFrame): Classification dataframe before transformation.
+			    df_after (pd.DataFrame): Classification dataframe after transformation.
+			    source_columns (list[str] | None): Source columns consumed by the transformation.
+			    preserve_source_names (bool): Flag indicating whether transformed columns retain
+			        their original names.
 
-				Returns:
-				--------
-				None
-
+			Returns:
+			    None: This function commits processed classification data and related session-state
+			    contracts.
 			"""
 			update_classification_pipeline_contract( df_before=df_before, df_after=df_after,
 				source_columns=source_columns or [ ], preserve_source_names=preserve_source_names )
