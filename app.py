@@ -243,26 +243,40 @@ if 'cluster_signature' not in st.session_state:
 # ============================================
 
 def throw_if( name: str, value: object ) -> None:
-	"""Input guard.
-	
+	"""Validate a required argument before workflow execution.
+
 	Purpose:
-	    Validates that a required argument contains a usable value before the surrounding workflow
-	    continues. This guard centralizes early validation so provider wrappers and UI routines fail
-	    with consistent, readable error messages.
-	
+	    Rejects null values and blank strings before they reach data operations, model workflows,
+	    or user-interface routines that require a populated argument.
+
 	Args:
-	    name (str): Name value used by the operation.
-	    value (object): Value value used by the operation.
-	
+	    name (str): Argument name included in validation error messages.
+	    value (object): Argument value evaluated for a null or blank-string state.
+
 	Returns:
-	    None: This function performs its work through side effects and does not return a value."""
+	    None: This function completes without returning a value when validation succeeds.
+
+	Raises:
+	    ValueError: Raised when ``value`` is ``None`` or a blank string.
+	"""
 	if value is None:
 		raise ValueError( f'Argument "{name}" cannot be None.' )
 	
 	if isinstance( value, str ) and not value.strip( ):
 		raise ValueError( f'Argument "{name}" cannot be empty.' )
-	
+
+
 def init_state( ) -> None:
+	"""Initialize core application session state.
+
+	Purpose:
+	    Creates the baseline dataset, column-classification, feature-selection, target-selection,
+	    and pipeline-log keys required by downstream application workflows. Existing values are
+	    preserved so Streamlit reruns do not overwrite active user state.
+
+	Returns:
+	    None: This function initializes missing ``st.session_state`` keys in place.
+	"""
 	defaults = { 'df_dataset': None, 'df_original': None, 'df_processed': None,
 		'numeric_columns': [ ], 'categorical_columns': [ ], 'features': [ ], 'targets': [ ],
 		'pipeline_log': [ ] }
@@ -270,40 +284,38 @@ def init_state( ) -> None:
 		if k not in st.session_state:
 			st.session_state[ k ] = v
 
+
 init_state( )
 
+
 def has_loaded_dataset( df_frame: object ) -> bool:
-	"""
-		Purpose:
-		--------
-		Determine whether an object is a valid loaded dataframe.
+	"""Determine whether an object contains a usable loaded dataset.
 
-		Parameters:
-		-----------
-		df_frame ( object ): Candidate dataframe object.
+	Purpose:
+	    Validates that the supplied object is a non-empty pandas dataframe containing at least one
+	    column before it is used by data-loading, preprocessing, visualization, or modeling
+	    workflows.
 
-		Returns:
-		--------
-		bool:
-			True when the object is a non-empty dataframe with at least one column.
+	Args:
+	    df_frame (object): Candidate object evaluated as the currently loaded dataset.
+
+	Returns:
+	    bool: ``True`` when the object is a non-empty dataframe with at least one column; otherwise
+	    ``False``.
 	"""
 	return (isinstance( df_frame, pd.DataFrame ) and not df_frame.empty and len(
 		df_frame.columns ) > 0)
 
+
 def get_loaded_dataset( ) -> pd.DataFrame | None:
-	"""
-		Purpose:
-		--------
-		Return the currently loaded dataset from session state when valid.
+	"""Return a defensive copy of the currently loaded dataset.
 
-		Parameters:
-		-----------
-		None
+	Purpose:
+	    Retrieves ``df_dataset`` from Streamlit session state and returns an isolated dataframe copy
+	    when the stored value satisfies the loaded-dataset validation contract.
 
-		Returns:
-		--------
-		pd.DataFrame | None:
-			Copy of the loaded dataset, or None when no valid dataset exists.
+	Returns:
+	    pd.DataFrame | None: Copy of the loaded dataset, or ``None`` when no valid dataset is stored.
 	"""
 	df_frame = st.session_state.get( 'df_dataset', None )
 	if not has_loaded_dataset( df_frame ):
@@ -311,20 +323,21 @@ def get_loaded_dataset( ) -> pd.DataFrame | None:
 	
 	return df_frame.copy( )
 
+
 def store_loaded_dataset( df_dataset: pd.DataFrame, df_original: pd.DataFrame = None ) -> None:
-	"""
-		Purpose:
-		--------
-		Persist a successfully loaded dataset to session state.
+	"""Persist a validated dataset and its original baseline in session state.
 
-		Parameters:
-		-----------
-		df_dataset ( pd.DataFrame ): Loaded dataset.
-		df_original ( pd.DataFrame | None ): Optional original copy.
+	Purpose:
+	    Stores independent copies of the loaded dataset under the raw, original, and active dataset
+	    session-state keys while preserving an explicitly supplied original dataframe when
+	    available.
 
-		Returns:
-		--------
-		None
+	Args:
+	    df_dataset (pd.DataFrame): Loaded dataframe persisted as the active dataset.
+	    df_original (pd.DataFrame): Optional original dataframe retained as the baseline dataset.
+
+	Returns:
+	    None: This function updates Streamlit session state and does not return a value.
 	"""
 	if not has_loaded_dataset( df_dataset ):
 		return
@@ -336,43 +349,35 @@ def store_loaded_dataset( df_dataset: pd.DataFrame, df_original: pd.DataFrame = 
 	st.session_state[ 'df_original' ] = df_base.copy( )
 	st.session_state[ 'df_dataset' ] = df_source.copy( )
 
+
 def clear_keys( keys: List[ str ] ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Remove a list of session-state keys if they exist.
-	
-		Parameters:
-		-----------
-		keys: List[str]
-			The session-state keys to remove.
-	
-		Returns:
-		--------
-		None
-	
+	"""Remove specified keys from Streamlit session state.
+
+	Purpose:
+	    Deletes each supplied session-state key when present so mode-specific workflows can reset
+	    their owned state without raising errors for keys that have not been initialized.
+
+	Args:
+	    keys (List[str]): Session-state keys to remove.
+
+	Returns:
+	    None: This function mutates ``st.session_state`` in place.
 	"""
 	for key in keys:
 		if key in st.session_state:
 			del st.session_state[ key ]
 
+
 def reset_classification_mode_state( ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Clear session-state values owned by Classification mode when the user
-		activates that mode.
-	
-		Parameters:
-		-----------
-		None
-	
-		Returns:
-		--------
-		None
-	
+	"""Reset state owned by the classification workflow.
+
+	Purpose:
+	    Clears classification inputs, outputs, selected columns, train-test partitions, predictions,
+	    model references, metrics, and elapsed-time values, then recreates the required keys with
+	    their established empty defaults.
+
+	Returns:
+	    None: This function resets classification-related values in Streamlit session state.
 	"""
 	classification_keys = [ 'df_working', 'df_processed', 'df_model', 'df_scores',
 		'df_predictions',
@@ -407,22 +412,17 @@ def reset_classification_mode_state( ) -> None:
 	st.session_state[ 'elapsed_seconds' ] = 0.0
 	st.session_state[ 'target_count' ] = 0.0
 
+
 def reset_regression_mode_state( ) -> None:
-	"""
-	
-		Purpose:
-		--------
-		Clear session-state values owned by Regression mode when the user
-		activates that mode.
-	
-		Parameters:
-		-----------
-		None
-	
-		Returns:
-		--------
-		None
-	
+	"""Reset state owned by the regression workflow.
+
+	Purpose:
+	    Clears regression inputs, outputs, selected columns, train-test partitions, predictions,
+	    model references, metrics, and elapsed-time values, then recreates the required keys with
+	    their established empty defaults.
+
+	Returns:
+	    None: This function resets regression-related values in Streamlit session state.
 	"""
 	regression_keys = [ 'df_working', 'df_processed', 'df_model', 'df_scores', 'df_predictions',
 		'df_regression', 'df_regression_scores', 'df_features', 'df_targets', 'features',
@@ -462,21 +462,24 @@ def reset_regression_mode_state( ) -> None:
 # ============================================
 def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ int, int ] = (6, 4),
 	grid: bool=True, ref_line: float | None=None, legend: bool=True ):
+	"""Create a standardized inferential-analysis figure.
+
+	Purpose:
+	    Creates a Matplotlib figure and axes configured with consistent titles, optional grid
+	    styling, an optional horizontal reference line, and configurable legend behavior for
+	    inferential-statistics visualizations.
+
+	Args:
+	    title (str): Primary title displayed above the plot.
+	    subtitle (str | None): Optional contextual subtitle displayed beneath the primary title.
+	    figsize (tuple[int, int]): Width and height of the figure in inches.
+	    grid (bool): Flag indicating whether the axes display a background grid.
+	    ref_line (float | None): Optional y-axis value used to draw a horizontal reference line.
+	    legend (bool): Flag indicating whether the axes display a legend.
+
+	Returns:
+	    tuple: Matplotlib figure and axes objects used to render the inferential plot.
 	"""
-	    Purpose:
-	        Create a standardized matplotlib figure for inferential plots.
-	
-	    Parameters:
-	        title: Main plot title.
-	        subtitle: Optional subtitle (e.g., test context).
-	        figsize: Figure size.
-	        grid: Whether to show background grid.
-	        ref_line: Optional horizontal reference line.
-	        legend: Whether to show legend.
-	
-	    Returns:
-	        (fig, ax): Matplotlib figure and axis.
-    """
 	fig, ax = plt.subplots( figsize=figsize )
 	
 	# Grid (subtle)
@@ -502,12 +505,46 @@ def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ i
 	return fig, ax
 
 def blue_divider( ) -> None:
+	"""Render the configured blue section divider.
+
+	Purpose:
+	    Inserts the application-standard HTML divider into the Streamlit interface using the
+	    divider markup defined in the configuration module.
+
+	Returns:
+	    None: This function renders Streamlit markup and does not return a value.
+	"""
 	st.markdown( cfg.BLUE_DIVIDER, unsafe_allow_html=True )
 
 def log_step( msg: str ) -> None:
+	"""Append a processing message to the pipeline log.
+
+	Purpose:
+	    Records a workflow status message in the session-state pipeline log for later display,
+	    diagnostics, or processing-history review.
+
+	Args:
+	    msg (str): Message appended to the active pipeline log.
+
+	Returns:
+	    None: This function updates Streamlit session state in place.
+	"""
 	st.session_state.pipeline_log.append( msg )
 
 def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]:
+	"""Classify dataframe columns as numeric or categorical.
+
+	Purpose:
+	    Examines column names and pandas data types to divide dataframe columns into numeric and
+	    categorical collections. Name-based hints take precedence over inferred pandas data types
+	    so budgeting identifiers and fiscal-year fields retain their intended analytical roles.
+
+	Args:
+	    df (pd.DataFrame): Dataframe whose columns are classified.
+
+	Returns:
+	    tuple[List[str], List[str]]: Numeric column names followed by categorical column names.
+	"""
 	numeric_hints = ('py', 'cy', 'by', 'amount', 'total', 'value', 'balance', 'outlay')
 	categorical_hints = ('fy', 'code', 'id', 'name', 'type', 'symbol')
 	
@@ -530,33 +567,23 @@ def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]
 
 def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: int=0,
 	label: Optional[ str ] = None, size: int=30, ) -> None:
-	"""
-	
-		Purpose:
-		________
-		Draw a consistently styled scatter plot with clear point boundaries and
-		visually distinct series.
-	
-		Parameters:
-		___________
-		ax : plt.Axes
-			Matplotlib axes to draw on.
-		x : np.ndarray
-			X-coordinates of the points.
-		y : np.ndarray
-			Y-coordinates of the points.
-		series_index : int, optional
-			Index used to pick color and marker from predefined palettes.
-		label : Optional[str], optional
-			Legend label for the series, if any.
-		size : int, optional
-			Marker size for the scatter plot.
-	
-		Returns:
-		________
-		None
-			This function draws on the provided axes in-place.
-		
+	"""Render a consistently styled scatter series.
+
+	Purpose:
+	    Draws a scatter series on the supplied Matplotlib axes using the configured application
+	    color and marker palettes, visible point boundaries, controlled transparency, and grid
+	    styling.
+
+	Args:
+	    ax (plt.Axes): Matplotlib axes receiving the scatter series.
+	    x (np.ndarray): Horizontal coordinates for the plotted observations.
+	    y (np.ndarray): Vertical coordinates aligned to ``x``.
+	    series_index (int): Palette index used to select the series color and marker.
+	    label (Optional[str]): Optional label associated with the plotted series.
+	    size (int): Marker size applied to each plotted observation.
+
+	Returns:
+	    None: This function modifies the supplied axes in place.
 	"""
 	color = cfg.PALETTE[ series_index % len( cfg.PALETTE ) ]
 	marker = cfg.MARKERS[ series_index % len( cfg.MARKERS ) ]
@@ -565,25 +592,19 @@ def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: in
 	ax.grid( True, alpha=0.25 )
 
 def auto_float_format( series: pd.Series, max_decimals: int=4 ) -> str:
-	"""
-	
-		Purpose:
-		________
-		Infer a reasonable float formatting pattern for a numeric series based on
-		its scale, so large values are readable and decimals are not excessive.
-	
-		Parameters:
-		___________
-		series : pd.Series
-			Series whose numeric magnitude is used to pick the format.
-		max_decimals : int, optional
-			Maximum number of decimal places allowed in the format string.
-	
-		Returns:
-		________
-		str
-			A Python format string such as '{:,.2f}' appropriate for the series.
-			
+	"""Select a numeric display format from the magnitude of a series.
+
+	Purpose:
+	    Converts the supplied series to numeric values, evaluates its ninety-fifth-percentile
+	    absolute magnitude, and returns a comma-separated floating-point format with a bounded
+	    number of decimal places.
+
+	Args:
+	    series (pd.Series): Series used to determine the numeric display scale.
+	    max_decimals (int): Maximum number of decimal places permitted in the returned format.
+
+	Returns:
+	    str: Python numeric format string appropriate for the observed data magnitude.
 	"""
 	s = pd.to_numeric( series, errors='coerce' )
 	s = s.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
@@ -607,6 +628,19 @@ def auto_float_format( series: pd.Series, max_decimals: int=4 ) -> str:
 	return f"{{:,.{decimals}f}}"
 
 def clean_numeric( df: pd.DataFrame ) -> pd.DataFrame:
+	"""Normalize a dataframe for numeric analysis.
+
+	Purpose:
+	    Replaces infinite values with missing values, coerces every column to numeric form, removes
+	    columns containing only missing values, and removes columns without more than one distinct
+	    non-null value.
+
+	Args:
+	    df (pd.DataFrame): Dataframe prepared for numeric analysis.
+
+	Returns:
+	    pd.DataFrame: Numeric dataframe containing only populated, non-constant columns.
+	"""
 	out = df.replace( [ np.inf, -np.inf ], np.nan )
 	for c in out.columns:
 		out[ c ] = pd.to_numeric( out[ c ], errors="coerce" )
@@ -615,18 +649,45 @@ def clean_numeric( df: pd.DataFrame ) -> pd.DataFrame:
 	return out
 
 def analysis_fillna_mean( df: pd.DataFrame ) -> pd.DataFrame:
+	"""Fill missing floating-point and complex values with column means.
+
+	Purpose:
+	    Applies mean imputation to columns whose NumPy dtype kind represents floating-point or
+	    complex numeric data while leaving all other columns unchanged.
+
+	Args:
+	    df (pd.DataFrame): Dataframe containing values prepared for analytical processing.
+
+	Returns:
+	    pd.DataFrame: Dataframe with eligible numeric missing values replaced by column means.
+	"""
 	return df.apply( lambda c: c.fillna( c.mean( ) ) if c.dtype.kind in "fc" else c )
 
 def default_pick( items: List[ str ], k: int=2 ) -> List[ str ]:
+	"""Return the default leading items from a sequence.
+
+	Purpose:
+	    Selects up to the requested number of leading strings for use as default Streamlit control
+	    selections while safely returning an empty list for an empty input collection.
+
+	Args:
+	    items (List[str]): Ordered string values available for default selection.
+	    k (int): Maximum number of leading values to return.
+
+	Returns:
+	    List[str]: Selected leading values, limited by the input length and requested count.
+	"""
 	return items[ : min( k, len( items ) ) ] if items else [ ]
 
 def style_subheaders( ) -> None:
-	"""
-	
-		Purpose:
-		_________
-		Sets the style of subheaders in the main UI
-		
+	"""Apply application styling to Streamlit subheaders.
+
+	Purpose:
+	    Injects CSS that applies the configured blue foreground color to selected heading levels in
+	    standard Streamlit markdown containers and chat-message markdown containers.
+
+	Returns:
+	    None: This function renders CSS markup in the Streamlit interface.
 	"""
 	st.markdown( """
 		<style>
@@ -643,106 +704,99 @@ def style_subheaders( ) -> None:
 # ----------- Data Plumbing Utilities
 
 def get_numeric_columns( df_frame: pd.DataFrame ) -> list[ str ]:
-	"""
-		Purpose:
-		--------
-		Return numeric columns from the specified dataframe.
+	"""Return numeric columns from a dataframe.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
+	Purpose:
+	    Identifies dataframe columns whose pandas data types are recognized as numeric for use by
+	    preprocessing, feature engineering, visualization, and model-selection workflows.
 
-		Returns:
-		--------
-		list[ str ]:
-			Numeric column names.
+	Args:
+	    df_frame (pd.DataFrame): Dataframe whose columns are evaluated.
+
+	Returns:
+	    list[str]: Names of columns containing numeric data.
 	"""
 	return [ c for c in df_frame.columns if pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
 
+
 def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
-	"""
-		Purpose:
-		--------
-		Return non-numeric columns from the specified dataframe.
+	"""Return non-numeric columns from a dataframe.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
+	Purpose:
+	    Identifies dataframe columns whose pandas data types are not recognized as numeric for use
+	    by categorical preprocessing, encoding, selection, and visualization workflows.
 
-		Returns:
-		--------
-		list[ str ]:
-			Non-numeric column names.
+	Args:
+	    df_frame (pd.DataFrame): Dataframe whose columns are evaluated.
+
+	Returns:
+	    list[str]: Names of columns containing non-numeric data.
 	"""
 	return [ c for c in df_frame.columns if not pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
 
+
 def get_working_frame( ) -> pd.DataFrame:
-	"""
-		Purpose:
-		--------
-		Return the current working dataframe used by Data Plumbing.
+	"""Return the active dataframe used by Data Plumbing workflows.
 
-		Parameters:
-		-----------
-		None
+	Purpose:
+	    Retrieves the processed dataframe from Streamlit session state when it contains data.
+	    Otherwise, returns an independent copy of the original loaded dataframe as the current
+	    working frame.
 
-		Returns:
-		--------
-		pd.DataFrame:
-			Current working dataframe.
+	Returns:
+	    pd.DataFrame: Copy of the active processed dataframe or original dataframe.
 	"""
 	df_working = st.session_state.get( 'df_processed' )
 	if df_working is None or df_working.empty:
 		return st.session_state[ 'df_original' ].copy( )
 	return df_working.copy( )
 
+
 def get_feature_columns( df_frame: pd.DataFrame ) -> list[ str ]:
-	"""
-		Purpose:
-		--------
-		Return active feature columns that still exist in the specified dataframe.
+	"""Return active feature columns that remain available.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
+	Purpose:
+	    Filters the feature-column names stored in Streamlit session state so only columns that
+	    still exist in the supplied dataframe are returned after preprocessing or transformation.
 
-		Returns:
-		--------
-		list[ str ]:
-			Active feature columns.
+	Args:
+	    df_frame (pd.DataFrame): Dataframe used to validate active feature-column names.
+
+	Returns:
+	    list[str]: Active feature columns that exist in ``df_frame``.
 	"""
 	return [ c for c in st.session_state.get( 'features', [ ] ) if c in df_frame.columns ]
 
+
 def get_target_columns( df_frame: pd.DataFrame ) -> list[ str ]:
-	"""
-		Purpose:
-		--------
-		Return active target columns that still exist in the specified dataframe.
+	"""Return active target columns that remain available.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
+	Purpose:
+	    Filters the target-column names stored in Streamlit session state so only columns that
+	    still exist in the supplied dataframe are returned after preprocessing or transformation.
 
-		Returns:
-		--------
-		list[ str ]:
-			Active target columns.
+	Args:
+	    df_frame (pd.DataFrame): Dataframe used to validate active target-column names.
+
+	Returns:
+	    list[str]: Active target columns that exist in ``df_frame``.
 	"""
 	return [ c for c in st.session_state.get( 'targets', [ ] ) if c in df_frame.columns ]
 
+
 def commit_frame( df_frame: pd.DataFrame ) -> None:
-	"""
-		Purpose:
-		--------
-		Commit the updated working dataframe to session state.
+	"""Commit active feature and target frames to session state.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Updated dataframe.
+	Purpose:
+	    Rebuilds the feature and target dataframes from the supplied working dataframe using the
+	    currently selected feature and target columns. Empty dataframes with the working index are
+	    stored when no valid selections remain.
 
-		Returns:
-		--------
-		None
+	Args:
+	    df_frame (pd.DataFrame): Updated working dataframe containing processed columns.
+
+	Returns:
+	    None: This function updates ``df_features`` and ``df_targets`` in Streamlit session state.
 	"""
 	feature_columns = get_feature_columns( df_frame )
 	target_columns = get_target_columns( df_frame )
@@ -757,60 +811,54 @@ def commit_frame( df_frame: pd.DataFrame ) -> None:
 	else:
 		st.session_state[ 'df_targets' ] = pd.DataFrame( index=df_frame.index )
 
+
 def working_to_original( ) -> None:
-	"""
-		Purpose:
-		--------
-		Reset Data Plumbing session state back to df_original.
+	"""Reset the working dataframe to the original loaded dataset.
 
-		Parameters:
-		-----------
-		None
+	Purpose:
+	    Copies the original dataframe into ``df_working`` and refreshes the active feature and target
+	    dataframes so Data Plumbing operations restart from the unprocessed dataset baseline.
 
-		Returns:
-		--------
-		None
+	Returns:
+	    None: This function updates Data Plumbing values in Streamlit session state.
 	"""
 	df_reset = st.session_state[ 'df_original' ].copy( )
 	st.session_state[ 'df_working' ] = df_reset.copy( )
 	commit_frame( df_reset )
 
+
 def processed_to_working( ) -> None:
-	"""
-		Purpose:
-		--------
-		Reset Data Plumbing session state back to df_original.
+	"""Promote the working dataframe to the processed-data state.
 
-		Parameters:
-		-----------
-		None
+	Purpose:
+	    Copies the current working dataframe into ``df_processed`` and refreshes the active feature
+	    and target dataframes from that committed processed representation.
 
-		Returns:
-		--------
-		None
+	Returns:
+	    None: This function updates Data Plumbing values in Streamlit session state.
 	"""
 	df_reset = st.session_state[ 'df_working' ].copy( )
 	st.session_state[ 'df_processed' ] = df_reset.copy( )
 	commit_frame( df_reset )
 
+
 def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	columns: list[ str ] ) -> pd.DataFrame:
-	"""
-		Purpose:
-		--------
-		Normalize transformation output into a dataframe.
+	"""Normalize transformation output into a dataframe.
 
-		Parameters:
-		-----------
-		result ( object ): Transformation result.
-		index ( pd.Index ): Output index.
-		prefix ( str ): Prefix used for generated column names.
-		columns ( list[ str ] | None ): Optional output column names.
+	Purpose:
+	    Converts dataframe, tuple, sparse-matrix, one-dimensional array, and multidimensional array
+	    transformation results into a consistently indexed pandas dataframe with supplied or
+	    generated column names.
 
-		Returns:
-		--------
-		pd.DataFrame:
-			Normalized dataframe result.
+	Args:
+	    result (object): Transformation output converted into dataframe form.
+	    index (pd.Index): Index assigned to the normalized dataframe.
+	    prefix (str): Prefix used when generated output-column names are required.
+	    columns (list[str]): Preferred output-column names when their count matches the result.
+
+	Returns:
+	    pd.DataFrame: Normalized transformation result aligned to ``index``.
 	"""
 	if isinstance( result, pd.DataFrame ):
 		df_result = result.copy( )
@@ -840,24 +888,23 @@ def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	generated = [ f'{prefix}_{i + 1}' for i in range( arr.shape[ 1 ] ) ]
 	return pd.DataFrame( arr, index=index, columns=generated )
 
+
 def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ], result: object,
 	prefix: str ) -> pd.DataFrame:
-	"""
-		Purpose:
-		--------
-		Replace selected columns in a dataframe with transformed output.
+	"""Replace selected dataframe columns with transformed output.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
-		column_names ( list[ str ] ): Columns being replaced.
-		result ( object ): Transformation output.
-		prefix ( str ): Prefix used for generated columns.
+	Purpose:
+	    Normalizes transformation output, removes the source columns from the input dataframe, and
+	    appends the transformed columns while preserving the original row index.
 
-		Returns:
-		--------
-		pd.DataFrame:
-			Updated dataframe.
+	Args:
+	    df_frame (pd.DataFrame): Input dataframe containing the source columns.
+	    column_names (list[str]): Source columns removed from the dataframe.
+	    result (object): Transformation result inserted into the dataframe.
+	    prefix (str): Prefix used for generated transformed-column names.
+
+	Returns:
+	    pd.DataFrame: Updated dataframe containing the unmodified columns and transformed output.
 	"""
 	df_result = normalize_result_frame( result=result, index=df_frame.index, prefix=prefix,
 		columns=column_names )
@@ -866,24 +913,25 @@ def replace_columns( df_frame: pd.DataFrame, column_names: list[ str ], result: 
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
+
 def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ], vectorizer: object,
 	prefix: str ) -> pd.DataFrame:
-	"""
-		Purpose:
-		--------
-		Apply a text vectorizer to selected columns joined row-wise.
+	"""Apply a text vectorizer to selected dataframe columns.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
-		column_names ( list[ str ] ): Text columns.
-		vectorizer ( object ): Vectorizer wrapper.
-		prefix ( str ): Prefix used for generated columns.
+	Purpose:
+	    Combines selected text columns row by row, applies the supplied vectorizer's training and
+	    transformation operation, removes the original text columns, and appends the normalized
+	    vectorized features.
 
-		Returns:
-		--------
-		pd.DataFrame:
-			Updated dataframe.
+	Args:
+	    df_frame (pd.DataFrame): Input dataframe containing text columns.
+	    column_names (list[str]): Text columns combined and vectorized.
+	    vectorizer (object): Wrapper exposing a ``train_transform`` method.
+	    prefix (str): Prefix used for generated vectorized-column names.
+
+	Returns:
+	    pd.DataFrame: Updated dataframe containing vectorized features in place of source text
+	    columns.
 	"""
 	text = df_frame[ column_names ].fillna( '' ).astype( str ).agg( ' '.join, axis=1 ).tolist( )
 	
@@ -895,24 +943,24 @@ def apply_text_vectorizer( df_frame: pd.DataFrame, column_names: list[ str ], ve
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
+
 def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ], transformer: object,
 	prefix: str ) -> pd.DataFrame:
-	"""
-		Purpose:
-		--------
-		Apply a dictionary-based transformer to selected columns.
+	"""Apply a dictionary-based transformer to selected columns.
 
-		Parameters:
-		-----------
-		df_frame ( pd.DataFrame ): Input dataframe.
-		column_names ( list[ str ] ): Columns converted to row dictionaries.
-		transformer ( object ): Dict-like transformer wrapper.
-		prefix ( str ): Prefix used for generated columns.
+	Purpose:
+	    Converts selected dataframe columns into row-oriented dictionaries, applies the supplied
+	    transformer's training and transformation operation, removes the source columns, and appends
+	    the normalized transformed features.
 
-		Returns:
-		--------
-		pd.DataFrame:
-			Updated dataframe.
+	Args:
+	    df_frame (pd.DataFrame): Input dataframe containing columns converted to dictionaries.
+	    column_names (list[str]): Columns included in each row dictionary.
+	    transformer (object): Wrapper exposing a ``train_transform`` method.
+	    prefix (str): Prefix used for generated transformed-column names.
+
+	Returns:
+	    pd.DataFrame: Updated dataframe containing dictionary-derived transformed features.
 	"""
 	records = df_frame[ column_names ].fillna( '' ).to_dict( orient='records' )
 	result = transformer.train_transform( records )
@@ -923,40 +971,42 @@ def apply_dict_transform( df_frame: pd.DataFrame, column_names: list[ str ], tra
 	df_updated = pd.concat( [ df_updated, df_result ], axis=1 )
 	return df_updated
 
+
 def parse_multilabel_series( series: pd.Series, delimiter: str ) -> np.ndarray:
-	"""
-		Purpose:
-		--------
-		Parse a delimited series into an array of label lists.
+	"""Parse delimited text values into multilabel collections.
 
-		Parameters:
-		-----------
-		series ( pd.Series ): Input label series.
-		delimiter ( str ): Delimiter separating labels.
+	Purpose:
+	    Replaces missing values with empty strings, separates each row by the supplied delimiter,
+	    removes surrounding whitespace and empty labels, and returns the parsed label collections
+	    as a NumPy array.
 
-		Returns:
-		--------
-		np.ndarray:
-			Array of parsed label collections.
+	Args:
+	    series (pd.Series): Series containing delimited label values.
+	    delimiter (str): Text delimiter separating labels within each row.
+
+	Returns:
+	    np.ndarray: Array whose elements contain the parsed labels for each source row.
 	"""
 	values = series.fillna( '' ).astype( str ).apply(
 		lambda s: [ item.strip( ) for item in s.split( delimiter ) if item.strip( ) ] )
 	return values.to_numpy( )
 
+
 def score_function_from_name( name: str ) -> object:
-	"""
-		Purpose:
-		--------
-		Map a display name to a sklearn scoring function.
+	"""Resolve a feature-selection score function by display name.
 
-		Parameters:
-		-----------
-		name ( str ): Display name.
+	Purpose:
+	    Maps a supported user-interface score-function name to its corresponding sklearn feature-
+	    selection callable for univariate feature ranking and selection workflows.
 
-		Returns:
-		--------
-		object:
-			Scoring function.
+	Args:
+	    name (str): Supported score-function name.
+
+	Returns:
+	    object: Sklearn feature-selection scoring callable associated with ``name``.
+
+	Raises:
+	    KeyError: Raised when ``name`` is not present in the supported score-function mapping.
 	"""
 	mapper = { 'chi2': sf.chi2, 'f_classif': sf.f_classif, 'f_regression': sf.f_regression,
 		'mutual_info_classif': sf.mutual_info_classif,
