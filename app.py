@@ -19508,10 +19508,10 @@ elif mode == 'Data Upload':
 elif mode == 'Data Browse':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Browse' ], divider='gray' )
+		st.subheader( cfg.MODE[ 'Data Browse' ] )
+		st.divider( )
 		tables = list_tables( )
 		if tables:
-			st.header( '' )
 			browse_left, browse_center, browse_right = st.columns( 3 )
 			with browse_left:
 				table = st.selectbox( 'Select Table:', tables, key='table_name' )
@@ -19528,12 +19528,12 @@ elif mode == 'Data Browse':
 elif mode == 'CRUD Ops':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'CRUD Ops' ], divider='gray' )
+		st.subheader( cfg.MODE[ 'CRUD Ops' ] )
+		st.divider( )
 		tables = list_tables( )
 		if not tables:
 			st.info( 'No tables available.' )
 		else:
-			st.header( '' )
 			st.markdown( '##### Data Table' )
 			crud_c1, crud_c2, crud_c3, crud_c4 = st.columns( 4 )
 			with crud_c1:
@@ -19652,7 +19652,8 @@ elif mode == 'CRUD Ops':
 elif mode == 'Data Filter':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Filter' ], divider='gray' )
+		st.subheader( cfg.MODE[ 'Data Filter' ] )
+		st.divider( )
 		tables = list_tables( )
 		if tables:
 			explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )
@@ -19676,7 +19677,8 @@ elif mode == 'Data Filter':
 elif mode == 'Data Aggregation':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Aggregation' ], divider='gray' )
+		st.subheader( cfg.MODE[ 'Data Aggregation' ] )
+		st.divider( )
 		tables = list_tables( )
 		st.session_state.get( 'aggregation', None )
 		if tables:
@@ -19704,7 +19706,8 @@ elif mode == 'Data Aggregation':
 elif mode == 'SQL Console':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'SQL Console' ], divider='gray' )
+		st.subheader( cfg.MODE[ 'SQL Console' ] )
+		st.divider( )
 		query = st.text_area( 'Enter SQL Query' )
 		if st.button( 'Run Query' ):
 			if not is_safe_query( query ):
