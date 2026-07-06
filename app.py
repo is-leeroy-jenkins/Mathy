@@ -127,7 +127,7 @@ if 'df_original' not in st.session_state or st.session_state[ 'df_original' ] is
 
 if 'df_profile' not in st.session_state or st.session_state[ 'df_profile' ] is None:
 	st.session_state[ 'df_profile' ] = pd.DataFrame( )
-	
+
 if 'df_features' not in st.session_state:
 	st.session_state[ 'df_features' ] = pd.DataFrame( )
 
@@ -2036,22 +2036,199 @@ with st.sidebar:
 	if has_loaded_dataset( loaded_df ):
 		store_loaded_dataset( loaded_df, loaded_original )
 	
-	# ------- Mode Selection
-	st.sidebar.divider( )
-	with st.expander( 'Data Modes', expanded=True ):
-		mode = st.radio( label='Select', options=cfg.MODE.keys( ), index=0, key='data_mode_radio' )
-	
-	previous_mode = st.session_state.get( 'previous_mode', None )
-	if previous_mode != mode:
-		if mode == 'Classification Models':
-			reset_classification_mode_state( )
-		elif mode == 'Regression Models':
-			reset_regression_mode_state( )
+	def get_visualization_modes( df_frame: pd.DataFrame | None ) -> list[ str ]:
+		"""
+			Purpose:
+			--------
+			Identify visualization modes supported by the schema and contents of the
+			currently loaded dataframe.
+
+			Parameters:
+			-----------
+			df_frame ( pd.DataFrame | None ): Currently loaded dataframe.
+
+			Returns:
+			--------
+			list[ str ]:
+				Visualization modes supported by the available data.
+		"""
+		if df_frame is None or df_frame.empty:
+			return [ ]
 		
-		st.session_state[ 'previous_mode' ] = mode
-		st.rerun( )
+		numeric_columns = [ column for column in df_frame.columns
+			if pd.api.types.is_numeric_dtype( df_frame[ column ] )
+			and not pd.api.types.is_bool_dtype( df_frame[ column ] ) ]
+		
+		datetime_columns = [ column for column in df_frame.columns
+			if pd.api.types.is_datetime64_any_dtype( df_frame[ column ] ) ]
+		
+		categorical_columns = [ column for column in df_frame.columns
+			if column not in numeric_columns and column not in datetime_columns ]
+		
+		visualization_modes = [ 'Data Overview' ]
+		
+		if numeric_columns:
+			visualization_modes.append( 'Numeric Distributions' )
+		
+		if len( numeric_columns ) >= 2:
+			visualization_modes.append( 'Correlation Analysis' )
+			visualization_modes.append( 'Scatter Analysis' )
+		
+		if categorical_columns:
+			visualization_modes.append( 'Categorical Distributions' )
+		
+		if numeric_columns and categorical_columns:
+			visualization_modes.append( 'Category Comparisons' )
+		
+		if datetime_columns and numeric_columns:
+			visualization_modes.append( 'Time-Series Visualization' )
+		
+		if df_frame.isna( ).any( ).any( ):
+			visualization_modes.append( 'Missing Data Visualization' )
+		
+		return visualization_modes
 	
-	st.session_state[ 'previous_mode' ] = mode
+	
+	def handle_ml_mode_change( ) -> None:
+		"""
+			Purpose:
+			--------
+			Activate the selected machine-learning mode, clear inactive selections,
+			and reset mode-specific processing state when required.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+		"""
+		selected_mode = st.session_state.get( 'ml_mode_radio', None )
+		
+		if selected_mode is None:
+			return
+		
+		st.session_state[ 'db_mode_radio' ] = None
+		st.session_state[ 'visualization_mode_radio' ] = None
+		st.session_state[ 'active_mode' ] = selected_mode
+		
+		if selected_mode == 'Classification Models':
+			reset_classification_mode_state( )
+		elif selected_mode == 'Regression Models':
+			reset_regression_mode_state( )
+	
+	
+	def handle_db_mode_change( ) -> None:
+		"""
+			Purpose:
+			--------
+			Activate the selected data-management mode and clear inactive mode
+			selections.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+		"""
+		selected_mode = st.session_state.get( 'db_mode_radio', None )
+		
+		if selected_mode is None:
+			return
+		
+		st.session_state[ 'ml_mode_radio' ] = None
+		st.session_state[ 'visualization_mode_radio' ] = None
+		st.session_state[ 'active_mode' ] = selected_mode
+	
+	
+	def handle_visualization_mode_change( ) -> None:
+		"""
+			Purpose:
+			--------
+			Activate the selected visualization mode and clear inactive mode
+			selections.
+
+			Parameters:
+			-----------
+			None
+
+			Returns:
+			--------
+			None
+		"""
+		selected_mode = st.session_state.get( 'visualization_mode_radio', None )
+		
+		if selected_mode is None:
+			return
+		
+		st.session_state[ 'ml_mode_radio' ] = None
+		st.session_state[ 'db_mode_radio' ] = None
+		st.session_state[ 'active_mode' ] = selected_mode
+	
+	
+	# ------- Available Modes
+	ml_modes = list( cfg.ML_MODE )
+	db_modes = list( cfg.DB_MODE )
+	
+	df_loaded = st.session_state.get( 'df_dataset', None )
+	visualization_modes = get_visualization_modes( df_loaded )
+	
+	# ------- Mode State Initialization
+	if 'active_mode' not in st.session_state:
+		st.session_state[ 'active_mode' ] = ml_modes[ 0 ] if ml_modes else None
+	
+	if 'ml_mode_radio' not in st.session_state:
+		st.session_state[ 'ml_mode_radio' ] = st.session_state[ 'active_mode' ]
+	
+	if 'db_mode_radio' not in st.session_state:
+		st.session_state[ 'db_mode_radio' ] = None
+	
+	if 'visualization_mode_radio' not in st.session_state:
+		st.session_state[ 'visualization_mode_radio' ] = None
+	
+	available_modes = ml_modes + db_modes + visualization_modes
+	if st.session_state[ 'active_mode' ] not in available_modes:
+		st.session_state[ 'active_mode' ] = ml_modes[ 0 ] if ml_modes else None
+		st.session_state[ 'ml_mode_radio' ] = st.session_state[ 'active_mode' ]
+		st.session_state[ 'db_mode_radio' ] = None
+		st.session_state[ 'visualization_mode_radio' ] = None
+	
+	if st.session_state.get( 'ml_mode_radio', None ) not in ml_modes:
+		st.session_state[ 'ml_mode_radio' ] = None
+	
+	if st.session_state.get( 'db_mode_radio', None ) not in db_modes:
+		st.session_state[ 'db_mode_radio' ] = None
+	
+	if st.session_state.get( 'visualization_mode_radio', None ) not in visualization_modes:
+		st.session_state[ 'visualization_mode_radio' ] = None
+	
+	# ------- Machine Learning Selection Mode
+	st.sidebar.divider( )
+	with st.expander( 'Machine Learning', expanded=True ):
+		st.radio( label='Select', options=ml_modes, index=None,
+			key='ml_mode_radio', on_change=handle_ml_mode_change )
+	
+	# ------- Data Management Selection Mode
+	st.sidebar.divider( )
+	with st.expander( 'Data Management', expanded=True ):
+		st.radio( label='Select', options=db_modes, index=None,
+			key='db_mode_radio', on_change=handle_db_mode_change )
+	
+	# ------- Data Visualization Selection Mode
+	st.sidebar.divider( )
+	with st.expander( 'Data Visualization', expanded=True ):
+		if not visualization_modes:
+			st.info( 'Load a dataset to enable visualization modes.' )
+		else:
+			st.radio( label='Select', options=visualization_modes, index=None,
+				key='visualization_mode_radio',
+				on_change=handle_visualization_mode_change )
+	
+	# ------- Active Application Mode
+	mode = st.session_state[ 'active_mode' ]
 
 style_subheaders( )
 
@@ -18464,7 +18641,7 @@ elif mode == 'Time-Series Models':
 # DATA MANAGEMENT MODE
 # ============================================
 elif mode == 'Data Management':
-	st.subheader( cfg.MODE[ 'Data Management' ] )
+	st.subheader( cfg.MODE[ 'Data Management' ], divider='blue' )
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		tabs = st.tabs( [ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter', 'Aggregate',
@@ -18512,8 +18689,8 @@ elif mode == 'Data Management':
 								insert_stmt = (f'INSERT INTO "{table_name}" '
 								               f'VALUES ({placeholders});')
 								
-								conn.executemany( insert_stmt,
-									df.where( pd.notnull( df ), None ).values.tolist( ) )
+								conn.executemany( insert_stmt, df.where(
+									pd.notnull( df ), None ).values.tolist( ) )
 							
 							conn.commit( )
 						
@@ -18533,7 +18710,7 @@ elif mode == 'Data Management':
 		with tabs[ 1 ]:
 			tables = list_tables( )
 			if tables:
-				st.text( '' )
+				st.header( '' )
 				browse_left, browse_center, browse_right = st.columns( 3 )
 				with browse_left:
 					table = st.selectbox( 'Select Table:', tables, key='table_name' )
@@ -18552,7 +18729,7 @@ elif mode == 'Data Management':
 			if not tables:
 				st.info( 'No tables available.' )
 			else:
-				st.text( '' )
+				st.header( '' )
 				st.markdown( '##### Data Table' )
 				crud_left, crud_mid, crud_right = st.columns( 3 )
 				with crud_left:
@@ -18669,7 +18846,7 @@ elif mode == 'Data Management':
 		# EXPLORE
 		# ------------------------------------------------------------------------------
 		with tabs[ 3 ]:
-			st.text( '' )
+			st.header( '' )
 			tables = list_tables( )
 			if tables:
 				explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )			
@@ -18685,13 +18862,13 @@ elif mode == 'Data Management':
 				blue_divider( )
 				offset = (page - 1) * page_size
 				df_page = read_table( table, page_size, offset )
-				st.data_editor( df_page, use_container_width=True )
+				st.data_editor( df_page, use_container_width=True, height=400 )
 		
 		# ------------------------------------------------------------------------------
 		# FILTER
 		# ------------------------------------------------------------------------------
 		with tabs[ 4 ]:
-			st.text( '' )
+			st.header( '' )
 			tables = list_tables( )
 			if tables:
 				filter_c1, filter_c2, filter_c3 = st.columns( 3, border=True )
@@ -18706,14 +18883,14 @@ elif mode == 'Data Management':
 						df = df[ df[ column ].astype( str ).str.contains( value ) ]
 						
 				blue_divider( )
-				st.data_editor( df, use_container_width=True, key='filter_frame' )
+				st.data_editor( df, use_container_width=True, key='filter_frame', height=400 )
 		
 		# ------------------------------------------------------------------------------
 		# AGGREGATE
 		# ------------------------------------------------------------------------------
 		with tabs[ 5 ]:
+			st.header( '' )
 			tables = list_tables( )
-			st.text( '' )
 			st.session_state.get( 'aggregation', None )
 			if tables:
 				agg_c1, agg_c2, agg_c3, agg_c4 = st.columns( 4, border=True )
@@ -18752,7 +18929,7 @@ elif mode == 'Data Management':
 		# ADMIN
 		# ------------------------------------------------------------------------------
 		with tabs[ 7 ]:
-			st.text( '' )
+			st.header( '' )
 			df_profile = st.session_state.get( 'df_profile' )
 			st.markdown( '##### Data Profiling' )
 			tables = list_tables( )
@@ -18764,7 +18941,7 @@ elif mode == 'Data Management':
 				if st.button( label='Generate Profile', icon='⚡' ):
 					df_profile = create_profile_table( table )
 			
-				st.data_editor( df_profile, use_container_width=True )
+				st.data_editor( df_profile, use_container_width=True, height=400 )
 			
 			blue_divider( )
 			st.markdown( '##### Drop Table' )
@@ -18847,7 +19024,8 @@ elif mode == 'Data Management':
 					columns=[ 'cid', 'name', 'type', 'notnull', 'default', 'pk' ] )
 				
 				st.markdown( "##### Columns" )
-				st.data_editor( schema_df, use_container_width=True, key='schema_editor' )
+				st.data_editor( schema_df, use_container_width=True,
+					key='schema_editor', height=400 )
 				
 				# Row count
 				with create_connection( ) as conn:
@@ -18862,7 +19040,8 @@ elif mode == 'Data Management':
 						columns=[ 'seq', 'name', 'unique', 'origin', 'partial' ] )
 					
 					st.markdown( "##### Indexes" )
-					st.data_editor( idx_df, use_container_width=True, key='index_editor' )
+					st.data_editor( idx_df, use_container_width=True,
+						key='schema_editor', height=400 )
 				else:
 					st.info( "No indexes defined." )
 			
@@ -18962,3 +19141,303 @@ elif mode == 'Data Management':
 					
 					except Exception as e:
 						st.error( f'Execution failed: {e}' )
+
+# ============================================
+# DATA UPLOAD MODE
+# ============================================
+elif mode == 'Data Upload':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'Data Upload' ], divider='blue' )
+		upl_c1, upl_c2 = st.columns( [ 0.5, 0.5 ], border=True )
+		with upl_c1:
+			uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
+		
+		with upl_c2:
+			overwrite = st.checkbox( 'Overwrite existing tables', value=True )
+			if uploaded_file:
+				try:
+					sheets = pd.read_excel( uploaded_file, sheet_name=None )
+					with create_connection( ) as conn:
+						conn.execute( 'BEGIN' )
+						for sheet_name, df in sheets.items( ):
+							table_name = create_identifier( sheet_name )
+							if overwrite:
+								conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
+							
+							# --- Create Table ---
+							columns = [ ]
+							df.columns = [ create_identifier( c ) for c in df.columns ]
+							for col in df.columns:
+								sql_type = get_sqlite_type( df[ col ].dtype )
+								columns.append( f'"{col}" {sql_type}' )
+							
+							create_stmt = (f'CREATE TABLE "{table_name}" '
+							               f'({", ".join( columns )});')
+							
+							conn.execute( create_stmt )
+							
+							# --- Insert Data ---
+							placeholders = ", ".join( [ "?" ] * len( df.columns ) )
+							insert_stmt = (f'INSERT INTO "{table_name}" '
+							               f'VALUES ({placeholders});')
+							
+							conn.executemany( insert_stmt, df.where(
+								pd.notnull( df ), None ).values.tolist( ) )
+						
+						conn.commit( )
+					
+					st.success( 'Import completed successfully (transaction committed).' )
+					st.rerun( )
+				
+				except Exception as e:
+					try:
+						conn.rollback( )
+					except:
+						pass
+					st.error( f'Import failed — transaction rolled back.\n\n{e}' )
+		
+# ============================================
+# DATA BROWSE MODE
+# ============================================
+elif mode == 'Data Browse':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'Data Browse' ], divider='blue' )
+		tables = list_tables( )
+		if tables:
+			st.header( '' )
+			browse_left, browse_center, browse_right = st.columns( 3 )
+			with browse_left:
+				table = st.selectbox( 'Select Table:', tables, key='table_name' )
+			
+			blue_divider( )
+			df = read_table( table )
+			st.data_editor( df, use_container_width=True, height=400 )
+		else:
+			st.info( 'No tables available.' )
+
+# ============================================
+# CRUD OPS MODE
+# ============================================
+elif mode == 'CRUD Ops':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'CRUD Ops' ], divider='blue' )
+		tables = list_tables( )
+		if not tables:
+			st.info( 'No tables available.' )
+		else:
+			st.header( '' )
+			st.markdown( '##### Data Table' )
+			crud_left, crud_mid, crud_right = st.columns( 3 )
+			with crud_left:
+				table = st.selectbox( 'Select', tables, key='crud_table' )
+			df = read_table( table )
+			schema = create_schema( table )
+			
+			# ------------------------------------------------------------------
+			# Build Type Map
+			# ------------------------------------------------------------------
+			type_map = { col[ 1 ]: col[ 2 ].upper( ) for col in schema if col[ 1 ] != 'rowid' }
+			
+			# ------------------------------------------------------------------
+			# INSERT
+			# ------------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Insert Row' )
+			insert_data = { }
+			insert_columns = st.columns( 4 )
+			
+			for index, (column, col_type) in enumerate( type_map.items( ) ):
+				target_column = insert_columns[ index % 4 ]
+				
+				with target_column:
+					if 'INT' in col_type:
+						insert_data[ column ] = st.number_input( column, step=1,
+							key=f'ins_{column}' )
+					
+					elif 'REAL' in col_type:
+						insert_data[ column ] = st.number_input( column, format='%.6f',
+							key=f'ins_{column}' )
+					
+					elif 'BOOL' in col_type:
+						insert_data[ column ] = 1 if st.checkbox( column,
+							key=f'ins_{column}' ) else 0
+					
+					else:
+						insert_data[ column ] = st.text_input( column,
+							key=f'ins_{column}' )
+			
+			if st.button( 'Insert Row' ):
+				cols = list( insert_data.keys( ) )
+				placeholders = ', '.join( [ '?' ] * len( cols ) )
+				stmt = f'INSERT INTO "{table}" ({", ".join( cols )}) VALUES ({placeholders});'
+				
+				with create_connection( ) as conn:
+					conn.execute( stmt, list( insert_data.values( ) ) )
+					conn.commit( )
+				
+				st.success( 'Row inserted.' )
+				st.rerun( )
+			
+			# ------------------------------------------------------------------
+			# UPDATE
+			# ------------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Update Row' )
+			rowid = st.number_input( 'Row ID', min_value=1, step=1 )
+			update_data = { }
+			update_columns = st.columns( 4 )
+			
+			for index, (column, col_type) in enumerate( type_map.items( ) ):
+				target_column = update_columns[ index % 4 ]
+				
+				with target_column:
+					if 'INT' in col_type:
+						val = st.number_input( column, step=1,
+							key=f'upd_{column}' )
+						update_data[ column ] = val
+					
+					elif 'REAL' in col_type:
+						val = st.number_input( column, format='%.6f',
+							key=f'upd_{column}' )
+						update_data[ column ] = val
+					
+					elif 'BOOL' in col_type:
+						val = 1 if st.checkbox( column,
+							key=f'upd_{column}' ) else 0
+						update_data[ column ] = val
+					
+					else:
+						val = st.text_input( column, key=f'upd_{column}' )
+						update_data[ column ] = val
+			
+			if st.button( 'Update Row' ):
+				set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
+				stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
+				
+				with create_connection( ) as conn:
+					conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
+					conn.commit( )
+				
+				st.success( 'Row updated.' )
+				st.rerun( )
+			
+			# ------------------------------------------------------------------
+			# DELETE
+			# ------------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Delete Row' )
+			delete_left, delete_mid, delete_right = st.columns( 3 )
+			with delete_left:
+				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
+				
+			if st.button( 'Delete Row' ):
+				with create_connection( ) as conn:
+					conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
+					conn.commit( )
+				
+				st.success( 'Row deleted.' )
+				st.rerun( )
+	
+# ============================================
+# DATA FILTER MODE
+# ============================================
+elif mode == 'Data Filter':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'Data Filter' ], divider='blue' )
+		tables = list_tables( )
+		if tables:
+			explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )
+			with explore_c1:
+				table = st.selectbox( 'Table', tables, key='explore_table' )
+			
+			with explore_c2:
+				page = st.number_input( 'Page', min_value=1, step=1 )
+			
+			with explore_c3:
+				page_size = st.slider( 'Rows per page', 10, 500, 50 )
+			
+			blue_divider( )
+			offset = (page - 1) * page_size
+			df_page = read_table( table, page_size, offset )
+			st.data_editor( df_page, use_container_width=True, height=400 )
+
+# ============================================
+# DATA AGGREGATION MODE
+# ============================================
+elif mode == 'Data Aggregate':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'Data Aggregation' ], divider='blue' )
+		tables = list_tables( )
+		st.session_state.get( 'aggregation', None )
+		if tables:
+			agg_c1, agg_c2, agg_c3, agg_c4 = st.columns( 4, border=True )
+			with agg_c1:
+				table = st.selectbox( 'Table', tables, key='agg_table' )
+				df = read_table( table )
+			with agg_c2:
+				numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
+				if numeric_columns:
+					col = st.selectbox( 'Column', numeric_columns, key='col_box' )
+			with agg_c3:
+				aggregation = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box' )
+			with agg_c4:
+				if aggregation == 'SUM':
+					st.metric( 'Result', df[ col ].sum( ) )
+				elif aggregation == 'AVG':
+					st.metric( 'Result', df[ col ].mean( ) )
+				elif aggregation == 'COUNT':
+					st.metric( 'Result', df[ col ].count( ) )
+
+# ============================================
+# SQL CONSOLE MODE
+# ============================================
+elif mode == 'SQL Console':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( cfg.MODE[ 'SQL Console' ], divider='blue' )
+		query = st.text_area( 'Enter SQL Query' )
+		if st.button( 'Run Query' ):
+			if not is_safe_query( query ):
+				st.error( 'Query blocked: Only read-only SELECT statements are allowed.' )
+			else:
+				try:
+					start_time = time.perf_counter( )
+					with create_connection( ) as conn:
+						result = pd.read_sql_query( query, conn )
+					
+					end_time = time.perf_counter( )
+					elapsed = end_time - start_time
+					
+					# ----------------------------------------------------------
+					# Display Results
+					# ----------------------------------------------------------
+					st.dataframe( result, use_container_width=True )
+					row_count = len( result )
+					
+					# ----------------------------------------------------------
+					# Execution Metrics
+					# ----------------------------------------------------------
+					col1, col2 = st.columns( 2 )
+					col1.metric( 'Rows Returned', f'{row_count:,}' )
+					col2.metric( 'Execution Time (seconds)', f'{elapsed:.6f}' )
+					
+					# Optional slow query warning
+					if elapsed > 2.0:
+						st.warning( 'Slow query detected (> 2 seconds). Consider indexing.' )
+					
+					# ----------------------------------------------------------
+					# Download
+					# ----------------------------------------------------------
+					if not result.empty:
+						csv = result.to_csv( index=False ).encode( 'utf-8' )
+						st.download_button( 'Download CSV', csv, 'query_results.csv',
+							'text/csv' )
+				
+				except Exception as e:
+						st.error( f'Execution failed: {e}' )
+

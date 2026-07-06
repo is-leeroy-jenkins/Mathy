@@ -197,19 +197,34 @@ DB_PATH = r'stores/sqlite/Data.db'
 LLM_PATH = ''
 DEFAULT_CTX = 4096
 CORES = multiprocessing.cpu_count( )
-MODES = [ 'Data Processing', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
-          'Feature Engineering', 'Classifications', 'Regressions', 'Clustering', 'Time-Series', 'Database' ]
+MODES = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
+	'Classification Models', 'Regression Models', 'Clustering Models', 'Clustering Models',
+	'Time-Series Models', 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
+	'Data Aggregate', 'SQL Console' ]
+
+ML_MODE = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
+	'Classification Models', 'Regression Models', 'Clustering Models', 'Clustering Models',
+	'Time-Series Models' ]
+
+DB_MODE = [ 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
+	'Data Aggregate', 'SQL Console' ]
+
 REPO_URL = r'https://is-leeroy-jenkins.github.io/Mathy/'
 
 MODE = { 'Data Profile': '🏗️ Data Profiling',
-       'Descriptive Statistics': '🔍 Descriptive Statistics',
+       'Descriptive Statistics': '🕵️ Descriptive Statistics',
        'Inferential Statistics': '🧠 Inferential Statistics',
        'Anomaly Detection': '🛸 Anomaly Detection',
        'Classification Models': '📊 Classification Analysis',
        'Regression Models': '📉 Regression Analysis',
        'Clustering Models': '🕸️ Clustering Models',
        'Time-Series Models': '⏱️ Time-Series Models',
-       'Data Management': '💻 Data Management'  }
+       'Data Upload': '📤 Upload Data',
+       'Data Browse': '👁️ Browse Data',
+       'CRUD Ops': '➕ CRUD Ops',
+       'Data Filter': '🔍 FilterData' ,
+       'Data Aggregate': '🧮 Aggregate Data',
+       'SQL Console': '💻 SQL Console' }
 
 # ------------- DEFINITIONS ---------------------
 
