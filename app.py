@@ -18852,7 +18852,7 @@ elif mode == 'Time-Series Models':
 # DATA MANAGEMENT MODE
 # ============================================
 elif mode == 'Data Management':
-	st.subheader( cfg.MODE[ 'Data Management' ], divider='blue' )
+	st.subheader( cfg.MODE[ 'Data Management' ], divider='gray' )
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		tabs = st.tabs( [ 'Import', 'Browse', 'CRUD', 'Explore', 'Filter', 'Aggregate',
@@ -19359,7 +19359,8 @@ elif mode == 'Data Management':
 elif mode == 'Data Upload':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Upload' ], divider='blue' )
+		st.subheader( cfg.MODE[ 'Data Upload' ] )
+		st.divider( )
 		upl_c1, upl_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with upl_c1:
 			uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ],
@@ -19507,7 +19508,7 @@ elif mode == 'Data Upload':
 elif mode == 'Data Browse':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Browse' ], divider='blue' )
+		st.subheader( cfg.MODE[ 'Data Browse' ], divider='gray' )
 		tables = list_tables( )
 		if tables:
 			st.header( '' )
@@ -19527,7 +19528,7 @@ elif mode == 'Data Browse':
 elif mode == 'CRUD Ops':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'CRUD Ops' ], divider='blue' )
+		st.subheader( cfg.MODE[ 'CRUD Ops' ], divider='gray' )
 		tables = list_tables( )
 		if not tables:
 			st.info( 'No tables available.' )
@@ -19570,25 +19571,29 @@ elif mode == 'CRUD Ops':
 					else:
 						insert_data[ column ] = st.text_input( column,
 							key=f'ins_{column}' )
-						
-			if st.button( label='Insert Row', icon='➕' ):
-				cols = list( insert_data.keys( ) )
-				placeholders = ', '.join( [ '?' ] * len( cols ) )
-				stmt = f'INSERT INTO "{table}" ({", ".join( cols )}) VALUES ({placeholders});'
-				
-				with create_connection( ) as conn:
-					conn.execute( stmt, list( insert_data.values( ) ) )
-					conn.commit( )
-				
-				st.success( 'Row inserted.' )
-				st.rerun( )
+			
+			ins_c1, ins_c2, ins_c3, ins_c4 = st.columns( 4 )
+			with ins_c1:
+				if st.button( label='Insert Row', icon='➕', width='stretch' ):
+					cols = list( insert_data.keys( ) )
+					placeholders = ', '.join( [ '?' ] * len( cols ) )
+					stmt = f'INSERT INTO "{table}" ({", ".join( cols )}) VALUES ({placeholders});'
+					
+					with create_connection( ) as conn:
+						conn.execute( stmt, list( insert_data.values( ) ) )
+						conn.commit( )
+					
+					st.success( 'Row inserted.' )
+					st.rerun( )
 				
 			# ------------------------------------------------------------------
 			# UPDATE
 			# ------------------------------------------------------------------
 			blue_divider( )
 			st.markdown( '##### Update Row' )
-			rowid = st.number_input( 'Row ID', min_value=1, step=1 )
+			upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
+			with upd_c1:
+				rowid = st.number_input( 'Row ID', min_value=1, step=1 )
 			update_data = { }
 			update_columns = st.columns( 4 )
 			for index, (column, col_type) in enumerate( type_map.items( ) ):
@@ -19613,15 +19618,17 @@ elif mode == 'CRUD Ops':
 						val = st.text_input( column, key=f'upd_{column}' )
 						update_data[ column ] = val
 			
-			if st.button( label='Update Row', icon='⬆️' ):
-				set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
-				stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
-				with create_connection( ) as conn:
-					conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
-					conn.commit( )
-				
-				st.success( 'Row updated.' )
-				st.rerun( )
+			btn_c1, btn_c2, btn_c3, btn_c4 = st.columns( 4 )
+			with btn_c1:
+				if st.button( label='Update Row', icon='⬆️', width='stretch' ):
+					set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
+					stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
+					with create_connection( ) as conn:
+						conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
+						conn.commit( )
+					
+					st.success( 'Row updated.' )
+					st.rerun( )
 			
 			# ------------------------------------------------------------------
 			# DELETE
@@ -19631,7 +19638,7 @@ elif mode == 'CRUD Ops':
 			delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
 			with delete_c1:
 				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
-				if st.button( label='Delete Row', icon='❌' ):
+				if st.button( label='Delete Row', icon='❌', width='stretch' ):
 					with create_connection( ) as conn:
 						conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
 						conn.commit( )
@@ -19645,7 +19652,7 @@ elif mode == 'CRUD Ops':
 elif mode == 'Data Filter':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Filter' ], divider='blue' )
+		st.subheader( cfg.MODE[ 'Data Filter' ], divider='gray' )
 		tables = list_tables( )
 		if tables:
 			explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )
@@ -19669,7 +19676,7 @@ elif mode == 'Data Filter':
 elif mode == 'Data Aggregation':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'Data Aggregation' ], divider='blue' )
+		st.subheader( cfg.MODE[ 'Data Aggregation' ], divider='gray' )
 		tables = list_tables( )
 		st.session_state.get( 'aggregation', None )
 		if tables:
@@ -19697,7 +19704,7 @@ elif mode == 'Data Aggregation':
 elif mode == 'SQL Console':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( cfg.MODE[ 'SQL Console' ], divider='blue' )
+		st.subheader( cfg.MODE[ 'SQL Console' ], divider='gray' )
 		query = st.text_area( 'Enter SQL Query' )
 		if st.button( 'Run Query' ):
 			if not is_safe_query( query ):
