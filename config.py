@@ -223,8 +223,8 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Time-Series Models': '⏱️ Time-Series Models',
        'Data Upload': '📤 Upload Data',
        'Data Browse': '👁️ Browse Data',
-       'CRUD Ops': '➕ CRUD Ops',
-       'Data Filter': '🔍 FilterData' ,
+       'CRUD Ops': '➕ CRUD Operations',
+       'Data Filter': '🔍 Filter Data' ,
        'Data Aggregation': '🧮 Aggregate Data',
        'SQL Console': '💻 SQL Console' }
 

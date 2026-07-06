@@ -19552,10 +19552,8 @@ elif mode == 'CRUD Ops':
 			st.markdown( '##### Insert Row' )
 			insert_data = { }
 			insert_columns = st.columns( 4 )
-			
 			for index, (column, col_type) in enumerate( type_map.items( ) ):
 				target_column = insert_columns[ index % 4 ]
-				
 				with target_column:
 					if 'INT' in col_type:
 						insert_data[ column ] = st.number_input( column, step=1,
@@ -19573,7 +19571,7 @@ elif mode == 'CRUD Ops':
 						insert_data[ column ] = st.text_input( column,
 							key=f'ins_{column}' )
 			
-			if st.button( 'Insert Row' ):
+			if st.button( label='Insert Row', icon='➕' ):
 				cols = list( insert_data.keys( ) )
 				placeholders = ', '.join( [ '?' ] * len( cols ) )
 				stmt = f'INSERT INTO "{table}" ({", ".join( cols )}) VALUES ({placeholders});'
@@ -19593,10 +19591,8 @@ elif mode == 'CRUD Ops':
 			rowid = st.number_input( 'Row ID', min_value=1, step=1 )
 			update_data = { }
 			update_columns = st.columns( 4 )
-			
 			for index, (column, col_type) in enumerate( type_map.items( ) ):
 				target_column = update_columns[ index % 4 ]
-				
 				with target_column:
 					if 'INT' in col_type:
 						val = st.number_input( column, step=1,
@@ -19617,7 +19613,7 @@ elif mode == 'CRUD Ops':
 						val = st.text_input( column, key=f'upd_{column}' )
 						update_data[ column ] = val
 			
-			if st.button( 'Update Row' ):
+			if st.button( label='Update Row', icon='⬆️' ):
 				set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
 				stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
 				
@@ -19637,7 +19633,7 @@ elif mode == 'CRUD Ops':
 			with delete_left:
 				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
 				
-			if st.button( 'Delete Row' ):
+			if st.button( label='Delete Row', icon='❌' ):
 				with create_connection( ) as conn:
 					conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
 					conn.commit( )
