@@ -238,6 +238,20 @@ if 'cluster_plot_features' not in st.session_state:
 if 'cluster_signature' not in st.session_state:
 	st.session_state[ 'cluster_signature' ] = None
 
+# ----------- Data Management Members
+
+if 'data_upload_signature' not in st.session_state:
+	st.session_state[ 'data_upload_signature' ] = None
+
+if 'data_upload_tables' not in st.session_state:
+	st.session_state[ 'data_upload_tables' ] = { }
+
+if 'data_upload_sheet_names' not in st.session_state:
+	st.session_state[ 'data_upload_sheet_names' ] = { }
+
+if 'data_upload_filename' not in st.session_state:
+	st.session_state[ 'data_upload_filename' ] = None
+
 # ============================================
 # Session State
 # ============================================
@@ -2190,6 +2204,76 @@ def rename_table( old_name: str, new_name: str ) -> None:
 				conn.execute( idx_sql )
 		
 		conn.commit( )
+
+# -------- Data Management Utilities ---------------
+
+def create_unique_upload_identifiers( values: list[ object ] ) -> list[ str ]:
+	"""Create unique SQLite identifiers for uploaded names.
+
+	Purpose:
+	    Converts worksheet or dataframe-column names into valid SQLite identifiers and
+	    appends numeric suffixes when multiple source names normalize to the same
+	    identifier.
+
+	Args:
+	    values (list[object]): Source worksheet or dataframe-column names.
+
+	Returns:
+	    list[str]: Unique SQLite-safe identifiers in source order.
+	"""
+	identifiers: list[ str ] = [ ]
+	identifier_counts: Dict[ str, int ] = { }
+	
+	for value in values:
+		base_identifier = create_identifier( str( value ) )
+		identifier_count = identifier_counts.get( base_identifier, 0 )
+		identifier = base_identifier
+		
+		while identifier in identifiers:
+			identifier_count += 1
+			identifier = f'{base_identifier}_{identifier_count + 1}'
+		
+		identifier_counts[ base_identifier ] = identifier_count
+		identifiers.append( identifier )
+	
+	return identifiers
+
+def normalize_upload_sql_value( value: Any ) -> Any:
+	"""Normalize an uploaded dataframe value for SQLite insertion.
+
+	Purpose:
+	    Converts pandas and NumPy scalar values into SQLite-compatible Python values,
+	    serializes timestamps and timedeltas as text, converts missing values to ``None``,
+	    and converts unsupported objects to strings.
+
+	Args:
+	    value (Any): Dataframe cell value prepared for SQLite insertion.
+
+	Returns:
+	    Any: SQLite-compatible scalar value or ``None``.
+	"""
+	if value is None:
+		return None
+	
+	if isinstance( value, np.generic ):
+		value = value.item( )
+	
+	if isinstance( value, pd.Timestamp ):
+		return value.isoformat( )
+	
+	if isinstance( value, pd.Timedelta ):
+		return str( value )
+	
+	try:
+		if pd.isna( value ):
+			return None
+	except Exception:
+		pass
+	
+	if isinstance( value, (str, int, float, bool, bytes) ):
+		return value
+	
+	return str( value )
 
 # ============================================
 # Page Configuration
@@ -19278,51 +19362,144 @@ elif mode == 'Data Upload':
 		st.subheader( cfg.MODE[ 'Data Upload' ], divider='blue' )
 		upl_c1, upl_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with upl_c1:
-			uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ] )
+			uploaded_file = st.file_uploader( 'Upload Excel File', type=[ 'xlsx' ],
+				key='data_upload_file' )
 		
 		with upl_c2:
-			overwrite = st.checkbox( 'Overwrite existing tables', value=True )
-			if uploaded_file:
-				try:
-					sheets = pd.read_excel( uploaded_file, sheet_name=None )
-					with create_connection( ) as conn:
-						conn.execute( 'BEGIN' )
-						for sheet_name, df in sheets.items( ):
-							table_name = create_identifier( sheet_name )
-							if overwrite:
-								conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
-							
-							# --- Create Table ---
-							columns = [ ]
-							df.columns = [ create_identifier( c ) for c in df.columns ]
-							for col in df.columns:
-								sql_type = get_sqlite_type( df[ col ].dtype )
-								columns.append( f'"{col}" {sql_type}' )
-							
-							create_stmt = (f'CREATE TABLE "{table_name}" '
-							               f'({", ".join( columns )});')
-							
-							conn.execute( create_stmt )
-							
-							# --- Insert Data ---
-							placeholders = ", ".join( [ "?" ] * len( df.columns ) )
-							insert_stmt = (f'INSERT INTO "{table_name}" '
-							               f'VALUES ({placeholders});')
-							
-							conn.executemany( insert_stmt, df.where(
-								pd.notnull( df ), None ).values.tolist( ) )
-						
-						conn.commit( )
-					
-					st.success( 'Import completed successfully (transaction committed).' )
-					st.rerun( )
+			overwrite = st.checkbox( 'Overwrite existing tables', value=True,
+				key='data_upload_overwrite' )
+			
+			if uploaded_file is not None:
+				file_bytes = uploaded_file.getvalue( )
+				upload_signature = (uploaded_file.name, len( file_bytes ), hash( file_bytes ),
+					overwrite)
 				
-				except Exception as e:
+				if st.session_state[ 'data_upload_signature' ] != upload_signature:
 					try:
-						conn.rollback( )
-					except:
-						pass
-					st.error( f'Import failed — transaction rolled back.\n\n{e}' )
+						uploaded_file.seek( 0 )
+						sheets = pd.read_excel( uploaded_file, sheet_name=None )
+						if not sheets:
+							raise ValueError(
+								'The uploaded workbook does not contain any worksheets.' )
+						
+						source_sheet_names = list( sheets.keys( ) )
+						table_names = create_unique_upload_identifiers( source_sheet_names )
+						sheet_table_map = dict( zip( source_sheet_names, table_names ) )
+						with create_connection( ) as conn:
+							try:
+								conn.execute( 'BEGIN' )
+								for sheet_name, df_sheet in sheets.items( ):
+									if not isinstance( df_sheet, pd.DataFrame ):
+										raise TypeError(
+											f'Worksheet "{sheet_name}" did not produce a '
+											f'dataframe.' )
+									
+									if len( df_sheet.columns ) == 0:
+										raise ValueError(
+											f'Worksheet "{sheet_name}" does not contain any '
+											f'columns.' )
+									
+									table_name = sheet_table_map[ sheet_name ]
+									df_table = df_sheet.copy( )
+									df_table.columns = create_unique_upload_identifiers(
+										df_table.columns.tolist( ) )
+									
+									if overwrite:
+										conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
+									
+									columns: list[ str ] = [ ]
+									for column in df_table.columns:
+										sql_type = get_sqlite_type( df_table[ column ].dtype )
+										columns.append( f'"{column}" {sql_type}' )
+									
+									create_stmt = (f'CREATE TABLE "{table_name}" '
+									               f'({", ".join( columns )});')
+									conn.execute( create_stmt )
+									
+									if not df_table.empty:
+										placeholders = ', '.join(
+											[ '?' ] * len( df_table.columns ) )
+										insert_stmt = (f'INSERT INTO "{table_name}" '
+										               f'VALUES ({placeholders});')
+										
+										rows = [ tuple(
+											normalize_upload_sql_value( value ) for value in row )
+											for row in
+											df_table.itertuples( index=False, name=None ) ]
+										
+										conn.executemany( insert_stmt, rows )
+								
+								conn.commit( )
+							except Exception:
+								conn.rollback( )
+								raise
+						
+						imported_tables: Dict[ str, pd.DataFrame ] = { }
+						imported_sheet_names: Dict[ str, str ] = { }
+						for sheet_name, table_name in sheet_table_map.items( ):
+							imported_tables[ table_name ] = read_table( table_name )
+							imported_sheet_names[ table_name ] = sheet_name
+						
+						st.session_state[ 'data_upload_tables' ] = imported_tables
+						st.session_state[ 'data_upload_sheet_names' ] = imported_sheet_names
+						st.session_state[ 'data_upload_filename' ] = uploaded_file.name
+						st.session_state[ 'data_upload_signature' ] = upload_signature
+						first_table_name = next( iter( imported_tables ) )
+						df_first_table = imported_tables[ first_table_name ]
+						if has_loaded_dataset( df_first_table ):
+							store_loaded_dataset( df_first_table )
+						
+						st.success( f'Imported {len( imported_tables ):,} worksheet table(s) from '
+						            f'{uploaded_file.name}.' )
+					
+					except Exception as e:
+						st.session_state[ 'data_upload_signature' ] = None
+						st.error( f'Import failed — transaction rolled back.\n\n{e}' )
+		
+		# ------------------------------------------------------------------
+		# IMPORTED TABLE SELECTION
+		# ------------------------------------------------------------------
+		imported_tables = st.session_state.get( 'data_upload_tables', { } )
+		imported_sheet_names = st.session_state.get( 'data_upload_sheet_names', { } )
+		imported_filename = st.session_state.get( 'data_upload_filename', None )
+		if uploaded_file is not None and imported_tables and (
+				imported_filename == uploaded_file.name):
+			table_options = list( imported_tables.keys( ) )
+			if len( table_options ) > 1:
+				selected_table = st.selectbox( 'Imported Table', options=table_options,
+					format_func=lambda value: (
+						f'{imported_sheet_names.get( value, value )} ({value})'),
+					key='data_upload_selected_table' )
+			else:
+				selected_table = table_options[ 0 ]
+			
+			df_uploaded = imported_tables[ selected_table ].copy( )
+			schema = infer_schema( df_uploaded )
+			type_counts = pd.Series( schema ).value_counts( )
+			
+			# ------------------------------------------------------------------
+			# SCHEMA METRICS
+			# ------------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Types' )
+			
+			m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+			m1.metric( 'Rows', f'{len( df_uploaded ):,}' )
+			m2.metric( 'Numeric', int( type_counts.get( 'numeric', 0 ) ) )
+			m3.metric( 'Ordinal / ID',
+				int( type_counts.get( 'ordinal', 0 ) ) + int( type_counts.get( 'identifier',
+					0 ) ) )
+			m4.metric( 'Categorical', int( type_counts.get( 'categorical', 0 ) ) )
+			m5.metric( 'Datetime', int( type_counts.get( 'datetime', 0 ) ) )
+			
+			# ------------------------------------------------------------------
+			# DATABASE TABLE DISPLAY
+			# ------------------------------------------------------------------
+			blue_divider( )
+			st.markdown( f'##### Data — {selected_table}' )
+			
+			st.data_editor( df_uploaded, use_container_width=True, height=500, hide_index=True,
+				disabled=True, key=f'data_upload_editor_{selected_table}' )
 		
 # ============================================
 # DATA BROWSE MODE
