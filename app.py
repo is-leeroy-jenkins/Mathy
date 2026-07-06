@@ -19534,8 +19534,8 @@ elif mode == 'CRUD Ops':
 		else:
 			st.header( '' )
 			st.markdown( '##### Data Table' )
-			crud_left, crud_mid, crud_right = st.columns( 3 )
-			with crud_left:
+			crud_c1, crud_c2, crud_c3, crud_c4 = st.columns( 4 )
+			with crud_c1:
 				table = st.selectbox( 'Select', tables, key='crud_table' )
 			df = read_table( table )
 			schema = create_schema( table )
@@ -19570,7 +19570,7 @@ elif mode == 'CRUD Ops':
 					else:
 						insert_data[ column ] = st.text_input( column,
 							key=f'ins_{column}' )
-			
+						
 			if st.button( label='Insert Row', icon='➕' ):
 				cols = list( insert_data.keys( ) )
 				placeholders = ', '.join( [ '?' ] * len( cols ) )
@@ -19582,7 +19582,7 @@ elif mode == 'CRUD Ops':
 				
 				st.success( 'Row inserted.' )
 				st.rerun( )
-			
+				
 			# ------------------------------------------------------------------
 			# UPDATE
 			# ------------------------------------------------------------------
@@ -19616,7 +19616,6 @@ elif mode == 'CRUD Ops':
 			if st.button( label='Update Row', icon='⬆️' ):
 				set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
 				stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
-				
 				with create_connection( ) as conn:
 					conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
 					conn.commit( )
@@ -19629,17 +19628,16 @@ elif mode == 'CRUD Ops':
 			# ------------------------------------------------------------------
 			blue_divider( )
 			st.markdown( '##### Delete Row' )
-			delete_left, delete_mid, delete_right = st.columns( 3 )
-			with delete_left:
+			delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
+			with delete_c1:
 				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
-				
-			if st.button( label='Delete Row', icon='❌' ):
-				with create_connection( ) as conn:
-					conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
-					conn.commit( )
-				
-				st.success( 'Row deleted.' )
-				st.rerun( )
+				if st.button( label='Delete Row', icon='❌' ):
+					with create_connection( ) as conn:
+						conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
+						conn.commit( )
+						
+					st.success( 'Row deleted.' )
+					st.rerun( )
 	
 # ============================================
 # DATA FILTER MODE
