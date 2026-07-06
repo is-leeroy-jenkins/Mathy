@@ -2573,7 +2573,6 @@ if mode == 'Data Profile':
 				st.info( 'No rows are available to edit.' )
 			else:
 				top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
-				
 				with top_c1:
 					max_row_index = len( df_dataset ) - 1
 					default_row_index = int( st.session_state.get( 'row_editor_index', 0 ) )
@@ -2587,12 +2586,10 @@ if mode == 'Data Profile':
 				updated = { }
 				
 				col_left, col_right = st.columns( 2, border=True )
-				
 				with st.form( 'row_edit_form' ):
 					for i, (col, dtype) in enumerate( schema.items( ) ):
 						target = col_left if i % 2 == 0 else col_right
 						val = row[ col ]
-						
 						with target:
 							if dtype == 'numeric':
 								updated[ col ] = st.number_input( col,
@@ -2616,7 +2613,7 @@ if mode == 'Data Profile':
 								updated[ col ] = st.text_input( col, value=str( val ),
 									disabled=True )
 					
-					submitted = st.form_submit_button( 'Apply Row Update' )
+					submitted = st.form_submit_button( label='Apply Row Update', icon='✔️' )
 				
 				if submitted:
 					before = df_dataset.loc[ row_idx ].copy( )
@@ -2718,7 +2715,7 @@ if mode == 'Data Profile':
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
 				drop_cols = st.multiselect( 'Columns to Drop', df_dataset.columns.tolist( ) )
-				if st.button( 'Drop Column' ):
+				if st.button( label='Drop Column', icon='❌' ):
 					if len( drop_cols ) == len( df_dataset.columns ):
 						st.error( 'Cannot Drop All Columns.' )
 					else:
@@ -2730,7 +2727,7 @@ if mode == 'Data Profile':
 				rename_col = st.selectbox( 'Rename Column',
 					[ '<None>' ] + df_dataset.columns.tolist( ) )
 				new_name = st.text_input( 'New Column Name' )
-				if st.button( 'Rename' ):
+				if st.button( label='Rename',  icon='✔️'  ):
 					if rename_col != '<None>' and new_name:
 						if new_name in df_dataset.columns:
 							st.error( 'Column Name Already Exists.' )
@@ -2814,8 +2811,7 @@ if mode == 'Data Profile':
 						edgecolor='#0f172a', line_kws={ 'linewidth': 2.0 } if show_kde else None )
 					
 					mean_val = float( s.mean( ) )
-					median_val = float( s.median( ) )
-					
+					median_val = float( s.median( ) )					
 					ax.axvline( mean_val, linestyle='--', linewidth=1.5,
 						label=f'Mean: {mean_val:,.2f}' )
 					
@@ -2828,12 +2824,10 @@ if mode == 'Data Profile':
 					ax.grid( True, alpha=0.25, linestyle='--' )
 					ax.spines[ 'top' ].set_visible( False )
 					ax.spines[ 'right' ].set_visible( False )
-					ax.legend( frameon=False, fontsize=9 )
-					
+					ax.legend( frameon=False, fontsize=9 )					
 					fig.tight_layout( )
 					st.pyplot( fig )
-					plt.close( fig )
-					
+					plt.close( fig )				
 					m1, m2, m3, m4 = st.columns( 4, border=True )
 					m1.metric( 'Count', f'{len( s ):,}' )
 					m2.metric( 'Mean', f'{mean_val:,.2f}' )
@@ -19512,12 +19506,26 @@ elif mode == 'Data Browse':
 		st.divider( )
 		tables = list_tables( )
 		if tables:
-			browse_left, browse_center, browse_right = st.columns( 3 )
-			with browse_left:
+			brs_c1, brs_c2, brs_c3, brs_c4, brs_c5 = st.columns( 5, border=True )
+			with brs_c1:
 				table = st.selectbox( 'Select Table:', tables, key='table_name' )
 			
-			blue_divider( )
 			df = read_table( table )
+			schema = infer_schema( df )
+			type_counts = pd.Series( schema ).value_counts( )
+			with brs_c2:
+				st.metric( 'Total Records', f'{len( df ):,}' )
+			
+			with brs_c3:
+				st.metric( 'Numeric Fields', int( type_counts.get( 'numeric', 0 ) ) )
+			
+			with brs_c4:
+				st.metric( 'Ordinal Fields', int( type_counts.get( 'ordinal', 0 ) ) )
+			
+			with brs_c5:
+				st.metric( 'Categorical Fields', int( type_counts.get( 'categorical', 0 ) ) )
+			
+			blue_divider( )
 			st.data_editor( df, use_container_width=True, height=400 )
 		else:
 			st.info( 'No tables available.' )
