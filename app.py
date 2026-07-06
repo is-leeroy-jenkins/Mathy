@@ -44,6 +44,7 @@
 from __future__ import annotations
 
 import base64
+from boogr import Error, Logger
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -19368,7 +19369,7 @@ elif mode == 'Data Filter':
 # ============================================
 # DATA AGGREGATION MODE
 # ============================================
-elif mode == 'Data Aggregate':
+elif mode == 'Data Aggregation':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Data Aggregation' ], divider='blue' )

@@ -64,9 +64,8 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.preprocessing import Binarizer
 import sklearn.neural_network as skm
 from sklearn.metrics import (r2_score, mean_squared_error, mean_absolute_error,
-                             root_mean_squared_error,
-                             explained_variance_score, median_absolute_error, max_error,
-                             accuracy_score, )
+                             root_mean_squared_error, explained_variance_score,
+                             median_absolute_error, max_error, accuracy_score, )
 
 def throw_if( name: str, value: object ):
 	if value is None:
@@ -76,7 +75,8 @@ class Regression( ):
 	"""Regression regression wrapper.
 
 		Purpose:
-		    Defines the shared regression wrapper contract and common evaluation-state fields used by concrete Mathy regressor implementations.
+		    Defines the shared regression wrapper contract and common evaluation-state fields used 
+		    by concrete Mathy regressor implementations.
 
 		Attributes:
 		    max_iter: Maximum number of estimator iterations.
@@ -110,7 +110,9 @@ class Regression( ):
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the Regression wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the Regression wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 		"""
 		self.max_iter = None
 		self.random_state = None
@@ -125,22 +127,27 @@ class Regression( ):
 		self.training_score = None
 		self.testing_score = None
 	
-	def split_data( self, X: np.ndarray,
-			y: np.ndarray ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ] | None:
+	def split_data( self, X: np.ndarray, y: np.ndarray ) -> tuple[
+		                                                        np.ndarray, np.ndarray, 
+		                                                        np.ndarray, np.ndarray ] | None:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | None: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | None: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
-				    NotImplementedError: Raised when the abstract interface method is called directly.
+				    NotImplementedError: Raised when the abstract interface method is called 
+				    directly.
 		"""
 		raise NotImplementedError
 	
@@ -148,17 +155,20 @@ class Regression( ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying Regression regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying Regression regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
 				    object | None: Fitted wrapper instance.
 
 				Raises:
-				    NotImplementedError: Raised when the abstract interface method is called directly.
+				    NotImplementedError: Raised when the abstract interface method is called 
+				    directly.
 		"""
 		raise NotImplementedError
 	
@@ -166,16 +176,20 @@ class Regression( ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted Regression regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted Regression regression 
+				    estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
-				    NotImplementedError: Raised when the abstract interface method is called directly.
+				    NotImplementedError: Raised when the abstract interface method is called 
+				    directly.
 		"""
 		raise NotImplementedError
 	
@@ -183,17 +197,21 @@ class Regression( ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted Regression regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted Regression regression estimator with its primary scoring 
+				    behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    float | pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    float | pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
-				    NotImplementedError: Raised when the abstract interface method is called directly.
+				    NotImplementedError: Raised when the abstract interface method is called 
+				    directly.
 		"""
 		raise NotImplementedError
 	
@@ -201,17 +219,21 @@ class Regression( ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted Regression model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted Regression model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    Dict[str, float] | pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    Dict[str, float] | pd.DataFrame | None: Dataframe containing regression 
+				    metrics computed from observed and predicted target values.
 
 				Raises:
-				    NotImplementedError: Raised when the abstract interface method is called directly.
+				    NotImplementedError: Raised when the abstract interface method is called 
+				    directly.
 		"""
 		raise NotImplementedError
 
@@ -219,7 +241,9 @@ class LeastSquares( Regression ):
 	"""LeastSquares regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.LinearRegression for ordinary least-squares regression, coefficient inspection, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.linear_model.LinearRegression for ordinary least-squares regression, 
+		    coefficient inspection, prediction, scoring, metric analysis, and diagnostic scatter 
+		    plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -265,19 +289,22 @@ class LeastSquares( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, fit: bool = True, copy: bool = True, tol: float = 1e-6,
-			jobs: Optional[ int ] = None, positive: bool = False ) -> None:
+	def __init__( self, fit: bool=True, copy: bool=True, tol: float=1e-6,
+		jobs: Optional[ int ] = None, positive: bool=False ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the LeastSquares wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the LeastSquares wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    fit: Flag indicating whether the estimator fits an intercept term.
 				    copy: Flag indicating whether input feature data is copied during fitting.
 				    tol: Numerical tolerance used by estimator optimization or convergence checks.
 				    jobs: Number of parallel worker jobs used by the estimator.
-				    positive: Flag constraining fitted coefficients to positive values when supported.
+				    positive: Flag constraining fitted coefficients to positive values when 
+				    supported.
 		"""
 		super( ).__init__( )
 		self.fit_intercept = fit
@@ -285,13 +312,8 @@ class LeastSquares( Regression ):
 		self.tol = tol
 		self.n_jobs = jobs
 		self.positive = positive
-		self.model = skl.LinearRegression(
-			fit_intercept=self.fit_intercept,
-			copy_X=self.copy_X,
-			tol=self.tol,
-			n_jobs=self.n_jobs,
-			positive=self.positive
-		)
+		self.model = skl.LinearRegression( fit_intercept=self.fit_intercept, copy_X=self.copy_X,
+			tol=self.tol, n_jobs=self.n_jobs, positive=self.positive )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -311,47 +333,29 @@ class LeastSquares( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the LeastSquares wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the LeastSquares wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'fit_intercept',
-				'copy_X',
-				'tol',
-				'n_jobs',
-				'positive',
-				'weights',
-				'intercept',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'max_error',
-				'training_score',
-				'testing_score',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'fit_intercept', 'copy_X', 'tol', 'n_jobs', 'positive',
+			'weights', 'intercept', 'features', 'mean_absolute_error', 'mean_squared_error',
+			'root_mean_squared_error', 'r2_score', 'explained_variance_score', 'max_error',
+			'training_score', 'testing_score', 'split_data', 'train', 'project', 'score', 
+			'analyze', 'scatter_plot' ]
 	
 	@property
 	def intercept( self ) -> np.ndarray | float | None:
 		"""Intercept.
 
 				Purpose:
-				    Returns fitted `intercept` metadata from the underlying LeastSquares estimator after training.
+				    Returns fitted `intercept` metadata from the underlying LeastSquares estimator 
+				    after training.
 
 				Returns:
-				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying estimator.
+				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -365,7 +369,8 @@ class LeastSquares( Regression ):
 		"""Weights.
 
 				Purpose:
-				    Returns fitted `weights` metadata from the underlying LeastSquares estimator after training.
+				    Returns fitted `weights` metadata from the underlying LeastSquares estimator 
+				    after training.
 
 				Returns:
 				    np.ndarray | None: Fitted `weights` metadata from the underlying estimator.
@@ -382,7 +387,8 @@ class LeastSquares( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying LeastSquares estimator after training.
+				    Returns fitted `features` metadata from the underlying LeastSquares estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -394,21 +400,24 @@ class LeastSquares( Regression ):
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -423,7 +432,8 @@ class LeastSquares( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastSquares'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -431,10 +441,12 @@ class LeastSquares( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying LeastSquares regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying LeastSquares regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -468,13 +480,16 @@ class LeastSquares( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted LeastSquares regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted LeastSquares 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -495,14 +510,17 @@ class LeastSquares( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted LeastSquares regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted LeastSquares regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -514,15 +532,10 @@ class LeastSquares( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			
 			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -536,14 +549,17 @@ class LeastSquares( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted LeastSquares model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted LeastSquares model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -559,30 +575,15 @@ class LeastSquares( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -596,10 +597,12 @@ class LeastSquares( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted LeastSquares regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted LeastSquares regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -611,31 +614,15 @@ class LeastSquares( Regression ):
 			y_pred = self.project( X )
 			_training = self.training_score if self.training_score is not None else 0.0
 			_testing = self.testing_score if self.testing_score is not None else 0.0
-			_text = (
-					f'Training Score = {_training:.1%}\n'
-					f'Testing Score = {_testing:.1%}\n'
-			)
+			_text = (f'Training Score = {_training:.1%}\n'
+			         f'Testing Score = {_testing:.1%}\n')
 			
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -654,7 +641,8 @@ class Ridge( Regression ):
 	"""Ridge regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.Ridge for L2-regularized linear regression with coefficient inspection, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.linear_model.Ridge for L2-regularized linear regression with coefficient 
+		    inspection, prediction, scoring, metric analysis, and diagnostic scatter plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -665,7 +653,8 @@ class Ridge( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    alpha: Regularization strength or loss parameter passed to the estimator.
 		    fit_intercept: Flag indicating whether the estimator fits an intercept term.
@@ -707,13 +696,15 @@ class Ridge( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, fit: bool = True, copy: bool = True,
-			iters: Optional[ int ] = None, tol: float = 1e-4, solver: str = 'auto',
-			positive: bool = False, rando: Optional[ int ] = None ) -> None:
+	def __init__( self, alpha: float=1.0, fit: bool=True, copy: bool=True,
+		iters: Optional[ int ] = None, tol: float=1e-4, solver: str = 'auto',
+		positive: bool=False, rando: Optional[ int ] = None ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the Ridge wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the Ridge wrapper with estimator configuration, runtime state, 
+				    cached prediction fields, and regression metric fields required by training 
+				    and evaluation workflows.
 
 				Args:
 				    alpha: Regularization strength, loss parameter, or model-specific alpha value.
@@ -722,7 +713,8 @@ class Ridge( Regression ):
 				    iters: Maximum number of optimization iterations.
 				    tol: Numerical tolerance used by estimator optimization or convergence checks.
 				    solver: Optimization solver used by the estimator.
-				    positive: Flag constraining fitted coefficients to positive values when supported.
+				    positive: Flag constraining fitted coefficients to positive values when 
+				    supported.
 				    rando: Random-state seed passed to the underlying estimator.
 		"""
 		super( ).__init__( )
@@ -734,16 +726,9 @@ class Ridge( Regression ):
 		self.solver = solver
 		self.positive = positive
 		self.random_state = rando
-		self.model = skl.Ridge(
-			alpha=self.alpha,
-			fit_intercept=self.fit_intercept,
-			copy_X=self.copy_X,
-			max_iter=self.max_iter,
-			tol=self.tol,
-			solver=self.solver,
-			positive=self.positive,
-			random_state=self.random_state
-		)
+		self.model = skl.Ridge( alpha=self.alpha, fit_intercept=self.fit_intercept,
+			copy_X=self.copy_X, max_iter=self.max_iter, tol=self.tol, solver=self.solver,
+			positive=self.positive, random_state=self.random_state )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -764,50 +749,29 @@ class Ridge( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the Ridge wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the Ridge wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'alpha',
-				'fit_intercept',
-				'copy_X',
-				'max_iter',
-				'tol',
-				'solver',
-				'positive',
-				'random_state',
-				'weights',
-				'intercept',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'alpha', 'fit_intercept', 'copy_X', 'max_iter', 'tol',
+			'solver', 'positive', 'random_state', 'weights', 'intercept', 'features',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
+			'score', 'analyze', 'scatter_plot', 'training_score', 'testing_score' ]
 	
 	@property
 	def intercept( self ) -> np.ndarray | float | None:
 		"""Intercept.
 
 				Purpose:
-				    Returns fitted `intercept` metadata from the underlying Ridge estimator after training.
+				    Returns fitted `intercept` metadata from the underlying Ridge estimator after 
+				    training.
 
 				Returns:
-				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying estimator.
+				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -821,7 +785,8 @@ class Ridge( Regression ):
 		"""Weights.
 
 				Purpose:
-				    Returns fitted `weights` metadata from the underlying Ridge estimator after training.
+				    Returns fitted `weights` metadata from the underlying Ridge estimator after 
+				    training.
 
 				Returns:
 				    np.ndarray | None: Fitted `weights` metadata from the underlying estimator.
@@ -838,7 +803,8 @@ class Ridge( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying Ridge estimator after training.
+				    Returns fitted `features` metadata from the underlying Ridge estimator after 
+				    training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -850,21 +816,24 @@ class Ridge( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, random: int=42 ) -> \
+	tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -879,7 +848,8 @@ class Ridge( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Ridge'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -887,10 +857,12 @@ class Ridge( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying Ridge regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying Ridge regression estimator to feature and target arrays 
+				    and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -924,13 +896,16 @@ class Ridge( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted Ridge regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted Ridge regression 
+				    estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -951,14 +926,17 @@ class Ridge( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted Ridge regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted Ridge regression estimator with its primary scoring 
+				    behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -969,16 +947,10 @@ class Ridge( Regression ):
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( { 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -992,14 +964,17 @@ class Ridge( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted Ridge model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted Ridge model, including 
+				    error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1016,32 +991,15 @@ class Ridge( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1055,10 +1013,12 @@ class Ridge( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted Ridge regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted Ridge regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -1070,31 +1030,15 @@ class Ridge( Regression ):
 			y_pred = self.project( X )
 			_training = self.training_score if self.training_score is not None else 0.0
 			_testing = self.testing_score if self.testing_score is not None else 0.0
-			_text = (
-					f'Training Score = {_training:.1%}\n'
-					f'Testing Score = {_testing:.1%}\n'
-			)
+			_text = (f'Training Score = {_training:.1%}\n'
+			         f'Testing Score = {_testing:.1%}\n')
 			
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1113,7 +1057,9 @@ class Lasso( Regression ):
 	"""Lasso regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.Lasso for L1-regularized linear regression with sparse coefficient estimation, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.linear_model.Lasso for L1-regularized linear regression with sparse 
+		    coefficient estimation, prediction, scoring, metric analysis, and diagnostic scatter 
+		    plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -1124,7 +1070,8 @@ class Lasso( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    alpha: Regularization strength or loss parameter passed to the estimator.
 		    fit_intercept: Flag indicating whether the estimator fits an intercept term.
@@ -1170,17 +1117,18 @@ class Lasso( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 0.01, fit: bool = True, precompute: bool = False,
-			copy: bool = True, iters: int = 1000, tol: float = 1e-4, warm: bool = False,
-			positive: bool = False, rando: Optional[ int ] = None,
-			select: str = 'cyclic', selection: Optional[ str ] = None ) -> None:
+	def __init__( self, alpha: float=0.01, fit: bool=True, precompute: bool=False,
+		copy: bool=True, iters: int=1000, tol: float=1e-4, warm: bool=False,
+		positive: bool=False, rando: Optional[ int ] = None, select: str = 'cyclic',
+		selection: Optional[ str ] = None ) -> None:
 		"""Initialize the Lasso regression wrapper.
 
 				Purpose:
 				    Configures an L1-regularized linear regression estimator for sparse coefficient
 				    estimation, continuous-target prediction, model scoring, residual analysis, and
 				    coefficient diagnostics. Supports the existing `select` parameter and the
-				    application-facing `selection` parameter for coordinate-descent feature selection.
+				    application-facing `selection` parameter for coordinate-descent feature 
+				    selection.
 
 				Args:
 				    alpha: Regularization strength applied to the L1 penalty.
@@ -1206,18 +1154,10 @@ class Lasso( Regression ):
 		self.positive = positive
 		self.random_state = rando
 		self.selection = selection if selection is not None else select
-		self.model = skl.Lasso(
-			alpha=self.alpha,
-			fit_intercept=self.fit_intercept,
-			precompute=self.precompute,
-			copy_X=self.copy_X,
-			max_iter=self.max_iter,
-			tol=self.tol,
-			warm_start=self.warm_start,
-			positive=self.positive,
-			random_state=self.random_state,
-			selection=self.selection
-		)
+		self.model = skl.Lasso( alpha=self.alpha, fit_intercept=self.fit_intercept,
+			precompute=self.precompute, copy_X=self.copy_X, max_iter=self.max_iter, tol=self.tol,
+			warm_start=self.warm_start, positive=self.positive, random_state=self.random_state,
+			selection=self.selection )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
@@ -1229,47 +1169,24 @@ class Lasso( Regression ):
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'alpha',
-				'fit_intercept',
-				'precompute',
-				'copy_X',
-				'max_iter',
-				'tol',
-				'warm_start',
-				'positive',
-				'random_state',
-				'selection',
-				'weights',
-				'intercept',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'alpha', 'fit_intercept', 'precompute', 'copy_X',
+			'max_iter', 'tol', 'warm_start', 'positive', 'random_state', 'selection', 'weights',
+			'intercept', 'features', 'mean_absolute_error', 'mean_squared_error',
+			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'training_score', 'testing_score' ]
 	
 	@property
 	def intercept( self ) -> np.ndarray | float | None:
 		"""Intercept.
 
 				Purpose:
-				    Returns fitted `intercept` metadata from the underlying Lasso estimator after training.
+				    Returns fitted `intercept` metadata from the underlying Lasso estimator after 
+				    training.
 
 				Returns:
-				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying estimator.
+				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -1283,7 +1200,8 @@ class Lasso( Regression ):
 		"""Weights.
 
 				Purpose:
-				    Returns fitted `weights` metadata from the underlying Lasso estimator after training.
+				    Returns fitted `weights` metadata from the underlying Lasso estimator after 
+				    training.
 
 				Returns:
 				    np.ndarray | None: Fitted `weights` metadata from the underlying estimator.
@@ -1300,7 +1218,8 @@ class Lasso( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying Lasso estimator after training.
+				    Returns fitted `features` metadata from the underlying Lasso estimator after 
+				    training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -1312,21 +1231,24 @@ class Lasso( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2, 
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1341,7 +1263,8 @@ class Lasso( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'Lasso'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -1349,10 +1272,12 @@ class Lasso( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying Lasso regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying Lasso regression estimator to feature and target arrays 
+				    and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -1386,13 +1311,16 @@ class Lasso( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted Lasso regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted Lasso regression 
+				    estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1413,14 +1341,17 @@ class Lasso( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted Lasso regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted Lasso regression estimator with its primary scoring 
+				    behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1432,15 +1363,10 @@ class Lasso( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			
 			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1454,14 +1380,17 @@ class Lasso( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted Lasso model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted Lasso model, including 
+				    error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1478,32 +1407,15 @@ class Lasso( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1517,10 +1429,12 @@ class Lasso( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted Lasso regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted Lasso regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -1534,25 +1448,11 @@ class Lasso( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1571,7 +1471,8 @@ class ElasticNet( Regression ):
 	"""ElasticNet regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.ElasticNet for combined L1 and L2 regularized linear regression with prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.linear_model.ElasticNet for combined L1 and L2 regularized linear 
+		    regression with prediction, scoring, metric analysis, and diagnostic scatter plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -1582,7 +1483,8 @@ class ElasticNet( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    alpha: Regularization strength or loss parameter passed to the estimator.
 		    l1_ratio: Elastic-net mixing parameter.
@@ -1630,14 +1532,16 @@ class ElasticNet( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, ratio: float = 0.5, fit: bool = True,
-			precompute: bool = False, iters: int = 1000, copy: bool = True,
-			tol: float = 1e-4, warm: bool = False, positive: bool = False,
-			rando: Optional[ int ] = None, select: str = 'cyclic' ) -> None:
+	def __init__( self, alpha: float=1.0, ratio: float=0.5, fit: bool=True,
+		precompute: bool=False, iters: int=1000, copy: bool=True, tol: float=1e-4,
+		warm: bool=False, positive: bool=False, rando: Optional[ int ] = None,
+		select: str = 'cyclic' ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the ElasticNet wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the ElasticNet wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    alpha: Regularization strength, loss parameter, or model-specific alpha value.
@@ -1648,7 +1552,8 @@ class ElasticNet( Regression ):
 				    copy: Flag indicating whether input feature data is copied during fitting.
 				    tol: Numerical tolerance used by estimator optimization or convergence checks.
 				    warm: Flag indicating whether previous estimator state is reused across fits.
-				    positive: Flag constraining fitted coefficients to positive values when supported.
+				    positive: Flag constraining fitted coefficients to positive values when 
+				    supported.
 				    rando: Random-state seed passed to the underlying estimator.
 				    select: Coordinate-selection strategy used during optimization.
 		"""
@@ -1664,19 +1569,10 @@ class ElasticNet( Regression ):
 		self.positive = positive
 		self.random_state = rando
 		self.selection = select
-		self.model = skl.ElasticNet(
-			alpha=self.alpha,
-			l1_ratio=self.l1_ratio,
-			fit_intercept=self.fit_intercept,
-			precompute=self.precompute,
-			max_iter=self.max_iter,
-			copy_X=self.copy_X,
-			tol=self.tol,
-			warm_start=self.warm_start,
-			positive=self.positive,
-			random_state=self.random_state,
-			selection=self.selection
-		)
+		self.model = skl.ElasticNet( alpha=self.alpha, l1_ratio=self.l1_ratio,
+			fit_intercept=self.fit_intercept, precompute=self.precompute, max_iter=self.max_iter,
+			copy_X=self.copy_X, tol=self.tol, warm_start=self.warm_start, positive=self.positive,
+			random_state=self.random_state, selection=self.selection )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -1697,53 +1593,30 @@ class ElasticNet( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the ElasticNet wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the ElasticNet wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'alpha',
-				'l1_ratio',
-				'fit_intercept',
-				'precompute',
-				'max_iter',
-				'copy_X',
-				'tol',
-				'warm_start',
-				'positive',
-				'random_state',
-				'selection',
-				'weights',
-				'intercept',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'alpha', 'l1_ratio', 'fit_intercept', 'precompute',
+			'max_iter', 'copy_X', 'tol', 'warm_start', 'positive', 'random_state', 'selection',
+			'weights', 'intercept', 'features', 'mean_absolute_error', 'mean_squared_error',
+			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'training_score', 'testing_score' ]
 	
 	@property
 	def intercept( self ) -> np.ndarray | float | None:
 		"""Intercept.
 
 				Purpose:
-				    Returns fitted `intercept` metadata from the underlying ElasticNet estimator after training.
+				    Returns fitted `intercept` metadata from the underlying ElasticNet estimator 
+				    after training.
 
 				Returns:
-				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying estimator.
+				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -1757,7 +1630,8 @@ class ElasticNet( Regression ):
 		"""Weights.
 
 				Purpose:
-				    Returns fitted `weights` metadata from the underlying ElasticNet estimator after training.
+				    Returns fitted `weights` metadata from the underlying ElasticNet estimator 
+				    after training.
 
 				Returns:
 				    np.ndarray | None: Fitted `weights` metadata from the underlying estimator.
@@ -1774,7 +1648,8 @@ class ElasticNet( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying ElasticNet estimator after training.
+				    Returns fitted `features` metadata from the underlying ElasticNet estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -1786,21 +1661,24 @@ class ElasticNet( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1815,7 +1693,8 @@ class ElasticNet( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ElasticNet'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -1823,10 +1702,12 @@ class ElasticNet( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying ElasticNet regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying ElasticNet regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -1860,13 +1741,16 @@ class ElasticNet( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted ElasticNet regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted ElasticNet regression 
+				    estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1887,14 +1771,17 @@ class ElasticNet( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted ElasticNet regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted ElasticNet regression estimator with its primary scoring 
+				    behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1906,15 +1793,10 @@ class ElasticNet( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			
 			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1928,14 +1810,17 @@ class ElasticNet( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted ElasticNet model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted ElasticNet model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -1952,32 +1837,15 @@ class ElasticNet( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -1991,10 +1859,12 @@ class ElasticNet( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted ElasticNet regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted ElasticNet regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -2008,25 +1878,11 @@ class ElasticNet( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -2045,7 +1901,9 @@ class LeastAngle( Regression ):
 	"""LeastAngle regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.Lars for least-angle regression with coefficient-path-oriented linear modeling, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.linear_model.Lars for least-angle regression with 
+		    coefficient-path-oriented linear modeling, prediction, scoring, metric analysis, 
+		    and diagnostic scatter plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -2056,7 +1914,8 @@ class LeastAngle( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    n_nonzero_coefs: Estimator configuration or runtime state retained by the wrapper.
 		    fit_intercept: Flag indicating whether the estimator fits an intercept term.
 		    precompute: Estimator configuration or runtime state retained by the wrapper.
@@ -2078,14 +1937,17 @@ class LeastAngle( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, coeffs: int = 500, fit: bool = True, precompute: bool = True ) -> None:
+	def __init__( self, coeffs: int=500, fit: bool=True, precompute: bool=True ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the LeastAngle wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the LeastAngle wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
-				    coeffs: Maximum number of coefficients or active variables used by the estimator.
+				    coeffs: Maximum number of coefficients or active variables used by the 
+				    estimator.
 				    fit: Flag indicating whether the estimator fits an intercept term.
 				    precompute: Flag or setting controlling Gram-matrix precomputation.
 		"""
@@ -2093,11 +1955,8 @@ class LeastAngle( Regression ):
 		self.fit_intercept = fit
 		self.n_nonzero_coefs = coeffs
 		self.precompute = precompute
-		self.model = skl.Lars(
-			fit_intercept=self.fit_intercept,
-			precompute=self.precompute,
-			n_nonzero_coefs=self.n_nonzero_coefs
-		)
+		self.model = skl.Lars( fit_intercept=self.fit_intercept, precompute=self.precompute,
+			n_nonzero_coefs=self.n_nonzero_coefs )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -2113,49 +1972,35 @@ class LeastAngle( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the LeastAngle wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the LeastAngle wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'fit_intercept',
-				'precompute',
-				'n_nonzero_coefs',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'fit_intercept', 'precompute', 'n_nonzero_coefs',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
+			'score', 'analyze', 'scatter_plot', 'training_score', 'testing_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2169,7 +2014,8 @@ class LeastAngle( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'LeastAngle'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -2177,10 +2023,12 @@ class LeastAngle( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying LeastAngle regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying LeastAngle regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -2206,13 +2054,16 @@ class LeastAngle( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted LeastAngle regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted LeastAngle regression 
+				    estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2233,14 +2084,17 @@ class LeastAngle( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted LeastAngle regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted LeastAngle regression estimator with its primary scoring 
+				    behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2254,11 +2108,9 @@ class LeastAngle( Regression ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
+			_metrics = { 'Training Score': self.training_score, 'Testing Score': 
+				self.testing_score,
+				'R-Squared Score': self.r2_score, }
 			
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
@@ -2275,14 +2127,17 @@ class LeastAngle( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted LeastAngle model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted LeastAngle model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2297,13 +2152,9 @@ class LeastAngle( Regression ):
 			self.max_error = max_error( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
+			_metrics = { 'MAE': self.mean_absolute_error, 'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error, 'EVS': self.explained_variance_score,
+				'MAX': self.max_error, }
 			
 			_data = pd.Series( _metrics )
 			df_metrics = pd.DataFrame( _data )
@@ -2320,10 +2171,12 @@ class LeastAngle( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted LeastAngle regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted LeastAngle regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -2337,25 +2190,11 @@ class LeastAngle( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -2374,7 +2213,9 @@ class BayesianRidge( Regression ):
 	"""BayesianRidge regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.BayesianRidge for probabilistic linear regression with Bayesian regularization, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.linear_model.BayesianRidge for probabilistic linear regression with 
+		    Bayesian regularization, prediction, scoring, metric analysis, and diagnostic scatter 
+		    plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -2385,7 +2226,8 @@ class BayesianRidge( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    scale_alpha: Estimator configuration or runtime state retained by the wrapper.
 		    shape_lambda: Estimator configuration or runtime state retained by the wrapper.
@@ -2435,15 +2277,17 @@ class BayesianRidge( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, max: int = 300, shape_alpha: float = 1e-06, scale_alpha: float = 1e-06,
-			shape_lambda: float = 1e-06, scale_lambda: float = 1e-06, tol: float = 1e-3,
-			alpha_init: Optional[ float ] = None, lambda_init: Optional[ float ] = None,
-			compute_score: bool = False, fit: bool = True, copy: bool = True,
-			verbose: bool = False ) -> None:
+	def __init__( self, max: int=300, shape_alpha: float=1e-06, scale_alpha: float=1e-06,
+		shape_lambda: float=1e-06, scale_lambda: float=1e-06, tol: float=1e-3,
+		alpha_init: Optional[ float ] = None, lambda_init: Optional[ float ] = None,
+		compute_score: bool=False, fit: bool=True, copy: bool=True,
+		verbose: bool=False ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the BayesianRidge wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the BayesianRidge wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    max: Configuration value passed to the underlying regression estimator.
@@ -2454,7 +2298,8 @@ class BayesianRidge( Regression ):
 				    tol: Numerical tolerance used by estimator optimization or convergence checks.
 				    alpha_init: Initial alpha value for Bayesian regression.
 				    lambda_init: Initial lambda value for Bayesian regression.
-				    compute_score: Flag indicating whether Bayesian scores are computed during fitting.
+				    compute_score: Flag indicating whether Bayesian scores are computed during 
+				    fitting.
 				    fit: Flag indicating whether the estimator fits an intercept term.
 				    copy: Flag indicating whether input feature data is copied during fitting.
 				    verbose: Verbosity flag or level passed to the estimator.
@@ -2472,20 +2317,11 @@ class BayesianRidge( Regression ):
 		self.fit_intercept = fit
 		self.copy_X = copy
 		self.verbose = verbose
-		self.model = skl.BayesianRidge(
-			max_iter=self.max_iter,
-			tol=self.tol,
-			alpha_1=self.shape_alpha,
-			alpha_2=self.scale_alpha,
-			lambda_1=self.shape_lambda,
-			lambda_2=self.scale_lambda,
-			alpha_init=self.alpha_init,
-			lambda_init=self.lambda_init,
-			compute_score=self.compute_score,
-			fit_intercept=self.fit_intercept,
-			copy_X=self.copy_X,
-			verbose=self.verbose
-		)
+		self.model = skl.BayesianRidge( max_iter=self.max_iter, tol=self.tol,
+			alpha_1=self.shape_alpha, alpha_2=self.scale_alpha, lambda_1=self.shape_lambda,
+			lambda_2=self.scale_lambda, alpha_init=self.alpha_init, lambda_init=self.lambda_init,
+			compute_score=self.compute_score, fit_intercept=self.fit_intercept, copy_X=self.copy_X,
+			verbose=self.verbose )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -2506,54 +2342,30 @@ class BayesianRidge( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the BayesianRidge wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the BayesianRidge wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'shape_alpha',
-				'scale_alpha',
-				'shape_lambda',
-				'scale_lambda',
-				'max_iter',
-				'tol',
-				'alpha_init',
-				'lambda_init',
-				'compute_score',
-				'fit_intercept',
-				'copy_X',
-				'verbose',
-				'weights',
-				'intercept',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'shape_alpha', 'scale_alpha', 'shape_lambda',
+			'scale_lambda', 'max_iter', 'tol', 'alpha_init', 'lambda_init', 'compute_score',
+			'fit_intercept', 'copy_X', 'verbose', 'weights', 'intercept', 'features',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
+			'score', 'analyze', 'scatter_plot', 'training_score', 'testing_score' ]
 	
 	@property
 	def intercept( self ) -> np.ndarray | float | None:
 		"""Intercept.
 
 				Purpose:
-				    Returns fitted `intercept` metadata from the underlying BayesianRidge estimator after training.
+				    Returns fitted `intercept` metadata from the underlying BayesianRidge 
+				    estimator after training.
 
 				Returns:
-				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying estimator.
+				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -2567,7 +2379,8 @@ class BayesianRidge( Regression ):
 		"""Weights.
 
 				Purpose:
-				    Returns fitted `weights` metadata from the underlying BayesianRidge estimator after training.
+				    Returns fitted `weights` metadata from the underlying BayesianRidge estimator 
+				    after training.
 
 				Returns:
 				    np.ndarray | None: Fitted `weights` metadata from the underlying estimator.
@@ -2584,7 +2397,8 @@ class BayesianRidge( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying BayesianRidge estimator after training.
+				    Returns fitted `features` metadata from the underlying BayesianRidge estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -2596,21 +2410,24 @@ class BayesianRidge( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2625,7 +2442,8 @@ class BayesianRidge( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BayesianRidge'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -2633,10 +2451,12 @@ class BayesianRidge( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying BayesianRidge regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying BayesianRidge regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -2670,13 +2490,16 @@ class BayesianRidge( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted BayesianRidge regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted BayesianRidge 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2697,14 +2520,17 @@ class BayesianRidge( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted BayesianRidge regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted BayesianRidge regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2716,15 +2542,10 @@ class BayesianRidge( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			
 			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -2738,14 +2559,17 @@ class BayesianRidge( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted BayesianRidge model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted BayesianRidge model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -2762,29 +2586,14 @@ class BayesianRidge( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			df_metrics = pd.DataFrame( {
-					'Metric': [
-							'Training Score',
-							'Testing Score',
-							'R-Squared',
-							'MAE',
-							'MSE',
-							'RMSE',
-							'EVS',
-							'Median AE',
-							'MAX'
-					],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score,
-							self.mean_absolute_error,
-							self.mean_squared_error,
-							self.root_mean_squared_error,
-							self.explained_variance_score,
-							self.median_absolute_error,
-							self.max_error
-					]
-			} )
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -2798,10 +2607,12 @@ class BayesianRidge( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted BayesianRidge regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted BayesianRidge regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -2815,8 +2626,7 @@ class BayesianRidge( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -2839,7 +2649,8 @@ class GradientDescent( Regression ):
 	"""GradientDescent regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.linear_model.SGDRegressor for stochastic-gradient regression with configurable loss, penalty, learning-rate, convergence, and early-stopping behavior.
+		    Wraps sklearn.linear_model.SGDRegressor for stochastic-gradient regression with 
+		    configurable loss, penalty, learning-rate, convergence, and early-stopping behavior.
 
 		Attributes:
 		    random_state: Random seed or random-state configuration used by the estimator.
@@ -2868,7 +2679,8 @@ class GradientDescent( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -2912,17 +2724,18 @@ class GradientDescent( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'squared_error', iters: int = 1000, penalty: str = 'l2',
-			alpha: float = 0.0001, rando: Optional[ int ] = 42,
-			learning_rate: str = 'invscaling', l1_ratio: float = 0.15,
-			fit: bool = True, tol: float = 1e-3, shuffle: bool = True, verbose: int = 0,
-			epsilon: float = 0.1, eta0: float = 0.01, power_t: float = 0.25,
-			early_stopping: bool = False, validation_fraction: float = 0.1,
-			n_iter_no_change: int = 5, warm: bool = False, average: bool = False ) -> None:
+	def __init__( self, loss: str = 'squared_error', iters: int=1000, penalty: str = 'l2',
+		alpha: float=0.0001, rando: Optional[ int ] = 42, learning_rate: str = 'invscaling',
+		l1_ratio: float=0.15, fit: bool=True, tol: float=1e-3, shuffle: bool=True,
+		verbose: int=0, epsilon: float=0.1, eta0: float=0.01, power_t: float=0.25,
+		early_stopping: bool=False, validation_fraction: float=0.1, n_iter_no_change: int=5,
+		warm: bool=False, average: bool=False ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the GradientDescent wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the GradientDescent wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    loss: Loss function used by the estimator.
@@ -2940,8 +2753,10 @@ class GradientDescent( Regression ):
 				    eta0: Initial learning-rate value.
 				    power_t: Exponent used by inverse-scaling learning-rate schedules.
 				    early_stopping: Flag enabling validation-based early stopping.
-				    validation_fraction: Training-data fraction reserved for early-stopping validation.
-				    n_iter_no_change: Number of iterations with no improvement before early stopping.
+				    validation_fraction: Training-data fraction reserved for early-stopping 
+				    validation.
+				    n_iter_no_change: Number of iterations with no improvement before early 
+				    stopping.
 				    warm: Flag indicating whether previous estimator state is reused across fits.
 				    average: Flag enabling averaged stochastic-gradient coefficients.
 		"""
@@ -2968,8 +2783,8 @@ class GradientDescent( Regression ):
 		self.model = skl.SGDRegressor( loss=self.loss, penalty=self.penalty, alpha=self.alpha,
 			l1_ratio=self.l1_ratio, fit_intercept=self.fit_intercept, max_iter=self.max_iter,
 			tol=self.tol, shuffle=self.shuffle, verbose=self.verbose, epsilon=self.epsilon,
-			random_state=self.random_state, learning_rate=self.learning_rate,
-			eta0=self.eta0, power_t=self.power_t, early_stopping=self.early_stopping,
+			random_state=self.random_state, learning_rate=self.learning_rate, eta0=self.eta0,
+			power_t=self.power_t, early_stopping=self.early_stopping,
 			validation_fraction=self.validation_fraction, n_iter_no_change=self.n_iter_no_change,
 			warm_start=self.warm_start, average=self.average )
 		self.prediction = None
@@ -2991,59 +2806,29 @@ class GradientDescent( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the GradientDescent wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the GradientDescent wrapper 
+				    for interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'penalty',
-				'max_iter',
-				'random_state',
-				'loss',
-				'learning_rate',
-				'l1_ratio',
-				'alpha',
-				'fit_intercept',
-				'tol',
-				'shuffle',
-				'verbose',
-				'epsilon',
-				'eta0',
-				'power_t',
-				'early_stopping',
-				'validation_fraction',
-				'n_iter_no_change',
-				'warm_start',
-				'average',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'weights',
-				'intercept',
-				'features',
-				'iterations',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'penalty', 'max_iter', 'random_state', 'loss',
+			'learning_rate', 'l1_ratio', 'alpha', 'fit_intercept', 'tol', 'shuffle', 'verbose',
+			'epsilon', 'eta0', 'power_t', 'early_stopping', 'validation_fraction',
+			'n_iter_no_change', 'warm_start', 'average', 'mean_absolute_error',
+			'mean_squared_error', 'root_mean_squared_error', 'r2_score', 
+			'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'weights', 'intercept', 'features', 'iterations', 'training_score',
+			'testing_score' ]
 	
 	@property
 	def weights( self ) -> np.ndarray | None:
 		"""Weights.
 
 				Purpose:
-				    Returns fitted `weights` metadata from the underlying GradientDescent estimator after training.
+				    Returns fitted `weights` metadata from the underlying GradientDescent 
+				    estimator after training.
 
 				Returns:
 				    np.ndarray | None: Fitted `weights` metadata from the underlying estimator.
@@ -3060,10 +2845,12 @@ class GradientDescent( Regression ):
 		"""Intercept.
 
 				Purpose:
-				    Returns fitted `intercept` metadata from the underlying GradientDescent estimator after training.
+				    Returns fitted `intercept` metadata from the underlying GradientDescent 
+				    estimator after training.
 
 				Returns:
-				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying estimator.
+				    np.ndarray | float | None: Fitted `intercept` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -3077,7 +2864,8 @@ class GradientDescent( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying GradientDescent estimator after training.
+				    Returns fitted `features` metadata from the underlying GradientDescent 
+				    estimator after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -3094,7 +2882,8 @@ class GradientDescent( Regression ):
 		"""Iterations.
 
 				Purpose:
-				    Returns fitted `iterations` metadata from the underlying GradientDescent estimator after training.
+				    Returns fitted `iterations` metadata from the underlying GradientDescent 
+				    estimator after training.
 
 				Returns:
 				    int | None: Fitted `iterations` metadata from the underlying estimator.
@@ -3106,21 +2895,24 @@ class GradientDescent( Regression ):
 			raise AttributeError( 'The model has not been initialized!' )
 		return self.model.t_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3135,7 +2927,8 @@ class GradientDescent( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientDescent'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -3143,10 +2936,12 @@ class GradientDescent( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying GradientDescent regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying GradientDescent regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -3180,13 +2975,16 @@ class GradientDescent( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted GradientDescent regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted GradientDescent 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3207,14 +3005,17 @@ class GradientDescent( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted GradientDescent regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted GradientDescent regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3224,14 +3025,11 @@ class GradientDescent( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3245,14 +3043,17 @@ class GradientDescent( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted GradientDescent model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted GradientDescent model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3269,29 +3070,14 @@ class GradientDescent( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			df_metrics = pd.DataFrame( {
-					'Metric': [
-							'Training Score',
-							'Testing Score',
-							'R-Squared',
-							'MAE',
-							'MSE',
-							'RMSE',
-							'EVS',
-							'Median AE',
-							'MAX'
-					],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score,
-							self.mean_absolute_error,
-							self.mean_squared_error,
-							self.root_mean_squared_error,
-							self.explained_variance_score,
-							self.median_absolute_error,
-							self.max_error
-					]
-			} )
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3305,10 +3091,12 @@ class GradientDescent( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted GradientDescent regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted GradientDescent regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -3322,8 +3110,7 @@ class GradientDescent( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -3346,7 +3133,8 @@ class NearestNeighbor( Regression ):
 	"""NearestNeighbor regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.neighbors.KNeighborsRegressor for neighbor-based continuous-value prediction, model scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.neighbors.KNeighborsRegressor for neighbor-based continuous-value 
+		    prediction, model scoring, metric analysis, and diagnostic scatter plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -3357,7 +3145,8 @@ class NearestNeighbor( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    n_neighbors: Estimator configuration or runtime state retained by the wrapper.
 		    weights: Optional estimator or neighbor weights.
@@ -3399,14 +3188,16 @@ class NearestNeighbor( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 5, weight: str = 'uniform', algo: str = 'auto',
-			leaf: int = 30, power: float = 2.0, metric: str = 'minkowski',
-			metric_params: Optional[ Dict[ str, object ] ] = None,
-			jobs: Optional[ int ] = None ) -> None:
+	def __init__( self, num: int=5, weight: str = 'uniform', algo: str = 'auto', leaf: int=30,
+		power: float=2.0, metric: str = 'minkowski',
+		metric_params: Optional[ Dict[ str, object ] ] = None,
+		jobs: Optional[ int ] = None ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the NearestNeighbor wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the NearestNeighbor wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    num: Number of neighbors, estimators, or model-specific components.
@@ -3450,45 +3241,26 @@ class NearestNeighbor( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the NearestNeighbor wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the NearestNeighbor wrapper 
+				    for interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'weights',
-				'algorithm',
-				'n_neighbors',
-				'leaf_size',
-				'power',
-				'metric',
-				'metric_params',
-				'n_jobs',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score',
-				'features'
-		]
+		return [ 'model', 'prediction', 'weights', 'algorithm', 'n_neighbors', 'leaf_size', 
+			'power',
+			'metric', 'metric_params', 'n_jobs', 'mean_absolute_error', 'mean_squared_error',
+			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'training_score', 'testing_score', 'features' ]
 	
 	@property
 	def features( self ) -> int:
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying NearestNeighbor estimator after training.
+				    Returns fitted `features` metadata from the underlying NearestNeighbor 
+				    estimator after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -3500,21 +3272,24 @@ class NearestNeighbor( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3529,7 +3304,8 @@ class NearestNeighbor( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'NearestNeighbor'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -3537,10 +3313,12 @@ class NearestNeighbor( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying NearestNeighbor regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying NearestNeighbor regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -3573,13 +3351,16 @@ class NearestNeighbor( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted NearestNeighbor regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted NearestNeighbor 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3600,14 +3381,17 @@ class NearestNeighbor( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted NearestNeighbor regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted NearestNeighbor regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3617,14 +3401,11 @@ class NearestNeighbor( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3638,14 +3419,17 @@ class NearestNeighbor( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted NearestNeighbor model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted NearestNeighbor model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3662,32 +3446,15 @@ class NearestNeighbor( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -3701,10 +3468,12 @@ class NearestNeighbor( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted NearestNeighbor regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted NearestNeighbor regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -3718,8 +3487,7 @@ class NearestNeighbor( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -3742,7 +3510,8 @@ class DecisionTree( Regression ):
 	"""DecisionTree regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.tree.DecisionTreeRegressor for non-parametric tree-based regression, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.tree.DecisionTreeRegressor for non-parametric tree-based regression, 
+		    prediction, scoring, metric analysis, and diagnostic scatter plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -3753,7 +3522,8 @@ class DecisionTree( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    criterion: Split or impurity criterion used by tree-based estimators.
 		    splitter: Tree splitter strategy.
 		    max_depth: Maximum tree depth.
@@ -3777,12 +3547,14 @@ class DecisionTree( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, criterion: str = 'squared_error', splitter: str = 'best',
-			depth: int = 3, rando: int = 42 ) -> None:
+	def __init__( self, criterion: str = 'squared_error', splitter: str = 'best', depth: int=3,
+		rando: int=42 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the DecisionTree wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the DecisionTree wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    criterion: Tree split or ensemble loss criterion.
@@ -3812,50 +3584,35 @@ class DecisionTree( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the DecisionTree wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the DecisionTree wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'criterion',
-				'splitter',
-				'random_state',
-				'max_depth',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'criterion', 'splitter', 'random_state', 'max_depth',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
+			'score', 'analyze', 'scatter_plot', 'training_score', 'testing_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3869,7 +3626,8 @@ class DecisionTree( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'DecisionTree'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -3877,10 +3635,12 @@ class DecisionTree( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying DecisionTree regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying DecisionTree regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -3906,13 +3666,16 @@ class DecisionTree( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted DecisionTree regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted DecisionTree 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3933,14 +3696,17 @@ class DecisionTree( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted DecisionTree regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted DecisionTree regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3953,11 +3719,9 @@ class DecisionTree( Regression ):
 			self.training_score = self.model.score( X_training, y_training )
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
+			_metrics = { 'Training Score': self.training_score, 'Testing Score': 
+				self.testing_score,
+				'R-Squared Score': self.r2_score, }
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
 			return df_metrics
@@ -3973,14 +3737,17 @@ class DecisionTree( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted DecisionTree model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted DecisionTree model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -3994,13 +3761,9 @@ class DecisionTree( Regression ):
 			self.root_mean_squared_error = root_mean_squared_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
+			_metrics = { 'MAE': self.mean_absolute_error, 'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error, 'EVS': self.explained_variance_score,
+				'MAX': self.max_error, }
 			_data = pd.Series( _metrics )
 			df_metrics = pd.DataFrame( _data )
 			return df_metrics
@@ -4016,10 +3779,12 @@ class DecisionTree( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted DecisionTree regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted DecisionTree regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -4033,8 +3798,7 @@ class DecisionTree( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -4057,7 +3821,8 @@ class ExtraTreesModel( Regression ):
 	"""ExtraTreesModel regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.ExtraTreesRegressor for randomized ensemble tree regression, feature metadata inspection, prediction, scoring, and metric analysis.
+		    Wraps sklearn.ensemble.ExtraTreesRegressor for randomized ensemble tree regression, 
+		    feature metadata inspection, prediction, scoring, and metric analysis.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -4068,17 +3833,20 @@ class ExtraTreesModel( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    n_estimators: Number of ensemble estimators.
 		    criterion: Split or impurity criterion used by tree-based estimators.
 		    max_depth: Maximum tree depth.
 		    min_samples_split: Estimator configuration or runtime state retained by the wrapper.
 		    min_samples_leaf: Estimator configuration or runtime state retained by the wrapper.
-		    min_weight_fraction_leaf: Estimator configuration or runtime state retained by the wrapper.
+		    min_weight_fraction_leaf: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_features: Estimator configuration or runtime state retained by the wrapper.
 		    max_leaf_nodes: Estimator configuration or runtime state retained by the wrapper.
-		    min_impurity_decrease: Estimator configuration or runtime state retained by the wrapper.
+		    min_impurity_decrease: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    bootstrap: Estimator configuration or runtime state retained by the wrapper.
 		    oob_score: Estimator configuration or runtime state retained by the wrapper.
 		    n_jobs: Number of parallel worker jobs used by the estimator.
@@ -4130,18 +3898,19 @@ class ExtraTreesModel( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, criterion: str = 'squared_error',
-			depth: Optional[ int ] = None, split: int | float = 2, leaf: int | float = 1,
-			weight_fraction: float = 0.0, features: int | float | str | None = 1.0,
-			leaf_nodes: Optional[ int ] = None, impurity: float = 0.0,
-			bootstrap: bool = False, oob_score: bool = False, jobs: Optional[ int ] = None,
-			rando: Optional[ int ] = 42, verbose: int = 0, warm: bool = False,
-			ccp_alpha: float = 0.0, samples: Optional[ int | float ] = None,
-			monotonic: Optional[ object ] = None ) -> None:
+	def __init__( self, estimators: int=100, criterion: str = 'squared_error',
+		depth: Optional[ int ] = None, split: int | float = 2, leaf: int | float = 1,
+		weight_fraction: float=0.0, features: int | float | str | None = 1.0,
+		leaf_nodes: Optional[ int ] = None, impurity: float=0.0, bootstrap: bool=False,
+		oob_score: bool=False, jobs: Optional[ int ] = None, rando: Optional[ int ] = 42,
+		verbose: int=0, warm: bool=False, ccp_alpha: float=0.0,
+		samples: Optional[ int | float ] = None, monotonic: Optional[ object ] = None ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the ExtraTreesModel wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the ExtraTreesModel wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    estimators: Number of estimators in an ensemble.
@@ -4183,15 +3952,14 @@ class ExtraTreesModel( Regression ):
 		self.max_samples = samples
 		self.monotonic_cst = monotonic
 		self.model = ske.ExtraTreesRegressor( n_estimators=self.n_estimators,
-			criterion=self.criterion,
-			max_depth=self.max_depth, min_samples_split=self.min_samples_split,
-			min_samples_leaf=self.min_samples_leaf,
-			min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-			max_features=self.max_features, max_leaf_nodes=self.max_leaf_nodes,
-			min_impurity_decrease=self.min_impurity_decrease, bootstrap=self.bootstrap,
-			oob_score=self.oob_score, n_jobs=self.n_jobs, random_state=self.random_state,
-			verbose=self.verbose, warm_start=self.warm_start, ccp_alpha=self.ccp_alpha,
-			max_samples=self.max_samples, monotonic_cst=self.monotonic_cst )
+			criterion=self.criterion, max_depth=self.max_depth,
+			min_samples_split=self.min_samples_split, min_samples_leaf=self.min_samples_leaf,
+			min_weight_fraction_leaf=self.min_weight_fraction_leaf, max_features=self.max_features,
+			max_leaf_nodes=self.max_leaf_nodes, min_impurity_decrease=self.min_impurity_decrease,
+			bootstrap=self.bootstrap, oob_score=self.oob_score, n_jobs=self.n_jobs,
+			random_state=self.random_state, verbose=self.verbose, warm_start=self.warm_start,
+			ccp_alpha=self.ccp_alpha, max_samples=self.max_samples,
+			monotonic_cst=self.monotonic_cst )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -4212,56 +3980,28 @@ class ExtraTreesModel( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the ExtraTreesModel wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the ExtraTreesModel wrapper 
+				    for interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'n_estimators',
-				'criterion',
-				'max_depth',
-				'min_samples_split',
-				'min_samples_leaf',
-				'min_weight_fraction_leaf',
-				'max_features',
-				'max_leaf_nodes',
-				'min_impurity_decrease',
-				'bootstrap',
-				'oob_score',
-				'n_jobs',
-				'random_state',
-				'verbose',
-				'warm_start',
-				'ccp_alpha',
-				'max_samples',
-				'monotonic_cst',
-				'features',
-				'training_score',
-				'testing_score',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'n_estimators', 'criterion', 'max_depth',
+			'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
+			'max_leaf_nodes', 'min_impurity_decrease', 'bootstrap', 'oob_score', 'n_jobs',
+			'random_state', 'verbose', 'warm_start', 'ccp_alpha', 'max_samples', 'monotonic_cst',
+			'features', 'training_score', 'testing_score', 'mean_absolute_error',
+			'mean_squared_error', 'root_mean_squared_error', 'r2_score', 
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'split_data',
+			'train', 'project', 'score', 'analyze', 'scatter_plot' ]
 	
 	@property
 	def features( self ) -> int:
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying ExtraTreesModel estimator after training.
+				    Returns fitted `features` metadata from the underlying ExtraTreesModel 
+				    estimator after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -4273,21 +4013,24 @@ class ExtraTreesModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4302,7 +4045,8 @@ class ExtraTreesModel( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'ExtraTreesModel'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -4310,10 +4054,12 @@ class ExtraTreesModel( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying ExtraTreesModel regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying ExtraTreesModel regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -4347,13 +4093,16 @@ class ExtraTreesModel( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted ExtraTreesModel regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted ExtraTreesModel 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4374,14 +4123,17 @@ class ExtraTreesModel( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted ExtraTreesModel regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted ExtraTreesModel regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4391,14 +4143,11 @@ class ExtraTreesModel( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -4412,14 +4161,17 @@ class ExtraTreesModel( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted ExtraTreesModel model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted ExtraTreesModel model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4436,29 +4188,14 @@ class ExtraTreesModel( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			df_metrics = pd.DataFrame( {
-					'Metric': [
-							'Training Score',
-							'Testing Score',
-							'R-Squared',
-							'MAE',
-							'MSE',
-							'RMSE',
-							'EVS',
-							'Median AE',
-							'MAX'
-					],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score,
-							self.mean_absolute_error,
-							self.mean_squared_error,
-							self.root_mean_squared_error,
-							self.explained_variance_score,
-							self.median_absolute_error,
-							self.max_error
-					]
-			} )
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -4472,10 +4209,12 @@ class ExtraTreesModel( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted ExtraTreesModel regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted ExtraTreesModel regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -4489,8 +4228,7 @@ class ExtraTreesModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -4513,7 +4251,8 @@ class RandomForest( Regression ):
 	"""RandomForest regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.RandomForestRegressor for bagged ensemble tree regression, feature metadata inspection, prediction, scoring, and metric analysis.
+		    Wraps sklearn.ensemble.RandomForestRegressor for bagged ensemble tree regression, 
+		    feature metadata inspection, prediction, scoring, and metric analysis.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -4522,10 +4261,12 @@ class RandomForest( Regression ):
 		    max_depth: Maximum tree depth.
 		    min_samples_split: Estimator configuration or runtime state retained by the wrapper.
 		    min_samples_leaf: Estimator configuration or runtime state retained by the wrapper.
-		    min_weight_fraction_leaf: Estimator configuration or runtime state retained by the wrapper.
+		    min_weight_fraction_leaf: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_features: Estimator configuration or runtime state retained by the wrapper.
 		    max_leaf_nodes: Estimator configuration or runtime state retained by the wrapper.
-		    min_impurity_decrease: Estimator configuration or runtime state retained by the wrapper.
+		    min_impurity_decrease: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    bootstrap: Estimator configuration or runtime state retained by the wrapper.
 		    oob_score: Estimator configuration or runtime state retained by the wrapper.
 		    n_jobs: Number of parallel worker jobs used by the estimator.
@@ -4542,7 +4283,8 @@ class RandomForest( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -4586,18 +4328,19 @@ class RandomForest( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, criterion: str = 'squared_error',
-			depth: Optional[ int ] = None, split: int | float = 2, leaf: int | float = 1,
-			weight_fraction: float = 0.0, features: int | float | str | None = 1.0,
-			leaf_nodes: Optional[ int ] = None, impurity: float = 0.0,
-			bootstrap: bool = True, oob_score: bool = False, jobs: Optional[ int ] = None,
-			rando: Optional[ int ] = 42, verbose: int = 0, warm: bool = False,
-			ccp_alpha: float = 0.0, samples: Optional[ int | float ] = None,
-			monotonic: Optional[ object ] = None ) -> None:
+	def __init__( self, estimators: int=100, criterion: str = 'squared_error',
+		depth: Optional[ int ] = None, split: int | float = 2, leaf: int | float = 1,
+		weight_fraction: float=0.0, features: int | float | str | None = 1.0,
+		leaf_nodes: Optional[ int ] = None, impurity: float=0.0, bootstrap: bool=True,
+		oob_score: bool=False, jobs: Optional[ int ] = None, rando: Optional[ int ] = 42,
+		verbose: int=0, warm: bool=False, ccp_alpha: float=0.0,
+		samples: Optional[ int | float ] = None, monotonic: Optional[ object ] = None ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the RandomForest wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the RandomForest wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    estimators: Number of estimators in an ensemble.
@@ -4667,56 +4410,28 @@ class RandomForest( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the RandomForest wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the RandomForest wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'n_estimators',
-				'criterion',
-				'max_depth',
-				'min_samples_split',
-				'min_samples_leaf',
-				'min_weight_fraction_leaf',
-				'max_features',
-				'max_leaf_nodes',
-				'min_impurity_decrease',
-				'bootstrap',
-				'oob_score',
-				'n_jobs',
-				'random_state',
-				'verbose',
-				'warm_start',
-				'ccp_alpha',
-				'max_samples',
-				'monotonic_cst',
-				'features',
-				'training_score',
-				'testing_score',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'n_estimators', 'criterion', 'max_depth',
+			'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
+			'max_leaf_nodes', 'min_impurity_decrease', 'bootstrap', 'oob_score', 'n_jobs',
+			'random_state', 'verbose', 'warm_start', 'ccp_alpha', 'max_samples', 'monotonic_cst',
+			'features', 'training_score', 'testing_score', 'mean_absolute_error',
+			'mean_squared_error', 'root_mean_squared_error', 'r2_score', 
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'split_data',
+			'train', 'project', 'score', 'analyze', 'scatter_plot' ]
 	
 	@property
 	def features( self ) -> int:
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying RandomForest estimator after training.
+				    Returns fitted `features` metadata from the underlying RandomForest estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -4728,21 +4443,24 @@ class RandomForest( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4757,7 +4475,8 @@ class RandomForest( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'RandomForest'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -4765,10 +4484,12 @@ class RandomForest( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying RandomForest regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying RandomForest regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -4802,13 +4523,16 @@ class RandomForest( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted RandomForest regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted RandomForest 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4829,14 +4553,17 @@ class RandomForest( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted RandomForest regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted RandomForest regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4846,14 +4573,11 @@ class RandomForest( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -4867,14 +4591,17 @@ class RandomForest( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted RandomForest model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted RandomForest model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -4891,29 +4618,14 @@ class RandomForest( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			df_metrics = pd.DataFrame( {
-					'Metric': [
-							'Training Score',
-							'Testing Score',
-							'R-Squared',
-							'MAE',
-							'MSE',
-							'RMSE',
-							'EVS',
-							'Median AE',
-							'MAX'
-					],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score,
-							self.mean_absolute_error,
-							self.mean_squared_error,
-							self.root_mean_squared_error,
-							self.explained_variance_score,
-							self.median_absolute_error,
-							self.max_error
-					]
-			} )
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -4927,10 +4639,12 @@ class RandomForest( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted RandomForest regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted RandomForest regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -4967,7 +4681,8 @@ class GradientBoost( Regression ):
 	"""GradientBoost regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.GradientBoostingRegressor for stage-wise boosted tree regression, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+		    Wraps sklearn.ensemble.GradientBoostingRegressor for stage-wise boosted tree 
+		    regression, prediction, scoring, metric analysis, and diagnostic scatter plotting.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -4978,9 +4693,11 @@ class GradientBoost( Regression ):
 		    criterion: Split or impurity criterion used by tree-based estimators.
 		    min_samples_split: Estimator configuration or runtime state retained by the wrapper.
 		    min_samples_leaf: Estimator configuration or runtime state retained by the wrapper.
-		    min_weight_fraction_leaf: Estimator configuration or runtime state retained by the wrapper.
+		    min_weight_fraction_leaf: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_depth: Maximum tree depth.
-		    min_impurity_decrease: Estimator configuration or runtime state retained by the wrapper.
+		    min_impurity_decrease: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    init: Estimator configuration or runtime state retained by the wrapper.
 		    random_state: Random seed or random-state configuration used by the estimator.
 		    max_features: Estimator configuration or runtime state retained by the wrapper.
@@ -4999,7 +4716,8 @@ class GradientBoost( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -5046,18 +4764,19 @@ class GradientBoost( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'squared_error', rate: float = 0.1,
-			estimators: int = 100, subsample: float = 1.0, criterion: str = 'friedman_mse',
-			split: int | float = 2, leaf: int | float = 1, weight_fraction: float = 0.0,
-			depth: Optional[ int ] = 3, impurity: float = 0.0, init: Optional[ object ] = None,
-			rando: Optional[ int ] = 42, features: int | float | str | None = None,
-			alpha: float = 0.9, verbose: int = 0, leaf_nodes: Optional[ int ] = None,
-			warm: bool = False, validation_fraction: float = 0.1, no_change: Optional[ int ] = None,
-			tol: float = 1e-4, ccp_alpha: float = 0.0 ) -> None:
+	def __init__( self, loss: str = 'squared_error', rate: float=0.1, estimators: int=100,
+		subsample: float=1.0, criterion: str = 'friedman_mse', split: int | float = 2,
+		leaf: int | float = 1, weight_fraction: float=0.0, depth: Optional[ int ] = 3,
+		impurity: float=0.0, init: Optional[ object ] = None, rando: Optional[ int ] = 42,
+		features: int | float | str | None = None, alpha: float=0.9, verbose: int=0,
+		leaf_nodes: Optional[ int ] = None, warm: bool=False, validation_fraction: float=0.1,
+		no_change: Optional[ int ] = None, tol: float=1e-4, ccp_alpha: float=0.0 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the GradientBoost wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the GradientBoost wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    loss: Loss function used by the estimator.
@@ -5077,7 +4796,8 @@ class GradientBoost( Regression ):
 				    verbose: Verbosity flag or level passed to the estimator.
 				    leaf_nodes: Maximum number of leaf nodes.
 				    warm: Flag indicating whether previous estimator state is reused across fits.
-				    validation_fraction: Training-data fraction reserved for early-stopping validation.
+				    validation_fraction: Training-data fraction reserved for early-stopping 
+				    validation.
 				    no_change: Number of iterations with no improvement before stopping.
 				    tol: Numerical tolerance used by estimator optimization or convergence checks.
 				    ccp_alpha: Complexity parameter used for minimal cost-complexity pruning.
@@ -5105,8 +4825,8 @@ class GradientBoost( Regression ):
 		self.tol = tol
 		self.ccp_alpha = ccp_alpha
 		self.model = ske.GradientBoostingRegressor( loss=self.loss,
-			learning_rate=self.learning_rate,
-			n_estimators=self.n_estimators, subsample=self.subsample, criterion=self.criterion,
+			learning_rate=self.learning_rate, n_estimators=self.n_estimators,
+			subsample=self.subsample, criterion=self.criterion,
 			min_samples_split=self.min_samples_split, min_samples_leaf=self.min_samples_leaf,
 			min_weight_fraction_leaf=self.min_weight_fraction_leaf, max_depth=self.max_depth,
 			min_impurity_decrease=self.min_impurity_decrease, init=self.init,
@@ -5134,59 +4854,29 @@ class GradientBoost( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the GradientBoost wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the GradientBoost wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'loss',
-				'learning_rate',
-				'n_estimators',
-				'subsample',
-				'criterion',
-				'min_samples_split',
-				'min_samples_leaf',
-				'min_weight_fraction_leaf',
-				'max_depth',
-				'min_impurity_decrease',
-				'init',
-				'random_state',
-				'max_features',
-				'alpha',
-				'verbose',
-				'max_leaf_nodes',
-				'warm_start',
-				'validation_fraction',
-				'n_iter_no_change',
-				'tol',
-				'ccp_alpha',
-				'features',
-				'training_score',
-				'testing_score',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'loss', 'learning_rate', 'n_estimators', 'subsample',
+			'criterion', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf',
+			'max_depth', 'min_impurity_decrease', 'init', 'random_state', 'max_features', 'alpha',
+			'verbose', 'max_leaf_nodes', 'warm_start', 'validation_fraction', 'n_iter_no_change',
+			'tol', 'ccp_alpha', 'features', 'training_score', 'testing_score',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'split_data', 
+			'train',
+			'project', 'score', 'analyze', 'scatter_plot' ]
 	
 	@property
 	def features( self ) -> int:
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying GradientBoost estimator after training.
+				    Returns fitted `features` metadata from the underlying GradientBoost estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -5198,21 +4888,24 @@ class GradientBoost( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5227,7 +4920,8 @@ class GradientBoost( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GradientBoost'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -5235,10 +4929,12 @@ class GradientBoost( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying GradientBoost regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying GradientBoost regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -5272,13 +4968,16 @@ class GradientBoost( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted GradientBoost regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted GradientBoost 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5299,14 +4998,17 @@ class GradientBoost( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted GradientBoost regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted GradientBoost regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5316,14 +5018,11 @@ class GradientBoost( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5337,14 +5036,17 @@ class GradientBoost( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted GradientBoost model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted GradientBoost model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5361,29 +5063,14 @@ class GradientBoost( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			df_metrics = pd.DataFrame( {
-					'Metric': [
-							'Training Score',
-							'Testing Score',
-							'R-Squared',
-							'MAE',
-							'MSE',
-							'RMSE',
-							'EVS',
-							'Median AE',
-							'MAX'
-					],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score,
-							self.mean_absolute_error,
-							self.mean_squared_error,
-							self.root_mean_squared_error,
-							self.explained_variance_score,
-							self.median_absolute_error,
-							self.max_error
-					]
-			} )
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5397,10 +5084,12 @@ class GradientBoost( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted GradientBoost regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted GradientBoost regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -5414,8 +5103,7 @@ class GradientBoost( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -5438,7 +5126,8 @@ class AdaptiveBoost( Regression ):
 	"""AdaptiveBoost regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.AdaBoostRegressor for adaptive boosted regression using a configurable base estimator and loss function.
+		    Wraps sklearn.ensemble.AdaBoostRegressor for adaptive boosted regression using a 
+		    configurable base estimator and loss function.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -5454,7 +5143,8 @@ class AdaptiveBoost( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -5485,13 +5175,14 @@ class AdaptiveBoost( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimator: Optional[ object ] = None, estimators: int = 50,
-			rate: float = 1.0, loss: str = 'linear',
-			rando: Optional[ int ] = 42 ) -> None:
+	def __init__( self, estimator: Optional[ object ] = None, estimators: int=50,
+		rate: float=1.0, loss: str = 'linear', rando: Optional[ int ] = 42 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the AdaptiveBoost wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the AdaptiveBoost wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    estimator: Base estimator used by an ensemble wrapper.
@@ -5507,8 +5198,8 @@ class AdaptiveBoost( Regression ):
 		self.loss = loss
 		self.random_state = rando
 		self.model = ske.AdaBoostRegressor( estimator=self.estimator,
-			n_estimators=self.n_estimators,
-			learning_rate=self.learning_rate, loss=self.loss, random_state=self.random_state )
+			n_estimators=self.n_estimators, learning_rate=self.learning_rate, loss=self.loss,
+			random_state=self.random_state )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -5529,43 +5220,26 @@ class AdaptiveBoost( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the AdaptiveBoost wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the AdaptiveBoost wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'estimator',
-				'n_estimators',
-				'learning_rate',
-				'loss',
-				'random_state',
-				'base_estimator',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'estimator', 'n_estimators', 'learning_rate', 'loss',
+			'random_state', 'base_estimator', 'features', 'mean_absolute_error',
+			'mean_squared_error', 'root_mean_squared_error', 'r2_score', 
+			'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'training_score', 'testing_score' ]
 	
 	@property
 	def base_estimator( self ) -> object | None:
 		"""Base estimator.
 
 				Purpose:
-				    Returns fitted `base_estimator` metadata from the underlying AdaptiveBoost estimator after training.
+				    Returns fitted `base_estimator` metadata from the underlying AdaptiveBoost 
+				    estimator after training.
 
 				Returns:
 				    object | None: Fitted `base_estimator` metadata from the underlying estimator.
@@ -5582,7 +5256,8 @@ class AdaptiveBoost( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying AdaptiveBoost estimator after training.
+				    Returns fitted `features` metadata from the underlying AdaptiveBoost estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -5594,21 +5269,24 @@ class AdaptiveBoost( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5623,7 +5301,8 @@ class AdaptiveBoost( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'AdaptiveBoost'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -5631,10 +5310,12 @@ class AdaptiveBoost( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying AdaptiveBoost regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying AdaptiveBoost regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -5667,13 +5348,16 @@ class AdaptiveBoost( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted AdaptiveBoost regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted AdaptiveBoost 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5694,14 +5378,17 @@ class AdaptiveBoost( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted AdaptiveBoost regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted AdaptiveBoost regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5711,14 +5398,11 @@ class AdaptiveBoost( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5732,14 +5416,17 @@ class AdaptiveBoost( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted AdaptiveBoost model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted AdaptiveBoost model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -5756,29 +5443,14 @@ class AdaptiveBoost( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			df_metrics = pd.DataFrame( {
-					'Metric': [
-							'Training Score',
-							'Testing Score',
-							'R-Squared',
-							'MAE',
-							'MSE',
-							'RMSE',
-							'EVS',
-							'Median AE',
-							'MAX'
-					],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score,
-							self.mean_absolute_error,
-							self.mean_squared_error,
-							self.root_mean_squared_error,
-							self.explained_variance_score,
-							self.median_absolute_error,
-							self.max_error
-					]
-			} )
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -5792,10 +5464,12 @@ class AdaptiveBoost( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted AdaptiveBoost regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted AdaptiveBoost regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -5832,7 +5506,8 @@ class BaggingModel( Regression ):
 	"""BaggingModel regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.BaggingRegressor for bootstrap-aggregated regression over configurable base estimators, samples, features, and parallel execution.
+		    Wraps sklearn.ensemble.BaggingRegressor for bootstrap-aggregated regression over 
+		    configurable base estimators, samples, features, and parallel execution.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -5843,7 +5518,8 @@ class BaggingModel( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    estimator: Estimator configuration or runtime state retained by the wrapper.
 		    n_estimators: Number of ensemble estimators.
@@ -5891,15 +5567,17 @@ class BaggingModel( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, estimator: Optional[ object ] = None, num: int = 10,
-			samples: Optional[ int | float ] = None, features: int | float = 1.0,
-			bootstrap: bool = True, bootstrap_features: bool = False,
-			oob_score: bool = False, warm: bool = False, jobs: Optional[ int ] = None,
-			rando: Optional[ int ] = None, verbose: int = 0 ) -> None:
+	def __init__( self, estimator: Optional[ object ] = None, num: int=10,
+		samples: Optional[ int | float ] = None, features: int | float = 1.0,
+		bootstrap: bool=True, bootstrap_features: bool=False, oob_score: bool=False,
+		warm: bool=False, jobs: Optional[ int ] = None, rando: Optional[ int ] = None,
+		verbose: int=0 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the BaggingModel wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the BaggingModel wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    estimator: Base estimator used by an ensemble wrapper.
@@ -5907,7 +5585,8 @@ class BaggingModel( Regression ):
 				    samples: Maximum sample setting used by ensemble estimators.
 				    features: Maximum feature-selection setting used by the estimator.
 				    bootstrap: Flag enabling bootstrap sampling.
-				    bootstrap_features: Configuration value passed to the underlying regression estimator.
+				    bootstrap_features: Configuration value passed to the underlying regression 
+				    estimator.
 				    oob_score: Flag enabling out-of-bag scoring.
 				    warm: Flag indicating whether previous estimator state is reused across fits.
 				    jobs: Number of parallel worker jobs used by the estimator.
@@ -5926,7 +5605,8 @@ class BaggingModel( Regression ):
 		self.n_jobs = jobs
 		self.random_state = rando
 		self.verbose = verbose
-		self.model = ske.BaggingRegressor( estimator=self.estimator, n_estimators=self.n_estimators,
+		self.model = ske.BaggingRegressor( estimator=self.estimator, 
+			n_estimators=self.n_estimators,
 			max_samples=self.max_samples, max_features=self.max_features, bootstrap=self.bootstrap,
 			bootstrap_features=self.bootstrap_features, oob_score=self.oob_score,
 			warm_start=self.warm_start, n_jobs=self.n_jobs, random_state=self.random_state,
@@ -5951,50 +5631,26 @@ class BaggingModel( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the BaggingModel wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the BaggingModel wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'estimator',
-				'n_estimators',
-				'max_samples',
-				'max_features',
-				'bootstrap',
-				'bootstrap_features',
-				'oob_score',
-				'warm_start',
-				'n_jobs',
-				'random_state',
-				'verbose',
-				'base_estimator',
-				'features',
-				'training_score',
-				'testing_score',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'estimator', 'n_estimators', 'max_samples', 'max_features',
+			'bootstrap', 'bootstrap_features', 'oob_score', 'warm_start', 'n_jobs', 'random_state',
+			'verbose', 'base_estimator', 'features', 'training_score', 'testing_score',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'split_data', 
+			'train', 'project', 'score', 'analyze', 'scatter_plot' ]
 	
 	@property
 	def base_estimator( self ) -> object | None:
 		"""Base estimator.
 
 				Purpose:
-				    Returns fitted `base_estimator` metadata from the underlying BaggingModel estimator after training.
+				    Returns fitted `base_estimator` metadata from the underlying BaggingModel 
+				    estimator after training.
 
 				Returns:
 				    object | None: Fitted `base_estimator` metadata from the underlying estimator.
@@ -6011,7 +5667,8 @@ class BaggingModel( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying BaggingModel estimator after training.
+				    Returns fitted `features` metadata from the underlying BaggingModel estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -6023,21 +5680,24 @@ class BaggingModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6052,7 +5712,8 @@ class BaggingModel( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'BaggingModel'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -6060,10 +5721,12 @@ class BaggingModel( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying BaggingModel regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying BaggingModel regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -6096,13 +5759,16 @@ class BaggingModel( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted BaggingModel regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted BaggingModel 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6123,14 +5789,17 @@ class BaggingModel( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted BaggingModel regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted BaggingModel regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6140,14 +5809,11 @@ class BaggingModel( Regression ):
 			throw_if( 'y', y )
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
-			df_metrics = pd.DataFrame( {
-					'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-					'Value': [
-							self.training_score if self.training_score is not None else np.nan,
-							self.testing_score if self.testing_score is not None else np.nan,
-							self.r2_score
-					]
-			} )
+			df_metrics = pd.DataFrame(
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6161,14 +5827,17 @@ class BaggingModel( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted BaggingModel model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted BaggingModel model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6185,32 +5854,15 @@ class BaggingModel( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6224,10 +5876,12 @@ class BaggingModel( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted BaggingModel regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted BaggingModel regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -6241,8 +5895,7 @@ class BaggingModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
@@ -6265,7 +5918,8 @@ class VotingModel( Regression ):
 	"""VotingModel regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.VotingRegressor for averaging predictions from multiple named regression estimators with optional weights.
+		    Wraps sklearn.ensemble.VotingRegressor for averaging predictions from multiple named 
+		    regression estimators with optional weights.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -6280,7 +5934,8 @@ class VotingModel( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -6311,12 +5966,14 @@ class VotingModel( Regression ):
 	y_test: Optional[ np.ndarray ]
 	
 	def __init__( self, est: Optional[ List[ tuple[ str, object ] ] ] = None,
-			weights: Optional[ List[ float ] ] = None, jobs: Optional[ int ] = None,
-			verbose: bool = False ) -> None:
+		weights: Optional[ List[ float ] ] = None, jobs: Optional[ int ] = None,
+		verbose: bool=False ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the VotingModel wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the VotingModel wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    est: Named estimator list used by voting or stacking wrappers.
@@ -6326,9 +5983,7 @@ class VotingModel( Regression ):
 		"""
 		super( ).__init__( )
 		self.estimators = est if est is not None else [ ('least_squares', skl.LinearRegression( )),
-		                                                ('ridge', skl.Ridge( )),
-		                                                ('nearest_neighbor',
-		                                                 skn.KNeighborsRegressor( )) ]
+			('ridge', skl.Ridge( )), ('nearest_neighbor', skn.KNeighborsRegressor( )) ]
 		self.weights = weights
 		self.n_jobs = jobs
 		self.verbose = verbose
@@ -6354,43 +6009,26 @@ class VotingModel( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the VotingModel wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the VotingModel wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'estimators',
-				'weights',
-				'n_jobs',
-				'verbose',
-				'features',
-				'named_estimators',
-				'training_score',
-				'testing_score',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'estimators', 'weights', 'n_jobs', 'verbose', 'features',
+			'named_estimators', 'training_score', 'testing_score', 'mean_absolute_error',
+			'mean_squared_error', 'root_mean_squared_error', 'r2_score', 
+			'explained_variance_score',
+			'median_absolute_error', 'max_error', 'split_data', 'train', 'project', 'score',
+			'analyze', 'scatter_plot' ]
 	
 	@property
 	def features( self ) -> int:
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying VotingModel estimator after training.
+				    Returns fitted `features` metadata from the underlying VotingModel estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -6407,10 +6045,12 @@ class VotingModel( Regression ):
 		"""Named estimators.
 
 				Purpose:
-				    Returns fitted `named_estimators` metadata from the underlying VotingModel estimator after training.
+				    Returns fitted `named_estimators` metadata from the underlying VotingModel 
+				    estimator after training.
 
 				Returns:
-				    Dict[str, object] | None: Fitted `named_estimators` metadata from the underlying estimator.
+				    Dict[str, object] | None: Fitted `named_estimators` metadata from the 
+				    underlying estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -6419,21 +6059,24 @@ class VotingModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.named_estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6448,7 +6091,8 @@ class VotingModel( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'VotingModel'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -6456,10 +6100,12 @@ class VotingModel( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying VotingModel regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying VotingModel regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -6493,13 +6139,16 @@ class VotingModel( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted VotingModel regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted VotingModel regression 
+				    estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6520,14 +6169,17 @@ class VotingModel( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted VotingModel regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted VotingModel regression estimator with its primary scoring 
+				    behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6539,15 +6191,10 @@ class VotingModel( Regression ):
 			self.r2_score = r2_score( y, self.prediction )
 			
 			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6561,14 +6208,17 @@ class VotingModel( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted VotingModel model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted VotingModel model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6585,32 +6235,15 @@ class VotingModel( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6624,10 +6257,12 @@ class VotingModel( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted VotingModel regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted VotingModel regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -6641,10 +6276,9 @@ class VotingModel( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
-			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ],
-				'k--', label='Perfect Prediction' )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
 			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
 				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
@@ -6665,7 +6299,8 @@ class StackingModel( Regression ):
 	"""StackingModel regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.ensemble.StackingRegressor for stacked generalization using base regressors, a final estimator, cross-validation, and optional passthrough features.
+		    Wraps sklearn.ensemble.StackingRegressor for stacked generalization using base 
+		    regressors, a final estimator, cross-validation, and optional passthrough features.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -6681,7 +6316,8 @@ class StackingModel( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -6713,25 +6349,26 @@ class StackingModel( Regression ):
 	y_test: Optional[ np.ndarray ]
 	
 	def __init__( self, est: Optional[ List[ tuple[ str, object ] ] ] = None, final: object = None,
-			cv: int = None, jobs: int = None, passthrough: bool = False, verbose: int = 0 ) -> None:
+		cv: int=None, jobs: int=None, passthrough: bool=False, verbose: int=0 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the StackingModel wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the StackingModel wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    est: Named estimator list used by voting or stacking wrappers.
 				    final: Final estimator used by stacked regression.
 				    cv: Cross-validation configuration used by stacked regression.
 				    jobs: Number of parallel worker jobs used by the estimator.
-				    passthrough: Flag indicating whether original features are passed to the final estimator.
+				    passthrough: Flag indicating whether original features are passed to the final 
+				    estimator.
 				    verbose: Verbosity flag or level passed to the estimator.
 		"""
 		super( ).__init__( )
 		self.estimators = est if est is not None else [ ('least_squares', skl.LinearRegression( )),
-		                                                ('ridge', skl.Ridge( )),
-		                                                ('nearest_neighbor',
-		                                                 skn.KNeighborsRegressor( )) ]
+			('ridge', skl.Ridge( )), ('nearest_neighbor', skn.KNeighborsRegressor( )) ]
 		self.final_estimator = final
 		self.cv = cv
 		self.n_jobs = jobs
@@ -6759,49 +6396,30 @@ class StackingModel( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the StackingModel wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the StackingModel wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'estimators',
-				'final_estimator',
-				'cv',
-				'n_jobs',
-				'passthrough',
-				'verbose',
-				'features',
-				'estimator_list',
-				'final',
-				'training_score',
-				'testing_score',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'split_data',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot'
-		]
+		return [ 'model', 'prediction', 'estimators', 'final_estimator', 'cv', 'n_jobs',
+			'passthrough', 'verbose', 'features', 'estimator_list', 'final', 'training_score',
+			'testing_score', 'mean_absolute_error', 'mean_squared_error', 
+			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'max_error', 'split_data', 'train', 'project', 'score',
+			'analyze', 'scatter_plot' ]
 	
 	@property
 	def estimator_list( self ) -> List[ object ] | None:
 		"""Estimator list.
 
 				Purpose:
-				    Returns fitted `estimator_list` metadata from the underlying StackingModel estimator after training.
+				    Returns fitted `estimator_list` metadata from the underlying StackingModel 
+				    estimator after training.
 
 				Returns:
-				    List[object] | None: Fitted `estimator_list` metadata from the underlying estimator.
+				    List[object] | None: Fitted `estimator_list` metadata from the underlying 
+				    estimator.
 
 				Raises:
 				    AttributeError: Raised when fitted estimator metadata is unavailable.
@@ -6815,7 +6433,8 @@ class StackingModel( Regression ):
 		"""Final.
 
 				Purpose:
-				    Returns fitted `final` metadata from the underlying StackingModel estimator after training.
+				    Returns fitted `final` metadata from the underlying StackingModel estimator 
+				    after training.
 
 				Returns:
 				    object | None: Fitted `final` metadata from the underlying estimator.
@@ -6832,7 +6451,8 @@ class StackingModel( Regression ):
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying StackingModel estimator after training.
+				    Returns fitted `features` metadata from the underlying StackingModel estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -6844,21 +6464,24 @@ class StackingModel( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6873,7 +6496,8 @@ class StackingModel( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'StackingModel'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -6881,10 +6505,12 @@ class StackingModel( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying StackingModel regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying StackingModel regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -6898,7 +6524,6 @@ class StackingModel( Regression ):
 			throw_if( 'y', y )
 			self.model.fit( X, y )
 			self.prediction = None
-			
 			if self.X_train is not None and self.y_train is not None:
 				self.training_score = self.model.score( self.X_train, self.y_train )
 			
@@ -6918,13 +6543,16 @@ class StackingModel( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted StackingModel regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted StackingModel 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6945,14 +6573,17 @@ class StackingModel( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted StackingModel regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted StackingModel regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -6963,16 +6594,10 @@ class StackingModel( Regression ):
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( { 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -6986,14 +6611,17 @@ class StackingModel( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted StackingModel model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted StackingModel model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7010,32 +6638,15 @@ class StackingModel( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -7049,10 +6660,12 @@ class StackingModel( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted StackingModel regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted StackingModel regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -7089,7 +6702,8 @@ class SupportVector( Regression ):
 	"""SupportVector regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.svm.SVR for kernel-based support-vector regression with configurable kernel, regularization, tolerance, epsilon, and cache behavior.
+		    Wraps sklearn.svm.SVR for kernel-based support-vector regression with configurable 
+		    kernel, regularization, tolerance, epsilon, and cache behavior.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -7100,7 +6714,8 @@ class SupportVector( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    kernel: Estimator configuration or runtime state retained by the wrapper.
 		    degree: Estimator configuration or runtime state retained by the wrapper.
@@ -7148,14 +6763,15 @@ class SupportVector( Regression ):
 	y_train: Optional[ np.ndarray ]
 	y_test: Optional[ np.ndarray ]
 	
-	def __init__( self, kernel: str = 'rbf', degree: int = 3, gamma: str | float = 'scale',
-			coef0: float = 0.0, tol: float = 1e-3, penalty: float = 1.0,
-			epsilon: float = 0.1, shrinking: bool = True, cache: float = 200.0,
-			verbose: bool = False, iters: int = -1 ) -> None:
+	def __init__( self, kernel: str = 'rbf', degree: int=3, gamma: str | float = 'scale',
+		coef0: float=0.0, tol: float=1e-3, penalty: float=1.0, epsilon: float=0.1,
+		shrinking: bool=True, cache: float=200.0, verbose: bool=False, iters: int=-1 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the SupportVector wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the SupportVector wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    kernel: Kernel configuration used by kernel-based estimators.
@@ -7165,7 +6781,8 @@ class SupportVector( Regression ):
 				    tol: Numerical tolerance used by estimator optimization or convergence checks.
 				    penalty: Regularization parameter used by the estimator.
 				    epsilon: Epsilon-insensitive loss parameter or robustness threshold.
-				    shrinking: Flag enabling the shrinking heuristic for support-vector optimization.
+				    shrinking: Flag enabling the shrinking heuristic for support-vector 
+				    optimization.
 				    cache: Kernel cache size in megabytes.
 				    verbose: Verbosity flag or level passed to the estimator.
 				    iters: Maximum number of optimization iterations.
@@ -7206,48 +6823,25 @@ class SupportVector( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the SupportVector wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the SupportVector wrapper for 
+				    interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'kernel',
-				'degree',
-				'gamma',
-				'coef0',
-				'tol',
-				'penalty',
-				'epsilon',
-				'shrinking',
-				'cache_size',
-				'verbose',
-				'max_iter',
-				'features',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'kernel', 'degree', 'gamma', 'coef0', 'tol', 'penalty',
+			'epsilon', 'shrinking', 'cache_size', 'verbose', 'max_iter', 'features',
+			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
+			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
+			'score', 'analyze', 'scatter_plot', 'training_score', 'testing_score' ]
 	
 	@property
 	def features( self ) -> int:
 		"""Features.
 
 				Purpose:
-				    Returns fitted `features` metadata from the underlying SupportVector estimator after training.
+				    Returns fitted `features` metadata from the underlying SupportVector estimator 
+				    after training.
 
 				Returns:
 				    int: Fitted `features` metadata from the underlying estimator.
@@ -7259,21 +6853,24 @@ class SupportVector( Regression ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7288,7 +6885,8 @@ class SupportVector( Regression ):
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'SupportVector'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -7296,10 +6894,12 @@ class SupportVector( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying SupportVector regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying SupportVector regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -7333,13 +6933,16 @@ class SupportVector( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted SupportVector regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted SupportVector 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7360,14 +6963,17 @@ class SupportVector( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted SupportVector regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted SupportVector regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7378,15 +6984,10 @@ class SupportVector( Regression ):
 			self.prediction = self.project( X )
 			self.r2_score = r2_score( y, self.prediction )
 			df_metrics = pd.DataFrame(
-				{
-						'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score
-						]
-				}
-			)
+				{ 'Metric': [ 'Training Score', 'Testing Score', 'R-Squared Score' ],
+					'Value': [ self.training_score if self.training_score is not None else np.nan,
+						self.testing_score if self.testing_score is not None else np.nan,
+						self.r2_score ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -7400,14 +7001,17 @@ class SupportVector( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted SupportVector model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted SupportVector model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7424,32 +7028,15 @@ class SupportVector( Regression ):
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
 			
-			df_metrics = pd.DataFrame(
-				{
-						'Metric': [
-								'Training Score',
-								'Testing Score',
-								'R-Squared',
-								'MAE',
-								'MSE',
-								'RMSE',
-								'EVS',
-								'Median AE',
-								'MAX'
-						],
-						'Value': [
-								self.training_score if self.training_score is not None else np.nan,
-								self.testing_score if self.testing_score is not None else np.nan,
-								self.r2_score,
-								self.mean_absolute_error,
-								self.mean_squared_error,
-								self.root_mean_squared_error,
-								self.explained_variance_score,
-								self.median_absolute_error,
-								self.max_error
-						]
-				}
-			)
+			df_metrics = pd.DataFrame( {
+				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
+					'EVS', 'Median AE', 'MAX' ],
+				'Value': [ self.training_score if self.training_score is not None else np.nan,
+					self.testing_score if self.testing_score is not None else np.nan, 
+					self.r2_score,
+					self.mean_absolute_error, self.mean_squared_error, 
+					self.root_mean_squared_error,
+					self.explained_variance_score, self.median_absolute_error, self.max_error ] } )
 			return df_metrics
 		except Exception as e:
 			exception = Error( e )
@@ -7463,10 +7050,12 @@ class SupportVector( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted SupportVector regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted SupportVector regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -7503,7 +7092,8 @@ class GaussianProcess( Regression ):
 	"""GaussianProcess regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.gaussian_process.GaussianProcessRegressor for kernel-based probabilistic regression with optimizer, alpha, restart, and normalization configuration.
+		    Wraps sklearn.gaussian_process.GaussianProcessRegressor for kernel-based probabilistic 
+		    regression with optimizer, alpha, restart, and normalization configuration.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -7520,7 +7110,8 @@ class GaussianProcess( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -7544,14 +7135,15 @@ class GaussianProcess( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, kernel: object = None, alpha: float = 1e-10,
-			optimizer: str = 'fmin_l_bfgs_b',
-			restarts: int = 0, normalize: bool = False, copy: bool = True,
-			rando: int = None ) -> None:
+	def __init__( self, kernel: object = None, alpha: float=1e-10,
+		optimizer: str = 'fmin_l_bfgs_b', restarts: int=0, normalize: bool=False,
+		copy: bool=True, rando: int=None ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the GaussianProcess wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the GaussianProcess wrapper with estimator configuration, runtime 
+				    state, cached prediction fields, and regression metric fields required by 
+				    training and evaluation workflows.
 
 				Args:
 				    kernel: Kernel configuration used by kernel-based estimators.
@@ -7588,52 +7180,37 @@ class GaussianProcess( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the GaussianProcess wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the GaussianProcess wrapper 
+				    for interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'kernel',
-				'alpha',
-				'optimizer',
-				'n_restarts_optimizer',
-				'normalize_y',
-				'copy_X_train',
-				'random_state',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'kernel', 'alpha', 'optimizer', 'n_restarts_optimizer',
+			'normalize_y', 'copy_X_train', 'random_state', 'mean_absolute_error',
+			'mean_squared_error', 'root_mean_squared_error', 'r2_score', 
+			'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'training_score', 'testing_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7641,14 +7218,14 @@ class GaussianProcess( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'GaussianProcess'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -7656,10 +7233,12 @@ class GaussianProcess( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying GaussianProcess regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying GaussianProcess regression estimator to feature and target 
+				    arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -7685,13 +7264,16 @@ class GaussianProcess( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted GaussianProcess regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted GaussianProcess 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7712,14 +7294,17 @@ class GaussianProcess( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted GaussianProcess regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted GaussianProcess regression estimator with its primary 
+				    scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7733,8 +7318,9 @@ class GaussianProcess( Regression ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = { 'Training Score': self.training_score, 'Testing Score': self.testing_score,
-			             'R-Squared Score': self.r2_score, }
+			_metrics = { 'Training Score': self.training_score, 'Testing Score': 
+				self.testing_score,
+				'R-Squared Score': self.r2_score, }
 			
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
@@ -7751,14 +7337,17 @@ class GaussianProcess( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted GaussianProcess model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted GaussianProcess model, 
+				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7773,14 +7362,9 @@ class GaussianProcess( Regression ):
 			self.max_error = max_error( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
-			_metrics = \
-				{
-						'MAE': self.mean_absolute_error,
-						'MSE': self.mean_squared_error,
-						'RMSE': self.root_mean_squared_error,
-						'EVS': self.explained_variance_score,
-						'MAX': self.max_error,
-				}
+			_metrics = { 'MAE': self.mean_absolute_error, 'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error, 'EVS': self.explained_variance_score,
+				'MAX': self.max_error, }
 			
 			_data = pd.Series( _metrics )
 			df_metrics = pd.DataFrame( _data )
@@ -7797,10 +7381,12 @@ class GaussianProcess( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted GaussianProcess regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted GaussianProcess regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -7814,12 +7400,11 @@ class GaussianProcess( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' } )
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
 			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
 				label='Perfect Prediction' )
-			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text,
-				fontsize=8, bbox=dict( facecolor='white', alpha=0.7 ) )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -7838,7 +7423,9 @@ class MultiLayerPerceptron( Regression ):
 	"""MultiLayerPerceptron regression wrapper.
 
 		Purpose:
-		    Wraps sklearn.neural_network.MLPRegressor for feed-forward neural-network regression with configurable architecture, activation, solver, regularization, and learning behavior.
+		    Wraps sklearn.neural_network.MLPRegressor for feed-forward neural-network regression 
+		    with configurable architecture, activation, solver, regularization, and learning 
+		    behavior.
 
 		Attributes:
 		    model: Underlying sklearn regression estimator managed by the wrapper.
@@ -7849,7 +7436,8 @@ class MultiLayerPerceptron( Regression ):
 		    root_mean_squared_error: Most recent root mean squared error metric.
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
-		    median_absolute_error: Estimator configuration or runtime state retained by the wrapper.
+		    median_absolute_error: Estimator configuration or runtime state retained by the 
+		    wrapper.
 		    random_state: Random seed or random-state configuration used by the estimator.
 		    alpha: Regularization strength or loss parameter passed to the estimator.
 		    learning: Estimator configuration or runtime state retained by the wrapper.
@@ -7877,12 +7465,14 @@ class MultiLayerPerceptron( Regression ):
 	testing_score: Optional[ float ]
 	training_score: Optional[ float ]
 	
-	def __init__( self, hidden: tuple = (100,), activ: str = 'relu', solver: str = 'adam',
-			alpha: float = 0.0001, learning: str = 'constant', rando: int = 42 ) -> None:
+	def __init__( self, hidden: tuple = (100,), activ: str='relu', solver: str='adam',
+		alpha: float=0.0001, learning: str='constant', rando: int=42 ) -> None:
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the MultiLayerPerceptron wrapper with estimator configuration, runtime state, cached prediction fields, and regression metric fields required by training and evaluation workflows.
+				    Initializes the MultiLayerPerceptron wrapper with estimator configuration, 
+				    runtime state, cached prediction fields, and regression metric fields required 
+				    by training and evaluation workflows.
 
 				Args:
 				    hidden: Hidden-layer architecture for neural-network regression.
@@ -7899,14 +7489,9 @@ class MultiLayerPerceptron( Regression ):
 		self.alpha = alpha
 		self.learning = learning
 		self.random_state = rando
-		self.model = skm.MLPRegressor(
-			hidden_layer_sizes=self.hidden_layers,
-			activation=self.activation_function,
-			solver=self.solver,
-			alpha=self.alpha,
-			learning_rate=self.learning,
-			random_state=self.random_state
-		)
+		self.model = skm.MLPRegressor( hidden_layer_sizes=self.hidden_layers,
+			activation=self.activation_function, solver=self.solver, alpha=self.alpha,
+			learning_rate=self.learning, random_state=self.random_state )
 		self.prediction = None
 		self.transformed_data = None
 		self.mean_absolute_error = 0.0
@@ -7922,51 +7507,36 @@ class MultiLayerPerceptron( Regression ):
 		"""List public members.
 
 				Purpose:
-				    Returns the stable public API surface exposed by the MultiLayerPerceptron wrapper for interactive inspection and documentation generation.
+				    Returns the stable public API surface exposed by the MultiLayerPerceptron 
+				    wrapper for interactive inspection and documentation generation.
 
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [
-				'model',
-				'prediction',
-				'hidden_layers',
-				'activation_function',
-				'solver',
-				'alpha',
-				'learning',
-				'random_state',
-				'mean_absolute_error',
-				'mean_squared_error',
-				'root_mean_squared_error',
-				'r2_score',
-				'explained_variance_score',
-				'median_absolute_error',
-				'max_error',
-				'train',
-				'project',
-				'score',
-				'analyze',
-				'scatter_plot',
-				'training_score',
-				'testing_score'
-		]
+		return [ 'model', 'prediction', 'hidden_layers', 'activation_function', 'solver', 'alpha',
+			'learning', 'random_state', 'mean_absolute_error', 'mean_squared_error',
+			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
+			'median_absolute_error', 'max_error', 'train', 'project', 'score', 'analyze',
+			'scatter_plot', 'training_score', 'testing_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split data.
 
 				Purpose:
-				    Splits aligned feature and target arrays into training and testing partitions using sklearn.model_selection.train_test_split with wrapper defaults.
+				    Splits aligned feature and target arrays into training and testing partitions 
+				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 				    size: Testing-set proportion used by train/test splitting.
 				    random: Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing training features, testing features, training targets, and testing targets.
+				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
+				    training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7974,14 +7544,14 @@ class MultiLayerPerceptron( Regression ):
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
-			X_train, X_test, y_train, y_test = split( X, y, test_size=size,
-				random_state=random )
+			X_train, X_test, y_train, y_test = split( X, y, test_size=size, random_state=random )
 			return (X_train, X_test, y_train, y_test)
 		except Exception as e:
 			exception = Error( e )
 			exception.module = 'mathy'
 			exception.cause = 'MultiLayerPerceptron'
-			exception.method = 'split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]'
+			exception.method = ('split_data( self, *args ) -> tuple[np.ndarray, np.ndarray, '
+			                    'np.ndarray, np.ndarray]')
 			Logger( ).write( exception )
 			raise exception
 	
@@ -7989,10 +7559,12 @@ class MultiLayerPerceptron( Regression ):
 		"""Train.
 
 				Purpose:
-				    Fits the underlying MultiLayerPerceptron regression estimator to feature and target arrays and returns the wrapper for chained modeling workflows.
+				    Fits the underlying MultiLayerPerceptron regression estimator to feature and 
+				    target arrays and returns the wrapper for chained modeling workflows.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
@@ -8018,13 +7590,16 @@ class MultiLayerPerceptron( Regression ):
 		"""Project.
 
 				Purpose:
-				    Generates continuous target predictions from the fitted MultiLayerPerceptron regression estimator and caches the prediction array on the wrapper.
+				    Generates continuous target predictions from the fitted MultiLayerPerceptron 
+				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 
 				Returns:
-				    np.ndarray | None: Predicted continuous target values generated by the fitted estimator.
+				    np.ndarray | None: Predicted continuous target values generated by the fitted 
+				    estimator.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -8045,14 +7620,17 @@ class MultiLayerPerceptron( Regression ):
 		"""Score.
 
 				Purpose:
-				    Evaluates the fitted MultiLayerPerceptron regression estimator with its primary scoring behavior and returns the score in the wrapper reporting format.
+				    Evaluates the fitted MultiLayerPerceptron regression estimator with its 
+				    primary scoring behavior and returns the score in the wrapper reporting format.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing the primary model score and evaluation fields.
+				    pd.DataFrame | None: Dataframe containing the primary model score and 
+				    evaluation fields.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -8066,11 +7644,9 @@ class MultiLayerPerceptron( Regression ):
 			self.testing_score = self.model.score( X_testing, y_testing )
 			self.r2_score = r2_score( y, self.prediction )
 			
-			_metrics = {
-					'Training Score': self.training_score,
-					'Testing Score': self.testing_score,
-					'R-Squared Score': self.r2_score,
-			}
+			_metrics = { 'Training Score': self.training_score, 'Testing Score': 
+				self.testing_score,
+				'R-Squared Score': self.r2_score, }
 			
 			idx = range( len( _metrics.items( ) ) )
 			df_metrics = pd.DataFrame( _metrics, index=idx )
@@ -8087,14 +7663,18 @@ class MultiLayerPerceptron( Regression ):
 		"""Analyze.
 
 				Purpose:
-				    Computes regression evaluation metrics for the fitted MultiLayerPerceptron model, including error, explained-variance, and coefficient-of-determination measures.
+				    Computes regression evaluation metrics for the fitted MultiLayerPerceptron 
+				    model, including error, explained-variance, and coefficient-of-determination 
+				    measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
-				    pd.DataFrame | None: Dataframe containing regression metrics computed from observed and predicted target values.
+				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
+				    observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -8109,13 +7689,9 @@ class MultiLayerPerceptron( Regression ):
 			self.max_error = max_error( y, self.prediction )
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			
-			_metrics = {
-					'MAE': self.mean_absolute_error,
-					'MSE': self.mean_squared_error,
-					'RMSE': self.root_mean_squared_error,
-					'EVS': self.explained_variance_score,
-					'MAX': self.max_error,
-			}
+			_metrics = { 'MAE': self.mean_absolute_error, 'MSE': self.mean_squared_error,
+				'RMSE': self.root_mean_squared_error, 'EVS': self.explained_variance_score,
+				'MAX': self.max_error, }
 			
 			_data = pd.Series( _metrics )
 			df_metrics = pd.DataFrame( _data )
@@ -8132,10 +7708,12 @@ class MultiLayerPerceptron( Regression ):
 		"""Scatter plot.
 
 				Purpose:
-				    Renders a diagnostic scatter plot comparing observed target values against predictions from the fitted MultiLayerPerceptron regression estimator.
+				    Renders a diagnostic scatter plot comparing observed target values against 
+				    predictions from the fitted MultiLayerPerceptron regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric evaluation.
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Raises:
@@ -8149,25 +7727,11 @@ class MultiLayerPerceptron( Regression ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -8181,4 +7745,3 @@ class MultiLayerPerceptron( Regression ):
 			exception.method = 'scatter_plot( self, *args ) -> None'
 			Logger( ).write( exception )
 			raise exception
-			

@@ -48,23 +48,25 @@ from pathlib import Path
 # -------------- APP-LEVEL UTILITIES -------------
 
 def throw_if( name: str, value: object ) -> None:
-	"""Raise a ``ValueError`` when a required value is empty.
-
+	"""Input guard.
+	
 	Purpose:
-		Provides a small, consistent guard for required arguments and configuration values. The
-		function treats falsy values as invalid and raises a ``ValueError`` containing the
-		caller-supplied argument or setting name.
-
+	    Validates that a required argument contains a usable value before the surrounding workflow
+	    continues. This guard centralizes early validation so provider wrappers and UI routines fail
+	    with consistent, readable error messages.
+	
 	Args:
-		name (str): Name of the argument or configuration value being validated.
-		value (object): Value to validate.
-
-	Raises:
-		ValueError: Raised when ``value`` is falsy.
-	"""
-	if not value:
-		raise ValueError( f'Argument "{name}" cannot be empty!' )
-
+	    name (str): Name value used by the operation.
+	    value (object): Value value used by the operation.
+	
+	Returns:
+	    None: This function performs its work through side effects and does not return a value."""
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be None.' )
+	
+	if isinstance( value, str ) and not value.strip( ):
+		raise ValueError( f'Argument "{name}" cannot be empty.' )
+	
 def get_bool( name: str, default: bool = False ) -> bool:
 	"""Read a Boolean environment variable.
 
@@ -200,14 +202,14 @@ CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
 	'Classification Models', 'Regression Models', 'Clustering Models', 'Clustering Models',
 	'Time-Series Models', 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
-	'Data Aggregate', 'SQL Console' ]
+	'Data Aggregation', 'SQL Console' ]
 
 ML_MODE = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
 	'Classification Models', 'Regression Models', 'Clustering Models', 'Clustering Models',
 	'Time-Series Models' ]
 
 DB_MODE = [ 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
-	'Data Aggregate', 'SQL Console' ]
+	'Data Aggregation', 'SQL Console' ]
 
 REPO_URL = r'https://is-leeroy-jenkins.github.io/Mathy/'
 
@@ -223,7 +225,7 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Data Browse': '👁️ Browse Data',
        'CRUD Ops': '➕ CRUD Ops',
        'Data Filter': '🔍 FilterData' ,
-       'Data Aggregate': '🧮 Aggregate Data',
+       'Data Aggregation': '🧮 Aggregate Data',
        'SQL Console': '💻 SQL Console' }
 
 # ------------- DEFINITIONS ---------------------
