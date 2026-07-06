@@ -2850,11 +2850,9 @@ elif mode == 'Descriptive Statistics':
 	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
-		st.divider( )
-		
+		st.divider( )		
 		df_dataset = st.session_state.df_dataset
-		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
-		
+		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )		
 		if df_numeric.empty:
 			st.info( 'No numeric variables available for descriptive analysis.' )
 			st.stop( )
@@ -2907,8 +2905,7 @@ elif mode == 'Descriptive Statistics':
 			df_descriptive[ 'Skew' ] = df_summary_source.skew( ).values
 			df_descriptive[ 'Kurtosis' ] = df_summary_source.kurtosis( ).values
 			df_descriptive[ 'Zeros' ] = (df_summary_source == 0).sum( ).values
-			df_descriptive[ 'Zeros %' ] = ((df_summary_source == 0).mean( ).values * 100.0)
-			
+			df_descriptive[ 'Zeros %' ] = ((df_summary_source == 0).mean( ).values * 100.0)			
 			ordered_cols = [ 'Variable', 'count', 'mean', 'std', 'Variance', 'min' ]
 			if show_percentiles:
 				for pcol in [ '5%', '25%', '50%', '75%', '95%' ]:
@@ -2988,8 +2985,7 @@ elif mode == 'Descriptive Statistics':
 				ax.legend( frameon=False, fontsize=9 )
 				fig.tight_layout( )
 				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
-				
+				plt.close( fig )				
 				m1, m2, m3, m4 = st.columns( 4, border=True )
 				m1.metric( 'Count', f'{len( s ):,}' )
 				m2.metric( 'Mean', f'{mean_val:,.2f}' )
@@ -3003,8 +2999,7 @@ elif mode == 'Descriptive Statistics':
 				ax.set_title( f'Q–Q Plot — {col}', fontsize=10, fontweight='bold' )
 				ax.grid( True, alpha=0.20, linestyle='--' )
 				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				
+				ax.spines[ 'right' ].set_visible( False )				
 				if len( ax.get_lines( ) ) >= 1:
 					ax.get_lines( )[ 0 ].set_marker( 'o' )
 					ax.get_lines( )[ 0 ].set_alpha( 0.72 )
@@ -3039,8 +3034,7 @@ elif mode == 'Descriptive Statistics':
 					q3.metric( 'Shapiro P', 'n/a' )
 		
 		blue_divider( )
-		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
-		
+		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )		
 		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with cor_c1:
 			corr_vars = st.multiselect( 'Variables for Correlation', all_num_cols,
@@ -3095,7 +3089,6 @@ elif mode == 'Descriptive Statistics':
 			X = analysis_fillna_mean( df_numeric[ pca_vars ] )
 			Xs = SKStandardScaler( ).fit_transform( X )
 			pca = PCA( num=n_comp ).train( Xs )
-			
 			df_explained = pd.DataFrame( { 'Component': [ f'PC{i + 1}' for i in range( n_comp ) ],
 				'Explained Variance (%)': pca.explained_variance_ratio * 100 } )
 			
@@ -3119,8 +3112,7 @@ elif mode == 'Descriptive Statistics':
 			with c5:
 				st.info( 'Select at least two numeric variables for PCA.' )
 			with c6:
-				st.caption(
-					'Explained variance chart will appear here once at least two variables are '
+				st.caption( 'Explained variance chart will appear here once at least two variables are '
 					'selected.' )
 
 # ============================================
