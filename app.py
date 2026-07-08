@@ -19708,44 +19708,289 @@ elif mode == 'SQL Console':
 	with center:
 		st.subheader( cfg.MODE[ 'SQL Console' ] )
 		st.divider( )
-		query = st.text_area( 'Enter SQL Query' )
-		if st.button( 'Run Query' ):
+		
+		# ------------------------------------------------------------------
+		# Session State
+		# ------------------------------------------------------------------
+		if 'sql_console_query' not in st.session_state:
+			st.session_state[ 'sql_console_query' ] = ''
+		
+		if 'sql_console_result' not in st.session_state:
+			st.session_state[ 'sql_console_result' ] = pd.DataFrame( )
+		
+		if 'sql_console_elapsed' not in st.session_state:
+			st.session_state[ 'sql_console_elapsed' ] = 0.0
+		
+		if 'sql_console_executed' not in st.session_state:
+			st.session_state[ 'sql_console_executed' ] = False
+		
+		if 'sql_console_table_name' not in st.session_state:
+			st.session_state[ 'sql_console_table_name' ] = ''
+			
+		if 'sql_console_last_saved_table' not in st.session_state:
+			st.session_state[ 'sql_console_last_saved_table' ] = None
+		
+		def reset_sql_console( ) -> None:
+			"""Reset SQL Console query and execution state.
+
+			Purpose:
+			    Clears the active SQL statement, stored query result, elapsed execution time,
+			    execution-status flag, and destination table name so the SQL Console returns to
+			    its initial empty state.
+
+			Returns:
+			    None: This function updates SQL Console values in Streamlit session state.
+			"""
+			st.session_state[ 'sql_console_query' ] = ''
+			st.session_state[ 'sql_console_result' ] = pd.DataFrame( )
+			st.session_state[ 'sql_console_elapsed' ] = 0.0
+			st.session_state[ 'sql_console_executed' ] = False
+			st.session_state[ 'sql_console_table_name' ] = ''
+		
+		# ------------------------------------------------------------------
+		# Query Editor
+		# ------------------------------------------------------------------
+		query = st.text_area( 'Enter SQL Query', key='sql_console_query' )
+		
+		run_c1, run_c2 = st.columns( 2 )
+		with run_c1:
+			run_query = st.button( 'Run Query', icon='▶️', use_container_width=True,
+				key='sql_console_run_query' )
+		
+		with run_c2:
+			st.button( 'Clear Query', icon='🔄', use_container_width=True,
+				key='sql_console_clear_query', on_click=reset_sql_console )
+		
+		# ------------------------------------------------------------------
+		# Query Execution
+		# ------------------------------------------------------------------
+		if run_query:
 			if not is_safe_query( query ):
 				st.error( 'Query blocked: Only read-only SELECT statements are allowed.' )
 			else:
 				try:
 					start_time = time.perf_counter( )
+					
 					with create_connection( ) as conn:
-						result = pd.read_sql_query( query, conn )
+						df_result = pd.read_sql_query( query, conn )
 					
 					end_time = time.perf_counter( )
 					elapsed = end_time - start_time
 					
-					# ----------------------------------------------------------
-					# Display Results
-					# ----------------------------------------------------------
-					st.dataframe( result, use_container_width=True )
-					row_count = len( result )
-					
-					# ----------------------------------------------------------
-					# Execution Metrics
-					# ----------------------------------------------------------
-					col1, col2 = st.columns( 2 )
-					col1.metric( 'Rows Returned', f'{row_count:,}' )
-					col2.metric( 'Execution Time (seconds)', f'{elapsed:.6f}' )
-					
-					# Optional slow query warning
-					if elapsed > 2.0:
-						st.warning( 'Slow query detected (> 2 seconds). Consider indexing.' )
-					
-					# ----------------------------------------------------------
-					# Download
-					# ----------------------------------------------------------
-					if not result.empty:
-						csv = result.to_csv( index=False ).encode( 'utf-8' )
-						st.download_button( 'Download CSV', csv, 'query_results.csv',
-							'text/csv' )
+					st.session_state[ 'sql_console_result' ] = df_result.copy( )
+					st.session_state[ 'sql_console_elapsed' ] = elapsed
+					st.session_state[ 'sql_console_executed' ] = True
+					st.session_state[ 'sql_console_table_name' ] = ''
 				
 				except Exception as e:
-						st.error( f'Execution failed: {e}' )
-
+					st.session_state[ 'sql_console_result' ] = pd.DataFrame( )
+					st.session_state[ 'sql_console_elapsed' ] = 0.0
+					st.session_state[ 'sql_console_executed' ] = False
+					st.session_state[ 'sql_console_table_name' ] = ''
+					st.error( f'Execution failed: {e}' )
+		
+		# ------------------------------------------------------------------
+		# Query Results
+		# ------------------------------------------------------------------
+		if st.session_state[ 'sql_console_executed' ]:
+			df_result = st.session_state[ 'sql_console_result' ].copy( )
+			elapsed = float( st.session_state[ 'sql_console_elapsed' ] )
+			
+			blue_divider( )
+			st.markdown( '##### Results' )
+			st.data_editor( df_result, use_container_width=True, disabled=True,
+				key='sql_console_result_editor' )
+			
+			row_count = len( df_result )
+			column_count = len( df_result.columns )
+			
+			numeric_columns = [ column for column in df_result.columns
+				if pd.api.types.is_numeric_dtype( df_result[ column ] )
+				and not pd.api.types.is_bool_dtype( df_result[ column ] ) ]
+			
+			datetime_columns = [ column for column in df_result.columns
+				if pd.api.types.is_datetime64_any_dtype( df_result[ column ] ) ]
+			
+			text_columns = [ column for column in df_result.columns
+				if column not in numeric_columns and column not in datetime_columns ]
+			
+			# --------------------------------------------------------------
+			# Execution and Schema Metrics
+			# --------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Query Metrics' )
+			
+			col1, col2, col3, col4, col5, col6 = st.columns( 6, border=True )
+			col1.metric( 'Rows Returned', f'{row_count:,}' )
+			col2.metric( 'Columns Returned', f'{column_count:,}' )
+			col3.metric( 'Numeric Columns', f'{len( numeric_columns ):,}' )
+			col4.metric( 'Datetime Columns', f'{len( datetime_columns ):,}' )
+			col5.metric( 'Text / Other', f'{len( text_columns ):,}' )
+			col6.metric( 'Execution Time', f'{elapsed:.6f}' )
+			
+			# --------------------------------------------------------------
+			# Result Schema
+			# --------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Result Schema' )
+			
+			schema_rows: list[ dict[ str, object ] ] = [ ]
+			for column in df_result.columns:
+				series = df_result[ column ]
+				null_count = int( series.isna( ).sum( ) )
+				non_null_count = int( series.notna( ).sum( ) )
+				distinct_count = int( series.nunique( dropna=True ) )
+				
+				schema_rows.append( {
+					'Column': column,
+					'Data Type': str( series.dtype ),
+					'Non-Null': non_null_count,
+					'Null': null_count,
+					'Distinct': distinct_count } )
+			
+			df_schema = pd.DataFrame( schema_rows,
+				columns=[ 'Column', 'Data Type', 'Non-Null', 'Null', 'Distinct' ] )
+			
+			st.data_editor( df_schema, use_container_width=True, hide_index=True, disabled=True,
+				column_config={
+					'Column': st.column_config.TextColumn( 'Column', width='large' ),
+					'Data Type': st.column_config.TextColumn( 'Data Type', width='medium' ),
+					'Non-Null': st.column_config.NumberColumn( 'Non-Null', format='%d' ),
+					'Null': st.column_config.NumberColumn( 'Null', format='%d' ),
+					'Distinct': st.column_config.NumberColumn( 'Distinct', format='%d' ) },
+				key='sql_console_schema_editor' )
+			
+			# --------------------------------------------------------------
+			# Slow Query Warning
+			# --------------------------------------------------------------
+			if elapsed > 2.0:
+				st.warning( 'Slow query detected (> 2 seconds). Consider indexing.' )
+			
+			# --------------------------------------------------------------
+			# Save, Export, and Undo Results
+			# --------------------------------------------------------------
+			blue_divider( )
+			st.markdown( '##### Save / Export Results' )
+			
+			last_saved_table = st.session_state.get(
+				'sql_console_last_saved_table', None )
+			
+			left_container, right_container = st.columns( [ 0.50, 0.50 ] )
+			
+			with left_container:
+				with st.container( border=True, height=87 ):
+					table_name = st.text_input( 'New Table Name',
+						key='sql_console_table_name',
+						help='Creates a new SQLite table from the current query result.' )
+			
+			with right_container:
+				with st.container( border=True, height=87 ):
+					st.write( '' )
+					
+					action_c1, action_c2, action_c3 = st.columns(
+						[ 0.34, 0.33, 0.33 ], border=False )
+					
+					with action_c1:
+						save_table = st.button( 'Save as New Table', icon='💾',
+							use_container_width=True, key='sql_console_save_table' )
+					
+					with action_c2:
+						csv = df_result.to_csv( index=False ).encode( 'utf-8' )
+						
+						st.download_button( 'Download CSV', csv, 'query_results.csv',
+							'text/csv', icon='📥', use_container_width=True,
+							key='sql_console_download', disabled=df_result.empty )
+					
+					with action_c3:
+						undo_save = st.button( 'Undo Last Save', icon='↩️',
+							use_container_width=True, key='sql_console_undo_save',
+							disabled=last_saved_table is None,
+							help=(
+								f'Deletes the last table saved by SQL Console: '
+								f'{last_saved_table}'
+								if last_saved_table else
+								'No table has been saved during this session.' ) )
+			
+			# --------------------------------------------------------------
+			# Save Result to Database
+			# --------------------------------------------------------------
+			if save_table:
+				if not table_name or not table_name.strip( ):
+					st.error( 'Enter a table name.' )
+				
+				elif len( df_result.columns ) == 0:
+					st.error( 'The query result does not contain any columns to save.' )
+				
+				elif df_result.columns.duplicated( ).any( ):
+					duplicate_columns = df_result.columns[
+						df_result.columns.duplicated( ) ].tolist( )
+					
+					st.error(
+						f'The query result contains duplicate column names: {duplicate_columns}. '
+						f'Use SQL aliases to make each result column unique.' )
+				
+				else:
+					try:
+						safe_table_name = create_identifier( table_name )
+						existing_tables = {
+							existing_table.lower( ): existing_table
+							for existing_table in list_tables( ) }
+						
+						if safe_table_name.lower( ) in existing_tables:
+							st.error(
+								f'Table "{existing_tables[ safe_table_name.lower( ) ]}" already '
+								f'exists. Enter a different table name.' )
+						else:
+							with create_connection( ) as conn:
+								df_result.to_sql( safe_table_name, conn, if_exists='fail',
+									index=False )
+							
+							st.session_state[
+								'sql_console_last_saved_table' ] = safe_table_name
+							
+							st.success(
+								f'Query results saved as table "{safe_table_name}" with '
+								f'{row_count:,} row(s) and {column_count:,} column(s).' )
+							
+							if safe_table_name != table_name.strip( ):
+								st.info(
+									f'The table name was normalized to "{safe_table_name}".' )
+							
+							st.rerun( )
+					
+					except Exception as e:
+						st.error( f'Unable to save query results: {e}' )
+			
+			# --------------------------------------------------------------
+			# Undo Last Table Save
+			# --------------------------------------------------------------
+			if undo_save:
+				try:
+					existing_tables = {
+						existing_table.lower( ): existing_table
+						for existing_table in list_tables( ) }
+					
+					tracked_table = existing_tables.get(
+						last_saved_table.lower( ), None )
+					
+					if tracked_table is None:
+						st.session_state[
+							'sql_console_last_saved_table' ] = None
+						
+						st.warning(
+							f'Table "{last_saved_table}" no longer exists in the database.' )
+					
+					else:
+						drop_table( tracked_table )
+						
+						st.session_state[
+							'sql_console_last_saved_table' ] = None
+						
+						st.success(
+							f'Table "{tracked_table}" was deleted. '
+							f'The query and displayed results were preserved.' )
+					
+					st.rerun( )
+				
+				except Exception as e:
+					st.error( f'Unable to undo the last table save: {e}' )
