@@ -106,6 +106,11 @@ The current `app.py` exposes the following Streamlit data modes.
 
 ## 🏛 Architecture
 
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-architecture.png)
+
+___
+
+
 ```text
 Data Source
     │
