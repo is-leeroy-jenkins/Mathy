@@ -369,7 +369,7 @@ The following examples assume that the Mathy modules are available from the proj
 
 ## 📊 Profile and Partition a Dataset
 
-The `DataSource` class examines a pandas dataframe, identifies numeric and categorical columns, calculates descriptive statistics, and creates reproducible training and testing partitions.
+- The `DataSource` class examines a pandas dataframe, identifies numeric and categorical columns, calculates descriptive statistics, and creates reproducible training and testing partitions.
 
 ```python
 from sklearn.datasets import load_iris
@@ -394,7 +394,7 @@ print( source.numeric_metrics )
 print( source.covariance )
 ```
 
-The prepared partitions are available directly from the object:
+- The prepared partitions are available directly from the object:
 
 ```python
 X_train = source.X_training
@@ -406,7 +406,7 @@ print( X_train.shape )
 print( X_test.shape )
 ```
 
-`DataSource` also exposes distribution and relationship visualizations:
+- `DataSource` also exposes distribution and relationship visualizations:
 
 ```python
 source.create_histogram( )
@@ -415,7 +415,7 @@ source.create_heatmap( numeric=True )
 
 ## 🧹 Impute, Encode, and Scale Features
 
-Mathy preprocessing classes share a `train`, `transform`, and `train_transform` interface. The following example prepares numeric and categorical data for a downstream model.
+- Mathy preprocessing classes share a `train`, `transform`, and `train_transform` interface. The following example prepares numeric and categorical data for a downstream model.
 
 ```python
 import numpy as np
@@ -461,7 +461,7 @@ print( f'Prepared shape: {X_prepared.shape}' )
 print( f'Categories: {encoder.categories}' )
 ```
 
-For production modeling, fit the preprocessing classes to the training partition and use `transform` for validation, testing, and future data:
+- For production modeling, fit the preprocessing classes to the training partition and use `transform` for validation, testing, and future data:
 
 ```python
 imputer = SimpleImputer( strategy='median' )
@@ -477,11 +477,11 @@ X_train_scaled = scaler.transform( X_train_imputed )
 X_test_scaled = scaler.transform( X_test_imputed )
 ```
 
-This prevents information from the testing partition from influencing preprocessing statistics.
+- This prevents information from the testing partition from influencing preprocessing statistics.
 
 ## 🔍 Reduce Features with Principal Component Analysis
 
-The `PCA` class reduces a numeric feature matrix to a smaller set of principal components while reporting how much variance is retained.
+- The `PCA` class reduces a numeric feature matrix to a smaller set of principal components while reporting how much variance is retained.
 
 ```python
 from sklearn.datasets import load_wine
@@ -506,7 +506,7 @@ print( selector.explained_variance_ratio )
 print( df_pca_metrics.to_string( index=False ) )
 ```
 
-The fitted selector can project additional observations into the same component space:
+- The fitted selector can project additional observations into the same component space:
 
 ```python
 X_new = X_scaled[ :5 ]
@@ -517,7 +517,7 @@ print( X_new_components )
 
 ## 🎯 Train and Evaluate a Classification Model
 
-The classification wrappers provide reproducible splitting, training, prediction, scoring, and analysis. This example uses multinomial logistic regression to classify the Iris dataset.
+- The classification wrappers provide reproducible splitting, training, prediction, scoring, and analysis. This example uses multinomial logistic regression to classify the Iris dataset.
 
 ```python
 from sklearn.datasets import load_iris
@@ -561,11 +561,11 @@ print( df_classification_metrics.to_string( index=False ) )
 print( classifier.confusion_matrix_values )
 ```
 
-The returned metrics include training score, testing score, misclassifications, precision, accuracy, recall, balanced accuracy, and weighted F-score.
+- The returned metrics include training score, testing score, misclassifications, precision, accuracy, recall, balanced accuracy, and weighted F-score.
 
 ## 📈 Analyze a Regression Model
 
-The regression classes use the same split, train, project, score, and analyze pattern. The following example uses a random-forest regressor to model the scikit-learn diabetes dataset.
+- The regression classes use the same split, train, project, score, and analyze pattern. The following example uses a random-forest regressor to model the scikit-learn diabetes dataset.
 
 ```python
 from sklearn.datasets import load_diabetes
@@ -613,7 +613,7 @@ The analysis includes:
 
 ## 🧩 Discover Natural Groups with K-Means
 
-The `KMeans` class can identify groups in unlabeled numeric data. If reference labels are available, Mathy can also calculate external clustering metrics.
+- The `KMeans` class can identify groups in unlabeled numeric data. If reference labels are available, Mathy can also calculate external clustering metrics.
 
 ```python
 from sklearn.datasets import make_blobs
@@ -662,7 +662,7 @@ print( df_intrinsic_scores.to_string( index=False ) )
 
 ## 🚨 Detecting Anomalies
 
-The `IsolationForest` class identifies unusual records without requiring a labeled target. Predictions use `1` for an inlier and `-1` for an outlier.
+- The `IsolationForest` class identifies unusual records without requiring a labeled target. Predictions use `1` for an inlier and `-1` for an outlier.
 
 ```python
 import numpy as np
@@ -706,11 +706,11 @@ print( df_anomaly_scores.iloc[ outlier_rows ] )
 print( df_anomaly_summary.to_string( index=False ) )
 ```
 
-The row-level score output contains the predicted class, anomaly score, inlier flag, and outlier flag. The analysis method returns aggregate counts and displays an inlier-versus-outlier chart.
+- The row-level score output contains the predicted class, anomaly score, inlier flag, and outlier flag. The analysis method returns aggregate counts and displays an inlier-versus-outlier chart.
 
 ## ⏳ Forecast a Time Series
 
-`LagBoostingSeries` converts an ordered series into lagged predictors and fits a histogram gradient-boosting regressor. Forecasts are produced recursively by feeding each predicted value into the next lag window.
+- `LagBoostingSeries` converts an ordered series into lagged predictors and fits a histogram gradient-boosting regressor. Forecasts are produced recursively by feeding each predicted value into the next lag window.
 
 ```python
 import numpy as np
@@ -746,11 +746,11 @@ print( f'Training R-squared: {training_score:.4f}' )
 print( forecast_metrics )
 ```
 
-The forecast analysis reports mean absolute error, mean squared error, root mean squared error, R-squared, explained variance, median absolute error, and maximum error.
+- The forecast analysis reports mean absolute error, mean squared error, root mean squared error, R-squared, explained variance, median absolute error, and maximum error.
 
 ## 🔄 Common Mathy Workflow
 
-Across classification, regression, clustering, outlier detection, and forecasting, Mathy uses a predictable analytical pattern:
+- Across classification, regression, clustering, outlier detection, and forecasting, Mathy uses a predictable analytical pattern:
 
 ```python
 model = ModelClass( )
@@ -761,7 +761,7 @@ scores = model.score( testing_data, testing_targets )
 analysis = model.analyze( testing_data, testing_targets )
 ```
 
-The exact arguments differ for unsupervised and time-series models:
+- The exact arguments differ for unsupervised and time-series models:
 
 ```python
 clusterer.train( feature_data )
@@ -773,7 +773,7 @@ future_values = forecaster.project( n_steps=12 )
 forecast_metrics = forecaster.analyze( )
 ```
 
-This shared interface makes it straightforward to exchange estimators while preserving the surrounding data-preparation and evaluation workflow.
+- This shared interface makes it straightforward to exchange estimators while preserving the surrounding data-preparation and evaluation workflow.
 
 ## 🔧 Configuration
 
