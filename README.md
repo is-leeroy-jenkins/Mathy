@@ -356,6 +356,35 @@ model = LogisticRegression().train(X_scaled, y_enc)
 print("Accuracy:", model.score(X_scaled, y_enc))
 ```
 
+## 🔧 Configuration
+
+| Configuration Item  | Purpose                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `cfg.FAVICON`       | Streamlit page icon.                                                                              |
+| `cfg.LOGO`          | Application logo used by `st.logo`.                                                               |
+| `cfg.REPO_URL`      | Repository link for the Streamlit logo.                                                           |
+| `cfg.DEFAULT_DATA`  | Default Excel dataset loaded from the sidebar.                                                    |
+| `cfg.DB_PATH`       | SQLite database path used by Data Management and persistence helpers.                             |
+| `cfg.MODE`          | Mode-label mapping rendered by the sidebar radio selector and page headers.                       |
+| `cfg.BLUE_DIVIDER`  | Shared divider styling.                                                                           |
+| Help-text constants | Mode, scaler, imputer, encoder, transformer, statistics, anomaly, and model-control descriptions. |
+| Plot constants      | Color palettes and markers used for styled charts.                                                |
+
+## 🔒 Workflow Notes
+
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-workflows.png)
+
+| Topic                    | Note                                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Working data             | User-selected modeling data is stored in `df_working`.                                                          |
+| Processed data           | Feature-engineering operations write to `df_processed`; subsequent operations continue from `df_processed`.     |
+| Original data            | `df_original` and `raw_df` preserve the loaded source dataset.                                                  |
+| Mode reset               | Classification and Regression mode state is reset when switching into those modes to prevent stale model state. |
+| SQL safety               | The SQL console blocks mutating SQL statements and multiple-statement execution.                                |
+| Optional XGBoost         | XGBoost is used only when import succeeds.                                                                      |
+| Streamlit display safety | The app includes dataframe display fallbacks for serialization-sensitive values.                                |
+
+
 ## 📦 Requirements
 
 The table below reflects the active imports and runtime features used by the current `app.py`. Use
@@ -390,33 +419,6 @@ The table below reflects the active imports and runtime features used by the cur
 | Local regressions     | `regressions.py`                           | Regression model wrappers.                                                                                               | Regression Models.                                              |
 | Local forecasting     | `forecasting.py`                           | LaggingSeries, LagBoostingSeries, ARIMA, SARIMA, TimeSeriesSpliter.                                                      | Time-Series Models.                                             |
 
-## 🔧 Configuration
-
-| Configuration Item  | Purpose                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------- |
-| `cfg.FAVICON`       | Streamlit page icon.                                                                              |
-| `cfg.LOGO`          | Application logo used by `st.logo`.                                                               |
-| `cfg.REPO_URL`      | Repository link for the Streamlit logo.                                                           |
-| `cfg.DEFAULT_DATA`  | Default Excel dataset loaded from the sidebar.                                                    |
-| `cfg.DB_PATH`       | SQLite database path used by Data Management and persistence helpers.                             |
-| `cfg.MODE`          | Mode-label mapping rendered by the sidebar radio selector and page headers.                       |
-| `cfg.BLUE_DIVIDER`  | Shared divider styling.                                                                           |
-| Help-text constants | Mode, scaler, imputer, encoder, transformer, statistics, anomaly, and model-control descriptions. |
-| Plot constants      | Color palettes and markers used for styled charts.                                                |
-
-## 🔒 Workflow Notes
-
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-workflows.png)
-
-| Topic                    | Note                                                                                                            |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Working data             | User-selected modeling data is stored in `df_working`.                                                          |
-| Processed data           | Feature-engineering operations write to `df_processed`; subsequent operations continue from `df_processed`.     |
-| Original data            | `df_original` and `raw_df` preserve the loaded source dataset.                                                  |
-| Mode reset               | Classification and Regression mode state is reset when switching into those modes to prevent stale model state. |
-| SQL safety               | The SQL console blocks mutating SQL statements and multiple-statement execution.                                |
-| Optional XGBoost         | XGBoost is used only when import succeeds.                                                                      |
-| Streamlit display safety | The app includes dataframe display fallbacks for serialization-sensitive values.                                |
 
 ## 📄 License
 
