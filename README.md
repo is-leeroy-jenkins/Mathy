@@ -355,6 +355,425 @@ X_scaled = StandardScaler().train_transform(X)
 model = LogisticRegression().train(X_scaled, y_enc)
 print("Accuracy:", model.score(X_scaled, y_enc))
 ```
+## 🧮 Data Analysis Examples
+
+Mathy provides a consistent class-based interface for preparing data, transforming features, training models, generating predictions, and evaluating analytical results. Most modeling classes follow the same general workflow:
+
+1. Create the model.
+2. Split the data when appropriate.
+3. Train the model.
+4. Project or predict results.
+5. Score and analyze the model.
+
+The following examples assume that the Mathy modules are available from the project directory.
+
+### 📊 Profile and Partition a Dataset
+
+The `DataSource` class examines a pandas dataframe, identifies numeric and categorical columns, calculates descriptive statistics, and creates reproducible training and testing partitions.
+
+```python
+from sklearn.datasets import load_iris
+from data import DataSource
+
+
+iris = load_iris( as_frame=True )
+df_iris = iris.frame.rename( columns={ 'target': 'species' } )
+
+source = DataSource(
+	df=df_iris,
+	target='species',
+	size=0.20,
+	rando=42
+)
+
+print( f'Samples: {source.n_samples}' )
+print( f'Features: {source.n_features}' )
+print( f'Feature names: {source.feature_names}' )
+print( f'Target values: {source.target_names}' )
+print( source.numeric_metrics )
+print( source.covariance )
+```
+
+The prepared partitions are available directly from the object:
+
+```python
+X_train = source.X_training
+X_test = source.X_testing
+y_train = source.y_training
+y_test = source.y_testing
+
+print( X_train.shape )
+print( X_test.shape )
+```
+
+`DataSource` also exposes distribution and relationship visualizations:
+
+```python
+source.create_histogram( )
+source.create_heatmap( numeric=True )
+```
+
+### 🧹 Impute, Encode, and Scale Features
+
+Mathy preprocessing classes share a `train`, `transform`, and `train_transform` interface. The following example prepares numeric and categorical data for a downstream model.
+
+```python
+import numpy as np
+from encoders import OneHotEncoder
+from imputers import SimpleImputer
+from scalers import StandardScaler
+
+
+numeric_data = np.array(
+	[
+		[ 42.0, 72000.0 ],
+		[ 35.0, np.nan ],
+		[ np.nan, 81000.0 ],
+		[ 51.0, 94000.0 ],
+		[ 29.0, 61000.0 ]
+	],
+	dtype=float
+)
+
+categorical_data = np.array(
+	[
+		[ 'East' ],
+		[ 'West' ],
+		[ 'East' ],
+		[ 'South' ],
+		[ 'West' ]
+	]
+)
+
+imputer = SimpleImputer( strategy='median' )
+imputed_data = imputer.train_transform( numeric_data )
+
+scaler = StandardScaler( )
+scaled_data = scaler.train_transform( imputed_data )
+
+encoder = OneHotEncoder( sparse=False, unknown='ignore' )
+encoded_data = encoder.train_transform( categorical_data )
+
+X_prepared = np.hstack( (scaled_data, encoded_data) )
+
+print( X_prepared )
+print( f'Prepared shape: {X_prepared.shape}' )
+print( f'Categories: {encoder.categories}' )
+```
+
+For production modeling, fit the preprocessing classes to the training partition and use `transform` for validation, testing, and future data:
+
+```python
+imputer = SimpleImputer( strategy='median' )
+imputer.train( X_train )
+
+X_train_imputed = imputer.transform( X_train )
+X_test_imputed = imputer.transform( X_test )
+
+scaler = StandardScaler( )
+scaler.train( X_train_imputed )
+
+X_train_scaled = scaler.transform( X_train_imputed )
+X_test_scaled = scaler.transform( X_test_imputed )
+```
+
+This prevents information from the testing partition from influencing preprocessing statistics.
+
+### 🔍 Reduce Features with Principal Component Analysis
+
+The `PCA` class reduces a numeric feature matrix to a smaller set of principal components while reporting how much variance is retained.
+
+```python
+from sklearn.datasets import load_wine
+from features import PCA
+from scalers import StandardScaler
+
+
+wine = load_wine( )
+X = wine.data
+y = wine.target
+
+scaler = StandardScaler( )
+X_scaled = scaler.train_transform( X )
+
+selector = PCA( num=3, solver='auto' )
+X_components = selector.train_transform( X_scaled )
+df_pca_metrics = selector.score( X_scaled )
+
+print( f'Original shape: {X.shape}' )
+print( f'Reduced shape: {X_components.shape}' )
+print( selector.explained_variance_ratio )
+print( df_pca_metrics.to_string( index=False ) )
+```
+
+The fitted selector can project additional observations into the same component space:
+
+```python
+X_new = X_scaled[ :5 ]
+X_new_components = selector.project( X_new )
+
+print( X_new_components )
+```
+
+### 🎯 Train and Evaluate a Classification Model
+
+The classification wrappers provide reproducible splitting, training, prediction, scoring, and analysis. This example uses multinomial logistic regression to classify the Iris dataset.
+
+```python
+from sklearn.datasets import load_iris
+from classifications import LogisticRegression
+from scalers import StandardScaler
+
+
+iris = load_iris( )
+X = iris.data
+y = iris.target
+
+classifier = LogisticRegression(
+	C=1.0,
+	penalty='l2',
+	iters=1000,
+	multiclass='multinomial',
+	solver='lbfgs',
+	random=42
+)
+
+X_train, X_test, y_train, y_test = classifier.split_data(
+	X,
+	y,
+	size=0.20,
+	random=42
+)
+
+scaler = StandardScaler( )
+scaler.train( X_train )
+
+X_train_scaled = scaler.transform( X_train )
+X_test_scaled = scaler.transform( X_test )
+
+classifier.train( X_train_scaled, y_train )
+
+predictions = classifier.project( X_test_scaled )
+df_classification_metrics = classifier.analyze( X_test_scaled, y_test )
+
+print( predictions )
+print( df_classification_metrics.to_string( index=False ) )
+print( classifier.confusion_matrix_values )
+```
+
+The returned metrics include training score, testing score, misclassifications, precision, accuracy, recall, balanced accuracy, and weighted F-score.
+
+### 📈 Analyze a Regression Model
+
+The regression classes use the same split, train, project, score, and analyze pattern. The following example uses a random-forest regressor to model the scikit-learn diabetes dataset.
+
+```python
+from sklearn.datasets import load_diabetes
+from regressions import RandomForest
+
+
+diabetes = load_diabetes( )
+X = diabetes.data
+y = diabetes.target
+
+regressor = RandomForest(
+	estimators=300,
+	criterion='squared_error',
+	depth=8,
+	jobs=-1,
+	rando=42
+)
+
+X_train, X_test, y_train, y_test = regressor.split_data(
+	X,
+	y,
+	size=0.20,
+	random=42
+)
+
+regressor.train( X_train, y_train )
+
+predictions = regressor.project( X_test )
+df_regression_metrics = regressor.analyze( X_test, y_test )
+
+print( predictions[ :10 ] )
+print( df_regression_metrics.to_string( index=False ) )
+```
+
+The analysis includes:
+
+* Training and testing scores
+* R-squared
+* Mean absolute error
+* Mean squared error
+* Root mean squared error
+* Explained variance
+* Median absolute error
+* Maximum error
+
+### 🧩 Discover Natural Groups with K-Means
+
+The `KMeans` class can identify groups in unlabeled numeric data. If reference labels are available, Mathy can also calculate external clustering metrics.
+
+```python
+from sklearn.datasets import make_blobs
+from clusters import KMeans
+from scalers import StandardScaler
+
+
+X, reference_labels = make_blobs(
+	n_samples=300,
+	centers=4,
+	cluster_std=0.75,
+	random_state=42
+)
+
+scaler = StandardScaler( )
+X_scaled = scaler.train_transform( X )
+
+clusterer = KMeans(
+	clusters=4,
+	n_init='auto',
+	rando=42,
+	max_iter=300
+)
+
+clusterer.train( X_scaled )
+
+cluster_labels = clusterer.project( X_scaled )
+df_cluster_scores = clusterer.score( X_scaled, reference_labels )
+cluster_analysis = clusterer.analyze( X_scaled, reference_labels )
+
+print( cluster_labels[ :20 ] )
+print( clusterer.centroids_ )
+print( df_cluster_scores.to_string( index=False ) )
+print( cluster_analysis )
+```
+
+The clustering results can include silhouette score, inertia, iterations, cluster count, homogeneity, completeness, mutual information, and V-measure.
+
+Reference labels are optional:
+
+```python
+df_intrinsic_scores = clusterer.score( X_scaled )
+
+print( df_intrinsic_scores.to_string( index=False ) )
+```
+
+### 🚨 Detecting Anomalies
+
+The `IsolationForest` class identifies unusual records without requiring a labeled target. Predictions use `1` for an inlier and `-1` for an outlier.
+
+```python
+import numpy as np
+from outliers import IsolationForest
+from scalers import StandardScaler
+
+
+rng = np.random.default_rng( 42 )
+
+normal_data = rng.normal(
+	loc=0.0,
+	scale=1.0,
+	size=(200, 2)
+)
+
+unusual_data = np.array(
+	[
+		[ 6.0, 6.0 ],
+		[ -7.0, 5.0 ],
+		[ 8.0, -6.0 ],
+		[ -6.0, -7.0 ]
+	]
+)
+
+X = np.vstack( (normal_data, unusual_data) )
+
+scaler = StandardScaler( )
+X_scaled = scaler.train_transform( X )
+
+detector = IsolationForest( contamination=0.02 )
+detector.train( X_scaled )
+
+labels = detector.project( X_scaled )
+df_anomaly_scores = detector.score( X_scaled )
+df_anomaly_summary = detector.analyze( X_scaled )
+
+outlier_rows = np.where( labels == -1 )[ 0 ]
+
+print( f'Detected outlier rows: {outlier_rows}' )
+print( df_anomaly_scores.iloc[ outlier_rows ] )
+print( df_anomaly_summary.to_string( index=False ) )
+```
+
+The row-level score output contains the predicted class, anomaly score, inlier flag, and outlier flag. The analysis method returns aggregate counts and displays an inlier-versus-outlier chart.
+
+### ⏳ Forecast a Time Series
+
+`LagBoostingSeries` converts an ordered series into lagged predictors and fits a histogram gradient-boosting regressor. Forecasts are produced recursively by feeding each predicted value into the next lag window.
+
+```python
+import numpy as np
+from forecasting import LagBoostingSeries
+
+
+rng = np.random.default_rng( 42 )
+periods = np.arange( 96 )
+
+trend = 100.0 + (periods * 1.25)
+seasonality = 15.0 * np.sin( 2.0 * np.pi * periods / 12.0 )
+noise = rng.normal( loc=0.0, scale=2.0, size=len( periods ) )
+
+series = trend + seasonality + noise
+
+forecaster = LagBoostingSeries(
+	lag=12,
+	loss='squared_error',
+	rate=0.05,
+	iters=300,
+	leaf=8,
+	rando=42
+)
+
+forecaster.train( series )
+
+forecast = forecaster.project( n_steps=12 )
+training_score = forecaster.score( )
+forecast_metrics = forecaster.analyze( )
+
+print( f'Next 12 periods: {forecast}' )
+print( f'Training R-squared: {training_score:.4f}' )
+print( forecast_metrics )
+```
+
+The forecast analysis reports mean absolute error, mean squared error, root mean squared error, R-squared, explained variance, median absolute error, and maximum error.
+
+### 🔄 Common Mathy Workflow
+
+Across classification, regression, clustering, outlier detection, and forecasting, Mathy uses a predictable analytical pattern:
+
+```python
+model = ModelClass( )
+model.train( training_data, training_targets )
+
+predictions = model.project( testing_data )
+scores = model.score( testing_data, testing_targets )
+analysis = model.analyze( testing_data, testing_targets )
+```
+
+The exact arguments differ for unsupervised and time-series models:
+
+```python
+clusterer.train( feature_data )
+cluster_labels = clusterer.project( feature_data )
+cluster_metrics = clusterer.analyze( feature_data )
+
+forecaster.train( time_series )
+future_values = forecaster.project( n_steps=12 )
+forecast_metrics = forecaster.analyze( )
+```
+
+This shared interface makes it straightforward to exchange estimators while preserving the surrounding data-preparation and evaluation workflow.
 
 ## 🔧 Configuration
 
@@ -426,17 +845,5 @@ MIT License © 2022–2025 **Terry D. Eppler**
 
 Contact: [terryeppler@gmail.com](mailto:terryeppler@gmail.com)
 
-## 🙌 Acknowledgements
-
-* Streamlit
-* NumPy
-* pandas
-* SciPy
-* scikit-learn
-* statsmodels
-* XGBoost
-* Matplotlib
-* Seaborn
-* Plotly
-* The open-source Python data science and machine-learning ecosystem
+#
 
