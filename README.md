@@ -355,7 +355,7 @@ X_scaled = StandardScaler().train_transform(X)
 model = LogisticRegression().train(X_scaled, y_enc)
 print("Accuracy:", model.score(X_scaled, y_enc))
 ```
-## 🧮 Data Analysis Examples
+## 🧮 Example Usage
 
 Mathy provides a consistent class-based interface for preparing data, transforming features, training models, generating predictions, and evaluating analytical results. Most modeling classes follow the same general workflow:
 
@@ -367,7 +367,7 @@ Mathy provides a consistent class-based interface for preparing data, transformi
 
 The following examples assume that the Mathy modules are available from the project directory.
 
-### 📊 Profile and Partition a Dataset
+## 📊 Profile and Partition a Dataset
 
 The `DataSource` class examines a pandas dataframe, identifies numeric and categorical columns, calculates descriptive statistics, and creates reproducible training and testing partitions.
 
@@ -413,7 +413,7 @@ source.create_histogram( )
 source.create_heatmap( numeric=True )
 ```
 
-### 🧹 Impute, Encode, and Scale Features
+## 🧹 Impute, Encode, and Scale Features
 
 Mathy preprocessing classes share a `train`, `transform`, and `train_transform` interface. The following example prepares numeric and categorical data for a downstream model.
 
@@ -479,7 +479,7 @@ X_test_scaled = scaler.transform( X_test_imputed )
 
 This prevents information from the testing partition from influencing preprocessing statistics.
 
-### 🔍 Reduce Features with Principal Component Analysis
+## 🔍 Reduce Features with Principal Component Analysis
 
 The `PCA` class reduces a numeric feature matrix to a smaller set of principal components while reporting how much variance is retained.
 
@@ -515,7 +515,7 @@ X_new_components = selector.project( X_new )
 print( X_new_components )
 ```
 
-### 🎯 Train and Evaluate a Classification Model
+## 🎯 Train and Evaluate a Classification Model
 
 The classification wrappers provide reproducible splitting, training, prediction, scoring, and analysis. This example uses multinomial logistic regression to classify the Iris dataset.
 
@@ -563,7 +563,7 @@ print( classifier.confusion_matrix_values )
 
 The returned metrics include training score, testing score, misclassifications, precision, accuracy, recall, balanced accuracy, and weighted F-score.
 
-### 📈 Analyze a Regression Model
+## 📈 Analyze a Regression Model
 
 The regression classes use the same split, train, project, score, and analyze pattern. The following example uses a random-forest regressor to model the scikit-learn diabetes dataset.
 
@@ -611,7 +611,7 @@ The analysis includes:
 * Median absolute error
 * Maximum error
 
-### 🧩 Discover Natural Groups with K-Means
+## 🧩 Discover Natural Groups with K-Means
 
 The `KMeans` class can identify groups in unlabeled numeric data. If reference labels are available, Mathy can also calculate external clustering metrics.
 
@@ -660,7 +660,7 @@ df_intrinsic_scores = clusterer.score( X_scaled )
 print( df_intrinsic_scores.to_string( index=False ) )
 ```
 
-### 🚨 Detecting Anomalies
+## 🚨 Detecting Anomalies
 
 The `IsolationForest` class identifies unusual records without requiring a labeled target. Predictions use `1` for an inlier and `-1` for an outlier.
 
@@ -708,7 +708,7 @@ print( df_anomaly_summary.to_string( index=False ) )
 
 The row-level score output contains the predicted class, anomaly score, inlier flag, and outlier flag. The analysis method returns aggregate counts and displays an inlier-versus-outlier chart.
 
-### ⏳ Forecast a Time Series
+## ⏳ Forecast a Time Series
 
 `LagBoostingSeries` converts an ordered series into lagged predictors and fits a histogram gradient-boosting regressor. Forecasts are produced recursively by feeding each predicted value into the next lag window.
 
@@ -748,7 +748,7 @@ print( forecast_metrics )
 
 The forecast analysis reports mean absolute error, mean squared error, root mean squared error, R-squared, explained variance, median absolute error, and maximum error.
 
-### 🔄 Common Mathy Workflow
+## 🔄 Common Mathy Workflow
 
 Across classification, regression, clustering, outlier detection, and forecasting, Mathy uses a predictable analytical pattern:
 
