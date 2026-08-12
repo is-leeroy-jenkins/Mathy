@@ -1942,12 +1942,8 @@ class Ridge( Classifier ):
 		self.solver = solver
 		self.max_iter = iters
 		self.random_state = rando
-		self.model = skc.RidgeClassifier(
-			alpha=self.alpha,
-			solver=self.solver,
-			max_iter=self.max_iter,
-			random_state=self.random_state
-		)
+		self.model = skc.RidgeClassifier( alpha=self.alpha, solver=self.solver,
+			max_iter=self.max_iter, random_state=self.random_state )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
@@ -2700,19 +2696,10 @@ class GradientDescent( Classifier ):
 		self.eta0 = eta
 		self.power_t = power
 		self.epsilon = epsilon
-		self.model = skc.SGDClassifier(
-			loss=self.loss,
-			penalty=self.regularization,
-			alpha=self.alpha,
-			max_iter=self.max_iter,
-			shuffle=self.shuffle,
-			eta0=self.eta0,
-			learning_rate=self.learning_rate,
-			power_t=self.power_t,
-			epsilon=self.epsilon,
-			average=self.average,
-			random_state=self.random_state
-		)
+		self.model = skc.SGDClassifier( loss=self.loss, penalty=self.regularization,
+			alpha=self.alpha, max_iter=self.max_iter, shuffle=self.shuffle, eta0=self.eta0,
+			learning_rate=self.learning_rate, power_t=self.power_t, epsilon=self.epsilon,
+			average=self.average, random_state=self.random_state )
 		
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
@@ -3492,7 +3479,6 @@ class NearestNeighbor( Classifier ):
 			probability = self.predict_probability( X )
 			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
 			roc_auc = auc( fpr, tpr )
-			
 			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
 			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
 			plt.xlim( [ -0.01, 1.01 ] )
@@ -3538,25 +3524,11 @@ class NearestNeighbor( Classifier ):
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ np.min( y ), np.max( y ) ],
-				[ np.min( y ), np.max( y ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=np.min( y ),
-				y=np.max( y ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ np.min( y ), np.max( y ) ], [ np.min( y ), np.max( y ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=np.min( y ), y=np.max( y ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -3668,35 +3640,12 @@ class DecisionTree( Classifier ):
 		
 		Returns:
 		    List[str]: Public member names exposed by the wrapper."""
-		return [ 'prediction',
-		         'probability',
-		         'random_state',
-		         'criterion',
-		         'splitter',
-		         'max_depth',
-		         'min_samples_split',
-		         'min_samples_leaf',
-		         'model',
-		         'train',
-		         'project',
-		         'predict_probability',
-		         'score',
-		         'analyze',
-		         'confusion_matrix',
-		         'roc_curve',
-		         'scatter_plot',
-		         'labels',
-		         'features_in',
-		         'feature_importances',
-		         'classes_count',
-		         'outputs',
-		         'accuracy',
-		         'precision',
-		         'balanced_accuracy',
-		         'f1_score',
-		         'recall',
-		         'testing_score',
-		         'training_score' ]
+		return [ 'prediction', 'probability', 'random_state', 'criterion', 'splitter', 'max_depth',
+			'min_samples_split', 'min_samples_leaf', 'model', 'train', 'project',
+			'predict_probability', 'score', 'analyze', 'confusion_matrix', 'roc_curve',
+			'scatter_plot', 'labels', 'features_in', 'feature_importances', 'classes_count',
+			'outputs', 'accuracy', 'precision', 'balanced_accuracy', 'f1_score', 'recall',
+			'testing_score', 'training_score' ]
 	
 	def validate_configuration( self ) -> None:
 		"""Validate classifier configuration.
@@ -4120,25 +4069,11 @@ class DecisionTree( Classifier ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -4660,25 +4595,11 @@ class RandomForest( Classifier ):
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -5163,7 +5084,6 @@ class GradientBoost( Classifier ):
 			probability = self.predict_probability( X )
 			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
 			roc_auc = auc( fpr, tpr )
-			
 			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
 			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
 			plt.xlim( [ -0.01, 1.01 ] )
@@ -6201,7 +6121,6 @@ class BaggingModel( Classifier ):
 			probability = self.predict_probability( X )
 			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
 			roc_auc = auc( fpr, tpr )
-			
 			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
 			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
 			plt.xlim( [ -0.01, 1.01 ] )
@@ -6707,28 +6626,10 @@ class StackingModel( Classifier ):
 		
 		Returns:
 		    List[str]: Public member names exposed by the wrapper."""
-		return [ 'prediction',
-		         'probability',
-		         'final_estimator',
-		         'estimator_list',
-		         'model',
-		         'train',
-		         'project',
-		         'predict_probability',
-		         'score',
-		         'analyze',
-		         'scatter_plot',
-		         'labels',
-		         'features',
-		         'estimators',
-		         'final',
-		         'accuracy',
-		         'precision',
-		         'balanced_accuracy',
-		         'f1_score',
-		         'recall',
-		         'testing_score',
-		         'training_score', ]
+		return [ 'prediction', 'probability', 'final_estimator', 'estimator_list', 'model',
+			'train', 'project', 'predict_probability', 'score', 'analyze', 'scatter_plot', 'labels',
+			'features', 'estimators', 'final', 'accuracy', 'precision', 'balanced_accuracy',
+			'f1_score', 'recall', 'testing_score', 'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -7114,36 +7015,11 @@ class SupportVector( Classifier ):
 		
 		Returns:
 		    List[str]: Public member names exposed by the wrapper."""
-		return [ 'prediction',
-		         'probability',
-		         'decision',
-		         'random_state',
-		         'model',
-		         'kernel',
-		         'regulation',
-		         'degree',
-		         'train',
-		         'project',
-		         'predict_probability',
-		         'decision_function',
-		         'score',
-		         'analyze',
-		         'confusion_matrix',
-		         'roc_curve',
-		         'scatter_plot',
-		         'vectors',
-		         'weights',
-		         'supports',
-		         'labels',
-		         'iterations',
-		         'features',
-		         'accuracy',
-		         'precision',
-		         'balanced_accuracy',
-		         'f1_score',
-		         'recall',
-		         'testing_score',
-		         'training_score' ]
+		return [ 'prediction', 'probability', 'decision', 'random_state', 'model', 'kernel',
+			'regulation', 'degree', 'train', 'project', 'predict_probability', 'decision_function',
+			'score', 'analyze', 'confusion_matrix', 'roc_curve', 'scatter_plot', 'vectors',
+			'weights', 'supports', 'labels', 'iterations', 'features', 'accuracy', 'precision',
+			'balanced_accuracy', 'f1_score', 'recall', 'testing_score', 'training_score' ]
 	
 	def validate_configuration( self ) -> None:
 		"""Validate classifier configuration.
@@ -7604,25 +7480,11 @@ class SupportVector( Classifier ):
 			_text = f'Training Score = {_trn:.1%}\nTesting Score = {_tst:.1%}\n'
 			y_pred = self.model.predict( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -7729,31 +7591,11 @@ class MultiLayerPerceptron( Classifier ):
 		
 		Returns:
 		    List[str]: Public member names exposed by the wrapper."""
-		return [ 'prediction',
-		         'probability',
-		         'random_state',
-		         'hidden_layers',
-		         'activation_function',
-		         'solver',
-		         'alpha',
-		         'learning_rate',
-		         'model',
-		         'train',
-		         'project',
-		         'predict_probability',
-		         'score',
-		         'analyze',
-		         'labels',
-		         'weights',
-		         'layers',
-		         'outputs',
-		         'accuracy',
-		         'precision',
-		         'balanced_accuracy',
-		         'f1_score',
-		         'recall',
-		         'testing_score',
-		         'training_score', ]
+		return [ 'prediction', 'probability', 'random_state', 'hidden_layers',
+			'activation_function', 'solver', 'alpha', 'learning_rate', 'model', 'train', 'project',
+			'predict_probability', 'score', 'analyze', 'labels', 'weights', 'layers', 'outputs',
+			'accuracy', 'precision', 'balanced_accuracy', 'f1_score', 'recall', 'testing_score',
+			'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
